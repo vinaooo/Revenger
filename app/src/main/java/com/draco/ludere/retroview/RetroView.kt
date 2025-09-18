@@ -27,7 +27,7 @@ class RetroView(private val context: Context, private val compositeDisposable: C
         coreFilePath = "libcore.so"
 
         /* Prepare the ROM bytes */
-        val romInputStream = context.resources.openRawResource(R.raw.rom)
+        val romInputStream = context.resources.openRawResource(R.raw.sonic_the_hedgehog)
         if (resources.getBoolean(R.bool.config_load_bytes)) {
             if (romBytes == null)
                 romBytes = romInputStream.use {it.readBytes() }
