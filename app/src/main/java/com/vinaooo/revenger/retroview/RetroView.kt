@@ -27,7 +27,14 @@ class RetroView(private val context: Context, private val compositeDisposable: C
         coreFilePath = "libcore.so"
 
         /* Prepare the ROM bytes */
-        val romInputStream = context.resources.openRawResource(R.raw.sonic_and_knuckles)
+        val romName = context.getString(R.string.config_rom)
+        val romResourceId = resources.getIdentifier(romName, "raw", context.packageName)
+        
+        if (romResourceId == 0) {
+            throw IllegalArgumentException("ROM resource '$romName' not found in raw resources. Check config.xml and ensure the file exists in res/raw/")
+        }
+        
+        val romInputStream = context.resources.openRawResource(romResourceId)
         if (resources.getBoolean(R.bool.config_load_bytes)) {
             if (romBytes == null)
                 romBytes = romInputStream.use {it.readBytes() }

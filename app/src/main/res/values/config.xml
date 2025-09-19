@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- A unique identifier for the app (no spaces or special characters allowed) -->
-    <string name="config_id">sonic_and_knuckles</string>
+    <string name="config_id">legend_zelda_awakening_gb</string>
 
     <!-- The pretty name for the app -->
-    <string name="config_name">Sonic and Knuckles</string>
+    <string name="config_name">The Legend of Zelda: Links Awakening</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="config_core">genesis_plus_gx</string>
+    <string name="config_core">gambatte</string>
     <!-- Snes = bsnes -->
-    <string name="config_rom">sonic_and_knuckles</string>
+    <!-- megadrive = genesis_plus_gx -->
+    <!-- gb = gambatte -->
+    
+    <!-- rom name, the same name the rom file in res/raw without extension -->
+    <string name="config_rom">legend_zelda_awakening_gb</string>
 
     <!-- Load ROM directly from memory; larger games should have this disabled -->
     <bool name="config_load_bytes">false</bool>
@@ -30,8 +34,8 @@
         3: Any orientation (including upside-down)
 
         NOTE: Landscape <-> Portrait can be slow,
-              as it involves rebuilding the
-              emulator instance!
+                as it involves rebuilding the
+                emulator instance!
     -->
     <integer name="config_orientation">2</integer>
 
