@@ -1,9 +1,9 @@
-package com.draco.ludere.input
+package com.vinaooo.revenger.input
 
 import android.view.InputEvent
 import android.view.KeyEvent
 import android.view.MotionEvent
-import com.draco.ludere.retroview.RetroView
+import com.vinaooo.revenger.retroview.RetroView
 import com.swordfish.libretrodroid.GLRetroView
 
 class ControllerInput {

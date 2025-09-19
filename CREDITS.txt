@@ -1,0 +1,46 @@
+CREDITS AND ATTRIBUTION
+
+==============================================================================
+GNU GPL v3.0 COMPLIANCE - DERIVATIVE WORK ATTRIBUTION
+==============================================================================
+
+This project (Revenger) is a modified version of the original Ludere project.
+As required by the GNU General Public License v3.0, we provide the following
+attribution and source information:
+
+ORIGINAL PROJECT:
+    Name: Ludere
+    Author: tytydraco
+    Repository: https://github.com/tytydraco/Ludere
+    License: GNU General Public License v3.0
+    Copyright: © tytydraco
+
+DERIVATIVE PROJECT:
+    Name: Revenger
+    Maintainer: vinaooo
+    Repository: https://github.com/vinaooo/Revenger
+    License: GNU General Public License v3.0 (same as original)
+    Copyright: © vinaooo (modifications only)
+
+MODIFICATIONS MADE:
+    - Project renamed from "Ludere" to "Revenger"
+    - Android package changed from "com.draco.ludere" to "com.vinaooo.revenger"
+    - Updated project branding and documentation
+    - All original functionality preserved
+
+LICENSE COMPLIANCE:
+    ✓ Original GPL v3.0 license maintained
+    ✓ Source code freely available
+    ✓ Original copyright notices preserved
+    ✓ Modifications clearly documented
+    ✓ Author attribution provided
+
+==============================================================================
+
+ACKNOWLEDGMENTS:
+Special thanks to tytydraco for creating the excellent original Ludere
+LibRetro packaging tool for Android. This derivative work builds upon
+their outstanding contribution to the Android emulation community.
+
+The original Ludere project laid the foundation for this work and remains
+the intellectual property of its original author under GPL v3.0 terms.

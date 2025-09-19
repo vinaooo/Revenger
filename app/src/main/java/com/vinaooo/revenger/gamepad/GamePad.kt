@@ -1,4 +1,4 @@
-package com.draco.ludere.gamepad
+package com.vinaooo.revenger.gamepad
 
 import android.app.Activity
 import android.app.Service
@@ -10,7 +10,7 @@ import android.view.Display
 import android.view.InputDevice
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import com.draco.ludere.R
+import com.vinaooo.revenger.R
 import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.radialgamepad.library.RadialGamePad
 import com.swordfish.radialgamepad.library.config.RadialGamePadConfig

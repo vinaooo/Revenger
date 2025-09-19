@@ -10,3 +10,15 @@
 .cxx
 app/src/main/res/raw/*
 *.so
+
+# Arquivos de backup
+*_backup
+*_backup.*
+
+# Testes
+/tests
+*_test
+*_test.*
+
+# Documentação
+/docs
