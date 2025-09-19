@@ -10,14 +10,14 @@ def configValue = { id ->
 }
 
 android {
-    namespace 'com.vinaooo.revenger'  // necessário para AGP 8.x, ajuste conforme seu package
-    compileSdk 33               // atualize para SDK 33 para compatibilidade AGP 8.x
-    buildToolsVersion '33.0.2'  // build tools compatível
+    namespace 'com.vinaooo.revenger'
+    compileSdk 35               // Android 15 - API Level 35
+    // buildToolsVersion removido - AGP 8.3.2 usa automaticamente 35.0.0
 
     defaultConfig {
         applicationId "com.vinaooo.revenger.${configValue('config_id')}"
         minSdk 30                // Android 11 - API Level 30
-        targetSdk 33             // atualizar conforme compileSdk
+        targetSdk 35             // Android 15 - API Level 35
         versionCode 1
         versionName '1.0'
         resConfigs 'en'

@@ -11,6 +11,7 @@
     <!-- Snes = bsnes -->
     <!-- megadrive = genesis_plus_gx -->
     <!-- gb = gambatte -->
+    <!-- master = smsplus -->
     
     <!-- rom name, the same name the rom file in res/raw without extension -->
     <string name="config_rom">sonic_the_hedgehog</string>
