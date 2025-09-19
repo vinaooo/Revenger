@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- A unique identifier for the app (no spaces or special characters allowed) -->
-    <string name="config_id">legend_zelda_awakening_gb</string>
+    <string name="config_id">sonic_the_hedgehog</string>
 
     <!-- The pretty name for the app -->
-    <string name="config_name">The Legend of Zelda: Links Awakening</string>
+    <string name="config_name">Sonic the Hedgehog</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="config_core">gambatte</string>
+    <string name="config_core">smsplus</string>
     <!-- Snes = bsnes -->
     <!-- megadrive = genesis_plus_gx -->
     <!-- gb = gambatte -->
     
     <!-- rom name, the same name the rom file in res/raw without extension -->
-    <string name="config_rom">legend_zelda_awakening_gb</string>
+    <string name="config_rom">sonic_the_hedgehog</string>
 
     <!-- Load ROM directly from memory; larger games should have this disabled -->
     <bool name="config_load_bytes">false</bool>
