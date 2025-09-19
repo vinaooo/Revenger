@@ -13,7 +13,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Revenger"
-        tools:targetApi="lollipop">
+        tools:targetApi="android11">
         <activity android:name=".views.GameActivity"
             android:exported="true">
             <intent-filter>

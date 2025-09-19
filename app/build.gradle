@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         applicationId "com.vinaooo.revenger.${configValue('config_id')}"
-        minSdk 21                // sintaxe atualizada para AGP 7+ (sem 'Version' no nome)
+        minSdk 30                // Android 11 - API Level 30
         targetSdk 33             // atualizar conforme compileSdk
         versionCode 1
         versionName '1.0'
