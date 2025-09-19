@@ -1,5 +1,6 @@
 # Revenger
 A LibRetro-powered ROM packager for portable emulation
+This is a try to keep this project updated, but my focus at this moment is my personal use
 
 ## About This Project
 
@@ -10,13 +11,6 @@ A LibRetro-powered ROM packager for portable emulation
 - **Original Author**: tytydraco
 - **Original Repository**: https://github.com/tytydraco/Ludere  
 - **License**: GNU General Public License v3.0
-
-### Modifications Made
-This fork (Revenger) includes the following changes from the original Ludere:
-- Renamed project from "Ludere" to "Revenger"
-- Changed Android package name from `com.draco.ludere` to `com.vinaooo.revenger`
-- Updated project branding and documentation
-- Maintained all original functionality and features
 
 ### License Compliance
 As required by the GNU General Public License v3, this modified version:
