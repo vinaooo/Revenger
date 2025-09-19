@@ -21,4 +21,4 @@ app/src/main/res/raw/*
 *_test.*
 
 # Documentação
-/docs
+# /docs
