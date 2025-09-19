@@ -1,10 +1,10 @@
-package com.draco.ludere.utils
+package com.vinaooo.revenger.utils
 
 import android.app.Activity
 import android.content.Context
-import com.draco.ludere.R
-import com.draco.ludere.repositories.Storage
-import com.draco.ludere.retroview.RetroView
+import com.vinaooo.revenger.R
+import com.vinaooo.revenger.repositories.Storage
+import com.vinaooo.revenger.retroview.RetroView
 
 class RetroViewUtils(private val activity: Activity) {
     private val storage = Storage.getInstance(activity)

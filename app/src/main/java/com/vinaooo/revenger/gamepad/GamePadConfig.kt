@@ -1,11 +1,11 @@
-package com.draco.ludere.gamepad
+package com.vinaooo.revenger.gamepad
 
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.Color
 import android.view.KeyEvent
 import androidx.core.content.ContextCompat
-import com.draco.ludere.R
+import com.vinaooo.revenger.R
 import com.swordfish.radialgamepad.library.config.*
 import com.swordfish.radialgamepad.library.haptics.HapticConfig
 

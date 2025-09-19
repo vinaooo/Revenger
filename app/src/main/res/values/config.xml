@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- A unique identifier for the app (no spaces or special characters allowed) -->
-    <string name="config_id">sonic_sms</string>
+    <string name="config_id">rocknroll_snes</string>
 
     <!-- The pretty name for the app -->
-    <string name="config_name">Sonic The Hedgehog</string>
+    <string name="config_name">Rock N Roll Racing</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="config_core">smsplus</string>
-    <string name="config_rom">sonic_the_hedgehog</string>
+    <string name="config_core">bsnes</string>
+    <string name="config_rom">rock_n_roll</string>
 
     <!-- Load ROM directly from memory; larger games should have this disabled -->
     <bool name="config_load_bytes">false</bool>

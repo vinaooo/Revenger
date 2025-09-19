@@ -42,9 +42,13 @@ Essa é atualmente a forma conhecida e funcional para transformar cada ROM e cor
 
 ---
 
+# Histórico do Projeto Revenger
+
+> **Nota**: Este projeto (Revenger) foi baseado no código fonte do projeto Ludere (https://github.com/tytydraco/Ludere). Todas as referências ao nome "Ludere" no histórico são mantidas para fins de documentação histórica. O projeto atual foi renomeado para "Revenger" com o pacote `com.vinaooo.revenger`.
+
 # acho que o projeto mudou de nome, verifique se é o caso no link [https://github.com/tytydraco/Ludere](https://github.com/tytydraco/Ludere)
 
-O projeto que foi encontrado para transformar ROMs e cores do Libretro em APKs independentes para Android mudou de nome e agora se chama "Ludere".
+O projeto original que foi encontrado para transformar ROMs e cores do Libretro em APKs independentes para Android se chamava "Ludere". Este projeto (Revenger) é baseado no código fonte do Ludere.
 
 O Ludere é uma ferramenta moderna que empacota uma ROM dentro do APK juntamente com o core do Libretro, já configurado para rodar de forma imediata ao abrir o aplicativo. Ele oferece suporte a saves, save states, controles touch e tudo em um único pacote APK para fácil distribuição. O sistema busca o core na primeira execução, permitindo que o APK tenha tamanho reduzido inicialmente e carregue dinamicamente o core quando usado. Há um mecanismo para automatizar a geração de vários APKs com diferentes ROMs via um script Python incluído em um diretório chamado "autogen". O projeto também oferece uma forma de build online via GitHub Actions para usuários que não possuem experiência com Android Studio.
 

@@ -1,4 +1,4 @@
-package com.draco.ludere.views
+package com.vinaooo.revenger.views
 
 import android.app.Service
 import android.hardware.input.InputManager
@@ -7,8 +7,8 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.draco.ludere.databinding.ActivityGameBinding
-import com.draco.ludere.viewmodels.GameActivityViewModel
+import com.vinaooo.revenger.databinding.ActivityGameBinding
+import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 class GameActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGameBinding

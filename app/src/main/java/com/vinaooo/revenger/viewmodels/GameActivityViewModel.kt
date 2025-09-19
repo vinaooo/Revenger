@@ -1,4 +1,4 @@
-package com.draco.ludere.viewmodels
+package com.vinaooo.revenger.viewmodels
 
 import android.app.Activity
 import android.app.Application
@@ -11,12 +11,12 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.AndroidViewModel
-import com.draco.ludere.R
-import com.draco.ludere.gamepad.GamePad
-import com.draco.ludere.gamepad.GamePadConfig
-import com.draco.ludere.input.ControllerInput
-import com.draco.ludere.retroview.RetroView
-import com.draco.ludere.utils.RetroViewUtils
+import com.vinaooo.revenger.R
+import com.vinaooo.revenger.gamepad.GamePad
+import com.vinaooo.revenger.gamepad.GamePadConfig
+import com.vinaooo.revenger.input.ControllerInput
+import com.vinaooo.revenger.retroview.RetroView
+import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) : AndroidViewModel(application) {

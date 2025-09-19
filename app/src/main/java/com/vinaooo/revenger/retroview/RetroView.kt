@@ -1,12 +1,12 @@
-package com.draco.ludere.retroview
+package com.vinaooo.revenger.retroview
 
 import android.content.Context
 import android.view.Gravity
 import android.widget.FrameLayout
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.draco.ludere.R
-import com.draco.ludere.repositories.Storage
+import com.vinaooo.revenger.R
+import com.vinaooo.revenger.repositories.Storage
 import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.libretrodroid.GLRetroViewData
 import com.swordfish.libretrodroid.Variable
@@ -27,7 +27,7 @@ class RetroView(private val context: Context, private val compositeDisposable: C
         coreFilePath = "libcore.so"
 
         /* Prepare the ROM bytes */
-        val romInputStream = context.resources.openRawResource(R.raw.sonic_the_hedgehog)
+        val romInputStream = context.resources.openRawResource(R.raw.rock_n_roll)
         if (resources.getBoolean(R.bool.config_load_bytes)) {
             if (romBytes == null)
                 romBytes = romInputStream.use {it.readBytes() }

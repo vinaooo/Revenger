@@ -10,12 +10,12 @@ def configValue = { id ->
 }
 
 android {
-    namespace 'com.draco.ludere'  // necessário para AGP 8.x, ajuste conforme seu package
+    namespace 'com.vinaooo.revenger'  // necessário para AGP 8.x, ajuste conforme seu package
     compileSdk 33               // atualize para SDK 33 para compatibilidade AGP 8.x
     buildToolsVersion '33.0.2'  // build tools compatível
 
     defaultConfig {
-        applicationId "com.draco.ludere.${configValue('config_id')}"
+        applicationId "com.vinaooo.revenger.${configValue('config_id')}"
         minSdk 21                // sintaxe atualizada para AGP 7+ (sem 'Version' no nome)
         targetSdk 33             // atualizar conforme compileSdk
         versionCode 1
@@ -32,7 +32,7 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile file("${rootProject.projectDir}/ludere.jks")
+            storeFile file("${rootProject.projectDir}/revenger.jks")
             storePassword 'ludere'
             keyAlias 'key0'
             keyPassword 'ludere'
