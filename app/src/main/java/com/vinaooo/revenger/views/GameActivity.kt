@@ -5,6 +5,7 @@ import android.hardware.input.InputManager
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.MotionEvent
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.vinaooo.revenger.databinding.ActivityGameBinding
@@ -49,9 +50,14 @@ class GameActivity : AppCompatActivity() {
                 viewModel.updateGamePadVisibility(this@GameActivity, binding.leftContainer, binding.rightContainer)
             }
         }, null)
-    }
 
-    override fun onBackPressed() = viewModel.showMenu()
+        /* Setup modern back pressed handling */
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                viewModel.showMenu()
+            }
+        })
+    }
 
     override fun onDestroy() {
         viewModel.dismissMenu()
