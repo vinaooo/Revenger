@@ -122,4 +122,7 @@ dependencies {
     // RxJava 3 para novos códigos
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
     implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
+    
+    // Phase 9.4: SDK 36 Features - Material Design Components
+    implementation 'com.google.android.material:material:1.12.0'
 }

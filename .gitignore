@@ -18,6 +18,13 @@ app/src/main/res/raw/*
 # Testes
 /tests
 *_test
+
+# Documentações (Phase 9.4)
+/docs
+
+# Performance logs e relatórios (Phase 9.4)
+performance_*.log
+performance_reports/
 *_test.*
 
 # Documentação
