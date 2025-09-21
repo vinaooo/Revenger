@@ -10,8 +10,6 @@ import com.vinaooo.revenger.repositories.Storage
 import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.libretrodroid.GLRetroViewData
 import com.swordfish.libretrodroid.Variable
-import io.reactivex.rxjava3.disposables.CompositeDisposable
-import hu.akarnokd.rxjava3.bridge.RxJavaBridge
 import com.swordfish.libretrodroid.ShaderConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -21,7 +19,6 @@ import androidx.lifecycle.LifecycleOwner
 
 class RetroView(
     private val context: Context, 
-    private val compositeDisposable: CompositeDisposable,
     private val coroutineScope: CoroutineScope
 ) {
     companion object {

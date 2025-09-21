@@ -41,7 +41,7 @@ class GameActivity : AppCompatActivity() {
         viewModel.updateGamePadVisibility(this, leftContainer, rightContainer)
         viewModel.prepareMenu(this)
         viewModel.setupRetroView(this, retroviewContainer)
-        viewModel.setupGamePads(leftContainer, rightContainer)
+        viewModel.setupGamePads(this, leftContainer, rightContainer)
     }
 
     /**

@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.lifecycleScope
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
@@ -106,7 +107,7 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
      * Hook the RetroView with the GLRetroView instance
      */
     fun setupRetroView(activity: ComponentActivity, container: FrameLayout) {
-        retroView = RetroView(activity, compositeDisposable, viewModelScope)
+        retroView = RetroView(activity, viewModelScope)
         retroViewUtils = RetroViewUtils(activity)
 
         retroView?.let { retroView ->
@@ -127,7 +128,7 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     /**
      * Subscribe the GamePads to the RetroView
      */
-    fun setupGamePads(leftContainer: FrameLayout, rightContainer: FrameLayout) {
+    fun setupGamePads(activity: ComponentActivity, leftContainer: FrameLayout, rightContainer: FrameLayout) {
         val context = getApplication<Application>().applicationContext
 
         val gamePadConfig = GamePadConfig(context, resources)
@@ -136,12 +137,16 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
 
         leftGamePad?.let {
             leftContainer.addView(it.pad)
-            retroView?.let { retroView -> it.subscribe(compositeDisposable, retroView.view) }
+            retroView?.let { retroView -> 
+                it.subscribe(activity.lifecycleScope, retroView.view)
+            }
         }
 
         rightGamePad?.let {
             rightContainer.addView(it.pad)
-            retroView?.let { retroView -> it.subscribe(compositeDisposable, retroView.view) }
+            retroView?.let { retroView -> 
+                it.subscribe(activity.lifecycleScope, retroView.view)
+            }
         }
     }
 

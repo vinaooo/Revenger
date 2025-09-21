@@ -59,7 +59,6 @@ class GamePadConfig(
     }
 
     private val radialGamePadTheme = RadialGamePadTheme(
-        primaryDialBackground = Color.TRANSPARENT,
         textColor = ContextCompat.getColor(context, R.color.gamepad_icon_color),
         normalColor = ContextCompat.getColor(context, R.color.gamepad_button_color),
         pressedColor = ContextCompat.getColor(context, R.color.gamepad_pressed_color)
@@ -71,8 +70,18 @@ class GamePadConfig(
         sockets = 12,
         primaryDial = if (resources.getBoolean(R.bool.config_left_analog)) LEFT_ANALOG else LEFT_DPAD,
         secondaryDials = listOfNotNull(
-            SecondaryDialConfig.SingleButton(4, 1, BUTTON_L1).takeIf { resources.getBoolean(R.bool.config_gamepad_l1) },
-            SecondaryDialConfig.SingleButton(10, 1, BUTTON_SELECT).takeIf { resources.getBoolean(R.bool.config_gamepad_select) },
+            SecondaryDialConfig.SingleButton(
+                index = 4, 
+                scale = 1f, 
+                distance = 0f, 
+                buttonConfig = BUTTON_L1
+            ).takeIf { resources.getBoolean(R.bool.config_gamepad_l1) },
+            SecondaryDialConfig.SingleButton(
+                index = 10, 
+                scale = 1f, 
+                distance = 0f, 
+                buttonConfig = BUTTON_SELECT
+            ).takeIf { resources.getBoolean(R.bool.config_gamepad_select) },
         )
     )
 
@@ -89,8 +98,18 @@ class GamePadConfig(
             )
         ),
         secondaryDials = listOfNotNull(
-            SecondaryDialConfig.SingleButton(2, 1, BUTTON_R1).takeIf { resources.getBoolean(R.bool.config_gamepad_r1) },
-            SecondaryDialConfig.SingleButton(8, 1, BUTTON_START).takeIf { resources.getBoolean(R.bool.config_gamepad_start) },
+            SecondaryDialConfig.SingleButton(
+                index = 2, 
+                scale = 1f, 
+                distance = 0f, 
+                buttonConfig = BUTTON_R1
+            ).takeIf { resources.getBoolean(R.bool.config_gamepad_r1) },
+            SecondaryDialConfig.SingleButton(
+                index = 8, 
+                scale = 1f, 
+                distance = 0f, 
+                buttonConfig = BUTTON_START
+            ).takeIf { resources.getBoolean(R.bool.config_gamepad_start) },
         )
     )
 }
