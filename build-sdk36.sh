@@ -15,14 +15,12 @@ fi
 echo "⚡ Building with enhanced performance monitoring..."
 
 # Medir tempo de build
-START_TIME=$(date +%s.%3N)
+START_TIME=$(date +%s)
 
 # Build com todas as otimizações
 ./gradlew assembleDebug \
   --build-cache \
   --parallel \
-  --configuration-cache \
-  --configuration-cache-problems=warn \
   --daemon \
   -Dorg.gradle.jvmargs="-Xmx8g -Xms2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication" \
   -Dkotlin.incremental=true \
@@ -31,8 +29,8 @@ START_TIME=$(date +%s.%3N)
   -Pandroid.useAndroidX=true
 
 BUILD_RESULT=$?
-END_TIME=$(date +%s.%3N)
-BUILD_TIME=$(echo "scale=2; $END_TIME - $START_TIME" | bc)
+END_TIME=$(date +%s)
+BUILD_TIME=$((END_TIME - START_TIME))
 
 if [ $BUILD_RESULT -eq 0 ]; then
     APK_SIZE=$(du -h app/build/outputs/apk/debug/app-debug.apk | cut -f1)
