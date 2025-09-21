@@ -15,7 +15,8 @@ import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.radialgamepad.library.RadialGamePad
 import com.swordfish.radialgamepad.library.config.RadialGamePadConfig
 import com.swordfish.radialgamepad.library.event.Event
-import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import hu.akarnokd.rxjava3.bridge.RxJavaBridge
 
 class GamePad(
     context: Context,
@@ -81,7 +82,7 @@ class GamePad(
      * Register input events to the RetroView
      */
     fun subscribe(compositeDisposable: CompositeDisposable, retroView: GLRetroView) {
-        val inputDisposable = pad.events().subscribe {
+        val inputDisposable = RxJavaBridge.toV3Observable(pad.events()).subscribe {
             eventHandler(it, retroView)
         }
         compositeDisposable.add(inputDisposable)

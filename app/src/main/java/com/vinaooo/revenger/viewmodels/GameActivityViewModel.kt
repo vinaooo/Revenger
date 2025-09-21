@@ -11,13 +11,14 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.utils.RetroViewUtils
-import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) : AndroidViewModel(application) {
     private val resources = application.resources
@@ -105,7 +106,7 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
      * Hook the RetroView with the GLRetroView instance
      */
     fun setupRetroView(activity: ComponentActivity, container: FrameLayout) {
-        retroView = RetroView(activity, compositeDisposable)
+        retroView = RetroView(activity, compositeDisposable, viewModelScope)
         retroViewUtils = RetroViewUtils(activity)
 
         retroView?.let { retroView ->

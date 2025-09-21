@@ -10,9 +10,20 @@ import com.vinaooo.revenger.repositories.Storage
 import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.libretrodroid.GLRetroViewData
 import com.swordfish.libretrodroid.Variable
-import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import hu.akarnokd.rxjava3.bridge.RxJavaBridge
+import com.swordfish.libretrodroid.ShaderConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.launch
+import androidx.lifecycle.LifecycleOwner
 
-class RetroView(private val context: Context, private val compositeDisposable: CompositeDisposable) {
+class RetroView(
+    private val context: Context, 
+    private val compositeDisposable: CompositeDisposable,
+    private val coroutineScope: CoroutineScope
+) {
     companion object {
         var romBytes: ByteArray? = null
     }
@@ -49,7 +60,7 @@ class RetroView(private val context: Context, private val compositeDisposable: C
             gameFilePath = storage.rom.absolutePath
         }
 
-        shader = GLRetroView.SHADER_SHARP
+        shader = ShaderConfig.Sharp
         variables = getCoreVariables()
 
         if (storage.sram.exists()) {
@@ -77,15 +88,15 @@ class RetroView(private val context: Context, private val compositeDisposable: C
      * Register listener for when first frame is rendered
      */
     fun registerFrameRenderedListener() {
-        val renderDisposable = view
-            .getGLRetroEvents()
-            .takeUntil { _frameRendered.value == true }
-            .subscribe {
-                if (it == GLRetroView.GLRetroEvents.FrameRendered && _frameRendered.value == false) {
-                    _frameRendered.postValue(true)
+        coroutineScope.launch {
+            view.getGLRetroEvents()
+                .takeWhile { _frameRendered.value != true }
+                .collect { event ->
+                    if (event == GLRetroView.GLRetroEvents.FrameRendered && _frameRendered.value == false) {
+                        _frameRendered.postValue(true)
+                    }
                 }
-            }
-        compositeDisposable.add(renderDisposable)
+        }
     }
 
     /**
