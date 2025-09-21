@@ -25,3 +25,8 @@ app/src/main/res/raw/*
 
 # Scripts
 /scripts
+
+# Phase 6 Backups (AGP + Gradle + AndroidX Update)
+*_backup
+build.gradle_backup
+gradle-wrapper.properties_backup
