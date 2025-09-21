@@ -53,7 +53,7 @@ class GamePad(
 
             /* If a GamePad is connected, we definitely don't need touch controls */
             for (id in InputDevice.getDeviceIds()) {
-                InputDevice.getDevice(id).apply {
+                InputDevice.getDevice(id)?.apply {
                     if (sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD)
                         return false
                 }
