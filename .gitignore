@@ -18,6 +18,13 @@ app/src/main/res/raw/*
 # Testes
 /tests
 *_test
+
+# Documentações (Phase 9.4)
+/docs
+
+# Performance logs e relatórios (Phase 9.4)
+performance_*.log
+performance_reports/
 *_test.*
 
 # Documentação
@@ -25,3 +32,8 @@ app/src/main/res/raw/*
 
 # Scripts
 /scripts
+
+# Phase 6 Backups (AGP + Gradle + AndroidX Update)
+*_backup
+build.gradle_backup
+gradle-wrapper.properties_backup

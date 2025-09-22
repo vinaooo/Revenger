@@ -70,15 +70,30 @@ Here's how Revenger is configured:
 
 # Configuration
 - Edit `app/src/main/res/values/config.xml` and change your configuration
-- Copy your ROM to `app/src/main/res/raw/rom` (where `rom` is the ROM file)
+- Copy your ROM to `app/src/main/res/raw/` (filename should match `config_rom` in config.xml)
 
-# Building Offline
-It is usually best to build a release build to reduce the total file size and improve performance.
-- `./gradlew assembleRelease`
+# Building
+Use standard Gradle commands for building:
 
-This uses the official Revenger keystore to sign the APK. This is available in the root directory of the project. Feel free to use this key for your personal projects.
+```bash
+# Debug build
+./gradlew assembleDebug
 
-The output APK is located here: `app/build/outputs/apk/release/app-universal-release.apk`
+# Release build  
+./gradlew assembleRelease
+
+# Clean build
+./gradlew clean assembleDebug
+
+# Install on connected device
+./gradlew installDebug
+```
+
+The generated APK will be available at:
+- Debug: `app/build/outputs/apk/debug/app-debug.apk`
+- Release: `app/build/outputs/apk/release/app-universal-release.apk`
+
+**Expected APK size:** ~60MB (includes LibretroDroid cores)
 
 # Autogen Tool
 Revenger has a directory called `autogen` which contains a basic script to batch-generate Revenger packages. To use it, simply navigate to this folder. Place your ROMs in the `input` folder. In this same folder, put a `config.xml` file with your preferred configuration for these ROMs. Ignore the ID and NAME fields, as they will be overwritten. The script also supports nested folders, in which each can contain their own configuration file. Execute the script with `python generate.py`.

@@ -10,12 +10,14 @@ import android.view.Display
 import android.view.InputDevice
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import com.vinaooo.revenger.R
+import androidx.lifecycle.LifecycleCoroutineScope
 import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.radialgamepad.library.RadialGamePad
 import com.swordfish.radialgamepad.library.config.RadialGamePadConfig
 import com.swordfish.radialgamepad.library.event.Event
-import io.reactivex.disposables.CompositeDisposable
+import com.vinaooo.revenger.R
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class GamePad(
     context: Context,
@@ -78,12 +80,13 @@ class GamePad(
     }
 
     /**
-     * Register input events to the RetroView
+     * Register input events to the RetroView using Flow
      */
-    fun subscribe(compositeDisposable: CompositeDisposable, retroView: GLRetroView) {
-        val inputDisposable = pad.events().subscribe {
-            eventHandler(it, retroView)
+    fun subscribe(lifecycleScope: LifecycleCoroutineScope, retroView: GLRetroView): Job {
+        return lifecycleScope.launch {
+            pad.events().collect { event: Event ->
+                eventHandler(event, retroView)
+            }
         }
-        compositeDisposable.add(inputDisposable)
     }
 }
