@@ -10,3 +10,30 @@
 .cxx
 app/src/main/res/raw/*
 *.so
+
+# Arquivos de backup
+*_backup
+*_backup.*
+
+# Testes
+/tests
+*_test
+
+# Documentações (Phase 9.4)
+/docs
+
+# Performance logs e relatórios (Phase 9.4)
+performance_*.log
+performance_reports/
+*_test.*
+
+# Documentação
+# /docs
+
+# Scripts
+/scripts
+
+# Phase 6 Backups (AGP + Gradle + AndroidX Update)
+*_backup
+build.gradle_backup
+gradle-wrapper.properties_backup

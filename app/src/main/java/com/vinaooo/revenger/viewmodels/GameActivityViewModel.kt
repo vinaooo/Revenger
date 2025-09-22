@@ -1,4 +1,4 @@
-package com.draco.ludere.viewmodels
+package com.vinaooo.revenger.viewmodels
 
 import android.app.Activity
 import android.app.Application
@@ -11,13 +11,15 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.AndroidViewModel
-import com.draco.ludere.R
-import com.draco.ludere.gamepad.GamePad
-import com.draco.ludere.gamepad.GamePadConfig
-import com.draco.ludere.input.ControllerInput
-import com.draco.ludere.retroview.RetroView
-import com.draco.ludere.utils.RetroViewUtils
-import io.reactivex.disposables.CompositeDisposable
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.lifecycleScope
+import com.vinaooo.revenger.R
+import com.vinaooo.revenger.gamepad.GamePad
+import com.vinaooo.revenger.gamepad.GamePadConfig
+import com.vinaooo.revenger.input.ControllerInput
+import com.vinaooo.revenger.retroview.RetroView
+import com.vinaooo.revenger.utils.RetroViewUtils
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) : AndroidViewModel(application) {
     private val resources = application.resources
@@ -105,7 +107,7 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
      * Hook the RetroView with the GLRetroView instance
      */
     fun setupRetroView(activity: ComponentActivity, container: FrameLayout) {
-        retroView = RetroView(activity, compositeDisposable)
+        retroView = RetroView(activity, viewModelScope)
         retroViewUtils = RetroViewUtils(activity)
 
         retroView?.let { retroView ->
@@ -126,7 +128,7 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     /**
      * Subscribe the GamePads to the RetroView
      */
-    fun setupGamePads(leftContainer: FrameLayout, rightContainer: FrameLayout) {
+    fun setupGamePads(activity: ComponentActivity, leftContainer: FrameLayout, rightContainer: FrameLayout) {
         val context = getApplication<Application>().applicationContext
 
         val gamePadConfig = GamePadConfig(context, resources)
@@ -135,12 +137,16 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
 
         leftGamePad?.let {
             leftContainer.addView(it.pad)
-            retroView?.let { retroView -> it.subscribe(compositeDisposable, retroView.view) }
+            retroView?.let { retroView -> 
+                it.subscribe(activity.lifecycleScope, retroView.view)
+            }
         }
 
         rightGamePad?.let {
             rightContainer.addView(it.pad)
-            retroView?.let { retroView -> it.subscribe(compositeDisposable, retroView.view) }
+            retroView?.let { retroView -> 
+                it.subscribe(activity.lifecycleScope, retroView.view)
+            }
         }
     }
 

@@ -1,0 +1,12 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "disabled",
+    "kotlin.languageServer.enabled": true,
+    "kotlin.debugAdapter.enabled": true,
+    "java.import.gradle.enabled": true,
+    "java.import.gradle.wrapper.enabled": true,
+    "files.exclude": {
+        "**/build": true,
+        "**/.gradle": true
+    }
+}

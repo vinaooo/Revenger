@@ -1,18 +1,26 @@
-package com.draco.ludere.retroview
+package com.vinaooo.revenger.retroview
 
 import android.content.Context
 import android.view.Gravity
 import android.widget.FrameLayout
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.draco.ludere.R
-import com.draco.ludere.repositories.Storage
+import com.vinaooo.revenger.R
+import com.vinaooo.revenger.repositories.Storage
 import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.libretrodroid.GLRetroViewData
 import com.swordfish.libretrodroid.Variable
-import io.reactivex.disposables.CompositeDisposable
+import com.swordfish.libretrodroid.ShaderConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.launch
+import androidx.lifecycle.LifecycleOwner
 
-class RetroView(private val context: Context, private val compositeDisposable: CompositeDisposable) {
+class RetroView(
+    private val context: Context, 
+    private val coroutineScope: CoroutineScope
+) {
     companion object {
         var romBytes: ByteArray? = null
     }
@@ -27,7 +35,14 @@ class RetroView(private val context: Context, private val compositeDisposable: C
         coreFilePath = "libcore.so"
 
         /* Prepare the ROM bytes */
-        val romInputStream = context.resources.openRawResource(R.raw.sonic_the_hedgehog)
+        val romName = context.getString(R.string.config_rom)
+        val romResourceId = resources.getIdentifier(romName, "raw", context.packageName)
+        
+        if (romResourceId == 0) {
+            throw IllegalArgumentException("ROM resource '$romName' not found in raw resources. Check config.xml and ensure the file exists in res/raw/")
+        }
+        
+        val romInputStream = context.resources.openRawResource(romResourceId)
         if (resources.getBoolean(R.bool.config_load_bytes)) {
             if (romBytes == null)
                 romBytes = romInputStream.use {it.readBytes() }
@@ -42,7 +57,7 @@ class RetroView(private val context: Context, private val compositeDisposable: C
             gameFilePath = storage.rom.absolutePath
         }
 
-        shader = GLRetroView.SHADER_SHARP
+        shader = ShaderConfig.Sharp
         variables = getCoreVariables()
 
         if (storage.sram.exists()) {
@@ -70,15 +85,15 @@ class RetroView(private val context: Context, private val compositeDisposable: C
      * Register listener for when first frame is rendered
      */
     fun registerFrameRenderedListener() {
-        val renderDisposable = view
-            .getGLRetroEvents()
-            .takeUntil { _frameRendered.value == true }
-            .subscribe {
-                if (it == GLRetroView.GLRetroEvents.FrameRendered && _frameRendered.value == false) {
-                    _frameRendered.postValue(true)
+        coroutineScope.launch {
+            view.getGLRetroEvents()
+                .takeWhile { _frameRendered.value != true }
+                .collect { event ->
+                    if (event == GLRetroView.GLRetroEvents.FrameRendered && _frameRendered.value == false) {
+                        _frameRendered.postValue(true)
+                    }
                 }
-            }
-        compositeDisposable.add(renderDisposable)
+        }
     }
 
     /**

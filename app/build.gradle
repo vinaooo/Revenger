@@ -10,14 +10,14 @@ def configValue = { id ->
 }
 
 android {
-    namespace 'com.draco.ludere'  // necessário para AGP 8.x, ajuste conforme seu package
-    compileSdk 33               // atualize para SDK 33 para compatibilidade AGP 8.x
-    buildToolsVersion '33.0.2'  // build tools compatível
+    namespace 'com.vinaooo.revenger'
+    compileSdk 36               // Android 16 - API Level 36
+    // buildToolsVersion removido - AGP 8.13.0 usa automaticamente 36.0.0
 
     defaultConfig {
-        applicationId "com.draco.ludere.${configValue('config_id')}"
-        minSdk 21                // sintaxe atualizada para AGP 7+ (sem 'Version' no nome)
-        targetSdk 33             // atualizar conforme compileSdk
+        applicationId "com.vinaooo.revenger.${configValue('config_id')}"
+        minSdk 30                // Android 11 - API Level 30
+        targetSdk 36             // Android 16 - API Level 36
         versionCode 1
         versionName '1.0'
         resConfigs 'en'
@@ -32,7 +32,7 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile file("${rootProject.projectDir}/ludere.jks")
+            storeFile file("${rootProject.projectDir}/revenger.jks")
             storePassword 'ludere'
             keyAlias 'key0'
             keyPassword 'ludere'
@@ -55,9 +55,9 @@ android {
 
     splits {
         abi {
-            enable true
+            enable false
             include 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
-            universalApk true
+            universalApk false
         }
     }
 
@@ -67,11 +67,11 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '21'
     }
 }
 
@@ -105,18 +105,24 @@ preBuild.dependsOn prepareCore
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1-native-mt'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
 
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.4.0'
+    implementation 'androidx.core:core-ktx:1.17.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
 
-    implementation 'androidx.activity:activity-ktx:1.4.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.0'
+    implementation 'androidx.activity:activity-ktx:1.11.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.4'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.4'
 
-    implementation 'com.github.swordfish90:radialgamepad:0.6.0'
-    implementation 'com.github.swordfish90:libretrodroid:0.6.2'
+    // RadialGamePad - Updated to 2.0.0 with native Kotlin Flow support
+    implementation 'com.github.swordfish90:radialgamepad:2.0.0'
+    implementation 'com.github.swordfish90:libretrodroid:0.10.0'
 
-    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    // RxJava 3 para novos códigos
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
+    
+    // Phase 9.4: SDK 36 Features - Material Design Components
+    implementation 'com.google.android.material:material:1.12.0'
 }
