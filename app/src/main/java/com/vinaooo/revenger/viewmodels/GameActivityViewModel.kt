@@ -153,12 +153,21 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
         val context = getApplication<Application>().applicationContext
 
         try {
-            // PARTE 1: VirtualJoystick (direcional)
-            val config =
-                    com.vinaooo.revenger.gamepad.VirtualJoystickSystemConfigs.getConfigForAppId(
-                            configId
-                    )
-                            ?: com.vinaooo.revenger.gamepad.VirtualJoystickConfig.defaultConfig()
+            // Verificar se deve usar joystick analógico ou D-Pad digital
+            val useAnalogStick = resources.getBoolean(R.bool.config_left_analog)
+            
+            if (useAnalogStick) {
+                // MODO ANALÓGICO: CustomJoystickView (cores personalizadas)
+                setupAnalogJoystick(activity, leftContainer, rightContainer, configId)
+            } else {
+                // MODO DIGITAL: RadialGamePad tradicional (D-Pad visual correto)
+                setupDigitalDPad(activity, leftContainer, rightContainer)
+            }
+
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "Sistema Híbrido configurado - Modo: ${if (useAnalogStick) "ANALÓGICO (CustomJoystick)" else "DIGITAL (RadialGamePad)"}"
+            )
 
             val customJoystick =
                     com.vinaooo.revenger.gamepad.CustomJoystickView(context).apply {
@@ -175,9 +184,18 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
                                             yAxis: Float
                                     ) {
                                         retroView?.let { retroView ->
+                                            // Escolher tipo de movimento baseado no config.xml
+                                            val motionSource =
+                                                    if (useAnalogStick) {
+                                                        com.swordfish.libretrodroid.GLRetroView
+                                                                .MOTION_SOURCE_ANALOG_LEFT
+                                                    } else {
+                                                        com.swordfish.libretrodroid.GLRetroView
+                                                                .MOTION_SOURCE_DPAD
+                                                    }
+
                                             retroView.view.sendMotionEvent(
-                                                    com.swordfish.libretrodroid.GLRetroView
-                                                            .MOTION_SOURCE_DPAD,
+                                                    motionSource,
                                                     xAxis,
                                                     yAxis
                                             )
@@ -189,8 +207,8 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
 
             leftContainer.addView(customJoystick)
 
-            // PARTE 2: RadialGamePad (apenas botões do lado direito)
-            val gamePadConfig = GamePadConfig(context, resources)
+            // PARTE 2: RadialGamePad (botões do lado direito) RESPEITANDO config.xml
+            val gamePadConfig = GamePadConfig(context, resources) // Já respeita as configurações
             rightGamePad = GamePad(context, gamePadConfig.right)
 
             rightGamePad?.let {
@@ -202,7 +220,7 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
 
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "Sistema Híbrido conectado - VirtualJoystick: ${config.name} + RadialGamePad"
+                    "Sistema Híbrido conectado - VirtualJoystick: ${config.name} + RadialGamePad (Analógico: $useAnalogStick)"
             )
         } catch (e: Exception) {
             android.util.Log.e("GameActivityViewModel", "Erro Sistema Híbrido, usando fallback", e)

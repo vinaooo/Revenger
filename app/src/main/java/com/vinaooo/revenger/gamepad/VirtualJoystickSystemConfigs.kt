@@ -1,12 +1,41 @@
 package com.vinaooo.revenger.gamepad
 
+import android.content.res.Resources
+import com.vinaooo.revenger.R
+
 /**
  * Configurações específicas do VirtualJoystick para diferentes sistemas de emulação Baseado nos
- * configs de teste disponíveis
+ * configs de teste disponíveis e configurações do config.xml
  * @author vinaooo
- * @date 22 de Setembro de 2025
+ * @date 22 de Setembro de 2025 - ATUALIZADO para respeitar config.xml
  */
 object VirtualJoystickSystemConfigs {
+
+        /** Cria configuração respeitando as configurações do config.xml */
+        fun createConfigFromResources(
+                resources: Resources,
+                baseConfig: VirtualJoystickConfig
+        ): VirtualJoystickConfig {
+                return baseConfig.copy(
+                        // Respeitar se deve usar analógico ou digital
+                        leftJoystickEnabled = true, // Sempre habilitado para movimento
+                        rightJoystickEnabled = false, // Botões vêm do RadialGamePad
+
+                        // Sensibilidade baseada no tipo (analógico vs digital)
+                        sensitivity =
+                                if (resources.getBoolean(R.bool.config_left_analog)) {
+                                        baseConfig.sensitivity *
+                                                1.2f // Mais sensível para analógico
+                                } else {
+                                        baseConfig.sensitivity *
+                                                0.8f // Menos sensível para digital (D-Pad)
+                                },
+
+                        // Vibração
+                        name =
+                                "${baseConfig.name} ${if (resources.getBoolean(R.bool.config_left_analog)) "(Analógico)" else "(Digital)"}"
+                )
+        }
 
         /**
          * Configuração para Mega Drive/Genesis (Sonic and Knuckles) Core: genesis_plus_gx
@@ -109,7 +138,22 @@ object VirtualJoystickSystemConfigs {
                 }
         }
 
-        /** Retorna configuração baseada no ID do app */
+        /** Retorna configuração baseada no ID do app RESPEITANDO config.xml */
+        fun getConfigForAppId(appId: String, resources: Resources): VirtualJoystickConfig {
+                val baseConfig =
+                        when (appId) {
+                                "sak" -> megaDriveConfig() // Sonic and Knuckles
+                                "sth" -> masterSystemConfig() // Sonic The Hedgehog (Master System)
+                                "rrr" -> snesConfig() // Rock and Roll Racing
+                                "loz" -> gameBoyConfig() // Legend of Zelda
+                                else -> VirtualJoystickConfig.defaultConfig()
+                        }
+
+                // Aplica configurações do config.xml
+                return createConfigFromResources(resources, baseConfig)
+        }
+
+        /** Versão legacy sem resources (para compatibilidade) */
         fun getConfigForAppId(appId: String): VirtualJoystickConfig {
                 return when (appId) {
                         "sak" -> megaDriveConfig() // Sonic and Knuckles
