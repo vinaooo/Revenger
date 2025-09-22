@@ -40,3 +40,4 @@ performance_reports/
 *_backup
 build.gradle_backup
 gradle-wrapper.properties_backup
+/gamepad_migration_backup/

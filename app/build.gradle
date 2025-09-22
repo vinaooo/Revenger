@@ -118,6 +118,9 @@ dependencies {
     // RadialGamePad - Updated to 2.0.0 with native Kotlin Flow support
     implementation 'com.github.swordfish90:radialgamepad:2.0.0'
     implementation 'com.github.swordfish90:libretrodroid:0.12.0'
+    
+    // TODO: Adicionar biblioteca de joystick virtual na FASE 2
+    // Por enquanto, vamos usar implementação customizada
 
     // RxJava 3 para novos códigos
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
