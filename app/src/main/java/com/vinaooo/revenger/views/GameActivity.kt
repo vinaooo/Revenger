@@ -171,8 +171,6 @@ class GameActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         
         EnhancedPrivacyManager.handlePermissionResult(
-            requestCode,
-            permissions,
             grantResults
         ) { granted ->
             if (granted) {
