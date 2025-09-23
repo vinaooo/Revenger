@@ -5,10 +5,10 @@ import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.vinaooo.revenger.utils.AndroidCompatibility
 import java.util.concurrent.ConcurrentHashMap
-import android.util.Log
 
 /**
  * Advanced Performance Profiler for SDK 36 Phase 9.4: Target SDK 36 Features Real-time performance

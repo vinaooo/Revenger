@@ -4,11 +4,11 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.vinaooo.revenger.utils.AndroidCompatibility
-import android.util.Log
 
 /**
  * Enhanced Privacy Manager for SDK 36 Phase 9.4: Target SDK 36 Features Progressive enhancement
@@ -109,11 +109,17 @@ object EnhancedPrivacyManager {
         }
 
         if (permissionsNeeded.isNotEmpty()) {
-            ActivityCompat.requestPermissions(
-                    activity,
-                    permissionsNeeded.toTypedArray(),
-                    requestCode
-            )
+            // Use modern permission API via GameActivity
+            if (activity is com.vinaooo.revenger.views.GameActivity) {
+                activity.requestPermissionsModern(permissionsNeeded.toTypedArray())
+            } else {
+                // Fallback for other activities (deprecated but functional)
+                ActivityCompat.requestPermissions(
+                        activity,
+                        permissionsNeeded.toTypedArray(),
+                        requestCode
+                )
+            }
         }
     }
 
