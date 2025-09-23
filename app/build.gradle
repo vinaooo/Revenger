@@ -50,13 +50,13 @@ def getConfigValue = { String id ->
 
 android {
     namespace = 'com.vinaooo.revenger'
-    compileSdk 36               // Android 16 - API Level 36
+    compileSdk = 36               // Android 16 - API Level 36
     // buildToolsVersion removido - AGP 8.13.0 usa automaticamente 36.0.0
 
     defaultConfig {
         applicationId "com.vinaooo.revenger.${getConfigValue('config_id')}"
-        minSdk 30                // Android 11 - API Level 30
-        targetSdk 36             // Android 16 - API Level 36
+        minSdk = 30                // Android 11 - API Level 30
+        targetSdk = 36             // Android 16 - API Level 36
         versionCode 1
         versionName '1.0'
         resConfigs 'en'
@@ -100,7 +100,7 @@ android {
         }
     }
 
-    packagingOptions {
+    packaging {
         jniLibs {
             useLegacyPackaging = true
         }
@@ -193,7 +193,7 @@ task prepareCore {
 preBuild.dependsOn prepareCore
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation files('libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
 
@@ -211,8 +211,8 @@ dependencies {
 
     // RxJava 3 para novos códigos
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
-    implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.10'
     
     // Phase 9.4: SDK 36 Features - Material Design Components
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'com.google.android.material:material:1.13.0'
 }

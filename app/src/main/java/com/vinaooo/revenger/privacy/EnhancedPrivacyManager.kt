@@ -8,7 +8,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.vinaooo.revenger.utils.AndroidCompatibility
-import java.util.logging.Logger
+import android.util.Log
 
 /**
  * Enhanced Privacy Manager for SDK 36 Phase 9.4: Target SDK 36 Features Progressive enhancement
@@ -16,7 +16,7 @@ import java.util.logging.Logger
  */
 object EnhancedPrivacyManager {
 
-    private val logger = Logger.getLogger("PrivacyManager")
+    private const val TAG = "PrivacyManager"
 
     // Enhanced permissions for Android 16
     private val ENHANCED_PERMISSIONS =
@@ -28,7 +28,7 @@ object EnhancedPrivacyManager {
 
     /** Initialize privacy controls based on Android version */
     fun initializePrivacyControls(context: Context) {
-        logger.info("Initializing privacy controls for Android ${Build.VERSION.SDK_INT}")
+        Log.i(TAG, "Initializing privacy controls for Android ${Build.VERSION.SDK_INT}")
 
         when {
             AndroidCompatibility.isAndroid16Plus() -> {
@@ -46,7 +46,7 @@ object EnhancedPrivacyManager {
     /** Android 16+: Enhanced privacy with granular controls */
     @RequiresApi(36)
     private fun initializeEnhancedPrivacy() {
-        logger.info("Applying Android 16 enhanced privacy controls")
+        Log.i(TAG, "Applying Android 16 enhanced privacy controls")
 
         // Enhanced permission management
         requestEnhancedPermissions()
@@ -60,11 +60,11 @@ object EnhancedPrivacyManager {
 
     /** Android 13+: Standard modern privacy */
     private fun initializeStandardPrivacy(context: Context) {
-        logger.info("Applying Android 13+ standard privacy controls")
+        Log.i(TAG, "Applying Android 13+ standard privacy controls")
 
         // Standard permission handling
         if (!hasStoragePermissions(context)) {
-            logger.info("Storage permissions not granted - will request on demand")
+            Log.i(TAG, "Storage permissions not granted - will request on demand")
         }
 
         // Basic data access controls
@@ -73,11 +73,11 @@ object EnhancedPrivacyManager {
 
     /** Android 11: Basic privacy compliance */
     private fun initializeBasicPrivacy(context: Context) {
-        logger.info("Applying Android 11 basic privacy controls")
+        Log.i(TAG, "Applying Android 11 basic privacy controls")
 
         // Ensure basic compliance
         if (!hasBasicPermissions(context)) {
-            logger.info("Basic permissions not granted - will request when needed")
+            Log.i(TAG, "Basic permissions not granted - will request when needed")
         }
     }
 
@@ -121,26 +121,26 @@ object EnhancedPrivacyManager {
     @RequiresApi(36)
     private fun requestEnhancedPermissions() {
         // This would use hypothetical SDK 36 enhanced permission APIs
-        logger.info("Configuring enhanced permissions for Android 16")
+        Log.i(TAG, "Configuring enhanced permissions for Android 16")
     }
 
     /** Advanced data audit logging for SDK 36 */
     @RequiresApi(36)
     private fun enableAdvancedDataAudit() {
         // Hypothetical advanced audit features
-        logger.info("Enabled advanced data audit logging")
+        Log.i(TAG, "Enabled advanced data audit logging")
     }
 
     /** Basic data access logging */
     private fun enableBasicDataAudit() {
-        logger.info("Enabled basic data access logging")
+        Log.i(TAG, "Enabled basic data access logging")
     }
 
     /** Granular permission configuration for SDK 36 */
     @RequiresApi(36)
     private fun configureGranularPermissions() {
         // Hypothetical granular permission features
-        logger.info("Configured granular permissions for enhanced privacy")
+        Log.i(TAG, "Configured granular permissions for enhanced privacy")
     }
 
     /** Check storage permissions based on Android version */
@@ -180,9 +180,9 @@ object EnhancedPrivacyManager {
         val allGranted = grantResults.all { it == PackageManager.PERMISSION_GRANTED }
 
         if (allGranted) {
-            logger.info("All permissions granted successfully")
+            Log.i(TAG, "All permissions granted successfully")
         } else {
-            logger.warning("Some permissions were denied")
+            Log.w(TAG, "Some permissions were denied")
         }
 
         callback(allGranted)

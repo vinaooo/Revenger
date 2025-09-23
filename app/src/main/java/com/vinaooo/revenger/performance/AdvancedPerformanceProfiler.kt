@@ -8,7 +8,7 @@ import android.os.Looper
 import androidx.annotation.RequiresApi
 import com.vinaooo.revenger.utils.AndroidCompatibility
 import java.util.concurrent.ConcurrentHashMap
-import java.util.logging.Logger
+import android.util.Log
 
 /**
  * Advanced Performance Profiler for SDK 36 Phase 9.4: Target SDK 36 Features Real-time performance
@@ -16,7 +16,7 @@ import java.util.logging.Logger
  */
 object AdvancedPerformanceProfiler {
 
-    private val logger = Logger.getLogger("PerformanceProfiler")
+    private const val TAG = "PerformanceProfiler"
     private val handler = Handler(Looper.getMainLooper())
 
     private var isProfilingActive = false
@@ -31,7 +31,7 @@ object AdvancedPerformanceProfiler {
     fun startProfiling(context: Context) {
         if (isProfilingActive) return
 
-        logger.info("Starting performance profiling for Android ${Build.VERSION.SDK_INT}")
+        Log.i(TAG, "Starting performance profiling for Android ${Build.VERSION.SDK_INT}")
         isProfilingActive = true
 
         when {
@@ -51,7 +51,7 @@ object AdvancedPerformanceProfiler {
     fun stopProfiling() {
         if (!isProfilingActive) return
 
-        logger.info("Stopping performance profiling")
+        Log.i(TAG, "Stopping performance profiling")
         isProfilingActive = false
         handler.removeCallbacksAndMessages(null)
 
@@ -62,7 +62,7 @@ object AdvancedPerformanceProfiler {
     /** Android 16+: Advanced performance profiling */
     @RequiresApi(36)
     private fun startAdvancedProfiling(context: Context) {
-        logger.info("Starting Android 16 advanced performance profiling")
+        Log.i(TAG, "Starting Android 16 advanced performance profiling")
 
         // Enhanced GPU profiling
         startEnhancedGpuProfiling()
@@ -81,7 +81,7 @@ object AdvancedPerformanceProfiler {
 
     /** Android 12+: Standard performance profiling */
     private fun startStandardProfiling(context: Context) {
-        logger.info("Starting Android 12+ standard performance profiling")
+        Log.i(TAG, "Starting Android 12+ standard performance profiling")
 
         // Basic GPU monitoring
         startBasicGpuProfiling()
@@ -94,7 +94,7 @@ object AdvancedPerformanceProfiler {
 
     /** Android 11: Basic performance monitoring */
     private fun startBasicProfiling(context: Context) {
-        logger.info("Starting Android 11 basic performance profiling")
+        Log.i(TAG, "Starting Android 11 basic performance profiling")
 
         // Basic system monitoring only
         startBasicSystemMonitoring()
@@ -148,7 +148,7 @@ object AdvancedPerformanceProfiler {
 
         // Log periodic performance update
         if (timestamp % (MONITORING_INTERVAL_MS * 5) == 0L) {
-            logger.info("Performance: CPU ${cpuUsage}%, Memory ${memoryInfo.used / 1024 / 1024}MB")
+            Log.i(TAG, "Performance: CPU ${cpuUsage}%, Memory ${memoryInfo.used / 1024 / 1024}MB")
         }
     }
 
@@ -156,43 +156,43 @@ object AdvancedPerformanceProfiler {
     @RequiresApi(36)
     private fun startEnhancedGpuProfiling() {
         // Hypothetical advanced GPU profiling APIs
-        logger.info("Started enhanced GPU profiling")
+        Log.i(TAG, "Started enhanced GPU profiling")
     }
 
     /** Advanced memory profiling for Android 16 */
     @RequiresApi(36)
     private fun startAdvancedMemoryProfiling() {
         // Hypothetical advanced memory profiling APIs
-        logger.info("Started advanced memory profiling")
+        Log.i(TAG, "Started advanced memory profiling")
     }
 
     /** CPU thermal monitoring for Android 16 */
     @RequiresApi(36)
     private fun startThermalMonitoring() {
         // Hypothetical thermal monitoring APIs
-        logger.info("Started thermal monitoring")
+        Log.i(TAG, "Started thermal monitoring")
     }
 
     /** Frame pacing analysis for Android 16 */
     @RequiresApi(36)
     private fun startFramePacingAnalysis() {
         // Hypothetical frame pacing APIs
-        logger.info("Started frame pacing analysis")
+        Log.i(TAG, "Started frame pacing analysis")
     }
 
     /** Basic GPU profiling */
     private fun startBasicGpuProfiling() {
-        logger.info("Started basic GPU profiling")
+        Log.i(TAG, "Started basic GPU profiling")
     }
 
     /** Standard memory profiling */
     private fun startStandardMemoryProfiling() {
-        logger.info("Started standard memory profiling")
+        Log.i(TAG, "Started standard memory profiling")
     }
 
     /** Basic system monitoring */
     private fun startBasicSystemMonitoring() {
-        logger.info("Started basic system monitoring")
+        Log.i(TAG, "Started basic system monitoring")
     }
 
     /** Collect advanced metrics for Android 16 */
@@ -243,8 +243,8 @@ object AdvancedPerformanceProfiler {
 
     /** Log performance summary */
     private fun logPerformanceSummary() {
-        logger.info("Performance Profiling Summary:")
-        performanceData.forEach { (key, value) -> logger.info("  $key: $value") }
+        Log.i(TAG, "Performance Profiling Summary:")
+        performanceData.forEach { (key, value) -> Log.i(TAG, "  $key: $value") }
     }
 
     /** Get current performance data */

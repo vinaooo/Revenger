@@ -15,7 +15,7 @@ import com.vinaooo.revenger.utils.AndroidCompatibility
 import com.vinaooo.revenger.ui.theme.DynamicThemeManager
 import com.vinaooo.revenger.privacy.EnhancedPrivacyManager
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
-import java.util.logging.Logger
+import android.util.Log
 
 /**
  * Main game activity for the emulator
@@ -26,7 +26,10 @@ class GameActivity : AppCompatActivity() {
     private lateinit var rightContainer: FrameLayout
     private lateinit var retroviewContainer: FrameLayout
     private val viewModel: GameActivityViewModel by viewModels()
-    private val logger = Logger.getLogger("GameActivity")
+    
+    companion object {
+        private const val TAG = "GameActivity"
+    }
     
     // Performance monitoring
     private var frameStartTime = 0L
@@ -34,7 +37,7 @@ class GameActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        logger.info("GameActivity starting with Android ${android.os.Build.VERSION.SDK_INT}")
+        Log.i(TAG, "GameActivity starting with Android ${android.os.Build.VERSION.SDK_INT}")
         
         // Apply conditional features based on Android version
         AndroidCompatibility.applyConditionalFeatures()
@@ -68,7 +71,7 @@ class GameActivity : AppCompatActivity() {
      * Phase 9.4: Target SDK 36 Features
      */
     private fun initializeSdk36Features() {
-        logger.info("Initializing SDK 36 features")
+        Log.i(TAG, "Initializing SDK 36 features")
         
         // Apply dynamic theming
         DynamicThemeManager.applyDynamicTheme(this)
@@ -79,7 +82,7 @@ class GameActivity : AppCompatActivity() {
         // Start performance profiling
         AdvancedPerformanceProfiler.startProfiling(this)
         
-        logger.info("SDK 36 features initialized successfully")
+        Log.i(TAG, "SDK 36 features initialized successfully")
     }
 
     /**
@@ -108,7 +111,7 @@ class GameActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        logger.info("GameActivity destroying - cleaning up SDK 36 features")
+        Log.i(TAG, "GameActivity destroying - cleaning up SDK 36 features")
         
         // Stop performance profiling
         AdvancedPerformanceProfiler.stopProfiling()
@@ -174,9 +177,9 @@ class GameActivity : AppCompatActivity() {
             grantResults
         ) { granted ->
             if (granted) {
-                logger.info("Storage permissions granted")
+                Log.i(TAG, "Storage permissions granted")
             } else {
-                logger.warning("Storage permissions denied - some features may be limited")
+                Log.w(TAG, "Storage permissions denied - some features may be limited")
             }
         }
     }
