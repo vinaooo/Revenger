@@ -3,11 +3,14 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
-// Modern configuration approach - configuration cache compatible
+// Configuration cache compatible approach - file content hash based
 def getConfigValue(String id) {
     def configFile = file("src/main/res/values/config.xml")
+    
+    // Read file content and use it as cache key
+    def fileContent = configFile.text
     def parser = new XmlParser()
-    def config = parser.parse(configFile)
+    def config = parser.parseText(fileContent)
     return config.string.find { it.@name == id }?.text() ?: ""
 }
 

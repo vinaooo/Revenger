@@ -23,7 +23,7 @@
         tools:targetApi="36">
         <activity android:name=".views.GameActivity"
             android:exported="true"
-            android:screenOrientation="unspecified"
+            android:screenOrientation="landscape"
             android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout|uiMode"
             android:launchMode="singleTop">
             <intent-filter>
