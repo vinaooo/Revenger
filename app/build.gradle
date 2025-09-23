@@ -109,7 +109,7 @@ tasks.register('prepareCore') {
                 connection.setReadTimeout(60000)
                 
                 zipFile.bytes = connection.inputStream.bytes
-                println "Downloaded: $zipFileName for $abi"
+                project.logger.info("Downloaded: {} for {}", zipFileName, abi)
                 
                 // Extract using Java ZipFile instead of ant
                 def zip = new java.util.zip.ZipFile(zipFile)
@@ -119,16 +119,16 @@ tasks.register('prepareCore') {
                 if (entry != null) {
                     def targetFile = new File(jniAbiDir, "libcore.so")
                     targetFile.bytes = zip.getInputStream(entry).bytes
-                    println "Extracted and renamed to libcore.so for $abi"
+                    project.logger.info("Extracted and renamed to libcore.so for {}", abi)
                 } else {
-                    println "Warning: $soFileName not found in zip for $abi"
+                    project.logger.warn("Warning: {} not found in zip for {}", soFileName, abi)
                 }
                 
                 zip.close()
                 zipFile.delete()
                 
             } catch (Exception e) {
-                println "Warning: Failed to download $downloadUrl - $e.message"
+                project.logger.warn("Warning: Failed to download {} - {}", downloadUrl, e.message)
                 // Continue with other ABIs
             }
         }

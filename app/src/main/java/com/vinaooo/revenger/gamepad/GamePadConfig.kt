@@ -26,16 +26,16 @@ object GamePadButtons {
 class GamePadConfig(context: Context, private val resources: Resources) {
         companion object {
                 // Import buttons from GamePadButtons object for backward compatibility
-                @JvmField val BUTTON_START = GamePadButtons.BUTTON_START
-                @JvmField val BUTTON_SELECT = GamePadButtons.BUTTON_SELECT
-                @JvmField val BUTTON_L1 = GamePadButtons.BUTTON_L1
-                @JvmField val BUTTON_R1 = GamePadButtons.BUTTON_R1
-                @JvmField val BUTTON_A = GamePadButtons.BUTTON_A
-                @JvmField val BUTTON_B = GamePadButtons.BUTTON_B
-                @JvmField val BUTTON_X = GamePadButtons.BUTTON_X
-                @JvmField val BUTTON_Y = GamePadButtons.BUTTON_Y
-                @JvmField val LEFT_DPAD = GamePadButtons.LEFT_DPAD
-                @JvmField val LEFT_ANALOG = GamePadButtons.LEFT_ANALOG
+                val BUTTON_START = GamePadButtons.BUTTON_START
+                val BUTTON_SELECT = GamePadButtons.BUTTON_SELECT
+                val BUTTON_L1 = GamePadButtons.BUTTON_L1
+                val BUTTON_R1 = GamePadButtons.BUTTON_R1
+                val BUTTON_A = GamePadButtons.BUTTON_A
+                val BUTTON_B = GamePadButtons.BUTTON_B
+                val BUTTON_X = GamePadButtons.BUTTON_X
+                val BUTTON_Y = GamePadButtons.BUTTON_Y
+                val LEFT_DPAD = GamePadButtons.LEFT_DPAD
+                val LEFT_ANALOG = GamePadButtons.LEFT_ANALOG
         }
 
         private val radialGamePadTheme =
