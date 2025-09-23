@@ -8,26 +8,34 @@ import com.swordfish.radialgamepad.library.config.*
 import com.swordfish.radialgamepad.library.haptics.HapticConfig
 import com.vinaooo.revenger.R
 
+/** Modern gamepad button definitions using object pattern */
+object GamePadButtons {
+        val BUTTON_START = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_START, label = "+")
+        val BUTTON_SELECT = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_SELECT, label = "-")
+        val BUTTON_L1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_L1, label = "L")
+        val BUTTON_R1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_R1, label = "R")
+        val BUTTON_A = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_A, label = "A")
+        val BUTTON_B = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_B, label = "B")
+        val BUTTON_X = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_X, label = "X")
+        val BUTTON_Y = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_Y, label = "Y")
+
+        val LEFT_DPAD = PrimaryDialConfig.Cross(CrossConfig(0))
+        val LEFT_ANALOG = PrimaryDialConfig.Stick(0)
+}
+
 class GamePadConfig(context: Context, private val resources: Resources) {
         companion object {
-                val BUTTON_START = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_START, label = "+")
-
-                val BUTTON_SELECT = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_SELECT, label = "-")
-
-                val BUTTON_L1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_L1, label = "L")
-
-                val BUTTON_R1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_R1, label = "R")
-
-                val BUTTON_A = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_A, label = "A")
-
-                val BUTTON_B = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_B, label = "B")
-
-                val BUTTON_X = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_X, label = "X")
-
-                val BUTTON_Y = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_Y, label = "Y")
-
-                val LEFT_DPAD = PrimaryDialConfig.Cross(CrossConfig(0))
-                val LEFT_ANALOG = PrimaryDialConfig.Stick(0)
+                // Import buttons from GamePadButtons object for backward compatibility
+                @JvmField val BUTTON_START = GamePadButtons.BUTTON_START
+                @JvmField val BUTTON_SELECT = GamePadButtons.BUTTON_SELECT
+                @JvmField val BUTTON_L1 = GamePadButtons.BUTTON_L1
+                @JvmField val BUTTON_R1 = GamePadButtons.BUTTON_R1
+                @JvmField val BUTTON_A = GamePadButtons.BUTTON_A
+                @JvmField val BUTTON_B = GamePadButtons.BUTTON_B
+                @JvmField val BUTTON_X = GamePadButtons.BUTTON_X
+                @JvmField val BUTTON_Y = GamePadButtons.BUTTON_Y
+                @JvmField val LEFT_DPAD = GamePadButtons.LEFT_DPAD
+                @JvmField val LEFT_ANALOG = GamePadButtons.LEFT_ANALOG
         }
 
         private val radialGamePadTheme =

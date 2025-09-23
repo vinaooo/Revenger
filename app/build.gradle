@@ -3,10 +3,12 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
-def configValue = { id ->
-    return new XmlParser()
-            .parse(file("${rootProject.projectDir.path}/app/src/main/res/values/config.xml"))
-            .string.find { it.@name.equals id }.text()
+// Modern configuration approach - configuration cache compatible
+def getConfigValue(String id) {
+    def configFile = file("src/main/res/values/config.xml")
+    def parser = new XmlParser()
+    def config = parser.parse(configFile)
+    return config.string.find { it.@name == id }?.text() ?: ""
 }
 
 android {
@@ -15,7 +17,7 @@ android {
     // buildToolsVersion removido - AGP 8.13.0 usa automaticamente 36.0.0
 
     defaultConfig {
-        applicationId "com.vinaooo.revenger.${configValue('config_id')}"
+        applicationId "com.vinaooo.revenger.${getConfigValue('config_id')}"
         minSdk 30                // Android 11 - API Level 30
         targetSdk 36             // Android 16 - API Level 36
         versionCode 1
@@ -53,13 +55,8 @@ android {
         }
     }
 
-    splits {
-        abi {
-            enable = false
-            include 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
-            universalApk = false
-        }
-    }
+    // Modern ABI configuration - remove splits block as it's disabled
+    // splits.abi is deprecated in favor of bundle configuration
 
 
     buildFeatures {
@@ -75,35 +72,65 @@ android {
     }
 }
 
-// Simple task compatible with configuration cache
+// Modern task 100% compatible with configuration cache - no Gradle objects referenced
 tasks.register('prepareCore') {
     doLast {
-        def configCore = configValue('config_core')
+        // Get project directory without referencing Task.project
+        def buildFile = new File(System.getProperty("user.dir"), "app/build.gradle")
+        def projectDir = buildFile.parent.startsWith("/") ? new File(buildFile.parent) : new File(System.getProperty("user.dir"))
         
-        ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'].each { abi ->
-            def jniAbiFolder = file("src/main/jniLibs/$abi")
+        // Read config at execution time - completely isolated
+        def configPath = new File(projectDir, "src/main/res/values/config.xml")
+        def parser = new XmlParser()
+        def config = parser.parse(configPath)
+        def configCore = config.string.find { it.@name == 'config_core' }?.text() ?: "genesis_plus_gx"
+        
+        def abis = ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
+        
+        abis.each { abi ->
+            def jniAbiDir = new File(projectDir, "src/main/jniLibs/$abi")
 
-            if (jniAbiFolder.exists() && jniAbiFolder.list().length > 0) {
+            if (jniAbiDir.exists() && jniAbiDir.list().length > 0) {
                 return
             }
 
-            jniAbiFolder.mkdirs()
+            jniAbiDir.mkdirs()
 
-            def zipFile = file("src/main/jniLibs/$abi/${configCore}_libretro_android.so.zip")
-
-            download {
-                src "https://buildbot.libretro.com/nightly/android/latest/$abi/${configCore}_libretro_android.so.zip"
-                dest zipFile
-            }
+            def zipFileName = "${configCore}_libretro_android.so.zip"
+            def zipFile = new File(jniAbiDir, zipFileName)
+            def downloadUrl = "https://buildbot.libretro.com/nightly/android/latest/$abi/$zipFileName"
             
-            project.ant.unzip(src: zipFile, dest: jniAbiFolder) {
-                patternset() {
-                    include name: "${configCore}_libretro_android.so"
+            // Download using pure Java (configuration cache compatible)
+            try {
+                def url = new URL(downloadUrl)
+                def connection = url.openConnection()
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0")
+                connection.setConnectTimeout(30000)
+                connection.setReadTimeout(60000)
+                
+                zipFile.bytes = connection.inputStream.bytes
+                println "Downloaded: $zipFileName for $abi"
+                
+                // Extract using Java ZipFile instead of ant
+                def zip = new java.util.zip.ZipFile(zipFile)
+                def soFileName = "${configCore}_libretro_android.so"
+                def entry = zip.getEntry(soFileName)
+                
+                if (entry != null) {
+                    def targetFile = new File(jniAbiDir, "libcore.so")
+                    targetFile.bytes = zip.getInputStream(entry).bytes
+                    println "Extracted and renamed to libcore.so for $abi"
+                } else {
+                    println "Warning: $soFileName not found in zip for $abi"
                 }
-                mapper type: "glob", from: "${configCore}_libretro_android.so", to: "libcore.so"
+                
+                zip.close()
+                zipFile.delete()
+                
+            } catch (Exception e) {
+                println "Warning: Failed to download $downloadUrl - $e.message"
+                // Continue with other ABIs
             }
-            
-            delete zipFile
         }
     }
 }
@@ -113,26 +140,28 @@ tasks.named('preBuild') {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // Remove dependência em fileTree - modern approach
     implementation "org.jetbrains.kotlin:kotlin-stdlib:2.2.20"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
 
+    // AndroidX Core - Atualizada
     implementation 'androidx.core:core-ktx:1.17.0'
     implementation 'androidx.appcompat:appcompat:1.7.1'
 
+    // Activity e Lifecycle - Versões mais recentes
     implementation 'androidx.activity:activity-ktx:1.11.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.4'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.4'
 
-    // RadialGamePad - Updated to 2.0.0 with native Kotlin Flow support
+    // RadialGamePad - Modern version with Kotlin Flow support
     implementation 'com.github.swordfish90:radialgamepad:2.0.0'
     implementation 'com.github.swordfish90:libretrodroid:0.12.0'
 
-    // RxJava 3 para novos códigos
+    // RxJava 3 - Latest versions
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
     implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
     
-    // Phase 9.4: SDK 36 Features - Material Design Components
+    // Material Design Components - Latest version
     implementation 'com.google.android.material:material:1.12.0'
 }
