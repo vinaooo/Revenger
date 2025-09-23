@@ -8,6 +8,9 @@
 /captures
 .externalNativeBuild
 .cxx
+
+# Documentation folder
+docs/
 app/src/main/res/raw/*
 *.so
 
