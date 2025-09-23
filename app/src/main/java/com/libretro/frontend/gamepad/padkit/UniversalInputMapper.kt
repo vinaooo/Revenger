@@ -1,5 +1,6 @@
 package com.libretro.frontend.gamepad.padkit
 
+import android.util.Log
 import android.view.KeyEvent
 import com.swordfish.libretrodroid.GLRetroView
 import gg.padkit.ids.Id
@@ -12,7 +13,9 @@ import gg.padkit.inputstate.InputState
 class UniversalInputMapper {
 
     companion object {
-        // IDs padrão para controles PadKit
+        private const val TAG = "UniversalInputMapper"
+        
+        // Constantes de IDs do PadKit
         const val DPAD_ID = 0
         const val ANALOG_ID = 0
         const val BUTTON_A_ID = 0
@@ -60,19 +63,31 @@ class UniversalInputMapper {
             port: Int,
             previous: InputState?
     ) {
+        Log.d(TAG, "mapMovementControls: useAnalogStick = ${configuration.useAnalogStick}")
+        
         if (configuration.useAnalogStick) {
             // Usar joystick analógico
             val analogInput = inputState.getContinuousDirection(Id.ContinuousDirection(ANALOG_ID))
             val previousAnalog = previous?.getContinuousDirection(Id.ContinuousDirection(ANALOG_ID))
 
+            Log.d(TAG, "Analog input: x=${analogInput.x}, y=${analogInput.y}")
+
+            // Filtrar valores NaN ou inválidos
+            if (analogInput.x.isNaN() || analogInput.y.isNaN()) {
+                Log.w(TAG, "Skipping NaN analog input values")
+                return
+            }
+
             // Enviar apenas se mudou
             if (previousAnalog == null || analogInput != previousAnalog) {
-                retroView.sendMotionEvent(
-                        GLRetroView.MOTION_SOURCE_ANALOG_LEFT,
+                Log.d(TAG, "Sending analog motion event to LibretroDroid: x=${analogInput.x}, y=${-analogInput.y}")
+                val result = retroView.sendMotionEvent(
+                        GLRetroView.MOTION_SOURCE_DPAD, // Tentar com DPAD source para compatibilidade
                         analogInput.x,
                         -analogInput.y, // Inverter Y para LibretroDroid
                         port
                 )
+                Log.d(TAG, "LibretroDroid sendMotionEvent result: $result")
             }
         } else {
             // Usar D-Pad digital
