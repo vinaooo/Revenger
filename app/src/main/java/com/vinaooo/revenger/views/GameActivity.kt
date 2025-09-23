@@ -131,7 +131,13 @@ class GameActivity : AppCompatActivity() {
                 this,
                 object : OnBackPressedCallback(true) {
                     override fun handleOnBackPressed() {
-                        viewModel.showMenu()
+                        if (viewModel.isBackButtonMenuEnabled()) {
+                            viewModel.showMenu()
+                        } else {
+                            // Se o menu via botão voltar está desabilitado, comportamento padrão
+                            isEnabled = false
+                            onBackPressedDispatcher.onBackPressed()
+                        }
                     }
                 }
         )

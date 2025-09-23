@@ -40,7 +40,23 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     private val MENU_COMBO = setOf(KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BUTTON_START)
 
     init {
-        controllerInput.menuCallback = { showMenu() }
+        controllerInput.menuCallback = {
+            if (isComboMenuEnabled()) {
+                showMenu()
+            }
+        }
+    }
+
+    /** Verifica se o menu via combo (SELECT+START) está habilitado */
+    private fun isComboMenuEnabled(): Boolean {
+        val menuMode = resources.getInteger(R.integer.config_menu_mode)
+        return menuMode == 2 || menuMode == 3 // Modo 2 ou 3 permitem combo
+    }
+
+    /** Verifica se o menu via botão voltar está habilitado */
+    fun isBackButtonMenuEnabled(): Boolean {
+        val menuMode = resources.getInteger(R.integer.config_menu_mode)
+        return menuMode == 1 || menuMode == 3 // Modo 1 ou 3 permitem botão voltar
     }
 
     /** Método para receber eventos de botões dos gamepads e detectar combo global */
@@ -56,7 +72,7 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
                         "Button DOWN - Added $buttonId, global pressed: $globalPressedButtons"
                 )
                 // Verificar se o combo do menu foi acionado
-                if (globalPressedButtons.containsAll(MENU_COMBO)) {
+                if (globalPressedButtons.containsAll(MENU_COMBO) && isComboMenuEnabled()) {
                     android.util.Log.d(
                             "ViewModel",
                             "GLOBAL MENU COMBO DETECTED! Calling showMenu()"
