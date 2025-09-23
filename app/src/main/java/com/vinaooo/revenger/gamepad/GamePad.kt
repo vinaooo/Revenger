@@ -8,7 +8,6 @@ import android.hardware.display.DisplayManager
 import android.os.Build
 import android.view.Display
 import android.view.InputDevice
-import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -26,15 +25,16 @@ class GamePad(
         padConfig: RadialGamePadConfig,
 ) {
     val pad = RadialGamePad(padConfig, 0f, context)
-    
+
     // Callback for button events (will be used to notify ViewModel)
     private var buttonEventCallback: ((Int, Int) -> Unit)? = null
-    
+
     /** Set the button event callback function */
     fun setButtonEventCallback(callback: (Int, Int) -> Unit) {
         android.util.Log.d("GamePad", "Setting button event callback")
         buttonEventCallback = callback
-    }    companion object {
+    }
+    companion object {
         /** Should the user see the on-screen controls? */
         @Suppress("DEPRECATION")
         fun shouldShowGamePads(activity: Activity): Boolean {

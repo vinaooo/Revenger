@@ -47,20 +47,29 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     fun onGamePadButtonEvent(buttonId: Int, action: Int) {
         android.util.Log.d("ViewModel", "GamePad button event - ID: $buttonId, Action: $action")
         android.util.Log.d("ViewModel", "Global pressed buttons before: $globalPressedButtons")
-        
+
         when (action) {
             KeyEvent.ACTION_DOWN -> {
                 globalPressedButtons.add(buttonId)
-                android.util.Log.d("ViewModel", "Button DOWN - Added $buttonId, global pressed: $globalPressedButtons")
+                android.util.Log.d(
+                        "ViewModel",
+                        "Button DOWN - Added $buttonId, global pressed: $globalPressedButtons"
+                )
                 // Verificar se o combo do menu foi acionado
                 if (globalPressedButtons.containsAll(MENU_COMBO)) {
-                    android.util.Log.d("ViewModel", "GLOBAL MENU COMBO DETECTED! Calling showMenu()")
+                    android.util.Log.d(
+                            "ViewModel",
+                            "GLOBAL MENU COMBO DETECTED! Calling showMenu()"
+                    )
                     showMenu()
                 }
             }
             KeyEvent.ACTION_UP -> {
                 globalPressedButtons.remove(buttonId)
-                android.util.Log.d("ViewModel", "Button UP - Removed $buttonId, global pressed: $globalPressedButtons")
+                android.util.Log.d(
+                        "ViewModel",
+                        "Button UP - Removed $buttonId, global pressed: $globalPressedButtons"
+                )
             }
         }
     }
