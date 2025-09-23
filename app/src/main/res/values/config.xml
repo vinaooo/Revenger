@@ -57,5 +57,5 @@
     <bool name="config_gamepad_r1">true</bool>
 
     <!-- Should the left DPAD be replaced with an analog stick? -->
-    <bool name="config_left_analog">false</bool>
+    <bool name="config_left_analog">true</bool>
 </resources>
