@@ -46,7 +46,7 @@ class LibRetroDownloader {
                 val zipBytes = downloadFile(coreUrl)
 
                 // Extrair e renomear
-                extractAndRename(zipBytes, destinationDir, coreName)
+                extractAndRename(zipBytes, destinationDir)
 
                 Log.i(TAG, "Sucesso - $coreName extraído para ${destinationDir.absolutePath}")
                 true
@@ -79,7 +79,7 @@ class LibRetroDownloader {
             }
         }
 
-        private fun extractAndRename(zipBytes: ByteArray, destinationDir: File, coreName: String) {
+        private fun extractAndRename(zipBytes: ByteArray, destinationDir: File) {
             ZipInputStream(ByteArrayInputStream(zipBytes)).use { zipIn ->
                 var entry = zipIn.nextEntry
 
