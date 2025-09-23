@@ -13,10 +13,6 @@ buildscript {
     }
 }
 
-plugins {
-    id 'de.undercouch.download' version '4.1.1'
-}
-
 allprojects {
     repositories {
         google()
