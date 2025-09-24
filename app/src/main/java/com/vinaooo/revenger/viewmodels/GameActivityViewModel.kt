@@ -3,13 +3,12 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Activity
 import android.app.Application
 import android.content.Context
-import android.content.DialogInterface
 import android.content.pm.ActivityInfo
 import android.os.Build
 import android.view.*
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
-import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.lifecycleScope
@@ -18,10 +17,11 @@ import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
+import com.vinaooo.revenger.ui.menu.GameMenuBottomSheet
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
-class GameActivityViewModel(application: Application) : AndroidViewModel(application) {
+class GameActivityViewModel(application: Application) : AndroidViewModel(application), GameMenuBottomSheet.GameMenuListener {
     private val resources = application.resources
 
     var retroView: RetroView? = null
@@ -30,7 +30,9 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     private var leftGamePad: GamePad? = null
     private var rightGamePad: GamePad? = null
 
-    private var menuDialog: AlertDialog? = null
+    // Replace old AlertDialog with Material You BottomSheet
+    private var gameMenuBottomSheet: GameMenuBottomSheet? = null
+    private var currentActivity: FragmentActivity? = null
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput()
@@ -40,25 +42,28 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     }
 
     /**
-     * Create an instance of a menu dialog
+     * Create an instance of the Material You game menu
      */
-    fun prepareMenu(context: Context) {
-        if (menuDialog != null)
-            return
+    fun prepareMenu(activity: ComponentActivity) {
+        if (gameMenuBottomSheet != null) return
 
-        val menuOnClickListener = MenuOnClickListener()
-        menuDialog = AlertDialog.Builder(context)
-            .setItems(menuOnClickListener.menuOptions, menuOnClickListener)
-            .create()
+        currentActivity = activity as? FragmentActivity
+        gameMenuBottomSheet = GameMenuBottomSheet.newInstance().apply {
+            setMenuListener(this@GameActivityViewModel)
+        }
     }
 
     /**
-     * Show the menu
+     * Show the Material You menu
      */
     fun showMenu() {
         if (retroView?.frameRendered?.value == true) {
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
-            menuDialog?.show()
+
+            // Show Material You BottomSheet instead of AlertDialog
+            currentActivity?.let { activity ->
+                gameMenuBottomSheet?.show(activity.supportFragmentManager, GameMenuBottomSheet.TAG)
+            }
         }
     }
 
@@ -66,16 +71,42 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
      * Dismiss the menu
      */
     fun dismissMenu() {
-        if (menuDialog?.isShowing == true)
-            menuDialog?.dismiss()
+        gameMenuBottomSheet?.dismiss()
     }
 
-    /**
-     * Save the state of the emulator
-     */
-    fun preserveState() {
-        if (retroView?.frameRendered?.value == true)
-            retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
+    // Implementation of GameMenuBottomSheet.GameMenuListener interface
+    override fun onResetGame() {
+        retroView?.view?.reset()
+    }
+
+    override fun onSaveState() {
+        retroView?.let { retroViewUtils?.saveState(it) }
+    }
+
+    override fun onLoadState() {
+        retroView?.let { retroViewUtils?.loadState(it) }
+    }
+
+    override fun onToggleAudio() {
+        retroView?.let {
+            it.view.audioEnabled = !it.view.audioEnabled
+        }
+    }
+
+    override fun onFastForward() {
+        retroView?.let { retroViewUtils?.fastForward(it) }
+    }
+
+    override fun getAudioState(): Boolean {
+        return retroView?.view?.audioEnabled == true
+    }
+
+    override fun getFastForwardState(): Boolean {
+        return retroView?.view?.frameSpeed ?: 1 > 1
+    }
+
+    override fun hasSaveState(): Boolean {
+        return retroViewUtils?.hasSaveState() ?: false
     }
 
     /**
@@ -216,35 +247,10 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     }
 
     /**
-     * Class to handle the menu dialog actions
+     * Save the state of the emulator
      */
-    inner class MenuOnClickListener : DialogInterface.OnClickListener {
-        private val context = getApplication<Application>().applicationContext
-
-        val menuOptions = arrayOf(
-            context.getString(R.string.menu_reset),
-            context.getString(R.string.menu_save_state),
-            context.getString(R.string.menu_load_state),
-            context.getString(R.string.menu_mute),
-            context.getString(R.string.menu_fast_forward)
-        )
-
-        override fun onClick(dialog: DialogInterface?, which: Int) {
-            when (menuOptions[which]) {
-                context.getString(R.string.menu_reset) -> retroView?.view?.reset()
-                context.getString(R.string.menu_save_state) -> retroView?.let {
-                    retroViewUtils?.saveState(it)
-                }
-                context.getString(R.string.menu_load_state) -> retroView?.let{
-                    retroViewUtils?.loadState(it)
-                }
-                context.getString(R.string.menu_mute) -> retroView?.let {
-                    it.view.audioEnabled = !it.view.audioEnabled
-                }
-                context.getString(R.string.menu_fast_forward) -> retroView?.let {
-                    retroViewUtils?.fastForward(it)
-                }
-            }
-        }
+    fun preserveState() {
+        if (retroView?.frameRendered?.value == true)
+            retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
     }
 }

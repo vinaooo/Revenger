@@ -10,7 +10,7 @@ import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.privacy.EnhancedPrivacyManager
@@ -19,7 +19,7 @@ import com.vinaooo.revenger.utils.AndroidCompatibility
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** Main game activity for the emulator Phase 9.4: Enhanced with SDK 36 features */
-class GameActivity : AppCompatActivity() {
+class GameActivity : FragmentActivity() {
     private lateinit var leftContainer: FrameLayout
     private lateinit var rightContainer: FrameLayout
     private lateinit var retroviewContainer: FrameLayout
@@ -98,7 +98,7 @@ class GameActivity : AppCompatActivity() {
 
     /** Listen for new controller additions and removals */
     private fun registerInputListener() {
-        val inputManager = getSystemService(Service.INPUT_SERVICE) as InputManager
+        val inputManager = getSystemService(INPUT_SERVICE) as InputManager
         inputManager.registerInputDeviceListener(
                 object : InputManager.InputDeviceListener {
                     override fun onInputDeviceAdded(deviceId: Int) {

@@ -3,9 +3,32 @@
     <string name="pref_frame_speed">frame_speed</string>
     <string name="pref_audio_enabled">audio_enabled</string>
 
+    <!-- Menu options -->
     <string name="menu_reset">Reset</string>
     <string name="menu_save_state">Save State</string>
     <string name="menu_load_state">Load State</string>
     <string name="menu_mute">Mute</string>
+    <string name="menu_unmute">Unmute</string>
     <string name="menu_fast_forward">Fast Forward</string>
+
+    <!-- Menu headers and descriptions -->
+    <string name="game_menu_title">Game Menu</string>
+    <string name="menu_reset_description">Restart the current game</string>
+    <string name="menu_save_state_description">Save current game progress</string>
+    <string name="menu_load_state_description">Load saved game progress</string>
+    <string name="menu_mute_description">Toggle game audio on/off</string>
+    <string name="menu_fast_forward_description">Speed up game temporarily</string>
+
+    <!-- Accessibility content descriptions -->
+    <string name="menu_item_icon_description">Menu option icon</string>
+    <string name="menu_close_button_description">Close game menu</string>
+    <string name="menu_handle_description">Drag handle to resize menu</string>
+
+    <!-- Status indicators -->
+    <string name="audio_on">Audio On</string>
+    <string name="audio_off">Audio Off</string>
+    <string name="save_state_available">Save available</string>
+    <string name="save_state_not_available">No save available</string>
+    <string name="fast_forward_active">Fast forward active</string>
+    <string name="fast_forward_inactive">Normal speed</string>
 </resources>

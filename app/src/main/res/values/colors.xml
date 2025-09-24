@@ -1,6 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Existing gamepad colors -->
     <color name="gamepad_icon_color">#ff000000</color>
     <color name="gamepad_button_color">#88ffffff</color>
     <color name="gamepad_pressed_color">#66ffffff</color>
+
+    <!-- Material You Menu Colors (fallback for older Android versions) -->
+    <color name="menu_surface">#1C1B1F</color>
+    <color name="menu_surface_variant">#49454F</color>
+    <color name="menu_on_surface">#E6E1E5</color>
+    <color name="menu_on_surface_variant">#CAC4D0</color>
+    <color name="menu_primary">#D0BCFF</color>
+    <color name="menu_on_primary">#381E72</color>
+    <color name="menu_outline">#938F99</color>
+    <color name="menu_outline_variant">#49454F</color>
+
+    <!-- NEW: Semi-transparent colors for see-through menu -->
+    <color name="menu_surface_transparent">#CC1C1B1F</color>
+    <color name="menu_surface_variant_transparent">#CC49454F</color>
+
+    <!-- State colors -->
+    <color name="menu_item_ripple">#33FFFFFF</color>
+    <color name="menu_item_hover">#1AFFFFFF</color>
+    <color name="menu_item_focused">#26FFFFFF</color>
+
+    <!-- Status indicator colors -->
+    <color name="status_success">#4CAF50</color>
+    <color name="status_warning">#FF9800</color>
+    <color name="status_error">#F44336</color>
+    <color name="status_info">#2196F3</color>
 </resources>

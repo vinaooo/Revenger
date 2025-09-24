@@ -1,6 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Revenger" parent="Theme.AppCompat.NoActionBar">
+    <!-- Base theme for Material You support -->
+    <style name="Theme.Revenger" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+        <!-- Game-specific overrides -->
         <item name="android:windowBackground">@android:color/black</item>
+
+        <!-- Force dark surface colors for gaming -->
+        <item name="colorSurface">@color/menu_surface</item>
+        <item name="colorOnSurface">@color/menu_on_surface</item>
+        <item name="colorSurfaceVariant">@color/menu_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/menu_on_surface_variant</item>
+
+        <!-- Bottom sheet specific styling -->
+        <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>
+
+        <!-- Ensure dark theme for dialog components -->
+        <item name="android:colorBackground">@color/menu_surface</item>
+        <item name="colorSurfaceContainer">@color/menu_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/menu_surface</item>
+
+        <!-- Enable edge-to-edge -->
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- Specific theme for BottomSheetDialog with transparent background to show game -->
+    <style name="Theme.Revenger.BottomSheet" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <!-- Force all surfaces to be semi-transparent dark -->
+        <item name="colorSurface">@color/menu_surface_transparent</item>
+        <item name="colorOnSurface">@color/menu_on_surface</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
+        <item name="colorSurfaceContainer">@color/menu_surface_transparent</item>
+        <item name="colorSurfaceContainerHigh">@color/menu_surface_transparent</item>
+        <item name="colorSurfaceContainerHighest">@color/menu_surface_transparent</item>
+
+        <!-- Transparent window background to show game behind -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.3</item>
+
+        <!-- Status and navigation bars -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+        <!-- Bottom sheet specific -->
+        <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
+    </style>
+
+    <!-- Transparent Bottom Sheet Style for Game Menu -->
+    <style name="TransparentBottomSheetStyle" parent="Widget.Material3.BottomSheet">
+        <item name="backgroundTint">@color/menu_surface_transparent</item>
+        <item name="android:background">@color/menu_surface_transparent</item>
+        <item name="shapeAppearance">@style/CustomBottomSheetShape</item>
+        <item name="behavior_peekHeight">320dp</item>
+        <item name="behavior_hideable">true</item>
+        <item name="behavior_skipCollapsed">false</item>
+    </style>
+
+    <!-- Original Bottom Sheet Style for comparison -->
+    <style name="CustomBottomSheetStyle" parent="Widget.Material3.BottomSheet">
+        <item name="backgroundTint">@color/menu_surface</item>
+        <item name="android:background">@color/menu_surface</item>
+        <item name="shapeAppearance">@style/CustomBottomSheetShape</item>
+        <item name="behavior_peekHeight">320dp</item>
+        <item name="behavior_hideable">true</item>
+        <item name="behavior_skipCollapsed">false</item>
+    </style>
+
+    <!-- Bottom Sheet Shape -->
+    <style name="CustomBottomSheetShape" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">16dp</item>
+        <item name="cornerSizeTopRight">16dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <!-- Menu Item Text Style -->
+    <style name="GameMenuItemTextStyle">
+        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <!-- Menu Item Icon Style -->
+    <style name="GameMenuItemIconStyle">
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:tint">?attr/colorPrimary</item>
     </style>
 </resources>
