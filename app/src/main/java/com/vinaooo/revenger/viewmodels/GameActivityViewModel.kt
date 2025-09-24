@@ -18,6 +18,7 @@ import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
+import com.vinaooo.revenger.ui.CustomGameMenuDialog
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
@@ -31,6 +32,7 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     private var rightGamePad: GamePad? = null
 
     private var menuDialog: AlertDialog? = null
+    private var customMenuDialog: CustomGameMenuDialog? = null
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput()
@@ -94,23 +96,53 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     fun prepareMenu(context: Context) {
         if (menuDialog != null) return
 
-        val menuOnClickListener = MenuOnClickListener()
-        menuDialog =
-                AlertDialog.Builder(context)
-                        .setItems(menuOnClickListener.menuOptions, menuOnClickListener)
-                        .create()
+        // Criar MenuActions para integração com CustomGameMenuDialog
+        val menuActions =
+                object : CustomGameMenuDialog.MenuActions {
+                    override fun onReset() {
+                        retroView?.view?.reset()
+                    }
+
+                    override fun onSaveState() {
+                        retroView?.let { retroViewUtils?.saveState(it) }
+                    }
+
+                    override fun onLoadState() {
+                        retroView?.let { retroViewUtils?.loadState(it) }
+                    }
+
+                    override fun onMute() {
+                        retroView?.let { it.view.audioEnabled = !it.view.audioEnabled }
+                    }
+
+                    override fun onFastForward() {
+                        retroView?.let { retroViewUtils?.fastForward(it) }
+                    }
+
+                    override fun onClose() {
+                        dismissMenu()
+                    }
+                }
+
+        // Armazenar referência para o Material You dialog
+        customMenuDialog = CustomGameMenuDialog(context, menuActions)
+
+        // Manter compatibilidade com código existente através de AlertDialog fake
+        menuDialog = AlertDialog.Builder(context).create()
     }
 
     /** Show the menu */
     fun showMenu() {
         if (retroView?.frameRendered?.value == true) {
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
-            menuDialog?.show()
+            // Mostrar o novo CustomGameMenuDialog Material You
+            customMenuDialog?.show(retroView?.view?.audioEnabled == true)
         }
     }
 
     /** Dismiss the menu */
     fun dismissMenu() {
+        customMenuDialog?.dismiss()
         if (menuDialog?.isShowing == true) menuDialog?.dismiss()
     }
 

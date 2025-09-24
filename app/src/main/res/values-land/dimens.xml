@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="gamepad_padding_vertical">20dp</dimen>
+    <!-- Dimensões do menu para orientação LANDSCAPE -->
+    <!-- Em landscape: altura = 85% da tela, largura = mesma medida (quadrado) -->
+    <!-- Base: usando uma referência que será calculada programaticamente -->
     
-    <!-- Dimensões base para menu responsivo -->
+    <!-- Percentuais para cálculo programático -->
     <dimen name="menu_screen_percentage">0.85</dimen> <!-- 85% da tela -->
     
-    <!-- Ratios para cálculo programático (valores entre 0.0 e 1.0) -->
+    <!-- Dimensões base para landscape (serão multiplicadas pelo tamanho calculado) -->
     <dimen name="menu_padding_ratio">0.07</dimen> <!-- 7% do tamanho do menu -->
     <dimen name="menu_title_size_ratio">0.053</dimen> <!-- 5.3% do tamanho do menu -->
     <dimen name="menu_title_margin_ratio">0.047</dimen> <!-- 4.7% do tamanho do menu -->

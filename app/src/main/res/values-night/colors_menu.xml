@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material You Expressive Colors - Modo Escuro -->
+    
+    <!-- Cores do Menu -->
+    <color name="menu_background">@color/menu_background_dark</color>
+    <color name="menu_title_color">@color/menu_title_color_dark</color>
+    <color name="menu_card_background">@color/menu_card_background_dark</color>
+    <color name="menu_icon_color">@color/menu_icon_color_dark</color>
+    <color name="menu_text_color">@color/menu_text_color_dark</color>
+    
+    <!-- Cores do botão fechar -->
+    <color name="menu_close_background">@color/menu_close_background_dark</color>
+    <color name="menu_close_stroke">@color/menu_close_stroke_dark</color>
+    <color name="menu_close_icon_color">@color/menu_close_icon_color_dark</color>
+    <color name="menu_close_text_color">@color/menu_close_text_color_dark</color>
+    
+    <!-- Cores de ripple effect -->
+    <color name="menu_ripple_color">@color/menu_ripple_color_dark</color>
+    
+    <!-- Cores de elevação/sombra -->
+    <color name="menu_shadow_color">@color/menu_shadow_color_dark</color>
+</resources>
