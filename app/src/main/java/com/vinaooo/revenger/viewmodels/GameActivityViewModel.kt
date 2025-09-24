@@ -112,7 +112,7 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     }
 
     override fun getFastForwardState(): Boolean {
-        return retroView?.view?.frameSpeed ?: 1 > 1
+        return (retroView?.view?.frameSpeed ?: 1) > 1
     }
 
     override fun hasSaveState(): Boolean {

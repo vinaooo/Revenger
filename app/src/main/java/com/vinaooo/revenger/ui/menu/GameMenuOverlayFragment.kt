@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -36,10 +35,6 @@ class GameMenuOverlayFragment : Fragment(), MenuItemClickListener {
     }
 
     private var menuListener: GameMenuListener? = null
-
-    fun setMenuListener(listener: GameMenuListener) {
-        this.menuListener = listener
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -104,7 +99,7 @@ class GameMenuOverlayFragment : Fragment(), MenuItemClickListener {
         menuContent.animate()
             .translationY(0f)
             .setDuration(300)
-            .setInterpolator(DecelerateInterpolator())
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
             .start()
     }
 
@@ -113,7 +108,7 @@ class GameMenuOverlayFragment : Fragment(), MenuItemClickListener {
         menuContent.animate()
             .translationY(menuContent.height.toFloat())
             .setDuration(250)
-            .setInterpolator(DecelerateInterpolator())
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
             .withEndAction {
                 // Remove fragment after animation
                 parentFragmentManager.beginTransaction()
@@ -238,9 +233,5 @@ class GameMenuOverlayFragment : Fragment(), MenuItemClickListener {
 
     companion object {
         const val TAG = "GameMenuOverlayFragment"
-
-        fun newInstance(): GameMenuOverlayFragment {
-            return GameMenuOverlayFragment()
-        }
     }
 }

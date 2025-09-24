@@ -46,10 +46,6 @@ class GameMenuBottomSheet : BottomSheetDialogFragment(), MenuItemClickListener {
 
     private var menuListener: GameMenuListener? = null
 
-    fun setMenuListener(listener: GameMenuListener) {
-        this.menuListener = listener
-    }
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // Force transparent theme for the entire dialog to show game behind
         val contextThemeWrapper = ContextThemeWrapper(requireContext(), R.style.Theme_Revenger_BottomSheet)
@@ -63,24 +59,15 @@ class GameMenuBottomSheet : BottomSheetDialogFragment(), MenuItemClickListener {
 
                 if (isFullscreenEnabled) {
                     // Apply immersive fullscreen to dialog window
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        window.insetsController?.let { controller ->
-                            controller.hide(WindowInsets.Type.systemBars())
-                            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                        }
-                    } else {
-                        @Suppress("DEPRECATION")
-                        window.decorView.systemUiVisibility =
-                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                            View.SYSTEM_UI_FLAG_FULLSCREEN
+                    window.insetsController?.let { controller ->
+                        controller.hide(WindowInsets.Type.systemBars())
+                        controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     }
                 }
 
+                @Suppress("DEPRECATION")
                 window.statusBarColor = Color.TRANSPARENT
+                @Suppress("DEPRECATION")
                 window.navigationBarColor = Color.TRANSPARENT
                 // Make window background transparent so game shows through
                 window.setBackgroundDrawableResource(android.R.color.transparent)
@@ -92,8 +79,7 @@ class GameMenuBottomSheet : BottomSheetDialogFragment(), MenuItemClickListener {
                     height = ViewGroup.LayoutParams.MATCH_PARENT // Change to MATCH_PARENT
                     // Remove ALL system UI spacing flags
                     flags = (flags or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                            WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR) and
+                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN) and
                             WindowManager.LayoutParams.FLAG_DIM_BEHIND.inv()
                     dimAmount = 0.3f
                 }
@@ -247,7 +233,6 @@ class GameMenuBottomSheet : BottomSheetDialogFragment(), MenuItemClickListener {
             if (menuContent != null) {
                 val location = IntArray(2)
                 menuContent.getLocationOnScreen(location)
-                val x = event.x.toInt()
                 val y = event.y.toInt()
 
                 if (y < location[1]) { // Click above menu content
@@ -383,9 +368,5 @@ class GameMenuBottomSheet : BottomSheetDialogFragment(), MenuItemClickListener {
 
     companion object {
         const val TAG = "GameMenuBottomSheet"
-
-        fun newInstance(): GameMenuBottomSheet {
-            return GameMenuBottomSheet()
-        }
     }
 }
