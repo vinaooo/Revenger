@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.pm.ActivityInfo
 import android.os.Build
+import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
@@ -23,6 +24,10 @@ import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) : AndroidViewModel(application) {
+
+    companion object {
+        private const val TAG = "GameActivityViewModel"
+    }
     private val resources = application.resources
 
     var retroView: RetroView? = null
@@ -58,7 +63,9 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     /** Verifica se o menu via botão voltar está habilitado */
     fun isBackButtonMenuEnabled(): Boolean {
         val menuMode = resources.getInteger(R.integer.config_menu_mode)
-        return menuMode == 1 || menuMode == 3 // Modo 1 ou 3 permitem botão voltar
+        val enabled = menuMode == 1 || menuMode == 3 // Modo 1 ou 3 permitem botão voltar
+        Log.d(TAG, "isBackButtonMenuEnabled() - menuMode: $menuMode, enabled: $enabled")
+        return enabled
     }
 
     /** Método para receber eventos de botões dos gamepads e detectar combo global */
@@ -69,25 +76,24 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
         when (action) {
             KeyEvent.ACTION_DOWN -> {
                 globalPressedButtons.add(buttonId)
-                android.util.Log.d(
-                        "ViewModel",
-                        "Button DOWN - Added $buttonId, global pressed: $globalPressedButtons"
-                )
+                Log.d(TAG, "Button DOWN - Added $buttonId, global pressed: $globalPressedButtons")
+
                 // Verificar se o combo do menu foi acionado
-                if (globalPressedButtons.containsAll(MENU_COMBO) && isComboMenuEnabled()) {
-                    android.util.Log.d(
-                            "ViewModel",
-                            "GLOBAL MENU COMBO DETECTED! Calling showMenu()"
-                    )
+                val hasCombo = globalPressedButtons.containsAll(MENU_COMBO)
+                val comboEnabled = isComboMenuEnabled()
+                Log.d(
+                        TAG,
+                        "Combo check - hasCombo: $hasCombo, comboEnabled: $comboEnabled, MENU_COMBO: $MENU_COMBO"
+                )
+
+                if (hasCombo && comboEnabled) {
+                    Log.i(TAG, "🎮 GLOBAL MENU COMBO DETECTED! Calling showMenu()")
                     showMenu()
                 }
             }
             KeyEvent.ACTION_UP -> {
                 globalPressedButtons.remove(buttonId)
-                android.util.Log.d(
-                        "ViewModel",
-                        "Button UP - Removed $buttonId, global pressed: $globalPressedButtons"
-                )
+                Log.d(TAG, "Button UP - Removed $buttonId, global pressed: $globalPressedButtons")
             }
         }
     }
@@ -133,17 +139,49 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
 
     /** Show the menu */
     fun showMenu() {
-        if (retroView?.frameRendered?.value == true) {
-            retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
+        Log.d(TAG, "showMenu() chamado")
+
+        val frameRendered = retroView?.frameRendered?.value == true
+        Log.d(TAG, "Frame rendered status: $frameRendered")
+        Log.d(TAG, "retroView exists: ${retroView != null}")
+        Log.d(TAG, "frameRendered LiveData: ${retroView?.frameRendered?.value}")
+
+        if (frameRendered) {
+            Log.d(TAG, "Frame renderizado, prosseguindo com menu")
+            retroView?.let {
+                Log.d(TAG, "Preservando estado do emulador")
+                retroViewUtils?.preserveEmulatorState(it)
+            }
+
+            val audioEnabled = retroView?.view?.audioEnabled == true
+            Log.d(TAG, "Audio enabled: $audioEnabled")
+
             // Mostrar o novo CustomGameMenuDialog Material You
-            customMenuDialog?.show(retroView?.view?.audioEnabled == true)
+            Log.d(TAG, "Chamando customMenuDialog.show()")
+            customMenuDialog?.show(audioEnabled)
+        } else {
+            Log.w(
+                    TAG,
+                    "⚠️ Frame não renderizado ainda, mas vou mostrar menu mesmo assim para debug"
+            )
+
+            // TEMPORÁRIO: Permitir menu mesmo sem frame renderizado para debug
+            val audioEnabled = retroView?.view?.audioEnabled ?: false
+            Log.d(TAG, "Audio enabled (default): $audioEnabled")
+
+            Log.d(TAG, "Chamando customMenuDialog.show() - modo debug")
+            customMenuDialog?.show(audioEnabled)
         }
     }
 
     /** Dismiss the menu */
     fun dismissMenu() {
+        Log.d(TAG, "dismissMenu() chamado")
         customMenuDialog?.dismiss()
-        if (menuDialog?.isShowing == true) menuDialog?.dismiss()
+        if (menuDialog?.isShowing == true) {
+            Log.d(TAG, "Dismissing legacy AlertDialog")
+            menuDialog?.dismiss()
+        }
     }
 
     /** Save the state of the emulator */
@@ -176,20 +214,58 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
 
     /** Hook the RetroView with the GLRetroView instance */
     fun setupRetroView(activity: ComponentActivity, container: FrameLayout) {
-        retroView = RetroView(activity, viewModelScope)
-        retroViewUtils = RetroViewUtils(activity)
+        Log.i(TAG, "🚀 SETTING UP RetroView...")
 
-        retroView?.let { retroView ->
-            container.addView(retroView.view)
-            activity.lifecycle.addObserver(retroView.view)
-            retroView.registerFrameRenderedListener()
+        try {
+            Log.d(TAG, "🔨 Creating RetroView instance...")
+            retroView = RetroView(activity, viewModelScope)
+            Log.d(TAG, "✅ RetroView instance created")
 
-            /* Restore state after first frame loaded */
-            retroView.frameRendered.observe(activity) {
-                if (it != true) return@observe
+            Log.d(TAG, "🛠️ Creating RetroViewUtils...")
+            retroViewUtils = RetroViewUtils(activity)
+            Log.d(TAG, "✅ RetroViewUtils created")
 
-                retroViewUtils?.restoreEmulatorState(retroView)
+            retroView?.let { retroView ->
+                Log.d(TAG, "📺 Adding RetroView to container...")
+                container.addView(retroView.view)
+                Log.d(TAG, "✅ RetroView added to container")
+
+                Log.d(TAG, "🔄 Adding lifecycle observer...")
+                activity.lifecycle.addObserver(retroView.view)
+                Log.d(TAG, "✅ Lifecycle observer added")
+
+                Log.d(TAG, "🎬 Registering frame rendered listener...")
+                retroView.registerFrameRenderedListener()
+                Log.d(TAG, "✅ Frame rendered listener registered")
+
+                /* Restore state after first frame loaded */
+                Log.d(TAG, "👁️ Setting up frameRendered observer...")
+                retroView.frameRendered.observe(activity) { frameRendered ->
+                    Log.i(
+                            TAG,
+                            "🎯 FRAME RENDERED OBSERVER TRIGGERED! frameRendered: $frameRendered"
+                    )
+
+                    if (frameRendered != true) {
+                        Log.d(TAG, "⏳ Frame not rendered yet, waiting...")
+                        return@observe
+                    }
+
+                    Log.i(TAG, "🎮 FIRST FRAME RENDERED! Restoring emulator state...")
+                    try {
+                        retroViewUtils?.restoreEmulatorState(retroView)
+                        Log.i(TAG, "✅ Emulator state restored successfully")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "💥 ERROR restoring emulator state: ${e.message}", e)
+                    }
+                }
+                Log.d(TAG, "✅ frameRendered observer set up")
             }
+
+            Log.i(TAG, "🎯 RetroView setup COMPLETED!")
+        } catch (e: Exception) {
+            Log.e(TAG, "💥 FATAL ERROR setting up RetroView: ${e.message}", e)
+            throw e
         }
     }
 

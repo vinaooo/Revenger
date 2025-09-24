@@ -3,6 +3,7 @@ package com.vinaooo.revenger.ui
 import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,10 @@ import android.widget.TextView
 import com.vinaooo.revenger.R
 
 class CustomGameMenuDialog(private val context: Context, private val menuActions: MenuActions) {
+
+    companion object {
+        private const val TAG = "CustomGameMenuDialog"
+    }
 
     interface MenuActions {
         fun onReset()
@@ -28,97 +33,161 @@ class CustomGameMenuDialog(private val context: Context, private val menuActions
     private var muteIcon: ImageView? = null
 
     fun show(isAudioEnabled: Boolean) {
-        if (dialog?.isShowing == true) return
+        Log.d(TAG, "show() chamado - isAudioEnabled: $isAudioEnabled")
 
-        val inflater = LayoutInflater.from(context)
-        val dialogView = inflater.inflate(R.layout.dialog_menu, null)
+        if (dialog?.isShowing == true) {
+            Log.w(TAG, "Dialog já está sendo exibido, ignorando nova chamada")
+            return
+        }
 
-        dialog =
-                Dialog(context).apply {
-                    requestWindowFeature(Window.FEATURE_NO_TITLE)
-                    setContentView(dialogView)
-                    window?.setBackgroundDrawableResource(android.R.color.transparent)
-                    setCancelable(true)
-                }
+        try {
+            Log.d(TAG, "Inflating layout dialog_menu")
+            val inflater = LayoutInflater.from(context)
+            val dialogView = inflater.inflate(R.layout.dialog_menu, null)
+            Log.d(TAG, "Layout inflado com sucesso")
 
-        // Temporariamente desabilitado até corrigir layout XML
-        // applyResponsiveDimensions(dialogView)
+            Log.d(TAG, "Criando Dialog")
+            dialog =
+                    Dialog(context).apply {
+                        requestWindowFeature(Window.FEATURE_NO_TITLE)
+                        setContentView(dialogView)
+                        window?.setBackgroundDrawableResource(android.R.color.transparent)
+                        setCancelable(true)
+                    }
+            Log.d(TAG, "Dialog criado com sucesso")
 
-        setupClickListeners(dialogView, isAudioEnabled)
+            // Temporariamente desabilitado até corrigir layout XML
+            // applyResponsiveDimensions(dialogView)
 
-        dialog?.show()
+            Log.d(TAG, "Configurando click listeners")
+            setupClickListeners(dialogView, isAudioEnabled)
+            Log.d(TAG, "Click listeners configurados")
+
+            Log.d(TAG, "Exibindo dialog")
+            dialog?.show()
+            Log.i(TAG, "Dialog exibido com sucesso!")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao exibir dialog", e)
+        }
     }
 
     fun dismiss() {
-        dialog?.dismiss()
+        Log.d(TAG, "dismiss() chamado")
+        try {
+            dialog?.dismiss()
+            Log.d(TAG, "Dialog dismissed com sucesso")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao dismiss dialog", e)
+        }
     }
 
-    fun isShowing(): Boolean = dialog?.isShowing == true
+    fun isShowing(): Boolean {
+        val showing = dialog?.isShowing == true
+        Log.d(TAG, "isShowing() = $showing")
+        return showing
+    }
 
     private fun setupClickListeners(view: View, isAudioEnabled: Boolean) {
-        val resetCard = view.findViewById<View>(R.id.menu_reset)
-        val saveCard = view.findViewById<View>(R.id.menu_save)
-        val loadCard = view.findViewById<View>(R.id.menu_load)
-        val muteCard = view.findViewById<View>(R.id.menu_mute)
-        val fastForwardCard = view.findViewById<View>(R.id.menu_fast)
-        val closeCard = view.findViewById<View>(R.id.menu_close)
+        Log.d(TAG, "setupClickListeners() iniciado")
 
-        // Para o ícone do mute, vamos procurar dentro do layout mute
-        muteIcon =
-                muteCard.findViewById<ImageView>(android.R.id.icon)
-                        ?: muteCard.findViewById<ImageView>(R.id.menu_mute)?.let {
-                            // Se não encontrar, procurar pelo ImageView dentro do mute card
-                            muteCard as ViewGroup
-                            for (i in 0 until muteCard.childCount) {
-                                val child = muteCard.getChildAt(i)
-                                if (child is ImageView) return@let child
+        try {
+            val resetCard = view.findViewById<View>(R.id.menu_reset)
+            val saveCard = view.findViewById<View>(R.id.menu_save)
+            val loadCard = view.findViewById<View>(R.id.menu_load)
+            val muteCard = view.findViewById<View>(R.id.menu_mute)
+            val fastForwardCard = view.findViewById<View>(R.id.menu_fast)
+            val closeCard = view.findViewById<View>(R.id.menu_close)
+
+            Log.d(
+                    TAG,
+                    "Views encontradas - reset: ${resetCard != null}, save: ${saveCard != null}, load: ${loadCard != null}"
+            )
+            Log.d(
+                    TAG,
+                    "Views encontradas - mute: ${muteCard != null}, fast: ${fastForwardCard != null}, close: ${closeCard != null}"
+            )
+
+            // Para o ícone do mute, vamos procurar dentro do layout mute
+            muteIcon =
+                    muteCard?.findViewById<ImageView>(android.R.id.icon)
+                            ?: muteCard?.let { muteCardView ->
+                                // Se não encontrar, procurar pelo ImageView dentro do mute card
+                                if (muteCardView is ViewGroup) {
+                                    for (i in 0 until muteCardView.childCount) {
+                                        val child = muteCardView.getChildAt(i)
+                                        if (child is ImageView) {
+                                            Log.d(TAG, "Mute icon encontrado na posição $i")
+                                            return@let child
+                                        }
+                                    }
+                                }
+                                Log.w(TAG, "Mute icon não encontrado")
+                                null
                             }
-                            null
-                        }
 
-        // Atualizar ícone do mute baseado no estado do áudio
-        updateMuteIcon(isAudioEnabled)
+            // Atualizar ícone do mute baseado no estado do áudio
+            updateMuteIcon(isAudioEnabled)
 
-        resetCard.setOnClickListener {
-            menuActions.onReset()
-            dismiss()
+            resetCard?.setOnClickListener {
+                Log.d(TAG, "Reset button clicado")
+                menuActions.onReset()
+                dismiss()
+            }
+
+            saveCard?.setOnClickListener {
+                Log.d(TAG, "Save button clicado")
+                menuActions.onSaveState()
+                dismiss()
+            }
+
+            loadCard?.setOnClickListener {
+                Log.d(TAG, "Load button clicado")
+                menuActions.onLoadState()
+                dismiss()
+            }
+
+            muteCard?.setOnClickListener {
+                Log.d(TAG, "Mute button clicado")
+                menuActions.onMute()
+                // Atualizar ícone após o clique
+                updateMuteIcon(!isAudioEnabled)
+                dismiss()
+            }
+
+            fastForwardCard?.setOnClickListener {
+                Log.d(TAG, "Fast Forward button clicado")
+                menuActions.onFastForward()
+                dismiss()
+            }
+
+            closeCard?.setOnClickListener {
+                Log.d(TAG, "Close button clicado")
+                menuActions.onClose()
+                dismiss()
+            }
+
+            // Fechar ao clicar fora
+            view.setOnClickListener {
+                Log.d(TAG, "Clique fora do menu - fechando")
+                dismiss()
+            }
+
+            Log.d(TAG, "setupClickListeners() concluído com sucesso")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao configurar click listeners", e)
         }
-
-        saveCard.setOnClickListener {
-            menuActions.onSaveState()
-            dismiss()
-        }
-
-        loadCard.setOnClickListener {
-            menuActions.onLoadState()
-            dismiss()
-        }
-
-        muteCard.setOnClickListener {
-            menuActions.onMute()
-            // Atualizar ícone após o clique
-            updateMuteIcon(!isAudioEnabled)
-            dismiss()
-        }
-
-        fastForwardCard.setOnClickListener {
-            menuActions.onFastForward()
-            dismiss()
-        }
-
-        closeCard.setOnClickListener {
-            menuActions.onClose()
-            dismiss()
-        }
-
-        // Fechar ao clicar fora
-        view.setOnClickListener { dismiss() }
     }
 
     private fun updateMuteIcon(isAudioEnabled: Boolean) {
-        muteIcon?.setImageResource(
-                if (isAudioEnabled) R.drawable.ic_volume_up else R.drawable.ic_volume_off
-        )
+        Log.d(TAG, "updateMuteIcon() - isAudioEnabled: $isAudioEnabled")
+        try {
+            muteIcon?.setImageResource(
+                    if (isAudioEnabled) R.drawable.ic_volume_up else R.drawable.ic_volume_off
+            )
+            Log.d(TAG, "Mute icon atualizado com sucesso")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao atualizar mute icon", e)
+        }
     }
 
     /**
