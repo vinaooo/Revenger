@@ -37,6 +37,11 @@ class ControllerInput {
     var menuCallback: () -> Unit = {}
 
     /**
+     * Function to check if SELECT+START combo should trigger menu
+     */
+    var shouldHandleSelectStartCombo: () -> Boolean = { true }
+
+    /**
      *  Controller numbers are [1, inf), we need [0, inf)
      */
     private fun getPort(event: InputEvent): Int =
@@ -46,7 +51,7 @@ class ControllerInput {
      * Check if we should be showing the user the menu
      */
     private fun checkMenuKeyCombo() {
-        if (keyLog == KEYCOMBO_MENU)
+        if (keyLog == KEYCOMBO_MENU && shouldHandleSelectStartCombo())
             menuCallback()
     }
 

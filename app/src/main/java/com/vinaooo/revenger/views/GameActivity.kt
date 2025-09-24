@@ -131,7 +131,14 @@ class GameActivity : FragmentActivity() {
                 this,
                 object : OnBackPressedCallback(true) {
                     override fun handleOnBackPressed() {
-                        viewModel.showMenu()
+                        // Only handle back button if menu mode allows it
+                        if (viewModel.shouldHandleBackButton()) {
+                            viewModel.showMenu()
+                        } else {
+                            // If menu is disabled via back button, use default behavior
+                            isEnabled = false
+                            onBackPressedDispatcher.onBackPressed()
+                        }
                     }
                 }
         )

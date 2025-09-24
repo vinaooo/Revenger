@@ -38,7 +38,14 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     private val controllerInput = ControllerInput()
 
     init {
-        controllerInput.menuCallback = { showMenu() }
+        controllerInput.menuCallback = {
+            // Check if menu is enabled before showing
+            if (isMenuEnabled()) {
+                showMenu()
+            }
+        }
+        // Set the callback to check if SELECT+START combo should work
+        controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
     }
 
     /**
@@ -68,10 +75,18 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     }
 
     /**
-     * Dismiss the menu
+     * Dismiss the menu and restore fullscreen if needed
      */
     fun dismissMenu() {
         gameMenuBottomSheet?.dismiss()
+
+        // Restore fullscreen mode after menu is dismissed
+        currentActivity?.window?.let { window ->
+            // Small delay to ensure dialog is fully dismissed
+            window.decorView.post {
+                immersive(window)
+            }
+        }
     }
 
     // Implementation of GameMenuBottomSheet.GameMenuListener interface
@@ -252,5 +267,29 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     fun preserveState() {
         if (retroView?.frameRendered?.value == true)
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
+    }
+
+    /**
+     * Check if menu is enabled based on config_menu_mode
+     */
+    private fun isMenuEnabled(): Boolean {
+        val menuMode = resources.getInteger(R.integer.config_menu_mode)
+        return menuMode != 0 // 0 = disabled, 1,2,3 = enabled in different ways
+    }
+
+    /**
+     * Check if menu should respond to back button based on config_menu_mode
+     */
+    fun shouldHandleBackButton(): Boolean {
+        val menuMode = resources.getInteger(R.integer.config_menu_mode)
+        return menuMode == 1 || menuMode == 3 // 1 = back button only, 3 = both
+    }
+
+    /**
+     * Check if menu should respond to SELECT+START combo based on config_menu_mode
+     */
+    fun shouldHandleSelectStartCombo(): Boolean {
+        val menuMode = resources.getInteger(R.integer.config_menu_mode)
+        return menuMode == 2 || menuMode == 3 // 2 = combo only, 3 = both
     }
 }

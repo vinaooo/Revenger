@@ -1,11 +1,15 @@
 package com.vinaooo.revenger.ui.menu
 
 import android.app.Dialog
+import android.content.DialogInterface
+import android.os.Build
 import android.os.Bundle
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.graphics.Color
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -47,22 +51,73 @@ class GameMenuBottomSheet : BottomSheetDialogFragment(), MenuItemClickListener {
         val contextThemeWrapper = ContextThemeWrapper(requireContext(), R.style.Theme_Revenger_BottomSheet)
         val dialog = BottomSheetDialog(contextThemeWrapper, R.style.Theme_Revenger_BottomSheet)
 
-        // Ensure the dialog window is transparent to show game
+        // Ensure the dialog window respects fullscreen configuration
         dialog.window?.let { window ->
-            window.statusBarColor = Color.TRANSPARENT
-            window.navigationBarColor = Color.TRANSPARENT
-            // Make window background transparent so game shows through
-            window.setBackgroundDrawableResource(android.R.color.transparent)
-            window.decorView.systemUiVisibility =
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            try {
+                // Check if fullscreen is enabled in config
+                val isFullscreenEnabled = resources.getBoolean(R.bool.config_fullscreen)
+
+                if (isFullscreenEnabled) {
+                    // Apply immersive fullscreen to dialog window
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        window.insetsController?.let { controller ->
+                            controller.hide(WindowInsets.Type.systemBars())
+                            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                        }
+                    } else {
+                        @Suppress("DEPRECATION")
+                        window.decorView.systemUiVisibility =
+                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                            View.SYSTEM_UI_FLAG_FULLSCREEN
+                    }
+                }
+
+                window.statusBarColor = Color.TRANSPARENT
+                window.navigationBarColor = Color.TRANSPARENT
+                // Make window background transparent so game shows through
+                window.setBackgroundDrawableResource(android.R.color.transparent)
+            } catch (e: Exception) {
+                // Log the error but don't crash
+                android.util.Log.e("GameMenuBottomSheet", "Error setting up dialog window", e)
+            }
         }
 
         // Set the dialog's background to be transparent with game visible
         dialog.setOnShowListener { dialogInterface ->
-            val bottomSheetDialog = dialogInterface as BottomSheetDialog
-            val bottomSheet = bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
-            bottomSheet?.setBackgroundResource(R.color.menu_surface_transparent)
+            try {
+                val bottomSheetDialog = dialogInterface as BottomSheetDialog
+                val bottomSheet = bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                bottomSheet?.setBackgroundResource(R.color.menu_surface_transparent)
+
+                // Reapply fullscreen after dialog is shown
+                val isFullscreenEnabled = resources.getBoolean(R.bool.config_fullscreen)
+                if (isFullscreenEnabled) {
+                    dialog.window?.let { window ->
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            window.insetsController?.let { controller ->
+                                controller.hide(WindowInsets.Type.systemBars())
+                                controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                            }
+                        } else {
+                            @Suppress("DEPRECATION")
+                            window.decorView.systemUiVisibility =
+                                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                                View.SYSTEM_UI_FLAG_FULLSCREEN
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Log the error but don't crash
+                android.util.Log.e("GameMenuBottomSheet", "Error in onShow listener", e)
+            }
         }
 
         return dialog
@@ -88,6 +143,35 @@ class GameMenuBottomSheet : BottomSheetDialogFragment(), MenuItemClickListener {
         setupViews(view)
         setupRecyclerView()
         setupMenuItems()
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+
+        // Ensure fullscreen is restored when menu is dismissed by any method
+        val isFullscreenEnabled = resources.getBoolean(R.bool.config_fullscreen)
+        if (isFullscreenEnabled) {
+            activity?.window?.let { window ->
+                // Post to ensure this runs after dialog is fully dismissed
+                window.decorView.post {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        window.insetsController?.let { controller ->
+                            controller.hide(WindowInsets.Type.systemBars())
+                            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                        }
+                    } else {
+                        @Suppress("DEPRECATION")
+                        window.decorView.systemUiVisibility =
+                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                            View.SYSTEM_UI_FLAG_FULLSCREEN
+                    }
+                }
+            }
+        }
     }
 
     private fun setupViews(view: View) {
