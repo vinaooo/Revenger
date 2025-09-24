@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sprint 1: Placeholder layout for ExpressiveGameMenuBottomSheet -->
+<!-- This will be replaced with full Material You Expressive design in Sprint 3 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center">
+    
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🎮 Novo Menu em Desenvolvimento"
+        android:textSize="18sp"
+        android:textColor="?android:textColorPrimary"
+        android:layout_marginBottom="16dp" />
+    
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sprint 1: Componentes Base"
+        android:textSize="14sp"
+        android:textColor="?android:textColorSecondary"
+        android:layout_marginBottom="24dp" />
+        
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_close_placeholder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fechar"
+        style="@style/Widget.Material3.Button" />
+    
+</LinearLayout>

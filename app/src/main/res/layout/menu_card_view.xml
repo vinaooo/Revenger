@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sprint 1: Base layout for MenuCardView -->
+<!-- Will be enhanced with Material You Expressive design in Sprint 3 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center"
+    android:minHeight="88dp">
+    
+    <ImageView
+        android:id="@+id/menu_card_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginBottom="8dp"
+        android:contentDescription="@string/menu_card_icon_description"
+        android:src="@android:drawable/ic_menu_help" />
+    
+    <TextView
+        android:id="@+id/menu_card_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/menu_card_title_placeholder"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="?android:textColorPrimary"
+        android:gravity="center"
+        android:layout_marginBottom="4dp" />
+    
+    <TextView
+        android:id="@+id/menu_card_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/menu_card_subtitle_placeholder"
+        android:textSize="12sp"
+        android:textColor="?android:textColorSecondary"
+        android:gravity="center"
+        android:visibility="gone" />
+    
+</LinearLayout>

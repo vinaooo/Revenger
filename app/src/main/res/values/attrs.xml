@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sprint 1: Custom attributes for MenuCardView -->
+    <declare-styleable name="MenuCardView">
+        <attr name="cardIcon" format="reference" />
+        <attr name="cardTitle" format="string" />
+        <attr name="cardSubtitle" format="string" />
+    </declare-styleable>
+</resources>

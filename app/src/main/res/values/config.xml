@@ -38,7 +38,18 @@
                 as it involves rebuilding the
                 emulator instance!
     -->
-    <integer name="config_orientation">2</integer>
+    <integer name="config_orientation">3</integer>
+
+    <!-- Menu display modes
+        0: No menu (disabled)
+        1: Menu only via back button
+        2: Menu only via SELECT + START combo (virtual and physical)
+        3: Menu via both back button and SELECT + START combo
+
+        NOTE: Mode 0 disables all menu functionality,
+              use with caution!
+    -->
+    <integer name="config_menu_mode">1</integer>
 
     <!-- Should we display a virtual gamepad? -->
     <bool name="config_gamepad">true</bool>

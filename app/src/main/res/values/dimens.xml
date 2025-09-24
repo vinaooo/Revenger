@@ -1,4 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="gamepad_padding_vertical">20dp</dimen>
+    
+    <!-- Sprint 1: Menu dimensions -->
+    <!-- Card dimensions -->
+    <dimen name="menu_card_elevation">4dp</dimen>
+    <dimen name="menu_card_corner_radius">16dp</dimen>
+    
+    <!-- Menu layout dimensions -->
+    <dimen name="menu_corner_radius">24dp</dimen>
+    <dimen name="menu_elevation">8dp</dimen>
+    
+    <!-- Compact layout (phones) -->
+    <dimen name="menu_padding_compact">16dp</dimen>
+    <dimen name="menu_header_text_size">20sp</dimen>
+    <dimen name="menu_header_margin_bottom">16dp</dimen>
+    <dimen name="menu_grid_margin_top">16dp</dimen>
+    <dimen name="menu_close_margin_top">16dp</dimen>
+    
+    <!-- Medium layout (tablets portrait) -->
+    <dimen name="menu_padding_medium">24dp</dimen>
+    <dimen name="menu_header_text_size_medium">24sp</dimen>
+    
+    <!-- Expanded layout (tablets landscape) -->
+    <dimen name="menu_padding_expanded">32dp</dimen>
+    <dimen name="menu_header_text_size_expanded">28sp</dimen>
 </resources>

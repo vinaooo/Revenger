@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sprint 1: Base responsive layout for expanded screens (tablets landscape) -->
+<!-- This layout will be enhanced with Material You Expressive design in Sprint 3 -->
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/menu_padding_expanded">
+    
+    <!-- Menu Header -->
+    <TextView
+        android:id="@+id/menu_header_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/menu_header_title"
+        android:textSize="@dimen/menu_header_text_size_expanded"
+        android:textStyle="bold"
+        android:textColor="?android:textColorPrimary"
+        android:layout_marginBottom="@dimen/menu_header_margin_bottom"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+    
+    <!-- Menu Actions Grid (horizontal layout for expanded) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/menu_actions_grid"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/menu_grid_margin_top"
+        app:layout_constraintTop_toBottomOf="@id/menu_header_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/menu_close_button" />
+    
+    <!-- Close Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/menu_close_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/menu_close_margin_top"
+        android:text="@string/menu_close_button"
+        style="@style/Widget.Material3.Button.TextButton"
+        app:layout_constraintTop_toBottomOf="@id/menu_actions_grid"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+    
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -8,4 +8,20 @@
     <string name="menu_load_state">Load State</string>
     <string name="menu_mute">Mute</string>
     <string name="menu_fast_forward">Fast Forward</string>
+    
+    <!-- Sprint 1: New menu strings -->
+    <string name="menu_header_title">🎮 Menu do Jogo</string>
+    <string name="menu_close_button">Fechar Menu</string>
+    
+    <!-- Menu card placeholders -->
+    <string name="menu_card_title_placeholder">Ação</string>
+    <string name="menu_card_subtitle_placeholder">Descrição</string>
+    <string name="menu_card_icon_description">Ícone da ação do menu</string>
+    
+    <!-- Menu action descriptions -->
+    <string name="menu_reset_subtitle">Reiniciar o jogo</string>
+    <string name="menu_save_state_subtitle">Salvar estado atual</string>
+    <string name="menu_load_state_subtitle">Carregar estado salvo</string>
+    <string name="menu_mute_subtitle">Ativar/desativar som</string>
+    <string name="menu_fast_forward_subtitle">Acelerar emulação</string>
 </resources>

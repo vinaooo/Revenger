@@ -3,4 +3,16 @@
     <color name="gamepad_icon_color">#ff000000</color>
     <color name="gamepad_button_color">#88ffffff</color>
     <color name="gamepad_pressed_color">#66ffffff</color>
+    
+    <!-- Sprint 1: Menu colors (fallback for older Android versions) -->
+    <color name="menu_primary_fallback">#6200EE</color>
+    <color name="menu_secondary_fallback">#03DAC6</color>
+    <color name="menu_surface_fallback">#FFFFFF</color>
+    <color name="menu_on_surface_fallback">#000000</color>
+    <color name="menu_background_fallback">#FAFAFA</color>
+    
+    <!-- Dark theme fallback colors -->
+    <color name="menu_surface_dark_fallback">#121212</color>
+    <color name="menu_on_surface_dark_fallback">#FFFFFF</color>
+    <color name="menu_background_dark_fallback">#000000</color>
 </resources>
