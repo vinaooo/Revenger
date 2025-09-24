@@ -41,7 +41,7 @@ class CustomGameMenuDialog(private val context: Context, private val menuActions
                     setCancelable(true)
                 }
 
-        // Desabilitando dimensões responsivas temporariamente para evitar crash
+        // Temporariamente desabilitado até corrigir layout XML
         // applyResponsiveDimensions(dialogView)
 
         setupClickListeners(dialogView, isAudioEnabled)
@@ -57,13 +57,24 @@ class CustomGameMenuDialog(private val context: Context, private val menuActions
 
     private fun setupClickListeners(view: View, isAudioEnabled: Boolean) {
         val resetCard = view.findViewById<View>(R.id.menu_reset)
-        val saveCard = view.findViewById<View>(R.id.menu_save_state)
-        val loadCard = view.findViewById<View>(R.id.menu_load_state)
+        val saveCard = view.findViewById<View>(R.id.menu_save)
+        val loadCard = view.findViewById<View>(R.id.menu_load)
         val muteCard = view.findViewById<View>(R.id.menu_mute)
-        val fastForwardCard = view.findViewById<View>(R.id.menu_fast_forward)
+        val fastForwardCard = view.findViewById<View>(R.id.menu_fast)
         val closeCard = view.findViewById<View>(R.id.menu_close)
 
-        muteIcon = view.findViewById(R.id.mute_icon)
+        // Para o ícone do mute, vamos procurar dentro do layout mute
+        muteIcon =
+                muteCard.findViewById<ImageView>(android.R.id.icon)
+                        ?: muteCard.findViewById<ImageView>(R.id.menu_mute)?.let {
+                            // Se não encontrar, procurar pelo ImageView dentro do mute card
+                            muteCard as ViewGroup
+                            for (i in 0 until muteCard.childCount) {
+                                val child = muteCard.getChildAt(i)
+                                if (child is ImageView) return@let child
+                            }
+                            null
+                        }
 
         // Atualizar ícone do mute baseado no estado do áudio
         updateMuteIcon(isAudioEnabled)
@@ -112,7 +123,7 @@ class CustomGameMenuDialog(private val context: Context, private val menuActions
 
     /**
      * Aplica dimensões responsivas baseadas no tamanho da tela e orientação Em landscape: altura =
-     * 85% da tela, largura = mesma medida (quadrado) Em portrait: largura = 85% da tela, altura =
+     * 90% da tela, largura = mesma medida (quadrado) Em portrait: largura = 90% da tela, altura =
      * mesma medida (quadrado)
      */
     private fun applyResponsiveDimensions(dialogView: View) {
@@ -125,20 +136,23 @@ class CustomGameMenuDialog(private val context: Context, private val menuActions
         val isLandscape =
                 context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-        // Calcular tamanho do menu (85% da dimensão relevante)
+        // Calcular tamanho do menu (90% da dimensão relevante)
         val menuSize =
                 if (isLandscape) {
                     // Em landscape: baseado na altura (menor dimensão)
-                    (screenHeight * 0.85f).toInt()
+                    (screenHeight * 0.90f).toInt()
                 } else {
                     // Em portrait: baseado na largura (menor dimensão)
-                    (screenWidth * 0.85f).toInt()
+                    (screenWidth * 0.90f).toInt()
                 }
 
-        // Aplicar tamanho calculado ao container principal
+        // Aplicar tamanho calculado ao container principal (LinearLayout)
         val menuContainer = dialogView.findViewById<LinearLayout>(R.id.menu_container)
         if (menuContainer != null) {
-            menuContainer.layoutParams = LinearLayout.LayoutParams(menuSize, menuSize)
+            val layoutParams = menuContainer.layoutParams
+            layoutParams.width = menuSize
+            layoutParams.height = menuSize
+            menuContainer.layoutParams = layoutParams
         }
 
         // Calcular e aplicar dimensões proporcionais
@@ -170,7 +184,7 @@ class CustomGameMenuDialog(private val context: Context, private val menuActions
         val marginSmall = (menuSize * marginSmallRatio).toInt()
 
         // Aplicar padding ao container principal
-        val menuContainer = dialogView.findViewById<LinearLayout>(R.id.menu_container)
+        val menuContainer = dialogView as? LinearLayout
         menuContainer?.setPadding(padding, padding, padding, padding)
 
         // Aplicar dimensões ao título (procurar pelo primeiro TextView)
@@ -189,7 +203,7 @@ class CustomGameMenuDialog(private val context: Context, private val menuActions
         )
         applyCardDimensions(
                 dialogView,
-                R.id.menu_save_state,
+                R.id.menu_save,
                 cardHeight,
                 iconSize,
                 textSize,
@@ -199,7 +213,7 @@ class CustomGameMenuDialog(private val context: Context, private val menuActions
         )
         applyCardDimensions(
                 dialogView,
-                R.id.menu_load_state,
+                R.id.menu_load,
                 cardHeight,
                 iconSize,
                 textSize,
@@ -219,7 +233,7 @@ class CustomGameMenuDialog(private val context: Context, private val menuActions
         )
         applyCardDimensions(
                 dialogView,
-                R.id.menu_fast_forward,
+                R.id.menu_fast,
                 cardHeight,
                 iconSize,
                 textSize,
@@ -241,12 +255,19 @@ class CustomGameMenuDialog(private val context: Context, private val menuActions
 
     /** Aplica dimensões ao título */
     private fun applyTitleDimensions(dialogView: View, titleSize: Float, titleMargin: Int) {
-        val titleView = dialogView.findViewById<TextView>(R.id.menu_title)
-        titleView?.apply {
-            setTextSize(TypedValue.COMPLEX_UNIT_PX, titleSize)
-            val layoutParams = this.layoutParams as ViewGroup.MarginLayoutParams
-            layoutParams.bottomMargin = titleMargin
-            this.layoutParams = layoutParams
+        // Procurar pelo primeiro TextView na hierarquia (título)
+        val container = dialogView as? LinearLayout
+        if (container != null) {
+            for (i in 0 until container.childCount) {
+                val child = container.getChildAt(i)
+                if (child is TextView) {
+                    child.setTextSize(TypedValue.COMPLEX_UNIT_PX, titleSize)
+                    val layoutParams = child.layoutParams as? ViewGroup.MarginLayoutParams
+                    layoutParams?.bottomMargin = titleMargin
+                    child.layoutParams = layoutParams
+                    break
+                }
+            }
         }
     }
 

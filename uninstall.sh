@@ -11,8 +11,8 @@ PACKAGES=(
 
 for pkg in "${PACKAGES[@]}"; do
     # Se instalado, tenta desinstalar
-    if adb -s 192.168.3.31:38759 shell pm list packages "$pkg" | grep -q "$pkg"; then
-    adb -s 192.168.3.31:38759 uninstall "$pkg" \
-        || adb -s 192.168.3.31:38759 shell pm uninstall --user 0 "$pkg"
+    if adb shell pm list packages "$pkg" | grep -q "$pkg"; then
+    adb uninstall "$pkg" \
+        || adb shell pm uninstall --user 0 "$pkg"
     fi
 done

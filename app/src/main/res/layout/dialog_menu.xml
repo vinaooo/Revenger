@@ -1,225 +1,197 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/menu_container"
-    android:layout_width="550dp"
-    android:layout_height="wrap_content"
+    android:layout_width="450dp"
+    android:layout_height="450dp"
     android:orientation="vertical"
-    android:background="@drawable/menu_background"
-    android:padding="28dp"
-    android:layout_gravity="center">
+    android:background="@drawable/menu_card_background"
+    android:gravity="center"
+    android:padding="16dp">
 
-    <!-- Título do Menu -->
-    <TextView
-        android:id="@+id/menu_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/menu_title"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textColor="@color/menu_title_color"
-        android:gravity="center"
-        android:layout_marginBottom="20dp"
-        android:fontFamily="sans-serif-medium" />
-
-    <!-- Grid de Opções - 2 linhas x 3 colunas -->
+    <!-- Primeira linha: Reset | Save | Load -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
 
-        <!-- Primeira linha - Reset, Save, Load -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:id="@+id/menu_reset"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:layout_margin="4dp">
 
-            <!-- Reset -->
-            <LinearLayout
-                android:id="@+id/menu_reset"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_marginEnd="20dp"
-                android:background="@drawable/menu_card_background"
-                android:clickable="true"
-                android:focusable="true">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_refresh"
+                android:tint="@color/menu_icon_color" />
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_refresh"
-                    android:tint="@color/menu_icon_color" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reset"
+                android:textColor="@color/menu_text_color"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/menu_reset"
-                    android:textSize="11sp"
-                    android:textColor="@color/menu_text_color"
-                    android:fontFamily="sans-serif"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- Save State -->
-            <LinearLayout
-                android:id="@+id/menu_save_state"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/menu_card_background"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_save"
-                    android:tint="@color/menu_icon_color" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/menu_save_state"
-                    android:textSize="11sp"
-                    android:textColor="@color/menu_text_color"
-                    android:fontFamily="sans-serif"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- Load State -->
-            <LinearLayout
-                android:id="@+id/menu_load_state"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_marginStart="20dp"
-                android:background="@drawable/menu_card_background"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_folder_open"
-                    android:tint="@color/menu_icon_color" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/menu_load_state"
-                    android:textSize="11sp"
-                    android:textColor="@color/menu_text_color"
-                    android:fontFamily="sans-serif"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
         </LinearLayout>
 
-        <!-- Segunda linha - Mute, Fast Forward, Close -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:id="@+id/menu_save"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:layout_margin="4dp">
 
-            <!-- Mute -->
-            <LinearLayout
-                android:id="@+id/menu_mute"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_marginEnd="20dp"
-                android:background="@drawable/menu_card_background"
-                android:clickable="true"
-                android:focusable="true">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_save"
+                android:tint="@color/menu_icon_color" />
 
-                <ImageView
-                    android:id="@+id/mute_icon"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_volume_off"
-                    android:tint="@color/menu_icon_color" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save"
+                android:textColor="@color/menu_text_color"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/menu_mute"
-                    android:textSize="11sp"
-                    android:textColor="@color/menu_text_color"
-                    android:fontFamily="sans-serif"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- Fast Forward -->
-            <LinearLayout
-                android:id="@+id/menu_fast_forward"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/menu_card_background"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_fast_forward"
-                    android:tint="@color/menu_icon_color" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/menu_fast_forward"
-                    android:textSize="11sp"
-                    android:textColor="@color/menu_text_color"
-                    android:fontFamily="sans-serif"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- Close -->
-            <LinearLayout
-                android:id="@+id/menu_close"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_marginStart="20dp"
-                android:background="@drawable/menu_close_background"
-                android:clickable="true"
-                android:focusable="true">
-                android:background="@drawable/menu_close_background"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_close"
-                    android:tint="@color/menu_close_icon_color" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/menu_close"
-                    android:textSize="11sp"
-                    android:textColor="@color/menu_close_text_color"
-                    android:fontFamily="sans-serif"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/menu_load"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:layout_margin="4dp">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_folder_open"
+                android:tint="@color/menu_icon_color" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Load"
+                android:textColor="@color/menu_text_color"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
     </LinearLayout>
+
+    <!-- Segunda linha: Mute | Fast | Close -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/menu_mute"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:layout_margin="4dp">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_volume_off"
+                android:tint="@color/menu_icon_color" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mute"
+                android:textColor="@color/menu_text_color"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/menu_fast"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:layout_margin="4dp">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_fast_forward"
+                android:tint="@color/menu_icon_color" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fast"
+                android:textColor="@color/menu_text_color"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/menu_close"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@drawable/menu_close_background"
+            android:layout_margin="4dp">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_close"
+                android:tint="@color/menu_icon_color" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Close"
+                android:textColor="@color/menu_text_color"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
 </LinearLayout>

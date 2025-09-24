@@ -5,7 +5,7 @@
     <!-- Base: usando uma referência que será calculada programaticamente -->
     
     <!-- Percentuais para cálculo programático -->
-    <dimen name="menu_screen_percentage">0.85</dimen> <!-- 85% da tela -->
+    <dimen name="menu_screen_percentage">0.90</dimen> <!-- 90% da tela -->
     
     <!-- Dimensões base para landscape (serão multiplicadas pelo tamanho calculado) -->
     <dimen name="menu_padding_ratio">0.07</dimen> <!-- 7% do tamanho do menu -->
