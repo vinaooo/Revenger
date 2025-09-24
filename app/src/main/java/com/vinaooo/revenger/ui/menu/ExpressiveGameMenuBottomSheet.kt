@@ -12,11 +12,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.vinaooo.revenger.R
 
 /**
- * Material You Expressive Bottom Sheet Menu Sprint 2: Functional implementation with full
- * AlertDialog compatibility
- *
- * This component replaces the AlertDialog menu with a modern Material You Expressive interface
- * while maintaining all existing functionality.
+ * Material Design 3 Expressive Bottom Sheet Fragment for game menu Uses Material 3 color system
+ * with dynamic theming support
  */
 class ExpressiveGameMenuBottomSheet : BottomSheetDialogFragment() {
 
@@ -28,8 +25,14 @@ class ExpressiveGameMenuBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    // Menu action callbacks - same interface as original AlertDialog
     interface MenuActionListener {
+        fun onSaveState()
+        fun onLoadState()
+        fun onReset()
+        fun onSettings()
+        fun onScreenshot()
+        fun onScanGamepad()
+        fun onExit()
         fun onResetClicked()
         fun onSaveStateClicked()
         fun onLoadStateClicked()
@@ -42,14 +45,19 @@ class ExpressiveGameMenuBottomSheet : BottomSheetDialogFragment() {
     private lateinit var actionsRecyclerView: RecyclerView
     private lateinit var closeButton: Button
 
+    // Remove the custom theme to avoid Material 3 attribute resolution issues
+    // override fun getTheme(): Int {
+    //     return R.style.Theme_Revenger_BottomSheetDialog
+    // }
+
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
         return try {
-            Log.d(TAG, "onCreateView: Inflating menu_expressive_functional layout")
-            val view = inflater.inflate(R.layout.menu_expressive_functional, container, false)
+            Log.d(TAG, "onCreateView: Inflating menu_expressive_material3 layout")
+            val view = inflater.inflate(R.layout.menu_expressive_material3, container, false)
             Log.d(TAG, "onCreateView: Layout inflated successfully")
             view
         } catch (e: Exception) {
@@ -63,7 +71,6 @@ class ExpressiveGameMenuBottomSheet : BottomSheetDialogFragment() {
         Log.d(TAG, "onViewCreated: Starting view setup")
 
         try {
-            // Sprint 2: Setup functional components
             setupViews(view)
             setupRecyclerView()
             setupCloseButton()
@@ -73,21 +80,15 @@ class ExpressiveGameMenuBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    /** Setup view references */
     private fun setupViews(view: View) {
         actionsRecyclerView = view.findViewById(R.id.menu_actions_recycler)
         closeButton = view.findViewById<Button>(R.id.menu_close_button)
     }
 
-    /** Setup RecyclerView with actions */
     private fun setupRecyclerView() {
-        // Create default actions matching AlertDialog functionality
         val actions = MenuActionsAdapter.createDefaultActions()
-
-        // Setup adapter with click handling
         val adapter = MenuActionsAdapter(actions) { action -> handleActionClick(action) }
 
-        // Setup grid layout (2 columns for compact screens)
         val spanCount = getSpanCount()
         val layoutManager = GridLayoutManager(requireContext(), spanCount)
 
@@ -95,7 +96,6 @@ class ExpressiveGameMenuBottomSheet : BottomSheetDialogFragment() {
         actionsRecyclerView.adapter = adapter
     }
 
-    /** Handle menu action clicks - same logic as original AlertDialog */
     private fun handleActionClick(action: MenuActionsAdapter.MenuAction) {
         when (action.id) {
             MenuActionsAdapter.MenuActionId.RESET -> {
@@ -114,24 +114,20 @@ class ExpressiveGameMenuBottomSheet : BottomSheetDialogFragment() {
                 actionListener?.onFastForwardClicked()
             }
         }
-        // Auto-dismiss after action (matching AlertDialog behavior)
         dismiss()
     }
 
-    /** Setup close button */
     private fun setupCloseButton() {
         closeButton.setOnClickListener { dismiss() }
     }
 
-    /** Get span count based on screen size Sprint 2: Basic responsive logic */
     private fun getSpanCount(): Int {
         val screenWidth = resources.displayMetrics.widthPixels
         val dp = resources.displayMetrics.density
-
         return when {
-            screenWidth / dp >= 840 -> 5 // Expanded: horizontal layout
-            screenWidth / dp >= 600 -> 3 // Medium: 3 columns
-            else -> 2 // Compact: 2 columns
+            screenWidth / dp >= 840 -> 5
+            screenWidth / dp >= 600 -> 3
+            else -> 2
         }
     }
 

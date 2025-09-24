@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/menu_expressive_bottomsheet_background"
+    android:padding="24dp"
+    android:animateLayoutChanges="true">
+
+    <!-- Header com título expressivo Material 3 -->
+    <TextView
+        android:id="@+id/menu_header_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/menu_expressive_title"
+        android:textAppearance="@style/TextAppearance.Gaming.MenuTitle"
+        android:gravity="center_vertical|start"
+        android:paddingBottom="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Divider expressivo Material 3 -->
+    <View
+        android:id="@+id/menu_divider"
+        android:layout_width="0dp"
+        android:layout_height="3dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/menu_expressive_divider_background"
+        app:layout_constraintTop_toBottomOf="@id/menu_header_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Grid de ações com Material 3 Expressive -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/menu_actions_recycler"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="20dp"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:nestedScrollingEnabled="false"
+        android:layoutAnimation="@anim/menu_grid_layout_animation"
+        app:layout_constraintTop_toBottomOf="@id/menu_divider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Botão close com Material 3 Expressive -->
+    <Button
+        android:id="@+id/menu_close_button"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/menu_close_button"
+        android:textAppearance="@style/TextAppearance.Material3.LabelLarge.Button"
+        android:background="@drawable/menu_close_button_expressive_background"
+        android:elevation="3dp"
+        android:stateListAnimator="@animator/button_elevation"
+        app:layout_constraintTop_toBottomOf="@id/menu_actions_recycler"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

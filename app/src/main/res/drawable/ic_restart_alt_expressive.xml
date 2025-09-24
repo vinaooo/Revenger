@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/md_theme_on_surface_variant">
+  <!-- Material Symbol: Restart Alt - Expressive weight -->
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10c4.64,0 8.5,-3.19 9.54,-7.5h-2.08C18.46,17.33 15.5,19 12,19c-3.86,0 -7,-3.14 -7,-7s3.14,-7 7,-7c1.93,0 3.68,0.79 4.95,2.05L14,10h8V2l-2.95,2.95C17.58,3.42 15,2 12,2z"/>
+  <!-- Enhanced gaming aesthetic with subtle glow -->
+  <path
+      android:fillColor="@color/md_theme_primary"
+      android:pathData="M12,4c4.41,0 8,3.59 8,8s-3.59,8 -8,8s-8,-3.59 -8,-8S7.59,4 12,4z"
+      android:fillAlpha="0.1"/>
+</vector>

@@ -106,6 +106,35 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
                                 override fun onMenuDismissed() {
                                     // Optional: Handle menu dismiss event
                                 }
+
+                                // New interface methods (simplified implementation)
+                                override fun onSaveState() {
+                                    onSaveStateClicked()
+                                }
+
+                                override fun onLoadState() {
+                                    onLoadStateClicked()
+                                }
+
+                                override fun onReset() {
+                                    onResetClicked()
+                                }
+
+                                override fun onSettings() {
+                                    // TODO: Implement settings
+                                }
+
+                                override fun onScreenshot() {
+                                    // TODO: Implement screenshot
+                                }
+
+                                override fun onScanGamepad() {
+                                    // TODO: Implement gamepad scan
+                                }
+
+                                override fun onExit() {
+                                    // TODO: Implement exit
+                                }
                             }
                     )
                 }

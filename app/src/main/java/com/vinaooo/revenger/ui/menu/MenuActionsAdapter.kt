@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.menu
 
+import android.animation.AnimatorInflater
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,8 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.vinaooo.revenger.R
 
 /**
- * Adapter for menu actions in the ExpressiveGameMenuBottomSheet Sprint 2: Basic functional adapter
- * for menu actions
+ * Adapter for menu actions in the ExpressiveGameMenuBottomSheet 
+ * Material 3 Expressive implementation with micro-interactions
  */
 class MenuActionsAdapter(
         private val actions: List<MenuAction>,
@@ -39,18 +40,19 @@ class MenuActionsAdapter(
     inner class ActionViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val iconView: ImageView = view.findViewById(R.id.action_icon)
         private val titleView: TextView = view.findViewById(R.id.action_title)
+        private val subtitleView: TextView = view.findViewById(R.id.action_subtitle)
 
         fun bind(action: MenuAction) {
             titleView.setText(action.titleResId)
+            subtitleView.setText(action.subtitleResId)
             iconView.setImageResource(action.iconResId)
 
             itemView.setOnClickListener { onActionClick(action) }
         }
     }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActionViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(R.layout.menu_action_card_simple, parent, false)
+        val view = inflater.inflate(R.layout.menu_action_card_material3, parent, false)
         return ActionViewHolder(view)
     }
 
@@ -66,33 +68,33 @@ class MenuActionsAdapter(
             return listOf(
                     MenuAction(
                             MenuActionId.RESET,
-                            android.R.string.cancel, // "Reset"
-                            android.R.string.cancel, // Placeholder subtitle
-                            android.R.drawable.ic_menu_revert
+                            R.string.menu_reset_expressive,
+                            R.string.menu_reset_subtitle,
+                            R.drawable.ic_restart_alt_expressive
                     ),
                     MenuAction(
                             MenuActionId.SAVE_STATE,
-                            android.R.string.copy, // "Save"
-                            android.R.string.copy,
-                            android.R.drawable.ic_menu_save
+                            R.string.menu_save_expressive,
+                            R.string.menu_save_state_subtitle,
+                            R.drawable.ic_save_expressive
                     ),
                     MenuAction(
                             MenuActionId.LOAD_STATE,
-                            android.R.string.paste, // "Load"
-                            android.R.string.paste,
-                            android.R.drawable.ic_menu_upload
+                            R.string.menu_load_expressive,
+                            R.string.menu_load_state_subtitle,
+                            R.drawable.ic_folder_open_expressive
                     ),
                     MenuAction(
                             MenuActionId.MUTE,
-                            android.R.string.yes, // "Mute"
-                            android.R.string.yes,
-                            android.R.drawable.ic_lock_silent_mode
+                            R.string.menu_settings_expressive,
+                            R.string.menu_settings_subtitle,
+                            R.drawable.ic_settings_expressive
                     ),
                     MenuAction(
                             MenuActionId.FAST_FORWARD,
-                            android.R.string.ok, // "Fast Forward"
-                            android.R.string.ok,
-                            android.R.drawable.ic_media_ff
+                            R.string.menu_exit_expressive,
+                            R.string.menu_exit_subtitle,
+                            R.drawable.ic_exit_to_app_expressive
                     )
             )
         }

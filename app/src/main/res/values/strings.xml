@@ -13,17 +13,25 @@
     <string name="menu_header_title">🎮 Menu do Jogo</string>
     <string name="menu_close_button">Fechar Menu</string>
     
+    <!-- Sprint 3: Material You Expressive menu strings -->
+    <string name="menu_expressive_title">Controles do Emulador</string>
+    <string name="menu_reset_expressive">Reiniciar</string>
+    <string name="menu_save_expressive">Salvar</string>
+    <string name="menu_load_expressive">Carregar</string>
+    <string name="menu_settings_expressive">Configurações</string>
+    <string name="menu_exit_expressive">Sair</string>
+    
     <!-- Menu card placeholders -->
     <string name="menu_card_title_placeholder">Ação</string>
     <string name="menu_card_subtitle_placeholder">Descrição</string>
     <string name="menu_card_icon_description">Ícone da ação do menu</string>
     
     <!-- Menu action descriptions -->
-    <string name="menu_reset_subtitle">Reiniciar o jogo</string>
-    <string name="menu_save_state_subtitle">Salvar estado atual</string>
-    <string name="menu_load_state_subtitle">Carregar estado salvo</string>
-    <string name="menu_mute_subtitle">Ativar/desativar som</string>
-    <string name="menu_fast_forward_subtitle">Acelerar emulação</string>
+    <string name="menu_reset_subtitle">Reiniciar o jogo do início</string>
+    <string name="menu_save_state_subtitle">Salvar progresso atual</string>
+    <string name="menu_load_state_subtitle">Restaurar estado salvo</string>
+    <string name="menu_settings_subtitle">Ajustes e configurações</string>
+    <string name="menu_exit_subtitle">Voltar ao menu principal</string>
     
     <!-- Sprint 2: Feature toggles -->
     <bool name="config_use_new_menu">true</bool>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material 3 Expressive Divider with gaming accent -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Base gradient line -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="0"
+                android:startColor="#00000000"
+                android:centerColor="@color/md_theme_primary"
+                android:endColor="#00000000" />
+            <size android:height="2dp" />
+        </shape>
+    </item>
+    <!-- Subtle glow effect -->
+    <item android:top="1dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="0"
+                android:startColor="#00000000"
+                android:centerColor="@color/md_theme_outline_variant"
+                android:endColor="#00000000" />
+            <size android:height="1dp" />
+        </shape>
+    </item>
+</layer-list>

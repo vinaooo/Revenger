@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Motion: Action Card Release Animation -->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Scale back to normal -->
+    <scale
+        android:duration="200"
+        android:fromXScale="0.95"
+        android:toXScale="1.0"
+        android:fromYScale="0.95"
+        android:toYScale="1.0"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:interpolator="@android:anim/bounce_interpolator" />
+        
+    <!-- Rotate back -->
+    <rotate
+        android:duration="200"
+        android:fromDegrees="1"
+        android:toDegrees="0"
+        android:pivotX="50%"
+        android:pivotY="50%" />
+        
+</set>

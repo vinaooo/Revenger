@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material 3 Button Elevation StateListAnimator -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Pressed state - lower elevation -->
+    <item android:state_pressed="true">
+        <objectAnimator
+            android:propertyName="elevation"
+            android:duration="100"
+            android:valueTo="1dp"
+            android:valueType="floatType"
+            android:interpolator="@android:anim/decelerate_interpolator" />
+    </item>
+    
+    <!-- Default state - normal elevation -->
+    <item>
+        <objectAnimator
+            android:propertyName="elevation"
+            android:duration="200"
+            android:valueTo="3dp"
+            android:valueType="floatType"
+            android:interpolator="@android:anim/accelerate_decelerate_interpolator" />
+    </item>
+    
+</selector>

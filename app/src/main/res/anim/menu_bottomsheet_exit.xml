@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Motion: BottomSheet Exit Animation -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:anim/accelerate_interpolator">
+    
+    <!-- Slide down with smooth exit -->
+    <translate
+        android:duration="250"
+        android:fromYDelta="0%"
+        android:toYDelta="100%" />
+        
+    <!-- Scale down slightly -->
+    <scale
+        android:duration="250"
+        android:fromXScale="1.0"
+        android:toXScale="0.98"
+        android:fromYScale="1.0"
+        android:toYScale="0.98"
+        android:pivotX="50%"
+        android:pivotY="100%" />
+        
+    <!-- Fade out -->
+    <alpha
+        android:duration="200"
+        android:fromAlpha="1.0"
+        android:toAlpha="0.0"
+        android:startOffset="50" />
+        
+</set>
