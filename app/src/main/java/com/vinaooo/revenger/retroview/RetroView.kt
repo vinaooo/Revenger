@@ -168,7 +168,10 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 coroutineScope.launch {
                     delay(2000)
                     if (_frameRendered.value != true) {
-                        Log.w(TAG, "🚨 LibRetro core não renderiza frames - usando fallback para compatibilidade")
+                        Log.w(
+                                TAG,
+                                "🚨 LibRetro core não renderiza frames - usando fallback para compatibilidade"
+                        )
                         _frameRendered.postValue(true)
                     }
                 }
