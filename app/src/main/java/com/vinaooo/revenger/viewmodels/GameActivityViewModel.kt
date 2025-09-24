@@ -2,7 +2,6 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Activity
 import android.app.Application
-import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Build
 import android.view.*
@@ -17,11 +16,11 @@ import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
-import com.vinaooo.revenger.ui.menu.GameMenuBottomSheet
+import com.vinaooo.revenger.ui.menu.FloatingGameMenu
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
-class GameActivityViewModel(application: Application) : AndroidViewModel(application), GameMenuBottomSheet.GameMenuListener {
+class GameActivityViewModel(application: Application) : AndroidViewModel(application), FloatingGameMenu.GameMenuListener {
     private val resources = application.resources
 
     var retroView: RetroView? = null
@@ -30,8 +29,8 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     private var leftGamePad: GamePad? = null
     private var rightGamePad: GamePad? = null
 
-    // Replace old AlertDialog with Material You BottomSheet
-    private var gameMenuBottomSheet: GameMenuBottomSheet? = null
+    // Replace with new FloatingGameMenu
+    private var floatingGameMenu: FloatingGameMenu? = null
     private var currentActivity: FragmentActivity? = null
 
     private var compositeDisposable = CompositeDisposable()
@@ -49,44 +48,40 @@ class GameActivityViewModel(application: Application) : AndroidViewModel(applica
     }
 
     /**
-     * Create an instance of the Material You game menu
+     * Create an instance of the Material You game menu overlay
      */
     fun prepareMenu(activity: ComponentActivity) {
-        if (gameMenuBottomSheet != null) return
+        if (floatingGameMenu != null) return
 
         currentActivity = activity as? FragmentActivity
-        gameMenuBottomSheet = GameMenuBottomSheet.newInstance().apply {
+        floatingGameMenu = FloatingGameMenu.newInstance().apply {
             setMenuListener(this@GameActivityViewModel)
         }
     }
 
     /**
-     * Show the Material You menu
+     * Show the Material 3 floating menu
      */
     fun showMenu() {
         if (retroView?.frameRendered?.value == true) {
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
 
-            // Show Material You BottomSheet instead of AlertDialog
+            // Show new Material 3 floating menu
             currentActivity?.let { activity ->
-                gameMenuBottomSheet?.show(activity.supportFragmentManager, GameMenuBottomSheet.TAG)
+                floatingGameMenu?.let { menu ->
+                    if (!menu.isAdded) {
+                        menu.show(activity.supportFragmentManager, FloatingGameMenu.TAG)
+                    }
+                }
             }
         }
     }
 
     /**
-     * Dismiss the menu and restore fullscreen if needed
+     * Dismiss the floating menu
      */
     fun dismissMenu() {
-        gameMenuBottomSheet?.dismiss()
-
-        // Restore fullscreen mode after menu is dismissed
-        currentActivity?.window?.let { window ->
-            // Small delay to ensure dialog is fully dismissed
-            window.decorView.post {
-                immersive(window)
-            }
-        }
+        floatingGameMenu?.dismiss()
     }
 
     // Implementation of GameMenuBottomSheet.GameMenuListener interface

@@ -5,14 +5,18 @@ import android.content.DialogInterface
 import android.os.Build
 import android.os.Bundle
 import android.view.ContextThemeWrapper
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
+import android.widget.LinearLayout
 import android.graphics.Color
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
@@ -80,47 +84,94 @@ class GameMenuBottomSheet : BottomSheetDialogFragment(), MenuItemClickListener {
                 window.navigationBarColor = Color.TRANSPARENT
                 // Make window background transparent so game shows through
                 window.setBackgroundDrawableResource(android.R.color.transparent)
+
+                // CRITICAL FIX: Force dialog to ignore system UI and fill entire screen
+                window.attributes = window.attributes.apply {
+                    gravity = Gravity.BOTTOM
+                    width = ViewGroup.LayoutParams.MATCH_PARENT
+                    height = ViewGroup.LayoutParams.MATCH_PARENT // Change to MATCH_PARENT
+                    // Remove ALL system UI spacing flags
+                    flags = (flags or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                            WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR) and
+                            WindowManager.LayoutParams.FLAG_DIM_BEHIND.inv()
+                    dimAmount = 0.3f
+                }
+
             } catch (e: Exception) {
                 // Log the error but don't crash
                 android.util.Log.e("GameMenuBottomSheet", "Error setting up dialog window", e)
             }
         }
 
-        // Set the dialog's background to be transparent with game visible
-        dialog.setOnShowListener { dialogInterface ->
-            try {
-                val bottomSheetDialog = dialogInterface as BottomSheetDialog
-                val bottomSheet = bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
-                bottomSheet?.setBackgroundResource(R.color.menu_surface_transparent)
+        return dialog
+    }
 
-                // Reapply fullscreen after dialog is shown
+    override fun onStart() {
+        super.onStart()
+
+        // Additional enforcement to ensure bottom anchoring AND fullscreen preservation
+        dialog?.let { dialog ->
+            val bottomSheetDialog = dialog as BottomSheetDialog
+            val bottomSheet = bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+
+            bottomSheet?.let { sheet ->
+                // Configure the BottomSheetBehavior to force bottom positioning
+                val behavior = BottomSheetBehavior.from(sheet)
+
+                // Force immediate expansion and bottom anchoring
+                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                behavior.isDraggable = true
+                behavior.isHideable = true
+                behavior.skipCollapsed = true
+
+                // Set sheet background and ensure it fills width
+                sheet.setBackgroundResource(R.color.menu_surface_transparent)
+                sheet.layoutParams = sheet.layoutParams?.apply {
+                    width = ViewGroup.LayoutParams.MATCH_PARENT
+                    height = ViewGroup.LayoutParams.WRAP_CONTENT
+                }
+
+                // Force the sheet to the bottom of its parent
+                (sheet.parent as? View)?.let { parent ->
+                    val parentLayoutParams = parent.layoutParams
+                    if (parentLayoutParams is ViewGroup.MarginLayoutParams) {
+                        parentLayoutParams.bottomMargin = 0
+                        parent.layoutParams = parentLayoutParams
+                    }
+                }
+            }
+
+            // CRITICAL: Reapply fullscreen immediately after dialog is fully shown
+            bottomSheetDialog.window?.let { window ->
                 val isFullscreenEnabled = resources.getBoolean(R.bool.config_fullscreen)
                 if (isFullscreenEnabled) {
-                    dialog.window?.let { window ->
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                            window.insetsController?.let { controller ->
-                                controller.hide(WindowInsets.Type.systemBars())
-                                controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    // Post to UI thread to ensure this runs after dialog setup is complete
+                    window.decorView.post {
+                        try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                window.insetsController?.let { controller ->
+                                    controller.hide(WindowInsets.Type.systemBars())
+                                    controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                                }
+                            } else {
+                                @Suppress("DEPRECATION")
+                                window.decorView.systemUiVisibility =
+                                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                                    View.SYSTEM_UI_FLAG_FULLSCREEN
                             }
-                        } else {
-                            @Suppress("DEPRECATION")
-                            window.decorView.systemUiVisibility =
-                                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                                View.SYSTEM_UI_FLAG_FULLSCREEN
+                            android.util.Log.d("GameMenuBottomSheet", "Fullscreen reapplied in onStart()")
+                        } catch (e: Exception) {
+                            android.util.Log.e("GameMenuBottomSheet", "Error reapplying fullscreen in onStart", e)
                         }
                     }
                 }
-            } catch (e: Exception) {
-                // Log the error but don't crash
-                android.util.Log.e("GameMenuBottomSheet", "Error in onShow listener", e)
             }
         }
-
-        return dialog
     }
 
     override fun onCreateView(
@@ -178,8 +229,31 @@ class GameMenuBottomSheet : BottomSheetDialogFragment(), MenuItemClickListener {
         recyclerView = view.findViewById(R.id.menu_items_recycler)
         closeButton = view.findViewById(R.id.close_button)
 
+        // Setup click listener for close button
         closeButton.setOnClickListener {
             dismiss()
+        }
+
+        // Setup click listener for transparent spacer area (dismiss on outside touch)
+        val transparentSpacer = view.findViewById<View>(R.id.transparent_spacer)
+        transparentSpacer?.setOnClickListener {
+            dismiss()
+        }
+
+        // Alternative: Setup click listener for root view outside of menu content
+        view.setOnClickListener { event ->
+            // Only dismiss if click is outside the actual menu content area
+            val menuContent = view.findViewById<LinearLayout>(R.id.menu_content)
+            if (menuContent != null) {
+                val location = IntArray(2)
+                menuContent.getLocationOnScreen(location)
+                val x = event.x.toInt()
+                val y = event.y.toInt()
+
+                if (y < location[1]) { // Click above menu content
+                    dismiss()
+                }
+            }
         }
     }
 

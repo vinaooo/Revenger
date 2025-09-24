@@ -31,4 +31,9 @@
     <string name="save_state_not_available">No save available</string>
     <string name="fast_forward_active">Fast forward active</string>
     <string name="fast_forward_inactive">Normal speed</string>
+
+    <!-- New strings for floating menu -->
+    <string name="game_menu_icon">Game menu icon</string>
+    <string name="menu_fast_forward_disable">Disable Fast Forward</string>
+    <string name="menu_toggle_audio">Toggle Audio</string>
 </resources>

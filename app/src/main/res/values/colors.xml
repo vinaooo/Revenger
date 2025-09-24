@@ -29,4 +29,8 @@
     <color name="status_warning">#FF9800</color>
     <color name="status_error">#F44336</color>
     <color name="status_info">#2196F3</color>
+
+    <!-- Additional Material 3 colors for floating menu -->
+    <color name="color_primary">#D0BCFF</color>
+    <color name="color_on_surface_variant">#CAC4D0</color>
 </resources>

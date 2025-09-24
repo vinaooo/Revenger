@@ -46,8 +46,22 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
 
-        <!-- Bottom sheet specific -->
-        <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
+        <!-- Bottom sheet specific - ensure it anchors to bottom -->
+        <item name="bottomSheetStyle">@style/AnchoredBottomSheetStyle</item>
+
+        <!-- Window layout parameters to ensure proper positioning -->
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+    </style>
+
+    <!-- Anchored Bottom Sheet Style to fix positioning -->
+    <style name="AnchoredBottomSheetStyle" parent="Widget.Material3.BottomSheet">
+        <item name="backgroundTint">@color/menu_surface_transparent</item>
+        <item name="android:background">@color/menu_surface_transparent</item>
+        <item name="shapeAppearance">@style/CustomBottomSheetShape</item>
+        <item name="behavior_hideable">true</item>
+        <item name="behavior_skipCollapsed">true</item>
+        <item name="behavior_fitToContents">true</item>
     </style>
 
     <!-- Transparent Bottom Sheet Style for Game Menu -->
@@ -86,10 +100,32 @@
         <item name="android:gravity">center_vertical</item>
     </style>
 
-    <!-- Menu Item Icon Style -->
-    <style name="GameMenuItemIconStyle">
-        <item name="android:layout_width">24dp</item>
-        <item name="android:layout_height">24dp</item>
-        <item name="android:tint">?attr/colorPrimary</item>
+    <!-- Floating Game Menu Theme -->
+    <style name="Theme.Revenger.FloatingMenu" parent="Theme.Material3.DayNight.Dialog">
+        <!-- Transparent background to show game behind -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
+
+        <!-- No dim background, game should remain visible -->
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.4</item>
+
+        <!-- Fullscreen support -->
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+        <!-- Material 3 colors for menu content -->
+        <item name="colorSurface">@color/menu_surface</item>
+        <item name="colorOnSurface">@color/menu_on_surface</item>
+        <item name="colorSurfaceContainer">@color/menu_surface_variant</item>
+        <item name="colorSurfaceContainerLow">@color/menu_surface</item>
+        <item name="colorOutlineVariant">@color/menu_outline_variant</item>
+
+        <!-- Remove window animations for instant appearance -->
+        <item name="android:windowAnimationStyle">@null</item>
     </style>
 </resources>
