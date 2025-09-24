@@ -24,4 +24,7 @@
     <string name="menu_load_state_subtitle">Carregar estado salvo</string>
     <string name="menu_mute_subtitle">Ativar/desativar som</string>
     <string name="menu_fast_forward_subtitle">Acelerar emulação</string>
+    
+    <!-- Sprint 2: Feature toggles -->
+    <bool name="config_use_new_menu">true</bool>
 </resources>

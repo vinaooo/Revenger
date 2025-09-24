@@ -131,7 +131,7 @@ class GameActivity : AppCompatActivity() {
                 this,
                 object : OnBackPressedCallback(true) {
                     override fun handleOnBackPressed() {
-                        viewModel.showMenu()
+                        viewModel.showMenu(this@GameActivity)
                     }
                 }
         )
