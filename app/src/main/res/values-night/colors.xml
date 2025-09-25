@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material You Menu Colors for DARK THEME -->
+    <color name="menu_surface">#0F1419</color>
+    <color name="menu_surface_variant">#2A2D32</color>
+    <color name="menu_on_surface">#E6E1E5</color>
+    <color name="menu_on_surface_variant">#CAC4D0</color>
+    <color name="menu_primary">#D0BCFF</color>
+    <color name="menu_on_primary">#381E72</color>
+    <color name="menu_outline">#938F99</color>
+    <color name="menu_outline_variant">#49454F</color>
+
+    <!-- Semi-transparent colors for see-through menu (dark theme) -->
+    <color name="menu_surface_transparent">#CC0F1419</color>
+    <color name="menu_surface_variant_transparent">#CC2A2D32</color>
+
+    <!-- State colors (adjusted for dark theme) -->
+    <color name="menu_item_ripple">#33FFFFFF</color>
+    <color name="menu_item_hover">#1AFFFFFF</color>
+    <color name="menu_item_focused">#26FFFFFF</color>
+</resources>

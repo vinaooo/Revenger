@@ -13,18 +13,18 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
-import androidx.core.animation.doOnEnd
-import androidx.fragment.app.DialogFragment
-import com.google.android.material.card.MaterialCardView
-import com.google.android.material.materialswitch.MaterialSwitch
-import com.google.android.material.button.MaterialButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.animation.doOnEnd
+import androidx.fragment.app.DialogFragment
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.vinaooo.revenger.R
 
 /**
- * Modern Material 3 floating menu for game controls
- * Replaces the problematic BottomSheet with a clean, centered floating menu
+ * Modern Material 3 floating menu for game controls Replaces the problematic BottomSheet with a
+ * clean, centered floating menu
  */
 class FloatingGameMenu : DialogFragment() {
 
@@ -77,26 +77,27 @@ class FloatingGameMenu : DialogFragment() {
                     // Apply immersive fullscreen to dialog window
                     window.insetsController?.let { controller ->
                         controller.hide(WindowInsets.Type.systemBars())
-                        controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                        controller.systemBarsBehavior =
+                                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     }
 
-                    @Suppress("DEPRECATION")
-                    window.statusBarColor = Color.TRANSPARENT
-                    @Suppress("DEPRECATION")
-                    window.navigationBarColor = Color.TRANSPARENT
+                    @Suppress("DEPRECATION") window.statusBarColor = Color.TRANSPARENT
+                    @Suppress("DEPRECATION") window.navigationBarColor = Color.TRANSPARENT
                 }
 
                 // Make window background transparent and fullscreen
                 window.setBackgroundDrawableResource(android.R.color.transparent)
 
                 // Configure window to fill screen properly
-                window.attributes = window.attributes.apply {
-                    width = ViewGroup.LayoutParams.MATCH_PARENT
-                    height = ViewGroup.LayoutParams.MATCH_PARENT
-                    flags = flags or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                }
-
+                window.attributes =
+                        window.attributes.apply {
+                            width = ViewGroup.LayoutParams.MATCH_PARENT
+                            height = ViewGroup.LayoutParams.MATCH_PARENT
+                            flags =
+                                    flags or
+                                            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                        }
             } catch (e: Exception) {
                 android.util.Log.e("FloatingGameMenu", "Error setting up dialog window", e)
             }
@@ -106,9 +107,9 @@ class FloatingGameMenu : DialogFragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.floating_game_menu, container, false)
     }
@@ -125,7 +126,7 @@ class FloatingGameMenu : DialogFragment() {
         view.setOnClickListener { dismiss() }
 
         // Prevent menu container clicks from dismissing
-        menuContainer.setOnClickListener { /* Do nothing */ }
+        menuContainer.setOnClickListener { /* Do nothing */}
     }
 
     private fun setupViews(view: View) {
@@ -204,17 +205,13 @@ class FloatingGameMenu : DialogFragment() {
         if (hasSaveState) {
             loadStateMenu.alpha = 1.0f
             loadStateMenu.isClickable = true
-            loadStateIcon.setColorFilter(
-                requireContext().getColor(R.color.menu_primary)
-            )
+            loadStateIcon.setColorFilter(requireContext().getColor(R.color.menu_primary))
             loadStateStatus.text = getString(R.string.save_state_available)
             loadStateStatus.visibility = View.VISIBLE
         } else {
             loadStateMenu.alpha = 0.6f
             loadStateMenu.isClickable = false
-            loadStateIcon.setColorFilter(
-                requireContext().getColor(R.color.menu_on_surface_variant)
-            )
+            loadStateIcon.setColorFilter(requireContext().getColor(R.color.menu_on_surface_variant))
             loadStateStatus.text = getString(R.string.save_state_not_available)
             loadStateStatus.visibility = View.VISIBLE
         }
@@ -241,13 +238,11 @@ class FloatingGameMenu : DialogFragment() {
 
         if (isFastForwardEnabled) {
             fastForwardTitle.text = getString(R.string.menu_fast_forward_disable)
-            fastForwardIcon.setColorFilter(
-                requireContext().getColor(R.color.menu_primary)
-            )
+            fastForwardIcon.setColorFilter(requireContext().getColor(R.color.menu_primary))
         } else {
             fastForwardTitle.text = getString(R.string.menu_fast_forward)
             fastForwardIcon.setColorFilter(
-                requireContext().getColor(R.color.menu_on_surface_variant)
+                    requireContext().getColor(R.color.menu_on_surface_variant)
             )
         }
     }
@@ -259,23 +254,25 @@ class FloatingGameMenu : DialogFragment() {
         menuContainer.alpha = 0f
 
         // Animate to full size and opacity
-        val scaleAnimator = ValueAnimator.ofFloat(0.8f, 1.0f).apply {
-            duration = 300
-            interpolator = DecelerateInterpolator()
-            addUpdateListener { animator ->
-                val scale = animator.animatedValue as Float
-                menuContainer.scaleX = scale
-                menuContainer.scaleY = scale
-            }
-        }
+        val scaleAnimator =
+                ValueAnimator.ofFloat(0.8f, 1.0f).apply {
+                    duration = 300
+                    interpolator = DecelerateInterpolator()
+                    addUpdateListener { animator ->
+                        val scale = animator.animatedValue as Float
+                        menuContainer.scaleX = scale
+                        menuContainer.scaleY = scale
+                    }
+                }
 
-        val alphaAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 200
-            addUpdateListener { animator ->
-                val alpha = animator.animatedValue as Float
-                menuContainer.alpha = alpha
-            }
-        }
+        val alphaAnimator =
+                ValueAnimator.ofFloat(0f, 1f).apply {
+                    duration = 200
+                    addUpdateListener { animator ->
+                        val alpha = animator.animatedValue as Float
+                        menuContainer.alpha = alpha
+                    }
+                }
 
         scaleAnimator.start()
         alphaAnimator.start()
@@ -283,24 +280,26 @@ class FloatingGameMenu : DialogFragment() {
 
     private fun animateMenuOut(onComplete: () -> Unit) {
         // Animate menu scaling down and fading out
-        val scaleAnimator = ValueAnimator.ofFloat(1.0f, 0.8f).apply {
-            duration = 200
-            interpolator = DecelerateInterpolator()
-            addUpdateListener { animator ->
-                val scale = animator.animatedValue as Float
-                menuContainer.scaleX = scale
-                menuContainer.scaleY = scale
-            }
-        }
+        val scaleAnimator =
+                ValueAnimator.ofFloat(1.0f, 0.8f).apply {
+                    duration = 200
+                    interpolator = DecelerateInterpolator()
+                    addUpdateListener { animator ->
+                        val scale = animator.animatedValue as Float
+                        menuContainer.scaleX = scale
+                        menuContainer.scaleY = scale
+                    }
+                }
 
-        val alphaAnimator = ValueAnimator.ofFloat(1f, 0f).apply {
-            duration = 150
-            addUpdateListener { animator ->
-                val alpha = animator.animatedValue as Float
-                menuContainer.alpha = alpha
-            }
-            doOnEnd { onComplete() }
-        }
+        val alphaAnimator =
+                ValueAnimator.ofFloat(1f, 0f).apply {
+                    duration = 150
+                    addUpdateListener { animator ->
+                        val alpha = animator.animatedValue as Float
+                        menuContainer.alpha = alpha
+                    }
+                    doOnEnd { onComplete() }
+                }
 
         scaleAnimator.start()
         alphaAnimator.start()
@@ -318,17 +317,18 @@ class FloatingGameMenu : DialogFragment() {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                             window.insetsController?.let { controller ->
                                 controller.hide(WindowInsets.Type.systemBars())
-                                controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                                controller.systemBarsBehavior =
+                                        WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                             }
                         } else {
                             @Suppress("DEPRECATION")
                             window.decorView.systemUiVisibility =
-                                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                                View.SYSTEM_UI_FLAG_FULLSCREEN
+                                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                                            View.SYSTEM_UI_FLAG_FULLSCREEN
                         }
                     } catch (e: Exception) {
                         android.util.Log.e("FloatingGameMenu", "Error restoring fullscreen", e)

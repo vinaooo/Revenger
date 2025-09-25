@@ -2,22 +2,12 @@
 <resources>
     <!-- Base theme for Material You support -->
     <style name="Theme.Revenger" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
-        <!-- Game-specific overrides -->
+        <!-- Game-specific overrides - let Material 3 handle colors automatically -->
         <item name="android:windowBackground">@android:color/black</item>
 
-        <!-- Force dark surface colors for gaming -->
-        <item name="colorSurface">@color/menu_surface</item>
-        <item name="colorOnSurface">@color/menu_on_surface</item>
-        <item name="colorSurfaceVariant">@color/menu_surface_variant</item>
-        <item name="colorOnSurfaceVariant">@color/menu_on_surface_variant</item>
-
+        <!-- Remove forced dark colors - let Dynamic Colors work -->
         <!-- Bottom sheet specific styling -->
         <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>
-
-        <!-- Ensure dark theme for dialog components -->
-        <item name="android:colorBackground">@color/menu_surface</item>
-        <item name="colorSurfaceContainer">@color/menu_surface</item>
-        <item name="colorSurfaceContainerHigh">@color/menu_surface</item>
 
         <!-- Enable edge-to-edge -->
         <item name="android:windowLightStatusBar">false</item>
@@ -26,14 +16,9 @@
     </style>
 
     <!-- Specific theme for BottomSheetDialog with transparent background to show game -->
-    <style name="Theme.Revenger.BottomSheet" parent="Theme.Material3.DayNight.BottomSheetDialog">
-        <!-- Force all surfaces to be semi-transparent dark -->
-        <item name="colorSurface">@color/menu_surface_transparent</item>
-        <item name="colorOnSurface">@color/menu_on_surface</item>
+    <style name="Theme.Revenger.BottomSheet" parent="Theme.Material3.DynamicColors.DayNight">
+        <!-- Remove forced dark colors - let Dynamic Colors handle them -->
         <item name="android:colorBackground">@android:color/transparent</item>
-        <item name="colorSurfaceContainer">@color/menu_surface_transparent</item>
-        <item name="colorSurfaceContainerHigh">@color/menu_surface_transparent</item>
-        <item name="colorSurfaceContainerHighest">@color/menu_surface_transparent</item>
 
         <!-- Transparent window background to show game behind -->
         <item name="android:windowBackground">@android:color/transparent</item>
@@ -101,7 +86,7 @@
     </style>
 
     <!-- Floating Game Menu Theme -->
-    <style name="Theme.Revenger.FloatingMenu" parent="Theme.Material3.DayNight.Dialog">
+    <style name="Theme.Revenger.FloatingMenu" parent="Theme.Material3.DynamicColors.DayNight">
         <!-- Transparent background to show game behind -->
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:colorBackground">@android:color/transparent</item>
@@ -118,13 +103,7 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
 
-        <!-- Material 3 colors for menu content -->
-        <item name="colorSurface">@color/menu_surface</item>
-        <item name="colorOnSurface">@color/menu_on_surface</item>
-        <item name="colorSurfaceContainer">@color/menu_surface_variant</item>
-        <item name="colorSurfaceContainerLow">@color/menu_surface</item>
-        <item name="colorOutlineVariant">@color/menu_outline_variant</item>
-
+        <!-- Remove forced colors - let Material 3 Dynamic Colors handle them -->
         <!-- Remove window animations for instant appearance -->
         <item name="android:windowAnimationStyle">@null</item>
     </style>
