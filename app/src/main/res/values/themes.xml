@@ -85,6 +85,68 @@
         <item name="android:gravity">center_vertical</item>
     </style>
 
+    <!-- Floating Game Menu Theme - Light Mode -->
+    <style name="Theme.Revenger.FloatingMenu.Light" parent="Theme.Material3.DayNight">
+        <!-- Light mode colors -->
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#1C1B1F</item>
+        <item name="colorSurfaceContainer">#F7F2FA</item>
+        <item name="colorSurfaceContainerLow">#F7F2FA</item>
+        <item name="colorOutlineVariant">#CAC4D0</item>
+        <item name="colorPrimary">#6750A4</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+
+        <!-- Transparent background to show game behind -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
+
+        <!-- No dim background, game should remain visible -->
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.4</item>
+
+        <!-- Fullscreen support -->
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+        <!-- Remove window animations for instant appearance -->
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
+    <!-- Floating Game Menu Theme - Dark Mode -->
+    <style name="Theme.Revenger.FloatingMenu.Dark" parent="Theme.Material3.DayNight">
+        <!-- Dark mode colors -->
+        <item name="colorSurface">#1C1B1F</item>
+        <item name="colorOnSurface">#E6E1E5</item>
+        <item name="colorSurfaceContainer">#2A292D</item>
+        <item name="colorSurfaceContainerLow">#2A292D</item>
+        <item name="colorOutlineVariant">#49454F</item>
+        <item name="colorPrimary">#D0BCFF</item>
+        <item name="colorOnPrimary">#381E72</item>
+
+        <!-- Transparent background to show game behind -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
+
+        <!-- No dim background, game should remain visible -->
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.4</item>
+
+        <!-- Fullscreen support -->
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+        <!-- Remove window animations for instant appearance -->
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
     <!-- Floating Game Menu Theme -->
     <style name="Theme.Revenger.FloatingMenu" parent="Theme.Material3.DynamicColors.DayNight">
         <!-- Transparent background to show game behind -->

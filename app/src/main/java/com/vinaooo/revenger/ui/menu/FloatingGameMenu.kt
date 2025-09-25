@@ -3,9 +3,11 @@ package com.vinaooo.revenger.ui.menu
 import android.animation.ValueAnimator
 import android.app.Dialog
 import android.content.DialogInterface
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -66,7 +68,16 @@ class FloatingGameMenu : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = Dialog(requireContext(), R.style.Theme_Revenger_FloatingMenu)
+        // Detect current system theme and use appropriate theme
+        val isDarkTheme = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+        val themeResId = if (isDarkTheme) {
+            R.style.Theme_Revenger_FloatingMenu_Dark
+        } else {
+            R.style.Theme_Revenger_FloatingMenu_Light
+        }
+
+        val dialog = Dialog(requireActivity(), themeResId)
 
         dialog.window?.let { window ->
             try {
@@ -336,6 +347,14 @@ class FloatingGameMenu : DialogFragment() {
                 }
             }
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        // Dismiss the current dialog when theme changes
+        // The dialog will be recreated with the correct theme when shown again
+        dialog?.dismiss()
     }
 
     companion object {
