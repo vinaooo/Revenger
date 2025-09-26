@@ -19,6 +19,9 @@
     <color name="menu_surface_transparent">#CC1C1B1F</color>
     <color name="menu_surface_variant_transparent">#CC49454F</color>
 
+    <!-- Light surface fallback used by dynamic color resolution -->
+    <color name="menu_light_surface">#F5F5F5</color>
+
     <!-- State colors -->
     <color name="menu_item_ripple">#33FFFFFF</color>
     <color name="menu_item_hover">#1AFFFFFF</color>

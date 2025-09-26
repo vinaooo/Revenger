@@ -84,8 +84,9 @@ class GameActivity : FragmentActivity() {
     private fun initializeSdk36Features() {
         Log.i(TAG, "Initializing SDK 36 features")
 
-        // Apply dynamic theming
+        // Apply dynamic theming globally and locally
         DynamicThemeManager.applyDynamicTheme(this)
+        DynamicThemeManager.ensureAppliedForActivity(this)
 
         // Initialize enhanced privacy controls
         EnhancedPrivacyManager.initializePrivacyControls(this)

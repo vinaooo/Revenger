@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurfaceOverlay"
+    android:background="?attr/colorSurface"
     android:clickable="true"
     android:focusable="true">
 
@@ -23,18 +23,16 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:orientation="vertical"
-        android:background="@color/menu_surface_transparent"
+        android:background="?attr/colorSurface"
         android:paddingBottom="16dp"
-        android:elevation="@dimen/menu_elevation">
-
-        <!-- Drag Handle -->
+        android:elevation="@dimen/menu_elevation">        <!-- Drag Handle -->
         <View
             android:id="@+id/drag_handle"
             android:layout_width="@dimen/bottom_sheet_handle_width"
             android:layout_height="@dimen/bottom_sheet_handle_height"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="@dimen/bottom_sheet_handle_margin_top"
-            android:background="@color/menu_outline"
+            android:background="?attr/colorOutline"
             android:contentDescription="@string/menu_handle_description" />
 
         <!-- Header Section -->
@@ -72,7 +70,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/menu_outline_variant"
+            android:background="?attr/colorOutlineVariant"
             android:layout_marginHorizontal="@dimen/menu_item_padding_horizontal" />
 
         <!-- Menu Items RecyclerView -->

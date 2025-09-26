@@ -20,6 +20,7 @@ import androidx.core.animation.doOnEnd
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.vinaooo.revenger.R
 
@@ -28,6 +29,41 @@ import com.vinaooo.revenger.R
  * clean, centered floating menu
  */
 class FloatingGameMenu : DialogFragment() {
+
+    // Helper to resolve color attributes from the current theme by attribute name so
+    // dynamic colors are honored even if the attribute is declared in a library.
+    private fun findAttrIdByName(attrName: String): Int {
+        val packages =
+                listOf(
+                        requireContext().packageName,
+                        "com.google.android.material",
+                        "androidx.appcompat",
+                        "android"
+                )
+
+        for (pkg in packages) {
+            val id = resources.getIdentifier(attrName, "attr", pkg)
+            if (id != 0) return id
+        }
+        return 0
+    }
+
+    private fun resolveColorAttrByName(attrName: String, fallbackRes: Int): Int {
+        return try {
+            val attrId = findAttrIdByName(attrName)
+            if (attrId != 0) {
+                MaterialColors.getColor(
+                        requireContext(),
+                        attrId,
+                        requireContext().getColor(fallbackRes)
+                )
+            } else {
+                requireContext().getColor(fallbackRes)
+            }
+        } catch (e: Exception) {
+            requireContext().getColor(fallbackRes)
+        }
+    }
 
     // Menu item views
     private lateinit var menuContainer: MaterialCardView
@@ -72,30 +108,66 @@ class FloatingGameMenu : DialogFragment() {
                 (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                         Configuration.UI_MODE_NIGHT_YES
 
-        val themeResId =
-                if (isDarkTheme) {
-                    R.style.Theme_Revenger_FloatingMenu_Dark
-                } else {
-                    R.style.Theme_Revenger_FloatingMenu_Light
-                }
+        // Prefer the unified FloatingMenu theme which inherits dynamic colors
+        val themeResId = R.style.Theme_Revenger_FloatingMenu
 
+        // Ensure DynamicColors are applied to the hosting activity so the dialog
+        // inherits the Monet palette when available.
+        try {
+            com.vinaooo.revenger.ui.theme.DynamicThemeManager.ensureAppliedForActivity(
+                    requireActivity()
+            )
+        } catch (ignored: Exception) {}
+
+        // Create dialog with the resolved theme. Window configuration (insets/fullscreen)
+        // is performed in onStart() where the dialog window and decor view are available
+        // to avoid NullPointerExceptions on some devices/emulator states.
         val dialog = Dialog(requireActivity(), themeResId)
 
-        dialog.window?.let { window ->
+        return dialog
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        dialog?.window?.let { window ->
             try {
                 // Check if fullscreen is enabled in config
                 val isFullscreenEnabled = resources.getBoolean(R.bool.config_fullscreen)
 
                 if (isFullscreenEnabled) {
-                    // Apply immersive fullscreen to dialog window
-                    window.insetsController?.let { controller ->
-                        controller.hide(WindowInsets.Type.systemBars())
-                        controller.systemBarsBehavior =
-                                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                    }
+                    // Defer UI changes to the decorView's message queue to ensure it's
+                    // attached. Guard all calls that may access the decorView/insets.
+                    window.decorView.post {
+                        try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                try {
+                                    window.insetsController?.let { controller ->
+                                        controller.hide(WindowInsets.Type.systemBars())
+                                        controller.systemBarsBehavior =
+                                                WindowInsetsController
+                                                        .BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                                    }
+                                } catch (ignored: Exception) {
+                                    // Some platform implementations may throw if decorView is
+                                    // not yet fully initialized; ignore and continue.
+                                }
 
-                    @Suppress("DEPRECATION") window.statusBarColor = Color.TRANSPARENT
-                    @Suppress("DEPRECATION") window.navigationBarColor = Color.TRANSPARENT
+                                window.statusBarColor = Color.TRANSPARENT
+                                window.navigationBarColor = Color.TRANSPARENT
+                            } else {
+                                window.decorView.systemUiVisibility =
+                                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                                                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                                                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                                                View.SYSTEM_UI_FLAG_FULLSCREEN
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e(TAG, "Error applying insets onStart", e)
+                        }
+                    }
                 }
 
                 // Make window background transparent and fullscreen
@@ -112,11 +184,9 @@ class FloatingGameMenu : DialogFragment() {
                                             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         }
             } catch (e: Exception) {
-                android.util.Log.e("FloatingGameMenu", "Error setting up dialog window", e)
+                android.util.Log.e(TAG, "Error configuring dialog window in onStart", e)
             }
         }
-
-        return dialog
     }
 
     override fun onCreateView(
@@ -218,13 +288,18 @@ class FloatingGameMenu : DialogFragment() {
         if (hasSaveState) {
             loadStateMenu.alpha = 1.0f
             loadStateMenu.isClickable = true
-            loadStateIcon.setColorFilter(requireContext().getColor(R.color.menu_primary))
+            // Prefer theme attribute (dynamic) falling back to R.color.menu_primary
+            loadStateIcon.setColorFilter(
+                    resolveColorAttrByName("colorPrimary", R.color.menu_primary)
+            )
             loadStateStatus.text = getString(R.string.save_state_available)
             loadStateStatus.visibility = View.VISIBLE
         } else {
             loadStateMenu.alpha = 0.6f
             loadStateMenu.isClickable = false
-            loadStateIcon.setColorFilter(requireContext().getColor(R.color.menu_on_surface_variant))
+            loadStateIcon.setColorFilter(
+                    resolveColorAttrByName("colorOnSurfaceVariant", R.color.menu_on_surface_variant)
+            )
             loadStateStatus.text = getString(R.string.save_state_not_available)
             loadStateStatus.visibility = View.VISIBLE
         }
@@ -251,11 +326,13 @@ class FloatingGameMenu : DialogFragment() {
 
         if (isFastForwardEnabled) {
             fastForwardTitle.text = getString(R.string.menu_fast_forward_disable)
-            fastForwardIcon.setColorFilter(requireContext().getColor(R.color.menu_primary))
+            fastForwardIcon.setColorFilter(
+                    resolveColorAttrByName("colorPrimary", R.color.menu_primary)
+            )
         } else {
             fastForwardTitle.text = getString(R.string.menu_fast_forward)
             fastForwardIcon.setColorFilter(
-                    requireContext().getColor(R.color.menu_on_surface_variant)
+                    resolveColorAttrByName("colorOnSurfaceVariant", R.color.menu_on_surface_variant)
             )
         }
     }
@@ -334,7 +411,6 @@ class FloatingGameMenu : DialogFragment() {
                                         WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                             }
                         } else {
-                            @Suppress("DEPRECATION")
                             window.decorView.systemUiVisibility =
                                     View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
                                             View.SYSTEM_UI_FLAG_LAYOUT_STABLE or

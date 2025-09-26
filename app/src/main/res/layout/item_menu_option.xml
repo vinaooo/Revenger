@@ -19,7 +19,7 @@
         android:layout_height="@dimen/menu_item_icon_size"
         android:layout_marginEnd="@dimen/menu_item_icon_margin_end"
         android:contentDescription="@string/menu_item_icon_description"
-        app:tint="?attr/colorPrimary" />
+    app:tint="?attr/colorPrimary" />
 
     <!-- Text Content -->
     <LinearLayout

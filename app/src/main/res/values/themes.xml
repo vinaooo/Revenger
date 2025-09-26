@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Base theme for Material You support -->
-    <style name="Theme.Revenger" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
-        <!-- Game-specific overrides - let Material 3 handle colors automatically -->
-        <item name="android:windowBackground">@android:color/black</item>
-
-        <!-- Overlay color used by in-game menus (fallback to menu_surface_transparent) -->
-        <item name="colorSurfaceOverlay">@color/menu_surface_transparent</item>
-
-        <!-- Remove forced dark colors - let Dynamic Colors work -->
-        <!-- Bottom sheet specific styling -->
-        <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>
+    <style name="Theme.Revenger" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Game-specific overrides - let DynamicThemeManager handle colors -->
+        <!-- Temporarily removed windowBackground to test Dynamic Colors -->
+        <!-- <item name="android:windowBackground">@android:color/black</item> -->
 
         <!-- Enable edge-to-edge -->
         <item name="android:windowLightStatusBar">false</item>
@@ -18,68 +12,7 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
-    <!-- Specific theme for BottomSheetDialog with transparent background to show game -->
-    <style name="Theme.Revenger.BottomSheet" parent="Theme.Material3.DynamicColors.DayNight">
-        <!-- Remove forced dark colors - let Dynamic Colors handle them -->
-        <item name="android:colorBackground">@android:color/transparent</item>
-
-        <!-- Transparent window background to show game behind -->
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:backgroundDimEnabled">true</item>
-        <item name="android:backgroundDimAmount">0.3</item>
-
-        <!-- Status and navigation bars -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
-
-        <!-- Bottom sheet specific - ensure it anchors to bottom -->
-        <item name="bottomSheetStyle">@style/AnchoredBottomSheetStyle</item>
-
-        <!-- Window layout parameters to ensure proper positioning -->
-        <item name="android:windowIsFloating">false</item>
-        <item name="android:windowSoftInputMode">adjustResize</item>
-    </style>
-
-    <!-- Anchored Bottom Sheet Style to fix positioning -->
-    <style name="AnchoredBottomSheetStyle" parent="Widget.Material3.BottomSheet">
-        <item name="backgroundTint">@color/menu_surface_transparent</item>
-        <item name="android:background">@color/menu_surface_transparent</item>
-        <item name="shapeAppearance">@style/CustomBottomSheetShape</item>
-        <item name="behavior_hideable">true</item>
-        <item name="behavior_skipCollapsed">true</item>
-        <item name="behavior_fitToContents">true</item>
-    </style>
-
-    <!-- Transparent Bottom Sheet Style for Game Menu -->
-    <style name="TransparentBottomSheetStyle" parent="Widget.Material3.BottomSheet">
-        <item name="backgroundTint">@color/menu_surface_transparent</item>
-        <item name="android:background">@color/menu_surface_transparent</item>
-        <item name="shapeAppearance">@style/CustomBottomSheetShape</item>
-        <item name="behavior_peekHeight">320dp</item>
-        <item name="behavior_hideable">true</item>
-        <item name="behavior_skipCollapsed">false</item>
-    </style>
-
-    <!-- Original Bottom Sheet Style for comparison -->
-    <style name="CustomBottomSheetStyle" parent="Widget.Material3.BottomSheet">
-        <item name="backgroundTint">@color/menu_surface</item>
-        <item name="android:background">@color/menu_surface</item>
-        <item name="shapeAppearance">@style/CustomBottomSheetShape</item>
-        <item name="behavior_peekHeight">320dp</item>
-        <item name="behavior_hideable">true</item>
-        <item name="behavior_skipCollapsed">false</item>
-    </style>
-
-    <!-- Bottom Sheet Shape -->
-    <style name="CustomBottomSheetShape" parent="ShapeAppearance.Material3.LargeComponent">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSizeTopLeft">16dp</item>
-        <item name="cornerSizeTopRight">16dp</item>
-        <item name="cornerSizeBottomLeft">0dp</item>
-        <item name="cornerSizeBottomRight">0dp</item>
-    </style>
+    <!-- BottomSheet styles removed: not used anymore (FloatingGameMenu replaces them) -->
 
     <!-- Menu Item Text Style -->
     <style name="GameMenuItemTextStyle">
@@ -89,15 +22,8 @@
     </style>
 
     <!-- Floating Game Menu Theme - Light Mode -->
-    <style name="Theme.Revenger.FloatingMenu.Light" parent="Theme.Material3.DayNight">
-        <!-- Light mode colors -->
-        <item name="colorSurface">#FFFFFF</item>
-        <item name="colorOnSurface">#1C1B1F</item>
-        <item name="colorSurfaceContainer">#F7F2FA</item>
-        <item name="colorSurfaceContainerLow">#F7F2FA</item>
-        <item name="colorOutlineVariant">#CAC4D0</item>
-        <item name="colorPrimary">#6750A4</item>
-        <item name="colorOnPrimary">#FFFFFF</item>
+    <style name="Theme.Revenger.FloatingMenu.Light" parent="Theme.Material3.DynamicColors.DayNight">
+        <!-- Let Material Dynamic Colors work automatically -->
 
         <!-- Transparent background to show game behind -->
         <item name="android:windowBackground">@android:color/transparent</item>
@@ -120,15 +46,8 @@
     </style>
 
     <!-- Floating Game Menu Theme - Dark Mode -->
-    <style name="Theme.Revenger.FloatingMenu.Dark" parent="Theme.Material3.DayNight">
-        <!-- Dark mode colors -->
-        <item name="colorSurface">#1C1B1F</item>
-        <item name="colorOnSurface">#E6E1E5</item>
-        <item name="colorSurfaceContainer">#2A292D</item>
-        <item name="colorSurfaceContainerLow">#2A292D</item>
-        <item name="colorOutlineVariant">#49454F</item>
-        <item name="colorPrimary">#D0BCFF</item>
-        <item name="colorOnPrimary">#381E72</item>
+    <style name="Theme.Revenger.FloatingMenu.Dark" parent="Theme.Material3.DynamicColors.DayNight">
+        <!-- Let Material Dynamic Colors work automatically -->
 
         <!-- Transparent background to show game behind -->
         <item name="android:windowBackground">@android:color/transparent</item>
@@ -152,6 +71,8 @@
 
     <!-- Floating Game Menu Theme -->
     <style name="Theme.Revenger.FloatingMenu" parent="Theme.Material3.DynamicColors.DayNight">
+        <!-- Let Material Dynamic Colors work automatically -->
+
         <!-- Transparent background to show game behind -->
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:colorBackground">@android:color/transparent</item>
