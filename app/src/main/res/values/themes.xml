@@ -5,6 +5,9 @@
         <!-- Game-specific overrides - let Material 3 handle colors automatically -->
         <item name="android:windowBackground">@android:color/black</item>
 
+        <!-- Overlay color used by in-game menus (fallback to menu_surface_transparent) -->
+        <item name="colorSurfaceOverlay">@color/menu_surface_transparent</item>
+
         <!-- Remove forced dark colors - let Dynamic Colors work -->
         <!-- Bottom sheet specific styling -->
         <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>

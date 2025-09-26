@@ -19,7 +19,7 @@
         android:layout_height="@dimen/menu_item_icon_size"
         android:layout_marginEnd="@dimen/menu_item_icon_margin_end"
         android:contentDescription="@string/menu_item_icon_description"
-        app:tint="@color/menu_primary" />
+        app:tint="?attr/colorPrimary" />
 
     <!-- Text Content -->
     <LinearLayout
@@ -33,7 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/menu_on_surface"
+            android:textColor="?attr/colorOnSurface"
             android:maxLines="1"
             android:ellipsize="end" />
 
@@ -42,7 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="@color/menu_on_surface_variant"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:maxLines="1"
             android:ellipsize="end"
             android:visibility="gone" />
@@ -55,7 +55,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceLabelSmall"
-        android:textColor="@color/menu_primary"
+    android:textColor="?attr/colorPrimary"
         android:visibility="gone"
         android:layout_marginStart="8dp" />
 
@@ -66,6 +66,6 @@
         android:layout_height="20dp"
         android:layout_marginStart="8dp"
         android:visibility="gone"
-        app:tint="@color/menu_on_surface_variant" />
+        app:tint="?attr/colorOnSurfaceVariant" />
 
 </LinearLayout>
