@@ -325,6 +325,7 @@
 
                             <com.google.android.material.materialswitch.MaterialSwitch
                                 android:id="@+id/audio_switch"
+                                style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp" />
@@ -391,6 +392,7 @@
 
                             <com.google.android.material.materialswitch.MaterialSwitch
                                 android:id="@+id/fast_forward_switch"
+                                style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp" />

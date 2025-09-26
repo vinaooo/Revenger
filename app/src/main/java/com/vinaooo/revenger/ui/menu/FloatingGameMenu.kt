@@ -119,15 +119,54 @@ class FloatingGameMenu : DialogFragment() {
             )
         } catch (ignored: Exception) {}
 
+        // Apply Dynamic Colors directly to the dialog context as well
+        try {
+            com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(
+                    requireActivity()
+            )
+            android.util.Log.d("FloatingGameMenu", "Applied DynamicColors to activity")
+        } catch (e: Exception) {
+            android.util.Log.e("FloatingGameMenu", "Failed to apply DynamicColors to activity", e)
+        }
+
+        // Test if colors are being resolved correctly
+        try {
+            val context = requireContext()
+            val primaryColor =
+                    com.google.android.material.color.MaterialColors.getColor(
+                            context,
+                            androidx.appcompat.R.attr.colorPrimary,
+                            context.getColor(android.R.color.holo_blue_light)
+                    )
+            android.util.Log.d(
+                    "FloatingGameMenu",
+                    "Primary color: #${Integer.toHexString(primaryColor)}"
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("FloatingGameMenu", "Failed to get colors", e)
+        }
+
         // Create dialog with the resolved theme. Window configuration (insets/fullscreen)
         // is performed in onStart() where the dialog window and decor view are available
         // to avoid NullPointerExceptions on some devices/emulator states.
         val dialog = Dialog(requireActivity(), themeResId)
 
+        // Apply theme to dialog's context as well
+        try {
+            dialog.context.setTheme(themeResId)
+            android.util.Log.d("FloatingGameMenu", "Applied theme to dialog context")
+        } catch (e: Exception) {
+            android.util.Log.e("FloatingGameMenu", "Failed to apply theme to dialog context", e)
+        }
+
         return dialog
     }
 
     override fun onStart() {
+        super.onStart()
+
+        // Force update of menu state after dialog is shown to ensure dynamic colors are applied
+        view?.post { updateMenuState() }
         super.onStart()
 
         dialog?.window?.let { window ->
@@ -285,21 +324,50 @@ class FloatingGameMenu : DialogFragment() {
     private fun updateLoadState() {
         val hasSaveState = menuListener?.hasSaveState() == true
 
+        // Define colors that work with Dynamic Colors
+        val primaryColor =
+                try {
+                    val typedValue = android.util.TypedValue()
+                    requireContext()
+                            .theme
+                            .resolveAttribute(
+                                    androidx.appcompat.R.attr.colorPrimary,
+                                    typedValue,
+                                    true
+                            )
+                    typedValue.data
+                } catch (e: Exception) {
+                    android.util.Log.e("FloatingGameMenu", "Failed to resolve primary color", e)
+                    requireContext().getColor(android.R.color.holo_blue_light)
+                }
+
+        val disabledColor =
+                try {
+                    val typedValue = android.util.TypedValue()
+                    requireContext()
+                            .theme
+                            .resolveAttribute(
+                                    androidx.appcompat.R.attr.colorControlNormal,
+                                    typedValue,
+                                    true
+                            )
+                    typedValue.data
+                } catch (e: Exception) {
+                    android.util.Log.e("FloatingGameMenu", "Failed to resolve disabled color", e)
+                    requireContext().getColor(android.R.color.darker_gray)
+                }
+
         if (hasSaveState) {
             loadStateMenu.alpha = 1.0f
             loadStateMenu.isClickable = true
-            // Prefer theme attribute (dynamic) falling back to default color
-            loadStateIcon.setColorFilter(
-                    resolveColorAttrByName("colorPrimary", android.R.color.holo_blue_light)
-            )
+            // Use dynamic colors for icons - try to resolve from current theme
+            loadStateIcon.setColorFilter(primaryColor)
             loadStateStatus.text = getString(R.string.save_state_available)
             loadStateStatus.visibility = View.VISIBLE
         } else {
             loadStateMenu.alpha = 0.6f
             loadStateMenu.isClickable = false
-            loadStateIcon.setColorFilter(
-                    resolveColorAttrByName("colorOnSurfaceVariant", android.R.color.darker_gray)
-            )
+            loadStateIcon.setColorFilter(disabledColor)
             loadStateStatus.text = getString(R.string.save_state_not_available)
             loadStateStatus.visibility = View.VISIBLE
         }
@@ -322,18 +390,47 @@ class FloatingGameMenu : DialogFragment() {
     private fun updateFastForwardState() {
         val isFastForwardEnabled = menuListener?.getFastForwardState() == true
 
+        // Define colors that work with Dynamic Colors
+        val primaryColor =
+                try {
+                    val typedValue = android.util.TypedValue()
+                    requireContext()
+                            .theme
+                            .resolveAttribute(
+                                    androidx.appcompat.R.attr.colorPrimary,
+                                    typedValue,
+                                    true
+                            )
+                    typedValue.data
+                } catch (e: Exception) {
+                    android.util.Log.e("FloatingGameMenu", "Failed to resolve primary color", e)
+                    requireContext().getColor(android.R.color.holo_blue_light)
+                }
+
+        val disabledColor =
+                try {
+                    val typedValue = android.util.TypedValue()
+                    requireContext()
+                            .theme
+                            .resolveAttribute(
+                                    androidx.appcompat.R.attr.colorControlNormal,
+                                    typedValue,
+                                    true
+                            )
+                    typedValue.data
+                } catch (e: Exception) {
+                    android.util.Log.e("FloatingGameMenu", "Failed to resolve disabled color", e)
+                    requireContext().getColor(android.R.color.darker_gray)
+                }
+
         fastForwardSwitch.isChecked = isFastForwardEnabled
 
         if (isFastForwardEnabled) {
             fastForwardTitle.text = getString(R.string.menu_fast_forward_disable)
-            fastForwardIcon.setColorFilter(
-                    resolveColorAttrByName("colorPrimary", android.R.color.holo_blue_light)
-            )
+            fastForwardIcon.setColorFilter(primaryColor)
         } else {
             fastForwardTitle.text = getString(R.string.menu_fast_forward)
-            fastForwardIcon.setColorFilter(
-                    resolveColorAttrByName("colorOnSurfaceVariant", android.R.color.darker_gray)
-            )
+            fastForwardIcon.setColorFilter(disabledColor)
         }
     }
 
