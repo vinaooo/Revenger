@@ -5,19 +5,8 @@
     <color name="gamepad_button_color">#88ffffff</color>
     <color name="gamepad_pressed_color">#66ffffff</color>
 
-    <!-- Material You Menu Colors (fallback for older Android versions) -->
-    <color name="menu_surface">#1C1B1F</color>
-    <color name="menu_surface_variant">#49454F</color>
-    <color name="menu_on_surface">#E6E1E5</color>
-    <color name="menu_on_surface_variant">#CAC4D0</color>
-    <color name="menu_primary">#D0BCFF</color>
-    <color name="menu_on_primary">#381E72</color>
-    <color name="menu_outline">#938F99</color>
-    <color name="menu_outline_variant">#49454F</color>
-
-    <!-- NEW: Semi-transparent colors for see-through menu -->
-    <color name="menu_surface_transparent">#CC1C1B1F</color>
-    <color name="menu_surface_variant_transparent">#CC49454F</color>
+    <!-- Dynamic Colors will be used instead of hardcoded menu colors -->
+    <!-- Removed: menu_surface, menu_surface_variant, etc. to allow Dynamic Colors -->
 
     <!-- Light surface fallback used by dynamic color resolution -->
     <color name="menu_light_surface">#F5F5F5</color>

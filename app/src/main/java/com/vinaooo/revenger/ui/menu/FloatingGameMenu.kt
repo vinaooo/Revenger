@@ -288,9 +288,9 @@ class FloatingGameMenu : DialogFragment() {
         if (hasSaveState) {
             loadStateMenu.alpha = 1.0f
             loadStateMenu.isClickable = true
-            // Prefer theme attribute (dynamic) falling back to R.color.menu_primary
+            // Prefer theme attribute (dynamic) falling back to default color
             loadStateIcon.setColorFilter(
-                    resolveColorAttrByName("colorPrimary", R.color.menu_primary)
+                    resolveColorAttrByName("colorPrimary", android.R.color.holo_blue_light)
             )
             loadStateStatus.text = getString(R.string.save_state_available)
             loadStateStatus.visibility = View.VISIBLE
@@ -298,7 +298,7 @@ class FloatingGameMenu : DialogFragment() {
             loadStateMenu.alpha = 0.6f
             loadStateMenu.isClickable = false
             loadStateIcon.setColorFilter(
-                    resolveColorAttrByName("colorOnSurfaceVariant", R.color.menu_on_surface_variant)
+                    resolveColorAttrByName("colorOnSurfaceVariant", android.R.color.darker_gray)
             )
             loadStateStatus.text = getString(R.string.save_state_not_available)
             loadStateStatus.visibility = View.VISIBLE
@@ -327,12 +327,12 @@ class FloatingGameMenu : DialogFragment() {
         if (isFastForwardEnabled) {
             fastForwardTitle.text = getString(R.string.menu_fast_forward_disable)
             fastForwardIcon.setColorFilter(
-                    resolveColorAttrByName("colorPrimary", R.color.menu_primary)
+                    resolveColorAttrByName("colorPrimary", android.R.color.holo_blue_light)
             )
         } else {
             fastForwardTitle.text = getString(R.string.menu_fast_forward)
             fastForwardIcon.setColorFilter(
-                    resolveColorAttrByName("colorOnSurfaceVariant", R.color.menu_on_surface_variant)
+                    resolveColorAttrByName("colorOnSurfaceVariant", android.R.color.darker_gray)
             )
         }
     }

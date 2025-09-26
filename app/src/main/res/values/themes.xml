@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Base theme for Material You support -->
-    <style name="Theme.Revenger" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.Revenger" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
         <!-- Game-specific overrides - let DynamicThemeManager handle colors -->
         <!-- Temporarily removed windowBackground to test Dynamic Colors -->
         <!-- <item name="android:windowBackground">@android:color/black</item> -->
