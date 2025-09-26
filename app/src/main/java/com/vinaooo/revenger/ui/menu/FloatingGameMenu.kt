@@ -323,51 +323,46 @@ class FloatingGameMenu : DialogFragment() {
 
     private fun updateLoadState() {
         val hasSaveState = menuListener?.hasSaveState() == true
+        val isFastForwardEnabled = menuListener?.getFastForwardState() == true
 
-        // Define colors that work with Dynamic Colors
-        val primaryColor =
-                try {
-                    val typedValue = android.util.TypedValue()
-                    requireContext()
-                            .theme
-                            .resolveAttribute(
-                                    androidx.appcompat.R.attr.colorPrimary,
-                                    typedValue,
-                                    true
-                            )
-                    typedValue.data
-                } catch (e: Exception) {
-                    android.util.Log.e("FloatingGameMenu", "Failed to resolve primary color", e)
-                    requireContext().getColor(android.R.color.holo_blue_light)
-                }
+        android.util.Log.d("FloatingGameMenu", "LoadState state: hasSaveState=$hasSaveState")
+        android.util.Log.d(
+                "FloatingGameMenu",
+                "FastForward state: isFastForwardEnabled=$isFastForwardEnabled"
+        )
 
-        val disabledColor =
-                try {
-                    val typedValue = android.util.TypedValue()
-                    requireContext()
-                            .theme
-                            .resolveAttribute(
-                                    androidx.appcompat.R.attr.colorControlNormal,
-                                    typedValue,
-                                    true
-                            )
-                    typedValue.data
-                } catch (e: Exception) {
-                    android.util.Log.e("FloatingGameMenu", "Failed to resolve disabled color", e)
-                    requireContext().getColor(android.R.color.darker_gray)
-                }
+        // Define colors that work with Dynamic Colors - use Material 3 attributes properly
+        val primaryColor = resolveColorAttrByName("colorPrimary", android.R.color.transparent)
+        val disabledColor = resolveColorAttrByName("colorOutline", android.R.color.transparent)
+
+        android.util.Log.d(
+                "FloatingGameMenu",
+                "LoadState - Primary color resolved: #${Integer.toHexString(primaryColor)}"
+        )
+        android.util.Log.d(
+                "FloatingGameMenu",
+                "LoadState - Disabled color resolved: #${Integer.toHexString(disabledColor)}"
+        )
 
         if (hasSaveState) {
             loadStateMenu.alpha = 1.0f
             loadStateMenu.isClickable = true
             // Use dynamic colors for icons - try to resolve from current theme
             loadStateIcon.setColorFilter(primaryColor)
+            android.util.Log.d(
+                    "FloatingGameMenu",
+                    "LoadState icon set to primary color: #${Integer.toHexString(primaryColor)}"
+            )
             loadStateStatus.text = getString(R.string.save_state_available)
             loadStateStatus.visibility = View.VISIBLE
         } else {
             loadStateMenu.alpha = 0.6f
             loadStateMenu.isClickable = false
             loadStateIcon.setColorFilter(disabledColor)
+            android.util.Log.d(
+                    "FloatingGameMenu",
+                    "LoadState icon set to disabled color: #${Integer.toHexString(disabledColor)}"
+            )
             loadStateStatus.text = getString(R.string.save_state_not_available)
             loadStateStatus.visibility = View.VISIBLE
         }
@@ -390,47 +385,40 @@ class FloatingGameMenu : DialogFragment() {
     private fun updateFastForwardState() {
         val isFastForwardEnabled = menuListener?.getFastForwardState() == true
 
-        // Define colors that work with Dynamic Colors
-        val primaryColor =
-                try {
-                    val typedValue = android.util.TypedValue()
-                    requireContext()
-                            .theme
-                            .resolveAttribute(
-                                    androidx.appcompat.R.attr.colorPrimary,
-                                    typedValue,
-                                    true
-                            )
-                    typedValue.data
-                } catch (e: Exception) {
-                    android.util.Log.e("FloatingGameMenu", "Failed to resolve primary color", e)
-                    requireContext().getColor(android.R.color.holo_blue_light)
-                }
+        android.util.Log.d(
+                "FloatingGameMenu",
+                "FastForward state: isFastForwardEnabled=$isFastForwardEnabled"
+        )
 
-        val disabledColor =
-                try {
-                    val typedValue = android.util.TypedValue()
-                    requireContext()
-                            .theme
-                            .resolveAttribute(
-                                    androidx.appcompat.R.attr.colorControlNormal,
-                                    typedValue,
-                                    true
-                            )
-                    typedValue.data
-                } catch (e: Exception) {
-                    android.util.Log.e("FloatingGameMenu", "Failed to resolve disabled color", e)
-                    requireContext().getColor(android.R.color.darker_gray)
-                }
+        // Define colors that work with Dynamic Colors - use Material 3 attributes properly
+        val primaryColor = resolveColorAttrByName("colorPrimary", android.R.color.transparent)
+        val disabledColor = resolveColorAttrByName("colorOutline", android.R.color.transparent)
+
+        android.util.Log.d(
+                "FloatingGameMenu",
+                "FastForward - Primary color resolved: #${Integer.toHexString(primaryColor)}"
+        )
+        android.util.Log.d(
+                "FloatingGameMenu",
+                "FastForward - Disabled color resolved: #${Integer.toHexString(disabledColor)}"
+        )
 
         fastForwardSwitch.isChecked = isFastForwardEnabled
 
         if (isFastForwardEnabled) {
             fastForwardTitle.text = getString(R.string.menu_fast_forward_disable)
             fastForwardIcon.setColorFilter(primaryColor)
+            android.util.Log.d(
+                    "FloatingGameMenu",
+                    "FastForward icon set to primary color: #${Integer.toHexString(primaryColor)}"
+            )
         } else {
             fastForwardTitle.text = getString(R.string.menu_fast_forward)
             fastForwardIcon.setColorFilter(disabledColor)
+            android.util.Log.d(
+                    "FloatingGameMenu",
+                    "FastForward icon set to disabled color: #${Integer.toHexString(disabledColor)}"
+            )
         }
     }
 
