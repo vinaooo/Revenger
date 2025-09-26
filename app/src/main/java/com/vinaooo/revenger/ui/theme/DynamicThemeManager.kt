@@ -19,7 +19,10 @@ object DynamicThemeManager {
     init {
         android.util.Log.d(TAG, "DynamicThemeManager initialized")
         android.util.Log.d(TAG, "Android version: ${android.os.Build.VERSION.SDK_INT}")
-        android.util.Log.d(TAG, "Dynamic Colors available: ${DynamicColors.isDynamicColorAvailable()}")
+        android.util.Log.d(
+                TAG,
+                "Dynamic Colors available: ${DynamicColors.isDynamicColorAvailable()}"
+        )
     }
 
     /**
@@ -27,8 +30,14 @@ object DynamicThemeManager {
      * 11: Static fallback theme
      */
     fun applyDynamicTheme(context: Context) {
-        android.util.Log.d(TAG, "applyDynamicTheme called - Android ${android.os.Build.VERSION.SDK_INT}")
-        android.util.Log.d(TAG, "DynamicColors.isDynamicColorAvailable(): ${DynamicColors.isDynamicColorAvailable()}")
+        android.util.Log.d(
+                TAG,
+                "applyDynamicTheme called - Android ${android.os.Build.VERSION.SDK_INT}"
+        )
+        android.util.Log.d(
+                TAG,
+                "DynamicColors.isDynamicColorAvailable(): ${DynamicColors.isDynamicColorAvailable()}"
+        )
 
         when {
             AndroidCompatibility.isAndroid16Plus() -> {
@@ -70,7 +79,10 @@ object DynamicThemeManager {
 
             android.util.Log.d(TAG, "Advanced Material You applied successfully")
         } else {
-            android.util.Log.w(TAG, "Dynamic Colors not available, cannot apply Advanced Material You")
+            android.util.Log.w(
+                    TAG,
+                    "Dynamic Colors not available, cannot apply Advanced Material You"
+            )
         }
     }
 
@@ -91,7 +103,10 @@ object DynamicThemeManager {
 
             android.util.Log.d(TAG, "Material You applied successfully")
         } else {
-            android.util.Log.w(TAG, "Dynamic Colors NOT available on this device - forcing application anyway")
+            android.util.Log.w(
+                    TAG,
+                    "Dynamic Colors NOT available on this device - forcing application anyway"
+            )
             // Force apply even if system says it's not available (for testing)
             try {
                 DynamicColors.applyToActivitiesIfAvailable(

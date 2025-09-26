@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.views
 
-import android.app.Service
 import android.hardware.input.InputManager
 import android.os.Bundle
 import android.util.Log
