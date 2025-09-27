@@ -1,29 +1,15 @@
 <resources>
     <!-- Existing gamepad colors -->
-    <color name="gamepad_icon_color">#ff000000</color>
     <color name="gamepad_button_color">#88ffffff</color>
     <color name="gamepad_pressed_color">#66ffffff</color>
 
     <!-- Dynamic Colors will be used instead of hardcoded menu colors -->
     <!-- Removed: menu_surface, menu_surface_variant, etc. to allow Dynamic Colors -->
 
-    <!-- Light surface fallback used by dynamic color resolution -->
-    <color name="menu_light_surface">#F5F5F5</color>
-
     <!-- State colors -->
     <color name="menu_item_ripple">#33FFFFFF</color>
     <color name="menu_item_hover">#1AFFFFFF</color>
     <color name="menu_item_focused">#26FFFFFF</color>
-
-    <!-- Status indicator colors -->
-    <color name="status_success">#4CAF50</color>
-    <color name="status_warning">#FF9800</color>
-    <color name="status_error">#F44336</color>
-    <color name="status_info">#2196F3</color>
-
-    <!-- Additional Material 3 colors for floating menu -->
-    <color name="color_primary">#D0BCFF</color>
-    <color name="color_on_surface_variant">#CAC4D0</color>
 
     <!-- Dynamic colors are now handled automatically by Material 3 -->
 </resources>

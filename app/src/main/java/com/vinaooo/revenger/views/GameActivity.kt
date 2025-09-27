@@ -13,7 +13,6 @@ import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.privacy.EnhancedPrivacyManager
-import com.vinaooo.revenger.ui.theme.DynamicThemeManager
 import com.vinaooo.revenger.utils.AndroidCompatibility
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -60,6 +59,9 @@ class GameActivity : FragmentActivity() {
 
         setContentView(R.layout.activity_game)
 
+        // Configure status/navigation bars based on current theme
+        configureSystemBarsForTheme()
+
         // Initialize views
         leftContainer = findViewById(R.id.left_container)
         rightContainer = findViewById(R.id.right_container)
@@ -83,9 +85,7 @@ class GameActivity : FragmentActivity() {
     private fun initializeSdk36Features() {
         Log.i(TAG, "Initializing SDK 36 features")
 
-        // Apply dynamic theming globally and locally
-        DynamicThemeManager.applyDynamicTheme(this)
-        DynamicThemeManager.ensureAppliedForActivity(this)
+        // Dynamic theming is now handled automatically by Material 3 theme inheritance
 
         // Initialize enhanced privacy controls
         EnhancedPrivacyManager.initializePrivacyControls(this)
@@ -94,6 +94,41 @@ class GameActivity : FragmentActivity() {
         AdvancedPerformanceProfiler.startProfiling(this)
 
         Log.i(TAG, "SDK 36 features initialized successfully")
+    }
+
+    /** Configure status/navigation bars based on current theme for optimal visibility */
+    private fun configureSystemBarsForTheme() {
+        // Detect if we're using dark theme
+        val isDarkTheme =
+                resources.configuration.uiMode and
+                        android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
+                        android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+        // In dark theme: use light icons (true) for better visibility on dark backgrounds
+        // In light theme: use dark icons (false) for better visibility on light backgrounds
+        val lightIcons = isDarkTheme
+
+        // Apply the configuration
+        window.decorView.windowInsetsController?.setSystemBarsAppearance(
+                if (lightIcons) android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                else 0,
+                android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+        )
+
+        // Also set for navigation bar if supported
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            window.decorView.windowInsetsController?.setSystemBarsAppearance(
+                    if (lightIcons)
+                            android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                    else 0,
+                    android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+            )
+        }
+
+        Log.d(
+                TAG,
+                "System bars configured for ${if (isDarkTheme) "dark" else "light"} theme (light icons: $lightIcons)"
+        )
     }
 
     /** Listen for new controller additions and removals */

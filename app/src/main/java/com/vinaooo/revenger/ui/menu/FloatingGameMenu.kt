@@ -68,8 +68,11 @@ class FloatingGameMenu : DialogFragment() {
     /** Calculate dynamic outline variant color (colorOnSurface with 38% alpha) */
     private fun getDynamicOutlineVariantColor(): Int {
         val onSurfaceColor = resolveColorAttrByName("colorOnSurface", android.R.color.black)
-        // Apply 38% alpha (0.38 * 255 = 97 = 0x61)
-        return (0x61000000 or (onSurfaceColor and 0x00FFFFFF))
+        // Apply 38% alpha using Material 3 API
+        return com.google.android.material.color.MaterialColors.compositeARGBWithAlpha(
+                onSurfaceColor,
+                97 // 38% of 255 = 97
+        )
     }
 
     // Menu item views
@@ -118,13 +121,7 @@ class FloatingGameMenu : DialogFragment() {
         // Prefer the unified FloatingMenu theme which inherits dynamic colors
         val themeResId = R.style.Theme_Revenger_FloatingMenu
 
-        // Ensure DynamicColors are applied to the hosting activity so the dialog
-        // inherits the Monet palette when available.
-        try {
-            com.vinaooo.revenger.ui.theme.DynamicThemeManager.ensureAppliedForActivity(
-                    requireActivity()
-            )
-        } catch (ignored: Exception) {}
+        // Dynamic colors are now handled automatically by Material 3 theme inheritance
 
         // Apply Dynamic Colors directly to the dialog context as well
         try {
