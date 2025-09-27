@@ -65,6 +65,13 @@ class FloatingGameMenu : DialogFragment() {
         }
     }
 
+    /** Calculate dynamic outline variant color (colorOnSurface with 38% alpha) */
+    private fun getDynamicOutlineVariantColor(): Int {
+        val onSurfaceColor = resolveColorAttrByName("colorOnSurface", android.R.color.black)
+        // Apply 38% alpha (0.38 * 255 = 97 = 0x61)
+        return (0x61000000 or (onSurfaceColor and 0x00FFFFFF))
+    }
+
     // Menu item views
     private lateinit var menuContainer: MaterialCardView
     private lateinit var closeButton: MaterialButton
@@ -316,9 +323,27 @@ class FloatingGameMenu : DialogFragment() {
     }
 
     private fun updateMenuState() {
+        // Apply dynamic outline color to all menu cards
+        val outlineColor = getDynamicOutlineVariantColor()
+        applyDynamicOutlineColor(outlineColor)
+
         updateLoadState()
         updateAudioState()
         updateFastForwardState()
+    }
+
+    /** Apply dynamic outline color to all menu cards */
+    private fun applyDynamicOutlineColor(color: Int) {
+        val cards =
+                arrayOf(resetMenu, saveStateMenu, loadStateMenu, audioToggleMenu, fastForwardMenu)
+
+        cards.forEach { card ->
+            try {
+                card.strokeColor = color
+            } catch (e: Exception) {
+                android.util.Log.w("FloatingGameMenu", "Failed to set stroke color", e)
+            }
+        }
     }
 
     private fun updateLoadState() {
