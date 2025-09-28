@@ -3,7 +3,6 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Activity
 import android.app.Application
 import android.content.pm.ActivityInfo
-import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.view.*
 import android.widget.FrameLayout
@@ -147,14 +146,22 @@ class GameActivityViewModel(application: Application) :
                             .setNeutralButton(R.string.cancel, null)
                             .create()
 
-            // Apply the same background color as the menu (Material 3 surface color)
+            // Apply the same background color as the menu with rounded corners (Material 3 surface
+            // color)
             val backgroundColor = android.util.TypedValue()
             themedContext.theme.resolveAttribute(
                     com.google.android.material.R.attr.colorSurface,
                     backgroundColor,
                     true
             )
-            dialog.window?.setBackgroundDrawable(ColorDrawable(backgroundColor.data))
+
+            // Create rounded background drawable (same radius as menu: 28dp)
+            val cornerRadiusPx = (28 * themedContext.resources.displayMetrics.density).toInt()
+            val roundedBackground = android.graphics.drawable.GradientDrawable()
+            roundedBackground.setColor(backgroundColor.data)
+            roundedBackground.cornerRadius = cornerRadiusPx.toFloat()
+
+            dialog.window?.setBackgroundDrawable(roundedBackground)
 
             dialog.show()
         }
