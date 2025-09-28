@@ -26,6 +26,7 @@ class GameMenuFullscreenFragment : Fragment() {
     private lateinit var loadStateMenu: MaterialCardView
     private lateinit var audioToggleMenu: MaterialCardView
     private lateinit var fastForwardMenu: MaterialCardView
+    private lateinit var exitMenu: MaterialCardView
 
     // Dynamic content views
     private lateinit var loadStateIcon: ImageView
@@ -44,6 +45,7 @@ class GameMenuFullscreenFragment : Fragment() {
         fun onLoadState()
         fun onToggleAudio()
         fun onFastForward()
+        fun onExitGame()
         fun getAudioState(): Boolean
         fun getFastForwardState(): Boolean
         fun hasSaveState(): Boolean
@@ -89,6 +91,7 @@ class GameMenuFullscreenFragment : Fragment() {
         loadStateMenu = view.findViewById(R.id.menu_load_state)
         audioToggleMenu = view.findViewById(R.id.menu_toggle_audio)
         fastForwardMenu = view.findViewById(R.id.menu_fast_forward)
+        exitMenu = view.findViewById(R.id.menu_exit)
 
         // Dynamic content views
         loadStateIcon = view.findViewById(R.id.load_state_icon)
@@ -127,6 +130,11 @@ class GameMenuFullscreenFragment : Fragment() {
         fastForwardMenu.setOnClickListener {
             menuListener?.onFastForward()
             updateMenuState()
+        }
+
+        exitMenu.setOnClickListener {
+            menuListener?.onExitGame()
+            animateMenuOut { dismissMenu() }
         }
     }
 

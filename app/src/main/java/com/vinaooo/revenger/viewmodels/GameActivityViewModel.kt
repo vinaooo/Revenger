@@ -7,6 +7,7 @@ import android.os.Build
 import android.view.*
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
@@ -116,6 +117,26 @@ class GameActivityViewModel(application: Application) :
 
     override fun onFastForward() {
         retroView?.let { retroViewUtils?.fastForward(it) }
+    }
+
+    override fun onExitGame() {
+        // Show confirmation dialog asking if user wants to save before exiting
+        currentActivity?.let { activity ->
+            AlertDialog.Builder(activity)
+                .setTitle(R.string.exit_game_title)
+                .setMessage(R.string.exit_game_message)
+                .setPositiveButton(R.string.exit_game_save_and_exit) { _: android.content.DialogInterface, _: Int ->
+                    // Save state and then exit
+                    onSaveState()
+                    android.os.Process.killProcess(android.os.Process.myPid())
+                }
+                .setNegativeButton(R.string.exit_game_exit_without_save) { _: android.content.DialogInterface, _: Int ->
+                    // Exit without saving
+                    android.os.Process.killProcess(android.os.Process.myPid())
+                }
+                .setNeutralButton(R.string.cancel, null)
+                .show()
+        }
     }
 
     override fun getAudioState(): Boolean {

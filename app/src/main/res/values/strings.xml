@@ -10,6 +10,7 @@
     <string name="menu_mute">Mute</string>
     <string name="menu_unmute">Unmute</string>
     <string name="menu_fast_forward">Fast Forward</string>
+    <string name="menu_exit">Exit Game</string>
 
     <!-- Menu headers and descriptions -->
     <string name="game_menu_title">Game Menu</string>
@@ -18,6 +19,7 @@
     <string name="menu_load_state_description">Load saved game progress</string>
     <string name="menu_mute_description">Toggle game audio on/off</string>
     <string name="menu_fast_forward_description">Speed up game temporarily</string>
+    <string name="menu_exit_description">Exit the game and return to main screen</string>
 
     <!-- Accessibility content descriptions -->
     <string name="menu_item_icon_description">Menu option icon</string>
@@ -31,6 +33,13 @@
     <string name="save_state_not_available">No save available</string>
     <string name="fast_forward_active">Fast forward active</string>
     <string name="fast_forward_inactive">Normal speed</string>
+
+    <!-- Exit game confirmation dialog -->
+    <string name="exit_game_title">Exit Game</string>
+    <string name="exit_game_message">Do you want to save your game progress before exiting?</string>
+    <string name="exit_game_save_and_exit">Save and Exit</string>
+    <string name="exit_game_exit_without_save">Exit without Saving</string>
+    <string name="cancel">Cancel</string>
 
     <!-- New strings for floating menu -->
     <string name="game_menu_icon">Game menu icon</string>
