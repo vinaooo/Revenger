@@ -220,7 +220,8 @@ class FloatingGameMenu : DialogFragment() {
                             flags =
                                     flags or
                                             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                                            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                         }
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "Error configuring dialog window in onStart", e)

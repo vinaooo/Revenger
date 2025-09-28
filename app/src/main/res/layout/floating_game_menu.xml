@@ -4,7 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:background="@android:color/transparent"
+    android:fitsSystemWindows="false">
 
     <!-- Floating Menu Container -->
     <com.google.android.material.card.MaterialCardView
