@@ -123,19 +123,23 @@ class GameActivityViewModel(application: Application) :
         // Show confirmation dialog asking if user wants to save before exiting
         currentActivity?.let { activity ->
             AlertDialog.Builder(activity)
-                .setTitle(R.string.exit_game_title)
-                .setMessage(R.string.exit_game_message)
-                .setPositiveButton(R.string.exit_game_save_and_exit) { _: android.content.DialogInterface, _: Int ->
-                    // Save state and then exit
-                    onSaveState()
-                    android.os.Process.killProcess(android.os.Process.myPid())
-                }
-                .setNegativeButton(R.string.exit_game_exit_without_save) { _: android.content.DialogInterface, _: Int ->
-                    // Exit without saving
-                    android.os.Process.killProcess(android.os.Process.myPid())
-                }
-                .setNeutralButton(R.string.cancel, null)
-                .show()
+                    .setTitle(R.string.exit_game_title)
+                    .setMessage(R.string.exit_game_message)
+                    .setPositiveButton(R.string.exit_game_save_and_exit) {
+                            _: android.content.DialogInterface,
+                            _: Int ->
+                        // Save state and then exit
+                        onSaveState()
+                        android.os.Process.killProcess(android.os.Process.myPid())
+                    }
+                    .setNegativeButton(R.string.exit_game_exit_without_save) {
+                            _: android.content.DialogInterface,
+                            _: Int ->
+                        // Exit without saving
+                        android.os.Process.killProcess(android.os.Process.myPid())
+                    }
+                    .setNeutralButton(R.string.cancel, null)
+                    .show()
         }
     }
 
