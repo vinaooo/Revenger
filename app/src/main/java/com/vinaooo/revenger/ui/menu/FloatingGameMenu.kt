@@ -359,6 +359,7 @@ class FloatingGameMenu : DialogFragment() {
 
         if (isDarkTheme) {
             // Dark theme: Header and cards use the same surface color for clean, integrated look
+            // Remove stroke from cards to create seamless appearance
             menuHeader.setBackgroundColor(surfaceColor)
 
             val cards =
@@ -372,6 +373,7 @@ class FloatingGameMenu : DialogFragment() {
             cards.forEach { card ->
                 try {
                     card.setCardBackgroundColor(surfaceColor)
+                    card.setStrokeWidth(0) // Remove stroke for seamless look
                 } catch (e: Exception) {
                     android.util.Log.w("FloatingGameMenu", "Failed to set card background color", e)
                 }
