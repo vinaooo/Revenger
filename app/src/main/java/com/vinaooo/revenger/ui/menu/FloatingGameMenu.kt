@@ -78,7 +78,6 @@ class FloatingGameMenu : DialogFragment() {
     // Menu item views
     private lateinit var menuContainer: MaterialCardView
     private lateinit var menuHeader: LinearLayout
-    private lateinit var closeButton: MaterialButton
     private lateinit var resetMenu: MaterialCardView
     private lateinit var saveStateMenu: MaterialCardView
     private lateinit var loadStateMenu: MaterialCardView
@@ -257,7 +256,6 @@ class FloatingGameMenu : DialogFragment() {
         // Main container
         menuContainer = view.findViewById(R.id.menu_container)
         menuHeader = view.findViewById<LinearLayout>(R.id.menu_header)
-        closeButton = view.findViewById(R.id.close_button)
 
         // Menu items
         resetMenu = view.findViewById(R.id.menu_reset)
@@ -278,8 +276,6 @@ class FloatingGameMenu : DialogFragment() {
     }
 
     private fun setupClickListeners() {
-        closeButton.setOnClickListener { dismiss() }
-
         resetMenu.setOnClickListener {
             menuListener?.onResetGame()
             animateMenuOut { dismiss() }
