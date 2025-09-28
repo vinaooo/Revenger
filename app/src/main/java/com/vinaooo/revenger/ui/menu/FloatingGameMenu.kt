@@ -4,7 +4,6 @@ import android.animation.ValueAnimator
 import android.app.Dialog
 import android.content.DialogInterface
 import android.content.res.Configuration
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,6 +14,7 @@ import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.animation.doOnEnd
 import androidx.fragment.app.DialogFragment
@@ -77,6 +77,7 @@ class FloatingGameMenu : DialogFragment() {
 
     // Menu item views
     private lateinit var menuContainer: MaterialCardView
+    private lateinit var menuHeader: LinearLayout
     private lateinit var closeButton: MaterialButton
     private lateinit var resetMenu: MaterialCardView
     private lateinit var saveStateMenu: MaterialCardView
@@ -195,9 +196,6 @@ class FloatingGameMenu : DialogFragment() {
                                     // Some platform implementations may throw if decorView is
                                     // not yet fully initialized; ignore and continue.
                                 }
-
-                                window.statusBarColor = Color.TRANSPARENT
-                                window.navigationBarColor = Color.TRANSPARENT
                             } else {
                                 window.decorView.systemUiVisibility =
                                         View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
@@ -258,6 +256,7 @@ class FloatingGameMenu : DialogFragment() {
     private fun setupViews(view: View) {
         // Main container
         menuContainer = view.findViewById(R.id.menu_container)
+        menuHeader = view.findViewById<LinearLayout>(R.id.menu_header)
         closeButton = view.findViewById(R.id.close_button)
 
         // Menu items
@@ -324,6 +323,9 @@ class FloatingGameMenu : DialogFragment() {
         val outlineColor = getDynamicOutlineVariantColor()
         applyDynamicOutlineColor(outlineColor)
 
+        // Configure background colors based on theme
+        configureBackgroundColors()
+
         updateLoadState()
         updateAudioState()
         updateFastForwardState()
@@ -340,6 +342,44 @@ class FloatingGameMenu : DialogFragment() {
             } catch (e: Exception) {
                 android.util.Log.w("FloatingGameMenu", "Failed to set stroke color", e)
             }
+        }
+    }
+
+    /** Configure background colors based on current theme */
+    private fun configureBackgroundColors() {
+        // Detect current theme
+        val isDarkTheme =
+                (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                        Configuration.UI_MODE_NIGHT_YES
+
+        // Get color resources
+        val surfaceColor = resolveColorAttrByName("colorSurface", android.R.color.black)
+        val surfaceVariantColor =
+                resolveColorAttrByName("colorSurfaceVariant", android.R.color.darker_gray)
+
+        if (isDarkTheme) {
+            // Dark theme: Header and cards use the same surface color for clean, integrated look
+            menuHeader.setBackgroundColor(surfaceColor)
+
+            val cards =
+                    arrayOf(
+                            resetMenu,
+                            saveStateMenu,
+                            loadStateMenu,
+                            audioToggleMenu,
+                            fastForwardMenu
+                    )
+            cards.forEach { card ->
+                try {
+                    card.setCardBackgroundColor(surfaceColor)
+                } catch (e: Exception) {
+                    android.util.Log.w("FloatingGameMenu", "Failed to set card background color", e)
+                }
+            }
+        } else {
+            // Light theme: Header should use surface variant (same as cards)
+            menuHeader.setBackgroundColor(surfaceVariantColor)
+            // Cards already use surface variant in XML, so no change needed
         }
     }
 

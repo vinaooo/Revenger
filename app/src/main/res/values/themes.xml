@@ -5,9 +5,6 @@
         <!-- Game-specific overrides for edge-to-edge and transparency -->
         <!-- Dynamic colors are handled automatically by Material 3 theme inheritance -->
 
-        <!-- Custom surface overlay color for advanced theming -->
-        <item name="colorSurfaceOverlay">?attr/colorSurface</item>
-
         <!-- Enable edge-to-edge -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
@@ -41,8 +38,6 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
 
         <!-- Remove forced colors - let Material 3 Dynamic Colors handle them -->
         <!-- Remove window animations for instant appearance -->
