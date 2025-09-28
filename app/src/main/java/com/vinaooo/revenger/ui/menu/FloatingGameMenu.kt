@@ -18,7 +18,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.animation.doOnEnd
 import androidx.fragment.app.DialogFragment
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.materialswitch.MaterialSwitch
