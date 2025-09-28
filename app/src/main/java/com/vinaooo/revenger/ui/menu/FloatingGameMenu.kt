@@ -354,8 +354,6 @@ class FloatingGameMenu : DialogFragment() {
 
         // Get color resources
         val surfaceColor = resolveColorAttrByName("colorSurface", android.R.color.black)
-        val surfaceVariantColor =
-                resolveColorAttrByName("colorSurfaceVariant", android.R.color.darker_gray)
 
         if (isDarkTheme) {
             // Dark theme: Header and cards use the same surface color for clean, integrated look
@@ -379,9 +377,25 @@ class FloatingGameMenu : DialogFragment() {
                 }
             }
         } else {
-            // Light theme: Header should use surface variant (same as cards)
-            menuHeader.setBackgroundColor(surfaceVariantColor)
-            // Cards already use surface variant in XML, so no change needed
+            // Light theme: Replicate dark theme's integrated look using surface color
+            menuHeader.setBackgroundColor(surfaceColor)
+
+            val cards =
+                    arrayOf(
+                            resetMenu,
+                            saveStateMenu,
+                            loadStateMenu,
+                            audioToggleMenu,
+                            fastForwardMenu
+                    )
+            cards.forEach { card ->
+                try {
+                    card.setCardBackgroundColor(surfaceColor)
+                    card.setStrokeWidth(0) // Remove stroke for seamless look like dark theme
+                } catch (e: Exception) {
+                    android.util.Log.w("FloatingGameMenu", "Failed to set card background color", e)
+                }
+            }
         }
     }
 
