@@ -3,6 +3,7 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Activity
 import android.app.Application
 import android.content.pm.ActivityInfo
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.view.*
 import android.widget.FrameLayout
@@ -122,24 +123,40 @@ class GameActivityViewModel(application: Application) :
     override fun onExitGame() {
         // Show confirmation dialog asking if user wants to save before exiting
         currentActivity?.let { activity ->
-            AlertDialog.Builder(activity)
-                    .setTitle(R.string.exit_game_title)
-                    .setMessage(R.string.exit_game_message)
-                    .setPositiveButton(R.string.exit_game_save_and_exit) {
-                            _: android.content.DialogInterface,
-                            _: Int ->
-                        // Save state and then exit
-                        onSaveState()
-                        android.os.Process.killProcess(android.os.Process.myPid())
-                    }
-                    .setNegativeButton(R.string.exit_game_exit_without_save) {
-                            _: android.content.DialogInterface,
-                            _: Int ->
-                        // Exit without saving
-                        android.os.Process.killProcess(android.os.Process.myPid())
-                    }
-                    .setNeutralButton(R.string.cancel, null)
-                    .show()
+            // Create context with the same theme as the menu
+            val themedContext =
+                    android.view.ContextThemeWrapper(activity, R.style.Theme_Revenger_FloatingMenu)
+
+            val dialog =
+                    AlertDialog.Builder(themedContext)
+                            .setTitle(R.string.exit_game_title)
+                            .setMessage(R.string.exit_game_message)
+                            .setPositiveButton(R.string.exit_game_save_and_exit) {
+                                    _: android.content.DialogInterface,
+                                    _: Int ->
+                                // Save state and then exit
+                                onSaveState()
+                                android.os.Process.killProcess(android.os.Process.myPid())
+                            }
+                            .setNegativeButton(R.string.exit_game_exit_without_save) {
+                                    _: android.content.DialogInterface,
+                                    _: Int ->
+                                // Exit without saving
+                                android.os.Process.killProcess(android.os.Process.myPid())
+                            }
+                            .setNeutralButton(R.string.cancel, null)
+                            .create()
+
+            // Apply the same background color as the menu (Material 3 surface color)
+            val backgroundColor = android.util.TypedValue()
+            themedContext.theme.resolveAttribute(
+                    com.google.android.material.R.attr.colorSurface,
+                    backgroundColor,
+                    true
+            )
+            dialog.window?.setBackgroundDrawable(ColorDrawable(backgroundColor.data))
+
+            dialog.show()
         }
     }
 
