@@ -23,13 +23,6 @@
         <item name="android:windowBackground">@android:color/black</item>
     </style>
 
-    <!-- Menu Item Text Style -->
-    <style name="GameMenuItemTextStyle">
-        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
-        <item name="android:textColor">?attr/colorOnSurface</item>
-        <item name="android:gravity">center_vertical</item>
-    </style>
-
     <!-- Floating Game Menu Theme -->
     <style name="Theme.Revenger.FloatingMenu" parent="Theme.Material3.DynamicColors.DayNight">
         <!-- Let Material Dynamic Colors work automatically -->

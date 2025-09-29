@@ -6,10 +6,5 @@
     <!-- Dynamic Colors will be used instead of hardcoded menu colors -->
     <!-- Removed: menu_surface, menu_surface_variant, etc. to allow Dynamic Colors -->
 
-    <!-- State colors -->
-    <color name="menu_item_ripple">#33FFFFFF</color>
-    <color name="menu_item_hover">#1AFFFFFF</color>
-    <color name="menu_item_focused">#26FFFFFF</color>
-
     <!-- Dynamic colors are now handled automatically by Material 3 -->
 </resources>

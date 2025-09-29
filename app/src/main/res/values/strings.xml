@@ -44,6 +44,5 @@
 
     <!-- New strings for floating menu -->
     <string name="game_menu_icon">Game menu icon</string>
-    <string name="menu_fast_forward_disable">Disable Fast Forward</string>
     <string name="menu_toggle_audio">Toggle Audio</string>
 </resources>
