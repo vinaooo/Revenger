@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- A unique identifier for the app (no spaces or special characters allowed) -->
-    <string name="config_id">loz</string>
+    <string name="config_id">julialoz</string>
 
     <!-- The pretty name for the app -->
     <string name="config_name">Legend of Zelda</string>
@@ -38,7 +38,7 @@
                 as it involves rebuilding the
                 emulator instance!
     -->
-    <integer name="config_orientation">3</integer>
+    <integer name="config_orientation">2</integer>
 
     <!-- Menu display modes
         0: No menu (disabled)
