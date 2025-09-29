@@ -247,11 +247,6 @@ object AdvancedPerformanceProfiler {
         performanceData.forEach { (key, value) -> Log.i(TAG, "  $key: $value") }
     }
 
-    /** Get current performance data */
-    fun getCurrentPerformanceData(): Map<String, Any> {
-        return performanceData.toMap()
-    }
-
     /** Add frame time measurement */
     fun recordFrameTime(frameTimeNs: Long) {
         synchronized(frameTimeData) {
@@ -259,21 +254,6 @@ object AdvancedPerformanceProfiler {
             if (frameTimeData.size > FRAME_TIME_BUFFER_SIZE) {
                 frameTimeData.removeAt(0)
             }
-        }
-    }
-
-    /** Get frame rate statistics */
-    fun getFrameRateStats(): FrameStats {
-        synchronized(frameTimeData) {
-            if (frameTimeData.isEmpty()) {
-                return FrameStats(0.0, 0.0, 0)
-            }
-
-            val avgFrameTime = frameTimeData.average()
-            val fps = 1_000_000_000.0 / avgFrameTime
-            val droppedFrames = frameTimeData.count { it > 16_666_666 } // >16.67ms = dropped frame
-
-            return FrameStats(fps, avgFrameTime / 1_000_000.0, droppedFrames)
         }
     }
 

@@ -1,12 +1,10 @@
 package com.vinaooo.revenger.privacy
 
-import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.vinaooo.revenger.utils.AndroidCompatibility
 
@@ -17,14 +15,6 @@ import com.vinaooo.revenger.utils.AndroidCompatibility
 object EnhancedPrivacyManager {
 
     private const val TAG = "PrivacyManager"
-
-    // Enhanced permissions for Android 16
-    private val ENHANCED_PERMISSIONS =
-            arrayOf(
-                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    "android.permission.MANAGE_EXTERNAL_STORAGE"
-            )
 
     /** Initialize privacy controls based on Android version */
     fun initializePrivacyControls(context: Context) {
@@ -78,48 +68,6 @@ object EnhancedPrivacyManager {
         // Ensure basic compliance
         if (!hasBasicPermissions(context)) {
             Log.i(TAG, "Basic permissions not granted - will request when needed")
-        }
-    }
-
-    /** Check and request storage permissions progressively */
-    fun requestStoragePermissions(activity: Activity, requestCode: Int) {
-        val permissionsNeeded = mutableListOf<String>()
-
-        when {
-            AndroidCompatibility.isAndroid13Plus() -> {
-                // Android 13+: Granular media permissions
-                if (ContextCompat.checkSelfPermission(
-                                activity,
-                                android.Manifest.permission.READ_MEDIA_IMAGES
-                        ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    permissionsNeeded.add(android.Manifest.permission.READ_MEDIA_IMAGES)
-                }
-            }
-            else -> {
-                // Android 11-12: Traditional storage permissions
-                if (ContextCompat.checkSelfPermission(
-                                activity,
-                                android.Manifest.permission.READ_EXTERNAL_STORAGE
-                        ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    permissionsNeeded.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-                }
-            }
-        }
-
-        if (permissionsNeeded.isNotEmpty()) {
-            // Use modern permission API via GameActivity
-            if (activity is com.vinaooo.revenger.views.GameActivity) {
-                activity.requestPermissionsModern(permissionsNeeded.toTypedArray())
-            } else {
-                // Fallback for other activities (deprecated but functional)
-                ActivityCompat.requestPermissions(
-                        activity,
-                        permissionsNeeded.toTypedArray(),
-                        requestCode
-                )
-            }
         }
     }
 

@@ -68,30 +68,4 @@ object AndroidCompatibility {
             }
         }
     }
-
-    /** Example: Conditional feature implementation */
-    fun enableAdvancedGraphics(): Boolean {
-        return when {
-            isAndroid16Plus() -> {
-                // Use latest graphics APIs
-                Log.d(TAG, "Using Android 16 advanced graphics")
-                true
-            }
-            isAndroid14Plus() -> {
-                // Use Android 14 graphics features
-                Log.d(TAG, "Using Android 14 graphics")
-                true
-            }
-            isAndroid12Plus() -> {
-                // Use Android 12 graphics
-                Log.d(TAG, "Using Android 12 graphics")
-                true
-            }
-            else -> {
-                // Fallback to Android 11 compatible graphics
-                Log.d(TAG, "Using Android 11 compatible graphics")
-                false
-            }
-        }
-    }
 }
