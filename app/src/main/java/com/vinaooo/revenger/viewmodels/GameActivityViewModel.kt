@@ -17,15 +17,12 @@ import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
-import com.vinaooo.revenger.ui.menu.FloatingGameMenu
 import com.vinaooo.revenger.ui.menu.GameMenuFullscreenFragment
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
-        AndroidViewModel(application),
-        FloatingGameMenu.GameMenuListener,
-        GameMenuFullscreenFragment.GameMenuListener {
+        AndroidViewModel(application), GameMenuFullscreenFragment.GameMenuListener {
     private val resources = application.resources
 
     var retroView: RetroView? = null
@@ -36,8 +33,6 @@ class GameActivityViewModel(application: Application) :
 
     // Replace with new GameMenuFullscreenFragment
     private var gameMenuFragment: GameMenuFullscreenFragment? = null
-    private var floatingGameMenu: FloatingGameMenu? =
-            null // Keep for backward compatibility during transition
     private var currentActivity: FragmentActivity? = null
 
     private var compositeDisposable = CompositeDisposable()

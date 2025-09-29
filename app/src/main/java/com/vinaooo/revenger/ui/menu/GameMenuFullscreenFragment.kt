@@ -12,13 +12,10 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.vinaooo.revenger.R
 
-/**
- * Fullscreen overlay Fragment that replaces FloatingGameMenu DialogFragment Provides better touch
- * handling across entire screen
- */
+/** Fullscreen overlay Fragment that provides better touch handling across entire screen */
 class GameMenuFullscreenFragment : Fragment() {
 
-    // Menu item views - same as FloatingGameMenu
+    // Menu item views
     private lateinit var menuContainer: MaterialCardView
     private lateinit var menuHeader: LinearLayout
     private lateinit var resetMenu: MaterialCardView
@@ -38,7 +35,7 @@ class GameMenuFullscreenFragment : Fragment() {
     private lateinit var fastForwardTitle: TextView
     private lateinit var fastForwardSwitch: MaterialSwitch
 
-    // Callback interface - same as FloatingGameMenu
+    // Callback interface
     interface GameMenuListener {
         fun onResetGame()
         fun onSaveState()

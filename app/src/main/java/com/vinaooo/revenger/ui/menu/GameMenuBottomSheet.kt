@@ -16,7 +16,7 @@ class GameMenuBottomSheet : DialogFragment(), MenuItemClickListener {
     }
 
     override fun onMenuItemClick(item: GameMenuItem) {
-        // No-op implementation. Real handling is performed by FloatingGameMenu.
+        // No-op implementation. Real handling is performed by the new menu system.
     }
 
     companion object {

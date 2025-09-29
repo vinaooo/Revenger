@@ -28,6 +28,27 @@
 
 **Date resolved**: September 29, 2025
 
+### Menu Architecture Migration ✅ RESOLVED
+**Issue**: Game menu implemented with DialogFragment had limited touch handling - screen edges didn't close the menu reliably.
+
+**Solution**: Migrated from DialogFragment to Fragment architecture with fullscreen overlay for better touch coverage.
+
+**Changes made**:
+- Created `GameMenuFullscreenFragment.kt` with proper fullscreen touch handling
+- Migrated all menu functionality (reset, save/load, audio, fast forward, exit)
+- Added exit confirmation dialog with save prompt
+- Applied Material 3 theming consistently
+- Removed old `FloatingGameMenu.kt` DialogFragment code
+- Cleaned up all references and comments
+
+**Benefits**:
+- Reliable touch handling across entire screen
+- Better Material 3 integration
+- Improved accessibility
+- Cleaner codebase with no legacy code
+
+**Date resolved**: September 29, 2025
+
 ### RxJava Version Update ✅ RESOLVED
 **Issue**: Using outdated RxJava version 3.1.11, newer version 3.1.12 available.
 

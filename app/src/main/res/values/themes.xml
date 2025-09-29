@@ -10,8 +10,6 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
-    <!-- BottomSheet styles removed: not used anymore (FloatingGameMenu replaces them) -->
-
     <!-- Menu Item Text Style -->
     <style name="GameMenuItemTextStyle">
         <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
@@ -22,8 +20,6 @@
     <!-- Floating Game Menu Theme -->
     <style name="Theme.Revenger.FloatingMenu" parent="Theme.Material3.DynamicColors.DayNight">
         <!-- Let Material Dynamic Colors work automatically -->
-
-        <!-- Dynamic outline color is set programmatically in FloatingGameMenu -->
 
         <!-- Transparent background to show game behind -->
         <item name="android:windowBackground">@android:color/transparent</item>
