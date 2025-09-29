@@ -38,9 +38,13 @@ class GameActivity : FragmentActivity() {
                 val allGranted = permissions.all { it.value }
                 val grantResults =
                         if (allGranted) {
-                            IntArray(permissions.size).apply { fill(PackageManager.PERMISSION_GRANTED) }
+                            IntArray(permissions.size).apply {
+                                fill(PackageManager.PERMISSION_GRANTED)
+                            }
                         } else {
-                            IntArray(permissions.size).apply { fill(PackageManager.PERMISSION_DENIED) }
+                            IntArray(permissions.size).apply {
+                                fill(PackageManager.PERMISSION_DENIED)
+                            }
                         }
                 EnhancedPrivacyManager.handlePermissionResult(grantResults) { granted ->
                     if (granted) {
