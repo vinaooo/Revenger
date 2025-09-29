@@ -175,7 +175,7 @@ class GameActivity : FragmentActivity() {
                                 viewModel.dismissMenu()
                             } else {
                                 // Menu is closed, open it
-                                viewModel.showMenu()
+                                viewModel.showMenu(this@GameActivity)
                             }
                         } else {
                             // If menu is disabled via back button, use default behavior

@@ -42,7 +42,7 @@ class GameMenuFullscreenFragment : Fragment() {
         fun onLoadState()
         fun onToggleAudio()
         fun onFastForward()
-        fun onExitGame()
+        fun onExitGame(activity: androidx.fragment.app.FragmentActivity)
         fun getAudioState(): Boolean
         fun getFastForwardState(): Boolean
         fun hasSaveState(): Boolean
@@ -130,7 +130,7 @@ class GameMenuFullscreenFragment : Fragment() {
         }
 
         exitMenu.setOnClickListener {
-            menuListener?.onExitGame()
+            activity?.let { menuListener?.onExitGame(it) }
             animateMenuOut { dismissMenu() }
         }
     }

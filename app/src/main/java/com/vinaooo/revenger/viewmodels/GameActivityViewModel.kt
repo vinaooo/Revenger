@@ -32,27 +32,32 @@ class GameActivityViewModel(application: Application) :
 
     // Replace with new GameMenuFullscreenFragment
     private var gameMenuFragment: GameMenuFullscreenFragment? = null
-    private var currentActivity: FragmentActivity? = null
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput()
 
     init {
+        // Set the callback to check if SELECT+START combo should work
+        controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
+    }
+
+    /** Configure menu callback with activity reference */
+    fun setupMenuCallback(activity: FragmentActivity) {
         controllerInput.menuCallback = {
             // Check if menu is enabled before showing
             if (isMenuEnabled()) {
-                showMenu()
+                showMenu(activity)
             }
         }
-        // Set the callback to check if SELECT+START combo should work
-        controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
     }
 
     /** Create an instance of the fullscreen game menu overlay */
     fun prepareMenu(activity: ComponentActivity) {
         if (gameMenuFragment != null) return
 
-        currentActivity = activity as? FragmentActivity
+        val fragmentActivity = activity as? FragmentActivity ?: return
+        setupMenuCallback(fragmentActivity)
+
         gameMenuFragment =
                 GameMenuFullscreenFragment.newInstance().apply {
                     setMenuListener(this@GameActivityViewModel)
@@ -60,23 +65,21 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Show the fullscreen game menu */
-    fun showMenu() {
+    fun showMenu(activity: FragmentActivity) {
         if (retroView?.frameRendered?.value == true) {
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
 
             // Show new fullscreen game menu
-            currentActivity?.let { activity ->
-                gameMenuFragment?.let { menu ->
-                    if (!menu.isAdded) {
-                        activity.supportFragmentManager
-                                .beginTransaction()
-                                .add(
-                                        android.R.id.content,
-                                        menu,
-                                        GameMenuFullscreenFragment::class.java.simpleName
-                                )
-                                .commit()
-                    }
+            gameMenuFragment?.let { menu ->
+                if (!menu.isAdded) {
+                    activity.supportFragmentManager
+                            .beginTransaction()
+                            .add(
+                                    android.R.id.content,
+                                    menu,
+                                    GameMenuFullscreenFragment::class.java.simpleName
+                            )
+                            .commit()
                 }
             }
         }
@@ -113,52 +116,50 @@ class GameActivityViewModel(application: Application) :
         retroView?.let { retroViewUtils?.fastForward(it) }
     }
 
-    override fun onExitGame() {
+    override fun onExitGame(activity: FragmentActivity) {
         // Show confirmation dialog asking if user wants to save before exiting
-        currentActivity?.let { activity ->
-            // Create context with the same theme as the menu
-            val themedContext =
-                    android.view.ContextThemeWrapper(activity, R.style.Theme_Revenger_FloatingMenu)
+        // Create context with the same theme as the menu
+        val themedContext =
+                android.view.ContextThemeWrapper(activity, R.style.Theme_Revenger_FloatingMenu)
 
-            val dialog =
-                    AlertDialog.Builder(themedContext)
-                            .setTitle(R.string.exit_game_title)
-                            .setMessage(R.string.exit_game_message)
-                            .setPositiveButton(R.string.exit_game_save_and_exit) {
-                                    _: android.content.DialogInterface,
-                                    _: Int ->
-                                // Save state and then exit
-                                onSaveState()
-                                android.os.Process.killProcess(android.os.Process.myPid())
-                            }
-                            .setNegativeButton(R.string.exit_game_exit_without_save) {
-                                    _: android.content.DialogInterface,
-                                    _: Int ->
-                                // Exit without saving
-                                android.os.Process.killProcess(android.os.Process.myPid())
-                            }
-                            .setNeutralButton(R.string.cancel, null)
-                            .create()
+        val dialog =
+                AlertDialog.Builder(themedContext)
+                        .setTitle(R.string.exit_game_title)
+                        .setMessage(R.string.exit_game_message)
+                        .setPositiveButton(R.string.exit_game_save_and_exit) {
+                                _: android.content.DialogInterface,
+                                _: Int ->
+                            // Save state and then exit
+                            onSaveState()
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }
+                        .setNegativeButton(R.string.exit_game_exit_without_save) {
+                                _: android.content.DialogInterface,
+                                _: Int ->
+                            // Exit without saving
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }
+                        .setNeutralButton(R.string.cancel, null)
+                        .create()
 
-            // Apply the same background color as the menu with rounded corners (Material 3 surface
-            // color)
-            val backgroundColor = android.util.TypedValue()
-            themedContext.theme.resolveAttribute(
-                    com.google.android.material.R.attr.colorSurface,
-                    backgroundColor,
-                    true
-            )
+        // Apply the same background color as the menu with rounded corners (Material 3 surface
+        // color)
+        val backgroundColor = android.util.TypedValue()
+        themedContext.theme.resolveAttribute(
+                com.google.android.material.R.attr.colorSurface,
+                backgroundColor,
+                true
+        )
 
-            // Create rounded background drawable (same radius as menu: 28dp)
-            val cornerRadiusPx = (28 * themedContext.resources.displayMetrics.density).toInt()
-            val roundedBackground = android.graphics.drawable.GradientDrawable()
-            roundedBackground.setColor(backgroundColor.data)
-            roundedBackground.cornerRadius = cornerRadiusPx.toFloat()
+        // Create rounded background drawable (same radius as menu: 28dp)
+        val cornerRadiusPx = (28 * themedContext.resources.displayMetrics.density).toInt()
+        val roundedBackground = android.graphics.drawable.GradientDrawable()
+        roundedBackground.setColor(backgroundColor.data)
+        roundedBackground.cornerRadius = cornerRadiusPx.toFloat()
 
-            dialog.window?.setBackgroundDrawable(roundedBackground)
+        dialog.window?.setBackgroundDrawable(roundedBackground)
 
-            dialog.show()
-        }
+        dialog.show()
     }
 
     override fun getAudioState(): Boolean {
