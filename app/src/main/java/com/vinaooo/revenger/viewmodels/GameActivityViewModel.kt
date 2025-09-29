@@ -109,7 +109,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     override fun onToggleAudio() {
-        retroView?.let { 
+        retroView?.let {
             it.view.audioEnabled = !it.view.audioEnabled
             // Save the new audio state immediately
             retroViewUtils?.preserveEmulatorState(it)
@@ -117,7 +117,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     override fun onFastForward() {
-        retroView?.let { 
+        retroView?.let {
             retroViewUtils?.fastForward(it)
             // Save the new speed state immediately
             retroViewUtils?.preserveEmulatorState(it)
