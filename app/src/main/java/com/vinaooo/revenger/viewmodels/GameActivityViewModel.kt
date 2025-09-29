@@ -109,11 +109,19 @@ class GameActivityViewModel(application: Application) :
     }
 
     override fun onToggleAudio() {
-        retroView?.let { it.view.audioEnabled = !it.view.audioEnabled }
+        retroView?.let { 
+            it.view.audioEnabled = !it.view.audioEnabled
+            // Save the new audio state immediately
+            retroViewUtils?.preserveEmulatorState(it)
+        }
     }
 
     override fun onFastForward() {
-        retroView?.let { retroViewUtils?.fastForward(it) }
+        retroView?.let { 
+            retroViewUtils?.fastForward(it)
+            // Save the new speed state immediately
+            retroViewUtils?.preserveEmulatorState(it)
+        }
     }
 
     override fun onExitGame(activity: FragmentActivity) {
