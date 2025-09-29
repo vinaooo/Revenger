@@ -10,6 +10,19 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
+    <!-- Game Activity Theme - No background to avoid overdraw -->
+    <style name="Theme.Revenger.Game" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+        <!-- Game-specific overrides for edge-to-edge and transparency -->
+        <!-- Dynamic colors are handled automatically by Material 3 theme inheritance -->
+
+        <!-- Enable edge-to-edge -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- No window background - let layouts control their own backgrounds -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
     <!-- Menu Item Text Style -->
     <style name="GameMenuItemTextStyle">
         <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>

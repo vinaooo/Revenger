@@ -20,6 +20,7 @@
         <activity android:name=".views.GameActivity"
             android:exported="true"
             android:screenOrientation="landscape"
+            android:theme="@style/Theme.Revenger.Game"
             android:configChanges="keyboardHidden|orientation|screenSize|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
