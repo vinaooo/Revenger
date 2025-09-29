@@ -96,8 +96,8 @@ object EnhancedPrivacyManager {
                     permissionsNeeded.add(android.Manifest.permission.READ_MEDIA_IMAGES)
                 }
             }
-            AndroidCompatibility.isAndroid11Plus() -> {
-                // Android 11+: Traditional storage permissions
+            else -> {
+                // Android 11-12: Traditional storage permissions
                 if (ContextCompat.checkSelfPermission(
                                 activity,
                                 android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -159,16 +159,12 @@ object EnhancedPrivacyManager {
                         android.Manifest.permission.READ_MEDIA_IMAGES
                 ) == PackageManager.PERMISSION_GRANTED
             }
-            AndroidCompatibility.isAndroid11Plus() -> {
-                // Android 11+: Check traditional storage permissions
+            else -> {
+                // Android 11-12: Check traditional storage permissions
                 ContextCompat.checkSelfPermission(
                         context,
                         android.Manifest.permission.READ_EXTERNAL_STORAGE
                 ) == PackageManager.PERMISSION_GRANTED
-            }
-            else -> {
-                // Fallback
-                true
             }
         }
     }

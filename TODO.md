@@ -28,6 +28,13 @@
 
 **Date resolved**: September 29, 2025
 
+### Resource Reflection Warning ✅ RESOLVED
+**Issue**: Android lint warning about discouraged use of `getIdentifier()` for resource reflection in RetroView.kt.
+
+**Solution**: Added `@SuppressLint("DiscouragedApi")` annotation with explanatory comment. Reflection is necessary to maintain project genericness - allows any ROM/emulator combination without recompiling code.
+
+**Date resolved**: September 29, 2025
+
 ### Menu Architecture Migration ✅ RESOLVED
 **Issue**: Game menu implemented with DialogFragment had limited touch handling - screen edges didn't close the menu reliably.
 

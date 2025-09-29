@@ -16,8 +16,7 @@
         android:label="@string/config_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Revenger"
-        tools:targetApi="30">
+        android:theme="@style/Theme.Revenger">
         <activity android:name=".views.GameActivity"
             android:exported="true"
             android:screenOrientation="landscape"

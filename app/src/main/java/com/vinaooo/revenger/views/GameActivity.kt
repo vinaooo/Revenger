@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.views
 
+import android.content.pm.PackageManager
 import android.hardware.input.InputManager
 import android.os.Bundle
 import android.util.Log
@@ -35,9 +36,13 @@ class GameActivity : FragmentActivity() {
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
                     permissions ->
                 val allGranted = permissions.all { it.value }
-                EnhancedPrivacyManager.handlePermissionResult(
-                        if (allGranted) intArrayOf(0) else intArrayOf(-1)
-                ) { granted ->
+                val grantResults =
+                        if (allGranted) {
+                            IntArray(permissions.size) { PackageManager.PERMISSION_GRANTED }
+                        } else {
+                            IntArray(permissions.size) { PackageManager.PERMISSION_DENIED }
+                        }
+                EnhancedPrivacyManager.handlePermissionResult(grantResults) { granted ->
                     if (granted) {
                         Log.i(TAG, "Storage permissions granted")
                     } else {
@@ -116,14 +121,11 @@ class GameActivity : FragmentActivity() {
         )
 
         // Also set for navigation bar if supported
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            window.decorView.windowInsetsController?.setSystemBarsAppearance(
-                    if (lightIcons)
-                            android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-                    else 0,
-                    android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-            )
-        }
+        window.decorView.windowInsetsController?.setSystemBarsAppearance(
+                if (lightIcons) android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                else 0,
+                android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+        )
 
         Log.d(
                 TAG,
