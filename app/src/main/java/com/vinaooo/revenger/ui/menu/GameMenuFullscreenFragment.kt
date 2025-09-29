@@ -140,7 +140,9 @@ class GameMenuFullscreenFragment : Fragment() {
         val isAudioEnabled = menuListener?.getAudioState() == true
         val isFastForwardEnabled = menuListener?.getFastForwardState() == true
 
-        // Update load state appearance
+        // Update load state appearance and enable/disable state
+        loadStateMenu.isEnabled = hasSaveState
+        loadStateMenu.alpha = if (hasSaveState) 1.0f else 0.5f
         loadStateIcon.setImageResource(
                 if (hasSaveState) R.drawable.ic_load_24 else R.drawable.ic_load_24
         )
