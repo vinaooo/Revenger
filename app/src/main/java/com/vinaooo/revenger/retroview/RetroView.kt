@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.retroview
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.Gravity
 import android.widget.FrameLayout
@@ -33,6 +34,10 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
                 /* Prepare the ROM bytes */
                 val romName = context.getString(R.string.config_rom)
+                @SuppressLint(
+                        "DiscouragedApi"
+                ) // Reflexão necessária para manter genericidade - permite qualquer ROM sem
+                // recompilar
                 val romResourceId = resources.getIdentifier(romName, "raw", context.packageName)
 
                 if (romResourceId == 0) {

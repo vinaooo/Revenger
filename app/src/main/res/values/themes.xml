@@ -1,6 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Revenger" parent="Theme.AppCompat.NoActionBar">
+    <!-- Base theme for Material You support -->
+    <style name="Theme.Revenger" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+        <!-- Game-specific overrides for edge-to-edge and transparency -->
+        <!-- Dynamic colors are handled automatically by Material 3 theme inheritance -->
+
+        <!-- Enable edge-to-edge -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- Game Activity Theme - Black background to avoid overdraw -->
+    <style name="Theme.Revenger.Game" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+        <!-- Game-specific overrides for edge-to-edge and transparency -->
+        <!-- Dynamic colors are handled automatically by Material 3 theme inheritance -->
+
+        <!-- Enable edge-to-edge -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- Black background for game screen -->
         <item name="android:windowBackground">@android:color/black</item>
+    </style>
+
+    <!-- Floating Game Menu Theme -->
+    <style name="Theme.Revenger.FloatingMenu" parent="Theme.Material3.DynamicColors.DayNight">
+        <!-- Let Material Dynamic Colors work automatically -->
+
+        <!-- Transparent background to show game behind -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
+
+        <!-- No dim background, game should remain visible -->
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.4</item>
+
+        <!-- Fullscreen support -->
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- Remove forced colors - let Material 3 Dynamic Colors handle them -->
+        <!-- Remove window animations for instant appearance -->
+        <item name="android:windowAnimationStyle">@null</item>
     </style>
 </resources>

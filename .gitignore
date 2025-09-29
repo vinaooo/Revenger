@@ -15,6 +15,9 @@ app/src/main/res/raw/*
 *_backup
 *_backup.*
 
+# Backup específico criado pelo assistente
+backup_files/themes.xml_backup.xml
+
 # Pasta de backup de configurações (raiz do projeto)
 /config_backup
 

@@ -116,6 +116,11 @@ android {
     }
     kotlinOptions {
         jvmTarget = '21'
+        freeCompilerArgs += '-Xannotation-default-target=param-property'
+    }
+
+    lintOptions {
+        disable 'Aligned16KB'
     }
 }
 
@@ -211,7 +216,7 @@ dependencies {
 
     // RxJava 3 para novos códigos
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
-    implementation 'io.reactivex.rxjava3:rxjava:3.1.11'
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.12'
     
     // Phase 9.4: SDK 36 Features - Material Design Components
     implementation 'com.google.android.material:material:1.13.0'
