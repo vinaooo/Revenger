@@ -171,11 +171,11 @@ class GameActivityViewModel(application: Application) :
     }
 
     override fun getAudioState(): Boolean {
-        return retroView?.view?.audioEnabled == true
+        return retroViewUtils?.getAudioState() ?: true
     }
 
     override fun getFastForwardState(): Boolean {
-        return (retroView?.view?.frameSpeed ?: 1) > 1
+        return retroViewUtils?.getFastForwardState() ?: false
     }
 
     override fun hasSaveState(): Boolean {

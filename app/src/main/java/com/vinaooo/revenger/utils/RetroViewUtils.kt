@@ -78,4 +78,14 @@ class RetroViewUtils(private val activity: Activity) {
     fun hasSaveState(): Boolean {
         return storage.state.exists() && storage.state.length() > 0
     }
+
+    /** Get the current audio state from preferences */
+    fun getAudioState(): Boolean {
+        return sharedPreferences.getBoolean(activity.getString(R.string.pref_audio_enabled), true)
+    }
+
+    /** Get the current fast forward state from preferences */
+    fun getFastForwardState(): Boolean {
+        return sharedPreferences.getInt(activity.getString(R.string.pref_frame_speed), 1) > 1
+    }
 }
