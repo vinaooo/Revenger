@@ -3,6 +3,8 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Activity
 import android.app.Application
 import android.content.pm.ActivityInfo
+import android.util.Log
+import android.view.KeyEvent
 import android.view.*
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
@@ -23,6 +25,11 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
         AndroidViewModel(application), GameMenuFullscreenFragment.GameMenuListener {
+
+    companion object {
+        private const val TAG = "GameActivityViewModel"
+    }
+
     private val resources = application.resources
 
     var retroView: RetroView? = null
@@ -56,7 +63,7 @@ class GameActivityViewModel(application: Application) :
             }
         }
         controllerInput.pauseCallback = {
-            // Check if pause overlay is enabled before showing
+            // START button should always show pause overlay (ROM handles the actual pause)
             if (isPauseOverlayEnabled()) {
                 showPauseOverlay(activity)
             }
@@ -89,6 +96,11 @@ class GameActivityViewModel(application: Application) :
             // Show pause overlay
             pauseOverlayFragment?.let { overlay ->
                 if (!overlay.isAdded) {
+                    // Set callback to handle dismissal
+                    overlay.onDismissCallback = {
+                        dismissPauseOverlay()
+                    }
+
                     activity.supportFragmentManager
                             .beginTransaction()
                             .add(
@@ -104,7 +116,27 @@ class GameActivityViewModel(application: Application) :
 
     /** Dismiss the pause overlay */
     fun dismissPauseOverlay() {
-        pauseOverlayFragment?.dismissOverlay()
+        Log.d(TAG, "Dismissing pause overlay")
+
+        // Send START signal to unpause the game before dismissing overlay
+        retroView?.view?.let { view ->
+            Log.d(TAG, "Sending START signal to unpause game - ACTION_DOWN")
+            view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
+            Thread.sleep(200) // Increased delay
+            Log.d(TAG, "Sending START signal to unpause game - ACTION_UP")
+            view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
+            Thread.sleep(100) // Additional delay before dismissing overlay
+            Log.d(TAG, "START signals sent, now dismissing overlay")
+        }
+
+        // Remove the overlay fragment
+        pauseOverlayFragment?.let { overlay ->
+            overlay.parentFragmentManager.beginTransaction()
+                .remove(overlay)
+                .commit()
+            Log.d(TAG, "Pause overlay fragment removed")
+        }
+        Log.d(TAG, "Pause overlay dismissed")
     }
 
     /** Check if the pause overlay is currently visible */
@@ -270,8 +302,12 @@ class GameActivityViewModel(application: Application) :
         val context = getApplication<Application>().applicationContext
 
         val gamePadConfig = GamePadConfig(context, resources)
-        leftGamePad = GamePad(context, gamePadConfig.left)
-        rightGamePad = GamePad(context, gamePadConfig.right)
+        leftGamePad = GamePad(context, gamePadConfig.left) { event ->
+            controllerInput.processGamePadButtonEvent(event.id, event.action)
+        }
+        rightGamePad = GamePad(context, gamePadConfig.right) { event ->
+            controllerInput.processGamePadButtonEvent(event.id, event.action)
+        }
 
         leftGamePad?.let {
             leftContainer.addView(it.pad)

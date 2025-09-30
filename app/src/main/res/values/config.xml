@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- A unique identifier for the app (no spaces or special characters allowed) -->
-    <string name="config_id">julialoz</string>
+    <string name="config_id">juliasth</string>
 
     <!-- The pretty name for the app -->
-    <string name="config_name">Legend of Zelda</string>
+    <string name="config_name">Sonic The Hedgehog</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="config_core">gambatte</string>
-    <!-- Snes = bsnes -->
-    <!-- megadrive = genesis_plus_gx -->
-    <!-- gb = gambatte -->
-    <!-- master = smsplus -->
+    <string name="config_core">smsplus</string>
     
     <!-- rom name, the same name the rom file in res/raw without extension -->
-    <string name="config_rom">loz</string>
+    <string name="config_rom">sth</string>
 
     <!-- Load ROM directly from memory; larger games should have this disabled -->
     <bool name="config_load_bytes">false</bool>
@@ -33,10 +29,6 @@
         1: Portrait only
         2: Landscape only
         3: Any orientation (including upside-down)
-
-        NOTE: Landscape <-> Portrait can be slow,
-                as it involves rebuilding the
-                emulator instance!
     -->
     <integer name="config_orientation">2</integer>
 

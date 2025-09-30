@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.input
 
+import android.util.Log
 import android.view.InputEvent
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -8,6 +9,8 @@ import com.swordfish.libretrodroid.GLRetroView
 
 class ControllerInput {
     companion object {
+        private const val TAG = "ControllerInput"
+
         /**
          * Combination to open the menu
          */
@@ -69,10 +72,48 @@ class ControllerInput {
      * Check if we should show the pause overlay (START pressed alone)
      */
     private fun checkPauseKey() {
+        Log.d(TAG, "checkPauseKey - keyLog.size: ${keyLog.size}, keyLog: $keyLog")
+        Log.d(TAG, "checkPauseKey - contains START: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)}")
+        Log.d(TAG, "checkPauseKey - shouldHandleStartPause: ${shouldHandleStartPause()}")
+
+        // Debug: Check for alternative START button codes that might be used
+        val alternativeStartCodes = listOf(
+            KeyEvent.KEYCODE_BUTTON_START,
+            KeyEvent.KEYCODE_ENTER,
+            KeyEvent.KEYCODE_SPACE,
+            KeyEvent.KEYCODE_NUMPAD_ENTER
+        )
+
+        val hasAnyStartCode = alternativeStartCodes.any { keyLog.contains(it) }
+        Log.d(TAG, "checkPauseKey - hasAnyStartCode: $hasAnyStartCode")
+
         if (keyLog.size == 1 &&
             keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
-            shouldHandleStartPause())
+            shouldHandleStartPause()) {
+            Log.d(TAG, "PAUSE CALLBACK TRIGGERED! Calling pauseCallback()")
             pauseCallback()
+        } else {
+            Log.d(TAG, "Pause conditions not met - size: ${keyLog.size}, hasStart: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)}, shouldHandle: ${shouldHandleStartPause()}")
+        }
+    }
+
+    fun processGamePadButtonEvent(keyCode: Int, action: Int) {
+        Log.d(TAG, "processGamePadButtonEvent - keyCode: $keyCode, action: $action (${KeyEvent.keyCodeToString(keyCode)})")
+
+        /* Keep track of user input events */
+        when (action) {
+            KeyEvent.ACTION_DOWN -> {
+                keyLog.add(keyCode)
+                Log.d(TAG, "GamePad Key DOWN: $keyCode, keyLog: $keyLog")
+            }
+            KeyEvent.ACTION_UP -> {
+                keyLog.remove(keyCode)
+                Log.d(TAG, "GamePad Key UP: $keyCode, keyLog: $keyLog")
+            }
+        }
+
+        checkMenuKeyCombo()
+        checkPauseKey()
     }
 
     fun processKeyEvent(keyCode: Int, event: KeyEvent, retroView: RetroView): Boolean? {
@@ -89,8 +130,14 @@ class ControllerInput {
 
         /* Keep track of user input events */
         when (event.action) {
-            KeyEvent.ACTION_DOWN -> keyLog.add(keyCode)
-            KeyEvent.ACTION_UP -> keyLog.remove(keyCode)
+            KeyEvent.ACTION_DOWN -> {
+                keyLog.add(keyCode)
+                Log.d(TAG, "Key DOWN: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog")
+            }
+            KeyEvent.ACTION_UP -> {
+                keyLog.remove(keyCode)
+                Log.d(TAG, "Key UP: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog")
+            }
         }
 
         checkMenuKeyCombo()

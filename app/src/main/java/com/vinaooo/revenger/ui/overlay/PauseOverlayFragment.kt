@@ -1,11 +1,13 @@
 package com.vinaooo.revenger.ui.overlay
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.vinaooo.revenger.R
 
 /**
  * Simple overlay fragment that shows "PAUSE" text over the game screen
@@ -21,20 +23,70 @@ class PauseOverlayFragment : Fragment() {
         }
     }
 
+    // Callback to notify when overlay should be dismissed
+    var onDismissCallback: (() -> Unit)? = null
+
+    init {
+        Log.d(TAG, "PauseOverlayFragment initialized")
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_pause_overlay, container, false)
+        Log.d(TAG, "PauseOverlayFragment.onCreateView called")
+        // Temporarily create view programmatically for testing
+        val frameLayout = FrameLayout(requireContext()).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            setBackgroundColor(0x80000000.toInt()) // Semi-transparent black
+            isClickable = true
+            isFocusable = true
+
+            // Add TextView programmatically
+            addView(TextView(requireContext()).apply {
+                layoutParams = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = android.view.Gravity.CENTER
+                }
+                text = "PAUSE"
+                textSize = 48f
+                setTextColor(0xFFFFFFFF.toInt()) // White
+                setShadowLayer(4f, 2f, 2f, 0xFF000000.toInt()) // Shadow
+            })
+
+            setOnClickListener {
+                // Don't dismiss automatically - user should press START again
+                Log.d(TAG, "Overlay touched - press START to unpause")
+            }
+        }
+        Log.d(TAG, "PauseOverlayFragment view created programmatically")
+        return frameLayout
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Dismiss overlay when touched anywhere
+        // Dismiss overlay when touched anywhere and send START to unpause
         view.setOnClickListener {
             dismissOverlay()
+        }
+
+        // Also dismiss when START button is pressed again
+        view.isFocusableInTouchMode = true
+        view.requestFocus()
+        view.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == android.view.KeyEvent.KEYCODE_BUTTON_START && event.action == android.view.KeyEvent.ACTION_DOWN) {
+                dismissOverlay()
+                true
+            } else {
+                false
+            }
         }
     }
 
@@ -42,8 +94,8 @@ class PauseOverlayFragment : Fragment() {
      * Dismiss the pause overlay
      */
     fun dismissOverlay() {
-        parentFragmentManager.beginTransaction()
-            .remove(this)
-            .commit()
+        Log.d(TAG, "Dismissing pause overlay")
+        onDismissCallback?.invoke()
+        Log.d(TAG, "Pause overlay dismiss callback called")
     }
 }

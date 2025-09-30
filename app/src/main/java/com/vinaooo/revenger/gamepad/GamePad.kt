@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 class GamePad(
         context: Context,
         padConfig: RadialGamePadConfig,
+        private val onButtonEvent: ((event: Event.Button) -> Unit)? = null
 ) {
         val pad = RadialGamePad(padConfig, 0f, context)
 
@@ -65,7 +66,11 @@ class GamePad(
         /** Send inputs to the RetroView */
         private fun eventHandler(event: Event, retroView: GLRetroView) {
                 when (event) {
-                        is Event.Button -> retroView.sendKeyEvent(event.action, event.id)
+                        is Event.Button -> {
+                                retroView.sendKeyEvent(event.action, event.id)
+                                // Also notify ControllerInput for pause overlay logic
+                                onButtonEvent?.invoke(event)
+                        }
                         is Event.Direction ->
                                 when (event.id) {
                                         GLRetroView.MOTION_SOURCE_DPAD ->
