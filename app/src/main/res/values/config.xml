@@ -62,6 +62,11 @@
     <!-- Should the left DPAD be replaced with an analog stick? -->
     <bool name="config_left_analog">false</bool>
 
-    <!-- Should we show pause overlay when START button is pressed alone? -->
-    <bool name="config_pause_overlay">true</bool>
+    <!-- Pause overlay trigger mode
+        0: No overlay (disabled)
+        1: START button alone (signal +)
+        2: SELECT button alone (signal -)
+        3: SELECT + START together
+    -->
+    <integer name="config_pause_overlay">1</integer>
 </resources>

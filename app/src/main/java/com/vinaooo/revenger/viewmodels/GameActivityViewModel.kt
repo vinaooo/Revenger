@@ -4,8 +4,8 @@ import android.app.Activity
 import android.app.Application
 import android.content.pm.ActivityInfo
 import android.util.Log
-import android.view.KeyEvent
 import android.view.*
+import android.view.KeyEvent
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
@@ -50,8 +50,10 @@ class GameActivityViewModel(application: Application) :
     init {
         // Set the callback to check if SELECT+START combo should work
         controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
-        // Set the callback to check if START alone should trigger pause
+        // Set the callbacks to check pause overlay modes
         controllerInput.shouldHandleStartPause = { shouldHandleStartPause() }
+        controllerInput.shouldHandleSelectPause = { shouldHandleSelectPause() }
+        controllerInput.shouldHandleSelectStartPause = { shouldHandleSelectStartPause() }
     }
 
     /** Configure menu callback with activity reference */
@@ -62,8 +64,24 @@ class GameActivityViewModel(application: Application) :
                 showMenu(activity)
             }
         }
+
+        // Configure pause overlay callbacks based on mode
         controllerInput.pauseCallback = {
-            // START button should always show pause overlay (ROM handles the actual pause)
+            // START button (mode 1)
+            if (isPauseOverlayEnabled()) {
+                showPauseOverlay(activity)
+            }
+        }
+
+        controllerInput.selectPauseCallback = {
+            // SELECT button (mode 2)
+            if (isPauseOverlayEnabled()) {
+                showPauseOverlay(activity)
+            }
+        }
+
+        controllerInput.selectStartPauseCallback = {
+            // SELECT + START together (mode 3)
             if (isPauseOverlayEnabled()) {
                 showPauseOverlay(activity)
             }
@@ -87,7 +105,8 @@ class GameActivityViewModel(application: Application) :
     fun preparePauseOverlay(activity: ComponentActivity) {
         if (pauseOverlayFragment != null) return
 
-        pauseOverlayFragment = PauseOverlayFragment.newInstance()
+        pauseOverlayFragment =
+                PauseOverlayFragment.newInstance().apply { pauseMode = getPauseOverlayMode() }
     }
 
     /** Show the pause overlay */
@@ -97,9 +116,7 @@ class GameActivityViewModel(application: Application) :
             pauseOverlayFragment?.let { overlay ->
                 if (!overlay.isAdded) {
                     // Set callback to handle dismissal
-                    overlay.onDismissCallback = {
-                        dismissPauseOverlay()
-                    }
+                    overlay.onDismissCallback = { dismissPauseOverlay() }
 
                     activity.supportFragmentManager
                             .beginTransaction()
@@ -118,22 +135,41 @@ class GameActivityViewModel(application: Application) :
     fun dismissPauseOverlay() {
         Log.d(TAG, "Dismissing pause overlay")
 
-        // Send START signal to unpause the game before dismissing overlay
+        // Send appropriate signal(s) to unpause the game before dismissing overlay
         retroView?.view?.let { view ->
-            Log.d(TAG, "Sending START signal to unpause game - ACTION_DOWN")
-            view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
-            Thread.sleep(200) // Increased delay
-            Log.d(TAG, "Sending START signal to unpause game - ACTION_UP")
-            view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
+            val mode = getPauseOverlayMode()
+            Log.d(TAG, "Sending unpause signal(s) for mode: $mode")
+
+            when (mode) {
+                1 -> { // START button
+                    Log.d(TAG, "Sending START signal to unpause game")
+                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
+                    Thread.sleep(200)
+                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
+                }
+                2 -> { // SELECT button
+                    Log.d(TAG, "Sending SELECT signal to unpause game")
+                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                    Thread.sleep(200)
+                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                }
+                3 -> { // SELECT + START together
+                    Log.d(TAG, "Sending SELECT+START signals to unpause game")
+                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
+                    Thread.sleep(200)
+                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
+                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                }
+            }
+
             Thread.sleep(100) // Additional delay before dismissing overlay
-            Log.d(TAG, "START signals sent, now dismissing overlay")
+            Log.d(TAG, "Unpause signals sent, now dismissing overlay")
         }
 
         // Remove the overlay fragment
         pauseOverlayFragment?.let { overlay ->
-            overlay.parentFragmentManager.beginTransaction()
-                .remove(overlay)
-                .commit()
+            overlay.parentFragmentManager.beginTransaction().remove(overlay).commit()
             Log.d(TAG, "Pause overlay fragment removed")
         }
         Log.d(TAG, "Pause overlay dismissed")
@@ -302,12 +338,14 @@ class GameActivityViewModel(application: Application) :
         val context = getApplication<Application>().applicationContext
 
         val gamePadConfig = GamePadConfig(context, resources)
-        leftGamePad = GamePad(context, gamePadConfig.left) { event ->
-            controllerInput.processGamePadButtonEvent(event.id, event.action)
-        }
-        rightGamePad = GamePad(context, gamePadConfig.right) { event ->
-            controllerInput.processGamePadButtonEvent(event.id, event.action)
-        }
+        leftGamePad =
+                GamePad(context, gamePadConfig.left) { event ->
+                    controllerInput.processGamePadButtonEvent(event.id, event.action)
+                }
+        rightGamePad =
+                GamePad(context, gamePadConfig.right) { event ->
+                    controllerInput.processGamePadButtonEvent(event.id, event.action)
+                }
 
         leftGamePad?.let {
             leftContainer.addView(it.pad)
@@ -398,11 +436,29 @@ class GameActivityViewModel(application: Application) :
 
     /** Check if pause overlay is enabled based on config_pause_overlay */
     fun isPauseOverlayEnabled(): Boolean {
-        return resources.getBoolean(R.bool.config_pause_overlay)
+        return getPauseOverlayMode() != 0
+    }
+
+    /** Get the pause overlay mode (0=disabled, 1=START, 2=SELECT, 3=SELECT+START) */
+    fun getPauseOverlayMode(): Int {
+        return resources.getInteger(R.integer.config_pause_overlay)
     }
 
     /** Check if START alone should trigger pause overlay */
     fun shouldHandleStartPause(): Boolean {
-        return isPauseOverlayEnabled()
+        val mode = getPauseOverlayMode()
+        return mode == 1 // START button alone
+    }
+
+    /** Check if SELECT alone should trigger pause overlay */
+    fun shouldHandleSelectPause(): Boolean {
+        val mode = getPauseOverlayMode()
+        return mode == 2 // SELECT button alone
+    }
+
+    /** Check if SELECT+START combo should trigger pause overlay */
+    fun shouldHandleSelectStartPause(): Boolean {
+        val mode = getPauseOverlayMode()
+        return mode == 3 // SELECT + START together
     }
 }
