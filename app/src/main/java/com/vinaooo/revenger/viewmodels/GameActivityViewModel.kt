@@ -17,6 +17,7 @@ import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.menu.GameMenuFullscreenFragment
+import com.vinaooo.revenger.ui.overlay.PauseOverlayFragment
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
@@ -33,12 +34,17 @@ class GameActivityViewModel(application: Application) :
     // Replace with new GameMenuFullscreenFragment
     private var gameMenuFragment: GameMenuFullscreenFragment? = null
 
+    // Pause overlay fragment
+    private var pauseOverlayFragment: PauseOverlayFragment? = null
+
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput()
 
     init {
         // Set the callback to check if SELECT+START combo should work
         controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
+        // Set the callback to check if START alone should trigger pause
+        controllerInput.shouldHandleStartPause = { shouldHandleStartPause() }
     }
 
     /** Configure menu callback with activity reference */
@@ -47,6 +53,12 @@ class GameActivityViewModel(application: Application) :
             // Check if menu is enabled before showing
             if (isMenuEnabled()) {
                 showMenu(activity)
+            }
+        }
+        controllerInput.pauseCallback = {
+            // Check if pause overlay is enabled before showing
+            if (isPauseOverlayEnabled()) {
+                showPauseOverlay(activity)
             }
         }
     }
@@ -62,6 +74,42 @@ class GameActivityViewModel(application: Application) :
                 GameMenuFullscreenFragment.newInstance().apply {
                     setMenuListener(this@GameActivityViewModel)
                 }
+    }
+
+    /** Create an instance of the pause overlay */
+    fun preparePauseOverlay(activity: ComponentActivity) {
+        if (pauseOverlayFragment != null) return
+
+        pauseOverlayFragment = PauseOverlayFragment.newInstance()
+    }
+
+    /** Show the pause overlay */
+    fun showPauseOverlay(activity: FragmentActivity) {
+        if (retroView?.frameRendered?.value == true) {
+            // Show pause overlay
+            pauseOverlayFragment?.let { overlay ->
+                if (!overlay.isAdded) {
+                    activity.supportFragmentManager
+                            .beginTransaction()
+                            .add(
+                                    android.R.id.content,
+                                    overlay,
+                                    PauseOverlayFragment::class.java.simpleName
+                            )
+                            .commit()
+                }
+            }
+        }
+    }
+
+    /** Dismiss the pause overlay */
+    fun dismissPauseOverlay() {
+        pauseOverlayFragment?.dismissOverlay()
+    }
+
+    /** Check if the pause overlay is currently visible */
+    fun isPauseOverlayVisible(): Boolean {
+        return pauseOverlayFragment?.isAdded == true
     }
 
     /** Show the fullscreen game menu */
@@ -310,5 +358,15 @@ class GameActivityViewModel(application: Application) :
     fun shouldHandleSelectStartCombo(): Boolean {
         val menuMode = resources.getInteger(R.integer.config_menu_mode)
         return menuMode == 2 || menuMode == 3 // 2 = combo only, 3 = both
+    }
+
+    /** Check if pause overlay is enabled based on config_pause_overlay */
+    fun isPauseOverlayEnabled(): Boolean {
+        return resources.getBoolean(R.bool.config_pause_overlay)
+    }
+
+    /** Check if START alone should trigger pause overlay */
+    fun shouldHandleStartPause(): Boolean {
+        return isPauseOverlayEnabled()
     }
 }

@@ -86,6 +86,7 @@ class GameActivity : FragmentActivity() {
         viewModel.setConfigOrientation(this)
         viewModel.updateGamePadVisibility(this, leftContainer, rightContainer)
         viewModel.prepareMenu(this)
+        viewModel.preparePauseOverlay(this)
         viewModel.setupRetroView(this, retroviewContainer)
         viewModel.setupGamePads(this, leftContainer, rightContainer)
     }
@@ -199,6 +200,7 @@ class GameActivity : FragmentActivity() {
 
         // Clean up view model
         viewModel.dismissMenu()
+        viewModel.dismissPauseOverlay()
         viewModel.dispose()
         viewModel.detachRetroView(this)
         super.onDestroy()

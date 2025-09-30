@@ -37,9 +37,19 @@ class ControllerInput {
     var menuCallback: () -> Unit = {}
 
     /**
+     * The callback for when the user presses START button alone
+     */
+    var pauseCallback: () -> Unit = {}
+
+    /**
      * Function to check if SELECT+START combo should trigger menu
      */
     var shouldHandleSelectStartCombo: () -> Boolean = { true }
+
+    /**
+     * Function to check if START alone should trigger pause overlay
+     */
+    var shouldHandleStartPause: () -> Boolean = { true }
 
     /**
      *  Controller numbers are [1, inf), we need [0, inf)
@@ -53,6 +63,16 @@ class ControllerInput {
     private fun checkMenuKeyCombo() {
         if (keyLog == KEYCOMBO_MENU && shouldHandleSelectStartCombo())
             menuCallback()
+    }
+
+    /**
+     * Check if we should show the pause overlay (START pressed alone)
+     */
+    private fun checkPauseKey() {
+        if (keyLog.size == 1 &&
+            keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
+            shouldHandleStartPause())
+            pauseCallback()
     }
 
     fun processKeyEvent(keyCode: Int, event: KeyEvent, retroView: RetroView): Boolean? {
@@ -74,6 +94,7 @@ class ControllerInput {
         }
 
         checkMenuKeyCombo()
+        checkPauseKey()
 
         return true
     }

@@ -69,4 +69,7 @@
 
     <!-- Should the left DPAD be replaced with an analog stick? -->
     <bool name="config_left_analog">false</bool>
+
+    <!-- Should we show pause overlay when START button is pressed alone? -->
+    <bool name="config_pause_overlay">true</bool>
 </resources>
