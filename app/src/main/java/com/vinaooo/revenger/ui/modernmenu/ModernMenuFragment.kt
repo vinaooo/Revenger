@@ -1,4 +1,4 @@
-package com.vinaooo.revenger.ui.menu
+package com.vinaooo.revenger.ui.modernmenu
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,12 +8,17 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/** Fullscreen overlay Fragment that provides better touch handling across entire screen */
-class GameMenuFullscreenFragment : Fragment() {
+/** Modern menu Fragment activated by Android back button - fullscreen overlay with better touch handling */
+class ModernMenuFragment : Fragment() {
+
+    // Get ViewModel reference for centralized methods
+    private lateinit var viewModel: GameActivityViewModel
 
     // Menu item views
     private lateinit var menuContainer: MaterialCardView
@@ -36,7 +41,7 @@ class GameMenuFullscreenFragment : Fragment() {
     private lateinit var fastForwardSwitch: MaterialSwitch
 
     // Callback interface
-    interface GameMenuListener {
+    interface ModernMenuListener {
         fun onResetGame()
         fun onSaveState()
         fun onLoadState()
@@ -48,9 +53,9 @@ class GameMenuFullscreenFragment : Fragment() {
         fun hasSaveState(): Boolean
     }
 
-    private var menuListener: GameMenuListener? = null
+    private var menuListener: ModernMenuListener? = null
 
-    fun setMenuListener(listener: GameMenuListener) {
+    fun setMenuListener(listener: ModernMenuListener) {
         this.menuListener = listener
     }
 
@@ -64,6 +69,9 @@ class GameMenuFullscreenFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Initialize ViewModel
+        viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
         setupViews(view)
         setupClickListeners()
@@ -108,14 +116,16 @@ class GameMenuFullscreenFragment : Fragment() {
         }
 
         saveStateMenu.setOnClickListener {
-            menuListener?.onSaveState()
-            animateMenuOut { dismissMenu() }
+            // Use centralized implementation - no need for animateMenuOut since it's built-in
+            viewModel.saveStateCentralized {
+                dismissMenu()
+            }
         }
 
         loadStateMenu.setOnClickListener {
-            if (menuListener?.hasSaveState() == true) {
-                menuListener?.onLoadState()
-                animateMenuOut { dismissMenu() }
+            // Use centralized implementation - includes hasSaveState() check and delay
+            viewModel.loadStateCentralized {
+                dismissMenu()
             }
         }
 
@@ -211,8 +221,8 @@ class GameMenuFullscreenFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(): GameMenuFullscreenFragment {
-            return GameMenuFullscreenFragment()
+        fun newInstance(): ModernMenuFragment {
+            return ModernMenuFragment()
         }
     }
 }

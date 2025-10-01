@@ -18,13 +18,13 @@ import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
-import com.vinaooo.revenger.ui.menu.GameMenuFullscreenFragment
-import com.vinaooo.revenger.ui.overlay.PauseOverlayFragment
+import com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment
+import com.vinaooo.revenger.ui.retromenu.RetroMenuFragment
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
-        AndroidViewModel(application), GameMenuFullscreenFragment.GameMenuListener {
+        AndroidViewModel(application), ModernMenuFragment.ModernMenuListener {
 
     companion object {
         private const val TAG = "GameActivityViewModel"
@@ -38,11 +38,11 @@ class GameActivityViewModel(application: Application) :
     private var leftGamePad: GamePad? = null
     private var rightGamePad: GamePad? = null
 
-    // Replace with new GameMenuFullscreenFragment
-    private var gameMenuFragment: GameMenuFullscreenFragment? = null
+    // Modern menu fragment (activated by Android back button)
+    private var modernMenuFragment: ModernMenuFragment? = null
 
-    // Pause overlay fragment
-    private var pauseOverlayFragment: PauseOverlayFragment? = null
+    // Retro menu fragment (activated by gamepad buttons)
+    private var retroMenuFragment: RetroMenuFragment? = null
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput()
@@ -88,42 +88,81 @@ class GameActivityViewModel(application: Application) :
         }
     }
 
-    /** Create an instance of the fullscreen game menu overlay */
+    /** Create an instance of the modern menu overlay (activated by back button) */
     fun prepareMenu(activity: ComponentActivity) {
-        if (gameMenuFragment != null) return
+        if (modernMenuFragment != null) return
 
         val fragmentActivity = activity as? FragmentActivity ?: return
         setupMenuCallback(fragmentActivity)
 
-        gameMenuFragment =
-                GameMenuFullscreenFragment.newInstance().apply {
+        modernMenuFragment =
+                ModernMenuFragment.newInstance().apply {
                     setMenuListener(this@GameActivityViewModel)
                 }
     }
 
-    /** Create an instance of the pause overlay */
+    /** Create an instance of the retro menu (activated by gamepad buttons) */
     fun preparePauseOverlay(activity: ComponentActivity) {
-        if (pauseOverlayFragment != null) return
+        if (retroMenuFragment != null) return
 
-        pauseOverlayFragment =
-                PauseOverlayFragment.newInstance().apply { pauseMode = getPauseOverlayMode() }
+        retroMenuFragment =
+                RetroMenuFragment.newInstance().apply { retroMenuMode = getPauseOverlayMode() }
     }
 
-    /** Show the pause overlay */
+    /** Show the retro menu overlay */
     fun showPauseOverlay(activity: FragmentActivity) {
         if (retroView?.frameRendered?.value == true) {
-            // Show pause overlay
-            pauseOverlayFragment?.let { overlay ->
+            // Preserve emulator state (same as Modern Menu does)
+            retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
+
+            // Show retro menu overlay
+            retroMenuFragment?.let { overlay ->
                 if (!overlay.isAdded) {
-                    // Set callback to handle dismissal
+                    // Set callbacks to handle actions
                     overlay.onDismissCallback = { dismissPauseOverlay() }
+                    overlay.onResetGameCallback = { 
+                        retroView?.view?.reset()
+                        Log.d(TAG, "Game reset called from retro menu")
+                    }
+                    overlay.onLoadStateCallback = { 
+                        Log.d(TAG, "Load state called from retro menu")
+                        Log.d(TAG, "retroView: $retroView, retroViewUtils: $retroViewUtils")
+                        retroView?.let { 
+                            if (retroViewUtils != null) {
+                                Log.d(TAG, "Checking if save state exists: ${retroViewUtils?.hasSaveState()}")
+                                retroViewUtils?.loadState(it)
+                                Log.d(TAG, "Load state executed successfully")
+                            } else {
+                                Log.e(TAG, "retroViewUtils is null - cannot load state!")
+                            }
+                        } ?: Log.e(TAG, "retroView is null - cannot load state!")
+                    }
+                    overlay.onSaveStateCallback = { 
+                        Log.d(TAG, "Save state called from retro menu")
+                        Log.d(TAG, "retroView: $retroView, retroViewUtils: $retroViewUtils")
+                        retroView?.let { 
+                            if (retroViewUtils != null) {
+                                Log.d(TAG, "Saving state to storage")
+                                retroViewUtils?.saveState(it)
+                                Log.d(TAG, "Save state executed successfully")
+                                Log.d(TAG, "Save state now exists: ${retroViewUtils?.hasSaveState()}")
+                            } else {
+                                Log.e(TAG, "retroViewUtils is null - cannot save state!")
+                            }
+                        } ?: Log.e(TAG, "retroView is null - cannot save state!")
+                    }
+                    overlay.onHasSaveStateCallback = { 
+                        val hasSaveState = retroViewUtils?.hasSaveState() ?: false
+                        Log.d(TAG, "Checking if save state exists: $hasSaveState")
+                        hasSaveState
+                    }
 
                     activity.supportFragmentManager
                             .beginTransaction()
                             .add(
                                     android.R.id.content,
                                     overlay,
-                                    PauseOverlayFragment::class.java.simpleName
+                                    RetroMenuFragment::class.java.simpleName
                             )
                             .commit()
                 }
@@ -167,17 +206,17 @@ class GameActivityViewModel(application: Application) :
             Log.d(TAG, "Unpause signals sent, now dismissing overlay")
         }
 
-        // Remove the overlay fragment
-        pauseOverlayFragment?.let { overlay ->
+        // Remove the retro menu fragment
+        retroMenuFragment?.let { overlay ->
             overlay.parentFragmentManager.beginTransaction().remove(overlay).commit()
-            Log.d(TAG, "Pause overlay fragment removed")
+            Log.d(TAG, "Retro menu fragment removed")
         }
-        Log.d(TAG, "Pause overlay dismissed")
+        Log.d(TAG, "Retro menu dismissed")
     }
 
-    /** Check if the pause overlay is currently visible */
+    /** Check if the retro menu is currently visible */
     fun isPauseOverlayVisible(): Boolean {
-        return pauseOverlayFragment?.isAdded == true
+        return retroMenuFragment?.isAdded == true
     }
 
     /** Show the fullscreen game menu */
@@ -185,15 +224,15 @@ class GameActivityViewModel(application: Application) :
         if (retroView?.frameRendered?.value == true) {
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
 
-            // Show new fullscreen game menu
-            gameMenuFragment?.let { menu ->
+            // Show new modern menu
+            modernMenuFragment?.let { menu ->
                 if (!menu.isAdded) {
                     activity.supportFragmentManager
                             .beginTransaction()
                             .add(
                                     android.R.id.content,
                                     menu,
-                                    GameMenuFullscreenFragment::class.java.simpleName
+                                    ModernMenuFragment::class.java.simpleName
                             )
                             .commit()
                 }
@@ -201,14 +240,14 @@ class GameActivityViewModel(application: Application) :
         }
     }
 
-    /** Dismiss the fullscreen menu */
+    /** Dismiss the modern menu */
     fun dismissMenu() {
-        gameMenuFragment?.dismissMenuPublic()
+        modernMenuFragment?.dismissMenuPublic()
     }
 
-    /** Check if the menu is currently open */
+    /** Check if the modern menu is currently open */
     fun isMenuOpen(): Boolean {
-        return gameMenuFragment?.isAdded == true
+        return modernMenuFragment?.isAdded == true
     }
 
     // Implementation of GameMenuBottomSheet.GameMenuListener interface
@@ -296,6 +335,63 @@ class GameActivityViewModel(application: Application) :
 
     override fun hasSaveState(): Boolean {
         return retroViewUtils?.hasSaveState() ?: false
+    }
+
+    /**
+     * Centralized load state implementation based on Modern Menu behavior
+     * This method includes the necessary 150ms delay that matches animateMenuOut() timing
+     * Both Modern Menu and Retro Menu should use this method for consistency
+     */
+    fun loadStateCentralized(onComplete: (() -> Unit)? = null) {
+        Log.d(TAG, "Central load state called")
+        
+        // Check if save state exists first (same as Modern Menu)
+        if (hasSaveState()) {
+            Log.d(TAG, "Save state exists, proceeding with load")
+            
+            // Apply the same 150ms delay as Modern Menu's animateMenuOut()
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                retroView?.let { retroView ->
+                    if (retroViewUtils != null) {
+                        Log.d(TAG, "Loading state from storage (centralized)")
+                        retroViewUtils?.loadState(retroView)
+                        Log.d(TAG, "Load state executed successfully (centralized)")
+                    } else {
+                        Log.e(TAG, "retroViewUtils is null - cannot load state!")
+                    }
+                } ?: Log.e(TAG, "retroView is null - cannot load state!")
+                
+                onComplete?.invoke()
+            }, 150)
+        } else {
+            Log.d(TAG, "No save state available")
+            onComplete?.invoke()
+        }
+    }
+
+    /**
+     * Centralized save state implementation based on Modern Menu behavior
+     * This method includes the necessary 150ms delay that matches animateMenuOut() timing
+     * Both Modern Menu and Retro Menu should use this method for consistency
+     */
+    fun saveStateCentralized(onComplete: (() -> Unit)? = null) {
+        Log.d(TAG, "Central save state called")
+        
+        // Apply the same 150ms delay as Modern Menu's animateMenuOut()
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            retroView?.let { retroView ->
+                if (retroViewUtils != null) {
+                    Log.d(TAG, "Saving state to storage (centralized)")
+                    retroViewUtils?.saveState(retroView)
+                    Log.d(TAG, "Save state executed successfully (centralized)")
+                    Log.d(TAG, "Save state now exists: ${retroViewUtils?.hasSaveState()}")
+                } else {
+                    Log.e(TAG, "retroViewUtils is null - cannot save state!")
+                }
+            } ?: Log.e(TAG, "retroView is null - cannot save state!")
+            
+            onComplete?.invoke()
+        }, 150)
     }
 
     /** Hide the system bars */
