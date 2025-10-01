@@ -7,12 +7,12 @@ import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.R
 
 /**
- * Controller modular para gerenciar funcionalidades de áudio do emulador
- * Permite controle centralizado de som que pode ser reutilizado em diferentes partes do sistema
+ * Controller modular para gerenciar funcionalidades de áudio do emulador Permite controle
+ * centralizado de som que pode ser reutilizado em diferentes partes do sistema
  */
 class AudioController(
-    private val context: Context,
-    private val sharedPreferences: SharedPreferences
+        private val context: Context,
+        private val sharedPreferences: SharedPreferences
 ) {
     companion object {
         private const val TAG = "AudioController"
@@ -26,10 +26,10 @@ class AudioController(
     fun toggleAudio(retroView: GLRetroView): Boolean {
         val newState = !retroView.audioEnabled
         retroView.audioEnabled = newState
-        
+
         // Salvar o novo estado imediatamente
         saveAudioState(newState)
-        
+
         Log.d(TAG, "Audio toggled to: ${if (newState) "ON" else "OFF"}")
         return newState
     }

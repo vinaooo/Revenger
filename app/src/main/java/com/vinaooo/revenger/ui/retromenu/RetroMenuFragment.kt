@@ -713,23 +713,31 @@ class RetroMenuFragment : Fragment() {
                 menuActions.clear()
 
                 // Get current states for display using string resources
-                val audioState = if (viewModel.getAudioController()?.getAudioState() == true) {
-                        getString(R.string.retro_menu_settings_sound_on)
-                } else {
-                        getString(R.string.retro_menu_settings_sound_off)
-                }
-                
-                val speedState = if (viewModel.getSpeedController()?.getFastForwardState() == true) {
-                        getString(R.string.retro_menu_settings_speed_fast)
-                } else {
-                        getString(R.string.retro_menu_settings_speed_normal)
-                }
+                val audioState =
+                        if (viewModel.getAudioController()?.getAudioState() == true) {
+                                getString(R.string.retro_menu_settings_sound_on)
+                        } else {
+                                getString(R.string.retro_menu_settings_sound_off)
+                        }
+
+                val speedState =
+                        if (viewModel.getSpeedController()?.getFastForwardState() == true) {
+                                getString(R.string.retro_menu_settings_speed_fast)
+                        } else {
+                                getString(R.string.retro_menu_settings_speed_normal)
+                        }
 
                 val submenuOptions =
                         listOf(
-                                Pair(getString(R.string.retro_menu_settings_sound, audioState)) { toggleAudioSetting() },
-                                Pair(getString(R.string.retro_menu_settings_speed, speedState)) { toggleSpeedSetting() },
-                                Pair(getString(R.string.retro_menu_settings_back)) { returnToMainMenu() }
+                                Pair(getString(R.string.retro_menu_settings_sound, audioState)) {
+                                        toggleAudioSetting()
+                                },
+                                Pair(getString(R.string.retro_menu_settings_speed, speedState)) {
+                                        toggleSpeedSetting()
+                                },
+                                Pair(getString(R.string.retro_menu_settings_back)) {
+                                        returnToMainMenu()
+                                }
                         )
 
                 menuContainer?.let { container ->
@@ -798,7 +806,7 @@ class RetroMenuFragment : Fragment() {
                 Log.d(TAG, "Toggling audio setting")
                 // Use ViewModel's audio controller
                 viewModel.onToggleAudio()
-                
+
                 // Refresh the settings submenu to show updated state
                 showSettingsSubmenu()
         }
@@ -808,7 +816,7 @@ class RetroMenuFragment : Fragment() {
                 Log.d(TAG, "Toggling speed setting")
                 // Use ViewModel's speed controller
                 viewModel.onFastForward()
-                
+
                 // Refresh the settings submenu to show updated state
                 showSettingsSubmenu()
         }

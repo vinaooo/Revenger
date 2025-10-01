@@ -8,18 +8,20 @@ import com.vinaooo.revenger.R
 
 /**
  * Controller modular para gerenciar funcionalidades de velocidade (fast forward) do emulador
- * Permite controle centralizado de velocidade que pode ser reutilizado em diferentes partes do sistema
+ * Permite controle centralizado de velocidade que pode ser reutilizado em diferentes partes do
+ * sistema
  */
 class SpeedController(
-    private val context: Context,
-    private val sharedPreferences: SharedPreferences
+        private val context: Context,
+        private val sharedPreferences: SharedPreferences
 ) {
     companion object {
         private const val TAG = "SpeedController"
     }
 
     // Velocidade de fast forward configurada no config.xml
-    private val fastForwardSpeed = context.resources.getInteger(R.integer.config_fast_forward_multiplier)
+    private val fastForwardSpeed =
+            context.resources.getInteger(R.integer.config_fast_forward_multiplier)
 
     /**
      * Alterna entre velocidade normal (1x) e fast forward (configurável)
@@ -29,10 +31,10 @@ class SpeedController(
     fun toggleFastForward(retroView: GLRetroView): Boolean {
         val newSpeed = if (retroView.frameSpeed == 1) fastForwardSpeed else 1
         retroView.frameSpeed = newSpeed
-        
+
         // Salvar o novo estado imediatamente
         saveSpeedState(newSpeed)
-        
+
         val isActive = newSpeed > 1
         Log.d(TAG, "Fast forward toggled to: ${if (isActive) "ON ($newSpeed x)" else "OFF (1x)"}")
         return isActive

@@ -474,7 +474,7 @@ class GameActivityViewModel(application: Application) :
     fun setupRetroView(activity: ComponentActivity, container: FrameLayout) {
         retroView = RetroView(activity, viewModelScope)
         retroViewUtils = RetroViewUtils(activity)
-        
+
         // Inicializar controllers com as mesmas SharedPreferences que RetroViewUtils usa
         initializeControllers(activity)
 
@@ -625,9 +625,9 @@ class GameActivityViewModel(application: Application) :
         return mode == 3 // SELECT + START together
     }
 
-    /** 
-     * Inicializa os controllers modulares com as mesmas SharedPreferences do RetroViewUtils
-     * Garante compatibilidade com o sistema existente
+    /**
+     * Inicializa os controllers modulares com as mesmas SharedPreferences do RetroViewUtils Garante
+     * compatibilidade com o sistema existente
      */
     private fun initializeControllers(activity: Activity) {
         val sharedPreferences = activity.getPreferences(android.content.Context.MODE_PRIVATE)
@@ -639,16 +639,16 @@ class GameActivityViewModel(application: Application) :
     // MÉTODOS PÚBLICOS PARA ACESSO AOS CONTROLLERS MODULARES
 
     /**
-     * Obtém referência ao AudioController para uso em outros componentes
-     * Permite acesso modular às funcionalidades de áudio
+     * Obtém referência ao AudioController para uso em outros componentes Permite acesso modular às
+     * funcionalidades de áudio
      */
     fun getAudioController(): AudioController? {
         return audioController
     }
 
     /**
-     * Obtém referência ao SpeedController para uso em outros componentes
-     * Permite acesso modular às funcionalidades de velocidade
+     * Obtém referência ao SpeedController para uso em outros componentes Permite acesso modular às
+     * funcionalidades de velocidade
      */
     fun getSpeedController(): SpeedController? {
         return speedController
@@ -676,9 +676,7 @@ class GameActivityViewModel(application: Application) :
         }
     }
 
-    /**
-     * Ativa fast forward usando controller modular
-     */
+    /** Ativa fast forward usando controller modular */
     fun enableFastForward() {
         retroView?.let {
             speedController?.enableFastForward(it.view)
@@ -686,9 +684,7 @@ class GameActivityViewModel(application: Application) :
         }
     }
 
-    /**
-     * Desativa fast forward usando controller modular
-     */
+    /** Desativa fast forward usando controller modular */
     fun disableFastForward() {
         retroView?.let {
             speedController?.disableFastForward(it.view)
