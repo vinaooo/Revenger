@@ -46,12 +46,5 @@
     <string name="game_menu_icon">Game menu icon</string>
     <string name="menu_toggle_audio">Toggle Audio</string>
 
-    <!-- Retro Menu strings -->
-    <string name="retro_menu_title">REVENGER MENU</string>
-    <string name="retro_menu_continue_game">CONTINUE GAME</string>
-    <string name="retro_menu_restart_game">RESTART GAME</string>
-    <string name="retro_menu_save_state">SAVE STATE</string>
-    <string name="retro_menu_load_state">LOAD STATE</string>
-    <string name="retro_menu_settings">SETTINGS</string>
-    <string name="retro_menu_exit_to_menu">EXIT TO MENU</string>
+    <!-- Note: Retro Menu strings moved to RetroMenuConfig.xml -->
 </resources>
