@@ -45,7 +45,7 @@ class GameActivityViewModel(application: Application) :
     private var retroMenuFragment: RetroMenuFragment? = null
 
     private var compositeDisposable = CompositeDisposable()
-    private val controllerInput = ControllerInput()
+    private val controllerInput = ControllerInput(application.applicationContext)
 
     init {
         // Set the callback to check if SELECT+START combo should work

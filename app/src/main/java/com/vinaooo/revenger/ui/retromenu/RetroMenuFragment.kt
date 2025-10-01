@@ -51,6 +51,13 @@ class RetroMenuFragment : Fragment() {
                 Log.d(TAG, "RetroMenuFragment initialized")
         }
 
+        /** Reset selection to first option (called when menu appears) */
+        fun resetSelectionToFirst() {
+                Log.d(TAG, "Resetting selection to first option")
+                selectedOptionIndex = 0
+                updateSelection()
+        }
+
         override fun onCreateView(
                 inflater: LayoutInflater,
                 container: ViewGroup?,
@@ -208,6 +215,9 @@ class RetroMenuFragment : Fragment() {
 
                 // Initialize ViewModel
                 viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
+
+                // Always reset selection to first option when menu appears
+                resetSelectionToFirst()
 
                 // Also dismiss when appropriate button(s) are pressed
                 view.isFocusableInTouchMode = true

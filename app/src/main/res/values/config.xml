@@ -69,4 +69,18 @@
         3: SELECT + START together
     -->
     <integer name="config_pause_overlay">1</integer>
+
+    <!-- Controller sensitivity thresholds (menu navigation)
+         Values are floats from 0.0 to 1.0
+         Lower values = more sensitive, higher values = less sensitive
+    -->
+    
+    <!-- DPAD physical threshold (HAT_X/HAT_Y) - most responsive for menu navigation -->
+    <dimen name="config_dpad_threshold">0.1dp</dimen>
+    
+    <!-- Left analog stick threshold (AXIS_X/AXIS_Y) - less sensitive to avoid accidental navigation -->
+    <dimen name="config_left_analog_threshold">0.9dp</dimen>
+    
+    <!-- Right analog stick threshold (AXIS_Z/AXIS_RZ) - less sensitive to avoid accidental navigation -->
+    <dimen name="config_right_analog_threshold">0.9dp</dimen>
 </resources>
