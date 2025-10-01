@@ -120,42 +120,13 @@ class GameActivityViewModel(application: Application) :
                 if (!overlay.isAdded) {
                     // Set callbacks to handle actions
                     overlay.onDismissCallback = { dismissPauseOverlay() }
-                    overlay.onResetGameCallback = { 
-                        retroView?.view?.reset()
-                        Log.d(TAG, "Game reset called from retro menu")
-                    }
-                    overlay.onLoadStateCallback = { 
-                        Log.d(TAG, "Load state called from retro menu")
-                        Log.d(TAG, "retroView: $retroView, retroViewUtils: $retroViewUtils")
-                        retroView?.let { 
-                            if (retroViewUtils != null) {
-                                Log.d(TAG, "Checking if save state exists: ${retroViewUtils?.hasSaveState()}")
-                                retroViewUtils?.loadState(it)
-                                Log.d(TAG, "Load state executed successfully")
-                            } else {
-                                Log.e(TAG, "retroViewUtils is null - cannot load state!")
-                            }
-                        } ?: Log.e(TAG, "retroView is null - cannot load state!")
-                    }
-                    overlay.onSaveStateCallback = { 
-                        Log.d(TAG, "Save state called from retro menu")
-                        Log.d(TAG, "retroView: $retroView, retroViewUtils: $retroViewUtils")
-                        retroView?.let { 
-                            if (retroViewUtils != null) {
-                                Log.d(TAG, "Saving state to storage")
-                                retroViewUtils?.saveState(it)
-                                Log.d(TAG, "Save state executed successfully")
-                                Log.d(TAG, "Save state now exists: ${retroViewUtils?.hasSaveState()}")
-                            } else {
-                                Log.e(TAG, "retroViewUtils is null - cannot save state!")
-                            }
-                        } ?: Log.e(TAG, "retroView is null - cannot save state!")
-                    }
-                    overlay.onHasSaveStateCallback = { 
-                        val hasSaveState = retroViewUtils?.hasSaveState() ?: false
-                        Log.d(TAG, "Checking if save state exists: $hasSaveState")
-                        hasSaveState
-                    }
+                    // onResetGameCallback removed - now using centralized resetGameCentralized()
+                    // All callbacks removed - now using centralized methods:
+                    // - continueGameCentralized() 
+                    // - resetGameCentralized()
+                    // - loadStateCentralized() 
+                    // - saveStateCentralized()
+                    // - hasSaveState() from ViewModel interface
 
                     activity.supportFragmentManager
                             .beginTransaction()
@@ -252,15 +223,18 @@ class GameActivityViewModel(application: Application) :
 
     // Implementation of GameMenuBottomSheet.GameMenuListener interface
     override fun onResetGame() {
-        retroView?.view?.reset()
+        // Legacy method - now using resetGameCentralized() instead
+        // Kept for interface compatibility but should not be called
     }
 
     override fun onSaveState() {
-        retroView?.let { retroViewUtils?.saveState(it) }
+        // Legacy method - now using saveStateCentralized() instead
+        // Kept for interface compatibility but should not be called
     }
 
     override fun onLoadState() {
-        retroView?.let { retroViewUtils?.loadState(it) }
+        // Legacy method - now using loadStateCentralized() instead
+        // Kept for interface compatibility but should not be called
     }
 
     override fun onToggleAudio() {
@@ -292,9 +266,10 @@ class GameActivityViewModel(application: Application) :
                         .setPositiveButton(R.string.exit_game_save_and_exit) {
                                 _: android.content.DialogInterface,
                                 _: Int ->
-                            // Save state and then exit
-                            onSaveState()
-                            android.os.Process.killProcess(android.os.Process.myPid())
+                            // Save state and then exit (using centralized method)
+                            saveStateCentralized {
+                                android.os.Process.killProcess(android.os.Process.myPid())
+                            }
                         }
                         .setNegativeButton(R.string.exit_game_exit_without_save) {
                                 _: android.content.DialogInterface,
@@ -392,6 +367,65 @@ class GameActivityViewModel(application: Application) :
             
             onComplete?.invoke()
         }, 150)
+    }
+
+    /**
+     * Centralized reset game implementation 
+     * Both Modern Menu and Retro Menu should use this method for consistency
+     */
+    fun resetGameCentralized(onComplete: (() -> Unit)? = null) {
+        Log.d(TAG, "Central reset game called")
+        
+        retroView?.view?.let { view ->
+            Log.d(TAG, "Resetting game (centralized)")
+            view.reset()
+            Log.d(TAG, "Game reset executed successfully (centralized)")
+        } ?: Log.e(TAG, "retroView.view is null - cannot reset game!")
+        
+        onComplete?.invoke()
+    }
+
+    /**
+     * Centralized continue game implementation 
+     * Handles unpause signals based on configured mode and dismisses overlay
+     * Currently used by Retro Menu but modularized for future reuse
+     */
+    fun continueGameCentralized(onComplete: (() -> Unit)? = null) {
+        Log.d(TAG, "Central continue game called")
+
+        // Send appropriate unpause signal(s) based on configured mode
+        retroView?.view?.let { view ->
+            val mode = getPauseOverlayMode()
+            Log.d(TAG, "Sending unpause signal(s) for mode: $mode (centralized)")
+
+            when (mode) {
+                1 -> { // START button
+                    Log.d(TAG, "Sending START signal to unpause game (centralized)")
+                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
+                    Thread.sleep(200)
+                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
+                }
+                2 -> { // SELECT button
+                    Log.d(TAG, "Sending SELECT signal to unpause game (centralized)")
+                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                    Thread.sleep(200)
+                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                }
+                3 -> { // SELECT + START together
+                    Log.d(TAG, "Sending SELECT+START signals to unpause game (centralized)")
+                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
+                    Thread.sleep(200)
+                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
+                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                }
+            }
+
+            Thread.sleep(100) // Additional delay before completing
+            Log.d(TAG, "Unpause signals sent successfully (centralized)")
+        } ?: Log.e(TAG, "retroView.view is null - cannot send unpause signals!")
+
+        onComplete?.invoke()
     }
 
     /** Hide the system bars */

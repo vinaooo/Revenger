@@ -34,17 +34,9 @@ class RetroMenuFragment : Fragment() {
     // Callback to notify when retro menu should be dismissed
     var onDismissCallback: (() -> Unit)? = null
     
-    // Callback to notify when game reset is requested
-    var onResetGameCallback: (() -> Unit)? = null
+    // Note: Reset game callback removed - now using centralized ViewModel method
     
-    // Callback to notify when load state is requested
-    var onLoadStateCallback: (() -> Unit)? = null
-    
-    // Callback to notify when save state is requested
-    var onSaveStateCallback: (() -> Unit)? = null
-    
-    // Callback to check if save state exists
-    var onHasSaveStateCallback: (() -> Boolean)? = null
+    // Note: Load/Save state callbacks removed - now using centralized ViewModel methods
 
     // Retro menu mode (1=START, 2=SELECT, 3=SELECT+START)
     var retroMenuMode: Int = 1
@@ -89,7 +81,7 @@ class RetroMenuFragment : Fragment() {
                                 addView(createMenuTitle("REVENGER MENU"))
                                 
                                 // Menu options
-                                addView(createMenuOption("CONTINUE GAME", true) { dismissOverlay() })
+                                addView(createMenuOption("CONTINUE GAME", true) { continueGame() })
                                 addView(createMenuOption("RESTART GAME", false) { restartGame() })
                                 addView(createMenuOption("SAVE STATE", false) { saveState() })
                                 addView(createMenuOption("LOAD STATE", false) { loadStateSafe() })
@@ -234,16 +226,13 @@ class RetroMenuFragment : Fragment() {
 
     /** Game actions */
     private fun restartGame() {
-        Log.d(TAG, "Restart game requested")
-        Log.d(TAG, "onResetGameCallback is: ${onResetGameCallback}")
-        if (onResetGameCallback != null) {
-            Log.d(TAG, "Calling onResetGameCallback")
-            onResetGameCallback?.invoke()
-            Log.d(TAG, "onResetGameCallback called successfully")
-        } else {
-            Log.e(TAG, "onResetGameCallback is null!")
+        Log.d(TAG, "Restart game requested - using centralized implementation")
+        
+        // Use centralized implementation from ViewModel
+        viewModel.resetGameCentralized {
+            Log.d(TAG, "Centralized reset game completed, dismissing overlay")
+            dismissOverlay()
         }
-        dismissOverlay()
     }
     
     private fun saveState() {
@@ -286,6 +275,16 @@ class RetroMenuFragment : Fragment() {
         Log.d(TAG, "Exit to menu requested")
         // TODO: Implement exit to menu functionality
         dismissOverlay()
+    }
+
+    private fun continueGame() {
+        Log.d(TAG, "Continue game requested - using centralized implementation")
+        
+        // Use centralized implementation from ViewModel
+        viewModel.continueGameCentralized {
+            Log.d(TAG, "Centralized continue game completed, dismissing overlay")
+            dismissOverlay()
+        }
     }
 
     /** Dismiss the pause overlay */

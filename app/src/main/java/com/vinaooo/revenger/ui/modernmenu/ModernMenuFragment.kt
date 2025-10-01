@@ -111,8 +111,10 @@ class ModernMenuFragment : Fragment() {
 
     private fun setupClickListeners() {
         resetMenu.setOnClickListener {
-            menuListener?.onResetGame()
-            animateMenuOut { dismissMenu() }
+            // Use centralized implementation
+            viewModel.resetGameCentralized {
+                animateMenuOut { dismissMenu() }
+            }
         }
 
         saveStateMenu.setOnClickListener {
