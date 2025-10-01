@@ -107,3 +107,98 @@
 **Decision**: Defer implementation until Android 16 adoption increases. Current landscape-only approach works well for phones (primary target). Monitor adoption rates and implement when necessary.
 
 **Date noted**: September 29, 2025
+
+## Areas of Attention (Code Quality)
+
+### Thread.sleep() in UI Code ⚠️
+**Issue**: Using `Thread.sleep()` in UI thread context can cause Application Not Responding (ANR) errors.
+
+**Location**: 
+- `GameActivityViewModel.kt` - `continueGameCentralized()` method
+- Used for timing delays between key events (200ms, 100ms)
+
+**Risk**: 
+- Blocks main thread during sleep period
+- Can cause UI freezing and poor user experience
+- May trigger ANR dialog on slower devices
+
+**Recommended solution**:
+- Replace `Thread.sleep()` with `Handler.postDelayed()` for proper async timing
+- Use coroutines with `delay()` for non-blocking waits
+- Implement proper callback chains instead of synchronous delays
+
+**Priority**: Medium - Currently functional but not best practice
+
+---
+
+### Resource Reflection Overhead ⚠️
+**Issue**: Using `getIdentifier()` for runtime resource loading has performance overhead.
+
+**Location**: 
+- `RetroView.kt` - ROM resource loading via reflection
+
+**Current justification**: 
+- Necessary for maintaining project genericness
+- Allows any ROM/emulator combination without recompiling
+- Suppressed lint warning with proper documentation
+
+**Trade-off**: 
+- ✅ Flexibility: Single codebase for all ROM/core combinations
+- ⚠️ Performance: Reflection slower than direct resource access
+- ⚠️ ProGuard: May cause issues with R8/ProGuard optimization
+
+**Recommendation**: 
+- Keep current implementation (benefits outweigh costs)
+- Document reflection usage clearly
+- Add ProGuard keep rules if minification enabled
+
+**Priority**: Low - Working as intended, documented properly
+
+---
+
+### Excessive Debug Logging in Production ⚠️
+**Issue**: Production builds contain extensive debug logging that impacts performance and increases APK size.
+
+**Impact**:
+- Log calls consume CPU cycles even when not displayed
+- String concatenation allocates memory unnecessarily
+- Increases APK size with debug strings
+- May expose sensitive information in production
+
+**Current state**:
+- Extensive emoji-based logging for debugging (`🚨`, `🛡️`, `🔴`, etc.)
+- Log.d(), Log.w(), Log.e() calls throughout codebase
+- No BuildConfig checks for debug vs release
+
+**Recommended solution**:
+```kotlin
+// Wrap debug logs with BuildConfig check
+if (BuildConfig.DEBUG) {
+    Log.d(TAG, "Debug message")
+}
+
+// Or use Timber library with separate trees for debug/release
+```
+
+**Priority**: Medium - Consider cleanup before production release
+
+---
+
+### Known LibretroDroid 16KB Alignment Issue ⚠️
+**Issue**: LibretroDroid 0.12.0 native libraries not aligned to 16KB pages.
+
+**Impact**: 
+- May not work on future Android devices requiring 16KB page alignment
+- Affects ARM64 devices with 16KB memory page size
+- Google Play may reject apps in the future
+
+**Current workaround**: 
+- Disabled `Aligned16KB` lint check
+- App functional on current devices
+
+**Action required**:
+- Monitor https://github.com/Swordfish90/LibretroDroid for updates
+- Update dependency when 16KB-aligned version released
+- Test thoroughly on devices with 16KB page size
+
+**Priority**: High - Monitor actively, update when available

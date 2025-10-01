@@ -112,40 +112,45 @@ class ControllerInput(private val context: Context) {
 
     /** Check if we should show the pause overlay */
     private fun checkPauseKey() {
-        Log.d(TAG, "checkPauseKey - keyLog.size: ${keyLog.size}, keyLog: $keyLog")
+        Log.d(TAG, "🔍 checkPauseKey CALLED - keyLog.size: ${keyLog.size}, keyLog: $keyLog")
+
+        // Log callback states for debugging
+        val startHandleState = shouldHandleStartPause()
+        val selectHandleState = shouldHandleSelectPause()
+        val selectStartHandleState = shouldHandleSelectStartPause()
+        Log.d(
+                TAG,
+                "🔍 Callback states - START: $startHandleState, SELECT: $selectHandleState, SELECT+START: $selectStartHandleState"
+        )
 
         // Check for SELECT + START combo (mode 3)
         if (keyLog.size == 2 &&
                         keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
                         keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT) &&
-                        shouldHandleSelectStartPause()
+                        selectStartHandleState
         ) {
-            Log.d(TAG, "SELECT+START PAUSE CALLBACK TRIGGERED!")
+            Log.w(TAG, "🚨 SELECT+START PAUSE CALLBACK TRIGGERED! (Double-pause risk)")
             selectStartPauseCallback()
             return
         }
 
         // Check for SELECT alone (mode 2)
-        if (keyLog.size == 1 &&
-                        keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT) &&
-                        shouldHandleSelectPause()
+        if (keyLog.size == 1 && keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT) && selectHandleState
         ) {
-            Log.d(TAG, "SELECT PAUSE CALLBACK TRIGGERED!")
+            Log.w(TAG, "🚨 SELECT PAUSE CALLBACK TRIGGERED! (Double-pause risk)")
             selectPauseCallback()
             return
         }
 
         // Check for START alone (mode 1)
-        if (keyLog.size == 1 &&
-                        keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
-                        shouldHandleStartPause()
+        if (keyLog.size == 1 && keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) && startHandleState
         ) {
-            Log.d(TAG, "START PAUSE CALLBACK TRIGGERED!")
+            Log.w(TAG, "🚨 START PAUSE CALLBACK TRIGGERED! (Double-pause risk)")
             pauseCallback()
             return
         }
 
-        Log.d(TAG, "No pause conditions met")
+        Log.d(TAG, "✅ No pause conditions met - keyLog ignored")
     }
 
     fun processGamePadButtonEvent(keyCode: Int, action: Int) {
@@ -158,14 +163,21 @@ class ControllerInput(private val context: Context) {
         when (action) {
             KeyEvent.ACTION_DOWN -> {
                 keyLog.add(keyCode)
-                Log.d(TAG, "GamePad Key DOWN: $keyCode, keyLog: $keyLog")
+                Log.d(
+                        TAG,
+                        "🎮 GamePad Key DOWN: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog"
+                )
             }
             KeyEvent.ACTION_UP -> {
                 keyLog.remove(keyCode)
-                Log.d(TAG, "GamePad Key UP: $keyCode, keyLog: $keyLog")
+                Log.d(
+                        TAG,
+                        "🎮 GamePad Key UP: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog"
+                )
             }
         }
 
+        Log.d(TAG, "🔄 Calling checkMenuKeyCombo and checkPauseKey from processGamePadButtonEvent")
         checkMenuKeyCombo()
         checkPauseKey()
     }
@@ -248,18 +260,19 @@ class ControllerInput(private val context: Context) {
                 keyLog.add(keyCode)
                 Log.d(
                         TAG,
-                        "Key DOWN: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog"
+                        "⌨️ Key DOWN: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog"
                 )
             }
             KeyEvent.ACTION_UP -> {
                 keyLog.remove(keyCode)
                 Log.d(
                         TAG,
-                        "Key UP: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog"
+                        "⌨️ Key UP: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog"
                 )
             }
         }
 
+        Log.d(TAG, "🔄 Calling checkMenuKeyCombo and checkPauseKey from processKeyEvent")
         checkMenuKeyCombo()
         checkPauseKey()
 

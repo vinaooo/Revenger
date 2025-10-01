@@ -49,7 +49,7 @@ class GameActivityViewModel(application: Application) :
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput(application.applicationContext)
 
-    // Controllers modulares para áudio e velocidade (inicializados no setupRetroView)
+    // Controllers for modular audio and speed control
     private var audioController: AudioController? = null
     private var speedController: SpeedController? = null
 
@@ -83,6 +83,7 @@ class GameActivityViewModel(application: Application) :
         controllerInput.pauseCallback = {
             // START button (mode 1)
             if (isPauseOverlayEnabled()) {
+                Log.d(TAG, "pauseCallback TRIGGERED - calling showPauseOverlay (START)")
                 showPauseOverlay(activity)
             }
         }
@@ -90,6 +91,7 @@ class GameActivityViewModel(application: Application) :
         controllerInput.selectPauseCallback = {
             // SELECT button (mode 2)
             if (isPauseOverlayEnabled()) {
+                Log.d(TAG, "selectPauseCallback TRIGGERED - calling showPauseOverlay (SELECT)")
                 showPauseOverlay(activity)
             }
         }
@@ -97,6 +99,10 @@ class GameActivityViewModel(application: Application) :
         controllerInput.selectStartPauseCallback = {
             // SELECT + START together (mode 3)
             if (isPauseOverlayEnabled()) {
+                Log.d(
+                        TAG,
+                        "selectStartPauseCallback TRIGGERED - calling showPauseOverlay (SELECT+START)"
+                )
                 showPauseOverlay(activity)
             }
         }
@@ -126,17 +132,19 @@ class GameActivityViewModel(application: Application) :
     /** Show the retro menu overlay */
     fun showPauseOverlay(activity: FragmentActivity) {
         if (retroView?.frameRendered?.value == true) {
-            // Preserve emulator state (same as Modern Menu does)
+            // PAUSE emulation using LibretroDroid's native frameSpeed API
+            retroView?.view?.frameSpeed = 0
+            Log.d(TAG, "🛑 Emulator PAUSED using frameSpeed = 0 (native API)")
+
+            // Preserve emulator state (audio, speed settings)
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
 
             // Show retro menu overlay
             retroMenuFragment?.let { overlay ->
                 if (!overlay.isAdded) {
-                    // Set callbacks to handle actions
+                    // Set callback to dismiss overlay and resume emulation
                     overlay.onDismissCallback = { dismissPauseOverlay() }
-                    // onResetGameCallback removed - now using centralized resetGameCentralized()
-                    // All callbacks removed - now using centralized methods:
-                    // - continueGameCentralized()
+                    // Using centralized methods:
                     // - resetGameCentralized()
                     // - loadStateCentralized()
                     // - saveStateCentralized()
@@ -157,38 +165,16 @@ class GameActivityViewModel(application: Application) :
 
     /** Dismiss the pause overlay */
     fun dismissPauseOverlay() {
-        Log.d(TAG, "Dismissing pause overlay")
+        Log.d(TAG, "Dismissing pause overlay and resuming emulation")
 
-        // Send appropriate signal(s) to unpause the game before dismissing overlay
-        retroView?.view?.let { view ->
-            val mode = getPauseOverlayMode()
-            Log.d(TAG, "Sending unpause signal(s) for mode: $mode")
+        retroView?.let { retroView ->
+            // Restore emulator state (audio, speed settings)
+            retroViewUtils?.restoreEmulatorState(retroView)
+            Log.d(TAG, "Emulator settings restored")
 
-            when (mode) {
-                1 -> { // START button
-                    Log.d(TAG, "Sending START signal to unpause game")
-                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
-                    Thread.sleep(200)
-                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
-                }
-                2 -> { // SELECT button
-                    Log.d(TAG, "Sending SELECT signal to unpause game")
-                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
-                    Thread.sleep(200)
-                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
-                }
-                3 -> { // SELECT + START together
-                    Log.d(TAG, "Sending SELECT+START signals to unpause game")
-                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
-                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
-                    Thread.sleep(200)
-                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
-                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
-                }
-            }
-
-            Thread.sleep(100) // Additional delay before dismissing overlay
-            Log.d(TAG, "Unpause signals sent, now dismissing overlay")
+            // RESUME emulation using LibretroDroid's native frameSpeed API
+            retroView.view.frameSpeed = 1
+            Log.d(TAG, "▶️ Emulator RESUMED using frameSpeed = 1 (native API)")
         }
 
         // Remove the retro menu fragment
@@ -329,88 +315,93 @@ class GameActivityViewModel(application: Application) :
     }
 
     /**
-     * Centralized load state implementation based on Modern Menu behavior This method includes the
-     * necessary 150ms delay that matches animateMenuOut() timing Both Modern Menu and Retro Menu
-     * should use this method for consistency
+     * Centralized load state implementation with improved debugging CORREÇÃO: Removido delay
+     * desnecessário que pode causar problemas de timing
      */
     fun loadStateCentralized(onComplete: (() -> Unit)? = null) {
-        Log.d(TAG, "Central load state called")
+        Log.w(TAG, "🔵 Central load state called")
 
-        // Check if save state exists first (same as Modern Menu)
-        if (hasSaveState()) {
-            Log.d(TAG, "Save state exists, proceeding with load")
-
-            // Apply the same 150ms delay as Modern Menu's animateMenuOut()
-            android.os.Handler(android.os.Looper.getMainLooper())
-                    .postDelayed(
-                            {
-                                retroView?.let { retroView ->
-                                    if (retroViewUtils != null) {
-                                        Log.d(TAG, "Loading state from storage (centralized)")
-                                        retroViewUtils?.loadState(retroView)
-                                        Log.d(TAG, "Load state executed successfully (centralized)")
-                                    } else {
-                                        Log.e(TAG, "retroViewUtils is null - cannot load state!")
-                                    }
-                                }
-                                        ?: Log.e(TAG, "retroView is null - cannot load state!")
-
-                                onComplete?.invoke()
-                            },
-                            150
-                    )
-        } else {
-            Log.d(TAG, "No save state available")
+        // CORREÇÃO: Verificar se o jogo está completamente inicializado
+        if (retroView?.frameRendered?.value != true) {
+            Log.w(
+                    TAG,
+                    "⏳ Game is still initializing - Load State blocked to prevent tempState override"
+            )
+            Log.w(TAG, "💡 Try Load State again after the game finishes loading")
             onComplete?.invoke()
+            return
         }
+
+        // Check if save state exists first
+        if (hasSaveState()) {
+            Log.w(TAG, "💾 Save state exists, proceeding with load")
+
+            retroView?.let { retroView ->
+                if (retroViewUtils != null) {
+                    Log.w(TAG, "📂 Loading state from storage (centralized)")
+
+                    // DIAGNÓSTICO: Verificar se arquivo de save state existe
+                    Log.w(TAG, "🔍 DIAGNÓSTICO: hasSaveState = ${retroViewUtils?.hasSaveState()}")
+
+                    // CORREÇÃO: Executar load imediatamente sem delay artificial
+                    retroViewUtils?.loadState(retroView)
+
+                    Log.w(TAG, "✅ Load state executed successfully (centralized)")
+                    Log.w(TAG, "🎮 Game should now be at loaded state and resume automatically")
+                } else {
+                    Log.e(TAG, "❌ retroViewUtils is null - cannot load state!")
+                }
+            }
+                    ?: Log.e(TAG, "❌ retroView is null - cannot load state!")
+        } else {
+            Log.w(TAG, "❌ No save state available")
+        }
+
+        onComplete?.invoke()
     }
 
     /**
-     * Centralized save state implementation based on Modern Menu behavior This method includes the
-     * necessary 150ms delay that matches animateMenuOut() timing Both Modern Menu and Retro Menu
-     * should use this method for consistency
+     * Centralized save state implementation with improved debugging CORREÇÃO: Removido delay
+     * desnecessário que pode causar problemas de timing
      */
     fun saveStateCentralized(onComplete: (() -> Unit)? = null) {
-        Log.d(TAG, "Central save state called")
+        Log.w(TAG, "🔵 Central save state called")
 
-        // Apply the same 150ms delay as Modern Menu's animateMenuOut()
-        android.os.Handler(android.os.Looper.getMainLooper())
-                .postDelayed(
-                        {
-                            retroView?.let { retroView ->
-                                if (retroViewUtils != null) {
-                                    Log.d(TAG, "Saving state to storage (centralized)")
-                                    retroViewUtils?.saveState(retroView)
-                                    Log.d(TAG, "Save state executed successfully (centralized)")
-                                    Log.d(
-                                            TAG,
-                                            "Save state now exists: ${retroViewUtils?.hasSaveState()}"
-                                    )
-                                } else {
-                                    Log.e(TAG, "retroViewUtils is null - cannot save state!")
-                                }
-                            }
-                                    ?: Log.e(TAG, "retroView is null - cannot save state!")
+        retroView?.let { retroView ->
+            if (retroViewUtils != null) {
+                Log.w(TAG, "💾 Saving current state to storage (centralized)")
 
-                            onComplete?.invoke()
-                        },
-                        150
-                )
+                // CORREÇÃO: Executar save imediatamente sem delay artificial
+                retroViewUtils?.saveState(retroView)
+
+                Log.w(TAG, "✅ Save state executed successfully (centralized)")
+                Log.w(TAG, "📁 Save state now exists: ${retroViewUtils?.hasSaveState()}")
+            } else {
+                Log.e(TAG, "❌ retroViewUtils is null - cannot save state!")
+            }
+        }
+                ?: Log.e(TAG, "❌ retroView is null - cannot save state!")
+
+        onComplete?.invoke()
     }
 
     /**
-     * Centralized reset game implementation Both Modern Menu and Retro Menu should use this method
-     * for consistency
+     * Centralized reset game implementation with improved debugging CORREÇÃO: Garantir que o reset
+     * realmente reinicie o jogo do início
      */
     fun resetGameCentralized(onComplete: (() -> Unit)? = null) {
-        Log.d(TAG, "Central reset game called")
+        Log.w(TAG, "🔵 Central reset game called")
 
         retroView?.view?.let { view ->
-            Log.d(TAG, "Resetting game (centralized)")
+            Log.w(TAG, "🔄 Resetting game to beginning (centralized)")
+
+            // CORREÇÃO: Usar reset() do LibRetroDroid que deve reiniciar o jogo
             view.reset()
-            Log.d(TAG, "Game reset executed successfully (centralized)")
+
+            Log.w(TAG, "✅ Game reset executed successfully (centralized)")
+            Log.w(TAG, "🎮 Game should now be at beginning and running automatically")
         }
-                ?: Log.e(TAG, "retroView.view is null - cannot reset game!")
+                ?: Log.e(TAG, "❌ retroView.view is null - cannot reset game!")
 
         onComplete?.invoke()
     }
@@ -418,44 +409,126 @@ class GameActivityViewModel(application: Application) :
     /**
      * Centralized continue game implementation Handles unpause signals based on configured mode and
      * dismisses overlay Currently used by Retro Menu but modularized for future reuse
+     *
+     * @param sendUnpauseSignal If true, sends the configured unpause signal (START/SELECT/combo).
+     * ```
+     *                          If false, just calls onComplete without sending signals.
+     * ```
      */
-    fun continueGameCentralized(onComplete: (() -> Unit)? = null) {
-        Log.d(TAG, "Central continue game called")
+    fun continueGameCentralized(
+            sendUnpauseSignal: Boolean = true,
+            onComplete: (() -> Unit)? = null
+    ) {
+        Log.d(TAG, "Central continue game called - sendUnpauseSignal=$sendUnpauseSignal")
+
+        if (!sendUnpauseSignal) {
+            Log.d(TAG, "Skipping unpause signal - will be sent by dismissPauseOverlay()")
+            onComplete?.invoke()
+            return
+        }
 
         // Send appropriate unpause signal(s) based on configured mode
         retroView?.view?.let { view ->
             val mode = getPauseOverlayMode()
             Log.d(TAG, "Sending unpause signal(s) for mode: $mode (centralized)")
 
+            val handler = android.os.Handler(android.os.Looper.getMainLooper())
+
             when (mode) {
                 1 -> { // START button
                     Log.d(TAG, "Sending START signal to unpause game (centralized)")
                     view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
-                    Thread.sleep(200)
-                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
+                    handler.postDelayed(
+                            {
+                                view.sendKeyEvent(
+                                        KeyEvent.ACTION_UP,
+                                        KeyEvent.KEYCODE_BUTTON_START,
+                                        0
+                                )
+                                // Additional delay before completing
+                                handler.postDelayed(
+                                        {
+                                            Log.d(
+                                                    TAG,
+                                                    "Unpause signals sent successfully (centralized)"
+                                            )
+                                            onComplete?.invoke()
+                                        },
+                                        100
+                                )
+                            },
+                            200
+                    )
                 }
                 2 -> { // SELECT button
                     Log.d(TAG, "Sending SELECT signal to unpause game (centralized)")
                     view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
-                    Thread.sleep(200)
-                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                    handler.postDelayed(
+                            {
+                                view.sendKeyEvent(
+                                        KeyEvent.ACTION_UP,
+                                        KeyEvent.KEYCODE_BUTTON_SELECT,
+                                        0
+                                )
+                                // Additional delay before completing
+                                handler.postDelayed(
+                                        {
+                                            Log.d(
+                                                    TAG,
+                                                    "Unpause signals sent successfully (centralized)"
+                                            )
+                                            onComplete?.invoke()
+                                        },
+                                        100
+                                )
+                            },
+                            200
+                    )
                 }
                 3 -> { // SELECT + START together
                     Log.d(TAG, "Sending SELECT+START signals to unpause game (centralized)")
                     view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
                     view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
-                    Thread.sleep(200)
-                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
-                    view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                    handler.postDelayed(
+                            {
+                                view.sendKeyEvent(
+                                        KeyEvent.ACTION_UP,
+                                        KeyEvent.KEYCODE_BUTTON_START,
+                                        0
+                                )
+                                view.sendKeyEvent(
+                                        KeyEvent.ACTION_UP,
+                                        KeyEvent.KEYCODE_BUTTON_SELECT,
+                                        0
+                                )
+                                // Additional delay before completing
+                                handler.postDelayed(
+                                        {
+                                            Log.d(
+                                                    TAG,
+                                                    "Unpause signals sent successfully (centralized)"
+                                            )
+                                            onComplete?.invoke()
+                                        },
+                                        100
+                                )
+                            },
+                            200
+                    )
+                }
+                else -> {
+                    Log.w(
+                            TAG,
+                            "Invalid pause overlay mode: $mode - completing without unpause signal"
+                    )
+                    onComplete?.invoke()
                 }
             }
-
-            Thread.sleep(100) // Additional delay before completing
-            Log.d(TAG, "Unpause signals sent successfully (centralized)")
         }
-                ?: Log.e(TAG, "retroView.view is null - cannot send unpause signals!")
-
-        onComplete?.invoke()
+                ?: run {
+                    Log.e(TAG, "retroView.view is null - cannot send unpause signals!")
+                    onComplete?.invoke()
+                }
     }
 
     /** Hide the system bars */

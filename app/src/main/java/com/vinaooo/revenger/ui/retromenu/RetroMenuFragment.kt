@@ -378,10 +378,13 @@ class RetroMenuFragment : Fragment() {
         /** Exit menu (B button) */
         private fun exitMenu() {
                 if (isInSubmenu) {
-                        Log.d(TAG, "B button pressed in submenu - returning to main menu")
+                        Log.d(TAG, "🔵 B button pressed in submenu - returning to main menu")
                         returnToMainMenu()
                 } else {
-                        Log.d(TAG, "B button pressed - continuing game")
+                        Log.w(
+                                TAG,
+                                "🔵 B button pressed - CONTINUING GAME (potential double-pause trigger)"
+                        )
                         continueGame()
                 }
         }
@@ -599,40 +602,52 @@ class RetroMenuFragment : Fragment() {
         private fun restartGame() {
                 Log.d(TAG, "Restart game requested - using centralized implementation")
 
-                // Use centralized implementation from ViewModel
+                // CORREÇÃO: Replicar exatamente o comportamento do Modern Menu
                 viewModel.resetGameCentralized {
-                        Log.d(TAG, "Centralized reset game completed, dismissing overlay")
-                        dismissOverlay()
+                        Log.d(
+                                TAG,
+                                "Centralized reset game completed, dismissing overlay (Modern Menu pattern)"
+                        )
+                        dismissMenuSimple()
                 }
         }
 
         private fun saveState() {
                 Log.d(TAG, "Save state requested - using centralized implementation")
 
-                // Use centralized implementation from ViewModel
+                // CORREÇÃO: Replicar exatamente o comportamento do Modern Menu
                 viewModel.saveStateCentralized {
-                        Log.d(TAG, "Centralized save state completed, dismissing overlay")
-                        dismissOverlay()
+                        Log.d(
+                                TAG,
+                                "Centralized save state completed, dismissing overlay (Modern Menu pattern)"
+                        )
+                        dismissMenuSimple()
                 }
         }
 
         private fun loadState() {
                 Log.d(TAG, "Load state requested - using centralized implementation")
 
-                // Use centralized implementation from ViewModel
+                // CORREÇÃO: Replicar exatamente o comportamento do Modern Menu
                 viewModel.loadStateCentralized {
-                        Log.d(TAG, "Centralized load state completed, dismissing overlay")
-                        dismissOverlay()
+                        Log.d(
+                                TAG,
+                                "Centralized load state completed, dismissing overlay (Modern Menu pattern)"
+                        )
+                        dismissMenuSimple()
                 }
         }
 
         private fun loadStateSafe() {
                 Log.d(TAG, "Load state safe requested - using centralized implementation")
 
-                // Use centralized implementation from ViewModel (already includes save state check)
+                // CORREÇÃO: Replicar exatamente o comportamento do Modern Menu
                 viewModel.loadStateCentralized {
-                        Log.d(TAG, "Centralized load state safe completed, dismissing overlay")
-                        dismissOverlay()
+                        Log.d(
+                                TAG,
+                                "Centralized load state safe completed, dismissing overlay (Modern Menu pattern)"
+                        )
+                        dismissMenuSimple()
                 }
         }
 
@@ -792,13 +807,11 @@ class RetroMenuFragment : Fragment() {
         }
 
         private fun continueGame() {
-                Log.d(TAG, "Continue game requested - using centralized implementation")
+                Log.d(TAG, "Continue game requested - dismissing overlay (frameSpeed will resume)")
 
-                // Use centralized implementation from ViewModel
-                viewModel.continueGameCentralized {
-                        Log.d(TAG, "Centralized continue game completed, dismissing overlay")
-                        dismissOverlay()
-                }
+                // Simply dismiss the overlay - dismissPauseOverlay() will handle resume with
+                // frameSpeed = 1
+                onDismissCallback?.invoke()
         }
 
         /** Toggle audio setting and update submenu display */
@@ -823,14 +836,33 @@ class RetroMenuFragment : Fragment() {
 
         /** Dismiss the pause overlay */
         fun dismissOverlay() {
-                Log.d(TAG, "dismissOverlay() called")
+                val timestamp =
+                        java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault())
+                                .format(java.util.Date())
+                Log.w(
+                        TAG,
+                        "🔴 [$timestamp] dismissOverlay() called - THIS TRIGGERS dismissPauseOverlay in ViewModel!"
+                )
                 Log.d(TAG, "onDismissCallback is: ${onDismissCallback}")
                 if (onDismissCallback != null) {
-                        Log.d(TAG, "Calling onDismissCallback")
+                        Log.w(
+                                TAG,
+                                "🔴 [$timestamp] Calling onDismissCallback -> dismissPauseOverlay() (artificial events source)"
+                        )
                         onDismissCallback?.invoke()
-                        Log.d(TAG, "onDismissCallback called successfully")
+                        Log.w(
+                                TAG,
+                                "🔴 [$timestamp] onDismissCallback completed - dismissPauseOverlay() with artificial events finished"
+                        )
                 } else {
                         Log.e(TAG, "onDismissCallback is null!")
                 }
+        }
+
+        /** Simple menu dismiss replicating Modern Menu behavior - just removes fragment */
+        private fun dismissMenuSimple() {
+                Log.d(TAG, "🔄 dismissMenuSimple() - Replicating Modern Menu behavior")
+                parentFragmentManager.beginTransaction().remove(this).commit()
+                Log.d(TAG, "🔄 Fragment removed - Modern Menu pattern applied")
         }
 }
