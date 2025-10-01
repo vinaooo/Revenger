@@ -14,7 +14,10 @@ import com.google.android.material.materialswitch.MaterialSwitch
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/** Modern menu Fragment activated by Android back button - fullscreen overlay with better touch handling */
+/**
+ * Modern menu Fragment activated by Android back button - fullscreen overlay with better touch
+ * handling
+ */
 class ModernMenuFragment : Fragment() {
 
     // Get ViewModel reference for centralized methods
@@ -112,23 +115,17 @@ class ModernMenuFragment : Fragment() {
     private fun setupClickListeners() {
         resetMenu.setOnClickListener {
             // Use centralized implementation
-            viewModel.resetGameCentralized {
-                animateMenuOut { dismissMenu() }
-            }
+            viewModel.resetGameCentralized { animateMenuOut { dismissMenu() } }
         }
 
         saveStateMenu.setOnClickListener {
             // Use centralized implementation - no need for animateMenuOut since it's built-in
-            viewModel.saveStateCentralized {
-                dismissMenu()
-            }
+            viewModel.saveStateCentralized { dismissMenu() }
         }
 
         loadStateMenu.setOnClickListener {
             // Use centralized implementation - includes hasSaveState() check and delay
-            viewModel.loadStateCentralized {
-                dismissMenu()
-            }
+            viewModel.loadStateCentralized { dismissMenu() }
         }
 
         audioToggleMenu.setOnClickListener {

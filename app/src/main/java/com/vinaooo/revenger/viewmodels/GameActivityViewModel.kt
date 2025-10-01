@@ -122,9 +122,9 @@ class GameActivityViewModel(application: Application) :
                     overlay.onDismissCallback = { dismissPauseOverlay() }
                     // onResetGameCallback removed - now using centralized resetGameCentralized()
                     // All callbacks removed - now using centralized methods:
-                    // - continueGameCentralized() 
+                    // - continueGameCentralized()
                     // - resetGameCentralized()
-                    // - loadStateCentralized() 
+                    // - loadStateCentralized()
                     // - saveStateCentralized()
                     // - hasSaveState() from ViewModel interface
 
@@ -313,31 +313,36 @@ class GameActivityViewModel(application: Application) :
     }
 
     /**
-     * Centralized load state implementation based on Modern Menu behavior
-     * This method includes the necessary 150ms delay that matches animateMenuOut() timing
-     * Both Modern Menu and Retro Menu should use this method for consistency
+     * Centralized load state implementation based on Modern Menu behavior This method includes the
+     * necessary 150ms delay that matches animateMenuOut() timing Both Modern Menu and Retro Menu
+     * should use this method for consistency
      */
     fun loadStateCentralized(onComplete: (() -> Unit)? = null) {
         Log.d(TAG, "Central load state called")
-        
+
         // Check if save state exists first (same as Modern Menu)
         if (hasSaveState()) {
             Log.d(TAG, "Save state exists, proceeding with load")
-            
+
             // Apply the same 150ms delay as Modern Menu's animateMenuOut()
-            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                retroView?.let { retroView ->
-                    if (retroViewUtils != null) {
-                        Log.d(TAG, "Loading state from storage (centralized)")
-                        retroViewUtils?.loadState(retroView)
-                        Log.d(TAG, "Load state executed successfully (centralized)")
-                    } else {
-                        Log.e(TAG, "retroViewUtils is null - cannot load state!")
-                    }
-                } ?: Log.e(TAG, "retroView is null - cannot load state!")
-                
-                onComplete?.invoke()
-            }, 150)
+            android.os.Handler(android.os.Looper.getMainLooper())
+                    .postDelayed(
+                            {
+                                retroView?.let { retroView ->
+                                    if (retroViewUtils != null) {
+                                        Log.d(TAG, "Loading state from storage (centralized)")
+                                        retroViewUtils?.loadState(retroView)
+                                        Log.d(TAG, "Load state executed successfully (centralized)")
+                                    } else {
+                                        Log.e(TAG, "retroViewUtils is null - cannot load state!")
+                                    }
+                                }
+                                        ?: Log.e(TAG, "retroView is null - cannot load state!")
+
+                                onComplete?.invoke()
+                            },
+                            150
+                    )
         } else {
             Log.d(TAG, "No save state available")
             onComplete?.invoke()
@@ -345,50 +350,58 @@ class GameActivityViewModel(application: Application) :
     }
 
     /**
-     * Centralized save state implementation based on Modern Menu behavior
-     * This method includes the necessary 150ms delay that matches animateMenuOut() timing
-     * Both Modern Menu and Retro Menu should use this method for consistency
+     * Centralized save state implementation based on Modern Menu behavior This method includes the
+     * necessary 150ms delay that matches animateMenuOut() timing Both Modern Menu and Retro Menu
+     * should use this method for consistency
      */
     fun saveStateCentralized(onComplete: (() -> Unit)? = null) {
         Log.d(TAG, "Central save state called")
-        
+
         // Apply the same 150ms delay as Modern Menu's animateMenuOut()
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            retroView?.let { retroView ->
-                if (retroViewUtils != null) {
-                    Log.d(TAG, "Saving state to storage (centralized)")
-                    retroViewUtils?.saveState(retroView)
-                    Log.d(TAG, "Save state executed successfully (centralized)")
-                    Log.d(TAG, "Save state now exists: ${retroViewUtils?.hasSaveState()}")
-                } else {
-                    Log.e(TAG, "retroViewUtils is null - cannot save state!")
-                }
-            } ?: Log.e(TAG, "retroView is null - cannot save state!")
-            
-            onComplete?.invoke()
-        }, 150)
+        android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            retroView?.let { retroView ->
+                                if (retroViewUtils != null) {
+                                    Log.d(TAG, "Saving state to storage (centralized)")
+                                    retroViewUtils?.saveState(retroView)
+                                    Log.d(TAG, "Save state executed successfully (centralized)")
+                                    Log.d(
+                                            TAG,
+                                            "Save state now exists: ${retroViewUtils?.hasSaveState()}"
+                                    )
+                                } else {
+                                    Log.e(TAG, "retroViewUtils is null - cannot save state!")
+                                }
+                            }
+                                    ?: Log.e(TAG, "retroView is null - cannot save state!")
+
+                            onComplete?.invoke()
+                        },
+                        150
+                )
     }
 
     /**
-     * Centralized reset game implementation 
-     * Both Modern Menu and Retro Menu should use this method for consistency
+     * Centralized reset game implementation Both Modern Menu and Retro Menu should use this method
+     * for consistency
      */
     fun resetGameCentralized(onComplete: (() -> Unit)? = null) {
         Log.d(TAG, "Central reset game called")
-        
+
         retroView?.view?.let { view ->
             Log.d(TAG, "Resetting game (centralized)")
             view.reset()
             Log.d(TAG, "Game reset executed successfully (centralized)")
-        } ?: Log.e(TAG, "retroView.view is null - cannot reset game!")
-        
+        }
+                ?: Log.e(TAG, "retroView.view is null - cannot reset game!")
+
         onComplete?.invoke()
     }
 
     /**
-     * Centralized continue game implementation 
-     * Handles unpause signals based on configured mode and dismisses overlay
-     * Currently used by Retro Menu but modularized for future reuse
+     * Centralized continue game implementation Handles unpause signals based on configured mode and
+     * dismisses overlay Currently used by Retro Menu but modularized for future reuse
      */
     fun continueGameCentralized(onComplete: (() -> Unit)? = null) {
         Log.d(TAG, "Central continue game called")
@@ -423,7 +436,8 @@ class GameActivityViewModel(application: Application) :
 
             Thread.sleep(100) // Additional delay before completing
             Log.d(TAG, "Unpause signals sent successfully (centralized)")
-        } ?: Log.e(TAG, "retroView.view is null - cannot send unpause signals!")
+        }
+                ?: Log.e(TAG, "retroView.view is null - cannot send unpause signals!")
 
         onComplete?.invoke()
     }

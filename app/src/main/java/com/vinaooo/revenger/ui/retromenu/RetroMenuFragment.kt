@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import androidx.core.content.res.ResourcesCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -33,9 +33,9 @@ class RetroMenuFragment : Fragment() {
 
     // Callback to notify when retro menu should be dismissed
     var onDismissCallback: (() -> Unit)? = null
-    
+
     // Note: Reset game callback removed - now using centralized ViewModel method
-    
+
     // Note: Load/Save state callbacks removed - now using centralized ViewModel methods
 
     // Retro menu mode (1=START, 2=SELECT, 3=SELECT+START)
@@ -71,28 +71,59 @@ class RetroMenuFragment : Fragment() {
                                                         ViewGroup.LayoutParams.WRAP_CONTENT,
                                                         ViewGroup.LayoutParams.WRAP_CONTENT
                                                 )
-                                                .apply { 
-                                                    gravity = android.view.Gravity.CENTER
-                                                }
+                                                .apply { gravity = android.view.Gravity.CENTER }
                                 orientation = LinearLayout.VERTICAL
                                 gravity = android.view.Gravity.CENTER_HORIZONTAL
 
                                 // Menu title
-                                addView(createMenuTitle("REVENGER MENU"))
-                                
+                                addView(createMenuTitle(getString(R.string.retro_menu_title)))
+
                                 // Menu options
-                                addView(createMenuOption("CONTINUE GAME", true) { continueGame() })
-                                addView(createMenuOption("RESTART GAME", false) { restartGame() })
-                                addView(createMenuOption("SAVE STATE", false) { saveState() })
-                                addView(createMenuOption("LOAD STATE", false) { loadStateSafe() })
-                                addView(createMenuOption("SETTINGS", false) { openSettings() })
-                                addView(createMenuOption("EXIT TO MENU", false) { exitToMenu() })
+                                addView(
+                                        createMenuOption(
+                                                getString(R.string.retro_menu_continue_game),
+                                                true
+                                        ) { continueGame() }
+                                )
+                                addView(
+                                        createMenuOption(
+                                                getString(R.string.retro_menu_restart_game),
+                                                false
+                                        ) { restartGame() }
+                                )
+                                addView(
+                                        createMenuOption(
+                                                getString(R.string.retro_menu_save_state),
+                                                false
+                                        ) { saveState() }
+                                )
+                                addView(
+                                        createMenuOption(
+                                                getString(R.string.retro_menu_load_state),
+                                                false
+                                        ) { loadStateSafe() }
+                                )
+                                addView(
+                                        createMenuOption(
+                                                getString(R.string.retro_menu_settings),
+                                                false
+                                        ) { openSettings() }
+                                )
+                                addView(
+                                        createMenuOption(
+                                                getString(R.string.retro_menu_exit_to_menu),
+                                                false
+                                        ) { exitToMenu() }
+                                )
                             }
                     )
 
                     // Keep background click behavior (don't dismiss)
                     setOnClickListener {
-                        Log.d(TAG, "Retro menu background touched - use Continue button or configured gamepad button")
+                        Log.d(
+                                TAG,
+                                "Retro menu background touched - use Continue button or configured gamepad button"
+                        )
                     }
                 }
         Log.d(TAG, "RetroMenuFragment view created programmatically with arcade font")
@@ -145,81 +176,89 @@ class RetroMenuFragment : Fragment() {
             textSize = 28f
             setTextColor(0xFFFFFFFF.toInt()) // White
             setShadowLayer(4f, 2f, 2f, 0xFF000000.toInt()) // Shadow
-            
+
             // Apply arcade font
             try {
                 typeface = ResourcesCompat.getFont(requireContext(), R.font.arcade_normal)
             } catch (e: Exception) {
                 Log.w(TAG, "Could not load arcade font for title, using default", e)
             }
-            
+
             // Margin below title
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = 40
-            }
-            
+            layoutParams =
+                    LinearLayout.LayoutParams(
+                                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                                    ViewGroup.LayoutParams.WRAP_CONTENT
+                            )
+                            .apply { bottomMargin = 40 }
+
             gravity = android.view.Gravity.CENTER
         }
     }
-    
+
     /** Create menu option with arcade styling */
     private fun createMenuOption(text: String, isSelected: Boolean, action: () -> Unit): TextView {
         return TextView(requireContext()).apply {
             this.text = text
             textSize = 20f
-            setTextColor(if (isSelected) 0xFFFFFF00.toInt() else 0xFFFFFFFF.toInt()) // Yellow if selected, white otherwise
+            setTextColor(
+                    if (isSelected) 0xFFFFFF00.toInt() else 0xFFFFFFFF.toInt()
+            ) // Yellow if selected, white otherwise
             setShadowLayer(3f, 1f, 1f, 0xFF000000.toInt()) // Shadow
-            
+
             // Apply arcade font
             try {
                 typeface = ResourcesCompat.getFont(requireContext(), R.font.arcade_normal)
             } catch (e: Exception) {
                 Log.w(TAG, "Could not load arcade font for option, using default", e)
             }
-            
+
             // Add generous padding for better touch area
             setPadding(60, 25, 60, 25)
-            
+
             // Make it clickable with background for visual feedback
             isClickable = true
             isFocusable = true
-            
+
             // Add subtle background to show touch area
             setBackgroundColor(0x20FFFFFF) // Very transparent white background
-            
+
             // Add click listener
             setOnClickListener {
                 Log.d(TAG, "$text option clicked!")
-                
+
                 // Enhanced visual feedback
                 val originalColor = currentTextColor
                 val originalBackground = background
-                
+
                 // Immediate feedback
                 setTextColor(0xFFFFFFFF.toInt()) // White when pressed
                 setBackgroundColor(0x40FFFFFF) // More visible background
-                
-                postDelayed({
-                    setTextColor(originalColor) // Back to original color
-                    background = originalBackground // Back to original background
-                }, 200) // Slightly longer feedback
-                
+
+                postDelayed(
+                        {
+                            setTextColor(originalColor) // Back to original color
+                            background = originalBackground // Back to original background
+                        },
+                        200
+                ) // Slightly longer feedback
+
                 action()
             }
-            
+
             // Larger margin between options for easier targeting
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, // Full width for easier touch
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = 15 // More space between options
-                leftMargin = 40
-                rightMargin = 40
-            }
-            
+            layoutParams =
+                    LinearLayout.LayoutParams(
+                                    ViewGroup.LayoutParams
+                                            .MATCH_PARENT, // Full width for easier touch
+                                    ViewGroup.LayoutParams.WRAP_CONTENT
+                            )
+                            .apply {
+                                bottomMargin = 15 // More space between options
+                                leftMargin = 40
+                                rightMargin = 40
+                            }
+
             gravity = android.view.Gravity.CENTER
         }
     }
@@ -227,50 +266,50 @@ class RetroMenuFragment : Fragment() {
     /** Game actions */
     private fun restartGame() {
         Log.d(TAG, "Restart game requested - using centralized implementation")
-        
+
         // Use centralized implementation from ViewModel
         viewModel.resetGameCentralized {
             Log.d(TAG, "Centralized reset game completed, dismissing overlay")
             dismissOverlay()
         }
     }
-    
+
     private fun saveState() {
         Log.d(TAG, "Save state requested - using centralized implementation")
-        
+
         // Use centralized implementation from ViewModel
         viewModel.saveStateCentralized {
             Log.d(TAG, "Centralized save state completed, dismissing overlay")
             dismissOverlay()
         }
     }
-    
+
     private fun loadState() {
         Log.d(TAG, "Load state requested - using centralized implementation")
-        
+
         // Use centralized implementation from ViewModel
         viewModel.loadStateCentralized {
             Log.d(TAG, "Centralized load state completed, dismissing overlay")
             dismissOverlay()
         }
     }
-    
+
     private fun loadStateSafe() {
         Log.d(TAG, "Load state safe requested - using centralized implementation")
-        
+
         // Use centralized implementation from ViewModel (already includes save state check)
         viewModel.loadStateCentralized {
             Log.d(TAG, "Centralized load state safe completed, dismissing overlay")
             dismissOverlay()
         }
     }
-    
+
     private fun openSettings() {
         Log.d(TAG, "Settings requested")
         // TODO: Implement settings functionality
         dismissOverlay()
     }
-    
+
     private fun exitToMenu() {
         Log.d(TAG, "Exit to menu requested")
         // TODO: Implement exit to menu functionality
@@ -279,7 +318,7 @@ class RetroMenuFragment : Fragment() {
 
     private fun continueGame() {
         Log.d(TAG, "Continue game requested - using centralized implementation")
-        
+
         // Use centralized implementation from ViewModel
         viewModel.continueGameCentralized {
             Log.d(TAG, "Centralized continue game completed, dismissing overlay")
