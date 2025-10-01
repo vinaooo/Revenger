@@ -50,6 +50,12 @@ class ControllerInput {
     /** Function to check if SELECT+START should trigger pause overlay */
     var shouldHandleSelectStartPause: () -> Boolean = { true }
 
+    /** Callback for retro menu navigation (DPAD, A, B buttons) */
+    var retroMenuNavigationCallback: (Int) -> Boolean = { false }
+
+    /** Function to check if retro menu is currently visible */
+    var isRetroMenuVisible: () -> Boolean = { false }
+
     /** Controller numbers are [1, inf), we need [0, inf) */
     private fun getPort(event: InputEvent): Int =
             ((event.device?.controllerNumber ?: 1) - 1).coerceAtLeast(0)
@@ -126,6 +132,63 @@ class ControllerInput {
         /* We're not ready yet! */
         if (retroView.frameRendered.value == false) return true
 
+        // Log ALL key events for debugging DPAD issues - capture EVERY keycode
+        val actionString =
+                when (event.action) {
+                    KeyEvent.ACTION_DOWN -> "DOWN"
+                    KeyEvent.ACTION_UP -> "UP"
+                    else -> "OTHER(${event.action})"
+                }
+        Log.d(
+                TAG,
+                "🎮 ALL KEYS: keyCode=$keyCode (${KeyEvent.keyCodeToString(keyCode)}), action=$actionString, retroMenuVisible=${isRetroMenuVisible()}"
+        )
+
+        // Log ALL keycodes when menu visible to find the real DPAD codes
+        if (isRetroMenuVisible()) {
+            Log.d(
+                    TAG,
+                    "📍 MENU ACTIVE - CAPTURING KEY: $keyCode (${KeyEvent.keyCodeToString(keyCode)}) - action: $actionString"
+            )
+        }
+
+        // If retro menu is visible, intercept navigation keys (analog motion converted to DPAD)
+        if (isRetroMenuVisible() && event.action == KeyEvent.ACTION_DOWN) {
+            Log.d(
+                    TAG,
+                    "Retro menu is visible, checking navigation key: $keyCode (${KeyEvent.keyCodeToString(keyCode)})"
+            )
+            when (keyCode) {
+                // Standard DPAD codes (converted from analog motion)
+                KeyEvent.KEYCODE_DPAD_UP,
+                KeyEvent.KEYCODE_DPAD_DOWN,
+                KeyEvent.KEYCODE_DPAD_LEFT,
+                KeyEvent.KEYCODE_DPAD_RIGHT,
+                // Button codes
+                KeyEvent.KEYCODE_BUTTON_A,
+                KeyEvent.KEYCODE_BUTTON_B -> {
+                    Log.d(TAG, "Intercepting navigation key for retro menu: $keyCode")
+                    // Send to retro menu for navigation
+                    if (retroMenuNavigationCallback(keyCode)) {
+                        Log.d(TAG, "Navigation key handled by retro menu, blocking game input")
+                        return true // Menu handled the input, don't send to game
+                    } else {
+                        Log.d(TAG, "Navigation key NOT handled by retro menu, sending to game")
+                    }
+                }
+                else -> {
+                    Log.d(TAG, "Non-navigation key while menu visible: $keyCode, sending to game")
+                }
+            }
+        } else {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                Log.d(
+                        TAG,
+                        "Retro menu not visible (${isRetroMenuVisible()}), sending key to game: $keyCode"
+                )
+            }
+        }
+
         val port = getPort(event)
         retroView.view.sendKeyEvent(event.action, keyCode, port)
 
@@ -157,6 +220,85 @@ class ControllerInput {
         /* We're not ready yet! */
         if (retroView.frameRendered.value == false) return null
 
+        // Get analog stick values
+        val xAxis = event.getAxisValue(MotionEvent.AXIS_X)
+        val yAxis = event.getAxisValue(MotionEvent.AXIS_Y)
+
+        Log.d(TAG, "🕹️ MOTION EVENT: X=$xAxis, Y=$yAxis, retroMenuVisible=${isRetroMenuVisible()}")
+
+        // If retro menu is visible, intercept analog stick movements for navigation
+        if (isRetroMenuVisible()) {
+            Log.d(TAG, "📍 Retro menu visible - processing analog navigation: X=$xAxis, Y=$yAxis")
+
+            // Try multiple axis sources for GameSir-G8 compatibility
+            val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
+            val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+            val z = event.getAxisValue(MotionEvent.AXIS_Z)
+            val rz = event.getAxisValue(MotionEvent.AXIS_RZ)
+
+            Log.d(
+                    TAG,
+                    "🔍 ALL AXIS VALUES: X=$xAxis, Y=$yAxis, HAT_X=$hatX, HAT_Y=$hatY, Z=$z, RZ=$rz"
+            )
+
+            // Very low threshold to catch any movement
+            val threshold = 0.1f
+
+            var handled = false
+
+            // Try all possible axis combinations for GameSir-G8
+            val allXValues = listOf(xAxis, hatX, z)
+            val allYValues = listOf(yAxis, hatY, rz)
+
+            // Check Y-axis (UP/DOWN navigation) - try all Y sources
+            for (yValue in allYValues) {
+                if (yValue < -threshold) {
+                    Log.d(TAG, "🔼 Analog UP detected (Y=$yValue), sending DPAD_UP navigation")
+                    if (retroMenuNavigationCallback(KeyEvent.KEYCODE_DPAD_UP)) {
+                        handled = true
+                        break
+                    }
+                } else if (yValue > threshold) {
+                    Log.d(TAG, "🔽 Analog DOWN detected (Y=$yValue), sending DPAD_DOWN navigation")
+                    if (retroMenuNavigationCallback(KeyEvent.KEYCODE_DPAD_DOWN)) {
+                        handled = true
+                        break
+                    }
+                }
+            }
+
+            // Check X-axis (LEFT/RIGHT navigation) - try all X sources
+            if (!handled) {
+                for (xValue in allXValues) {
+                    if (xValue < -threshold) {
+                        Log.d(
+                                TAG,
+                                "◀️ Analog LEFT detected (X=$xValue), sending DPAD_LEFT navigation"
+                        )
+                        if (retroMenuNavigationCallback(KeyEvent.KEYCODE_DPAD_LEFT)) {
+                            handled = true
+                            break
+                        }
+                    } else if (xValue > threshold) {
+                        Log.d(
+                                TAG,
+                                "▶️ Analog RIGHT detected (X=$xValue), sending DPAD_RIGHT navigation"
+                        )
+                        if (retroMenuNavigationCallback(KeyEvent.KEYCODE_DPAD_RIGHT)) {
+                            handled = true
+                            break
+                        }
+                    }
+                }
+            }
+
+            if (handled) {
+                Log.d(TAG, "✅ Analog navigation handled by retro menu, blocking game input")
+                return true // Menu handled the input, don't send to game
+            }
+        }
+
+        // Send motion events to game (normal behavior)
         val port = getPort(event)
         retroView.view.apply {
             sendMotionEvent(

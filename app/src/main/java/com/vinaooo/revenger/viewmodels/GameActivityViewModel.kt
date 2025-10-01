@@ -65,6 +65,14 @@ class GameActivityViewModel(application: Application) :
             }
         }
 
+        // Configure navigation callback for retro menu
+        controllerInput.retroMenuNavigationCallback = { keyCode ->
+            retroMenuFragment?.handleNavigationInput(keyCode) ?: false
+        }
+
+        // Configure function to check if retro menu is visible
+        controllerInput.isRetroMenuVisible = { isPauseOverlayVisible() }
+
         // Configure pause overlay callbacks based on mode
         controllerInput.pauseCallback = {
             // START button (mode 1)

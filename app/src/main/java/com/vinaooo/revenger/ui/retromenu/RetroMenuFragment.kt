@@ -42,6 +42,11 @@ class RetroMenuFragment : Fragment() {
         // Retro menu mode (1=START, 2=SELECT, 3=SELECT+START)
         var retroMenuMode: Int = 1
 
+        // Navigation state
+        private var selectedOptionIndex = 0
+        private val menuOptions = mutableListOf<TextView>()
+        private val menuActions = mutableListOf<() -> Unit>()
+
         init {
                 Log.d(TAG, "RetroMenuFragment initialized")
         }
@@ -155,72 +160,11 @@ class RetroMenuFragment : Fragment() {
                                                                                         )
 
                                                                                         // Menu
-                                                                                        // options
-                                                                                        addView(
-                                                                                                createMenuOption(
-                                                                                                        getString(
-                                                                                                                R.string
-                                                                                                                        .retro_menu_continue_game
-                                                                                                        ),
-                                                                                                        true
-                                                                                                ) {
-                                                                                                        continueGame()
-                                                                                                }
-                                                                                        )
-                                                                                        addView(
-                                                                                                createMenuOption(
-                                                                                                        getString(
-                                                                                                                R.string
-                                                                                                                        .retro_menu_restart_game
-                                                                                                        ),
-                                                                                                        false
-                                                                                                ) {
-                                                                                                        restartGame()
-                                                                                                }
-                                                                                        )
-                                                                                        addView(
-                                                                                                createMenuOption(
-                                                                                                        getString(
-                                                                                                                R.string
-                                                                                                                        .retro_menu_save_state
-                                                                                                        ),
-                                                                                                        false
-                                                                                                ) {
-                                                                                                        saveState()
-                                                                                                }
-                                                                                        )
-                                                                                        addView(
-                                                                                                createMenuOption(
-                                                                                                        getString(
-                                                                                                                R.string
-                                                                                                                        .retro_menu_load_state
-                                                                                                        ),
-                                                                                                        false
-                                                                                                ) {
-                                                                                                        loadStateSafe()
-                                                                                                }
-                                                                                        )
-                                                                                        addView(
-                                                                                                createMenuOption(
-                                                                                                        getString(
-                                                                                                                R.string
-                                                                                                                        .retro_menu_settings
-                                                                                                        ),
-                                                                                                        false
-                                                                                                ) {
-                                                                                                        openSettings()
-                                                                                                }
-                                                                                        )
-                                                                                        addView(
-                                                                                                createMenuOption(
-                                                                                                        getString(
-                                                                                                                R.string
-                                                                                                                        .retro_menu_exit_to_menu
-                                                                                                        ),
-                                                                                                        false
-                                                                                                ) {
-                                                                                                        exitToMenu()
-                                                                                                }
+                                                                                        // options -
+                                                                                        // using
+                                                                                        // navigation system
+                                                                                        createAllMenuOptions(
+                                                                                                this
                                                                                         )
                                                                                 }
                                                                 ) // Close menu container
@@ -303,6 +247,155 @@ class RetroMenuFragment : Fragment() {
                 }
         }
 
+        /** Create all menu options with navigation support */
+        private fun createAllMenuOptions(container: LinearLayout) {
+                // Clear previous options
+                menuOptions.clear()
+                menuActions.clear()
+
+                // Define all menu options
+                val options =
+                        listOf(
+                                Pair(getString(R.string.retro_menu_continue_game)) {
+                                        continueGame()
+                                },
+                                Pair(getString(R.string.retro_menu_restart_game)) { restartGame() },
+                                Pair(getString(R.string.retro_menu_save_state)) { saveState() },
+                                Pair(getString(R.string.retro_menu_load_state)) { loadStateSafe() },
+                                Pair(getString(R.string.retro_menu_settings)) { openSettings() },
+                                Pair(getString(R.string.retro_menu_exit_to_menu)) { exitToMenu() }
+                        )
+
+                // Create options and add to lists
+                options.forEachIndexed { index, (text, action) ->
+                        val option = createMenuOption(text, index == selectedOptionIndex)
+                        container.addView(option)
+                        menuOptions.add(option)
+                        menuActions.add(action)
+                }
+
+                Log.d(TAG, "Created ${menuOptions.size} menu options")
+        }
+
+        /** Handle DPAD navigation input */
+        fun handleNavigationInput(keyCode: Int): Boolean {
+                Log.d(
+                        TAG,
+                        "handleNavigationInput called with keyCode: $keyCode (${android.view.KeyEvent.keyCodeToString(keyCode)})"
+                )
+
+                return when (keyCode) {
+                        // Standard DPAD codes (now sent via converted analog motion)
+                        android.view.KeyEvent.KEYCODE_DPAD_UP,
+                        android.view.KeyEvent.KEYCODE_DPAD_LEFT -> {
+                                Log.d(TAG, "Handling UP/LEFT navigation (code: $keyCode)")
+                                navigateUp()
+                                true
+                        }
+                        android.view.KeyEvent.KEYCODE_DPAD_DOWN,
+                        android.view.KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                                Log.d(TAG, "Handling DOWN/RIGHT navigation (code: $keyCode)")
+                                navigateDown()
+                                true
+                        }
+                        android.view.KeyEvent.KEYCODE_BUTTON_A -> {
+                                Log.d(TAG, "Handling BUTTON_A confirmation")
+                                confirmSelection()
+                                true
+                        }
+                        android.view.KeyEvent.KEYCODE_BUTTON_B -> {
+                                Log.d(TAG, "Handling BUTTON_B exit")
+                                exitMenu()
+                                true
+                        }
+                        else -> {
+                                Log.d(TAG, "Unhandled navigation key: $keyCode")
+                                false
+                        }
+                }
+        }
+
+        /** Navigate to previous option */
+        private fun navigateUp() {
+                if (menuOptions.isEmpty()) return
+
+                selectedOptionIndex =
+                        if (selectedOptionIndex > 0) {
+                                selectedOptionIndex - 1
+                        } else {
+                                menuOptions.size - 1 // Wrap to last option
+                        }
+                updateSelection()
+                Log.d(TAG, "Navigated UP to option $selectedOptionIndex")
+        }
+
+        /** Navigate to next option */
+        private fun navigateDown() {
+                if (menuOptions.isEmpty()) return
+
+                selectedOptionIndex =
+                        if (selectedOptionIndex < menuOptions.size - 1) {
+                                selectedOptionIndex + 1
+                        } else {
+                                0 // Wrap to first option
+                        }
+                updateSelection()
+                Log.d(TAG, "Navigated DOWN to option $selectedOptionIndex")
+        }
+
+        /** Confirm current selection */
+        private fun confirmSelection() {
+                if (selectedOptionIndex < menuActions.size) {
+                        Log.d(TAG, "Confirmed selection: option $selectedOptionIndex")
+                        menuActions[selectedOptionIndex].invoke()
+                }
+        }
+
+        /** Exit menu (B button) */
+        private fun exitMenu() {
+                Log.d(TAG, "B button pressed - continuing game")
+                continueGame()
+        }
+
+        /** Update visual selection highlighting */
+        private fun updateSelection() {
+                menuOptions.forEachIndexed { index, option ->
+                        val isSelected = index == selectedOptionIndex
+
+                        // Update text color based on selection
+                        option.setTextColor(
+                                if (isSelected) {
+                                        ContextCompat.getColor(
+                                                requireContext(),
+                                                R.color.retro_menu_text_selected
+                                        )
+                                } else {
+                                        ContextCompat.getColor(
+                                                requireContext(),
+                                                R.color.retro_menu_text_default
+                                        )
+                                }
+                        )
+
+                        // Update background for better visual feedback
+                        if (isSelected) {
+                                option.setBackgroundColor(
+                                        ContextCompat.getColor(
+                                                requireContext(),
+                                                R.color.retro_menu_option_background
+                                        )
+                                )
+                        } else {
+                                option.setBackgroundColor(
+                                        ContextCompat.getColor(
+                                                requireContext(),
+                                                R.color.retro_menu_option_background
+                                        )
+                                )
+                        }
+                }
+        }
+
         /** Create menu title with arcade styling */
         private fun createMenuTitle(text: String): TextView {
                 return TextView(requireContext()).apply {
@@ -352,12 +445,8 @@ class RetroMenuFragment : Fragment() {
                 }
         }
 
-        /** Create menu option with arcade styling */
-        private fun createMenuOption(
-                text: String,
-                isSelected: Boolean,
-                action: () -> Unit
-        ): TextView {
+        /** Create menu option with arcade styling for DPAD navigation */
+        private fun createMenuOption(text: String, isSelected: Boolean): TextView {
                 return TextView(requireContext()).apply {
                         this.text = text
                         textSize =
@@ -413,11 +502,7 @@ class RetroMenuFragment : Fragment() {
                                 )
                         )
 
-                        // Make it clickable with background for visual feedback
-                        isClickable = true
-                        isFocusable = true
-
-                        // Add background using color from XML config
+                        // Background for visual feedback (controlled by navigation)
                         setBackgroundColor(
                                 ContextCompat.getColor(
                                         requireContext(),
@@ -425,42 +510,31 @@ class RetroMenuFragment : Fragment() {
                                 )
                         )
 
-                        // Add click listener
+                        // Make it clickable for touch support alongside DPAD navigation
+                        isClickable = true
+                        isFocusable = true
+
+                        // Add click listener for touch support
                         setOnClickListener {
-                                Log.d(TAG, "$text option clicked!")
+                                Log.d(TAG, "$text option clicked via touch!")
 
-                                // Enhanced visual feedback
-                                val originalColor = currentTextColor
-                                val originalBackground = background
+                                // Find which option was clicked and update selection
+                                val clickedIndex = menuOptions.indexOf(this)
+                                if (clickedIndex != -1) {
+                                        selectedOptionIndex = clickedIndex
+                                        updateSelection()
 
-                                // Immediate feedback
-                                setTextColor(
-                                        ContextCompat.getColor(
-                                                requireContext(),
-                                                R.color.retro_menu_text_default
+                                        // Execute the action after a brief delay for visual
+                                        // feedback
+                                        postDelayed(
+                                                {
+                                                        if (clickedIndex < menuActions.size) {
+                                                                menuActions[clickedIndex].invoke()
+                                                        }
+                                                },
+                                                100
                                         )
-                                ) // White when pressed
-                                setBackgroundColor(
-                                        ContextCompat.getColor(
-                                                requireContext(),
-                                                R.color.retro_menu_option_background_pressed
-                                        )
-                                ) // Background when pressed
-
-                                postDelayed(
-                                        {
-                                                setTextColor(
-                                                        originalColor
-                                                ) // Back to original color
-                                                background = originalBackground // Back to original
-                                                // background
-                                        },
-                                        resources
-                                                .getInteger(R.integer.retro_menu_feedback_duration)
-                                                .toLong()
-                                ) // Feedback duration from XML
-
-                                action()
+                                }
                         }
 
                         // Larger margin between options for easier targeting
