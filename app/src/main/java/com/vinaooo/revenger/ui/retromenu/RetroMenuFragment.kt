@@ -47,6 +47,11 @@ class RetroMenuFragment : Fragment() {
         private val menuOptions = mutableListOf<TextView>()
         private val menuActions = mutableListOf<() -> Unit>()
 
+        // Submenu state
+        private var isInSubmenu = false
+        private var menuContainer: LinearLayout? = null
+        private var menuTitle: TextView? = null
+
         init {
                 Log.d(TAG, "RetroMenuFragment initialized")
         }
@@ -155,24 +160,17 @@ class RetroMenuFragment : Fragment() {
                                                                                                         .Gravity
                                                                                                         .LEFT
 
-                                                                                        // Menu
-                                                                                        // title
-                                                                                        addView(
-                                                                                                createMenuTitle(
-                                                                                                        getString(
-                                                                                                                R.string
-                                                                                                                        .retro_menu_title
-                                                                                                        )
-                                                                                                )
-                                                                                        )
+                                                                                        // Store reference to menu container
+                                                                                        menuContainer = this
 
-                                                                                        // Menu
-                                                                                        // options -
-                                                                                        // using
-                                                                                        // navigation system
-                                                                                        createAllMenuOptions(
-                                                                                                this
+                                                                                        // Menu title
+                                                                                        menuTitle = createMenuTitle(
+                                                                                                getString(R.string.retro_menu_title)
                                                                                         )
+                                                                                        addView(menuTitle)
+
+                                                                                        // Menu options - using navigation system
+                                                                                        createAllMenuOptions(this)
                                                                                 }
                                                                 ) // Close menu container
                                                         }
@@ -273,7 +271,7 @@ class RetroMenuFragment : Fragment() {
                                 Pair(getString(R.string.retro_menu_save_state)) { saveState() },
                                 Pair(getString(R.string.retro_menu_load_state)) { loadStateSafe() },
                                 Pair(getString(R.string.retro_menu_settings)) { openSettings() },
-                                Pair(getString(R.string.retro_menu_exit_to_menu)) { exitToMenu() }
+                                Pair(getString(R.string.retro_menu_exit_game)) { showExitSubmenu() }
                         )
 
                 // Create options and add to lists
@@ -363,8 +361,13 @@ class RetroMenuFragment : Fragment() {
 
         /** Exit menu (B button) */
         private fun exitMenu() {
-                Log.d(TAG, "B button pressed - continuing game")
-                continueGame()
+                if (isInSubmenu) {
+                        Log.d(TAG, "B button pressed in submenu - returning to main menu")
+                        returnToMainMenu()
+                } else {
+                        Log.d(TAG, "B button pressed - continuing game")
+                        continueGame()
+                }
         }
 
         /** Update visual selection highlighting */
@@ -623,10 +626,86 @@ class RetroMenuFragment : Fragment() {
                 dismissOverlay()
         }
 
-        private fun exitToMenu() {
-                Log.d(TAG, "Exit to menu requested")
-                // TODO: Implement exit to menu functionality
-                dismissOverlay()
+        /** Show exit game submenu with 3 options */
+        private fun showExitSubmenu() {
+                Log.d(TAG, "Showing exit submenu")
+                isInSubmenu = true
+                
+                // Update title
+                menuTitle?.text = "EXIT GAME?"
+                
+                // Clear current menu options
+                menuContainer?.let { container ->
+                        // Remove all menu option views (keep only title)
+                        for (i in container.childCount - 1 downTo 1) {
+                                container.removeViewAt(i)
+                        }
+                }
+                
+                // Create submenu options
+                createExitSubmenuOptions()
+        }
+
+        /** Create exit submenu options */
+        private fun createExitSubmenuOptions() {
+                menuOptions.clear()
+                menuActions.clear()
+                
+                val submenuOptions = listOf(
+                        Pair("SAVE AND EXIT") { saveAndExit() },
+                        Pair("CANCEL") { returnToMainMenu() },
+                        Pair("EXIT WITHOUT SAVE") { exitWithoutSave() }
+                )
+                
+                menuContainer?.let { container ->
+                        submenuOptions.forEachIndexed { index, (text, action) ->
+                                val option = createMenuOption(text, index == selectedOptionIndex)
+                                container.addView(option)
+                                menuOptions.add(option)
+                                menuActions.add(action)
+                        }
+                }
+                
+                // Reset selection to first option
+                resetSelectionToFirst()
+                Log.d(TAG, "Created exit submenu with ${menuOptions.size} options")
+        }
+
+        /** Return to main menu from submenu */
+        private fun returnToMainMenu() {
+                Log.d(TAG, "Returning to main menu")
+                isInSubmenu = false
+                
+                // Restore main menu title
+                menuTitle?.text = getString(R.string.retro_menu_title)
+                
+                // Clear submenu options
+                menuContainer?.let { container ->
+                        // Remove all submenu option views (keep only title)
+                        for (i in container.childCount - 1 downTo 1) {
+                                container.removeViewAt(i)
+                        }
+                }
+                
+                // Recreate main menu options
+                menuContainer?.let { createAllMenuOptions(it) }
+        }
+
+        /** Exit without saving */
+        private fun exitWithoutSave() {
+                Log.d(TAG, "Exiting without save")
+                // Close the app immediately
+                android.os.Process.killProcess(android.os.Process.myPid())
+        }
+
+        /** Save and exit */
+        private fun saveAndExit() {
+                Log.d(TAG, "Save and exit requested")
+                // Save state first, then exit
+                viewModel.saveStateCentralized {
+                        Log.d(TAG, "Save completed, exiting app")
+                        android.os.Process.killProcess(android.os.Process.myPid())
+                }
         }
 
         private fun continueGame() {

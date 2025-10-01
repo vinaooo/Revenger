@@ -22,7 +22,15 @@
     <string name="retro_menu_save_state">SAVE STATE</string>
     <string name="retro_menu_load_state">LOAD STATE</string>
     <string name="retro_menu_settings">SETTINGS</string>
-    <string name="retro_menu_exit_to_menu">EXIT TO MENU</string>
+    <string name="retro_menu_exit_game">EXIT GAME</string>
+    
+    <!-- Exit Submenu Options -->
+    <string name="retro_menu_exit_cancel">CANCEL</string>
+    <string name="retro_menu_exit_without_save">EXIT WITHOUT SAVE</string>
+    <string name="retro_menu_exit_save_and_exit">SAVE AND EXIT</string>
+    
+    <!-- Submenu Title -->
+    <string name="retro_menu_exit_submenu_title">EXIT GAME?</string>
     
     <!-- Font Sizes (dimensions) -->
     <dimen name="retro_menu_option_text_size">16sp</dimen>
