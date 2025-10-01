@@ -14,6 +14,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.controllers.AudioController
+import com.vinaooo.revenger.controllers.SpeedController
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
@@ -46,6 +48,10 @@ class GameActivityViewModel(application: Application) :
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput(application.applicationContext)
+
+    // Controllers modulares para áudio e velocidade (inicializados no setupRetroView)
+    private var audioController: AudioController? = null
+    private var speedController: SpeedController? = null
 
     init {
         // Set the callback to check if SELECT+START combo should work
@@ -247,17 +253,17 @@ class GameActivityViewModel(application: Application) :
 
     override fun onToggleAudio() {
         retroView?.let {
-            it.view.audioEnabled = !it.view.audioEnabled
-            // Save the new audio state immediately
-            retroViewUtils?.preserveEmulatorState(it)
+            // Usar o controller modular para áudio
+            audioController?.toggleAudio(it.view)
+            Log.d(TAG, "Audio toggled using AudioController")
         }
     }
 
     override fun onFastForward() {
         retroView?.let {
-            retroViewUtils?.fastForward(it)
-            // Save the new speed state immediately
-            retroViewUtils?.preserveEmulatorState(it)
+            // Usar o controller modular para velocidade
+            speedController?.toggleFastForward(it.view)
+            Log.d(TAG, "Fast forward toggled using SpeedController")
         }
     }
 
@@ -309,11 +315,13 @@ class GameActivityViewModel(application: Application) :
     }
 
     override fun getAudioState(): Boolean {
-        return retroViewUtils?.getAudioState() ?: true
+        // Usar o controller modular para obter estado do áudio
+        return audioController?.getAudioState() ?: true
     }
 
     override fun getFastForwardState(): Boolean {
-        return retroViewUtils?.getFastForwardState() ?: false
+        // Usar o controller modular para obter estado da velocidade
+        return speedController?.getFastForwardState() ?: false
     }
 
     override fun hasSaveState(): Boolean {
@@ -466,6 +474,9 @@ class GameActivityViewModel(application: Application) :
     fun setupRetroView(activity: ComponentActivity, container: FrameLayout) {
         retroView = RetroView(activity, viewModelScope)
         retroViewUtils = RetroViewUtils(activity)
+        
+        // Inicializar controllers com as mesmas SharedPreferences que RetroViewUtils usa
+        initializeControllers(activity)
 
         retroView?.let { retroView ->
             container.addView(retroView.view)
@@ -612,5 +623,76 @@ class GameActivityViewModel(application: Application) :
     fun shouldHandleSelectStartPause(): Boolean {
         val mode = getPauseOverlayMode()
         return mode == 3 // SELECT + START together
+    }
+
+    /** 
+     * Inicializa os controllers modulares com as mesmas SharedPreferences do RetroViewUtils
+     * Garante compatibilidade com o sistema existente
+     */
+    private fun initializeControllers(activity: Activity) {
+        val sharedPreferences = activity.getPreferences(android.content.Context.MODE_PRIVATE)
+        audioController = AudioController(activity.applicationContext, sharedPreferences)
+        speedController = SpeedController(activity.applicationContext, sharedPreferences)
+        Log.d(TAG, "Controllers modulares inicializados com compatibilidade RetroViewUtils")
+    }
+
+    // MÉTODOS PÚBLICOS PARA ACESSO AOS CONTROLLERS MODULARES
+
+    /**
+     * Obtém referência ao AudioController para uso em outros componentes
+     * Permite acesso modular às funcionalidades de áudio
+     */
+    fun getAudioController(): AudioController? {
+        return audioController
+    }
+
+    /**
+     * Obtém referência ao SpeedController para uso em outros componentes
+     * Permite acesso modular às funcionalidades de velocidade
+     */
+    fun getSpeedController(): SpeedController? {
+        return speedController
+    }
+
+    /**
+     * Controle de áudio usando controller modular
+     * @param enabled true para ligar, false para desligar
+     */
+    fun setAudioEnabled(enabled: Boolean) {
+        retroView?.let {
+            audioController?.setAudioEnabled(it.view, enabled)
+            Log.d(TAG, "Audio set to ${if (enabled) "enabled" else "disabled"} via AudioController")
+        }
+    }
+
+    /**
+     * Controle de velocidade usando controller modular
+     * @param speed velocidade desejada (1 = normal, > 1 = fast forward)
+     */
+    fun setGameSpeed(speed: Int) {
+        retroView?.let {
+            speedController?.setSpeed(it.view, speed)
+            Log.d(TAG, "Game speed set to ${speed}x via SpeedController")
+        }
+    }
+
+    /**
+     * Ativa fast forward usando controller modular
+     */
+    fun enableFastForward() {
+        retroView?.let {
+            speedController?.enableFastForward(it.view)
+            Log.d(TAG, "Fast forward enabled via SpeedController")
+        }
+    }
+
+    /**
+     * Desativa fast forward usando controller modular
+     */
+    fun disableFastForward() {
+        retroView?.let {
+            speedController?.disableFastForward(it.view)
+            Log.d(TAG, "Fast forward disabled via SpeedController")
+        }
     }
 }

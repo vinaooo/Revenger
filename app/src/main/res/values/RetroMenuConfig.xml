@@ -29,8 +29,20 @@
     <string name="retro_menu_exit_without_save">EXIT WITHOUT SAVE</string>
     <string name="retro_menu_exit_save_and_exit">SAVE AND EXIT</string>
     
-    <!-- Submenu Title -->
+    <!-- Submenu Titles -->
     <string name="retro_menu_exit_submenu_title">EXIT GAME?</string>
+    <string name="retro_menu_settings_submenu_title">SETTINGS</string>
+    
+    <!-- Settings Submenu Options -->
+    <string name="retro_menu_settings_sound">SOUND: %s</string>
+    <string name="retro_menu_settings_speed">SPEED: %s</string>
+    <string name="retro_menu_settings_back">BACK</string>
+    
+    <!-- Settings State Labels -->
+    <string name="retro_menu_settings_sound_on">ON</string>
+    <string name="retro_menu_settings_sound_off">OFF</string>
+    <string name="retro_menu_settings_speed_normal">NORMAL</string>
+    <string name="retro_menu_settings_speed_fast">FAST</string>
     
     <!-- Font Sizes (dimensions) -->
     <dimen name="retro_menu_option_text_size">16sp</dimen>

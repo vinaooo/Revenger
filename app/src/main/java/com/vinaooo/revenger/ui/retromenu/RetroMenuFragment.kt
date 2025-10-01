@@ -637,9 +637,8 @@ class RetroMenuFragment : Fragment() {
         }
 
         private fun openSettings() {
-                Log.d(TAG, "Settings requested")
-                // TODO: Implement settings functionality
-                dismissOverlay()
+                Log.d(TAG, "Settings requested - showing settings submenu")
+                showSettingsSubmenu()
         }
 
         /** Show exit game submenu with 3 options */
@@ -688,6 +687,65 @@ class RetroMenuFragment : Fragment() {
                 Log.d(TAG, "Created exit submenu with ${menuOptions.size} options")
         }
 
+        /** Show settings submenu with audio and speed options */
+        private fun showSettingsSubmenu() {
+                Log.d(TAG, "Showing settings submenu")
+                isInSubmenu = true
+
+                // Update title
+                menuTitle?.text = getString(R.string.retro_menu_settings_submenu_title)
+
+                // Clear current menu options
+                menuContainer?.let { container ->
+                        // Remove all menu option views (keep only title)
+                        for (i in container.childCount - 1 downTo 1) {
+                                container.removeViewAt(i)
+                        }
+                }
+
+                // Create submenu options
+                createSettingsSubmenuOptions()
+        }
+
+        /** Create settings submenu options */
+        private fun createSettingsSubmenuOptions() {
+                menuOptions.clear()
+                menuActions.clear()
+
+                // Get current states for display using string resources
+                val audioState = if (viewModel.getAudioController()?.getAudioState() == true) {
+                        getString(R.string.retro_menu_settings_sound_on)
+                } else {
+                        getString(R.string.retro_menu_settings_sound_off)
+                }
+                
+                val speedState = if (viewModel.getSpeedController()?.getFastForwardState() == true) {
+                        getString(R.string.retro_menu_settings_speed_fast)
+                } else {
+                        getString(R.string.retro_menu_settings_speed_normal)
+                }
+
+                val submenuOptions =
+                        listOf(
+                                Pair(getString(R.string.retro_menu_settings_sound, audioState)) { toggleAudioSetting() },
+                                Pair(getString(R.string.retro_menu_settings_speed, speedState)) { toggleSpeedSetting() },
+                                Pair(getString(R.string.retro_menu_settings_back)) { returnToMainMenu() }
+                        )
+
+                menuContainer?.let { container ->
+                        submenuOptions.forEachIndexed { index, (text, action) ->
+                                val option = createMenuOption(text, index == selectedOptionIndex)
+                                container.addView(option)
+                                menuOptions.add(option)
+                                menuActions.add(action)
+                        }
+                }
+
+                // Reset selection to first option
+                resetSelectionToFirst()
+                Log.d(TAG, "Created settings submenu with ${menuOptions.size} options")
+        }
+
         /** Return to main menu from submenu */
         private fun returnToMainMenu() {
                 Log.d(TAG, "Returning to main menu")
@@ -733,6 +791,26 @@ class RetroMenuFragment : Fragment() {
                         Log.d(TAG, "Centralized continue game completed, dismissing overlay")
                         dismissOverlay()
                 }
+        }
+
+        /** Toggle audio setting and update submenu display */
+        private fun toggleAudioSetting() {
+                Log.d(TAG, "Toggling audio setting")
+                // Use ViewModel's audio controller
+                viewModel.onToggleAudio()
+                
+                // Refresh the settings submenu to show updated state
+                showSettingsSubmenu()
+        }
+
+        /** Toggle speed setting and update submenu display */
+        private fun toggleSpeedSetting() {
+                Log.d(TAG, "Toggling speed setting")
+                // Use ViewModel's speed controller
+                viewModel.onFastForward()
+                
+                // Refresh the settings submenu to show updated state
+                showSettingsSubmenu()
         }
 
         /** Dismiss the pause overlay */
