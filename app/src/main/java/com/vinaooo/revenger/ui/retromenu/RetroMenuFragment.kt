@@ -160,17 +160,33 @@ class RetroMenuFragment : Fragment() {
                                                                                                         .Gravity
                                                                                                         .LEFT
 
-                                                                                        // Store reference to menu container
-                                                                                        menuContainer = this
+                                                                                        // Store
+                                                                                        // reference
+                                                                                        // to menu
+                                                                                        // container
+                                                                                        menuContainer =
+                                                                                                this
 
-                                                                                        // Menu title
-                                                                                        menuTitle = createMenuTitle(
-                                                                                                getString(R.string.retro_menu_title)
+                                                                                        // Menu
+                                                                                        // title
+                                                                                        menuTitle =
+                                                                                                createMenuTitle(
+                                                                                                        getString(
+                                                                                                                R.string
+                                                                                                                        .retro_menu_title
+                                                                                                        )
+                                                                                                )
+                                                                                        addView(
+                                                                                                menuTitle
                                                                                         )
-                                                                                        addView(menuTitle)
 
-                                                                                        // Menu options - using navigation system
-                                                                                        createAllMenuOptions(this)
+                                                                                        // Menu
+                                                                                        // options -
+                                                                                        // using
+                                                                                        // navigation system
+                                                                                        createAllMenuOptions(
+                                                                                                this
+                                                                                        )
                                                                                 }
                                                                 ) // Close menu container
                                                         }
@@ -630,10 +646,10 @@ class RetroMenuFragment : Fragment() {
         private fun showExitSubmenu() {
                 Log.d(TAG, "Showing exit submenu")
                 isInSubmenu = true
-                
+
                 // Update title
                 menuTitle?.text = "EXIT GAME?"
-                
+
                 // Clear current menu options
                 menuContainer?.let { container ->
                         // Remove all menu option views (keep only title)
@@ -641,7 +657,7 @@ class RetroMenuFragment : Fragment() {
                                 container.removeViewAt(i)
                         }
                 }
-                
+
                 // Create submenu options
                 createExitSubmenuOptions()
         }
@@ -650,13 +666,14 @@ class RetroMenuFragment : Fragment() {
         private fun createExitSubmenuOptions() {
                 menuOptions.clear()
                 menuActions.clear()
-                
-                val submenuOptions = listOf(
-                        Pair("SAVE AND EXIT") { saveAndExit() },
-                        Pair("CANCEL") { returnToMainMenu() },
-                        Pair("EXIT WITHOUT SAVE") { exitWithoutSave() }
-                )
-                
+
+                val submenuOptions =
+                        listOf(
+                                Pair("SAVE AND EXIT") { saveAndExit() },
+                                Pair("CANCEL") { returnToMainMenu() },
+                                Pair("EXIT WITHOUT SAVE") { exitWithoutSave() }
+                        )
+
                 menuContainer?.let { container ->
                         submenuOptions.forEachIndexed { index, (text, action) ->
                                 val option = createMenuOption(text, index == selectedOptionIndex)
@@ -665,7 +682,7 @@ class RetroMenuFragment : Fragment() {
                                 menuActions.add(action)
                         }
                 }
-                
+
                 // Reset selection to first option
                 resetSelectionToFirst()
                 Log.d(TAG, "Created exit submenu with ${menuOptions.size} options")
@@ -675,10 +692,10 @@ class RetroMenuFragment : Fragment() {
         private fun returnToMainMenu() {
                 Log.d(TAG, "Returning to main menu")
                 isInSubmenu = false
-                
+
                 // Restore main menu title
                 menuTitle?.text = getString(R.string.retro_menu_title)
-                
+
                 // Clear submenu options
                 menuContainer?.let { container ->
                         // Remove all submenu option views (keep only title)
@@ -686,7 +703,7 @@ class RetroMenuFragment : Fragment() {
                                 container.removeViewAt(i)
                         }
                 }
-                
+
                 // Recreate main menu options
                 menuContainer?.let { createAllMenuOptions(it) }
         }
