@@ -107,8 +107,15 @@ class GameActivityViewModel(application: Application) :
             // SELECT + START together (mode 3 or RetroMenu2)
             if (isRetroMenu2Enabled()) {
                 // RetroMenu2 usa SELECT+START como trigger exclusivo
-                Log.d(TAG, "selectStartPauseCallback TRIGGERED - opening RetroMenu2")
-                showRetroMenu2(activity)
+                Log.d(TAG, "selectStartPauseCallback TRIGGERED - pausing then opening RetroMenu2")
+                
+                // PASSO 1: Pausar emulador PRIMEIRO (frameSpeed = 0)
+                pauseEmulator()
+                
+                // PASSO 2: Aguardar 300ms para evitar sobreposição de sons
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    showRetroMenu2(activity)
+                }, 300)
             } else if (isPauseOverlayEnabled()) {
                 // RetroMenu1 original
                 Log.d(
@@ -644,6 +651,9 @@ class GameActivityViewModel(application: Application) :
                 if (it != true) return@observe
 
                 retroViewUtils?.restoreEmulatorState(retroView)
+
+                // CORREÇÃO: Restaurar velocidade via SpeedController para garantir consistência
+                speedController?.initializeSpeedState(retroView.view)
             }
         }
     }
@@ -905,10 +915,14 @@ class GameActivityViewModel(application: Application) :
         Log.d(TAG, "🛑 RetroMenu2: Emulator PAUSED (frameSpeed = 0)")
     }
 
-    /** Retoma o emulador usando frameSpeed = 1 (RetroMenu2) */
+    /** Retoma o emulador usando frameSpeed salvo ou 1 (RetroMenu2) */
     fun resumeEmulator() {
-        retroView?.view?.frameSpeed = 1
-        Log.d(TAG, "▶️ RetroMenu2: Emulator RESUMED (frameSpeed = 1)")
+        retroView?.view?.let { view ->
+            // Restaurar velocidade salva (pode ser 1 ou 2 do Settings)
+            val savedSpeed = speedController?.getCurrentSpeed() ?: 1
+            view.frameSpeed = savedSpeed
+            Log.d(TAG, "▶️ RetroMenu2: Emulator RESUMED (frameSpeed = $savedSpeed)")
+        }
     }
 
     /**

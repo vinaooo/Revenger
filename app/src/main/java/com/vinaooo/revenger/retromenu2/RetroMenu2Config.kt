@@ -113,6 +113,22 @@ class RetroMenu2Config(private val context: Context) {
         get() = context.getString(R.string.retromenu2_analog_threshold).toFloatOrNull() ?: 0.7f
 
     // ============================================================
+    // BACKGROUND EFFECT CONFIGURATION
+    // ============================================================
+
+    /** Tipo de efeito de background 0 = None (apenas dimming) 3 = Scanline (CRT) */
+    val backgroundEffectType: Int
+        get() = context.resources.getInteger(R.integer.retromenu2_background_effect)
+
+    /**
+     * Intensidade do efeito (0.0 a 1.0) Significado varia por efeito:
+     * - None: intensidade do escurecimento
+     * - Scanline: espessura e opacidade das linhas CRT
+     */
+    val backgroundEffectIntensity: Float
+        get() = context.getString(R.string.retromenu2_effect_intensity).toFloatOrNull() ?: 0.5f
+
+    // ============================================================
     // MENU TEXT STRINGS
     // ============================================================
 

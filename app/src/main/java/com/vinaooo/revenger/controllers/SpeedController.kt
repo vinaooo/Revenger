@@ -86,11 +86,14 @@ class SpeedController(
     }
 
     /**
-     * Obtém a velocidade atual das preferências
+     * Obtém a velocidade atual das preferências CORREÇÃO: Nunca retornar 0 (pausado) - tratar como
+     * velocidade normal
      * @return velocidade atual (1 = normal, > 1 = fast forward)
      */
     fun getCurrentSpeed(): Int {
-        return sharedPreferences.getInt(context.getString(R.string.pref_frame_speed), 1)
+        val savedSpeed = sharedPreferences.getInt(context.getString(R.string.pref_frame_speed), 1)
+        // CRÍTICO: Se for 0 (pausado), retornar 1 (normal)
+        return if (savedSpeed == 0) 1 else savedSpeed
     }
 
     /**
@@ -103,13 +106,17 @@ class SpeedController(
     }
 
     /**
-     * Inicializa o estado da velocidade no RetroView com base nas preferências salvas
+     * Inicializa o estado da velocidade no RetroView com base nas preferências salvas CORREÇÃO:
+     * Nunca aplicar frameSpeed = 0 (pausado) na inicialização Se savedSpeed == 0, significa que app
+     * foi fechado com menu aberto Nesse caso, restaurar para 1 (velocidade normal)
      * @param retroView RetroView para configurar
      */
     fun initializeSpeedState(retroView: GLRetroView) {
         val savedSpeed = getCurrentSpeed()
-        retroView.frameSpeed = savedSpeed
-        Log.d(TAG, "Speed initialized to: ${savedSpeed}x")
+        // CRÍTICO: Garantir que nunca seja 0 (pausado)
+        val safeSpeed = if (savedSpeed == 0) 1 else savedSpeed
+        retroView.frameSpeed = safeSpeed
+        Log.d(TAG, "Speed initialized to: ${safeSpeed}x")
     }
 
     /**

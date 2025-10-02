@@ -3,8 +3,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/retromenu2_background"
     tools:context=".retromenu2.RetroMenu2Fragment">
+
+    <!-- Background com screenshot processado -->
+    <ImageView
+        android:id="@+id/backgroundImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:contentDescription="@string/retromenu2_title" />
+
+    <!-- Overlay de cor sólida (fallback se screenshot falhar) -->
+    <View
+        android:id="@+id/backgroundOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        android:background="@color/retromenu2_background" />
+
+    <!-- Container para submenus (Settings, Exit) -->
+    <FrameLayout
+        android:id="@+id/submenuContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <!-- ScrollView para suportar landscape e telas pequenas -->
     <ScrollView
@@ -20,7 +41,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:orientation="vertical"
-            android:padding="8dp">
+            android:padding="8dp"
+            android:visibility="invisible">
 
             <!-- Título PAUSE -->
             <TextView

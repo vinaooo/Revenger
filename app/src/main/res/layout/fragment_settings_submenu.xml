@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    tools:context=".retromenu2.SettingsSubmenuFragment">
+
+    <!-- ScrollView para suportar landscape e telas pequenas -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <!-- Container principal centralizado -->
+        <LinearLayout
+            android:id="@+id/submenuContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <!-- Título SETTINGS -->
+            <TextView
+                android:id="@+id/submenuTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="16dp"
+                android:text="SETTINGS"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_title_text_size"
+                android:textStyle="bold" />
+
+            <!-- Opção 1: Game Sounds -->
+            <TextView
+                android:id="@+id/optionGameSounds"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"
+                android:text="> Game Sounds: ON"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_option_text_size" />
+
+            <!-- Opção 2: Menu Sounds -->
+            <TextView
+                android:id="@+id/optionMenuSounds"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"
+                android:text="  Menu Sounds: ON"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_option_text_size" />
+
+            <!-- Opção 3: Game Speed -->
+            <TextView
+                android:id="@+id/optionGameSpeed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"
+                android:text="  Game Speed: Normal"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_option_text_size" />
+
+            <!-- Opção 4: Back -->
+            <TextView
+                android:id="@+id/optionBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:text="  Back"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_option_text_size" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</FrameLayout>

@@ -36,7 +36,13 @@ class RetroViewUtils(private val activity: Activity) {
         saveTempState(retroView)
 
         sharedPreferences.edit {
-            putInt(activity.getString(R.string.pref_frame_speed), retroView.view.frameSpeed)
+            // CRÍTICO: Nunca salvar frameSpeed = 0 (pausado pelo menu)
+            // Se frameSpeed for 0, significa que o menu está aberto
+            // Nesse caso, mantemos o último valor válido salvo (não sobrescrever)
+            val currentFrameSpeed = retroView.view.frameSpeed
+            if (currentFrameSpeed > 0) {
+                putInt(activity.getString(R.string.pref_frame_speed), currentFrameSpeed)
+            }
             putBoolean(activity.getString(R.string.pref_audio_enabled), retroView.view.audioEnabled)
         }
     }
