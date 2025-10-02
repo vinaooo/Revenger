@@ -97,6 +97,8 @@ class ControllerInput2(private val config: RetroMenu2Config) {
      * o core).
      */
     fun processKeyEvent(keyCode: Int, event: KeyEvent): Boolean {
+        Log.d(TAG, "processKeyEvent - keyCode: $keyCode, action: ${event.action}, isMenuOpen: $isMenuOpen")
+        
         // Menu aberto = bloquear todos os eventos para o core
         if (isMenuOpen) {
             processMenuInput(keyCode, event)

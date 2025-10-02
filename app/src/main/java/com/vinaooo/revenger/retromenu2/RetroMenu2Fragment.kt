@@ -267,6 +267,9 @@ class RetroMenu2Fragment : Fragment() {
 
     /** Fecha o menu e retoma gameplay. */
     private fun closeMenu() {
+        // CRÍTICO: Limpar keyLog ANTES de retomar para evitar reabertura imediata!
+        viewModel.clearInputKeyLog()
+        
         // Retomar emulador (frameSpeed = 1)
         viewModel.resumeEmulator()
 
@@ -280,6 +283,9 @@ class RetroMenu2Fragment : Fragment() {
     private fun restartGame() {
         Log.d(TAG, "Reiniciando jogo...")
 
+        // CRÍTICO: Limpar keyLog ANTES de retomar para evitar reabertura imediata!
+        viewModel.clearInputKeyLog()
+        
         // Retomar emulador primeiro (frameSpeed = 1)
         viewModel.resumeEmulator()
 

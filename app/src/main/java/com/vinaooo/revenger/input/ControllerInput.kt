@@ -46,6 +46,16 @@ class ControllerInput(private val context: Context) {
      */
     private val keysToBlockAfterMenuClose = mutableSetOf<Int>()
 
+    /**
+     * Limpa o keyLog para evitar detecção de combos após fechar o menu.
+     * CRÍTICO: Deve ser chamado quando o menu fecha para evitar reabertura imediata.
+     */
+    fun clearKeyLog() {
+        Log.w(TAG, "🧹 CLEARING keyLog - was: $keyLog")
+        keyLog.clear()
+        Log.w(TAG, "✅ keyLog cleared - now: $keyLog")
+    }
+
     /** The callback for when the user inputs the menu key-combination */
     var menuCallback: () -> Unit = {}
 

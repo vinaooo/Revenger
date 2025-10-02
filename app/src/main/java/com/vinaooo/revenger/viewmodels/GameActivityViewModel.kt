@@ -911,6 +911,15 @@ class GameActivityViewModel(application: Application) :
         Log.d(TAG, "▶️ RetroMenu2: Emulator RESUMED (frameSpeed = 1)")
     }
 
+    /** 
+     * Limpa o keyLog do ControllerInput para evitar detecção de combos após fechar menu.
+     * CRÍTICO: Previne que SELECT+START reabre menu imediatamente após fechar.
+     */
+    fun clearInputKeyLog() {
+        controllerInput.clearKeyLog()
+        Log.d(TAG, "🧹 RetroMenu2: Input keyLog cleared")
+    }
+
     /** Reinicia o jogo usando reset() (RetroMenu2) */
     fun resetGame() {
         resetGameCentralized()
