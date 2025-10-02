@@ -77,6 +77,10 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 )
         params.gravity = Gravity.CENTER
         view.layoutParams = params
+
+        // CORREÇÃO: Inicializar frameSpeed = 1 para garantir que emulação comece rodando
+        // Sem isso, LibretroDroid pode iniciar pausado (frameSpeed = 0) causando tela preta
+        view.frameSpeed = 1
     }
 
     /** Register listener for when first frame is rendered */

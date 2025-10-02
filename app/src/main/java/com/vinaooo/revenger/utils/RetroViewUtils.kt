@@ -13,12 +13,22 @@ class RetroViewUtils(private val activity: Activity) {
     private val fastForwardSpeed =
             activity.resources.getInteger(R.integer.config_fast_forward_multiplier)
 
-    fun restoreEmulatorState(retroView: RetroView) {
-        retroView.view.frameSpeed =
+    fun restoreEmulatorState(retroView: RetroView, skipTempStateLoad: Boolean = false) {
+        // CORREÇÃO: Restaurar frameSpeed, mas garantir que nunca seja 0 (pausado)
+        // Se frameSpeed salvo for 0, significa que app foi fechado com menu aberto
+        // Nesse caso, restaurar para 1 (velocidade normal) para evitar tela preta
+        val savedFrameSpeed =
                 sharedPreferences.getInt(activity.getString(R.string.pref_frame_speed), 1)
+        retroView.view.frameSpeed = if (savedFrameSpeed == 0) 1 else savedFrameSpeed
+
         retroView.view.audioEnabled =
                 sharedPreferences.getBoolean(activity.getString(R.string.pref_audio_enabled), true)
-        loadTempState(retroView)
+
+        // CORREÇÃO CRÍTICA: Não carregar tempState se acabamos de fazer Load State manual
+        // Isso evita que o tempState sobrescreva o save state que o usuário acabou de carregar
+        if (!skipTempStateLoad) {
+            loadTempState(retroView)
+        }
     }
 
     fun preserveEmulatorState(retroView: RetroView) {

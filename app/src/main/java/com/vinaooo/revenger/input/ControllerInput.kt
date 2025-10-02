@@ -41,6 +41,11 @@ class ControllerInput(private val context: Context) {
     /** Set of keys currently being held by the user */
     private val keyLog = mutableSetOf<Int>()
 
+    /**
+     * Set of keys that were pressed when menu opened (to block their ACTION_UP after menu closes)
+     */
+    private val keysToBlockAfterMenuClose = mutableSetOf<Int>()
+
     /** The callback for when the user inputs the menu key-combination */
     var menuCallback: () -> Unit = {}
 
@@ -182,12 +187,58 @@ class ControllerInput(private val context: Context) {
         checkPauseKey()
     }
 
+    /**
+     * Capture currently pressed keys when menu opens These keys will have their ACTION_UP blocked
+     * after menu closes to prevent partial signals
+     */
+    fun captureKeysOnMenuOpen() {
+        keysToBlockAfterMenuClose.clear()
+        keysToBlockAfterMenuClose.addAll(keyLog)
+        Log.w(
+                TAG,
+                "📸 Captured ${keysToBlockAfterMenuClose.size} pressed keys when menu opened: $keysToBlockAfterMenuClose"
+        )
+    }
+
+    /**
+     * Clear blocked keys after a delay (give time for ACTION_UP events to be processed and blocked)
+     */
+    fun clearBlockedKeysDelayed() {
+        android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            Log.w(
+                                    TAG,
+                                    "🧹 Clearing blocked keys list (was: $keysToBlockAfterMenuClose)"
+                            )
+                            keysToBlockAfterMenuClose.clear()
+                        },
+                        500
+                ) // 500ms delay to ensure all pending ACTION_UP events are blocked
+    }
+
     fun processKeyEvent(keyCode: Int, event: KeyEvent, retroView: RetroView): Boolean? {
         /* Block these keys! */
         if (EXCLUDED_KEYS.contains(keyCode)) return null
 
         /* We're not ready yet! */
         if (retroView.frameRendered.value == false) return true
+
+        // CRITICAL FIX: Block ACTION_UP for keys that were pressed when menu opened
+        // This prevents partial signals (ACTION_UP without ACTION_DOWN) from reaching the core
+        if (event.action == KeyEvent.ACTION_UP && keysToBlockAfterMenuClose.contains(keyCode)) {
+            Log.w(TAG, "🚫 BLOCKING ACTION_UP for $keyCode - key was pressed when menu opened")
+            keysToBlockAfterMenuClose.remove(keyCode) // Remove after blocking once
+
+            // CRITICAL: Also remove from keyLog to prevent checkPauseKey from detecting it
+            keyLog.remove(keyCode)
+            Log.w(
+                    TAG,
+                    "🧹 Removed $keyCode from keyLog to prevent menu reopen, keyLog now: $keyLog"
+            )
+
+            return true // Block this ACTION_UP
+        }
 
         // Log ALL key events for debugging DPAD issues - capture EVERY keycode
         val actionString =
@@ -210,10 +261,11 @@ class ControllerInput(private val context: Context) {
         }
 
         // If retro menu is visible, intercept navigation keys (analog motion converted to DPAD)
-        if (isRetroMenuVisible() && event.action == KeyEvent.ACTION_DOWN) {
+        // CRITICAL: Block BOTH ACTION_DOWN and ACTION_UP to prevent partial signals reaching core
+        if (isRetroMenuVisible()) {
             Log.d(
                     TAG,
-                    "Retro menu is visible, checking navigation key: $keyCode (${KeyEvent.keyCodeToString(keyCode)})"
+                    "Retro menu is visible, checking navigation key: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), action=$actionString"
             )
             when (keyCode) {
                 // Only UP/DOWN navigation for menu (LEFT/RIGHT pass through to game)
@@ -222,13 +274,35 @@ class ControllerInput(private val context: Context) {
                 // Button codes for menu actions
                 KeyEvent.KEYCODE_BUTTON_A,
                 KeyEvent.KEYCODE_BUTTON_B -> {
-                    Log.d(TAG, "Intercepting UP/DOWN/A/B key for retro menu: $keyCode")
-                    // Send to retro menu for navigation
-                    if (retroMenuNavigationCallback(keyCode)) {
-                        Log.d(TAG, "Menu navigation key handled by retro menu, blocking game input")
-                        return true // Menu handled the input, don't send to game
-                    } else {
-                        Log.d(TAG, "Menu navigation key NOT handled by retro menu, sending to game")
+                    Log.d(
+                            TAG,
+                            "Intercepting UP/DOWN/A/B key for retro menu: $keyCode, action=$actionString"
+                    )
+
+                    // Only send ACTION_DOWN to menu for processing
+                    // But block BOTH ACTION_DOWN and ACTION_UP from reaching the core
+                    if (event.action == KeyEvent.ACTION_DOWN) {
+                        if (retroMenuNavigationCallback(keyCode)) {
+                            Log.d(
+                                    TAG,
+                                    "Menu navigation key handled by retro menu, blocking ACTION_DOWN from game"
+                            )
+                            return true // Menu handled the input, don't send to game
+                        } else {
+                            Log.d(
+                                    TAG,
+                                    "Menu navigation key NOT handled by retro menu, sending ACTION_DOWN to game"
+                            )
+                        }
+                    } else if (event.action == KeyEvent.ACTION_UP) {
+                        // CRITICAL FIX: Block ACTION_UP for menu keys to prevent pause signals
+                        Log.d(TAG, "Blocking ACTION_UP for menu key $keyCode to prevent core pause")
+
+                        // CRITICAL: Also remove from keyLog to prevent checkPauseKey detection
+                        keyLog.remove(keyCode)
+                        Log.d(TAG, "🧹 Removed menu key $keyCode from keyLog, now: $keyLog")
+
+                        return true // Block ACTION_UP from reaching core
                     }
                 }
                 KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {

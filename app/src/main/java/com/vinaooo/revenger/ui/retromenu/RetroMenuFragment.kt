@@ -602,52 +602,52 @@ class RetroMenuFragment : Fragment() {
         private fun restartGame() {
                 Log.d(TAG, "Restart game requested - using centralized implementation")
 
-                // CORREÇÃO: Replicar exatamente o comportamento do Modern Menu
+                // CORREÇÃO: Usar dismissOverlay para restaurar frameSpeed = 1 (retomar emulação)
                 viewModel.resetGameCentralized {
                         Log.d(
                                 TAG,
-                                "Centralized reset game completed, dismissing overlay (Modern Menu pattern)"
+                                "Centralized reset game completed, dismissing overlay with frameSpeed restore"
                         )
-                        dismissMenuSimple()
+                        dismissOverlay()
                 }
         }
 
         private fun saveState() {
                 Log.d(TAG, "Save state requested - using centralized implementation")
 
-                // CORREÇÃO: Replicar exatamente o comportamento do Modern Menu
+                // CORREÇÃO: Usar dismissOverlay para restaurar frameSpeed = 1 (retomar emulação)
                 viewModel.saveStateCentralized {
                         Log.d(
                                 TAG,
-                                "Centralized save state completed, dismissing overlay (Modern Menu pattern)"
+                                "Centralized save state completed, dismissing overlay with frameSpeed restore"
                         )
-                        dismissMenuSimple()
+                        dismissOverlay()
                 }
         }
 
         private fun loadState() {
                 Log.d(TAG, "Load state requested - using centralized implementation")
 
-                // CORREÇÃO: Replicar exatamente o comportamento do Modern Menu
+                // CORREÇÃO: Usar dismissOverlay para restaurar frameSpeed = 1 (retomar emulação)
                 viewModel.loadStateCentralized {
                         Log.d(
                                 TAG,
-                                "Centralized load state completed, dismissing overlay (Modern Menu pattern)"
+                                "Centralized load state completed, dismissing overlay with frameSpeed restore"
                         )
-                        dismissMenuSimple()
+                        dismissOverlay()
                 }
         }
 
         private fun loadStateSafe() {
                 Log.d(TAG, "Load state safe requested - using centralized implementation")
 
-                // CORREÇÃO: Replicar exatamente o comportamento do Modern Menu
+                // CORREÇÃO: Usar dismissOverlay para restaurar frameSpeed = 1 (retomar emulação)
                 viewModel.loadStateCentralized {
                         Log.d(
                                 TAG,
-                                "Centralized load state safe completed, dismissing overlay (Modern Menu pattern)"
+                                "Centralized load state safe completed, dismissing overlay with frameSpeed restore"
                         )
-                        dismissMenuSimple()
+                        dismissOverlay()
                 }
         }
 

@@ -53,6 +53,9 @@ class GameActivityViewModel(application: Application) :
     private var audioController: AudioController? = null
     private var speedController: SpeedController? = null
 
+    // Flag to prevent tempState from overwriting a manual Load State
+    private var skipNextTempStateLoad = false
+
     init {
         // Set the callback to check if SELECT+START combo should work
         controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
@@ -132,6 +135,10 @@ class GameActivityViewModel(application: Application) :
     /** Show the retro menu overlay */
     fun showPauseOverlay(activity: FragmentActivity) {
         if (retroView?.frameRendered?.value == true) {
+            // CRITICAL: Capture currently pressed keys BEFORE pausing
+            // Their ACTION_UP will be blocked after menu closes to prevent partial signals
+            controllerInput.captureKeysOnMenuOpen()
+
             // PAUSE emulation using LibretroDroid's native frameSpeed API
             retroView?.view?.frameSpeed = 0
             Log.d(TAG, "🛑 Emulator PAUSED using frameSpeed = 0 (native API)")
@@ -169,8 +176,12 @@ class GameActivityViewModel(application: Application) :
 
         retroView?.let { retroView ->
             // Restore emulator state (audio, speed settings)
-            retroViewUtils?.restoreEmulatorState(retroView)
-            Log.d(TAG, "Emulator settings restored")
+            // Pass skipTempStateLoad flag to avoid overwriting manual Load State
+            retroViewUtils?.restoreEmulatorState(retroView, skipNextTempStateLoad)
+            Log.d(TAG, "Emulator settings restored (skipTempStateLoad=$skipNextTempStateLoad)")
+
+            // Reset flag after use
+            skipNextTempStateLoad = false
 
             // RESUME emulation using LibretroDroid's native frameSpeed API
             retroView.view.frameSpeed = 1
@@ -183,6 +194,10 @@ class GameActivityViewModel(application: Application) :
             Log.d(TAG, "Retro menu fragment removed")
         }
         Log.d(TAG, "Retro menu dismissed")
+
+        // CRITICAL: Clear blocked keys after a delay
+        // This gives time for any pending ACTION_UP events to be blocked first
+        controllerInput.clearBlockedKeysDelayed()
     }
 
     /** Check if the retro menu is currently visible */
@@ -193,6 +208,9 @@ class GameActivityViewModel(application: Application) :
     /** Show the fullscreen game menu */
     fun showMenu(activity: FragmentActivity) {
         if (retroView?.frameRendered?.value == true) {
+            // CRITICAL: Capture currently pressed keys BEFORE showing menu
+            controllerInput.captureKeysOnMenuOpen()
+
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
 
             // Show new modern menu
@@ -214,6 +232,8 @@ class GameActivityViewModel(application: Application) :
     /** Dismiss the modern menu */
     fun dismissMenu() {
         modernMenuFragment?.dismissMenuPublic()
+        // CRITICAL: Clear blocked keys after menu dismissal
+        controllerInput.clearBlockedKeysDelayed()
     }
 
     /** Check if the modern menu is currently open */
@@ -315,8 +335,8 @@ class GameActivityViewModel(application: Application) :
     }
 
     /**
-     * Centralized load state implementation with improved debugging CORREÇÃO: Removido delay
-     * desnecessário que pode causar problemas de timing
+     * Centralized load state implementation with improved debugging CORREÇÃO: Despausa
+     * temporariamente APENAS durante o load, sem enviar sinais ao core
      */
     fun loadStateCentralized(onComplete: (() -> Unit)? = null) {
         Log.w(TAG, "🔵 Central load state called")
@@ -343,11 +363,34 @@ class GameActivityViewModel(application: Application) :
                     // DIAGNÓSTICO: Verificar se arquivo de save state existe
                     Log.w(TAG, "🔍 DIAGNÓSTICO: hasSaveState = ${retroViewUtils?.hasSaveState()}")
 
-                    // CORREÇÃO: Executar load imediatamente sem delay artificial
+                    // CORREÇÃO CRÍTICA: Salvar frameSpeed atual e temporariamente forçar = 1
+                    // para o load funcionar, mas NÃO enviar keyevents que ativariam pause do core
+                    val savedFrameSpeed = retroView.view.frameSpeed
+                    Log.w(TAG, "⚙️ Saving current frameSpeed: $savedFrameSpeed")
+
+                    // Temporariamente despausar SILENCIOSAMENTE (apenas frameSpeed, sem keyevents)
+                    retroView.view.frameSpeed = 1
+                    Log.w(
+                            TAG,
+                            "⏸️ Temporarily set frameSpeed = 1 for load (silent, no core signals)"
+                    )
+
+                    // Executar load state COM emulador rodando
                     retroViewUtils?.loadState(retroView)
 
+                    // Restaurar frameSpeed pausado imediatamente após load
+                    retroView.view.frameSpeed = savedFrameSpeed
+                    Log.w(TAG, "⏸️ Restored frameSpeed to $savedFrameSpeed after load")
+
+                    // CORREÇÃO CRÍTICA: Ativar flag para evitar que tempState sobrescreva o load
+                    skipNextTempStateLoad = true
+                    Log.w(
+                            TAG,
+                            "🚩 Flag set: skipNextTempStateLoad = true (prevent tempState override)"
+                    )
+
                     Log.w(TAG, "✅ Load state executed successfully (centralized)")
-                    Log.w(TAG, "🎮 Game should now be at loaded state and resume automatically")
+                    Log.w(TAG, "🎮 State loaded, dismissPauseOverlay() will resume to frameSpeed=1")
                 } else {
                     Log.e(TAG, "❌ retroViewUtils is null - cannot load state!")
                 }
