@@ -779,7 +779,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Check if pause overlay is enabled based on config_pause_overlay */
     fun isPauseOverlayEnabled(): Boolean {
-        return getPauseOverlayMode() != 0
+        return resources.getBoolean(R.bool.config_pause_overlay)
     }
 
     /** Check if RetroMenu2 is enabled (new menu system) */
@@ -787,9 +787,9 @@ class GameActivityViewModel(application: Application) :
         return resources.getBoolean(R.bool.config_use_retromenu2)
     }
 
-    /** Get the pause overlay mode (0=disabled, 1=START, 2=SELECT, 3=SELECT+START) */
+    /** Get the pause overlay mode (0=disabled, 1=enabled) */
     fun getPauseOverlayMode(): Int {
-        return resources.getInteger(R.integer.config_pause_overlay)
+        return if (resources.getBoolean(R.bool.config_pause_overlay)) 1 else 0
     }
 
     /** Check if START alone should trigger pause overlay */

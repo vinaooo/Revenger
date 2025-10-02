@@ -13,8 +13,8 @@
     <!-- ============================================================ -->
     <!-- VISUAL CONFIGURATION -->
     <!-- ============================================================ -->
-    <!-- Background: Transparent white overlay -->
-    <color name="retromenu2_background">#20FFFFFF</color>
+    <!-- Background: Semi-transparent dark gray overlay (85% opacity) -->
+    <color name="retromenu2_background">#D9404040</color>
     
     <!-- Text colors -->
     <color name="retromenu2_text_color">#FFFFFF</color>
@@ -28,7 +28,7 @@
     
     <!-- Font sizes -->
     <dimen name="retromenu2_title_text_size">48sp</dimen>
-    <dimen name="retromenu2_option_text_size">32sp</dimen>
+    <dimen name="retromenu2_option_text_size">28sp</dimen>
     <dimen name="retromenu2_info_text_size">20sp</dimen>
     <dimen name="retromenu2_loading_text_size">24sp</dimen>
     

@@ -4,10 +4,14 @@
     <string name="config_id">sth</string>
 
     <!-- The pretty name for the app -->
-    <string name="config_name">Nao jogar - Sonic The Hedgehog</string>
+    <string name="config_name">Não jogar</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
     <string name="config_core">smsplus</string>
+    <!-- Snes = bsnes -->
+    <!-- megadrive = genesis_plus_gx -->
+    <!-- gb = gambatte -->
+    <!-- master = smsplus -->
     
     <!-- rom name, the same name the rom file in res/raw without extension -->
     <string name="config_rom">sth</string>
@@ -29,6 +33,10 @@
         1: Portrait only
         2: Landscape only
         3: Any orientation (including upside-down)
+
+        NOTE: Landscape <-> Portrait can be slow,
+                as it involves rebuilding the
+                emulator instance!
     -->
     <integer name="config_orientation">2</integer>
 
@@ -52,8 +60,8 @@
     <!-- GamePad buttons to display -->
     <bool name="config_gamepad_a">true</bool>
     <bool name="config_gamepad_b">true</bool>
-    <bool name="config_gamepad_x">false</bool>
-    <bool name="config_gamepad_y">false</bool>
+    <bool name="config_gamepad_x">true</bool>
+    <bool name="config_gamepad_y">true</bool>
     <bool name="config_gamepad_start">true</bool>
     <bool name="config_gamepad_select">true</bool>
     <bool name="config_gamepad_l1">true</bool>
@@ -62,31 +70,9 @@
     <!-- Should the left DPAD be replaced with an analog stick? -->
     <bool name="config_left_analog">false</bool>
 
-    <!-- Pause overlay trigger mode
-        0: No overlay (disabled)
-        1: START button alone (signal +)
-        2: SELECT button alone (signal -)
-        3: SELECT + START together
-    -->
-    <integer name="config_pause_overlay">1</integer>
-    
-    <!-- Use RetroMenu2 (new menu system)
-         true: Use RetroMenu2 with SELECT+START trigger
-         false: Use original RetroMenuFragment
-    -->
-    <bool name="config_use_retromenu2">true</bool>
+    <!-- Should we show pause overlay when START button is pressed alone? -->
+    <bool name="config_pause_overlay">true</bool>
 
-    <!-- Controller sensitivity thresholds (menu navigation)
-         Values are floats from 0.0 to 1.0
-         Lower values = more sensitive, higher values = less sensitive
-    -->
-    
-    <!-- DPAD physical threshold (HAT_X/HAT_Y) - most responsive for menu navigation -->
-    <dimen name="config_dpad_threshold">0.1dp</dimen>
-    
-    <!-- Left analog stick threshold (AXIS_X/AXIS_Y) - less sensitive to avoid accidental navigation -->
-    <dimen name="config_left_analog_threshold">0.9dp</dimen>
-    
-    <!-- Right analog stick threshold (AXIS_Z/AXIS_RZ) - less sensitive to avoid accidental navigation -->
-    <dimen name="config_right_analog_threshold">0.9dp</dimen>
+    <!-- Use RetroMenu2 (new retro-style menu) instead of RetroMenu1 (fullscreen classic menu) -->
+    <bool name="config_use_retromenu2">true</bool>
 </resources>
