@@ -110,7 +110,7 @@ class RetroMenu2Config(private val context: Context) {
     // ============================================================
 
     val analogThreshold: Float
-        get() = context.resources.getDimension(R.dimen.retromenu2_analog_threshold)
+        get() = context.getString(R.string.retromenu2_analog_threshold).toFloatOrNull() ?: 0.7f
 
     // ============================================================
     // MENU TEXT STRINGS

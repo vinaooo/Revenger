@@ -59,8 +59,8 @@
     <!-- ============================================================ -->
     <!-- NAVIGATION CONFIGURATION -->
     <!-- ============================================================ -->
-    <!-- Analog stick threshold for single-trigger navigation -->
-    <item name="retromenu2_analog_threshold" format="float" type="dimen">0.7</item>
+    <!-- Analog stick threshold for single-trigger navigation (0.0 to 1.0) -->
+    <string name="retromenu2_analog_threshold">0.7</string>
     
     <!-- ============================================================ -->
     <!-- MENU TEXT STRINGS -->
