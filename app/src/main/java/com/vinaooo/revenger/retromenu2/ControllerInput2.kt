@@ -258,17 +258,24 @@ class ControllerInput2(private val config: RetroMenu2Config) {
         
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP -> {
-                Log.d(TAG, "✅ DPAD UP detectado")
+                Log.d(TAG, "✅ KEYCODE_DPAD_UP detectado")
                 onNavigateUp?.invoke()
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
-                Log.d(TAG, "✅ DPAD DOWN detectado")
+                Log.d(TAG, "✅ KEYCODE_DPAD_DOWN detectado")
                 onNavigateDown?.invoke()
             }
-            // LEFT/RIGHT são ignorados (bloqueados)
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                Log.d(TAG, "🔒 DPAD LEFT ignorado (sem ação horizontal no menu)")
+                // Ignorar LEFT no menu (sem navegação horizontal)
+            }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                Log.d(TAG, "🔒 DPAD RIGHT ignorado (sem ação horizontal no menu)")
+                // Ignorar RIGHT no menu (sem navegação horizontal)
+            }
             else -> {
                 Log.d(TAG, "Tentando processar como botão de ação...")
-                // Processar botões de ação
+                // Processar botões de ação (A/B)
                 processMenuButton(keyCode)
             }
         }
