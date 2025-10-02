@@ -5,6 +5,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.radialgamepad.library.event.Event
+import kotlin.math.abs
 
 /**
  * ControllerInput2
@@ -149,13 +150,22 @@ class ControllerInput2(private val config: RetroMenu2Config) {
         }
 
         // Menu aberto = processar navegação analog
+        // Suporta AXIS_X/Y (analog stick) E AXIS_HAT_X/HAT_Y (DPAD físico mapeado como HAT)
         val x = event.getAxisValue(MotionEvent.AXIS_X)
         val y = event.getAxisValue(MotionEvent.AXIS_Y)
+        val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
+        val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+
+        // Usar o eixo com maior magnitude (suporta DPAD E analog ao mesmo tempo)
+        val effectiveX = if (abs(hatX) > abs(x)) hatX else x
+        val effectiveY = if (abs(hatY) > abs(y)) hatY else y
+
+        Log.d(TAG, "MotionEvent - x: $x, y: $y, hatX: $hatX, hatY: $hatY -> effectiveY: $effectiveY")
 
         val currentDirection =
                 when {
-                    y < -config.analogThreshold -> AnalogDirection.UP
-                    y > config.analogThreshold -> AnalogDirection.DOWN
+                    effectiveY < -config.analogThreshold -> AnalogDirection.UP
+                    effectiveY > config.analogThreshold -> AnalogDirection.DOWN
                     else -> AnalogDirection.NONE
                 }
 
@@ -163,15 +173,15 @@ class ControllerInput2(private val config: RetroMenu2Config) {
         if (currentDirection != lastAnalogDirection) {
             when (currentDirection) {
                 AnalogDirection.UP -> {
-                    Log.d(TAG, "Analog UP detectado")
+                    Log.d(TAG, "✅ Analog/HAT UP detectado")
                     onNavigateUp?.invoke()
                 }
                 AnalogDirection.DOWN -> {
-                    Log.d(TAG, "Analog DOWN detectado")
+                    Log.d(TAG, "✅ Analog/HAT DOWN detectado")
                     onNavigateDown?.invoke()
                 }
                 AnalogDirection.NONE -> {
-                    // Stick voltou ao centro
+                    // Stick/HAT voltou ao centro
                 }
             }
             lastAnalogDirection = currentDirection
@@ -244,17 +254,20 @@ class ControllerInput2(private val config: RetroMenu2Config) {
             return // Só processar ACTION_DOWN
         }
 
+        Log.d(TAG, "processMenuInput - keyCode: $keyCode (${KeyEvent.keyCodeToString(keyCode)})")
+        
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP -> {
-                Log.d(TAG, "DPAD UP detectado")
+                Log.d(TAG, "✅ DPAD UP detectado")
                 onNavigateUp?.invoke()
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
-                Log.d(TAG, "DPAD DOWN detectado")
+                Log.d(TAG, "✅ DPAD DOWN detectado")
                 onNavigateDown?.invoke()
             }
             // LEFT/RIGHT são ignorados (bloqueados)
             else -> {
+                Log.d(TAG, "Tentando processar como botão de ação...")
                 // Processar botões de ação
                 processMenuButton(keyCode)
             }
