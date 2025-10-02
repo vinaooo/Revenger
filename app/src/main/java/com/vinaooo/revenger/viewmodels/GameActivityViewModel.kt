@@ -691,6 +691,18 @@ class GameActivityViewModel(application: Application) :
 
     /** Process a key event and return the result */
     fun processKeyEvent(keyCode: Int, event: KeyEvent): Boolean? {
+        // PRIORITY: Se RetroMenu2 está visível, encaminhar para ele
+        retroMenu2Fragment?.let { menu ->
+            if (menu.isAdded && menu.isVisible) {
+                val handled = menu.handleKeyEvent(keyCode, event)
+                if (handled) {
+                    Log.d(TAG, "RetroMenu2 consumiu KeyEvent: $keyCode")
+                    return true
+                }
+            }
+        }
+        
+        // Processar normalmente via ControllerInput
         retroView?.let {
             return controllerInput.processKeyEvent(keyCode, event, it)
         }
@@ -700,6 +712,18 @@ class GameActivityViewModel(application: Application) :
 
     /** Process a motion event and return the result */
     fun processMotionEvent(event: MotionEvent): Boolean? {
+        // PRIORITY: Se RetroMenu2 está visível, encaminhar para ele
+        retroMenu2Fragment?.let { menu ->
+            if (menu.isAdded && menu.isVisible) {
+                val handled = menu.handleMotionEvent(event)
+                if (handled) {
+                    Log.d(TAG, "RetroMenu2 consumiu MotionEvent")
+                    return true
+                }
+            }
+        }
+        
+        // Processar normalmente via ControllerInput
         retroView?.let {
             return controllerInput.processMotionEvent(event, it)
         }

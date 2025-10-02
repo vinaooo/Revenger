@@ -2,7 +2,9 @@ package com.vinaooo.revenger.retromenu2
 
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -438,17 +440,34 @@ class RetroMenu2Fragment : Fragment() {
     // PUBLIC INPUT METHODS
     // ============================================================
 
-    /**
-     * Método chamado por GameActivity para processar input de controller. Retorna true se o input
-     * foi consumido pelo menu.
-     */
-    fun handleControllerInput(event: Any): Boolean {
-        // TODO: Processar diferentes tipos de eventos
-        // - KeyEvent
-        // - MotionEvent
-        // - RadialGamePad Event
+    // ============================================================
+    // PUBLIC INPUT METHODS
+    // ============================================================
 
-        return controllerInput.isMenuOpen
+    /**
+     * Processa KeyEvent do controller.
+     * Retorna true se o evento foi consumido pelo menu.
+     */
+    fun handleKeyEvent(keyCode: Int, event: KeyEvent): Boolean {
+        if (!controllerInput.isMenuOpen) {
+            return false // Menu não está aberto
+        }
+        
+        // Processar via ControllerInput2
+        return controllerInput.processKeyEvent(keyCode, event)
+    }
+    
+    /**
+     * Processa MotionEvent (analog stick).
+     * Retorna true se o evento foi consumido pelo menu.
+     */
+    fun handleMotionEvent(event: MotionEvent): Boolean {
+        if (!controllerInput.isMenuOpen) {
+            return false // Menu não está aberto
+        }
+        
+        // Processar via ControllerInput2
+        return controllerInput.processMotionEvent(event)
     }
 
     // ============================================================
