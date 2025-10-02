@@ -273,6 +273,10 @@ class ControllerInput2(private val config: RetroMenu2Config) {
                 Log.d(TAG, "🔒 DPAD RIGHT ignorado (sem ação horizontal no menu)")
                 // Ignorar RIGHT no menu (sem navegação horizontal)
             }
+            KeyEvent.KEYCODE_BUTTON_START -> {
+                Log.d(TAG, "✅ START detectado - cancelando (fechando menu)")
+                onCancel?.invoke()
+            }
             else -> {
                 Log.d(TAG, "Tentando processar como botão de ação...")
                 // Processar botões de ação (A/B)
