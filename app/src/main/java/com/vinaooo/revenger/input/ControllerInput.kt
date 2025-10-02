@@ -116,7 +116,7 @@ class ControllerInput(private val context: Context) {
     }
 
     /** Check if we should show the pause overlay */
-    private fun checkPauseKey() {
+    private fun checkPauseKey(): Boolean {
         Log.d(TAG, "🔍 checkPauseKey CALLED - keyLog.size: ${keyLog.size}, keyLog: $keyLog")
 
         // Log callback states for debugging
@@ -136,7 +136,7 @@ class ControllerInput(private val context: Context) {
         ) {
             Log.w(TAG, "🚨 SELECT+START PAUSE CALLBACK TRIGGERED! (Double-pause risk)")
             selectStartPauseCallback()
-            return
+            return true // Block events from reaching core
         }
 
         // Check for SELECT alone (mode 2)
@@ -144,7 +144,7 @@ class ControllerInput(private val context: Context) {
         ) {
             Log.w(TAG, "🚨 SELECT PAUSE CALLBACK TRIGGERED! (Double-pause risk)")
             selectPauseCallback()
-            return
+            return true // Block events from reaching core
         }
 
         // Check for START alone (mode 1)
@@ -152,10 +152,11 @@ class ControllerInput(private val context: Context) {
         ) {
             Log.w(TAG, "🚨 START PAUSE CALLBACK TRIGGERED! (Double-pause risk)")
             pauseCallback()
-            return
+            return true // Block events from reaching core
         }
 
         Log.d(TAG, "✅ No pause conditions met - keyLog ignored")
+        return false // Don't block events
     }
 
     fun processGamePadButtonEvent(keyCode: Int, action: Int) {
@@ -326,9 +327,8 @@ class ControllerInput(private val context: Context) {
         }
 
         val port = getPort(event)
-        retroView.view.sendKeyEvent(event.action, keyCode, port)
-
-        /* Keep track of user input events */
+        
+        /* Keep track of user input events BEFORE checking pause */
         when (event.action) {
             KeyEvent.ACTION_DOWN -> {
                 keyLog.add(keyCode)
@@ -345,10 +345,20 @@ class ControllerInput(private val context: Context) {
                 )
             }
         }
-
+        
+        // Check for menu combo and pause key BEFORE sending to core
         Log.d(TAG, "🔄 Calling checkMenuKeyCombo and checkPauseKey from processKeyEvent")
         checkMenuKeyCombo()
-        checkPauseKey()
+        val shouldBlockPauseKey = checkPauseKey()
+        
+        // If pause key combo detected, block the events from reaching core
+        if (shouldBlockPauseKey) {
+            Log.w(TAG, "🚫 BLOCKING pause key combo from reaching core (SELECT/START/SELECT+START)")
+            return true // Block completely
+        }
+        
+        // Normal key, send to core
+        retroView.view.sendKeyEvent(event.action, keyCode, port)
 
         return true
     }

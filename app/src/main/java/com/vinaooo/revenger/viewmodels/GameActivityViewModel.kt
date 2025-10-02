@@ -19,10 +19,10 @@ import com.vinaooo.revenger.controllers.SpeedController
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
+import com.vinaooo.revenger.retromenu2.RetroMenu2Fragment
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment
 import com.vinaooo.revenger.ui.retromenu.RetroMenuFragment
-import com.vinaooo.revenger.retromenu2.RetroMenu2Fragment
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
@@ -46,7 +46,7 @@ class GameActivityViewModel(application: Application) :
 
     // Retro menu fragment (activated by gamepad buttons)
     private var retroMenuFragment: RetroMenuFragment? = null
-    
+
     // RetroMenu2 fragment (new menu system)
     private var retroMenu2Fragment: RetroMenu2Fragment? = null
 
@@ -140,32 +140,32 @@ class GameActivityViewModel(application: Application) :
         retroMenuFragment =
                 RetroMenuFragment.newInstance().apply { retroMenuMode = getPauseOverlayMode() }
     }
-    
+
     /** Create an instance of RetroMenu2 (new menu system) */
     fun prepareRetroMenu2(activity: ComponentActivity) {
         if (retroMenu2Fragment != null) return
-        
+
         retroMenu2Fragment = RetroMenu2Fragment.newInstance()
         Log.d(TAG, "RetroMenu2 preparado")
     }
-    
+
     /** Show RetroMenu2 overlay */
     fun showRetroMenu2(activity: FragmentActivity) {
         if (retroView?.frameRendered?.value == true) {
             // RetroMenu2 irá pausar o emulador no onResume()
             // usando frameSpeed = 0
-            
+
             retroMenu2Fragment?.let { menu ->
                 if (!menu.isAdded) {
                     activity.supportFragmentManager
-                        .beginTransaction()
-                        .add(
-                            android.R.id.content,
-                            menu,
-                            RetroMenu2Fragment::class.java.simpleName
-                        )
-                        .commit()
-                    
+                            .beginTransaction()
+                            .add(
+                                    android.R.id.content,
+                                    menu,
+                                    RetroMenu2Fragment::class.java.simpleName
+                            )
+                            .commit()
+
                     Log.d(TAG, "RetroMenu2 exibido")
                 }
             }
@@ -757,7 +757,7 @@ class GameActivityViewModel(application: Application) :
     fun isPauseOverlayEnabled(): Boolean {
         return getPauseOverlayMode() != 0
     }
-    
+
     /** Check if RetroMenu2 is enabled (new menu system) */
     fun isRetroMenu2Enabled(): Boolean {
         return resources.getBoolean(R.bool.config_use_retromenu2)
@@ -857,39 +857,29 @@ class GameActivityViewModel(application: Application) :
     // RETROMENU2 SUPPORT METHODS
     // ============================================================
 
-    /**
-     * Pausa o emulador usando frameSpeed = 0 (RetroMenu2)
-     */
+    /** Pausa o emulador usando frameSpeed = 0 (RetroMenu2) */
     fun pauseEmulator() {
         retroView?.view?.frameSpeed = 0
         Log.d(TAG, "🛑 RetroMenu2: Emulator PAUSED (frameSpeed = 0)")
     }
 
-    /**
-     * Retoma o emulador usando frameSpeed = 1 (RetroMenu2)
-     */
+    /** Retoma o emulador usando frameSpeed = 1 (RetroMenu2) */
     fun resumeEmulator() {
         retroView?.view?.frameSpeed = 1
         Log.d(TAG, "▶️ RetroMenu2: Emulator RESUMED (frameSpeed = 1)")
     }
 
-    /**
-     * Reinicia o jogo usando reset() (RetroMenu2)
-     */
+    /** Reinicia o jogo usando reset() (RetroMenu2) */
     fun resetGame() {
         resetGameCentralized()
     }
 
-    /**
-     * Salva o estado do jogo (RetroMenu2)
-     */
+    /** Salva o estado do jogo (RetroMenu2) */
     fun saveGameState() {
         saveStateCentralized()
     }
 
-    /**
-     * Carrega o estado do jogo (RetroMenu2)
-     */
+    /** Carrega o estado do jogo (RetroMenu2) */
     fun loadGameState() {
         loadStateCentralized()
     }
