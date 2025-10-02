@@ -6,26 +6,33 @@
     android:background="@color/retromenu2_background"
     tools:context=".retromenu2.RetroMenu2Fragment">
 
-    <!-- Container principal centralizado -->
-    <LinearLayout
-        android:id="@+id/menuContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="vertical"
-        android:padding="@dimen/retromenu2_padding">
+    <!-- ScrollView para suportar landscape e telas pequenas -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none">
 
-        <!-- Título PAUSE -->
-        <TextView
-            android:id="@+id/menuTitle"
+        <!-- Container principal centralizado -->
+        <LinearLayout
+            android:id="@+id/menuContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="48dp"
-            android:text="@string/retromenu2_title"
-            android:textColor="@color/retromenu2_text_color"
-            android:textSize="@dimen/retromenu2_title_text_size"
-            android:textStyle="bold" />
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Título PAUSE -->
+            <TextView
+                android:id="@+id/menuTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="32dp"
+                android:text="@string/retromenu2_title"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_title_text_size"
+                android:textStyle="bold" />
 
         <!-- Opção 1: Continue -->
         <TextView
@@ -33,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/retromenu2_option_spacing"
+            android:layout_marginBottom="18dp"
             android:text="@string/retromenu2_option_continue"
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />
@@ -44,7 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/retromenu2_option_spacing"
+            android:layout_marginBottom="18dp"
             android:text="@string/retromenu2_option_restart"
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />
@@ -55,7 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/retromenu2_option_spacing"
+            android:layout_marginBottom="18dp"
             android:text="@string/retromenu2_option_save"
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />
@@ -66,7 +73,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/retromenu2_option_spacing"
+            android:layout_marginBottom="18dp"
             android:text="@string/retromenu2_option_load"
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />
@@ -77,7 +84,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/retromenu2_option_spacing"
+            android:layout_marginBottom="18dp"
             android:text="@string/retromenu2_option_settings"
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />
@@ -94,13 +101,15 @@
 
     </LinearLayout>
 
+    </ScrollView>
+
     <!-- Texto LOADING... (invisível por padrão, aparece durante Load State) -->
     <TextView
         android:id="@+id/loadingText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
-        android:layout_margin="32dp"
+        android:layout_margin="24dp"
         android:text="@string/retromenu2_loading"
         android:textColor="@color/retromenu2_text_color"
         android:textSize="@dimen/retromenu2_loading_text_size"
@@ -113,7 +122,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="32dp"
+        android:layout_margin="24dp"
         android:textColor="@color/retromenu2_text_color"
         android:textSize="@dimen/retromenu2_info_text_size"
         tools:text="[A] CONFIRM  [B] CANCEL" />
