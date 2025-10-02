@@ -128,29 +128,29 @@ class ControllerInput(private val context: Context) {
                 "🔍 Callback states - START: $startHandleState, SELECT: $selectHandleState, SELECT+START: $selectStartHandleState"
         )
 
-        // Check for SELECT + START combo (mode 3)
-        if (keyLog.size == 2 &&
-                        keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
+        // PRIORITY 1: Check for SELECT + START combo FIRST (regardless of other keys)
+        // This allows "hold SELECT, then press START" pattern
+        if (keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
                         keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT) &&
                         selectStartHandleState
         ) {
-            Log.w(TAG, "🚨 SELECT+START PAUSE CALLBACK TRIGGERED! (Double-pause risk)")
+            Log.w(TAG, "🚨 SELECT+START COMBO DETECTED! (keyLog.size=${keyLog.size})")
             selectStartPauseCallback()
             return true // Block events from reaching core
         }
 
-        // Check for SELECT alone (mode 2)
+        // PRIORITY 2: Check for SELECT alone (ONLY if START is NOT pressed)
         if (keyLog.size == 1 && keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT) && selectHandleState
         ) {
-            Log.w(TAG, "🚨 SELECT PAUSE CALLBACK TRIGGERED! (Double-pause risk)")
+            Log.w(TAG, "🚨 SELECT ALONE DETECTED!")
             selectPauseCallback()
             return true // Block events from reaching core
         }
 
-        // Check for START alone (mode 1)
+        // PRIORITY 3: Check for START alone (ONLY if SELECT is NOT pressed)
         if (keyLog.size == 1 && keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) && startHandleState
         ) {
-            Log.w(TAG, "🚨 START PAUSE CALLBACK TRIGGERED! (Double-pause risk)")
+            Log.w(TAG, "🚨 START ALONE DETECTED!")
             pauseCallback()
             return true // Block events from reaching core
         }
