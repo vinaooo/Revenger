@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/retromenu2_background"
+    tools:context=".retromenu2.RetroMenu2Fragment">
+
+    <!-- Container principal centralizado -->
+    <LinearLayout
+        android:id="@+id/menuContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/retromenu2_padding">
+
+        <!-- Título PAUSE -->
+        <TextView
+            android:id="@+id/menuTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="48dp"
+            android:text="@string/retromenu2_title"
+            android:textColor="@color/retromenu2_text_color"
+            android:textSize="@dimen/retromenu2_title_text_size"
+            android:textStyle="bold" />
+
+        <!-- Opção 1: Continue -->
+        <TextView
+            android:id="@+id/optionContinue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/retromenu2_option_spacing"
+            android:text="@string/retromenu2_option_continue"
+            android:textColor="@color/retromenu2_text_color"
+            android:textSize="@dimen/retromenu2_option_text_size" />
+
+        <!-- Opção 2: Restart Game -->
+        <TextView
+            android:id="@+id/optionRestart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/retromenu2_option_spacing"
+            android:text="@string/retromenu2_option_restart"
+            android:textColor="@color/retromenu2_text_color"
+            android:textSize="@dimen/retromenu2_option_text_size" />
+
+        <!-- Opção 3: Save State -->
+        <TextView
+            android:id="@+id/optionSave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/retromenu2_option_spacing"
+            android:text="@string/retromenu2_option_save"
+            android:textColor="@color/retromenu2_text_color"
+            android:textSize="@dimen/retromenu2_option_text_size" />
+
+        <!-- Opção 4: Load State -->
+        <TextView
+            android:id="@+id/optionLoad"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/retromenu2_option_spacing"
+            android:text="@string/retromenu2_option_load"
+            android:textColor="@color/retromenu2_text_color"
+            android:textSize="@dimen/retromenu2_option_text_size" />
+
+        <!-- Opção 5: Settings -->
+        <TextView
+            android:id="@+id/optionSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/retromenu2_option_spacing"
+            android:text="@string/retromenu2_option_settings"
+            android:textColor="@color/retromenu2_text_color"
+            android:textSize="@dimen/retromenu2_option_text_size" />
+
+        <!-- Opção 6: Exit Game -->
+        <TextView
+            android:id="@+id/optionExit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/retromenu2_option_exit"
+            android:textColor="@color/retromenu2_text_color"
+            android:textSize="@dimen/retromenu2_option_text_size" />
+
+    </LinearLayout>
+
+    <!-- Texto LOADING... (invisível por padrão, aparece durante Load State) -->
+    <TextView
+        android:id="@+id/loadingText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="32dp"
+        android:text="@string/retromenu2_loading"
+        android:textColor="@color/retromenu2_text_color"
+        android:textSize="@dimen/retromenu2_loading_text_size"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!-- Hint de botões [A] CONFIRM [B] CANCEL (canto inferior direito) -->
+    <TextView
+        android:id="@+id/buttonHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="32dp"
+        android:textColor="@color/retromenu2_text_color"
+        android:textSize="@dimen/retromenu2_info_text_size"
+        tools:text="[A] CONFIRM  [B] CANCEL" />
+
+</FrameLayout>

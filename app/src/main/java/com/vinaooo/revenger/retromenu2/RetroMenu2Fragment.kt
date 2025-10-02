@@ -1,11 +1,14 @@
 package com.vinaooo.revenger.retromenu2
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.vinaooo.revenger.R
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 import android.util.Log
 
@@ -47,6 +50,20 @@ class RetroMenu2Fragment : Fragment() {
     // UI STATE
     // ============================================================
     
+    /** Views do layout */
+    private lateinit var menuTitle: TextView
+    private lateinit var optionContinue: TextView
+    private lateinit var optionRestart: TextView
+    private lateinit var optionSave: TextView
+    private lateinit var optionLoad: TextView
+    private lateinit var optionSettings: TextView
+    private lateinit var optionExit: TextView
+    private lateinit var loadingText: TextView
+    private lateinit var buttonHint: TextView
+    
+    /** Lista de TextViews na ordem do menu */
+    private val optionViews: MutableList<TextView> = mutableListOf()
+    
     /** Índice da opção atualmente selecionada (0-5) */
     private var selectedOptionIndex = 0
     
@@ -84,20 +101,41 @@ class RetroMenu2Fragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // TODO: Inflar layout XML (será criado na Fase 3)
-        // Por enquanto, retornar View vazia
         Log.d(TAG, "onCreateView chamado")
-        return View(requireContext())
+        return inflater.inflate(R.layout.fragment_retro_menu2, container, false)
     }
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        // TODO: Inicializar UI (Fase 3)
-        // - Aplicar fonte Arcada
-        // - Configurar cores
-        // - Exibir opções do menu
-        // - Configurar touch listeners
+        // Inicializar views
+        menuTitle = view.findViewById(R.id.menuTitle)
+        optionContinue = view.findViewById(R.id.optionContinue)
+        optionRestart = view.findViewById(R.id.optionRestart)
+        optionSave = view.findViewById(R.id.optionSave)
+        optionLoad = view.findViewById(R.id.optionLoad)
+        optionSettings = view.findViewById(R.id.optionSettings)
+        optionExit = view.findViewById(R.id.optionExit)
+        loadingText = view.findViewById(R.id.loadingText)
+        buttonHint = view.findViewById(R.id.buttonHint)
+        
+        // Popular lista de opções na ordem
+        optionViews.clear()
+        optionViews.add(optionContinue)
+        optionViews.add(optionRestart)
+        optionViews.add(optionSave)
+        optionViews.add(optionLoad)
+        optionViews.add(optionSettings)
+        optionViews.add(optionExit)
+        
+        // Aplicar fonte Arcada
+        applyArcadaFont()
+        
+        // Configurar hint de botões
+        buttonHint.text = config.buttonHintText
+        
+        // Configurar touch listeners para navegação direta
+        setupTouchListeners()
         
         checkLoadStateAvailability()
         updateUI()
@@ -360,13 +398,61 @@ class RetroMenu2Fragment : Fragment() {
     // ============================================================
     
     /**
+     * Aplica a fonte Arcada em todos os TextViews.
+     */
+    private fun applyArcadaFont() {
+        val arcadaFont = config.arcadaFont
+        
+        if (arcadaFont != null) {
+            menuTitle.typeface = arcadaFont
+            optionViews.forEach { it.typeface = arcadaFont }
+            loadingText.typeface = arcadaFont
+            buttonHint.typeface = arcadaFont
+            
+            Log.d(TAG, "Fonte Arcada aplicada com sucesso")
+        } else {
+            Log.w(TAG, "Fonte Arcada não encontrada - usando fonte padrão")
+        }
+    }
+    
+    /**
+     * Configura touch listeners para navegação direta (tap = selecionar + confirmar).
+     */
+    private fun setupTouchListeners() {
+        optionViews.forEachIndexed { index, textView ->
+            textView.setOnClickListener {
+                val option = menuOptions[index]
+                
+                if (isOptionEnabled(option)) {
+                    Log.d(TAG, "Touch em opção $index: $option")
+                    selectedOptionIndex = index
+                    updateUI()
+                    executeOption(option)
+                } else {
+                    Log.w(TAG, "Touch em opção desabilitada: $option")
+                }
+            }
+        }
+    }
+    
+    /**
      * Atualiza a UI para refletir estado atual.
      */
     private fun updateUI() {
-        // TODO: Implementar na Fase 3
-        // - Aplicar cor de seleção (amarelo)
-        // - Aplicar cor disabled (cinza) para Load State se indisponível
-        // - Atualizar hint de botões no canto
+        // Atualizar cores de acordo com seleção e disponibilidade
+        optionViews.forEachIndexed { index, textView ->
+            val option = menuOptions[index]
+            val isSelected = (index == selectedOptionIndex)
+            val isEnabled = isOptionEnabled(option)
+            
+            textView.setTextColor(
+                when {
+                    !isEnabled -> config.textDisabledColor
+                    isSelected -> config.textSelectedColor
+                    else -> config.textColor
+                }
+            )
+        }
         
         Log.d(TAG, "UI atualizada - opção selecionada: ${menuOptions[selectedOptionIndex]}")
     }
