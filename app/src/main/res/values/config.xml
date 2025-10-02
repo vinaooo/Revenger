@@ -69,6 +69,12 @@
         3: SELECT + START together
     -->
     <integer name="config_pause_overlay">1</integer>
+    
+    <!-- Use RetroMenu2 (new menu system)
+         true: Use RetroMenu2 with SELECT+START trigger
+         false: Use original RetroMenuFragment
+    -->
+    <bool name="config_use_retromenu2">true</bool>
 
     <!-- Controller sensitivity thresholds (menu navigation)
          Values are floats from 0.0 to 1.0

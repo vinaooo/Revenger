@@ -87,6 +87,7 @@ class GameActivity : FragmentActivity() {
         viewModel.updateGamePadVisibility(this, leftContainer, rightContainer)
         viewModel.prepareMenu(this)
         viewModel.preparePauseOverlay(this)
+        viewModel.prepareRetroMenu2(this)  // RetroMenu2 support
         viewModel.setupRetroView(this, retroviewContainer)
         viewModel.setupGamePads(this, leftContainer, rightContainer)
     }

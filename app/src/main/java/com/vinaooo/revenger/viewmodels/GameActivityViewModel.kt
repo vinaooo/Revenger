@@ -22,6 +22,7 @@ import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment
 import com.vinaooo.revenger.ui.retromenu.RetroMenuFragment
+import com.vinaooo.revenger.retromenu2.RetroMenu2Fragment
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
@@ -45,6 +46,9 @@ class GameActivityViewModel(application: Application) :
 
     // Retro menu fragment (activated by gamepad buttons)
     private var retroMenuFragment: RetroMenuFragment? = null
+    
+    // RetroMenu2 fragment (new menu system)
+    private var retroMenu2Fragment: RetroMenu2Fragment? = null
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput(application.applicationContext)
@@ -100,8 +104,13 @@ class GameActivityViewModel(application: Application) :
         }
 
         controllerInput.selectStartPauseCallback = {
-            // SELECT + START together (mode 3)
-            if (isPauseOverlayEnabled()) {
+            // SELECT + START together (mode 3 or RetroMenu2)
+            if (isRetroMenu2Enabled()) {
+                // RetroMenu2 usa SELECT+START como trigger exclusivo
+                Log.d(TAG, "selectStartPauseCallback TRIGGERED - opening RetroMenu2")
+                showRetroMenu2(activity)
+            } else if (isPauseOverlayEnabled()) {
+                // RetroMenu1 original
                 Log.d(
                         TAG,
                         "selectStartPauseCallback TRIGGERED - calling showPauseOverlay (SELECT+START)"
@@ -130,6 +139,37 @@ class GameActivityViewModel(application: Application) :
 
         retroMenuFragment =
                 RetroMenuFragment.newInstance().apply { retroMenuMode = getPauseOverlayMode() }
+    }
+    
+    /** Create an instance of RetroMenu2 (new menu system) */
+    fun prepareRetroMenu2(activity: ComponentActivity) {
+        if (retroMenu2Fragment != null) return
+        
+        retroMenu2Fragment = RetroMenu2Fragment.newInstance()
+        Log.d(TAG, "RetroMenu2 preparado")
+    }
+    
+    /** Show RetroMenu2 overlay */
+    fun showRetroMenu2(activity: FragmentActivity) {
+        if (retroView?.frameRendered?.value == true) {
+            // RetroMenu2 irá pausar o emulador no onResume()
+            // usando frameSpeed = 0
+            
+            retroMenu2Fragment?.let { menu ->
+                if (!menu.isAdded) {
+                    activity.supportFragmentManager
+                        .beginTransaction()
+                        .add(
+                            android.R.id.content,
+                            menu,
+                            RetroMenu2Fragment::class.java.simpleName
+                        )
+                        .commit()
+                    
+                    Log.d(TAG, "RetroMenu2 exibido")
+                }
+            }
+        }
     }
 
     /** Show the retro menu overlay */
@@ -716,6 +756,11 @@ class GameActivityViewModel(application: Application) :
     /** Check if pause overlay is enabled based on config_pause_overlay */
     fun isPauseOverlayEnabled(): Boolean {
         return getPauseOverlayMode() != 0
+    }
+    
+    /** Check if RetroMenu2 is enabled (new menu system) */
+    fun isRetroMenu2Enabled(): Boolean {
+        return resources.getBoolean(R.bool.config_use_retromenu2)
     }
 
     /** Get the pause overlay mode (0=disabled, 1=START, 2=SELECT, 3=SELECT+START) */
