@@ -770,18 +770,36 @@ class GameActivityViewModel(application: Application) :
 
     /** Check if START alone should trigger pause overlay */
     fun shouldHandleStartPause(): Boolean {
+        // RetroMenu2 NÃO usa START sozinho (apenas SELECT+START)
+        if (isRetroMenu2Enabled()) {
+            return false
+        }
+        
+        // RetroMenu1 original: só se config_pause_overlay == 1
         val mode = getPauseOverlayMode()
         return mode == 1 // START button alone
     }
 
     /** Check if SELECT alone should trigger pause overlay */
     fun shouldHandleSelectPause(): Boolean {
+        // RetroMenu2 NÃO usa SELECT sozinho (apenas SELECT+START)
+        if (isRetroMenu2Enabled()) {
+            return false
+        }
+        
+        // RetroMenu1 original: só se config_pause_overlay == 2
         val mode = getPauseOverlayMode()
         return mode == 2 // SELECT button alone
     }
 
     /** Check if SELECT+START combo should trigger pause overlay */
     fun shouldHandleSelectStartPause(): Boolean {
+        // RetroMenu2 SEMPRE usa SELECT+START, independente do config_pause_overlay
+        if (isRetroMenu2Enabled()) {
+            return true
+        }
+        
+        // RetroMenu1 original: só se config_pause_overlay == 3
         val mode = getPauseOverlayMode()
         return mode == 3 // SELECT + START together
     }
