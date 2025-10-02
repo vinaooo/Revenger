@@ -807,4 +807,45 @@ class GameActivityViewModel(application: Application) :
             Log.d(TAG, "Fast forward disabled via SpeedController")
         }
     }
+
+    // ============================================================
+    // RETROMENU2 SUPPORT METHODS
+    // ============================================================
+
+    /**
+     * Pausa o emulador usando frameSpeed = 0 (RetroMenu2)
+     */
+    fun pauseEmulator() {
+        retroView?.view?.frameSpeed = 0
+        Log.d(TAG, "🛑 RetroMenu2: Emulator PAUSED (frameSpeed = 0)")
+    }
+
+    /**
+     * Retoma o emulador usando frameSpeed = 1 (RetroMenu2)
+     */
+    fun resumeEmulator() {
+        retroView?.view?.frameSpeed = 1
+        Log.d(TAG, "▶️ RetroMenu2: Emulator RESUMED (frameSpeed = 1)")
+    }
+
+    /**
+     * Reinicia o jogo usando reset() (RetroMenu2)
+     */
+    fun resetGame() {
+        resetGameCentralized()
+    }
+
+    /**
+     * Salva o estado do jogo (RetroMenu2)
+     */
+    fun saveGameState() {
+        saveStateCentralized()
+    }
+
+    /**
+     * Carrega o estado do jogo (RetroMenu2)
+     */
+    fun loadGameState() {
+        loadStateCentralized()
+    }
 }

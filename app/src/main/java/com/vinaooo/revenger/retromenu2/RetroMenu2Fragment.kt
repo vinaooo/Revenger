@@ -1,0 +1,424 @@
+package com.vinaooo.revenger.retromenu2
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import com.vinaooo.revenger.viewmodels.GameActivityViewModel
+import android.util.Log
+
+/**
+ * RetroMenu2Fragment
+ * 
+ * Fragment principal do RetroMenu2 - tela de pause com 6 opções:
+ * 1. Continue
+ * 2. Restart Game
+ * 3. Save State
+ * 4. Load State (disabled se não houver save)
+ * 5. Settings (abre submenu)
+ * 6. Exit Game (abre submenu)
+ * 
+ * Design Philosophy:
+ * - Fragment só cuida de UI (renderização, navegação visual)
+ * - ViewModel cuida de lógica de negócio (pause, save, load, etc)
+ * - ControllerInput2 cuida de input (detectar teclas, analog, touch)
+ */
+class RetroMenu2Fragment : Fragment() {
+    
+    companion object {
+        private const val TAG = "RetroMenu2Fragment"
+        
+        fun newInstance(): RetroMenu2Fragment {
+            return RetroMenu2Fragment()
+        }
+    }
+    
+    // ============================================================
+    // DEPENDENCIES
+    // ============================================================
+    
+    private lateinit var config: RetroMenu2Config
+    private lateinit var viewModel: GameActivityViewModel
+    private lateinit var controllerInput: ControllerInput2
+    
+    // ============================================================
+    // UI STATE
+    // ============================================================
+    
+    /** Índice da opção atualmente selecionada (0-5) */
+    private var selectedOptionIndex = 0
+    
+    /** Lista de opções do menu */
+    private val menuOptions = listOf(
+        MenuOption.CONTINUE,
+        MenuOption.RESTART,
+        MenuOption.SAVE_STATE,
+        MenuOption.LOAD_STATE,
+        MenuOption.SETTINGS,
+        MenuOption.EXIT
+    )
+    
+    /** Load State está disponível? (false se não houver save) */
+    private var isLoadStateAvailable = false
+    
+    // ============================================================
+    // LIFECYCLE
+    // ============================================================
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        config = RetroMenu2Config(requireContext())
+        viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
+        controllerInput = ControllerInput2(config)
+        
+        setupControllerCallbacks()
+        
+        Log.d(TAG, "RetroMenu2Fragment criado")
+    }
+    
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // TODO: Inflar layout XML (será criado na Fase 3)
+        // Por enquanto, retornar View vazia
+        Log.d(TAG, "onCreateView chamado")
+        return View(requireContext())
+    }
+    
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        
+        // TODO: Inicializar UI (Fase 3)
+        // - Aplicar fonte Arcada
+        // - Configurar cores
+        // - Exibir opções do menu
+        // - Configurar touch listeners
+        
+        checkLoadStateAvailability()
+        updateUI()
+        
+        Log.d(TAG, "onViewCreated concluído")
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        
+        // Notificar ControllerInput que menu está aberto
+        controllerInput.menuOpened()
+        
+        // Pausar emulador (frameSpeed = 0)
+        viewModel.pauseEmulator()
+        
+        Log.d(TAG, "Menu exibido - emulador pausado")
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        
+        // Notificar ControllerInput que menu fechou
+        controllerInput.menuClosed()
+        
+        Log.d(TAG, "Menu fechado")
+    }
+    
+    // ============================================================
+    // CONTROLLER INPUT SETUP
+    // ============================================================
+    
+    private fun setupControllerCallbacks() {
+        controllerInput.onNavigateUp = {
+            navigateUp()
+        }
+        
+        controllerInput.onNavigateDown = {
+            navigateDown()
+        }
+        
+        controllerInput.onConfirm = {
+            confirmSelection()
+        }
+        
+        controllerInput.onCancel = {
+            cancelAction()
+        }
+        
+        // Menu não pode ser aberto a partir de dentro do menu
+        // (SELECT+START só funciona durante gameplay)
+        controllerInput.onMenuOpenRequested = null
+    }
+    
+    // ============================================================
+    // NAVIGATION
+    // ============================================================
+    
+    /**
+     * Navega para cima na lista de opções.
+     */
+    private fun navigateUp() {
+        do {
+            selectedOptionIndex = if (selectedOptionIndex > 0) {
+                selectedOptionIndex - 1
+            } else {
+                menuOptions.size - 1 // Wrap para o final
+            }
+        } while (!isOptionEnabled(menuOptions[selectedOptionIndex]))
+        
+        Log.d(TAG, "Navegação UP - opção selecionada: ${menuOptions[selectedOptionIndex]}")
+        updateUI()
+    }
+    
+    /**
+     * Navega para baixo na lista de opções.
+     */
+    private fun navigateDown() {
+        do {
+            selectedOptionIndex = if (selectedOptionIndex < menuOptions.size - 1) {
+                selectedOptionIndex + 1
+            } else {
+                0 // Wrap para o início
+            }
+        } while (!isOptionEnabled(menuOptions[selectedOptionIndex]))
+        
+        Log.d(TAG, "Navegação DOWN - opção selecionada: ${menuOptions[selectedOptionIndex]}")
+        updateUI()
+    }
+    
+    /**
+     * Confirma a seleção atual.
+     */
+    private fun confirmSelection() {
+        val option = menuOptions[selectedOptionIndex]
+        
+        if (!isOptionEnabled(option)) {
+            Log.w(TAG, "Opção $option está desabilitada")
+            return
+        }
+        
+        Log.d(TAG, "Opção confirmada: $option")
+        executeOption(option)
+    }
+    
+    /**
+     * Cancela ação atual (equivalente a Continue).
+     */
+    private fun cancelAction() {
+        Log.d(TAG, "Ação cancelada - fechando menu")
+        closeMenu()
+    }
+    
+    // ============================================================
+    // MENU OPTIONS EXECUTION
+    // ============================================================
+    
+    /**
+     * Executa a ação da opção selecionada.
+     */
+    private fun executeOption(option: MenuOption) {
+        when (option) {
+            MenuOption.CONTINUE -> {
+                closeMenu()
+            }
+            MenuOption.RESTART -> {
+                restartGame()
+            }
+            MenuOption.SAVE_STATE -> {
+                saveState()
+            }
+            MenuOption.LOAD_STATE -> {
+                loadState()
+            }
+            MenuOption.SETTINGS -> {
+                openSettingsSubmenu()
+            }
+            MenuOption.EXIT -> {
+                openExitSubmenu()
+            }
+        }
+    }
+    
+    /**
+     * Fecha o menu e retoma gameplay.
+     */
+    private fun closeMenu() {
+        // Retomar emulador (frameSpeed = 1)
+        viewModel.resumeEmulator()
+        
+        // Fechar fragment
+        parentFragmentManager.beginTransaction()
+            .remove(this)
+            .commit()
+        
+        Log.d(TAG, "Menu fechado - emulador retomado")
+    }
+    
+    /**
+     * Reinicia o jogo usando reset().
+     */
+    private fun restartGame() {
+        Log.d(TAG, "Reiniciando jogo...")
+        
+        // Retomar emulador primeiro (frameSpeed = 1)
+        viewModel.resumeEmulator()
+        
+        // Executar reset()
+        viewModel.resetGame()
+        
+        // Fechar menu
+        parentFragmentManager.beginTransaction()
+            .remove(this)
+            .commit()
+        
+        Log.d(TAG, "Jogo reiniciado")
+    }
+    
+    /**
+     * Salva o estado do jogo.
+     */
+    private fun saveState() {
+        Log.d(TAG, "Salvando estado...")
+        
+        // Retomar emulador temporariamente (frameSpeed = 1)
+        viewModel.resumeEmulator()
+        
+        // TODO: Adicionar delay mínimo antes de salvar (evitar save corrupto)
+        
+        // Salvar estado
+        viewModel.saveGameState()
+        
+        // Pausar novamente
+        viewModel.pauseEmulator()
+        
+        // Atualizar disponibilidade de Load State
+        isLoadStateAvailable = true
+        updateUI()
+        
+        Log.d(TAG, "Estado salvo")
+    }
+    
+    /**
+     * Carrega o estado do jogo.
+     */
+    private fun loadState() {
+        if (!isLoadStateAvailable) {
+            Log.w(TAG, "Load State não disponível")
+            return
+        }
+        
+        Log.d(TAG, "Carregando estado...")
+        
+        // TODO: Mostrar tela de loading (Fase 6)
+        
+        // Retomar emulador (frameSpeed = 1)
+        viewModel.resumeEmulator()
+        
+        // Carregar estado
+        viewModel.loadGameState()
+        
+        // TODO: Aguardar duração mínima de loading (2 segundos)
+        
+        // Fechar menu
+        parentFragmentManager.beginTransaction()
+            .remove(this)
+            .commit()
+        
+        Log.d(TAG, "Estado carregado")
+    }
+    
+    /**
+     * Abre submenu de Settings.
+     */
+    private fun openSettingsSubmenu() {
+        Log.d(TAG, "Abrindo submenu Settings...")
+        
+        // TODO: Implementar na Fase 5
+        // - Criar RetroMenu2SettingsFragment
+        // - Transição com animação slide
+        
+        Log.w(TAG, "Submenu Settings ainda não implementado")
+    }
+    
+    /**
+     * Abre submenu de Exit.
+     */
+    private fun openExitSubmenu() {
+        Log.d(TAG, "Abrindo submenu Exit...")
+        
+        // TODO: Implementar na Fase 5
+        // - Criar RetroMenu2ExitFragment
+        // - Transição com animação slide
+        
+        Log.w(TAG, "Submenu Exit ainda não implementado")
+    }
+    
+    // ============================================================
+    // UI HELPERS
+    // ============================================================
+    
+    /**
+     * Atualiza a UI para refletir estado atual.
+     */
+    private fun updateUI() {
+        // TODO: Implementar na Fase 3
+        // - Aplicar cor de seleção (amarelo)
+        // - Aplicar cor disabled (cinza) para Load State se indisponível
+        // - Atualizar hint de botões no canto
+        
+        Log.d(TAG, "UI atualizada - opção selecionada: ${menuOptions[selectedOptionIndex]}")
+    }
+    
+    /**
+     * Verifica se Load State está disponível (se existe save).
+     */
+    private fun checkLoadStateAvailability() {
+        // TODO: Verificar se arquivo de save state existe
+        // Por enquanto, assumir false
+        isLoadStateAvailable = false
+        
+        Log.d(TAG, "Load State disponível: $isLoadStateAvailable")
+    }
+    
+    /**
+     * Verifica se uma opção está habilitada.
+     */
+    private fun isOptionEnabled(option: MenuOption): Boolean {
+        return when (option) {
+            MenuOption.LOAD_STATE -> isLoadStateAvailable
+            else -> true
+        }
+    }
+    
+    // ============================================================
+    // PUBLIC INPUT METHODS
+    // ============================================================
+    
+    /**
+     * Método chamado por GameActivity para processar input de controller.
+     * Retorna true se o input foi consumido pelo menu.
+     */
+    fun handleControllerInput(event: Any): Boolean {
+        // TODO: Processar diferentes tipos de eventos
+        // - KeyEvent
+        // - MotionEvent
+        // - RadialGamePad Event
+        
+        return controllerInput.isMenuOpen
+    }
+    
+    // ============================================================
+    // MENU OPTION ENUM
+    // ============================================================
+    
+    enum class MenuOption {
+        CONTINUE,
+        RESTART,
+        SAVE_STATE,
+        LOAD_STATE,
+        SETTINGS,
+        EXIT
+    }
+}
