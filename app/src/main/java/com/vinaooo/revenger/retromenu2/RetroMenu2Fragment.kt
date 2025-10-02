@@ -112,7 +112,7 @@ class RetroMenu2Fragment : Fragment() {
         config = RetroMenu2Config(requireContext())
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
         controllerInput = ControllerInput2(config)
-        
+
         // Inicializar MenuSoundManager
         soundManager = MenuSoundManager(requireContext())
         soundManager.initialize()
@@ -186,7 +186,7 @@ class RetroMenu2Fragment : Fragment() {
 
         // NÃO pausar aqui - já foi pausado 300ms antes no callback
         // viewModel.pauseEmulator() foi movido para selectStartPauseCallback
-        
+
         // Tocar som de abertura do menu
         soundManager.playOpen()
 
@@ -201,17 +201,21 @@ class RetroMenu2Fragment : Fragment() {
 
         Log.d(TAG, "Menu fechado")
     }
-    
+
     override fun onDestroy() {
         super.onDestroy()
-        
+
         // Aguardar 500ms antes de liberar SoundManager
         // Isso garante que sons de cancelamento/confirmação terminem de tocar
-        Handler(Looper.getMainLooper()).postDelayed({
-            soundManager.release()
-            Log.d(TAG, "SoundManager liberado após delay")
-        }, 500)
-        
+        Handler(Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            soundManager.release()
+                            Log.d(TAG, "SoundManager liberado após delay")
+                        },
+                        500
+                )
+
         Log.d(TAG, "RetroMenu2Fragment destruído")
     }
 
@@ -337,11 +341,16 @@ class RetroMenu2Fragment : Fragment() {
         parentFragmentManager.beginTransaction().remove(this).commit()
 
         // PASSO 2: Aguardar 300ms para evitar sobreposição de sons
-        Handler(Looper.getMainLooper()).postDelayed({
-            // PASSO 3: Retomar emulador (frameSpeed = 1 ou o valor pendente aplicado acima)
-            viewModel.resumeEmulator()
-            Log.d(TAG, "Menu fechado - emulador retomado após delay")
-        }, 300)
+        Handler(Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            // PASSO 3: Retomar emulador (frameSpeed = 1 ou o valor pendente
+                            // aplicado acima)
+                            viewModel.resumeEmulator()
+                            Log.d(TAG, "Menu fechado - emulador retomado após delay")
+                        },
+                        300
+                )
     }
 
     /** Reinicia o jogo usando reset(). */

@@ -98,7 +98,7 @@ class ExitSubmenuFragment : Fragment() {
 
         // Obter ViewModel da Activity pai
         viewModel = ViewModelProvider(requireActivity()).get(GameActivityViewModel::class.java)
-        
+
         // Inicializar SoundManager
         soundManager = MenuSoundManager(requireContext())
         soundManager.initialize()
@@ -159,17 +159,21 @@ class ExitSubmenuFragment : Fragment() {
         controllerInput.menuClosed()
         Log.d(TAG, "ExitSubmenu pausado")
     }
-    
+
     override fun onDestroy() {
         super.onDestroy()
-        
+
         // Aguardar 500ms antes de liberar SoundManager
         // Isso garante que sons de cancelamento/confirmação terminem de tocar
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            soundManager.release()
-            Log.d(TAG, "SoundManager liberado após delay")
-        }, 500)
-        
+        android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            soundManager.release()
+                            Log.d(TAG, "SoundManager liberado após delay")
+                        },
+                        500
+                )
+
         Log.d(TAG, "ExitSubmenu destruído")
     }
 
@@ -227,14 +231,14 @@ class ExitSubmenuFragment : Fragment() {
     /** Confirma opção selecionada. */
     private fun confirmOption() {
         val option = submenuOptions[selectedOptionIndex]
-        
+
         // Som de confirmação ou cancelamento
         if (option == SubmenuOption.NO_CONTINUE) {
             soundManager.playCancel()
         } else {
             soundManager.playConfirm()
         }
-        
+
         Log.d(TAG, "Opção confirmada: $option")
 
         when (option) {

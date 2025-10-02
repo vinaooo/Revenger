@@ -108,14 +108,13 @@ class GameActivityViewModel(application: Application) :
             if (isRetroMenu2Enabled()) {
                 // RetroMenu2 usa SELECT+START como trigger exclusivo
                 Log.d(TAG, "selectStartPauseCallback TRIGGERED - pausing then opening RetroMenu2")
-                
+
                 // PASSO 1: Pausar emulador PRIMEIRO (frameSpeed = 0)
                 pauseEmulator()
-                
+
                 // PASSO 2: Aguardar 300ms para evitar sobreposição de sons
-                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                    showRetroMenu2(activity)
-                }, 300)
+                android.os.Handler(android.os.Looper.getMainLooper())
+                        .postDelayed({ showRetroMenu2(activity) }, 300)
             } else if (isPauseOverlayEnabled()) {
                 // RetroMenu1 original
                 Log.d(

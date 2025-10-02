@@ -207,17 +207,21 @@ class SettingsSubmenuFragment : Fragment() {
 
         Log.d(TAG, "SettingsSubmenu pausado")
     }
-    
+
     override fun onDestroy() {
         super.onDestroy()
-        
+
         // Aguardar 500ms antes de liberar SoundManager
         // Isso garante que sons de cancelamento/confirmação terminem de tocar
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            soundManager.release()
-            Log.d(TAG, "SoundManager liberado após delay")
-        }, 500)
-        
+        android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            soundManager.release()
+                            Log.d(TAG, "SoundManager liberado após delay")
+                        },
+                        500
+                )
+
         Log.d(TAG, "SettingsSubmenu destruído")
     }
 
@@ -307,14 +311,14 @@ class SettingsSubmenuFragment : Fragment() {
     /** Confirma opção selecionada (toggle ou back). */
     private fun confirmOption() {
         val option = submenuOptions[selectedOptionIndex]
-        
+
         // Som de confirmação (exceto para BACK que usa cancel)
         if (option == SubmenuOption.BACK) {
             soundManager.playCancel()
         } else {
             soundManager.playConfirm()
         }
-        
+
         Log.d(TAG, "Opção confirmada: $option")
 
         when (option) {
