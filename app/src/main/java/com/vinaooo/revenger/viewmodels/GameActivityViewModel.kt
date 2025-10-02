@@ -701,7 +701,7 @@ class GameActivityViewModel(application: Application) :
                 }
             }
         }
-        
+
         // Processar normalmente via ControllerInput
         retroView?.let {
             return controllerInput.processKeyEvent(keyCode, event, it)
@@ -722,7 +722,7 @@ class GameActivityViewModel(application: Application) :
                 }
             }
         }
-        
+
         // Processar normalmente via ControllerInput
         retroView?.let {
             return controllerInput.processMotionEvent(event, it)
@@ -798,7 +798,7 @@ class GameActivityViewModel(application: Application) :
         if (isRetroMenu2Enabled()) {
             return false
         }
-        
+
         // RetroMenu1 original: só se config_pause_overlay == 1
         val mode = getPauseOverlayMode()
         return mode == 1 // START button alone
@@ -810,7 +810,7 @@ class GameActivityViewModel(application: Application) :
         if (isRetroMenu2Enabled()) {
             return false
         }
-        
+
         // RetroMenu1 original: só se config_pause_overlay == 2
         val mode = getPauseOverlayMode()
         return mode == 2 // SELECT button alone
@@ -822,7 +822,7 @@ class GameActivityViewModel(application: Application) :
         if (isRetroMenu2Enabled()) {
             return true
         }
-        
+
         // RetroMenu1 original: só se config_pause_overlay == 3
         val mode = getPauseOverlayMode()
         return mode == 3 // SELECT + START together
@@ -911,9 +911,9 @@ class GameActivityViewModel(application: Application) :
         Log.d(TAG, "▶️ RetroMenu2: Emulator RESUMED (frameSpeed = 1)")
     }
 
-    /** 
-     * Limpa o keyLog do ControllerInput para evitar detecção de combos após fechar menu.
-     * CRÍTICO: Previne que SELECT+START reabre menu imediatamente após fechar.
+    /**
+     * Limpa o keyLog do ControllerInput para evitar detecção de combos após fechar menu. CRÍTICO:
+     * Previne que SELECT+START reabre menu imediatamente após fechar.
      */
     fun clearInputKeyLog() {
         controllerInput.clearKeyLog()

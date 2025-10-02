@@ -28,7 +28,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="24dp"
                 android:text="@string/retromenu2_title"
                 android:textColor="@color/retromenu2_text_color"
                 android:textSize="@dimen/retromenu2_title_text_size"
@@ -40,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="18dp"
+            android:layout_marginBottom="12dp"
             android:text="@string/retromenu2_option_continue"
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />
@@ -51,7 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="18dp"
+            android:layout_marginBottom="12dp"
             android:text="@string/retromenu2_option_restart"
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />
@@ -62,7 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="18dp"
+            android:layout_marginBottom="12dp"
             android:text="@string/retromenu2_option_save"
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />
@@ -73,7 +73,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="18dp"
+            android:layout_marginBottom="12dp"
             android:text="@string/retromenu2_option_load"
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />
@@ -84,7 +84,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="18dp"
+            android:layout_marginBottom="12dp"
             android:text="@string/retromenu2_option_settings"
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />

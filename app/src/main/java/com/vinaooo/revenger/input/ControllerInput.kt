@@ -47,8 +47,8 @@ class ControllerInput(private val context: Context) {
     private val keysToBlockAfterMenuClose = mutableSetOf<Int>()
 
     /**
-     * Limpa o keyLog para evitar detecção de combos após fechar o menu.
-     * CRÍTICO: Deve ser chamado quando o menu fecha para evitar reabertura imediata.
+     * Limpa o keyLog para evitar detecção de combos após fechar o menu. CRÍTICO: Deve ser chamado
+     * quando o menu fecha para evitar reabertura imediata.
      */
     fun clearKeyLog() {
         Log.w(TAG, "🧹 CLEARING keyLog - was: $keyLog")
@@ -337,7 +337,7 @@ class ControllerInput(private val context: Context) {
         }
 
         val port = getPort(event)
-        
+
         /* Keep track of user input events BEFORE checking pause */
         when (event.action) {
             KeyEvent.ACTION_DOWN -> {
@@ -355,18 +355,18 @@ class ControllerInput(private val context: Context) {
                 )
             }
         }
-        
+
         // Check for menu combo and pause key BEFORE sending to core
         Log.d(TAG, "🔄 Calling checkMenuKeyCombo and checkPauseKey from processKeyEvent")
         checkMenuKeyCombo()
         val shouldBlockPauseKey = checkPauseKey()
-        
+
         // If pause key combo detected, block the events from reaching core
         if (shouldBlockPauseKey) {
             Log.w(TAG, "🚫 BLOCKING pause key combo from reaching core (SELECT/START/SELECT+START)")
             return true // Block completely
         }
-        
+
         // Normal key, send to core
         retroView.view.sendKeyEvent(event.action, keyCode, port)
 

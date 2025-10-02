@@ -269,7 +269,7 @@ class RetroMenu2Fragment : Fragment() {
     private fun closeMenu() {
         // CRÍTICO: Limpar keyLog ANTES de retomar para evitar reabertura imediata!
         viewModel.clearInputKeyLog()
-        
+
         // Retomar emulador (frameSpeed = 1)
         viewModel.resumeEmulator()
 
@@ -285,7 +285,7 @@ class RetroMenu2Fragment : Fragment() {
 
         // CRÍTICO: Limpar keyLog ANTES de retomar para evitar reabertura imediata!
         viewModel.clearInputKeyLog()
-        
+
         // Retomar emulador primeiro (frameSpeed = 1)
         viewModel.resumeEmulator()
 
@@ -450,28 +450,22 @@ class RetroMenu2Fragment : Fragment() {
     // PUBLIC INPUT METHODS
     // ============================================================
 
-    /**
-     * Processa KeyEvent do controller.
-     * Retorna true se o evento foi consumido pelo menu.
-     */
+    /** Processa KeyEvent do controller. Retorna true se o evento foi consumido pelo menu. */
     fun handleKeyEvent(keyCode: Int, event: KeyEvent): Boolean {
         if (!controllerInput.isMenuOpen) {
             return false // Menu não está aberto
         }
-        
+
         // Processar via ControllerInput2
         return controllerInput.processKeyEvent(keyCode, event)
     }
-    
-    /**
-     * Processa MotionEvent (analog stick).
-     * Retorna true se o evento foi consumido pelo menu.
-     */
+
+    /** Processa MotionEvent (analog stick). Retorna true se o evento foi consumido pelo menu. */
     fun handleMotionEvent(event: MotionEvent): Boolean {
         if (!controllerInput.isMenuOpen) {
             return false // Menu não está aberto
         }
-        
+
         // Processar via ControllerInput2
         return controllerInput.processMotionEvent(event)
     }

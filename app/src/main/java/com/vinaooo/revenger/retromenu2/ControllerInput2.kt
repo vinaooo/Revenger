@@ -98,8 +98,11 @@ class ControllerInput2(private val config: RetroMenu2Config) {
      * o core).
      */
     fun processKeyEvent(keyCode: Int, event: KeyEvent): Boolean {
-        Log.d(TAG, "processKeyEvent - keyCode: $keyCode, action: ${event.action}, isMenuOpen: $isMenuOpen")
-        
+        Log.d(
+                TAG,
+                "processKeyEvent - keyCode: $keyCode, action: ${event.action}, isMenuOpen: $isMenuOpen"
+        )
+
         // Menu aberto = bloquear todos os eventos para o core
         if (isMenuOpen) {
             processMenuInput(keyCode, event)
@@ -160,7 +163,10 @@ class ControllerInput2(private val config: RetroMenu2Config) {
         val effectiveX = if (abs(hatX) > abs(x)) hatX else x
         val effectiveY = if (abs(hatY) > abs(y)) hatY else y
 
-        Log.d(TAG, "MotionEvent - x: $x, y: $y, hatX: $hatX, hatY: $hatY -> effectiveY: $effectiveY")
+        Log.d(
+                TAG,
+                "MotionEvent - x: $x, y: $y, hatX: $hatX, hatY: $hatY -> effectiveY: $effectiveY"
+        )
 
         val currentDirection =
                 when {
@@ -255,7 +261,7 @@ class ControllerInput2(private val config: RetroMenu2Config) {
         }
 
         Log.d(TAG, "processMenuInput - keyCode: $keyCode (${KeyEvent.keyCodeToString(keyCode)})")
-        
+
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP -> {
                 Log.d(TAG, "✅ KEYCODE_DPAD_UP detectado")
