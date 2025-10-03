@@ -7,11 +7,11 @@
     <string name="config_name">Não jogar</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="config_core">smsplus</string>
-    <!-- Snes = bsnes -->
+    <string name="config_core">genesis_plus_gx</string>
+    <!-- Snes = snes9x -->
     <!-- megadrive = genesis_plus_gx -->
     <!-- gb = gambatte -->
-    <!-- master = smsplus -->
+    <!-- master = genesis_plus_gx -->
     
     <!-- rom name, the same name the rom file in res/raw without extension -->
     <string name="config_rom">sth</string>
