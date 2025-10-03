@@ -56,61 +56,61 @@
                 android:textSize="@dimen/retromenu2_title_text_size"
                 android:textStyle="bold" />
 
-        <!-- Opção 1: Continue -->
-        <TextView
-            android:id="@+id/optionContinue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="6dp"
-            android:text="@string/retromenu2_option_continue"
-            android:textColor="@color/retromenu2_text_color"
-            android:textSize="@dimen/retromenu2_option_text_size" />
+            <!-- Opção 1: Continue -->
+            <TextView
+                android:id="@+id/optionContinue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="6dp"
+                android:text="@string/retromenu2_option_continue"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_option_text_size" />
 
-        <!-- Opção 2: Restart Game -->
-        <TextView
-            android:id="@+id/optionRestart"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="6dp"
-            android:text="@string/retromenu2_option_restart"
-            android:textColor="@color/retromenu2_text_color"
-            android:textSize="@dimen/retromenu2_option_text_size" />
+            <!-- Opção 2: Restart Game -->
+            <TextView
+                android:id="@+id/optionRestart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="6dp"
+                android:text="@string/retromenu2_option_restart"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_option_text_size" />
 
-        <!-- Opção 3: Save State -->
-        <TextView
-            android:id="@+id/optionSave"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="6dp"
-            android:text="@string/retromenu2_option_save"
-            android:textColor="@color/retromenu2_text_color"
-            android:textSize="@dimen/retromenu2_option_text_size" />
+            <!-- Opção 3: Save State -->
+            <TextView
+                android:id="@+id/optionSave"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="6dp"
+                android:text="@string/retromenu2_option_save"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_option_text_size" />
 
-        <!-- Opção 4: Settings -->
-        <TextView
-            android:id="@+id/optionSettings"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="6dp"
-            android:text="@string/retromenu2_option_settings"
-            android:textColor="@color/retromenu2_text_color"
-            android:textSize="@dimen/retromenu2_option_text_size" />
+            <!-- Opção 4: Settings -->
+            <TextView
+                android:id="@+id/optionSettings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="6dp"
+                android:text="@string/retromenu2_option_settings"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_option_text_size" />
 
-        <!-- Opção 5: Exit Game -->
-        <TextView
-            android:id="@+id/optionExit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="@string/retromenu2_option_exit"
-            android:textColor="@color/retromenu2_text_color"
-            android:textSize="@dimen/retromenu2_option_text_size" />
+            <!-- Opção 5: Exit Game -->
+            <TextView
+                android:id="@+id/optionExit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/retromenu2_option_exit"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_option_text_size" />
 
-    </LinearLayout>
+        </LinearLayout>
 
     </ScrollView>
 

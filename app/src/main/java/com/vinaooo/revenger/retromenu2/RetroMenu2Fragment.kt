@@ -37,7 +37,7 @@ import kotlinx.coroutines.withContext
  *
  * Design Philosophy:
  * - Fragment só cuida de UI (renderização, navegação visual)
- * - ViewModel cuida de lógica de negócio (pause, save, load, etc)
+ * - ViewModel cuida de lógica de negócio (pause, save, etc)
  * - ControllerInput2 cuida de input (detectar teclas, analog, touch)
  */
 class RetroMenu2Fragment : Fragment() {
@@ -244,7 +244,7 @@ class RetroMenu2Fragment : Fragment() {
     private fun confirmSelection() {
         val option = menuOptions[selectedOptionIndex]
 
-        soundManager.playConfirm() // Som de confirmação
+        soundManager.playConfirm()
         executeOption(option)
     }
 
@@ -408,6 +408,8 @@ class RetroMenu2Fragment : Fragment() {
             // Adicionar seta '> ' antes da opção selecionada (estilo retrô)
             val baseText = getOptionBaseText(option)
             textView.text = if (isSelected) "> $baseText" else "  $baseText"
+
+            textView.alpha = 1.0f
 
             textView.setTextColor(
                     if (isSelected) {

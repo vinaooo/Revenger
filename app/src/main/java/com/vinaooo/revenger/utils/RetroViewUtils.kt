@@ -8,6 +8,14 @@ import com.vinaooo.revenger.repositories.Storage
 import com.vinaooo.revenger.retroview.RetroView
 
 class RetroViewUtils(private val activity: Activity) {
+    /** Retorna o caminho do arquivo de save state utilizado */
+    fun getSaveStatePath(retroView: com.vinaooo.revenger.retroview.RetroView?): String? {
+        return try {
+            storage.state.absolutePath
+        } catch (e: Exception) {
+            null
+        }
+    }
     private val storage = Storage.getInstance(activity)
     private val sharedPreferences = activity.getPreferences(Context.MODE_PRIVATE)
     private val fastForwardSpeed =
