@@ -30,8 +30,6 @@
     <dimen name="retromenu2_title_text_size">48sp</dimen>
     <dimen name="retromenu2_option_text_size">28sp</dimen>
     <dimen name="retromenu2_info_text_size">20sp</dimen>
-    <dimen name="retromenu2_loading_text_size">24sp</dimen>
-    
     <!-- ============================================================ -->
     <!-- LAYOUT CONFIGURATION -->
     <!-- ============================================================ -->
@@ -46,12 +44,6 @@
     <!-- ============================================================ -->
     <!-- Transition duration for submenu slide animations (ms) -->
     <integer name="retromenu2_transition_duration">300</integer>
-    
-    <!-- Loading text blink rate (ms) -->
-    <integer name="retromenu2_loading_blink_rate">500</integer>
-    
-    <!-- Minimum loading screen duration (ms) -->
-    <integer name="retromenu2_min_loading_duration">2000</integer>
     
     <!-- START button block duration after menu closes (ms) -->
     <integer name="retromenu2_start_block_duration">500</integer>
@@ -86,7 +78,6 @@
     <string name="retromenu2_option_continue">Continue</string>
     <string name="retromenu2_option_restart">Restart Game</string>
     <string name="retromenu2_option_save">Save State</string>
-    <string name="retromenu2_option_load">Load State</string>
     <string name="retromenu2_option_settings">Settings</string>
     <string name="retromenu2_option_exit">Exit Game</string>
     
@@ -108,10 +99,6 @@
     <string name="retromenu2_exit_save_and_exit">Save and Exit</string>
     <string name="retromenu2_exit_cancel">Cancel</string>
     <string name="retromenu2_exit_without_save">Exit Without Save</string>
-    
-    <!-- Status messages -->
-    <string name="retromenu2_loading">LOADING...</string>
-    <string name="retromenu2_no_save_state">No save state available</string>
     
     <!-- Button hints -->
     <string name="retromenu2_hint_confirm_a">[A] CONFIRM  [B] CANCEL</string>

@@ -1,7 +1,6 @@
 package com.vinaooo.revenger.retromenu2
 
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -28,8 +27,6 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 class SettingsSubmenuFragment : Fragment() {
 
     companion object {
-        private const val TAG = "SettingsSubmenu"
-
         fun newInstance(): SettingsSubmenuFragment {
             return SettingsSubmenuFragment()
         }
@@ -127,11 +124,10 @@ class SettingsSubmenuFragment : Fragment() {
         // Obter ViewModel da Activity pai
         viewModel = ViewModelProvider(requireActivity()).get(GameActivityViewModel::class.java)
 
-        // Inicializar SoundManager
-        soundManager = MenuSoundManager(requireContext())
-        soundManager.initialize()
-
-        Log.d(TAG, "SettingsSubmenuFragment criado")
+        // Usar MenuSoundManager compartilhado do ViewModel
+        soundManager =
+                viewModel.getMenuSoundManager()
+                        ?: MenuSoundManager(requireContext()).also { it.initialize() }
     }
 
     override fun onCreateView(
@@ -139,7 +135,6 @@ class SettingsSubmenuFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        Log.d(TAG, "onCreateView chamado")
         return inflater.inflate(R.layout.fragment_settings_submenu, container, false)
     }
 
@@ -171,8 +166,6 @@ class SettingsSubmenuFragment : Fragment() {
 
         // Atualizar UI inicial
         updateUI()
-
-        Log.d(TAG, "onViewCreated concluído")
     }
 
     override fun onResume() {
@@ -186,8 +179,6 @@ class SettingsSubmenuFragment : Fragment() {
         controllerInput.onConfirm = { confirmOption() }
         controllerInput.onCancel = { closeSubmenu() }
         controllerInput.menuOpened()
-
-        Log.d(TAG, "SettingsSubmenu ativo - input configurado")
     }
 
     override fun onPause() {
@@ -198,31 +189,15 @@ class SettingsSubmenuFragment : Fragment() {
         pendingGameSpeedChange?.let { newSpeed ->
             val parentMenu = parentFragment as? RetroMenu2Fragment
             parentMenu?.pendingGameSpeedChange = newSpeed
-            Log.d(
-                    TAG,
-                    "Passando Game Speed pendente para menu principal: ${if (newSpeed == 2) "Fast (x2)" else "Normal (x1)"}"
-            )
             pendingGameSpeedChange = null
         }
-
-        Log.d(TAG, "SettingsSubmenu pausado")
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
-        // Aguardar 500ms antes de liberar SoundManager
-        // Isso garante que sons de cancelamento/confirmação terminem de tocar
-        android.os.Handler(android.os.Looper.getMainLooper())
-                .postDelayed(
-                        {
-                            soundManager.release()
-                            Log.d(TAG, "SoundManager liberado após delay")
-                        },
-                        500
-                )
+        // NÃO liberar SoundManager - ele é compartilhado pelo ViewModel
 
-        Log.d(TAG, "SettingsSubmenu destruído")
     }
 
     // ============================================================
@@ -235,9 +210,8 @@ class SettingsSubmenuFragment : Fragment() {
         if (arcadaFont != null) {
             submenuTitle.typeface = arcadaFont
             optionViews.forEach { it.typeface = arcadaFont }
-            Log.d(TAG, "Fonte Arcada aplicada")
         } else {
-            Log.w(TAG, "Fonte Arcada não encontrada - usando fonte padrão")
+            submenuTitle.typeface = null
         }
     }
 
@@ -248,7 +222,6 @@ class SettingsSubmenuFragment : Fragment() {
                 if (selectedOptionIndex != index) {
                     selectedOptionIndex = index
                     updateUI()
-                    Log.d(TAG, "Touch selecionou: ${submenuOptions[index]}")
                 }
             }
         }
@@ -269,11 +242,6 @@ class SettingsSubmenuFragment : Fragment() {
         // Game speed: obtém do SpeedController (SharedPreferences)
         val currentSpeed = viewModel.getSpeedController()?.getCurrentSpeed() ?: 1
         isFastSpeed = currentSpeed > 1
-
-        Log.d(
-                TAG,
-                "Configurações carregadas: GameSounds=$isGameSoundsEnabled, MenuSounds=$isMenuSoundsEnabled, FastSpeed=$isFastSpeed (speed=$currentSpeed)"
-        )
     }
 
     // ============================================================
@@ -290,7 +258,6 @@ class SettingsSubmenuFragment : Fragment() {
                 }
 
         soundManager.playNavigation() // Som de navegação
-        Log.d(TAG, "Navegação UP - opção selecionada: ${submenuOptions[selectedOptionIndex]}")
         updateUI()
     }
 
@@ -304,7 +271,6 @@ class SettingsSubmenuFragment : Fragment() {
                 }
 
         soundManager.playNavigation() // Som de navegação
-        Log.d(TAG, "Navegação DOWN - opção selecionada: ${submenuOptions[selectedOptionIndex]}")
         updateUI()
     }
 
@@ -319,8 +285,6 @@ class SettingsSubmenuFragment : Fragment() {
             soundManager.playConfirm()
         }
 
-        Log.d(TAG, "Opção confirmada: $option")
-
         when (option) {
             SubmenuOption.GAME_SOUNDS -> toggleGameSounds()
             SubmenuOption.MENU_SOUNDS -> toggleMenuSounds()
@@ -331,7 +295,6 @@ class SettingsSubmenuFragment : Fragment() {
 
     /** Fecha submenu (volta ao menu principal). */
     private fun closeSubmenu() {
-        Log.d(TAG, "Fechando submenu - voltando ao menu principal")
         // Parent fragment (RetroMenu2Fragment) vai gerenciar o pop do back stack
         parentFragmentManager.popBackStack()
     }
@@ -345,7 +308,6 @@ class SettingsSubmenuFragment : Fragment() {
         isGameSoundsEnabled = !isGameSoundsEnabled
         viewModel.setAudioEnabled(isGameSoundsEnabled)
 
-        Log.d(TAG, "Game Sounds: ${if (isGameSoundsEnabled) "ON" else "OFF"}")
         updateUI()
     }
 
@@ -354,7 +316,6 @@ class SettingsSubmenuFragment : Fragment() {
         isMenuSoundsEnabled = !isMenuSoundsEnabled
         soundManager.isEnabled = isMenuSoundsEnabled
 
-        Log.d(TAG, "Menu Sounds: ${if (isMenuSoundsEnabled) "ON" else "OFF"}")
         updateUI()
     }
 
@@ -366,10 +327,6 @@ class SettingsSubmenuFragment : Fragment() {
         // NÃO aplicar imediatamente - guardar mudança pendente
         pendingGameSpeedChange = newSpeed
 
-        Log.d(
-                TAG,
-                "Game Speed: ${if (isFastSpeed) "Fast (x2)" else "Normal (x1)"} (será aplicado ao sair do menu)"
-        )
         updateUI()
     }
 
@@ -391,8 +348,6 @@ class SettingsSubmenuFragment : Fragment() {
 
             textView.setTextColor(if (isSelected) config.textSelectedColor else config.textColor)
         }
-
-        Log.d(TAG, "UI atualizada - opção selecionada: ${submenuOptions[selectedOptionIndex]}")
     }
 
     /** Retorna texto formatado da opção com seta e estado. */

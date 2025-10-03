@@ -1,7 +1,6 @@
 package com.vinaooo.revenger.retromenu2
 
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -16,18 +15,17 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 /**
  * ExitSubmenuFragment
  *
- * Submenu de confirmação de saída com 2 opções:
- * 1. Yes, Exit Game (fecha o app)
- * 2. No, Continue (volta ao menu principal)
+ * Submenu de confirmação de saída com 3 opções:
+ * 1. Exit and Save (salva estado e fecha o app)
+ * 2. Exit Without Save (não salva e fecha o app)
+ * 3. Back (volta ao menu principal)
  *
  * Navegação: D-pad/Analog UP/DOWN + Touch Confirmação: Botão A executa ação Cancelamento: Botão B
- * equivale a "No, Continue"
+ * volta ao menu principal
  */
 class ExitSubmenuFragment : Fragment() {
 
     companion object {
-        private const val TAG = "ExitSubmenu"
-
         fun newInstance(): ExitSubmenuFragment {
             return ExitSubmenuFragment()
         }
@@ -68,23 +66,26 @@ class ExitSubmenuFragment : Fragment() {
 
     /** Views do layout */
     private lateinit var submenuTitle: TextView
-    private lateinit var optionYes: TextView
-    private lateinit var optionNo: TextView
+    private lateinit var optionExitAndSave: TextView
+    private lateinit var optionExitWithoutSave: TextView
+    private lateinit var optionBack: TextView
 
     /** Lista de TextViews na ordem do submenu */
     private val optionViews: MutableList<TextView> = mutableListOf()
 
-    /** Índice da opção atualmente selecionada (0-1) */
-    private var selectedOptionIndex = 1 // Padrão: "No, Continue" (mais seguro)
+    /** Índice da opção atualmente selecionada (0-2) */
+    private var selectedOptionIndex = 2 // Padrão: "Back" (mais seguro)
 
     /** Enum das opções */
     private enum class SubmenuOption {
-        YES_EXIT,
-        NO_CONTINUE
+        EXIT_AND_SAVE,
+        EXIT_WITHOUT_SAVE,
+        BACK
     }
 
     /** Lista de opções do submenu */
-    private val submenuOptions = listOf(SubmenuOption.YES_EXIT, SubmenuOption.NO_CONTINUE)
+    private val submenuOptions =
+            listOf(SubmenuOption.EXIT_AND_SAVE, SubmenuOption.EXIT_WITHOUT_SAVE, SubmenuOption.BACK)
 
     // ============================================================
     // LIFECYCLE
@@ -99,11 +100,10 @@ class ExitSubmenuFragment : Fragment() {
         // Obter ViewModel da Activity pai
         viewModel = ViewModelProvider(requireActivity()).get(GameActivityViewModel::class.java)
 
-        // Inicializar SoundManager
-        soundManager = MenuSoundManager(requireContext())
-        soundManager.initialize()
-
-        Log.d(TAG, "ExitSubmenuFragment criado")
+        // Usar MenuSoundManager compartilhado do ViewModel
+        soundManager =
+                viewModel.getMenuSoundManager()
+                        ?: MenuSoundManager(requireContext()).also { it.initialize() }
     }
 
     override fun onCreateView(
@@ -111,22 +111,23 @@ class ExitSubmenuFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        Log.d(TAG, "onCreateView chamado")
         return inflater.inflate(R.layout.fragment_exit_submenu, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Inicializar views
+        // Vincular views
         submenuTitle = view.findViewById(R.id.submenuTitle)
-        optionYes = view.findViewById(R.id.optionYes)
-        optionNo = view.findViewById(R.id.optionNo)
+        optionExitAndSave = view.findViewById(R.id.optionExitAndSave)
+        optionExitWithoutSave = view.findViewById(R.id.optionExitWithoutSave)
+        optionBack = view.findViewById(R.id.optionBack)
 
-        // Popular lista de opções na ordem
+        // Adicionar à lista (ordem importante para navegação)
         optionViews.clear()
-        optionViews.add(optionYes)
-        optionViews.add(optionNo)
+        optionViews.add(optionExitAndSave)
+        optionViews.add(optionExitWithoutSave)
+        optionViews.add(optionBack)
 
         // Aplicar fonte Arcada
         applyArcadaFont()
@@ -136,8 +137,6 @@ class ExitSubmenuFragment : Fragment() {
 
         // Atualizar UI inicial
         updateUI()
-
-        Log.d(TAG, "onViewCreated concluído")
     }
 
     override fun onResume() {
@@ -150,31 +149,18 @@ class ExitSubmenuFragment : Fragment() {
         controllerInput.onConfirm = { confirmOption() }
         controllerInput.onCancel = { closeSubmenu() }
         controllerInput.menuOpened()
-
-        Log.d(TAG, "ExitSubmenu ativo - input configurado")
     }
 
     override fun onPause() {
         super.onPause()
         controllerInput.menuClosed()
-        Log.d(TAG, "ExitSubmenu pausado")
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
-        // Aguardar 500ms antes de liberar SoundManager
-        // Isso garante que sons de cancelamento/confirmação terminem de tocar
-        android.os.Handler(android.os.Looper.getMainLooper())
-                .postDelayed(
-                        {
-                            soundManager.release()
-                            Log.d(TAG, "SoundManager liberado após delay")
-                        },
-                        500
-                )
+        // NÃO liberar SoundManager - ele é compartilhado pelo ViewModel
 
-        Log.d(TAG, "ExitSubmenu destruído")
     }
 
     // ============================================================
@@ -187,9 +173,8 @@ class ExitSubmenuFragment : Fragment() {
         if (arcadaFont != null) {
             submenuTitle.typeface = arcadaFont
             optionViews.forEach { it.typeface = arcadaFont }
-            Log.d(TAG, "Fonte Arcada aplicada")
         } else {
-            Log.w(TAG, "Fonte Arcada não encontrada - usando fonte padrão")
+            submenuTitle.typeface = null
         }
     }
 
@@ -200,7 +185,6 @@ class ExitSubmenuFragment : Fragment() {
                 if (selectedOptionIndex != index) {
                     selectedOptionIndex = index
                     updateUI()
-                    Log.d(TAG, "Touch selecionou: ${submenuOptions[index]}")
                 }
             }
         }
@@ -212,19 +196,27 @@ class ExitSubmenuFragment : Fragment() {
 
     /** Navega para opção anterior (cíclica). */
     private fun navigateUp() {
-        selectedOptionIndex = if (selectedOptionIndex > 0) 0 else 1
+        selectedOptionIndex =
+                if (selectedOptionIndex > 0) {
+                    selectedOptionIndex - 1
+                } else {
+                    submenuOptions.size - 1 // Volta para última opção
+                }
 
         soundManager.playNavigation() // Som de navegação
-        Log.d(TAG, "Navegação UP - opção selecionada: ${submenuOptions[selectedOptionIndex]}")
         updateUI()
     }
 
     /** Navega para próxima opção (cíclica). */
     private fun navigateDown() {
-        selectedOptionIndex = if (selectedOptionIndex < 1) 1 else 0
+        selectedOptionIndex =
+                if (selectedOptionIndex < submenuOptions.size - 1) {
+                    selectedOptionIndex + 1
+                } else {
+                    0 // Volta para primeira opção
+                }
 
         soundManager.playNavigation() // Som de navegação
-        Log.d(TAG, "Navegação DOWN - opção selecionada: ${submenuOptions[selectedOptionIndex]}")
         updateUI()
     }
 
@@ -233,42 +225,53 @@ class ExitSubmenuFragment : Fragment() {
         val option = submenuOptions[selectedOptionIndex]
 
         // Som de confirmação ou cancelamento
-        if (option == SubmenuOption.NO_CONTINUE) {
+        if (option == SubmenuOption.BACK) {
             soundManager.playCancel()
         } else {
             soundManager.playConfirm()
         }
 
-        Log.d(TAG, "Opção confirmada: $option")
-
         when (option) {
-            SubmenuOption.YES_EXIT -> exitGame()
-            SubmenuOption.NO_CONTINUE -> closeSubmenu()
+            SubmenuOption.EXIT_AND_SAVE -> exitGameWithSave()
+            SubmenuOption.EXIT_WITHOUT_SAVE -> exitGameWithoutSave()
+            SubmenuOption.BACK -> closeSubmenu()
         }
     }
 
     /** Fecha submenu (volta ao menu principal). */
     private fun closeSubmenu() {
-        soundManager.playCancel() // Som de cancelamento
-        Log.d(TAG, "Cancelado - voltando ao menu principal")
         parentFragmentManager.popBackStack()
     }
 
-    /** Sai do jogo (fecha a Activity). */
-    private fun exitGame() {
-        Log.d(TAG, "Saindo do jogo...")
-        requireActivity().finish() // Fecha a Activity (GameActivity)
+    /** Sai do jogo salvando o estado. */
+    private fun exitGameWithSave() {
+        // CRÍTICO: Retomar emulador ANTES de salvar (senão salva estado pausado)
+        viewModel.resumeEmulator()
+
+        // Aguardar um frame para garantir que emulador processou o resume
+        android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            // Salvar estado antes de fechar
+                            viewModel.saveStateCentralized { requireActivity().finish() }
+                        },
+                        100
+                ) // 100ms delay para garantir que emulador processou
     }
 
-    // ============================================================
+    /** Sai do jogo sem salvar o estado. */
+    private fun exitGameWithoutSave() {
+        requireActivity().finish() // Fecha direto sem salvar
+    } // ============================================================
     // UI UPDATE
     // ============================================================
 
     /** Atualiza UI para refletir seleção atual. */
     private fun updateUI() {
         // Atualizar textos com seta
-        optionYes.text = getOptionText(SubmenuOption.YES_EXIT)
-        optionNo.text = getOptionText(SubmenuOption.NO_CONTINUE)
+        optionExitAndSave.text = getOptionText(SubmenuOption.EXIT_AND_SAVE)
+        optionExitWithoutSave.text = getOptionText(SubmenuOption.EXIT_WITHOUT_SAVE)
+        optionBack.text = getOptionText(SubmenuOption.BACK)
 
         // Atualizar cores
         optionViews.forEachIndexed { index, textView ->
@@ -276,8 +279,6 @@ class ExitSubmenuFragment : Fragment() {
 
             textView.setTextColor(if (isSelected) config.textSelectedColor else config.textColor)
         }
-
-        Log.d(TAG, "UI atualizada - opção selecionada: ${submenuOptions[selectedOptionIndex]}")
     }
 
     /** Retorna texto formatado da opção com seta. */
@@ -286,8 +287,9 @@ class ExitSubmenuFragment : Fragment() {
         val arrow = if (isSelected) "> " else "  "
 
         return when (option) {
-            SubmenuOption.YES_EXIT -> "${arrow}Yes, Exit Game"
-            SubmenuOption.NO_CONTINUE -> "${arrow}No, Continue"
+            SubmenuOption.EXIT_AND_SAVE -> "${arrow}Exit and Save"
+            SubmenuOption.EXIT_WITHOUT_SAVE -> "${arrow}Exit Without Save"
+            SubmenuOption.BACK -> "${arrow}Back"
         }
     }
 }

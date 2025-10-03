@@ -5,7 +5,6 @@ import android.graphics.Canvas
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -29,13 +28,12 @@ import kotlinx.coroutines.withContext
 /**
  * RetroMenu2Fragment
  *
- * Fragment principal do RetroMenu2 - tela de pause com 6 opções:
+ * Fragment principal do RetroMenu2 - tela de pause com 5 opções:
  * 1. Continue
  * 2. Restart Game
  * 3. Save State
- * 4. Load State (disabled se não houver save)
- * 5. Settings (abre submenu)
- * 6. Exit Game (abre submenu)
+ * 4. Settings (abre submenu)
+ * 5. Exit Game (abre submenu)
  *
  * Design Philosophy:
  * - Fragment só cuida de UI (renderização, navegação visual)
@@ -45,8 +43,6 @@ import kotlinx.coroutines.withContext
 class RetroMenu2Fragment : Fragment() {
 
     companion object {
-        private const val TAG = "RetroMenu2Fragment"
-
         fun newInstance(): RetroMenu2Fragment {
             return RetroMenu2Fragment()
         }
@@ -73,16 +69,14 @@ class RetroMenu2Fragment : Fragment() {
     private lateinit var optionContinue: TextView
     private lateinit var optionRestart: TextView
     private lateinit var optionSave: TextView
-    private lateinit var optionLoad: TextView
     private lateinit var optionSettings: TextView
     private lateinit var optionExit: TextView
-    private lateinit var loadingText: TextView
     private lateinit var buttonHint: TextView
 
     /** Lista de TextViews na ordem do menu */
     private val optionViews: MutableList<TextView> = mutableListOf()
 
-    /** Índice da opção atualmente selecionada (0-5) */
+    /** Índice da opção atualmente selecionada (0-4) */
     private var selectedOptionIndex = 0
 
     /** Lista de opções do menu */
@@ -91,13 +85,9 @@ class RetroMenu2Fragment : Fragment() {
                     MenuOption.CONTINUE,
                     MenuOption.RESTART,
                     MenuOption.SAVE_STATE,
-                    MenuOption.LOAD_STATE,
                     MenuOption.SETTINGS,
                     MenuOption.EXIT
             )
-
-    /** Load State está disponível? (false se não houver save) */
-    private var isLoadStateAvailable = false
 
     /** Pending game speed change from Settings submenu (aplicado ao fechar menu principal) */
     var pendingGameSpeedChange: Int? = null
@@ -113,13 +103,13 @@ class RetroMenu2Fragment : Fragment() {
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
         controllerInput = ControllerInput2(config)
 
-        // Inicializar MenuSoundManager
-        soundManager = MenuSoundManager(requireContext())
-        soundManager.initialize()
+        // Usar MenuSoundManager compartilhado do ViewModel
+        // Ele já foi inicializado no app startup, então os sons estão prontos
+        soundManager =
+                viewModel.getMenuSoundManager()
+                        ?: MenuSoundManager(requireContext()).also { it.initialize() }
 
         setupControllerCallbacks()
-
-        Log.d(TAG, "RetroMenu2Fragment criado")
     }
 
     override fun onCreateView(
@@ -127,7 +117,6 @@ class RetroMenu2Fragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        Log.d(TAG, "onCreateView chamado")
         return inflater.inflate(R.layout.fragment_retro_menu2, container, false)
     }
 
@@ -142,10 +131,8 @@ class RetroMenu2Fragment : Fragment() {
         optionContinue = view.findViewById(R.id.optionContinue)
         optionRestart = view.findViewById(R.id.optionRestart)
         optionSave = view.findViewById(R.id.optionSave)
-        optionLoad = view.findViewById(R.id.optionLoad)
         optionSettings = view.findViewById(R.id.optionSettings)
         optionExit = view.findViewById(R.id.optionExit)
-        loadingText = view.findViewById(R.id.loadingText)
         buttonHint = view.findViewById(R.id.buttonHint)
 
         // Popular lista de opções na ordem
@@ -153,7 +140,6 @@ class RetroMenu2Fragment : Fragment() {
         optionViews.add(optionContinue)
         optionViews.add(optionRestart)
         optionViews.add(optionSave)
-        optionViews.add(optionLoad)
         optionViews.add(optionSettings)
         optionViews.add(optionExit)
 
@@ -169,13 +155,10 @@ class RetroMenu2Fragment : Fragment() {
         // Capturar screenshot e aplicar efeito de fundo
         captureAndApplyBackground()
 
-        checkLoadStateAvailability()
         updateUI()
 
         // Configurar listener para voltar do submenu
         setupBackStackListener()
-
-        Log.d(TAG, "onViewCreated concluído")
     }
 
     override fun onResume() {
@@ -187,10 +170,11 @@ class RetroMenu2Fragment : Fragment() {
         // NÃO pausar aqui - já foi pausado 300ms antes no callback
         // viewModel.pauseEmulator() foi movido para selectStartPauseCallback
 
-        // Tocar som de abertura do menu
-        soundManager.playOpen()
+        updateUI()
 
-        Log.d(TAG, "Menu exibido - emulador já pausado")
+        // Tocar som de abertura do menu
+        // O fragment foi preparado 300ms antes, então SoundPool já carregou os sons
+        soundManager.playOpen()
     }
 
     override fun onPause() {
@@ -198,25 +182,14 @@ class RetroMenu2Fragment : Fragment() {
 
         // Notificar ControllerInput que menu fechou
         controllerInput.menuClosed()
-
-        Log.d(TAG, "Menu fechado")
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
-        // Aguardar 500ms antes de liberar SoundManager
-        // Isso garante que sons de cancelamento/confirmação terminem de tocar
-        Handler(Looper.getMainLooper())
-                .postDelayed(
-                        {
-                            soundManager.release()
-                            Log.d(TAG, "SoundManager liberado após delay")
-                        },
-                        500
-                )
+        // NÃO liberar SoundManager aqui - ele é compartilhado pelo ViewModel
+        // e deve permanecer ativo durante toda a vida do app
 
-        Log.d(TAG, "RetroMenu2Fragment destruído")
     }
 
     // ============================================================
@@ -243,33 +216,27 @@ class RetroMenu2Fragment : Fragment() {
 
     /** Navega para cima na lista de opções. */
     private fun navigateUp() {
-        do {
-            selectedOptionIndex =
-                    if (selectedOptionIndex > 0) {
-                        selectedOptionIndex - 1
-                    } else {
-                        menuOptions.size - 1 // Wrap para o final
-                    }
-        } while (!isOptionEnabled(menuOptions[selectedOptionIndex]))
+        selectedOptionIndex =
+                if (selectedOptionIndex > 0) {
+                    selectedOptionIndex - 1
+                } else {
+                    menuOptions.size - 1 // Wrap para o final
+                }
 
         soundManager.playNavigation() // Som de navegação
-        Log.d(TAG, "Navegação UP - opção selecionada: ${menuOptions[selectedOptionIndex]}")
         updateUI()
     }
 
     /** Navega para baixo na lista de opções. */
     private fun navigateDown() {
-        do {
-            selectedOptionIndex =
-                    if (selectedOptionIndex < menuOptions.size - 1) {
-                        selectedOptionIndex + 1
-                    } else {
-                        0 // Wrap para o início
-                    }
-        } while (!isOptionEnabled(menuOptions[selectedOptionIndex]))
+        selectedOptionIndex =
+                if (selectedOptionIndex < menuOptions.size - 1) {
+                    selectedOptionIndex + 1
+                } else {
+                    0 // Wrap para o início
+                }
 
         soundManager.playNavigation() // Som de navegação
-        Log.d(TAG, "Navegação DOWN - opção selecionada: ${menuOptions[selectedOptionIndex]}")
         updateUI()
     }
 
@@ -277,20 +244,13 @@ class RetroMenu2Fragment : Fragment() {
     private fun confirmSelection() {
         val option = menuOptions[selectedOptionIndex]
 
-        if (!isOptionEnabled(option)) {
-            Log.w(TAG, "Opção $option está desabilitada")
-            return
-        }
-
         soundManager.playConfirm() // Som de confirmação
-        Log.d(TAG, "Opção confirmada: $option")
         executeOption(option)
     }
 
     /** Cancela ação atual (equivalente a Continue). */
     private fun cancelAction() {
         soundManager.playCancel() // Som de cancelamento
-        Log.d(TAG, "Ação cancelada - fechando menu")
         closeMenu()
     }
 
@@ -310,9 +270,6 @@ class RetroMenu2Fragment : Fragment() {
             MenuOption.SAVE_STATE -> {
                 saveState()
             }
-            MenuOption.LOAD_STATE -> {
-                loadState()
-            }
             MenuOption.SETTINGS -> {
                 openSettingsSubmenu()
             }
@@ -330,10 +287,6 @@ class RetroMenu2Fragment : Fragment() {
         // Aplicar mudança pendente de velocidade ANTES de retomar
         pendingGameSpeedChange?.let { newSpeed ->
             viewModel.setGameSpeed(newSpeed)
-            Log.d(
-                    TAG,
-                    "Aplicando Game Speed pendente: ${if (newSpeed == 2) "Fast (x2)" else "Normal (x1)"}"
-            )
             pendingGameSpeedChange = null
         }
 
@@ -347,7 +300,6 @@ class RetroMenu2Fragment : Fragment() {
                             // PASSO 3: Retomar emulador (frameSpeed = 1 ou o valor pendente
                             // aplicado acima)
                             viewModel.resumeEmulator()
-                            Log.d(TAG, "Menu fechado - emulador retomado após delay")
                         },
                         300
                 )
@@ -355,8 +307,6 @@ class RetroMenu2Fragment : Fragment() {
 
     /** Reinicia o jogo usando reset(). */
     private fun restartGame() {
-        Log.d(TAG, "Reiniciando jogo...")
-
         // CRÍTICO: Limpar keyLog ANTES de retomar para evitar reabertura imediata!
         viewModel.clearInputKeyLog()
 
@@ -368,61 +318,17 @@ class RetroMenu2Fragment : Fragment() {
 
         // Fechar menu
         parentFragmentManager.beginTransaction().remove(this).commit()
-
-        Log.d(TAG, "Jogo reiniciado")
     }
 
     /** Salva o estado do jogo. */
     private fun saveState() {
-        Log.d(TAG, "Salvando estado...")
-
-        // Retomar emulador temporariamente (frameSpeed = 1)
-        viewModel.resumeEmulator()
-
-        // TODO: Adicionar delay mínimo antes de salvar (evitar save corrupto)
-
-        // Salvar estado
-        viewModel.saveGameState()
-
-        // Pausar novamente
-        viewModel.pauseEmulator()
-
-        // Atualizar disponibilidade de Load State
-        isLoadStateAvailable = true
-        updateUI()
-
-        Log.d(TAG, "Estado salvo")
-    }
-
-    /** Carrega o estado do jogo. */
-    private fun loadState() {
-        if (!isLoadStateAvailable) {
-            Log.w(TAG, "Load State não disponível")
-            return
-        }
-
-        Log.d(TAG, "Carregando estado...")
-
-        // TODO: Mostrar tela de loading (Fase 6)
-
-        // Retomar emulador (frameSpeed = 1)
-        viewModel.resumeEmulator()
-
-        // Carregar estado
-        viewModel.loadGameState()
-
-        // TODO: Aguardar duração mínima de loading (2 segundos)
-
-        // Fechar menu
-        parentFragmentManager.beginTransaction().remove(this).commit()
-
-        Log.d(TAG, "Estado carregado")
+        // CORREÇÃO CRÍTICA: Usar mesmo fluxo do Modern Menu
+        // NÃO pausar/despausar manualmente - deixar o callback lidar com tudo
+        viewModel.saveStateCentralized { updateUI() }
     }
 
     /** Abre submenu de Settings. */
     private fun openSettingsSubmenu() {
-        Log.d(TAG, "Abrindo submenu Settings...")
-
         // CRÍTICO: Desabilitar input do menu principal
         controllerInput.menuClosed()
 
@@ -439,8 +345,6 @@ class RetroMenu2Fragment : Fragment() {
 
     /** Abre submenu de Exit. */
     private fun openExitSubmenu() {
-        Log.d(TAG, "Abrindo submenu Exit...")
-
         // CRÍTICO: Desabilitar input do menu principal
         controllerInput.menuClosed()
 
@@ -466,12 +370,7 @@ class RetroMenu2Fragment : Fragment() {
         if (arcadaFont != null) {
             menuTitle.typeface = arcadaFont
             optionViews.forEach { it.typeface = arcadaFont }
-            loadingText.typeface = arcadaFont
             buttonHint.typeface = arcadaFont
-
-            Log.d(TAG, "Fonte Arcada aplicada com sucesso")
-        } else {
-            Log.w(TAG, "Fonte Arcada não encontrada - usando fonte padrão")
         }
     }
 
@@ -480,15 +379,9 @@ class RetroMenu2Fragment : Fragment() {
         optionViews.forEachIndexed { index, textView ->
             textView.setOnClickListener {
                 val option = menuOptions[index]
-
-                if (isOptionEnabled(option)) {
-                    Log.d(TAG, "Touch em opção $index: $option")
-                    selectedOptionIndex = index
-                    updateUI()
-                    executeOption(option)
-                } else {
-                    Log.w(TAG, "Touch em opção desabilitada: $option")
-                }
+                selectedOptionIndex = index
+                updateUI()
+                executeOption(option)
             }
         }
     }
@@ -502,7 +395,6 @@ class RetroMenu2Fragment : Fragment() {
                 controllerInput.menuOpened()
 
                 menuContainer.visibility = View.VISIBLE
-                Log.d(TAG, "Voltou do submenu - menu principal visível e input reativado")
             }
         }
     }
@@ -512,22 +404,19 @@ class RetroMenu2Fragment : Fragment() {
         optionViews.forEachIndexed { index, textView ->
             val option = menuOptions[index]
             val isSelected = (index == selectedOptionIndex)
-            val isEnabled = isOptionEnabled(option)
 
             // Adicionar seta '> ' antes da opção selecionada (estilo retrô)
             val baseText = getOptionBaseText(option)
             textView.text = if (isSelected) "> $baseText" else "  $baseText"
 
             textView.setTextColor(
-                    when {
-                        !isEnabled -> config.textDisabledColor
-                        isSelected -> config.textSelectedColor
-                        else -> config.textColor
+                    if (isSelected) {
+                        config.textSelectedColor
+                    } else {
+                        config.textColor
                     }
             )
         }
-
-        Log.d(TAG, "UI atualizada - opção selecionada: ${menuOptions[selectedOptionIndex]}")
     }
 
     /** Retorna o texto base da opção (sem seta ou espaçamento). */
@@ -536,26 +425,8 @@ class RetroMenu2Fragment : Fragment() {
             MenuOption.CONTINUE -> getString(R.string.retromenu2_option_continue)
             MenuOption.RESTART -> getString(R.string.retromenu2_option_restart)
             MenuOption.SAVE_STATE -> getString(R.string.retromenu2_option_save)
-            MenuOption.LOAD_STATE -> getString(R.string.retromenu2_option_load)
             MenuOption.SETTINGS -> getString(R.string.retromenu2_option_settings)
             MenuOption.EXIT -> getString(R.string.retromenu2_option_exit)
-        }
-    }
-
-    /** Verifica se Load State está disponível (se existe save). */
-    private fun checkLoadStateAvailability() {
-        // TODO: Verificar se arquivo de save state existe
-        // Por enquanto, assumir false
-        isLoadStateAvailable = false
-
-        Log.d(TAG, "Load State disponível: $isLoadStateAvailable")
-    }
-
-    /** Verifica se uma opção está habilitada. */
-    private fun isOptionEnabled(option: MenuOption): Boolean {
-        return when (option) {
-            MenuOption.LOAD_STATE -> isLoadStateAvailable
-            else -> true
         }
     }
 
@@ -628,22 +499,11 @@ class RetroMenu2Fragment : Fragment() {
                     val effectType = config.backgroundEffectType
                     val intensity = config.backgroundEffectIntensity
 
-                    Log.d(
-                            TAG,
-                            "Aplicando efeito tipo $effectType (${BackgroundEffectFactory.getEffectName(effectType)}) com intensidade $intensity"
-                    )
-                    Log.d(TAG, "Screenshot capturado: ${screenshot.width}x${screenshot.height}")
-
                     // Processar efeito em IO thread (processamento pesado)
                     val processedBitmap =
                             withContext(Dispatchers.IO) {
                                 val effect = BackgroundEffectFactory.create(effectType)
-                                Log.d(
-                                        TAG,
-                                        "Efeito criado: ${effect.javaClass.simpleName}, aplicando..."
-                                )
                                 val result = effect.apply(requireContext(), screenshot, intensity)
-                                Log.d(TAG, "Efeito aplicado: ${result.width}x${result.height}")
                                 result
                             }
 
@@ -655,23 +515,16 @@ class RetroMenu2Fragment : Fragment() {
                     // Mostrar menu após efeito aplicado
                     menuContainer.visibility = View.VISIBLE
 
-                    Log.d(
-                            TAG,
-                            "Background atualizado: ImageView VISIBLE, Overlay GONE, Menu VISIBLE, Bitmap ${processedBitmap.width}x${processedBitmap.height}"
-                    )
-
                     // Liberar bitmap original
                     if (screenshot != processedBitmap) {
                         screenshot.recycle()
                     }
                 } else {
-                    Log.w(TAG, "Screenshot null - usando fallback overlay")
                     backgroundImage.visibility = View.GONE
                     backgroundOverlay.visibility = View.VISIBLE
                     menuContainer.visibility = View.VISIBLE // Mostrar menu mesmo sem efeito
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Erro ao capturar/processar background", e)
                 backgroundOverlay.visibility = View.VISIBLE // Fallback para overlay
                 menuContainer.visibility = View.VISIBLE // Mostrar menu mesmo com erro
             }
@@ -689,10 +542,6 @@ class RetroMenu2Fragment : Fragment() {
                     val rootView = requireActivity().window.decorView.rootView
 
                     if (rootView.width <= 0 || rootView.height <= 0) {
-                        Log.w(
-                                TAG,
-                                "RootView tem tamanho inválido: ${rootView.width}x${rootView.height}"
-                        )
                         return@withContext null
                     }
 
@@ -717,24 +566,17 @@ class RetroMenu2Fragment : Fragment() {
                                             Handler(Looper.getMainLooper())
                                     )
                                 } catch (e: Exception) {
-                                    Log.e(TAG, "Erro ao iniciar PixelCopy da Activity", e)
                                     continuation.resume(false)
                                 }
                             }
 
                     if (success) {
-                        Log.d(
-                                TAG,
-                                "Screenshot fullscreen capturado: ${bitmap.width}x${bitmap.height}"
-                        )
                         bitmap
                     } else {
-                        Log.w(TAG, "PixelCopy falhou - tentando fallback com Canvas")
                         bitmap.recycle()
                         captureWithCanvas(rootView)
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Erro ao capturar screenshot fullscreen", e)
                     null
                 }
             }
@@ -745,10 +587,8 @@ class RetroMenu2Fragment : Fragment() {
             val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
             view.draw(canvas)
-            Log.d(TAG, "Screenshot via Canvas: ${bitmap.width}x${bitmap.height}")
             bitmap
         } catch (e: Exception) {
-            Log.e(TAG, "Erro no fallback Canvas", e)
             null
         }
     }
@@ -761,7 +601,6 @@ class RetroMenu2Fragment : Fragment() {
         CONTINUE,
         RESTART,
         SAVE_STATE,
-        LOAD_STATE,
         SETTINGS,
         EXIT
     }

@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.retromenu2
 
-import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import com.swordfish.libretrodroid.GLRetroView
@@ -26,9 +25,7 @@ import kotlin.math.abs
  */
 class ControllerInput2(private val config: RetroMenu2Config) {
 
-    companion object {
-        private const val TAG = "ControllerInput2"
-    }
+    companion object
 
     // ============================================================
     // STATE TRACKING
@@ -78,7 +75,6 @@ class ControllerInput2(private val config: RetroMenu2Config) {
         isMenuOpen = true
         pressedKeys.clear()
         lastAnalogDirection = AnalogDirection.NONE
-        Log.d(TAG, "Menu aberto - inputs bloqueados para core")
     }
 
     /** Notifica que o menu foi fechado. Inicia bloqueio temporário de 500ms para o botão START. */
@@ -90,7 +86,6 @@ class ControllerInput2(private val config: RetroMenu2Config) {
         // Bloquear START por 500ms
         isStartBlocked = true
         startBlockedUntil = System.currentTimeMillis() + config.startBlockDuration
-        Log.d(TAG, "Menu fechado - START bloqueado por ${config.startBlockDuration}ms")
     }
 
     /**
@@ -98,11 +93,6 @@ class ControllerInput2(private val config: RetroMenu2Config) {
      * o core).
      */
     fun processKeyEvent(keyCode: Int, event: KeyEvent): Boolean {
-        Log.d(
-                TAG,
-                "processKeyEvent - keyCode: $keyCode, action: ${event.action}, isMenuOpen: $isMenuOpen"
-        )
-
         // Menu aberto = bloquear todos os eventos para o core
         if (isMenuOpen) {
             processMenuInput(keyCode, event)
@@ -118,7 +108,6 @@ class ControllerInput2(private val config: RetroMenu2Config) {
                 if (pressedKeys.contains(KeyEvent.KEYCODE_BUTTON_SELECT) &&
                                 pressedKeys.contains(KeyEvent.KEYCODE_BUTTON_START)
                 ) {
-                    Log.d(TAG, "SELECT+START detectado - abrindo menu")
                     onMenuOpenRequested?.invoke()
                     return true // Bloquear combo
                 }
@@ -128,12 +117,10 @@ class ControllerInput2(private val config: RetroMenu2Config) {
                     if (isStartBlocked) {
                         val now = System.currentTimeMillis()
                         if (now < startBlockedUntil) {
-                            Log.d(TAG, "START bloqueado (${startBlockedUntil - now}ms restantes)")
                             return true // Bloquear
                         } else {
                             // Período expirou
                             isStartBlocked = false
-                            Log.d(TAG, "Bloqueio de START expirado")
                         }
                     }
                 }
@@ -163,11 +150,6 @@ class ControllerInput2(private val config: RetroMenu2Config) {
         val effectiveX = if (abs(hatX) > abs(x)) hatX else x
         val effectiveY = if (abs(hatY) > abs(y)) hatY else y
 
-        Log.d(
-                TAG,
-                "MotionEvent - x: $x, y: $y, hatX: $hatX, hatY: $hatY -> effectiveY: $effectiveY"
-        )
-
         val currentDirection =
                 when {
                     effectiveY < -config.analogThreshold -> AnalogDirection.UP
@@ -179,11 +161,9 @@ class ControllerInput2(private val config: RetroMenu2Config) {
         if (currentDirection != lastAnalogDirection) {
             when (currentDirection) {
                 AnalogDirection.UP -> {
-                    Log.d(TAG, "✅ Analog/HAT UP detectado")
                     onNavigateUp?.invoke()
                 }
                 AnalogDirection.DOWN -> {
-                    Log.d(TAG, "✅ Analog/HAT DOWN detectado")
                     onNavigateDown?.invoke()
                 }
                 AnalogDirection.NONE -> {
@@ -220,11 +200,9 @@ class ControllerInput2(private val config: RetroMenu2Config) {
                         if (direction != lastAnalogDirection) {
                             when (direction) {
                                 AnalogDirection.UP -> {
-                                    Log.d(TAG, "DPAD UP detectado (RadialGamePad)")
                                     onNavigateUp?.invoke()
                                 }
                                 AnalogDirection.DOWN -> {
-                                    Log.d(TAG, "DPAD DOWN detectado (RadialGamePad)")
                                     onNavigateDown?.invoke()
                                 }
                                 AnalogDirection.NONE -> {
@@ -260,31 +238,23 @@ class ControllerInput2(private val config: RetroMenu2Config) {
             return // Só processar ACTION_DOWN
         }
 
-        Log.d(TAG, "processMenuInput - keyCode: $keyCode (${KeyEvent.keyCodeToString(keyCode)})")
-
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP -> {
-                Log.d(TAG, "✅ KEYCODE_DPAD_UP detectado")
                 onNavigateUp?.invoke()
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
-                Log.d(TAG, "✅ KEYCODE_DPAD_DOWN detectado")
                 onNavigateDown?.invoke()
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
-                Log.d(TAG, "🔒 DPAD LEFT ignorado (sem ação horizontal no menu)")
                 // Ignorar LEFT no menu (sem navegação horizontal)
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                Log.d(TAG, "🔒 DPAD RIGHT ignorado (sem ação horizontal no menu)")
                 // Ignorar RIGHT no menu (sem navegação horizontal)
             }
             KeyEvent.KEYCODE_BUTTON_START -> {
-                Log.d(TAG, "✅ START detectado - cancelando (fechando menu)")
                 onCancel?.invoke()
             }
             else -> {
-                Log.d(TAG, "Tentando processar como botão de ação...")
                 // Processar botões de ação (A/B)
                 processMenuButton(keyCode)
             }
@@ -309,10 +279,8 @@ class ControllerInput2(private val config: RetroMenu2Config) {
                 }
 
         if (isConfirmButton) {
-            Log.d(TAG, "Botão CONFIRMAR pressionado")
             onConfirm?.invoke()
         } else {
-            Log.d(TAG, "Botão CANCELAR pressionado")
             onCancel?.invoke()
         }
     }

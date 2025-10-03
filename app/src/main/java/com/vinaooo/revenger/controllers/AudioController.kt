@@ -2,7 +2,6 @@ package com.vinaooo.revenger.controllers
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.R
 
@@ -14,10 +13,6 @@ class AudioController(
         private val context: Context,
         private val sharedPreferences: SharedPreferences
 ) {
-    companion object {
-        private const val TAG = "AudioController"
-    }
-
     /**
      * Alterna o estado do áudio (liga/desliga)
      * @param retroView RetroView onde aplicar a mudança
@@ -30,7 +25,6 @@ class AudioController(
         // Salvar o novo estado imediatamente
         saveAudioState(newState)
 
-        Log.d(TAG, "Audio toggled to: ${if (newState) "ON" else "OFF"}")
         return newState
     }
 
@@ -42,7 +36,6 @@ class AudioController(
     fun setAudioEnabled(retroView: GLRetroView, enabled: Boolean) {
         retroView.audioEnabled = enabled
         saveAudioState(enabled)
-        Log.d(TAG, "Audio set to: ${if (enabled) "ON" else "OFF"}")
     }
 
     /**
@@ -69,7 +62,6 @@ class AudioController(
     fun initializeAudioState(retroView: GLRetroView) {
         val savedState = getAudioState()
         retroView.audioEnabled = savedState
-        Log.d(TAG, "Audio initialized to: ${if (savedState) "ON" else "OFF"}")
     }
 
     /**
@@ -81,7 +73,6 @@ class AudioController(
             putBoolean(context.getString(R.string.pref_audio_enabled), enabled)
             apply()
         }
-        Log.d(TAG, "Audio state saved: ${if (enabled) "ON" else "OFF"}")
     }
 
     /**

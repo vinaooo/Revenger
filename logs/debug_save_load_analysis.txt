@@ -1,0 +1,350 @@
+10-02 17:49:08.992 17588 17588 E AndroidRuntime: 	at com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment.animateMenuOut(ModernMenuFragment.kt:194)
+10-02 17:49:08.992 17588 17588 E AndroidRuntime: 	at com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment.dismissMenu(ModernMenuFragment.kt:214)
+10-02 17:49:08.992 17588 17588 E AndroidRuntime: 	at com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment.dismissMenuPublic(ModernMenuFragment.kt:219)
+10-02 17:49:08.992 17588 17588 E AndroidRuntime: 	at com.vinaooo.revenger.viewmodels.GameActivityViewModel.dismissMenu(GameActivityViewModel.kt:290)
+10-02 18:06:54.665 19127 19127 D GameActivityViewModel: RetroMenu2 preparado
+10-02 18:06:54.705 19127 19127 D GameActivityViewModel: MenuSoundManager inicializado no app startup
+10-02 18:06:54.705 19127 19127 D GameActivityViewModel: Controllers modulares inicializados com compatibilidade RetroViewUtils
+10-02 18:06:55.003 19127 19127 W RetroViewUtils: 🔵 === RESTORE EMULATOR STATE INICIADO ===
+10-02 18:06:55.003 19127 19127 W RetroViewUtils: skipTempStateLoad = false
+10-02 18:06:55.004 19127 19127 W RetroViewUtils: FrameSpeed restaurado: 1 → 1
+10-02 18:06:55.004 19127 19127 W RetroViewUtils: 📁 Verificação de arquivos:
+10-02 18:06:55.004 19127 19127 W RetroViewUtils:   - storage.state existe: false, tamanho: 0 bytes
+10-02 18:06:55.004 19127 19127 W RetroViewUtils:   - storage.tempState existe: false, tamanho: 0 bytes
+10-02 18:06:55.004 19127 19127 W RetroViewUtils:   - hasSaveState(): false
+10-02 18:06:55.004 19127 19127 W RetroViewUtils: ⚠️ Carregando TEMP STATE automático (fallback)
+10-02 18:06:55.004 19127 19127 W RetroViewUtils: 📂 loadTempState() iniciado
+10-02 18:06:55.004 19127 19127 W RetroViewUtils: ❌ storage.tempState NÃO existe
+10-02 18:06:55.004 19127 19127 W RetroViewUtils: 🔵 === RESTORE EMULATOR STATE CONCLUÍDO ===
+10-02 18:07:16.427 19127 19127 D GameActivityViewModel: selectStartPauseCallback TRIGGERED - pausing then opening RetroMenu2
+10-02 18:07:16.427 19127 19127 D GameActivityViewModel: 🛑 RetroMenu2: Emulator PAUSED (frameSpeed = 0)
+10-02 18:07:16.731 19127 19127 D GameActivityViewModel: RetroMenu2 exibido
+10-02 18:07:16.742 19127 19127 D RetroMenu2Fragment: RetroMenu2Fragment criado
+10-02 18:07:16.746 19127 19127 D RetroMenu2Fragment: onCreateView chamado
+10-02 18:07:16.766 19127 19127 W RetroMenu2Fragment: Fonte Arcada não encontrada - usando fonte padrão
+10-02 18:07:16.769 19127 19127 D RetroMenu2Fragment: Load State disponível: false
+10-02 18:07:16.770 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: CONTINUE
+10-02 18:07:16.770 19127 19127 D RetroMenu2Fragment: onViewCreated concluído
+10-02 18:07:16.779 19127 19127 D RetroMenu2Fragment: Load State disponível: false
+10-02 18:07:16.779 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: CONTINUE
+10-02 18:07:16.783 19127 19127 D RetroMenu2Fragment: Menu exibido - emulador já pausado
+10-02 18:07:16.850 19127 19127 D RetroMenu2Fragment: Screenshot fullscreen capturado: 2520x1080
+10-02 18:07:16.851 19127 19127 D RetroMenu2Fragment: Aplicando efeito tipo 3 (Scanline (CRT)) com intensidade 0.6
+10-02 18:07:16.852 19127 19127 D RetroMenu2Fragment: Screenshot capturado: 2520x1080
+10-02 18:07:16.857 19127 19214 D RetroMenu2Fragment: Efeito criado: ScanlineEffect, aplicando...
+10-02 18:07:16.922 19127 19214 D RetroMenu2Fragment: Efeito aplicado: 2520x1080
+10-02 18:07:16.924 19127 19127 D RetroMenu2Fragment: Background atualizado: ImageView VISIBLE, Overlay GONE, Menu VISIBLE, Bitmap 2520x1080
+10-02 18:07:18.329 19127 19127 D RetroMenu2Fragment: Navegação DOWN - opção selecionada: RESTART
+10-02 18:07:18.331 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: RESTART
+10-02 18:07:18.331 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:18.383 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:18.484 19127 19127 D RetroMenu2Fragment: Navegação DOWN - opção selecionada: SAVE_STATE
+10-02 18:07:18.485 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: SAVE_STATE
+10-02 18:07:18.485 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:18.583 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:19.955 19127 19127 D RetroMenu2Fragment: Opção confirmada: SAVE_STATE
+10-02 18:07:19.955 19127 19127 W RetroMenu2Fragment: 💾 === SAVE STATE DO MENU INICIADO ===
+10-02 18:07:19.956 19127 19127 W GameActivityViewModel: 🔵 Central save state called
+10-02 18:07:19.956 19127 19127 W GameActivityViewModel: 💾 Saving current state to storage (centralized)
+10-02 18:07:19.956 19127 19127 W GameActivityViewModel: ⚙️ Saving current frameSpeed before save: 0
+10-02 18:07:19.956 19127 19127 W GameActivityViewModel: ⏸️ Temporarily set frameSpeed = 1 for save (was paused)
+10-02 18:07:19.956 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu KeyEvent: 96
+10-02 18:07:20.040 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu KeyEvent: 96
+10-02 18:07:20.158 19127 19127 W GameActivityViewModel: 💾 Executando save após 200ms de frames...
+10-02 18:07:20.158 19127 19127 W RetroViewUtils: 💾 saveState() iniciado
+10-02 18:07:20.167 19127 19127 W RetroViewUtils: 📤 Serializando 95389 bytes
+10-02 18:07:20.180 19127 19127 W RetroViewUtils: 🔑 Hash MD5 (primeiro 1KB): 133eb23e
+10-02 18:07:20.183 19127 19127 W RetroViewUtils: ✅ SAVE STATE salvo: 95389 bytes em /storage/emulated/0/Android/data/com.vinaooo.revenger.sth/files/state
+10-02 18:07:20.183 19127 19127 W GameActivityViewModel: ⏸️ Restored frameSpeed to 0 after save
+10-02 18:07:20.183 19127 19127 W GameActivityViewModel: ✅ Save state executed successfully (centralized)
+10-02 18:07:20.184 19127 19127 W GameActivityViewModel: 📁 Save state now exists: true
+10-02 18:07:20.184 19127 19127 W RetroMenu2Fragment: 💾 Save state completado via callback
+10-02 18:07:20.186 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: SAVE_STATE
+10-02 18:07:20.186 19127 19127 W RetroMenu2Fragment: ✅ Estado salvo, Load State habilitado
+10-02 18:07:20.186 19127 19127 W RetroMenu2Fragment: 💾 === SAVE STATE DO MENU CONCLUÍDO ===
+10-02 18:07:21.185 19127 19127 D RetroMenu2Fragment: Ação cancelada - fechando menu
+10-02 18:07:21.186 19127 19127 D GameActivityViewModel: 🧹 RetroMenu2: Input keyLog cleared
+10-02 18:07:21.187 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu KeyEvent: 97
+10-02 18:07:21.189 19127 19127 D RetroMenu2Fragment: Menu fechado
+10-02 18:07:21.202 19127 19127 D RetroMenu2Fragment: RetroMenu2Fragment destruído
+10-02 18:07:21.489 19127 19127 D GameActivityViewModel: ▶️ RetroMenu2: Emulator RESUMED (frameSpeed = 1)
+10-02 18:07:21.489 19127 19127 D RetroMenu2Fragment: Menu fechado - emulador retomado após delay
+10-02 18:07:28.041 19127 19127 D GameActivityViewModel: selectStartPauseCallback TRIGGERED - pausing then opening RetroMenu2
+10-02 18:07:28.041 19127 19127 D GameActivityViewModel: 🛑 RetroMenu2: Emulator PAUSED (frameSpeed = 0)
+10-02 18:07:28.343 19127 19127 D GameActivityViewModel: RetroMenu2 exibido
+10-02 18:07:28.347 19127 19127 D RetroMenu2Fragment: RetroMenu2Fragment criado
+10-02 18:07:28.349 19127 19127 D RetroMenu2Fragment: onCreateView chamado
+10-02 18:07:28.361 19127 19127 W RetroMenu2Fragment: Fonte Arcada não encontrada - usando fonte padrão
+10-02 18:07:28.362 19127 19127 D RetroMenu2Fragment: Load State disponível: true
+10-02 18:07:28.362 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: SAVE_STATE
+10-02 18:07:28.362 19127 19127 D RetroMenu2Fragment: onViewCreated concluído
+10-02 18:07:28.365 19127 19127 D RetroMenu2Fragment: Load State disponível: true
+10-02 18:07:28.366 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: SAVE_STATE
+10-02 18:07:28.366 19127 19127 D RetroMenu2Fragment: Menu exibido - emulador já pausado
+10-02 18:07:28.390 19127 19127 D RetroMenu2Fragment: Screenshot fullscreen capturado: 2520x1080
+10-02 18:07:28.391 19127 19127 D RetroMenu2Fragment: Aplicando efeito tipo 3 (Scanline (CRT)) com intensidade 0.6
+10-02 18:07:28.391 19127 19127 D RetroMenu2Fragment: Screenshot capturado: 2520x1080
+10-02 18:07:28.391 19127 19214 D RetroMenu2Fragment: Efeito criado: ScanlineEffect, aplicando...
+10-02 18:07:28.456 19127 19214 D RetroMenu2Fragment: Efeito aplicado: 2520x1080
+10-02 18:07:28.457 19127 19127 D RetroMenu2Fragment: Background atualizado: ImageView VISIBLE, Overlay GONE, Menu VISIBLE, Bitmap 2520x1080
+10-02 18:07:28.964 19127 19127 D RetroMenu2Fragment: Navegação DOWN - opção selecionada: LOAD_STATE
+10-02 18:07:28.965 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: LOAD_STATE
+10-02 18:07:28.965 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:29.074 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:29.337 19127 19127 D RetroMenu2Fragment: Opção confirmada: LOAD_STATE
+10-02 18:07:29.337 19127 19127 W RetroMenu2Fragment: 📂 === LOAD STATE DO MENU INICIADO ===
+10-02 18:07:29.337 19127 19127 W GameActivityViewModel: 🔵 Central load state called
+10-02 18:07:29.338 19127 19127 W GameActivityViewModel: 💾 Save state exists, proceeding with load
+10-02 18:07:29.338 19127 19127 W GameActivityViewModel: 📂 Loading state from storage (centralized)
+10-02 18:07:29.338 19127 19127 W GameActivityViewModel: 🔍 DIAGNÓSTICO: hasSaveState = true
+10-02 18:07:29.338 19127 19127 W GameActivityViewModel: ⚙️ Saving current frameSpeed: 0
+10-02 18:07:29.338 19127 19127 W GameActivityViewModel: ⏸️ Temporarily set frameSpeed = 1 for load (silent, no core signals)
+10-02 18:07:29.339 19127 19127 W RetroViewUtils: 📂 loadState() iniciado
+10-02 18:07:29.342 19127 19127 W RetroViewUtils: 📥 Lido 95389 bytes de storage.state
+10-02 18:07:29.344 19127 19127 W RetroViewUtils: 🔑 Hash MD5 (primeiro 1KB): 133eb23e
+10-02 18:07:29.349 19127 19127 W RetroViewUtils: ✅ SAVE STATE carregado com sucesso!
+10-02 18:07:29.349 19127 19127 W GameActivityViewModel: ⏸️ Restored frameSpeed to 0 after load
+10-02 18:07:29.349 19127 19127 W GameActivityViewModel: 🚩 Flag set: skipNextTempStateLoad = true (prevent tempState override)
+10-02 18:07:29.349 19127 19127 W GameActivityViewModel: ✅ Load state executed successfully (centralized)
+10-02 18:07:29.349 19127 19127 W GameActivityViewModel: 🎮 State loaded, dismissPauseOverlay() will resume to frameSpeed=1
+10-02 18:07:29.349 19127 19127 W RetroMenu2Fragment: 📂 Load state completado via callback
+10-02 18:07:29.350 19127 19127 D GameActivityViewModel: ▶️ RetroMenu2: Emulator RESUMED (frameSpeed = 1)
+10-02 18:07:29.350 19127 19127 D RetroMenu2Fragment: Estado carregado e emulador retomado
+10-02 18:07:29.350 19127 19127 W RetroMenu2Fragment: 📂 === LOAD STATE DO MENU CONCLUÍDO ===
+10-02 18:07:29.350 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu KeyEvent: 96
+10-02 18:07:29.352 19127 19127 D RetroMenu2Fragment: Menu fechado
+10-02 18:07:29.357 19127 19127 D RetroMenu2Fragment: RetroMenu2Fragment destruído
+10-02 18:07:36.487 19127 19127 D GameActivityViewModel: selectStartPauseCallback TRIGGERED - pausing then opening RetroMenu2
+10-02 18:07:36.488 19127 19127 D GameActivityViewModel: 🛑 RetroMenu2: Emulator PAUSED (frameSpeed = 0)
+10-02 18:07:36.789 19127 19127 D GameActivityViewModel: RetroMenu2 exibido
+10-02 18:07:36.793 19127 19127 D RetroMenu2Fragment: RetroMenu2Fragment criado
+10-02 18:07:36.795 19127 19127 D RetroMenu2Fragment: onCreateView chamado
+10-02 18:07:36.807 19127 19127 W RetroMenu2Fragment: Fonte Arcada não encontrada - usando fonte padrão
+10-02 18:07:36.808 19127 19127 D RetroMenu2Fragment: Load State disponível: true
+10-02 18:07:36.808 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: LOAD_STATE
+10-02 18:07:36.808 19127 19127 D RetroMenu2Fragment: onViewCreated concluído
+10-02 18:07:36.811 19127 19127 D RetroMenu2Fragment: Load State disponível: true
+10-02 18:07:36.812 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: LOAD_STATE
+10-02 18:07:36.812 19127 19127 D RetroMenu2Fragment: Menu exibido - emulador já pausado
+10-02 18:07:36.837 19127 19127 D RetroMenu2Fragment: Screenshot fullscreen capturado: 2520x1080
+10-02 18:07:36.837 19127 19127 D RetroMenu2Fragment: Aplicando efeito tipo 3 (Scanline (CRT)) com intensidade 0.6
+10-02 18:07:36.837 19127 19127 D RetroMenu2Fragment: Screenshot capturado: 2520x1080
+10-02 18:07:36.838 19127 19214 D RetroMenu2Fragment: Efeito criado: ScanlineEffect, aplicando...
+10-02 18:07:36.902 19127 19214 D RetroMenu2Fragment: Efeito aplicado: 2520x1080
+10-02 18:07:36.903 19127 19127 D RetroMenu2Fragment: Background atualizado: ImageView VISIBLE, Overlay GONE, Menu VISIBLE, Bitmap 2520x1080
+10-02 18:07:37.773 19127 19127 D RetroMenu2Fragment: Opção confirmada: LOAD_STATE
+10-02 18:07:37.773 19127 19127 W RetroMenu2Fragment: 📂 === LOAD STATE DO MENU INICIADO ===
+10-02 18:07:37.773 19127 19127 W GameActivityViewModel: 🔵 Central load state called
+10-02 18:07:37.774 19127 19127 W GameActivityViewModel: 💾 Save state exists, proceeding with load
+10-02 18:07:37.774 19127 19127 W GameActivityViewModel: 📂 Loading state from storage (centralized)
+10-02 18:07:37.774 19127 19127 W GameActivityViewModel: 🔍 DIAGNÓSTICO: hasSaveState = true
+10-02 18:07:37.774 19127 19127 W GameActivityViewModel: ⚙️ Saving current frameSpeed: 0
+10-02 18:07:37.774 19127 19127 W GameActivityViewModel: ⏸️ Temporarily set frameSpeed = 1 for load (silent, no core signals)
+10-02 18:07:37.774 19127 19127 W RetroViewUtils: 📂 loadState() iniciado
+10-02 18:07:37.777 19127 19127 W RetroViewUtils: 📥 Lido 95389 bytes de storage.state
+10-02 18:07:37.779 19127 19127 W RetroViewUtils: 🔑 Hash MD5 (primeiro 1KB): 133eb23e
+10-02 18:07:37.780 19127 19127 W RetroViewUtils: ✅ SAVE STATE carregado com sucesso!
+10-02 18:07:37.780 19127 19127 W GameActivityViewModel: ⏸️ Restored frameSpeed to 0 after load
+10-02 18:07:37.780 19127 19127 W GameActivityViewModel: 🚩 Flag set: skipNextTempStateLoad = true (prevent tempState override)
+10-02 18:07:37.780 19127 19127 W GameActivityViewModel: ✅ Load state executed successfully (centralized)
+10-02 18:07:37.780 19127 19127 W GameActivityViewModel: 🎮 State loaded, dismissPauseOverlay() will resume to frameSpeed=1
+10-02 18:07:37.780 19127 19127 W RetroMenu2Fragment: 📂 Load state completado via callback
+10-02 18:07:37.781 19127 19127 D GameActivityViewModel: ▶️ RetroMenu2: Emulator RESUMED (frameSpeed = 1)
+10-02 18:07:37.781 19127 19127 D RetroMenu2Fragment: Estado carregado e emulador retomado
+10-02 18:07:37.781 19127 19127 W RetroMenu2Fragment: 📂 === LOAD STATE DO MENU CONCLUÍDO ===
+10-02 18:07:37.781 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu KeyEvent: 96
+10-02 18:07:37.783 19127 19127 D RetroMenu2Fragment: Menu fechado
+10-02 18:07:37.788 19127 19127 D RetroMenu2Fragment: RetroMenu2Fragment destruído
+10-02 18:07:43.913 19127 19127 W RetroViewUtils: 🟡 === PRESERVE EMULATOR STATE INICIADO ===
+10-02 18:07:43.919 19127 19127 W RetroViewUtils: 💾 SRAM salvo
+10-02 18:07:43.919 19127 19127 W RetroViewUtils: 💾 saveTempState() iniciado
+10-02 18:07:43.920 19127 19127 W RetroViewUtils: 📤 Serializando 95389 bytes
+10-02 18:07:43.921 19127 19127 W RetroViewUtils: ✅ TEMP STATE salvo: 95389 bytes
+10-02 18:07:43.921 19127 19127 W RetroViewUtils: 💾 TEMP STATE salvo: 95389 bytes
+10-02 18:07:43.921 19127 19127 W RetroViewUtils: ⚙️ FrameSpeed salvo: 1
+10-02 18:07:43.922 19127 19127 W RetroViewUtils: 🟡 === PRESERVE EMULATOR STATE CONCLUÍDO ===
+10-02 18:07:45.261 19127 19127 D GameActivityViewModel: selectStartPauseCallback TRIGGERED - pausing then opening RetroMenu2
+10-02 18:07:45.261 19127 19127 D GameActivityViewModel: 🛑 RetroMenu2: Emulator PAUSED (frameSpeed = 0)
+10-02 18:07:45.563 19127 19127 D GameActivityViewModel: RetroMenu2 exibido
+10-02 18:07:45.570 19127 19127 D RetroMenu2Fragment: RetroMenu2Fragment criado
+10-02 18:07:45.573 19127 19127 D RetroMenu2Fragment: onCreateView chamado
+10-02 18:07:45.590 19127 19127 W RetroMenu2Fragment: Fonte Arcada não encontrada - usando fonte padrão
+10-02 18:07:45.591 19127 19127 D RetroMenu2Fragment: Load State disponível: true
+10-02 18:07:45.592 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: LOAD_STATE
+10-02 18:07:45.592 19127 19127 D RetroMenu2Fragment: onViewCreated concluído
+10-02 18:07:45.596 19127 19127 D RetroMenu2Fragment: Load State disponível: true
+10-02 18:07:45.596 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: LOAD_STATE
+10-02 18:07:45.597 19127 19127 D RetroMenu2Fragment: Menu exibido - emulador já pausado
+10-02 18:07:45.631 19127 19127 D RetroMenu2Fragment: Screenshot fullscreen capturado: 2520x1080
+10-02 18:07:45.631 19127 19127 D RetroMenu2Fragment: Aplicando efeito tipo 3 (Scanline (CRT)) com intensidade 0.6
+10-02 18:07:45.631 19127 19127 D RetroMenu2Fragment: Screenshot capturado: 2520x1080
+10-02 18:07:45.632 19127 19214 D RetroMenu2Fragment: Efeito criado: ScanlineEffect, aplicando...
+10-02 18:07:45.701 19127 19214 D RetroMenu2Fragment: Efeito aplicado: 2520x1080
+10-02 18:07:45.702 19127 19127 D RetroMenu2Fragment: Background atualizado: ImageView VISIBLE, Overlay GONE, Menu VISIBLE, Bitmap 2520x1080
+10-02 18:07:46.651 19127 19127 D RetroMenu2Fragment: Navegação DOWN - opção selecionada: SETTINGS
+10-02 18:07:46.653 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: SETTINGS
+10-02 18:07:46.653 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:46.740 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:46.840 19127 19127 D RetroMenu2Fragment: Navegação DOWN - opção selecionada: EXIT
+10-02 18:07:46.842 19127 19127 D RetroMenu2Fragment: UI atualizada - opção selecionada: EXIT
+10-02 18:07:46.842 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:46.929 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:47.366 19127 19127 D RetroMenu2Fragment: Opção confirmada: EXIT
+10-02 18:07:47.366 19127 19127 D RetroMenu2Fragment: Abrindo submenu Exit...
+10-02 18:07:47.376 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu KeyEvent: 96
+10-02 18:07:47.426 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu KeyEvent: 96
+10-02 18:07:48.869 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:48.966 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:07:49.437 19127 19127 D GameActivityViewModel: RetroMenu2 consumiu KeyEvent: 96
+10-02 18:07:49.546 19127 19127 W RetroViewUtils: 🟡 === PRESERVE EMULATOR STATE INICIADO ===
+10-02 18:07:49.548 19127 19127 W RetroViewUtils: 💾 SRAM salvo
+10-02 18:07:49.548 19127 19127 W RetroViewUtils: 💾 saveTempState() iniciado
+10-02 18:07:49.549 19127 19127 W RetroViewUtils: 📤 Serializando 95389 bytes
+10-02 18:07:49.550 19127 19127 W RetroViewUtils: ✅ TEMP STATE salvo: 95389 bytes
+10-02 18:07:49.551 19127 19127 W RetroViewUtils: 💾 TEMP STATE salvo: 95389 bytes
+10-02 18:07:49.551 19127 19127 W RetroViewUtils: ⚠️ FrameSpeed = 0 (pausado), NÃO salvar
+10-02 18:07:49.551 19127 19127 W RetroViewUtils: 🟡 === PRESERVE EMULATOR STATE CONCLUÍDO ===
+10-02 18:07:49.554 19127 19127 D RetroMenu2Fragment: Menu fechado
+10-02 18:07:50.856 19127 19127 E AndroidRuntime: 	at com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment.animateMenuOut(ModernMenuFragment.kt:194)
+10-02 18:07:50.856 19127 19127 E AndroidRuntime: 	at com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment.dismissMenu(ModernMenuFragment.kt:214)
+10-02 18:07:50.856 19127 19127 E AndroidRuntime: 	at com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment.dismissMenuPublic(ModernMenuFragment.kt:219)
+10-02 18:07:50.856 19127 19127 E AndroidRuntime: 	at com.vinaooo.revenger.viewmodels.GameActivityViewModel.dismissMenu(GameActivityViewModel.kt:290)
+10-02 18:07:51.750 19276 19276 D GameActivityViewModel: RetroMenu2 preparado
+10-02 18:07:51.781 19276 19276 D GameActivityViewModel: MenuSoundManager inicializado no app startup
+10-02 18:07:51.781 19276 19276 D GameActivityViewModel: Controllers modulares inicializados com compatibilidade RetroViewUtils
+10-02 18:07:52.035 19276 19276 W RetroViewUtils: 🔵 === RESTORE EMULATOR STATE INICIADO ===
+10-02 18:07:52.035 19276 19276 W RetroViewUtils: skipTempStateLoad = false
+10-02 18:07:52.035 19276 19276 W RetroViewUtils: FrameSpeed restaurado: 1 → 1
+10-02 18:07:52.036 19276 19276 W RetroViewUtils: 📁 Verificação de arquivos:
+10-02 18:07:52.036 19276 19276 W RetroViewUtils:   - storage.state existe: true, tamanho: 95389 bytes
+10-02 18:07:52.036 19276 19276 W RetroViewUtils:   - storage.tempState existe: true, tamanho: 95389 bytes
+10-02 18:07:52.036 19276 19276 W RetroViewUtils:   - hasSaveState(): true
+10-02 18:07:52.036 19276 19276 W RetroViewUtils: ✅ Carregando SAVE STATE manual (prioridade)
+10-02 18:07:52.036 19276 19276 W RetroViewUtils: 📂 loadState() iniciado
+10-02 18:07:52.037 19276 19276 W RetroViewUtils: 📥 Lido 95389 bytes de storage.state
+10-02 18:07:52.040 19276 19276 W RetroViewUtils: 🔑 Hash MD5 (primeiro 1KB): 133eb23e
+10-02 18:07:52.045 19276 19276 W RetroViewUtils: ✅ SAVE STATE carregado com sucesso!
+10-02 18:07:52.045 19276 19276 W RetroViewUtils: 🔵 === RESTORE EMULATOR STATE CONCLUÍDO ===
+10-02 18:08:06.451 19276 19276 D GameActivityViewModel: selectStartPauseCallback TRIGGERED - pausing then opening RetroMenu2
+10-02 18:08:06.451 19276 19276 D GameActivityViewModel: 🛑 RetroMenu2: Emulator PAUSED (frameSpeed = 0)
+10-02 18:08:06.755 19276 19276 D GameActivityViewModel: RetroMenu2 exibido
+10-02 18:08:06.766 19276 19276 D RetroMenu2Fragment: RetroMenu2Fragment criado
+10-02 18:08:06.771 19276 19276 D RetroMenu2Fragment: onCreateView chamado
+10-02 18:08:06.794 19276 19276 W RetroMenu2Fragment: Fonte Arcada não encontrada - usando fonte padrão
+10-02 18:08:06.796 19276 19276 D RetroMenu2Fragment: Load State disponível: true
+10-02 18:08:06.797 19276 19276 D RetroMenu2Fragment: UI atualizada - opção selecionada: CONTINUE
+10-02 18:08:06.797 19276 19276 D RetroMenu2Fragment: onViewCreated concluído
+10-02 18:08:06.808 19276 19276 D RetroMenu2Fragment: Load State disponível: true
+10-02 18:08:06.809 19276 19276 D RetroMenu2Fragment: UI atualizada - opção selecionada: CONTINUE
+10-02 18:08:06.813 19276 19276 D RetroMenu2Fragment: Menu exibido - emulador já pausado
+10-02 18:08:06.851 19276 19276 D RetroMenu2Fragment: Screenshot fullscreen capturado: 2520x1080
+10-02 18:08:06.852 19276 19276 D RetroMenu2Fragment: Aplicando efeito tipo 3 (Scanline (CRT)) com intensidade 0.6
+10-02 18:08:06.852 19276 19276 D RetroMenu2Fragment: Screenshot capturado: 2520x1080
+10-02 18:08:06.855 19276 19352 D RetroMenu2Fragment: Efeito criado: ScanlineEffect, aplicando...
+10-02 18:08:06.922 19276 19352 D RetroMenu2Fragment: Efeito aplicado: 2520x1080
+10-02 18:08:06.923 19276 19276 D RetroMenu2Fragment: Background atualizado: ImageView VISIBLE, Overlay GONE, Menu VISIBLE, Bitmap 2520x1080
+10-02 18:08:07.368 19276 19276 D RetroMenu2Fragment: Navegação DOWN - opção selecionada: RESTART
+10-02 18:08:07.369 19276 19276 D RetroMenu2Fragment: UI atualizada - opção selecionada: RESTART
+10-02 18:08:07.369 19276 19276 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:08:07.467 19276 19276 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:08:07.556 19276 19276 D RetroMenu2Fragment: Navegação DOWN - opção selecionada: SAVE_STATE
+10-02 18:08:07.557 19276 19276 D RetroMenu2Fragment: UI atualizada - opção selecionada: SAVE_STATE
+10-02 18:08:07.557 19276 19276 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:08:07.645 19276 19276 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:08:07.734 19276 19276 D RetroMenu2Fragment: Navegação DOWN - opção selecionada: LOAD_STATE
+10-02 18:08:07.735 19276 19276 D RetroMenu2Fragment: UI atualizada - opção selecionada: LOAD_STATE
+10-02 18:08:07.736 19276 19276 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:08:07.834 19276 19276 D GameActivityViewModel: RetroMenu2 consumiu MotionEvent
+10-02 18:08:08.019 19276 19276 D RetroMenu2Fragment: Opção confirmada: LOAD_STATE
+10-02 18:08:08.019 19276 19276 W RetroMenu2Fragment: 📂 === LOAD STATE DO MENU INICIADO ===
+10-02 18:08:08.019 19276 19276 W GameActivityViewModel: 🔵 Central load state called
+10-02 18:08:08.019 19276 19276 W GameActivityViewModel: 💾 Save state exists, proceeding with load
+10-02 18:08:08.019 19276 19276 W GameActivityViewModel: 📂 Loading state from storage (centralized)
+10-02 18:08:08.020 19276 19276 W GameActivityViewModel: 🔍 DIAGNÓSTICO: hasSaveState = true
+10-02 18:08:08.020 19276 19276 W GameActivityViewModel: ⚙️ Saving current frameSpeed: 0
+10-02 18:08:08.020 19276 19276 W GameActivityViewModel: ⏸️ Temporarily set frameSpeed = 1 for load (silent, no core signals)
+10-02 18:08:08.020 19276 19276 W RetroViewUtils: 📂 loadState() iniciado
+10-02 18:08:08.022 19276 19276 W RetroViewUtils: 📥 Lido 95389 bytes de storage.state
+10-02 18:08:08.024 19276 19276 W RetroViewUtils: 🔑 Hash MD5 (primeiro 1KB): 133eb23e
+10-02 18:08:08.026 19276 19276 W RetroViewUtils: ✅ SAVE STATE carregado com sucesso!
+10-02 18:08:08.026 19276 19276 W GameActivityViewModel: ⏸️ Restored frameSpeed to 0 after load
+10-02 18:08:08.026 19276 19276 W GameActivityViewModel: 🚩 Flag set: skipNextTempStateLoad = true (prevent tempState override)
+10-02 18:08:08.026 19276 19276 W GameActivityViewModel: ✅ Load state executed successfully (centralized)
+10-02 18:08:08.026 19276 19276 W GameActivityViewModel: 🎮 State loaded, dismissPauseOverlay() will resume to frameSpeed=1
+10-02 18:08:08.026 19276 19276 W RetroMenu2Fragment: 📂 Load state completado via callback
+10-02 18:08:08.027 19276 19276 D GameActivityViewModel: ▶️ RetroMenu2: Emulator RESUMED (frameSpeed = 1)
+10-02 18:08:08.027 19276 19276 D RetroMenu2Fragment: Estado carregado e emulador retomado
+10-02 18:08:08.027 19276 19276 W RetroMenu2Fragment: 📂 === LOAD STATE DO MENU CONCLUÍDO ===
+10-02 18:08:08.027 19276 19276 D GameActivityViewModel: RetroMenu2 consumiu KeyEvent: 96
+10-02 18:08:08.029 19276 19276 D RetroMenu2Fragment: Menu fechado
+10-02 18:08:08.040 19276 19276 D RetroMenu2Fragment: RetroMenu2Fragment destruído
+10-02 18:08:10.399 19276 19276 D GameActivityViewModel: selectStartPauseCallback TRIGGERED - pausing then opening RetroMenu2
+10-02 18:08:10.399 19276 19276 D GameActivityViewModel: 🛑 RetroMenu2: Emulator PAUSED (frameSpeed = 0)
+10-02 18:08:10.703 19276 19276 D GameActivityViewModel: RetroMenu2 exibido
+10-02 18:08:10.710 19276 19276 D RetroMenu2Fragment: RetroMenu2Fragment criado
+10-02 18:08:10.713 19276 19276 D RetroMenu2Fragment: onCreateView chamado
+10-02 18:08:10.729 19276 19276 W RetroMenu2Fragment: Fonte Arcada não encontrada - usando fonte padrão
+10-02 18:08:10.730 19276 19276 D RetroMenu2Fragment: Load State disponível: true
+10-02 18:08:10.730 19276 19276 D RetroMenu2Fragment: UI atualizada - opção selecionada: LOAD_STATE
+10-02 18:08:10.731 19276 19276 D RetroMenu2Fragment: onViewCreated concluído
+10-02 18:08:10.734 19276 19276 D RetroMenu2Fragment: Load State disponível: true
+10-02 18:08:10.735 19276 19276 D RetroMenu2Fragment: UI atualizada - opção selecionada: LOAD_STATE
+10-02 18:08:10.735 19276 19276 D RetroMenu2Fragment: Menu exibido - emulador já pausado
+10-02 18:08:10.765 19276 19276 D RetroMenu2Fragment: Screenshot fullscreen capturado: 2520x1080
+10-02 18:08:10.766 19276 19276 D RetroMenu2Fragment: Aplicando efeito tipo 3 (Scanline (CRT)) com intensidade 0.6
+10-02 18:08:10.766 19276 19276 D RetroMenu2Fragment: Screenshot capturado: 2520x1080
+10-02 18:08:10.767 19276 19352 D RetroMenu2Fragment: Efeito criado: ScanlineEffect, aplicando...
+10-02 18:08:10.832 19276 19352 D RetroMenu2Fragment: Efeito aplicado: 2520x1080
+10-02 18:08:10.833 19276 19276 D RetroMenu2Fragment: Background atualizado: ImageView VISIBLE, Overlay GONE, Menu VISIBLE, Bitmap 2520x1080
+10-02 18:08:11.450 19276 19276 D RetroMenu2Fragment: Opção confirmada: LOAD_STATE
+10-02 18:08:11.450 19276 19276 W RetroMenu2Fragment: 📂 === LOAD STATE DO MENU INICIADO ===
+10-02 18:08:11.450 19276 19276 W GameActivityViewModel: 🔵 Central load state called
+10-02 18:08:11.451 19276 19276 W GameActivityViewModel: 💾 Save state exists, proceeding with load
+10-02 18:08:11.451 19276 19276 W GameActivityViewModel: 📂 Loading state from storage (centralized)
+10-02 18:08:11.451 19276 19276 W GameActivityViewModel: 🔍 DIAGNÓSTICO: hasSaveState = true
+10-02 18:08:11.452 19276 19276 W GameActivityViewModel: ⚙️ Saving current frameSpeed: 0
+10-02 18:08:11.452 19276 19276 W GameActivityViewModel: ⏸️ Temporarily set frameSpeed = 1 for load (silent, no core signals)
+10-02 18:08:11.452 19276 19276 W RetroViewUtils: 📂 loadState() iniciado
+10-02 18:08:11.454 19276 19276 W RetroViewUtils: 📥 Lido 95389 bytes de storage.state
+10-02 18:08:11.455 19276 19276 W RetroViewUtils: 🔑 Hash MD5 (primeiro 1KB): 133eb23e
+10-02 18:08:11.459 19276 19276 W RetroViewUtils: ✅ SAVE STATE carregado com sucesso!
+10-02 18:08:11.459 19276 19276 W GameActivityViewModel: ⏸️ Restored frameSpeed to 0 after load
+10-02 18:08:11.459 19276 19276 W GameActivityViewModel: 🚩 Flag set: skipNextTempStateLoad = true (prevent tempState override)
+10-02 18:08:11.459 19276 19276 W GameActivityViewModel: ✅ Load state executed successfully (centralized)
+10-02 18:08:11.459 19276 19276 W GameActivityViewModel: 🎮 State loaded, dismissPauseOverlay() will resume to frameSpeed=1
+10-02 18:08:11.459 19276 19276 W RetroMenu2Fragment: 📂 Load state completado via callback
+10-02 18:08:11.459 19276 19276 D GameActivityViewModel: ▶️ RetroMenu2: Emulator RESUMED (frameSpeed = 1)
+10-02 18:08:11.459 19276 19276 D RetroMenu2Fragment: Estado carregado e emulador retomado
+10-02 18:08:11.459 19276 19276 W RetroMenu2Fragment: 📂 === LOAD STATE DO MENU CONCLUÍDO ===
+10-02 18:08:11.459 19276 19276 D GameActivityViewModel: RetroMenu2 consumiu KeyEvent: 96
+10-02 18:08:11.461 19276 19276 D RetroMenu2Fragment: Menu fechado
+10-02 18:08:11.465 19276 19276 D RetroMenu2Fragment: RetroMenu2Fragment destruído
+10-02 18:08:14.367 19276 19276 W RetroViewUtils: 🟡 === PRESERVE EMULATOR STATE INICIADO ===
+10-02 18:08:14.376 19276 19276 W RetroViewUtils: 💾 SRAM salvo
+10-02 18:08:14.376 19276 19276 W RetroViewUtils: 💾 saveTempState() iniciado
+10-02 18:08:14.393 19276 19276 W RetroViewUtils: 📤 Serializando 95389 bytes
+10-02 18:08:14.395 19276 19276 W RetroViewUtils: ✅ TEMP STATE salvo: 95389 bytes
+10-02 18:08:14.395 19276 19276 W RetroViewUtils: 💾 TEMP STATE salvo: 95389 bytes
+10-02 18:08:14.395 19276 19276 W RetroViewUtils: ⚙️ FrameSpeed salvo: 1
+10-02 18:08:14.397 19276 19276 W RetroViewUtils: 🟡 === PRESERVE EMULATOR STATE CONCLUÍDO ===
+10-02 18:08:15.846 19276 19276 W GameActivityViewModel: 🔵 Central load state called
+10-02 18:08:15.847 19276 19276 W GameActivityViewModel: 💾 Save state exists, proceeding with load
+10-02 18:08:15.847 19276 19276 W GameActivityViewModel: 📂 Loading state from storage (centralized)
+10-02 18:08:15.847 19276 19276 W GameActivityViewModel: 🔍 DIAGNÓSTICO: hasSaveState = true
+10-02 18:08:15.847 19276 19276 W GameActivityViewModel: ⚙️ Saving current frameSpeed: 1
+10-02 18:08:15.847 19276 19276 W GameActivityViewModel: ⏸️ Temporarily set frameSpeed = 1 for load (silent, no core signals)
+10-02 18:08:15.847 19276 19276 W RetroViewUtils: 📂 loadState() iniciado
+10-02 18:08:15.848 19276 19276 W RetroViewUtils: 📥 Lido 95389 bytes de storage.state
+10-02 18:08:15.850 19276 19276 W RetroViewUtils: 🔑 Hash MD5 (primeiro 1KB): 133eb23e
+10-02 18:08:15.860 19276 19276 W RetroViewUtils: ✅ SAVE STATE carregado com sucesso!
+10-02 18:08:15.860 19276 19276 W GameActivityViewModel: ⏸️ Restored frameSpeed to 1 after load
+10-02 18:08:15.860 19276 19276 W GameActivityViewModel: 🚩 Flag set: skipNextTempStateLoad = true (prevent tempState override)
+10-02 18:08:15.860 19276 19276 W GameActivityViewModel: ✅ Load state executed successfully (centralized)
+10-02 18:08:15.860 19276 19276 W GameActivityViewModel: 🎮 State loaded, dismissPauseOverlay() will resume to frameSpeed=1
+10-02 18:08:24.109 19276 19276 W RetroViewUtils: 🟡 === PRESERVE EMULATOR STATE INICIADO ===
+10-02 18:08:24.120 19276 19276 W RetroViewUtils: 💾 SRAM salvo
+10-02 18:08:24.121 19276 19276 W RetroViewUtils: 💾 saveTempState() iniciado
+10-02 18:08:24.124 19276 19276 W RetroViewUtils: ✅ TEMP STATE salvo: 95389 bytes
+10-02 18:08:24.125 19276 19276 W RetroViewUtils: 💾 TEMP STATE salvo: 95389 bytes
+10-02 18:08:24.125 19276 19276 W RetroViewUtils: ⚙️ FrameSpeed salvo: 1
+10-02 18:08:24.125 19276 19276 W RetroViewUtils: 🟡 === PRESERVE EMULATOR STATE CONCLUÍDO ===

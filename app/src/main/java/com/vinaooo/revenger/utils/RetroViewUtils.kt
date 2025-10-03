@@ -13,26 +13,36 @@ class RetroViewUtils(private val activity: Activity) {
     private val fastForwardSpeed =
             activity.resources.getInteger(R.integer.config_fast_forward_multiplier)
 
-    fun restoreEmulatorState(retroView: RetroView, skipTempStateLoad: Boolean = false) {
+    fun restoreEmulatorState(
+            retroView: RetroView,
+            skipTempStateLoad: Boolean = false,
+            autoRestoreManualState: Boolean = false
+    ) {
         // CORREÇÃO: Restaurar frameSpeed, mas garantir que nunca seja 0 (pausado)
         // Se frameSpeed salvo for 0, significa que app foi fechado com menu aberto
         // Nesse caso, restaurar para 1 (velocidade normal) para evitar tela preta
         val savedFrameSpeed =
                 sharedPreferences.getInt(activity.getString(R.string.pref_frame_speed), 1)
         retroView.view.frameSpeed = if (savedFrameSpeed == 0) 1 else savedFrameSpeed
-
         retroView.view.audioEnabled =
                 sharedPreferences.getBoolean(activity.getString(R.string.pref_audio_enabled), true)
 
         // CORREÇÃO CRÍTICA: Não carregar tempState se acabamos de fazer Load State manual
         // Isso evita que o tempState sobrescreva o save state que o usuário acabou de carregar
         if (!skipTempStateLoad) {
-            loadTempState(retroView)
+            val hasSave = hasSaveState()
+            val tempExists = storage.tempState.exists()
+
+            when {
+                autoRestoreManualState && hasSave -> loadState(retroView)
+                tempExists -> loadTempState(retroView)
+            }
         }
     }
 
     fun preserveEmulatorState(retroView: RetroView) {
         saveSRAM(retroView)
+
         saveTempState(retroView)
 
         sharedPreferences.edit {
@@ -52,31 +62,48 @@ class RetroViewUtils(private val activity: Activity) {
     }
 
     fun loadState(retroView: RetroView) {
-        if (!storage.state.exists()) return
+        if (!storage.state.exists()) {
+            return
+        }
 
         val stateBytes = storage.state.inputStream().use { it.readBytes() }
 
-        if (stateBytes.isEmpty()) return
+        if (stateBytes.isEmpty()) {
+            return
+        }
 
         retroView.view.unserializeState(stateBytes)
     }
 
     fun loadTempState(retroView: RetroView) {
-        if (!storage.tempState.exists()) return
+        if (!storage.tempState.exists()) {
+            return
+        }
 
         val stateBytes = storage.tempState.inputStream().use { it.readBytes() }
 
-        if (stateBytes.isEmpty()) return
+        if (stateBytes.isEmpty()) {
+            return
+        }
 
         retroView.view.unserializeState(stateBytes)
     }
 
     fun saveState(retroView: RetroView) {
-        storage.state.outputStream().use { it.write(retroView.view.serializeState()) }
+        try {
+            val stateBytes = retroView.view.serializeState()
+
+            storage.state.outputStream().use { it.write(stateBytes) }
+        } catch (e: Exception) {
+            // Erros de salvamento são ignorados para manter compatibilidade com o comportamento
+            // anterior
+        }
     }
 
     fun saveTempState(retroView: RetroView) {
-        storage.tempState.outputStream().use { it.write(retroView.view.serializeState()) }
+        val stateBytes = retroView.view.serializeState()
+
+        storage.tempState.outputStream().use { it.write(stateBytes) }
     }
 
     fun fastForward(retroView: RetroView) {
@@ -92,7 +119,11 @@ class RetroViewUtils(private val activity: Activity) {
      * Check if a save state exists Required for Material You menu to show/hide load state option
      */
     fun hasSaveState(): Boolean {
-        return storage.state.exists() && storage.state.length() > 0
+        val exists = storage.state.exists()
+        val length = if (exists) storage.state.length() else 0
+        val result = exists && length > 0
+
+        return result
     }
 
     /** Get the current audio state from preferences */

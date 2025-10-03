@@ -1,7 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,8 +21,6 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 class RetroMenuFragment : Fragment() {
 
         companion object {
-                private const val TAG = "RetroMenuFragment"
-
                 fun newInstance(): RetroMenuFragment {
                         return RetroMenuFragment()
                 }
@@ -52,13 +49,8 @@ class RetroMenuFragment : Fragment() {
         private var menuContainer: LinearLayout? = null
         private var menuTitle: TextView? = null
 
-        init {
-                Log.d(TAG, "RetroMenuFragment initialized")
-        }
-
         /** Reset selection to first option (called when menu appears) */
         fun resetSelectionToFirst() {
-                Log.d(TAG, "Resetting selection to first option")
                 selectedOptionIndex = 0
                 updateSelection()
         }
@@ -68,7 +60,6 @@ class RetroMenuFragment : Fragment() {
                 container: ViewGroup?,
                 savedInstanceState: Bundle?
         ): View? {
-                Log.d(TAG, "RetroMenuFragment.onCreateView called")
                 // Create retro menu with title and Continue button
                 val frameLayout =
                         FrameLayout(requireContext()).apply {
@@ -214,13 +205,10 @@ class RetroMenuFragment : Fragment() {
 
                                 // Keep background click behavior (don't dismiss)
                                 setOnClickListener {
-                                        Log.d(
-                                                TAG,
-                                                "Retro menu background touched - use Continue button or configured gamepad button"
-                                        )
+                                        // Intencionalmente não faz nada para evitar fechamento
+                                        // acidental
                                 }
                         }
-                Log.d(TAG, "RetroMenuFragment view created programmatically with arcade font")
                 return frameLayout
         }
 
@@ -297,45 +285,31 @@ class RetroMenuFragment : Fragment() {
                         menuOptions.add(option)
                         menuActions.add(action)
                 }
-
-                Log.d(TAG, "Created ${menuOptions.size} menu options")
         }
 
         /** Handle DPAD navigation input */
         fun handleNavigationInput(keyCode: Int): Boolean {
-                Log.d(
-                        TAG,
-                        "handleNavigationInput called with keyCode: $keyCode (${android.view.KeyEvent.keyCodeToString(keyCode)})"
-                )
-
                 return when (keyCode) {
                         // Standard DPAD codes (now sent via converted analog motion)
                         android.view.KeyEvent.KEYCODE_DPAD_UP,
                         android.view.KeyEvent.KEYCODE_DPAD_LEFT -> {
-                                Log.d(TAG, "Handling UP/LEFT navigation (code: $keyCode)")
                                 navigateUp()
                                 true
                         }
                         android.view.KeyEvent.KEYCODE_DPAD_DOWN,
                         android.view.KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                                Log.d(TAG, "Handling DOWN/RIGHT navigation (code: $keyCode)")
                                 navigateDown()
                                 true
                         }
                         android.view.KeyEvent.KEYCODE_BUTTON_A -> {
-                                Log.d(TAG, "Handling BUTTON_A confirmation")
                                 confirmSelection()
                                 true
                         }
                         android.view.KeyEvent.KEYCODE_BUTTON_B -> {
-                                Log.d(TAG, "Handling BUTTON_B exit")
                                 exitMenu()
                                 true
                         }
-                        else -> {
-                                Log.d(TAG, "Unhandled navigation key: $keyCode")
-                                false
-                        }
+                        else -> false
                 }
         }
 
@@ -350,7 +324,6 @@ class RetroMenuFragment : Fragment() {
                                 menuOptions.size - 1 // Wrap to last option
                         }
                 updateSelection()
-                Log.d(TAG, "Navigated UP to option $selectedOptionIndex")
         }
 
         /** Navigate to next option */
@@ -364,13 +337,11 @@ class RetroMenuFragment : Fragment() {
                                 0 // Wrap to first option
                         }
                 updateSelection()
-                Log.d(TAG, "Navigated DOWN to option $selectedOptionIndex")
         }
 
         /** Confirm current selection */
         private fun confirmSelection() {
                 if (selectedOptionIndex < menuActions.size) {
-                        Log.d(TAG, "Confirmed selection: option $selectedOptionIndex")
                         menuActions[selectedOptionIndex].invoke()
                 }
         }
@@ -378,13 +349,8 @@ class RetroMenuFragment : Fragment() {
         /** Exit menu (B button) */
         private fun exitMenu() {
                 if (isInSubmenu) {
-                        Log.d(TAG, "🔵 B button pressed in submenu - returning to main menu")
                         returnToMainMenu()
                 } else {
-                        Log.w(
-                                TAG,
-                                "🔵 B button pressed - CONTINUING GAME (potential double-pause trigger)"
-                        )
                         continueGame()
                 }
         }
@@ -456,7 +422,7 @@ class RetroMenuFragment : Fragment() {
                                                 R.font.arcade_normal
                                         )
                         } catch (e: Exception) {
-                                Log.w(TAG, "Could not load arcade font for title, using default", e)
+                                // Mantém fonte padrão quando arcade_normal não estiver disponível
                         }
 
                         // Margin below title
@@ -511,11 +477,7 @@ class RetroMenuFragment : Fragment() {
                                                 R.font.arcade_normal
                                         )
                         } catch (e: Exception) {
-                                Log.w(
-                                        TAG,
-                                        "Could not load arcade font for option, using default",
-                                        e
-                                )
+                                // Mantém fonte padrão quando arcade_normal não estiver disponível
                         }
 
                         // Add generous padding for better touch area
@@ -548,8 +510,6 @@ class RetroMenuFragment : Fragment() {
 
                         // Add click listener for touch support
                         setOnClickListener {
-                                Log.d(TAG, "$text option clicked via touch!")
-
                                 // Find which option was clicked and update selection
                                 val clickedIndex = menuOptions.indexOf(this)
                                 if (clickedIndex != -1) {
@@ -600,65 +560,31 @@ class RetroMenuFragment : Fragment() {
 
         /** Game actions */
         private fun restartGame() {
-                Log.d(TAG, "Restart game requested - using centralized implementation")
-
                 // CORREÇÃO: Usar dismissOverlay para restaurar frameSpeed = 1 (retomar emulação)
-                viewModel.resetGameCentralized {
-                        Log.d(
-                                TAG,
-                                "Centralized reset game completed, dismissing overlay with frameSpeed restore"
-                        )
-                        dismissOverlay()
-                }
+                viewModel.resetGameCentralized { dismissOverlay() }
         }
 
         private fun saveState() {
-                Log.d(TAG, "Save state requested - using centralized implementation")
-
                 // CORREÇÃO: Usar dismissOverlay para restaurar frameSpeed = 1 (retomar emulação)
-                viewModel.saveStateCentralized {
-                        Log.d(
-                                TAG,
-                                "Centralized save state completed, dismissing overlay with frameSpeed restore"
-                        )
-                        dismissOverlay()
-                }
+                viewModel.saveStateCentralized { dismissOverlay() }
         }
 
         private fun loadState() {
-                Log.d(TAG, "Load state requested - using centralized implementation")
-
                 // CORREÇÃO: Usar dismissOverlay para restaurar frameSpeed = 1 (retomar emulação)
-                viewModel.loadStateCentralized {
-                        Log.d(
-                                TAG,
-                                "Centralized load state completed, dismissing overlay with frameSpeed restore"
-                        )
-                        dismissOverlay()
-                }
+                viewModel.loadStateCentralized { dismissOverlay() }
         }
 
         private fun loadStateSafe() {
-                Log.d(TAG, "Load state safe requested - using centralized implementation")
-
                 // CORREÇÃO: Usar dismissOverlay para restaurar frameSpeed = 1 (retomar emulação)
-                viewModel.loadStateCentralized {
-                        Log.d(
-                                TAG,
-                                "Centralized load state safe completed, dismissing overlay with frameSpeed restore"
-                        )
-                        dismissOverlay()
-                }
+                viewModel.loadStateCentralized { dismissOverlay() }
         }
 
         private fun openSettings() {
-                Log.d(TAG, "Settings requested - showing settings submenu")
                 showSettingsSubmenu()
         }
 
         /** Show exit game submenu with 3 options */
         private fun showExitSubmenu() {
-                Log.d(TAG, "Showing exit submenu")
                 isInSubmenu = true
 
                 // Update title
@@ -699,12 +625,10 @@ class RetroMenuFragment : Fragment() {
 
                 // Reset selection to first option
                 resetSelectionToFirst()
-                Log.d(TAG, "Created exit submenu with ${menuOptions.size} options")
         }
 
         /** Show settings submenu with audio and speed options */
         private fun showSettingsSubmenu() {
-                Log.d(TAG, "Showing settings submenu")
                 isInSubmenu = true
 
                 // Update title
@@ -766,12 +690,10 @@ class RetroMenuFragment : Fragment() {
 
                 // Reset selection to first option
                 resetSelectionToFirst()
-                Log.d(TAG, "Created settings submenu with ${menuOptions.size} options")
         }
 
         /** Return to main menu from submenu */
         private fun returnToMainMenu() {
-                Log.d(TAG, "Returning to main menu")
                 isInSubmenu = false
 
                 // Restore main menu title
@@ -791,24 +713,19 @@ class RetroMenuFragment : Fragment() {
 
         /** Exit without saving */
         private fun exitWithoutSave() {
-                Log.d(TAG, "Exiting without save")
                 // Close the app immediately
                 android.os.Process.killProcess(android.os.Process.myPid())
         }
 
         /** Save and exit */
         private fun saveAndExit() {
-                Log.d(TAG, "Save and exit requested")
                 // Save state first, then exit
                 viewModel.saveStateCentralized {
-                        Log.d(TAG, "Save completed, exiting app")
                         android.os.Process.killProcess(android.os.Process.myPid())
                 }
         }
 
         private fun continueGame() {
-                Log.d(TAG, "Continue game requested - dismissing overlay (frameSpeed will resume)")
-
                 // Simply dismiss the overlay - dismissPauseOverlay() will handle resume with
                 // frameSpeed = 1
                 onDismissCallback?.invoke()
@@ -816,7 +733,6 @@ class RetroMenuFragment : Fragment() {
 
         /** Toggle audio setting and update submenu display */
         private fun toggleAudioSetting() {
-                Log.d(TAG, "Toggling audio setting")
                 // Use ViewModel's audio controller
                 viewModel.onToggleAudio()
 
@@ -826,7 +742,6 @@ class RetroMenuFragment : Fragment() {
 
         /** Toggle speed setting and update submenu display */
         private fun toggleSpeedSetting() {
-                Log.d(TAG, "Toggling speed setting")
                 // Use ViewModel's speed controller
                 viewModel.onFastForward()
 
@@ -836,33 +751,11 @@ class RetroMenuFragment : Fragment() {
 
         /** Dismiss the pause overlay */
         fun dismissOverlay() {
-                val timestamp =
-                        java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault())
-                                .format(java.util.Date())
-                Log.w(
-                        TAG,
-                        "🔴 [$timestamp] dismissOverlay() called - THIS TRIGGERS dismissPauseOverlay in ViewModel!"
-                )
-                Log.d(TAG, "onDismissCallback is: ${onDismissCallback}")
-                if (onDismissCallback != null) {
-                        Log.w(
-                                TAG,
-                                "🔴 [$timestamp] Calling onDismissCallback -> dismissPauseOverlay() (artificial events source)"
-                        )
-                        onDismissCallback?.invoke()
-                        Log.w(
-                                TAG,
-                                "🔴 [$timestamp] onDismissCallback completed - dismissPauseOverlay() with artificial events finished"
-                        )
-                } else {
-                        Log.e(TAG, "onDismissCallback is null!")
-                }
+                onDismissCallback?.invoke()
         }
 
         /** Simple menu dismiss replicating Modern Menu behavior - just removes fragment */
         private fun dismissMenuSimple() {
-                Log.d(TAG, "🔄 dismissMenuSimple() - Replicating Modern Menu behavior")
                 parentFragmentManager.beginTransaction().remove(this).commit()
-                Log.d(TAG, "🔄 Fragment removed - Modern Menu pattern applied")
         }
 }

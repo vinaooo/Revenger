@@ -1,7 +1,6 @@
 package com.vinaooo.revenger.input
 
 import android.content.Context
-import android.util.Log
 import android.view.InputEvent
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -10,8 +9,6 @@ import com.vinaooo.revenger.retroview.RetroView
 
 class ControllerInput(private val context: Context) {
     companion object {
-        private const val TAG = "ControllerInput"
-
         /** Combination to open the menu */
         val KEYCOMBO_MENU = setOf(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_BUTTON_SELECT)
 
@@ -51,9 +48,7 @@ class ControllerInput(private val context: Context) {
      * quando o menu fecha para evitar reabertura imediata.
      */
     fun clearKeyLog() {
-        Log.w(TAG, "🧹 CLEARING keyLog - was: $keyLog")
         keyLog.clear()
-        Log.w(TAG, "✅ keyLog cleared - now: $keyLog")
     }
 
     /** The callback for when the user inputs the menu key-combination */
@@ -100,12 +95,10 @@ class ControllerInput(private val context: Context) {
 
         // Check UP transition (false -> true)
         if (currentUp && !previousState.up) {
-            Log.d(TAG, "🔥 $inputName UP - NEW TRIGGER detected!")
             triggeredKeyCode = KeyEvent.KEYCODE_DPAD_UP
         }
         // Check DOWN transition (false -> true)
         else if (currentDown && !previousState.down) {
-            Log.d(TAG, "🔥 $inputName DOWN - NEW TRIGGER detected!")
             triggeredKeyCode = KeyEvent.KEYCODE_DPAD_DOWN
         }
 
@@ -127,16 +120,9 @@ class ControllerInput(private val context: Context) {
 
     /** Check if we should show the pause overlay */
     private fun checkPauseKey(): Boolean {
-        Log.d(TAG, "🔍 checkPauseKey CALLED - keyLog.size: ${keyLog.size}, keyLog: $keyLog")
-
-        // Log callback states for debugging
         val startHandleState = shouldHandleStartPause()
         val selectHandleState = shouldHandleSelectPause()
         val selectStartHandleState = shouldHandleSelectStartPause()
-        Log.d(
-                TAG,
-                "🔍 Callback states - START: $startHandleState, SELECT: $selectHandleState, SELECT+START: $selectStartHandleState"
-        )
 
         // PRIORITY 1: Check for SELECT + START combo FIRST (regardless of other keys)
         // This allows "hold SELECT, then press START" pattern
@@ -144,7 +130,6 @@ class ControllerInput(private val context: Context) {
                         keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT) &&
                         selectStartHandleState
         ) {
-            Log.w(TAG, "🚨 SELECT+START COMBO DETECTED! (keyLog.size=${keyLog.size})")
             selectStartPauseCallback()
             return true // Block events from reaching core
         }
@@ -152,7 +137,6 @@ class ControllerInput(private val context: Context) {
         // PRIORITY 2: Check for SELECT alone (ONLY if START is NOT pressed)
         if (keyLog.size == 1 && keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT) && selectHandleState
         ) {
-            Log.w(TAG, "🚨 SELECT ALONE DETECTED!")
             selectPauseCallback()
             return true // Block events from reaching core
         }
@@ -160,40 +144,23 @@ class ControllerInput(private val context: Context) {
         // PRIORITY 3: Check for START alone (ONLY if SELECT is NOT pressed)
         if (keyLog.size == 1 && keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) && startHandleState
         ) {
-            Log.w(TAG, "🚨 START ALONE DETECTED!")
             pauseCallback()
             return true // Block events from reaching core
         }
-
-        Log.d(TAG, "✅ No pause conditions met - keyLog ignored")
         return false // Don't block events
     }
 
     fun processGamePadButtonEvent(keyCode: Int, action: Int) {
-        Log.d(
-                TAG,
-                "processGamePadButtonEvent - keyCode: $keyCode, action: $action (${KeyEvent.keyCodeToString(keyCode)})"
-        )
-
         /* Keep track of user input events */
         when (action) {
             KeyEvent.ACTION_DOWN -> {
                 keyLog.add(keyCode)
-                Log.d(
-                        TAG,
-                        "🎮 GamePad Key DOWN: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog"
-                )
             }
             KeyEvent.ACTION_UP -> {
                 keyLog.remove(keyCode)
-                Log.d(
-                        TAG,
-                        "🎮 GamePad Key UP: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog"
-                )
             }
         }
 
-        Log.d(TAG, "🔄 Calling checkMenuKeyCombo and checkPauseKey from processGamePadButtonEvent")
         checkMenuKeyCombo()
         checkPauseKey()
     }
@@ -205,10 +172,6 @@ class ControllerInput(private val context: Context) {
     fun captureKeysOnMenuOpen() {
         keysToBlockAfterMenuClose.clear()
         keysToBlockAfterMenuClose.addAll(keyLog)
-        Log.w(
-                TAG,
-                "📸 Captured ${keysToBlockAfterMenuClose.size} pressed keys when menu opened: $keysToBlockAfterMenuClose"
-        )
     }
 
     /**
@@ -217,13 +180,7 @@ class ControllerInput(private val context: Context) {
     fun clearBlockedKeysDelayed() {
         android.os.Handler(android.os.Looper.getMainLooper())
                 .postDelayed(
-                        {
-                            Log.w(
-                                    TAG,
-                                    "🧹 Clearing blocked keys list (was: $keysToBlockAfterMenuClose)"
-                            )
-                            keysToBlockAfterMenuClose.clear()
-                        },
+                        { keysToBlockAfterMenuClose.clear() },
                         500
                 ) // 500ms delay to ensure all pending ACTION_UP events are blocked
     }
@@ -238,46 +195,17 @@ class ControllerInput(private val context: Context) {
         // CRITICAL FIX: Block ACTION_UP for keys that were pressed when menu opened
         // This prevents partial signals (ACTION_UP without ACTION_DOWN) from reaching the core
         if (event.action == KeyEvent.ACTION_UP && keysToBlockAfterMenuClose.contains(keyCode)) {
-            Log.w(TAG, "🚫 BLOCKING ACTION_UP for $keyCode - key was pressed when menu opened")
             keysToBlockAfterMenuClose.remove(keyCode) // Remove after blocking once
 
             // CRITICAL: Also remove from keyLog to prevent checkPauseKey from detecting it
             keyLog.remove(keyCode)
-            Log.w(
-                    TAG,
-                    "🧹 Removed $keyCode from keyLog to prevent menu reopen, keyLog now: $keyLog"
-            )
 
             return true // Block this ACTION_UP
-        }
-
-        // Log ALL key events for debugging DPAD issues - capture EVERY keycode
-        val actionString =
-                when (event.action) {
-                    KeyEvent.ACTION_DOWN -> "DOWN"
-                    KeyEvent.ACTION_UP -> "UP"
-                    else -> "OTHER(${event.action})"
-                }
-        Log.d(
-                TAG,
-                "🎮 ALL KEYS: keyCode=$keyCode (${KeyEvent.keyCodeToString(keyCode)}), action=$actionString, retroMenuVisible=${isRetroMenuVisible()}"
-        )
-
-        // Log ALL keycodes when menu visible to find the real DPAD codes
-        if (isRetroMenuVisible()) {
-            Log.d(
-                    TAG,
-                    "📍 MENU ACTIVE - CAPTURING KEY: $keyCode (${KeyEvent.keyCodeToString(keyCode)}) - action: $actionString"
-            )
         }
 
         // If retro menu is visible, intercept navigation keys (analog motion converted to DPAD)
         // CRITICAL: Block BOTH ACTION_DOWN and ACTION_UP to prevent partial signals reaching core
         if (isRetroMenuVisible()) {
-            Log.d(
-                    TAG,
-                    "Retro menu is visible, checking navigation key: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), action=$actionString"
-            )
             when (keyCode) {
                 // Only UP/DOWN navigation for menu (LEFT/RIGHT pass through to game)
                 KeyEvent.KEYCODE_DPAD_UP,
@@ -285,55 +213,27 @@ class ControllerInput(private val context: Context) {
                 // Button codes for menu actions
                 KeyEvent.KEYCODE_BUTTON_A,
                 KeyEvent.KEYCODE_BUTTON_B -> {
-                    Log.d(
-                            TAG,
-                            "Intercepting UP/DOWN/A/B key for retro menu: $keyCode, action=$actionString"
-                    )
-
                     // Only send ACTION_DOWN to menu for processing
                     // But block BOTH ACTION_DOWN and ACTION_UP from reaching the core
                     if (event.action == KeyEvent.ACTION_DOWN) {
                         if (retroMenuNavigationCallback(keyCode)) {
-                            Log.d(
-                                    TAG,
-                                    "Menu navigation key handled by retro menu, blocking ACTION_DOWN from game"
-                            )
                             return true // Menu handled the input, don't send to game
-                        } else {
-                            Log.d(
-                                    TAG,
-                                    "Menu navigation key NOT handled by retro menu, sending ACTION_DOWN to game"
-                            )
                         }
                     } else if (event.action == KeyEvent.ACTION_UP) {
                         // CRITICAL FIX: Block ACTION_UP for menu keys to prevent pause signals
-                        Log.d(TAG, "Blocking ACTION_UP for menu key $keyCode to prevent core pause")
-
                         // CRITICAL: Also remove from keyLog to prevent checkPauseKey detection
                         keyLog.remove(keyCode)
-                        Log.d(TAG, "🧹 Removed menu key $keyCode from keyLog, now: $keyLog")
 
                         return true // Block ACTION_UP from reaching core
                     }
                 }
                 KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                    Log.d(
-                            TAG,
-                            "LEFT/RIGHT key while menu visible - passing through to game: $keyCode"
-                    )
                     // LEFT/RIGHT pass through to game even when menu is visible
                 }
-                else -> {
-                    Log.d(TAG, "Other key while menu visible: $keyCode, sending to game")
-                }
+                else -> {}
             }
         } else {
-            if (event.action == KeyEvent.ACTION_DOWN) {
-                Log.d(
-                        TAG,
-                        "Retro menu not visible (${isRetroMenuVisible()}), sending key to game: $keyCode"
-                )
-            }
+            if (event.action == KeyEvent.ACTION_DOWN) {}
         }
 
         val port = getPort(event)
@@ -342,28 +242,17 @@ class ControllerInput(private val context: Context) {
         when (event.action) {
             KeyEvent.ACTION_DOWN -> {
                 keyLog.add(keyCode)
-                Log.d(
-                        TAG,
-                        "⌨️ Key DOWN: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog"
-                )
             }
             KeyEvent.ACTION_UP -> {
                 keyLog.remove(keyCode)
-                Log.d(
-                        TAG,
-                        "⌨️ Key UP: $keyCode (${KeyEvent.keyCodeToString(keyCode)}), keyLog: $keyLog"
-                )
             }
         }
 
-        // Check for menu combo and pause key BEFORE sending to core
-        Log.d(TAG, "🔄 Calling checkMenuKeyCombo and checkPauseKey from processKeyEvent")
         checkMenuKeyCombo()
         val shouldBlockPauseKey = checkPauseKey()
 
         // If pause key combo detected, block the events from reaching core
         if (shouldBlockPauseKey) {
-            Log.w(TAG, "🚫 BLOCKING pause key combo from reaching core (SELECT/START/SELECT+START)")
             return true // Block completely
         }
 
@@ -378,25 +267,13 @@ class ControllerInput(private val context: Context) {
         if (retroView.frameRendered.value == false) return null
 
         // Get analog stick values
-        val xAxis = event.getAxisValue(MotionEvent.AXIS_X)
         val yAxis = event.getAxisValue(MotionEvent.AXIS_Y)
-
-        Log.d(TAG, "🕹️ MOTION EVENT: X=$xAxis, Y=$yAxis, retroMenuVisible=${isRetroMenuVisible()}")
 
         // If retro menu is visible, use single-trigger navigation system
         if (isRetroMenuVisible()) {
-            Log.d(TAG, "📍 Retro menu visible - processing SINGLE-TRIGGER navigation inputs")
-
             // Get all axis values
-            val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
             val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
-            val z = event.getAxisValue(MotionEvent.AXIS_Z)
             val rz = event.getAxisValue(MotionEvent.AXIS_RZ)
-
-            Log.d(
-                    TAG,
-                    "🔍 RAW VALUES: DPAD(HAT_X=$hatX, HAT_Y=$hatY) | LEFT_ANALOG(X=$xAxis, Y=$yAxis) | RIGHT_ANALOG(Z=$z, RZ=$rz)"
-            )
 
             // 1. DPAD físico (HAT_Y only) - Prioridade máxima, apenas UP/DOWN
             val dpadUp = hatY < -dpadThreshold
@@ -424,12 +301,7 @@ class ControllerInput(private val context: Context) {
 
             // Se houve um trigger, enviar para o menu
             if (triggeredKeyCode != null) {
-                Log.d(
-                        TAG,
-                        "🚀 SINGLE TRIGGER activated: ${KeyEvent.keyCodeToString(triggeredKeyCode)}"
-                )
                 if (retroMenuNavigationCallback(triggeredKeyCode)) {
-                    Log.d(TAG, "✅ Single trigger handled by retro menu, blocking game input")
                     return true // Menu handled the input, don't send to game
                 }
             }

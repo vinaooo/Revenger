@@ -89,18 +89,7 @@
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />
 
-        <!-- Opção 4: Load State -->
-        <TextView
-            android:id="@+id/optionLoad"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="6dp"
-            android:text="@string/retromenu2_option_load"
-            android:textColor="@color/retromenu2_text_color"
-            android:textSize="@dimen/retromenu2_option_text_size" />
-
-        <!-- Opção 5: Settings -->
+        <!-- Opção 4: Settings -->
         <TextView
             android:id="@+id/optionSettings"
             android:layout_width="wrap_content"
@@ -111,7 +100,7 @@
             android:textColor="@color/retromenu2_text_color"
             android:textSize="@dimen/retromenu2_option_text_size" />
 
-        <!-- Opção 6: Exit Game -->
+        <!-- Opção 5: Exit Game -->
         <TextView
             android:id="@+id/optionExit"
             android:layout_width="wrap_content"
@@ -124,19 +113,6 @@
     </LinearLayout>
 
     </ScrollView>
-
-    <!-- Texto LOADING... (invisível por padrão, aparece durante Load State) -->
-    <TextView
-        android:id="@+id/loadingText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|start"
-        android:layout_margin="24dp"
-        android:text="@string/retromenu2_loading"
-        android:textColor="@color/retromenu2_text_color"
-        android:textSize="@dimen/retromenu2_loading_text_size"
-        android:visibility="gone"
-        tools:visibility="visible" />
 
     <!-- Hint de botões [A] CONFIRM [B] CANCEL (canto inferior direito) -->
     <TextView

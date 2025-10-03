@@ -3,7 +3,8 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Activity
 import android.app.Application
 import android.content.pm.ActivityInfo
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import android.view.*
 import android.view.KeyEvent
 import android.widget.FrameLayout
@@ -29,10 +30,6 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 class GameActivityViewModel(application: Application) :
         AndroidViewModel(application), ModernMenuFragment.ModernMenuListener {
 
-    companion object {
-        private const val TAG = "GameActivityViewModel"
-    }
-
     private val resources = application.resources
 
     var retroView: RetroView? = null
@@ -56,6 +53,9 @@ class GameActivityViewModel(application: Application) :
     // Controllers for modular audio and speed control
     private var audioController: AudioController? = null
     private var speedController: SpeedController? = null
+
+    // MenuSoundManager compartilhado (inicializado uma vez no app startup)
+    private var menuSoundManager: com.vinaooo.revenger.retromenu2.MenuSoundManager? = null
 
     // Flag to prevent tempState from overwriting a manual Load State
     private var skipNextTempStateLoad = false
@@ -90,7 +90,6 @@ class GameActivityViewModel(application: Application) :
         controllerInput.pauseCallback = {
             // START button (mode 1)
             if (isPauseOverlayEnabled()) {
-                Log.d(TAG, "pauseCallback TRIGGERED - calling showPauseOverlay (START)")
                 showPauseOverlay(activity)
             }
         }
@@ -98,7 +97,6 @@ class GameActivityViewModel(application: Application) :
         controllerInput.selectPauseCallback = {
             // SELECT button (mode 2)
             if (isPauseOverlayEnabled()) {
-                Log.d(TAG, "selectPauseCallback TRIGGERED - calling showPauseOverlay (SELECT)")
                 showPauseOverlay(activity)
             }
         }
@@ -107,20 +105,20 @@ class GameActivityViewModel(application: Application) :
             // SELECT + START together (mode 3 or RetroMenu2)
             if (isRetroMenu2Enabled()) {
                 // RetroMenu2 usa SELECT+START como trigger exclusivo
-                Log.d(TAG, "selectStartPauseCallback TRIGGERED - pausing then opening RetroMenu2")
+
+                // PASSO 0: Preparar fragment e SoundManager ANTES do delay
+                // Isso garante que o SoundPool tenha tempo de carregar os sons
+                prepareRetroMenu2(activity)
 
                 // PASSO 1: Pausar emulador PRIMEIRO (frameSpeed = 0)
                 pauseEmulator()
 
                 // PASSO 2: Aguardar 300ms para evitar sobreposição de sons
+                // Neste tempo o SoundPool carrega os arquivos WAV
                 android.os.Handler(android.os.Looper.getMainLooper())
                         .postDelayed({ showRetroMenu2(activity) }, 300)
             } else if (isPauseOverlayEnabled()) {
                 // RetroMenu1 original
-                Log.d(
-                        TAG,
-                        "selectStartPauseCallback TRIGGERED - calling showPauseOverlay (SELECT+START)"
-                )
                 showPauseOverlay(activity)
             }
         }
@@ -152,7 +150,6 @@ class GameActivityViewModel(application: Application) :
         if (retroMenu2Fragment != null) return
 
         retroMenu2Fragment = RetroMenu2Fragment.newInstance()
-        Log.d(TAG, "RetroMenu2 preparado")
     }
 
     /** Show RetroMenu2 overlay */
@@ -171,8 +168,6 @@ class GameActivityViewModel(application: Application) :
                                     RetroMenu2Fragment::class.java.simpleName
                             )
                             .commit()
-
-                    Log.d(TAG, "RetroMenu2 exibido")
                 }
             }
         }
@@ -187,7 +182,6 @@ class GameActivityViewModel(application: Application) :
 
             // PAUSE emulation using LibretroDroid's native frameSpeed API
             retroView?.view?.frameSpeed = 0
-            Log.d(TAG, "🛑 Emulator PAUSED using frameSpeed = 0 (native API)")
 
             // Preserve emulator state (audio, speed settings)
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
@@ -218,28 +212,22 @@ class GameActivityViewModel(application: Application) :
 
     /** Dismiss the pause overlay */
     fun dismissPauseOverlay() {
-        Log.d(TAG, "Dismissing pause overlay and resuming emulation")
-
         retroView?.let { retroView ->
             // Restore emulator state (audio, speed settings)
             // Pass skipTempStateLoad flag to avoid overwriting manual Load State
             retroViewUtils?.restoreEmulatorState(retroView, skipNextTempStateLoad)
-            Log.d(TAG, "Emulator settings restored (skipTempStateLoad=$skipNextTempStateLoad)")
 
             // Reset flag after use
             skipNextTempStateLoad = false
 
             // RESUME emulation using LibretroDroid's native frameSpeed API
             retroView.view.frameSpeed = 1
-            Log.d(TAG, "▶️ Emulator RESUMED using frameSpeed = 1 (native API)")
         }
 
         // Remove the retro menu fragment
         retroMenuFragment?.let { overlay ->
             overlay.parentFragmentManager.beginTransaction().remove(overlay).commit()
-            Log.d(TAG, "Retro menu fragment removed")
         }
-        Log.d(TAG, "Retro menu dismissed")
 
         // CRITICAL: Clear blocked keys after a delay
         // This gives time for any pending ACTION_UP events to be blocked first
@@ -304,19 +292,11 @@ class GameActivityViewModel(application: Application) :
     }
 
     override fun onToggleAudio() {
-        retroView?.let {
-            // Usar o controller modular para áudio
-            audioController?.toggleAudio(it.view)
-            Log.d(TAG, "Audio toggled using AudioController")
-        }
+        retroView?.let { audioController?.toggleAudio(it.view) }
     }
 
     override fun onFastForward() {
-        retroView?.let {
-            // Usar o controller modular para velocidade
-            speedController?.toggleFastForward(it.view)
-            Log.d(TAG, "Fast forward toggled using SpeedController")
-        }
+        retroView?.let { speedController?.toggleFastForward(it.view) }
     }
 
     override fun onExitGame(activity: FragmentActivity) {
@@ -376,76 +356,31 @@ class GameActivityViewModel(application: Application) :
         return speedController?.getFastForwardState() ?: false
     }
 
-    override fun hasSaveState(): Boolean {
-        return retroViewUtils?.hasSaveState() ?: false
-    }
+    override fun hasSaveState(): Boolean = retroViewUtils?.hasSaveState() == true
 
     /**
      * Centralized load state implementation with improved debugging CORREÇÃO: Despausa
      * temporariamente APENAS durante o load, sem enviar sinais ao core
      */
     fun loadStateCentralized(onComplete: (() -> Unit)? = null) {
-        Log.w(TAG, "🔵 Central load state called")
+        val currentRetroView = retroView
+        val utils = retroViewUtils
 
-        // CORREÇÃO: Verificar se o jogo está completamente inicializado
-        if (retroView?.frameRendered?.value != true) {
-            Log.w(
-                    TAG,
-                    "⏳ Game is still initializing - Load State blocked to prevent tempState override"
-            )
-            Log.w(TAG, "💡 Try Load State again after the game finishes loading")
+        if (currentRetroView?.frameRendered?.value != true || utils == null) {
             onComplete?.invoke()
             return
         }
 
-        // Check if save state exists first
-        if (hasSaveState()) {
-            Log.w(TAG, "💾 Save state exists, proceeding with load")
-
-            retroView?.let { retroView ->
-                if (retroViewUtils != null) {
-                    Log.w(TAG, "📂 Loading state from storage (centralized)")
-
-                    // DIAGNÓSTICO: Verificar se arquivo de save state existe
-                    Log.w(TAG, "🔍 DIAGNÓSTICO: hasSaveState = ${retroViewUtils?.hasSaveState()}")
-
-                    // CORREÇÃO CRÍTICA: Salvar frameSpeed atual e temporariamente forçar = 1
-                    // para o load funcionar, mas NÃO enviar keyevents que ativariam pause do core
-                    val savedFrameSpeed = retroView.view.frameSpeed
-                    Log.w(TAG, "⚙️ Saving current frameSpeed: $savedFrameSpeed")
-
-                    // Temporariamente despausar SILENCIOSAMENTE (apenas frameSpeed, sem keyevents)
-                    retroView.view.frameSpeed = 1
-                    Log.w(
-                            TAG,
-                            "⏸️ Temporarily set frameSpeed = 1 for load (silent, no core signals)"
-                    )
-
-                    // Executar load state COM emulador rodando
-                    retroViewUtils?.loadState(retroView)
-
-                    // Restaurar frameSpeed pausado imediatamente após load
-                    retroView.view.frameSpeed = savedFrameSpeed
-                    Log.w(TAG, "⏸️ Restored frameSpeed to $savedFrameSpeed after load")
-
-                    // CORREÇÃO CRÍTICA: Ativar flag para evitar que tempState sobrescreva o load
-                    skipNextTempStateLoad = true
-                    Log.w(
-                            TAG,
-                            "🚩 Flag set: skipNextTempStateLoad = true (prevent tempState override)"
-                    )
-
-                    Log.w(TAG, "✅ Load state executed successfully (centralized)")
-                    Log.w(TAG, "🎮 State loaded, dismissPauseOverlay() will resume to frameSpeed=1")
-                } else {
-                    Log.e(TAG, "❌ retroViewUtils is null - cannot load state!")
-                }
-            }
-                    ?: Log.e(TAG, "❌ retroView is null - cannot load state!")
-        } else {
-            Log.w(TAG, "❌ No save state available")
+        if (utils.hasSaveState() != true) {
+            onComplete?.invoke()
+            return
         }
 
+        val savedFrameSpeed = currentRetroView.view.frameSpeed
+        currentRetroView.view.frameSpeed = 1
+        utils.loadState(currentRetroView)
+        currentRetroView.view.frameSpeed = savedFrameSpeed
+        skipNextTempStateLoad = true
         onComplete?.invoke()
     }
 
@@ -454,24 +389,30 @@ class GameActivityViewModel(application: Application) :
      * desnecessário que pode causar problemas de timing
      */
     fun saveStateCentralized(onComplete: (() -> Unit)? = null) {
-        Log.w(TAG, "🔵 Central save state called")
+        val currentRetroView = retroView
+        val utils = retroViewUtils
 
-        retroView?.let { retroView ->
-            if (retroViewUtils != null) {
-                Log.w(TAG, "💾 Saving current state to storage (centralized)")
-
-                // CORREÇÃO: Executar save imediatamente sem delay artificial
-                retroViewUtils?.saveState(retroView)
-
-                Log.w(TAG, "✅ Save state executed successfully (centralized)")
-                Log.w(TAG, "📁 Save state now exists: ${retroViewUtils?.hasSaveState()}")
-            } else {
-                Log.e(TAG, "❌ retroViewUtils is null - cannot save state!")
-            }
+        if (currentRetroView == null || utils == null) {
+            onComplete?.invoke()
+            return
         }
-                ?: Log.e(TAG, "❌ retroView is null - cannot save state!")
 
-        onComplete?.invoke()
+        val savedFrameSpeed = currentRetroView.view.frameSpeed
+        if (savedFrameSpeed == 0) {
+            currentRetroView.view.frameSpeed = 1
+            Handler(Looper.getMainLooper())
+                    .postDelayed(
+                            {
+                                utils.saveState(currentRetroView)
+                                currentRetroView.view.frameSpeed = savedFrameSpeed
+                                onComplete?.invoke()
+                            },
+                            200
+                    )
+        } else {
+            utils.saveState(currentRetroView)
+            onComplete?.invoke()
+        }
     }
 
     /**
@@ -479,19 +420,7 @@ class GameActivityViewModel(application: Application) :
      * realmente reinicie o jogo do início
      */
     fun resetGameCentralized(onComplete: (() -> Unit)? = null) {
-        Log.w(TAG, "🔵 Central reset game called")
-
-        retroView?.view?.let { view ->
-            Log.w(TAG, "🔄 Resetting game to beginning (centralized)")
-
-            // CORREÇÃO: Usar reset() do LibRetroDroid que deve reiniciar o jogo
-            view.reset()
-
-            Log.w(TAG, "✅ Game reset executed successfully (centralized)")
-            Log.w(TAG, "🎮 Game should now be at beginning and running automatically")
-        }
-                ?: Log.e(TAG, "❌ retroView.view is null - cannot reset game!")
-
+        retroView?.view?.reset()
         onComplete?.invoke()
     }
 
@@ -508,116 +437,70 @@ class GameActivityViewModel(application: Application) :
             sendUnpauseSignal: Boolean = true,
             onComplete: (() -> Unit)? = null
     ) {
-        Log.d(TAG, "Central continue game called - sendUnpauseSignal=$sendUnpauseSignal")
-
         if (!sendUnpauseSignal) {
-            Log.d(TAG, "Skipping unpause signal - will be sent by dismissPauseOverlay()")
             onComplete?.invoke()
             return
         }
 
         // Send appropriate unpause signal(s) based on configured mode
-        retroView?.view?.let { view ->
-            val mode = getPauseOverlayMode()
-            Log.d(TAG, "Sending unpause signal(s) for mode: $mode (centralized)")
-
-            val handler = android.os.Handler(android.os.Looper.getMainLooper())
-
-            when (mode) {
-                1 -> { // START button
-                    Log.d(TAG, "Sending START signal to unpause game (centralized)")
-                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
-                    handler.postDelayed(
-                            {
-                                view.sendKeyEvent(
-                                        KeyEvent.ACTION_UP,
-                                        KeyEvent.KEYCODE_BUTTON_START,
-                                        0
-                                )
-                                // Additional delay before completing
-                                handler.postDelayed(
-                                        {
-                                            Log.d(
-                                                    TAG,
-                                                    "Unpause signals sent successfully (centralized)"
-                                            )
-                                            onComplete?.invoke()
-                                        },
-                                        100
-                                )
-                            },
-                            200
-                    )
-                }
-                2 -> { // SELECT button
-                    Log.d(TAG, "Sending SELECT signal to unpause game (centralized)")
-                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
-                    handler.postDelayed(
-                            {
-                                view.sendKeyEvent(
-                                        KeyEvent.ACTION_UP,
-                                        KeyEvent.KEYCODE_BUTTON_SELECT,
-                                        0
-                                )
-                                // Additional delay before completing
-                                handler.postDelayed(
-                                        {
-                                            Log.d(
-                                                    TAG,
-                                                    "Unpause signals sent successfully (centralized)"
-                                            )
-                                            onComplete?.invoke()
-                                        },
-                                        100
-                                )
-                            },
-                            200
-                    )
-                }
-                3 -> { // SELECT + START together
-                    Log.d(TAG, "Sending SELECT+START signals to unpause game (centralized)")
-                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
-                    view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
-                    handler.postDelayed(
-                            {
-                                view.sendKeyEvent(
-                                        KeyEvent.ACTION_UP,
-                                        KeyEvent.KEYCODE_BUTTON_START,
-                                        0
-                                )
-                                view.sendKeyEvent(
-                                        KeyEvent.ACTION_UP,
-                                        KeyEvent.KEYCODE_BUTTON_SELECT,
-                                        0
-                                )
-                                // Additional delay before completing
-                                handler.postDelayed(
-                                        {
-                                            Log.d(
-                                                    TAG,
-                                                    "Unpause signals sent successfully (centralized)"
-                                            )
-                                            onComplete?.invoke()
-                                        },
-                                        100
-                                )
-                            },
-                            200
-                    )
-                }
-                else -> {
-                    Log.w(
-                            TAG,
-                            "Invalid pause overlay mode: $mode - completing without unpause signal"
-                    )
-                    onComplete?.invoke()
-                }
-            }
+        val view = retroView?.view ?: run {
+            onComplete?.invoke()
+            return
         }
-                ?: run {
-                    Log.e(TAG, "retroView.view is null - cannot send unpause signals!")
-                    onComplete?.invoke()
-                }
+
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+
+        when (getPauseOverlayMode()) {
+            1 -> {
+                view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
+                handler.postDelayed(
+                        {
+                            view.sendKeyEvent(
+                                    KeyEvent.ACTION_UP,
+                                    KeyEvent.KEYCODE_BUTTON_START,
+                                    0
+                            )
+                            handler.postDelayed({ onComplete?.invoke() }, 100)
+                        },
+                        200
+                )
+            }
+            2 -> {
+                view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                handler.postDelayed(
+                        {
+                            view.sendKeyEvent(
+                                    KeyEvent.ACTION_UP,
+                                    KeyEvent.KEYCODE_BUTTON_SELECT,
+                                    0
+                            )
+                            handler.postDelayed({ onComplete?.invoke() }, 100)
+                        },
+                        200
+                )
+            }
+            3 -> {
+                view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
+                view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
+                handler.postDelayed(
+                        {
+                            view.sendKeyEvent(
+                                    KeyEvent.ACTION_UP,
+                                    KeyEvent.KEYCODE_BUTTON_START,
+                                    0
+                            )
+                            view.sendKeyEvent(
+                                    KeyEvent.ACTION_UP,
+                                    KeyEvent.KEYCODE_BUTTON_SELECT,
+                                    0
+                            )
+                            handler.postDelayed({ onComplete?.invoke() }, 100)
+                        },
+                        200
+                )
+            }
+            else -> onComplete?.invoke()
+        }
     }
 
     /** Hide the system bars */
@@ -645,13 +528,16 @@ class GameActivityViewModel(application: Application) :
             activity.lifecycle.addObserver(retroView.view)
             retroView.registerFrameRenderedListener()
 
-            /* Restore state after first frame loaded */
+            /* CORREÇÃO: NÃO restaurar state automaticamente no primeiro frame
+             * O jogo deve começar do zero e o usuário decide quando carregar o save
+             * Isso corrige o bug onde Load State não funcionava após restart porque
+             * o save já tinha sido carregado automaticamente na inicialização
+             */
             retroView.frameRendered.observe(activity) {
                 if (it != true) return@observe
 
-                retroViewUtils?.restoreEmulatorState(retroView)
-
-                // CORREÇÃO: Restaurar velocidade via SpeedController para garantir consistência
+                // IMPORTANTE: Apenas inicializar velocidade, SEM carregar save state
+                // O save só deve ser carregado quando usuário clicar em "Load State"
                 speedController?.initializeSpeedState(retroView.view)
             }
         }
@@ -704,10 +590,7 @@ class GameActivityViewModel(application: Application) :
         retroMenu2Fragment?.let { menu ->
             if (menu.isAdded && menu.isVisible) {
                 val handled = menu.handleKeyEvent(keyCode, event)
-                if (handled) {
-                    Log.d(TAG, "RetroMenu2 consumiu KeyEvent: $keyCode")
-                    return true
-                }
+                if (handled) return true
             }
         }
 
@@ -725,10 +608,7 @@ class GameActivityViewModel(application: Application) :
         retroMenu2Fragment?.let { menu ->
             if (menu.isAdded && menu.isVisible) {
                 val handled = menu.handleMotionEvent(event)
-                if (handled) {
-                    Log.d(TAG, "RetroMenu2 consumiu MotionEvent")
-                    return true
-                }
+                if (handled) return true
             }
         }
 
@@ -845,7 +725,14 @@ class GameActivityViewModel(application: Application) :
         val sharedPreferences = activity.getPreferences(android.content.Context.MODE_PRIVATE)
         audioController = AudioController(activity.applicationContext, sharedPreferences)
         speedController = SpeedController(activity.applicationContext, sharedPreferences)
-        Log.d(TAG, "Controllers modulares inicializados com compatibilidade RetroViewUtils")
+
+        // Inicializar MenuSoundManager uma única vez no app startup
+        // Isso garante que os sons estejam sempre carregados e prontos
+        if (menuSoundManager == null) {
+            menuSoundManager =
+                    com.vinaooo.revenger.retromenu2.MenuSoundManager(activity.applicationContext)
+            menuSoundManager?.initialize()
+        }
     }
 
     // MÉTODOS PÚBLICOS PARA ACESSO AOS CONTROLLERS MODULARES
@@ -867,13 +754,20 @@ class GameActivityViewModel(application: Application) :
     }
 
     /**
+     * Obtém referência ao MenuSoundManager compartilhado Este manager é inicializado uma vez no app
+     * startup e compartilhado entre todos os fragments
+     */
+    fun getMenuSoundManager(): com.vinaooo.revenger.retromenu2.MenuSoundManager? {
+        return menuSoundManager
+    }
+
+    /**
      * Controle de áudio usando controller modular
      * @param enabled true para ligar, false para desligar
      */
     fun setAudioEnabled(enabled: Boolean) {
         retroView?.let {
             audioController?.setAudioEnabled(it.view, enabled)
-            Log.d(TAG, "Audio set to ${if (enabled) "enabled" else "disabled"} via AudioController")
         }
     }
 
@@ -884,7 +778,6 @@ class GameActivityViewModel(application: Application) :
     fun setGameSpeed(speed: Int) {
         retroView?.let {
             speedController?.setSpeed(it.view, speed)
-            Log.d(TAG, "Game speed set to ${speed}x via SpeedController")
         }
     }
 
@@ -892,7 +785,6 @@ class GameActivityViewModel(application: Application) :
     fun enableFastForward() {
         retroView?.let {
             speedController?.enableFastForward(it.view)
-            Log.d(TAG, "Fast forward enabled via SpeedController")
         }
     }
 
@@ -900,7 +792,6 @@ class GameActivityViewModel(application: Application) :
     fun disableFastForward() {
         retroView?.let {
             speedController?.disableFastForward(it.view)
-            Log.d(TAG, "Fast forward disabled via SpeedController")
         }
     }
 
@@ -911,7 +802,6 @@ class GameActivityViewModel(application: Application) :
     /** Pausa o emulador usando frameSpeed = 0 (RetroMenu2) */
     fun pauseEmulator() {
         retroView?.view?.frameSpeed = 0
-        Log.d(TAG, "🛑 RetroMenu2: Emulator PAUSED (frameSpeed = 0)")
     }
 
     /** Retoma o emulador usando frameSpeed salvo ou 1 (RetroMenu2) */
@@ -920,7 +810,6 @@ class GameActivityViewModel(application: Application) :
             // Restaurar velocidade salva (pode ser 1 ou 2 do Settings)
             val savedSpeed = speedController?.getCurrentSpeed() ?: 1
             view.frameSpeed = savedSpeed
-            Log.d(TAG, "▶️ RetroMenu2: Emulator RESUMED (frameSpeed = $savedSpeed)")
         }
     }
 
@@ -930,7 +819,6 @@ class GameActivityViewModel(application: Application) :
      */
     fun clearInputKeyLog() {
         controllerInput.clearKeyLog()
-        Log.d(TAG, "🧹 RetroMenu2: Input keyLog cleared")
     }
 
     /** Reinicia o jogo usando reset() (RetroMenu2) */

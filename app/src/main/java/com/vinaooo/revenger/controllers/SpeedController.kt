@@ -2,7 +2,6 @@ package com.vinaooo.revenger.controllers
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.R
 
@@ -15,10 +14,6 @@ class SpeedController(
         private val context: Context,
         private val sharedPreferences: SharedPreferences
 ) {
-    companion object {
-        private const val TAG = "SpeedController"
-    }
-
     // Velocidade de fast forward configurada no config.xml
     private val fastForwardSpeed =
             context.resources.getInteger(R.integer.config_fast_forward_multiplier)
@@ -35,9 +30,7 @@ class SpeedController(
         // Salvar o novo estado imediatamente
         saveSpeedState(newSpeed)
 
-        val isActive = newSpeed > 1
-        Log.d(TAG, "Fast forward toggled to: ${if (isActive) "ON ($newSpeed x)" else "OFF (1x)"}")
-        return isActive
+        return newSpeed > 1
     }
 
     /**
@@ -48,7 +41,6 @@ class SpeedController(
     fun setSpeed(retroView: GLRetroView, speed: Int) {
         retroView.frameSpeed = speed
         saveSpeedState(speed)
-        Log.d(TAG, "Speed set to: ${speed}x")
     }
 
     /**
@@ -116,7 +108,6 @@ class SpeedController(
         // CRÍTICO: Garantir que nunca seja 0 (pausado)
         val safeSpeed = if (savedSpeed == 0) 1 else savedSpeed
         retroView.frameSpeed = safeSpeed
-        Log.d(TAG, "Speed initialized to: ${safeSpeed}x")
     }
 
     /**
@@ -128,7 +119,6 @@ class SpeedController(
             putInt(context.getString(R.string.pref_frame_speed), speed)
             apply()
         }
-        Log.d(TAG, "Speed state saved: ${speed}x")
     }
 
     /**

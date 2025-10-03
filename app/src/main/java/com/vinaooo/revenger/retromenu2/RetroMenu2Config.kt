@@ -60,10 +60,6 @@ class RetroMenu2Config(private val context: Context) {
                     // Tenta carregar do /Arcade/ no assets
                     Typeface.createFromAsset(context.assets, "Arcade/$fontName")
                 } catch (e: Exception) {
-                    android.util.Log.e(
-                            "RetroMenu2Config",
-                            "Erro ao carregar fonte Arcada: ${e.message}"
-                    )
                     null // Fallback para fonte padrão do sistema
                 }
 
@@ -75,9 +71,6 @@ class RetroMenu2Config(private val context: Context) {
 
     val infoTextSize: Float
         get() = context.resources.getDimension(R.dimen.retromenu2_info_text_size)
-
-    val loadingTextSize: Float
-        get() = context.resources.getDimension(R.dimen.retromenu2_loading_text_size)
 
     // ============================================================
     // LAYOUT CONFIGURATION
@@ -95,12 +88,6 @@ class RetroMenu2Config(private val context: Context) {
 
     val transitionDuration: Long
         get() = context.resources.getInteger(R.integer.retromenu2_transition_duration).toLong()
-
-    val loadingBlinkRate: Long
-        get() = context.resources.getInteger(R.integer.retromenu2_loading_blink_rate).toLong()
-
-    val minLoadingDuration: Long
-        get() = context.resources.getInteger(R.integer.retromenu2_min_loading_duration).toLong()
 
     val startBlockDuration: Long
         get() = context.resources.getInteger(R.integer.retromenu2_start_block_duration).toLong()
@@ -144,9 +131,6 @@ class RetroMenu2Config(private val context: Context) {
 
     val optionSave: String
         get() = context.getString(R.string.retromenu2_option_save)
-
-    val optionLoad: String
-        get() = context.getString(R.string.retromenu2_option_load)
 
     val optionSettings: String
         get() = context.getString(R.string.retromenu2_option_settings)
@@ -196,12 +180,6 @@ class RetroMenu2Config(private val context: Context) {
         get() = context.getString(R.string.retromenu2_exit_without_save)
 
     // Status messages
-    val loadingText: String
-        get() = context.getString(R.string.retromenu2_loading)
-
-    val noSaveStateText: String
-        get() = context.getString(R.string.retromenu2_no_save_state)
-
     // ============================================================
     // SHAREDPREFERENCES KEYS
     // ============================================================

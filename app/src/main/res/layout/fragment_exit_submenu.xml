@@ -34,24 +34,35 @@
                 android:textSize="@dimen/retromenu2_title_text_size"
                 android:textStyle="bold" />
 
-            <!-- Opção 1: Yes, Exit Game -->
+            <!-- Opção 1: Exit and Save -->
             <TextView
-                android:id="@+id/optionYes"
+                android:id="@+id/optionExitAndSave"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="12dp"
-                android:text="  Yes, Exit Game"
+                android:text="  Exit and Save"
                 android:textColor="@color/retromenu2_text_color"
                 android:textSize="@dimen/retromenu2_option_text_size" />
 
-            <!-- Opção 2: No, Continue -->
+            <!-- Opção 2: Exit Without Save -->
             <TextView
-                android:id="@+id/optionNo"
+                android:id="@+id/optionExitWithoutSave"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:text="> No, Continue"
+                android:layout_marginBottom="12dp"
+                android:text="  Exit Without Save"
+                android:textColor="@color/retromenu2_text_color"
+                android:textSize="@dimen/retromenu2_option_text_size" />
+
+            <!-- Opção 3: Back -->
+            <TextView
+                android:id="@+id/optionBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="> Back"
                 android:textColor="@color/retromenu2_text_color"
                 android:textSize="@dimen/retromenu2_option_text_size" />
 

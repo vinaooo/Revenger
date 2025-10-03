@@ -3,7 +3,6 @@ package com.vinaooo.revenger.views
 import android.content.pm.PackageManager
 import android.hardware.input.InputManager
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.FrameLayout
@@ -24,10 +23,6 @@ class GameActivity : FragmentActivity() {
     private lateinit var retroviewContainer: FrameLayout
     private val viewModel: GameActivityViewModel by viewModels()
 
-    companion object {
-        private const val TAG = "GameActivity"
-    }
-
     // Performance monitoring
     private var frameStartTime = 0L
 
@@ -46,19 +41,11 @@ class GameActivity : FragmentActivity() {
                                 fill(PackageManager.PERMISSION_DENIED)
                             }
                         }
-                EnhancedPrivacyManager.handlePermissionResult(grantResults) { granted ->
-                    if (granted) {
-                        Log.i(TAG, "Storage permissions granted")
-                    } else {
-                        Log.w(TAG, "Storage permissions denied - some features may be limited")
-                    }
-                }
+                EnhancedPrivacyManager.handlePermissionResult(grantResults) { _ -> }
             }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        Log.i(TAG, "GameActivity starting with Android ${android.os.Build.VERSION.SDK_INT}")
 
         // Apply conditional features based on Android version
         AndroidCompatibility.applyConditionalFeatures()
@@ -94,8 +81,6 @@ class GameActivity : FragmentActivity() {
 
     /** Initialize SDK 36 features with backward compatibility Phase 9.4: Target SDK 36 Features */
     private fun initializeSdk36Features() {
-        Log.i(TAG, "Initializing SDK 36 features")
-
         // Dynamic theming is now handled automatically by Material 3 theme inheritance
 
         // Initialize enhanced privacy controls
@@ -103,8 +88,6 @@ class GameActivity : FragmentActivity() {
 
         // Start performance profiling
         AdvancedPerformanceProfiler.startProfiling(this)
-
-        Log.i(TAG, "SDK 36 features initialized successfully")
     }
 
     /** Configure status/navigation bars based on current theme for optimal visibility */
@@ -133,10 +116,6 @@ class GameActivity : FragmentActivity() {
                 android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
         )
 
-        Log.d(
-                TAG,
-                "System bars configured for ${if (isDarkTheme) "dark" else "light"} theme (light icons: $lightIcons)"
-        )
     }
 
     /** Listen for new controller additions and removals */
@@ -194,8 +173,6 @@ class GameActivity : FragmentActivity() {
     }
 
     override fun onDestroy() {
-        Log.i(TAG, "GameActivity destroying - cleaning up SDK 36 features")
-
         // Stop performance profiling
         AdvancedPerformanceProfiler.stopProfiling()
 

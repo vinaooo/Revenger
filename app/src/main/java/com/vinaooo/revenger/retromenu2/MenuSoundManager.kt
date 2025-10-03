@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.media.AudioAttributes
 import android.media.SoundPool
-import android.util.Log
 
 /**
  * MenuSoundManager
@@ -20,7 +19,6 @@ import android.util.Log
 class MenuSoundManager(private val context: Context) {
 
     companion object {
-        private const val TAG = "MenuSoundManager"
         private const val PREFS_NAME = "retromenu2_prefs"
         private const val KEY_MENU_SOUNDS_ENABLED = "menu_sounds_enabled"
 
@@ -34,6 +32,8 @@ class MenuSoundManager(private val context: Context) {
     private var soundPool: SoundPool? = null
     private val soundIds = mutableMapOf<String, Int>()
     private var isInitialized = false
+    private val loadedSounds = mutableSetOf<Int>() // Track dos sons carregados
+    private var allSoundsLoaded = false // Flag indicando se todos os sons estão prontos
 
     private val prefs: SharedPreferences by lazy {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -44,13 +44,11 @@ class MenuSoundManager(private val context: Context) {
         get() = prefs.getBoolean(KEY_MENU_SOUNDS_ENABLED, true) // Padrão: habilitado
         set(value) {
             prefs.edit().putBoolean(KEY_MENU_SOUNDS_ENABLED, value).apply()
-            Log.d(TAG, "Menu sounds ${if (value) "habilitados" else "desabilitados"}")
         }
 
     /** Inicializa SoundPool e carrega sons. */
     fun initialize() {
         if (isInitialized) {
-            Log.w(TAG, "MenuSoundManager já inicializado")
             return
         }
 
@@ -71,10 +69,13 @@ class MenuSoundManager(private val context: Context) {
             // Listener para saber quando sons estão carregados
             soundPool?.setOnLoadCompleteListener { _, sampleId, status ->
                 if (status == 0) {
-                    Log.d(TAG, "Som $sampleId carregado com sucesso")
-                } else {
-                    Log.e(TAG, "Erro ao carregar som $sampleId: status=$status")
-                }
+                    loadedSounds.add(sampleId)
+
+                    // Verificar se todos os sons foram carregados
+                    if (loadedSounds.size == soundIds.size) {
+                        allSoundsLoaded = true
+                    }
+                } else {}
             }
 
             // Carregar sons (se existirem em res/raw/)
@@ -84,10 +85,7 @@ class MenuSoundManager(private val context: Context) {
             loadSound(SOUND_OPEN)
 
             isInitialized = true
-            Log.d(TAG, "MenuSoundManager inicializado com ${soundIds.size} sons")
-        } catch (e: Exception) {
-            Log.e(TAG, "Erro ao inicializar MenuSoundManager", e)
-        }
+        } catch (e: Exception) {}
     }
 
     /** Carrega um som do res/raw/ (se existir). */
@@ -98,14 +96,9 @@ class MenuSoundManager(private val context: Context) {
                 val soundId = soundPool?.load(context, resId, 1)
                 if (soundId != null && soundId > 0) {
                     soundIds[soundName] = soundId
-                    Log.d(TAG, "Som carregado: $soundName (id=$soundId)")
                 }
-            } else {
-                Log.w(TAG, "Som não encontrado: res/raw/$soundName")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Erro ao carregar som: $soundName", e)
-        }
+            } else {}
+        } catch (e: Exception) {}
     }
 
     /** Toca som de navegação (UP/DOWN). */
@@ -135,7 +128,10 @@ class MenuSoundManager(private val context: Context) {
         }
 
         if (!isInitialized) {
-            Log.w(TAG, "MenuSoundManager não inicializado")
+            return
+        }
+
+        if (!allSoundsLoaded) {
             return
         }
 
@@ -149,8 +145,7 @@ class MenuSoundManager(private val context: Context) {
                     0, // Loop (0 = não repetir)
                     1.0f // Rate (velocidade de reprodução)
             )
-            Log.d(TAG, "Som tocado: $soundName")
-        }
+        } else {}
     }
 
     /** Libera recursos do SoundPool. */
@@ -160,9 +155,6 @@ class MenuSoundManager(private val context: Context) {
             soundPool = null
             soundIds.clear()
             isInitialized = false
-            Log.d(TAG, "MenuSoundManager liberado")
-        } catch (e: Exception) {
-            Log.e(TAG, "Erro ao liberar MenuSoundManager", e)
-        }
+        } catch (e: Exception) {}
     }
 }
