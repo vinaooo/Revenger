@@ -1,5 +1,52 @@
 # TODO - Android Library Alignment Issues
 
+## Gradle Version Compatibility Issue ⚠️ ATENÇÃO
+
+**Issue**: Versão do Gradle Wrapper desatualizada causando conflito com Android Gradle Plugin (AGP).
+
+**Problema Detectado** (03/10/2025):
+- **AGP instalado:** 8.13.0 (requer Gradle 8.13+)
+- **Gradle atual:** 8.9 (detectado no sistema)
+- **Gradle no wrapper:** 8.14 (configurado mas não aplicado)
+- **Erro de build:** "Minimum supported Gradle version is 8.13. Current version is 8.9"
+
+**Impacto**: 
+- Build falha com erro de versão mínima
+- Impossível gerar APKs até resolução
+- Bloqueia desenvolvimento
+
+**Arquivos Afetados**:
+- `gradle/wrapper/gradle-wrapper.properties` - contém `gradle-8.14-bin.zip`
+- Sistema usa Gradle 8.9 (possivelmente cache ou instalação global)
+
+**Solução Imediata**:
+```bash
+# Regenerar wrapper com versão correta
+./gradlew wrapper --gradle-version=8.14
+
+# Limpar cache e rebuild
+./gradlew clean
+./gradlew assembleDebug
+```
+
+**Verificação Pós-Fix**:
+```bash
+./gradlew --version
+# Deve mostrar: Gradle 8.14
+```
+
+**Causa Provável**:
+- Wrapper properties atualizado manualmente mas daemon Gradle não regenerado
+- Cache do Gradle usando versão antiga
+- Gradle global do sistema sendo usado em vez do wrapper
+
+**Status**: 🔴 CRÍTICO - Bloqueia build
+**Prioridade**: ALTA - Resolver antes de qualquer desenvolvimento
+**Data detectada**: 03/10/2025
+**Responsável**: Análise automática do sistema
+
+---
+
 ## Native Library 16 KB Alignment Issue
 
 **Issue**: The native library `liblibretrodroid.so` from dependency `com.github.swordfish90:libretrodroid:0.12.0` is not 16 KB aligned, only 4 KB aligned.

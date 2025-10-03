@@ -20,7 +20,7 @@
         app:cardCornerRadius="28dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp"
-        app:cardBackgroundColor="?attr/colorSurface">
+        app:cardBackgroundColor="#FEFBFF">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -36,13 +36,13 @@
                 android:gravity="center_vertical"
                 android:padding="20dp"
                 android:paddingBottom="12dp"
-                android:background="?attr/colorSurface">
+                android:background="#FEFBFF">
 
                 <ImageView
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     android:src="@drawable/ic_gamepad_24"
-                    app:tint="?attr/colorOnSurface"
+                    app:tint="#1C1B1F"
                     android:contentDescription="@string/game_menu_icon" />
 
                 <TextView
@@ -52,8 +52,9 @@
                     android:layout_weight="1"
                     android:layout_marginStart="12dp"
                     android:text="@string/game_menu_title"
-                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                    android:textColor="?attr/colorOnSurface" />
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#1C1B1F" />
 
             </LinearLayout>
 
@@ -88,8 +89,9 @@
                             android:foreground="?attr/selectableItemBackground"
                             app:cardCornerRadius="14dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="0dp"
-                            app:cardBackgroundColor="?attr/colorSurface">
+                            app:strokeWidth="1dp"
+                            app:strokeColor="#E7E0EC"
+                            app:cardBackgroundColor="#FEFBFF">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -102,7 +104,7 @@
                                     android:layout_width="22dp"
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_reset_24"
-                                    app:tint="?attr/colorOnSurfaceVariant"
+                                    app:tint="#49454F"
                                     android:contentDescription="@string/menu_reset" />
 
                                 <LinearLayout
@@ -116,15 +118,15 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/menu_reset"
-                                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                                        android:textColor="?attr/colorOnSurface" />
+                                        android:textSize="16sp"
+                                        android:textColor="#1C1B1F" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/menu_reset_description"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?attr/colorOnSurfaceVariant" />
+                                        android:textSize="12sp"
+                                        android:textColor="#49454F" />
 
                                 </LinearLayout>
 
@@ -145,8 +147,9 @@
                             android:foreground="?attr/selectableItemBackground"
                             app:cardCornerRadius="14dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="0dp"
-                            app:cardBackgroundColor="?attr/colorSurface">
+                            app:strokeWidth="1dp"
+                            app:strokeColor="#E7E0EC"
+                            app:cardBackgroundColor="#FEFBFF">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -159,7 +162,7 @@
                                     android:layout_width="22dp"
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_save_24"
-                                    app:tint="?attr/colorOnSurfaceVariant"
+                                    app:tint="#49454F"
                                     android:contentDescription="@string/menu_save_state" />
 
                                 <LinearLayout
@@ -173,15 +176,15 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/menu_save_state"
-                                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                                        android:textColor="?attr/colorOnSurface" />
+                                        android:textSize="16sp"
+                                        android:textColor="#1C1B1F" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/menu_save_state_description"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?attr/colorOnSurfaceVariant" />
+                                        android:textSize="12sp"
+                                        android:textColor="#49454F" />
 
                                 </LinearLayout>
 
@@ -202,8 +205,9 @@
                             android:foreground="?attr/selectableItemBackground"
                             app:cardCornerRadius="14dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="0dp"
-                            app:cardBackgroundColor="?attr/colorSurface">
+                            app:strokeWidth="1dp"
+                            app:strokeColor="#E7E0EC"
+                            app:cardBackgroundColor="#FEFBFF">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -217,7 +221,7 @@
                                     android:layout_width="22dp"
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_load_24"
-                                    app:tint="?attr/colorOnSurfaceVariant"
+                                    app:tint="#49454F"
                                     android:contentDescription="@string/menu_item_icon_description" />
 
                                 <LinearLayout
@@ -231,16 +235,16 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/menu_load_state"
-                                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                                        android:textColor="?attr/colorOnSurface" />
+                                        android:textSize="16sp"
+                                        android:textColor="#1C1B1F" />
 
                                     <TextView
                                         android:id="@+id/load_state_status"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/save_state_not_available"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?attr/colorOnSurfaceVariant" />
+                                        android:textSize="12sp"
+                                        android:textColor="#49454F" />
 
                                 </LinearLayout>
 
@@ -261,8 +265,9 @@
                             android:foreground="?attr/selectableItemBackground"
                             app:cardCornerRadius="14dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="0dp"
-                            app:cardBackgroundColor="?attr/colorSurface">
+                            app:strokeWidth="1dp"
+                            app:strokeColor="#E7E0EC"
+                            app:cardBackgroundColor="#FEFBFF">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -276,7 +281,7 @@
                                     android:layout_width="22dp"
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_volume_up_24"
-                                    app:tint="?attr/colorOnSurfaceVariant"
+                                    app:tint="#49454F"
                                     android:contentDescription="@string/menu_item_icon_description" />
 
                                 <LinearLayout
@@ -291,15 +296,15 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/audio_on"
-                                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                                        android:textColor="?attr/colorOnSurface" />
+                                        android:textSize="16sp"
+                                        android:textColor="#1C1B1F" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/menu_toggle_audio"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?attr/colorOnSurfaceVariant" />
+                                        android:textSize="12sp"
+                                        android:textColor="#49454F" />
 
                                 </LinearLayout>
 
@@ -328,8 +333,9 @@
                             android:foreground="?attr/selectableItemBackground"
                             app:cardCornerRadius="14dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="0dp"
-                            app:cardBackgroundColor="?attr/colorSurface">
+                            app:strokeWidth="1dp"
+                            app:strokeColor="#E7E0EC"
+                            app:cardBackgroundColor="#FEFBFF">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -343,7 +349,7 @@
                                     android:layout_width="22dp"
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_fast_forward_24"
-                                    app:tint="?attr/colorOnSurfaceVariant"
+                                    app:tint="#49454F"
                                     android:contentDescription="@string/menu_item_icon_description" />
 
                                 <LinearLayout
@@ -358,15 +364,15 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/menu_fast_forward"
-                                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                                        android:textColor="?attr/colorOnSurface" />
+                                        android:textSize="16sp"
+                                        android:textColor="#1C1B1F" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/menu_fast_forward_description"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?attr/colorOnSurfaceVariant" />
+                                        android:textSize="12sp"
+                                        android:textColor="#49454F" />
 
                                 </LinearLayout>
 
@@ -395,8 +401,9 @@
                             android:foreground="?attr/selectableItemBackground"
                             app:cardCornerRadius="14dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="0dp"
-                            app:cardBackgroundColor="?attr/colorSurface">
+                            app:strokeWidth="1dp"
+                            app:strokeColor="#E7E0EC"
+                            app:cardBackgroundColor="#FEFBFF">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -409,7 +416,7 @@
                                     android:layout_width="22dp"
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_close_24"
-                                    app:tint="?attr/colorOnSurfaceVariant"
+                                    app:tint="#49454F"
                                     android:contentDescription="@string/menu_exit" />
 
                                 <LinearLayout
@@ -423,15 +430,15 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/menu_exit"
-                                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                                        android:textColor="?attr/colorOnSurface" />
+                                        android:textSize="16sp"
+                                        android:textColor="#1C1B1F" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/menu_exit_description"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?attr/colorOnSurfaceVariant" />
+                                        android:textSize="12sp"
+                                        android:textColor="#49454F" />
 
                                 </LinearLayout>
 

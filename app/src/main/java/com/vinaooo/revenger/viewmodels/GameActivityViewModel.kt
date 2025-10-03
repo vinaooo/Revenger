@@ -22,11 +22,14 @@ import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment
+import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
-        AndroidViewModel(application), ModernMenuFragment.ModernMenuListener {
+        AndroidViewModel(application),
+        ModernMenuFragment.ModernMenuListener,
+        RetroMenu3Fragment.RetroMenu3Listener {
 
     private val resources = application.resources
 
@@ -38,6 +41,9 @@ class GameActivityViewModel(application: Application) :
 
     // Modern menu fragment (activated by Android back button)
     private var modernMenuFragment: ModernMenuFragment? = null
+
+    // RetroMenu3 fragment (activated by SELECT+START combo)
+    private var retroMenu3Fragment: RetroMenu3Fragment? = null
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput(application.applicationContext)
@@ -62,6 +68,9 @@ class GameActivityViewModel(application: Application) :
                 showMenu(activity)
             }
         }
+
+        // Configure RetroMenu3 callback for SELECT+START combo
+        controllerInput.selectStartComboCallback = { showRetroMenu3(activity) }
     }
 
     /** Create an instance of the modern menu overlay (activated by back button) */
@@ -73,6 +82,19 @@ class GameActivityViewModel(application: Application) :
 
         modernMenuFragment =
                 ModernMenuFragment.newInstance().apply {
+                    setMenuListener(this@GameActivityViewModel)
+                }
+
+        // Preparar também o RetroMenu3
+        prepareRetroMenu3(activity)
+    }
+
+    /** Create an instance of the RetroMenu3 overlay (activated by SELECT+START) */
+    fun prepareRetroMenu3(activity: ComponentActivity) {
+        if (retroMenu3Fragment != null) return
+
+        retroMenu3Fragment =
+                RetroMenu3Fragment.newInstance().apply {
                     setMenuListener(this@GameActivityViewModel)
                 }
     }
@@ -101,6 +123,43 @@ class GameActivityViewModel(application: Application) :
         }
     }
 
+    /** Show the RetroMenu3 (activated by SELECT+START combo) */
+    fun showRetroMenu3(activity: FragmentActivity) {
+        android.util.Log.d("GameActivityViewModel", "showRetroMenu3 called!")
+        if (retroView?.frameRendered?.value == true) {
+            // CRITICAL: Capture currently pressed keys BEFORE showing menu
+            controllerInput.captureKeysOnMenuOpen()
+
+            retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
+
+            // Show RetroMenu3
+            retroMenu3Fragment?.let { menu ->
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "RetroMenu3Fragment is available, showing it"
+                )
+                if (!menu.isAdded) {
+                    activity.supportFragmentManager
+                            .beginTransaction()
+                            .add(
+                                    android.R.id.content,
+                                    menu,
+                                    RetroMenu3Fragment::class.java.simpleName
+                            )
+                            .commit()
+                } else {
+                    android.util.Log.d("GameActivityViewModel", "RetroMenu3Fragment already added!")
+                }
+            }
+                    ?: android.util.Log.e("GameActivityViewModel", "RetroMenu3Fragment is NULL!")
+        } else {
+            android.util.Log.e(
+                    "GameActivityViewModel",
+                    "retroView not ready or frameRendered = false"
+            )
+        }
+    }
+
     /** Dismiss the modern menu */
     fun dismissMenu() {
         modernMenuFragment?.dismissMenuPublic()
@@ -108,9 +167,21 @@ class GameActivityViewModel(application: Application) :
         controllerInput.clearBlockedKeysDelayed()
     }
 
+    /** Dismiss the RetroMenu3 */
+    fun dismissRetroMenu3() {
+        retroMenu3Fragment?.dismissMenuPublic()
+        // CRITICAL: Clear blocked keys after menu dismissal
+        controllerInput.clearBlockedKeysDelayed()
+    }
+
     /** Check if the modern menu is currently open */
     fun isMenuOpen(): Boolean {
         return modernMenuFragment?.isAdded == true
+    }
+
+    /** Check if the RetroMenu3 is currently open */
+    fun isRetroMenu3Open(): Boolean {
+        return retroMenu3Fragment?.isAdded == true
     }
 
     // Implementation of GameMenuBottomSheet.GameMenuListener interface

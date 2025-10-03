@@ -54,6 +54,9 @@ class ControllerInput(private val context: Context) {
     /** The callback for when the user inputs the menu key-combination */
     var menuCallback: () -> Unit = {}
 
+    /** The callback for when the user inputs the SELECT+START combo (RetroMenu3) */
+    var selectStartComboCallback: () -> Unit = {}
+
     /** Function to check if SELECT+START combo should trigger menu */
     var shouldHandleSelectStartCombo: () -> Boolean = { true }
 
@@ -91,7 +94,13 @@ class ControllerInput(private val context: Context) {
 
     /** Check if we should be showing the user the menu */
     private fun checkMenuKeyCombo() {
-        if (keyLog == KEYCOMBO_MENU && shouldHandleSelectStartCombo()) menuCallback()
+        if (keyLog == KEYCOMBO_MENU && shouldHandleSelectStartCombo()) {
+            android.util.Log.d(
+                    "ControllerInput",
+                    "SELECT+START combo detected! Calling selectStartComboCallback"
+            )
+            selectStartComboCallback()
+        }
     }
 
     fun processGamePadButtonEvent(keyCode: Int, action: Int) {
