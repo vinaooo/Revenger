@@ -78,12 +78,8 @@
     <string name="retromenu2_option_continue">Continue</string>
     <string name="retromenu2_option_restart">Restart Game</string>
     <string name="retromenu2_option_save">Save State</string>
-    <string name="retromenu2_option_load">Load State</string>
     <string name="retromenu2_option_settings">Settings</string>
     <string name="retromenu2_option_exit">Exit Game</string>
-    
-    <!-- Loading screen -->
-    <string name="retromenu2_loading">LOADING...</string>
     
     <!-- Settings submenu options -->
     <string name="retromenu2_settings_title">SETTINGS</string>
