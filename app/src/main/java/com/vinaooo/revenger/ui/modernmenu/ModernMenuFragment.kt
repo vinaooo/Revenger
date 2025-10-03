@@ -123,11 +123,7 @@ class ModernMenuFragment : Fragment() {
             viewModel.saveStateCentralized { dismissMenu() }
         }
 
-        loadStateMenu.setOnClickListener {
-            viewModel.loadStateCentralized {
-                dismissMenu()
-            }
-        }
+        loadStateMenu.setOnClickListener { viewModel.loadStateCentralized { dismissMenu() } }
 
         audioToggleMenu.setOnClickListener {
             menuListener?.onToggleAudio()
