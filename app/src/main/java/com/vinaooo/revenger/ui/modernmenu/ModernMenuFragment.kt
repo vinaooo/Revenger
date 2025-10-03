@@ -124,15 +124,8 @@ class ModernMenuFragment : Fragment() {
         }
 
         loadStateMenu.setOnClickListener {
-            android.util.Log.d("ModernMenuLoadState", "=== LOAD STATE INICIADO ===")
-            val hasSaveState = menuListener?.hasSaveState() == true
-            android.util.Log.d("ModernMenuLoadState", "hasSaveState: $hasSaveState")
-            android.util.Log.d("ModernMenuLoadState", "PASSO 1: Executando loadStateCentralized")
             viewModel.loadStateCentralized {
-                android.util.Log.d("ModernMenuLoadState", "loadStateCentralized callback executado")
                 dismissMenu()
-                android.util.Log.d("ModernMenuLoadState", "Menu fechado com sucesso")
-                android.util.Log.d("ModernMenuLoadState", "=== LOAD STATE CONCLUÍDO ===")
             }
         }
 
