@@ -54,32 +54,8 @@ class ControllerInput(private val context: Context) {
     /** The callback for when the user inputs the menu key-combination */
     var menuCallback: () -> Unit = {}
 
-    /** The callback for when the user presses START button alone */
-    var pauseCallback: () -> Unit = {}
-
-    /** The callback for when the user presses SELECT button alone */
-    var selectPauseCallback: () -> Unit = {}
-
-    /** The callback for when the user presses SELECT + START together */
-    var selectStartPauseCallback: () -> Unit = {}
-
     /** Function to check if SELECT+START combo should trigger menu */
     var shouldHandleSelectStartCombo: () -> Boolean = { true }
-
-    /** Function to check if START alone should trigger pause overlay */
-    var shouldHandleStartPause: () -> Boolean = { true }
-
-    /** Function to check if SELECT alone should trigger pause overlay */
-    var shouldHandleSelectPause: () -> Boolean = { true }
-
-    /** Function to check if SELECT+START should trigger pause overlay */
-    var shouldHandleSelectStartPause: () -> Boolean = { true }
-
-    /** Callback for retro menu navigation (DPAD, A, B buttons) */
-    var retroMenuNavigationCallback: (Int) -> Boolean = { false }
-
-    /** Function to check if retro menu is currently visible */
-    var isRetroMenuVisible: () -> Boolean = { false }
 
     /**
      * Check for single-trigger directional input (UP/DOWN only) Returns the keycode if there's a
@@ -118,38 +94,6 @@ class ControllerInput(private val context: Context) {
         if (keyLog == KEYCOMBO_MENU && shouldHandleSelectStartCombo()) menuCallback()
     }
 
-    /** Check if we should show the pause overlay */
-    private fun checkPauseKey(): Boolean {
-        val startHandleState = shouldHandleStartPause()
-        val selectHandleState = shouldHandleSelectPause()
-        val selectStartHandleState = shouldHandleSelectStartPause()
-
-        // PRIORITY 1: Check for SELECT + START combo FIRST (regardless of other keys)
-        // This allows "hold SELECT, then press START" pattern
-        if (keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
-                        keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT) &&
-                        selectStartHandleState
-        ) {
-            selectStartPauseCallback()
-            return true // Block events from reaching core
-        }
-
-        // PRIORITY 2: Check for SELECT alone (ONLY if START is NOT pressed)
-        if (keyLog.size == 1 && keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT) && selectHandleState
-        ) {
-            selectPauseCallback()
-            return true // Block events from reaching core
-        }
-
-        // PRIORITY 3: Check for START alone (ONLY if SELECT is NOT pressed)
-        if (keyLog.size == 1 && keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) && startHandleState
-        ) {
-            pauseCallback()
-            return true // Block events from reaching core
-        }
-        return false // Don't block events
-    }
-
     fun processGamePadButtonEvent(keyCode: Int, action: Int) {
         /* Keep track of user input events */
         when (action) {
@@ -162,7 +106,6 @@ class ControllerInput(private val context: Context) {
         }
 
         checkMenuKeyCombo()
-        checkPauseKey()
     }
 
     /**
@@ -196,49 +139,13 @@ class ControllerInput(private val context: Context) {
         // This prevents partial signals (ACTION_UP without ACTION_DOWN) from reaching the core
         if (event.action == KeyEvent.ACTION_UP && keysToBlockAfterMenuClose.contains(keyCode)) {
             keysToBlockAfterMenuClose.remove(keyCode) // Remove after blocking once
-
-            // CRITICAL: Also remove from keyLog to prevent checkPauseKey from detecting it
             keyLog.remove(keyCode)
-
             return true // Block this ACTION_UP
-        }
-
-        // If retro menu is visible, intercept navigation keys (analog motion converted to DPAD)
-        // CRITICAL: Block BOTH ACTION_DOWN and ACTION_UP to prevent partial signals reaching core
-        if (isRetroMenuVisible()) {
-            when (keyCode) {
-                // Only UP/DOWN navigation for menu (LEFT/RIGHT pass through to game)
-                KeyEvent.KEYCODE_DPAD_UP,
-                KeyEvent.KEYCODE_DPAD_DOWN,
-                // Button codes for menu actions
-                KeyEvent.KEYCODE_BUTTON_A,
-                KeyEvent.KEYCODE_BUTTON_B -> {
-                    // Only send ACTION_DOWN to menu for processing
-                    // But block BOTH ACTION_DOWN and ACTION_UP from reaching the core
-                    if (event.action == KeyEvent.ACTION_DOWN) {
-                        if (retroMenuNavigationCallback(keyCode)) {
-                            return true // Menu handled the input, don't send to game
-                        }
-                    } else if (event.action == KeyEvent.ACTION_UP) {
-                        // CRITICAL FIX: Block ACTION_UP for menu keys to prevent pause signals
-                        // CRITICAL: Also remove from keyLog to prevent checkPauseKey detection
-                        keyLog.remove(keyCode)
-
-                        return true // Block ACTION_UP from reaching core
-                    }
-                }
-                KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                    // LEFT/RIGHT pass through to game even when menu is visible
-                }
-                else -> {}
-            }
-        } else {
-            if (event.action == KeyEvent.ACTION_DOWN) {}
         }
 
         val port = getPort(event)
 
-        /* Keep track of user input events BEFORE checking pause */
+        /* Keep track of user input events */
         when (event.action) {
             KeyEvent.ACTION_DOWN -> {
                 keyLog.add(keyCode)
@@ -249,12 +156,6 @@ class ControllerInput(private val context: Context) {
         }
 
         checkMenuKeyCombo()
-        val shouldBlockPauseKey = checkPauseKey()
-
-        // If pause key combo detected, block the events from reaching core
-        if (shouldBlockPauseKey) {
-            return true // Block completely
-        }
 
         // Normal key, send to core
         retroView.view.sendKeyEvent(event.action, keyCode, port)
@@ -266,48 +167,7 @@ class ControllerInput(private val context: Context) {
         /* We're not ready yet! */
         if (retroView.frameRendered.value == false) return null
 
-        // Get analog stick values
-        val yAxis = event.getAxisValue(MotionEvent.AXIS_Y)
-
-        // If retro menu is visible, use single-trigger navigation system
-        if (isRetroMenuVisible()) {
-            // Get all axis values
-            val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
-            val rz = event.getAxisValue(MotionEvent.AXIS_RZ)
-
-            // 1. DPAD físico (HAT_Y only) - Prioridade máxima, apenas UP/DOWN
-            val dpadUp = hatY < -dpadThreshold
-            val dpadDown = hatY > dpadThreshold
-
-            var triggeredKeyCode = checkSingleTrigger(dpadUp, dpadDown, dpadState, "DPAD")
-
-            // 2. Analógico esquerdo (AXIS_Y only) - Se DPAD não triggered, apenas UP/DOWN
-            if (triggeredKeyCode == null) {
-                val leftUp = yAxis < -leftAnalogThreshold
-                val leftDown = yAxis > leftAnalogThreshold
-
-                triggeredKeyCode =
-                        checkSingleTrigger(leftUp, leftDown, leftAnalogState, "LEFT_ANALOG")
-            }
-
-            // 3. Analógico direito (AXIS_RZ only) - Se outros não triggered, apenas UP/DOWN
-            if (triggeredKeyCode == null) {
-                val rightUp = rz < -rightAnalogThreshold
-                val rightDown = rz > rightAnalogThreshold
-
-                triggeredKeyCode =
-                        checkSingleTrigger(rightUp, rightDown, rightAnalogState, "RIGHT_ANALOG")
-            }
-
-            // Se houve um trigger, enviar para o menu
-            if (triggeredKeyCode != null) {
-                if (retroMenuNavigationCallback(triggeredKeyCode)) {
-                    return true // Menu handled the input, don't send to game
-                }
-            }
-        }
-
-        // Send motion events to game (normal behavior)
+        // Send motion events to game
         val port = getPort(event)
         retroView.view.apply {
             sendMotionEvent(

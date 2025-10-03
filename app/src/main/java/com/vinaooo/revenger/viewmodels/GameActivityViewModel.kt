@@ -22,7 +22,6 @@ import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment
-import com.vinaooo.revenger.ui.retromenu.RetroMenuFragment
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
@@ -40,9 +39,6 @@ class GameActivityViewModel(application: Application) :
     // Modern menu fragment (activated by Android back button)
     private var modernMenuFragment: ModernMenuFragment? = null
 
-    // Retro menu fragment (activated by gamepad buttons)
-    private var retroMenuFragment: RetroMenuFragment? = null
-
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput(application.applicationContext)
 
@@ -56,10 +52,6 @@ class GameActivityViewModel(application: Application) :
     init {
         // Set the callback to check if SELECT+START combo should work
         controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
-        // Set the callbacks to check pause overlay modes
-        controllerInput.shouldHandleStartPause = { shouldHandleStartPause() }
-        controllerInput.shouldHandleSelectPause = { shouldHandleSelectPause() }
-        controllerInput.shouldHandleSelectStartPause = { shouldHandleSelectStartPause() }
     }
 
     /** Configure menu callback with activity reference */
@@ -68,36 +60,6 @@ class GameActivityViewModel(application: Application) :
             // Check if menu is enabled before showing
             if (isMenuEnabled()) {
                 showMenu(activity)
-            }
-        }
-
-        // Configure navigation callback for retro menu
-        controllerInput.retroMenuNavigationCallback = { keyCode ->
-            retroMenuFragment?.handleNavigationInput(keyCode) ?: false
-        }
-
-        // Configure function to check if retro menu is visible
-        controllerInput.isRetroMenuVisible = { isPauseOverlayVisible() }
-
-        // Configure pause overlay callbacks based on mode
-        controllerInput.pauseCallback = {
-            // START button (mode 1)
-            if (isPauseOverlayEnabled()) {
-                showPauseOverlay(activity)
-            }
-        }
-
-        controllerInput.selectPauseCallback = {
-            // SELECT button (mode 2)
-            if (isPauseOverlayEnabled()) {
-                showPauseOverlay(activity)
-            }
-        }
-
-        controllerInput.selectStartPauseCallback = {
-            // SELECT + START together (mode 3)
-            if (isPauseOverlayEnabled()) {
-                showPauseOverlay(activity)
             }
         }
     }
@@ -113,80 +75,6 @@ class GameActivityViewModel(application: Application) :
                 ModernMenuFragment.newInstance().apply {
                     setMenuListener(this@GameActivityViewModel)
                 }
-    }
-
-    /** Create an instance of the retro menu (activated by gamepad buttons) */
-    fun preparePauseOverlay(activity: ComponentActivity) {
-        if (retroMenuFragment != null) return
-
-        retroMenuFragment =
-                RetroMenuFragment.newInstance().apply { retroMenuMode = getPauseOverlayMode() }
-    }
-
-    /** Show the retro menu overlay */
-    fun showPauseOverlay(activity: FragmentActivity) {
-        if (retroView?.frameRendered?.value == true) {
-            // CRITICAL: Capture currently pressed keys BEFORE pausing
-            // Their ACTION_UP will be blocked after menu closes to prevent partial signals
-            controllerInput.captureKeysOnMenuOpen()
-
-            // PAUSE emulation using LibretroDroid's native frameSpeed API
-            retroView?.view?.frameSpeed = 0
-
-            // Preserve emulator state (audio, speed settings)
-            retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
-
-            // Show retro menu overlay
-            retroMenuFragment?.let { overlay ->
-                if (!overlay.isAdded) {
-                    // Set callback to dismiss overlay and resume emulation
-                    overlay.onDismissCallback = { dismissPauseOverlay() }
-                    // Using centralized methods:
-                    // - resetGameCentralized()
-                    // - loadStateCentralized()
-                    // - saveStateCentralized()
-                    // - hasSaveState() from ViewModel interface
-
-                    activity.supportFragmentManager
-                            .beginTransaction()
-                            .add(
-                                    android.R.id.content,
-                                    overlay,
-                                    RetroMenuFragment::class.java.simpleName
-                            )
-                            .commit()
-                }
-            }
-        }
-    }
-
-    /** Dismiss the pause overlay */
-    fun dismissPauseOverlay() {
-        retroView?.let { retroView ->
-            // Restore emulator state (audio, speed settings)
-            // Pass skipTempStateLoad flag to avoid overwriting manual Load State
-            retroViewUtils?.restoreEmulatorState(retroView, skipNextTempStateLoad)
-
-            // Reset flag after use
-            skipNextTempStateLoad = false
-
-            // RESUME emulation using LibretroDroid's native frameSpeed API
-            retroView.view.frameSpeed = 1
-        }
-
-        // Remove the retro menu fragment
-        retroMenuFragment?.let { overlay ->
-            overlay.parentFragmentManager.beginTransaction().remove(overlay).commit()
-        }
-
-        // CRITICAL: Clear blocked keys after a delay
-        // This gives time for any pending ACTION_UP events to be blocked first
-        controllerInput.clearBlockedKeysDelayed()
-    }
-
-    /** Check if the retro menu is currently visible */
-    fun isPauseOverlayVisible(): Boolean {
-        return retroMenuFragment?.isAdded == true
     }
 
     /** Show the fullscreen game menu */
@@ -374,71 +262,6 @@ class GameActivityViewModel(application: Application) :
         onComplete?.invoke()
     }
 
-    /**
-     * Centralized continue game implementation Handles unpause signals based on configured mode and
-     * dismisses overlay Currently used by Retro Menu but modularized for future reuse
-     *
-     * @param sendUnpauseSignal If true, sends the configured unpause signal (START/SELECT/combo).
-     * ```
-     *                          If false, just calls onComplete without sending signals.
-     * ```
-     */
-    fun continueGameCentralized(
-            sendUnpauseSignal: Boolean = true,
-            onComplete: (() -> Unit)? = null
-    ) {
-        if (!sendUnpauseSignal) {
-            onComplete?.invoke()
-            return
-        }
-
-        // Send appropriate unpause signal(s) based on configured mode
-        val view =
-                retroView?.view
-                        ?: run {
-                            onComplete?.invoke()
-                            return
-                        }
-
-        val handler = android.os.Handler(android.os.Looper.getMainLooper())
-
-        when (getPauseOverlayMode()) {
-            1 -> {
-                view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
-                handler.postDelayed(
-                        {
-                            view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
-                            handler.postDelayed({ onComplete?.invoke() }, 100)
-                        },
-                        200
-                )
-            }
-            2 -> {
-                view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
-                handler.postDelayed(
-                        {
-                            view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
-                            handler.postDelayed({ onComplete?.invoke() }, 100)
-                        },
-                        200
-                )
-            }
-            3 -> {
-                view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
-                view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
-                handler.postDelayed(
-                        {
-                            view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
-                            view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
-                            handler.postDelayed({ onComplete?.invoke() }, 100)
-                        },
-                        200
-                )
-            }
-            else -> onComplete?.invoke()
-        }
-    }
-
     /** Hide the system bars */
     @Suppress("DEPRECATION")
     fun immersive(window: Window) {
@@ -584,37 +407,6 @@ class GameActivityViewModel(application: Application) :
     fun shouldHandleSelectStartCombo(): Boolean {
         val menuMode = resources.getInteger(R.integer.config_menu_mode)
         return menuMode == 2 || menuMode == 3 // 2 = combo only, 3 = both
-    }
-
-    /** Check if pause overlay is enabled based on config_pause_overlay */
-    fun isPauseOverlayEnabled(): Boolean {
-        return resources.getBoolean(R.bool.config_pause_overlay)
-    }
-
-    /** Get the pause overlay mode (0=disabled, 1=enabled) */
-    fun getPauseOverlayMode(): Int {
-        return if (resources.getBoolean(R.bool.config_pause_overlay)) 1 else 0
-    }
-
-    /** Check if START alone should trigger pause overlay */
-    fun shouldHandleStartPause(): Boolean {
-        // Only if config_pause_overlay == 1
-        val mode = getPauseOverlayMode()
-        return mode == 1 // START button alone
-    }
-
-    /** Check if SELECT alone should trigger pause overlay */
-    fun shouldHandleSelectPause(): Boolean {
-        // Only if config_pause_overlay == 2
-        val mode = getPauseOverlayMode()
-        return mode == 2 // SELECT button alone
-    }
-
-    /** Check if SELECT+START combo should trigger pause overlay */
-    fun shouldHandleSelectStartPause(): Boolean {
-        // Only if config_pause_overlay == 3
-        val mode = getPauseOverlayMode()
-        return mode == 3 // SELECT + START together
     }
 
     /**
