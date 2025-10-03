@@ -24,7 +24,7 @@ class RetroMenu3Fragment : Fragment() {
     private lateinit var viewModel: GameActivityViewModel
 
     // Menu item views
-    private lateinit var menuContainer: MaterialCardView
+    private lateinit var menuContainer: LinearLayout
     private lateinit var menuHeader: LinearLayout
     private lateinit var continueMenu: MaterialCardView
     private lateinit var resetMenu: MaterialCardView

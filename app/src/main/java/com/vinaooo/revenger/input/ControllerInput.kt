@@ -44,11 +44,18 @@ class ControllerInput(private val context: Context) {
     private val keysToBlockAfterMenuClose = mutableSetOf<Int>()
 
     /**
+     * Flag to prevent combo from being detected multiple times while buttons are held Reset when
+     * any combo button is released
+     */
+    private var comboAlreadyTriggered = false
+
+    /**
      * Limpa o keyLog para evitar detecção de combos após fechar o menu. CRÍTICO: Deve ser chamado
      * quando o menu fecha para evitar reabertura imediata.
      */
     fun clearKeyLog() {
         keyLog.clear()
+        comboAlreadyTriggered = false // Reset flag when clearing keyLog
     }
 
     /** The callback for when the user inputs the menu key-combination */
@@ -57,8 +64,14 @@ class ControllerInput(private val context: Context) {
     /** The callback for when the user inputs the SELECT+START combo (RetroMenu3) */
     var selectStartComboCallback: () -> Unit = {}
 
+    /** The callback for when the user presses START alone (to close RetroMenu3) */
+    var startButtonCallback: () -> Unit = {}
+
     /** Function to check if SELECT+START combo should trigger menu */
     var shouldHandleSelectStartCombo: () -> Boolean = { true }
+
+    /** Function to check if START button alone should trigger callback */
+    var shouldHandleStartButton: () -> Boolean = { false }
 
     /**
      * Check for single-trigger directional input (UP/DOWN only) Returns the keycode if there's a
@@ -94,12 +107,20 @@ class ControllerInput(private val context: Context) {
 
     /** Check if we should be showing the user the menu */
     private fun checkMenuKeyCombo() {
-        if (keyLog == KEYCOMBO_MENU && shouldHandleSelectStartCombo()) {
+        // Log para debug
+        android.util.Log.d(
+                "ControllerInput",
+                "checkMenuKeyCombo - keyLog: $keyLog, KEYCOMBO_MENU: $KEYCOMBO_MENU, equals: ${keyLog == KEYCOMBO_MENU}, comboAlreadyTriggered: $comboAlreadyTriggered"
+        )
+
+        if (keyLog == KEYCOMBO_MENU && !comboAlreadyTriggered && shouldHandleSelectStartCombo()) {
             android.util.Log.d(
                     "ControllerInput",
                     "SELECT+START combo detected! Calling selectStartComboCallback"
             )
+            comboAlreadyTriggered = true // Mark combo as triggered
             selectStartComboCallback()
+            android.util.Log.d("ControllerInput", "comboAlreadyTriggered set to true")
         }
     }
 
@@ -111,6 +132,18 @@ class ControllerInput(private val context: Context) {
             }
             KeyEvent.ACTION_UP -> {
                 keyLog.remove(keyCode)
+                // Reset combo flag when any combo button is released
+                if (keyCode == KeyEvent.KEYCODE_BUTTON_START ||
+                                keyCode == KeyEvent.KEYCODE_BUTTON_SELECT
+                ) {
+                    if (comboAlreadyTriggered) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "Combo button released (GamePad), resetting comboAlreadyTriggered"
+                        )
+                    }
+                    comboAlreadyTriggered = false
+                }
             }
         }
 
@@ -144,6 +177,18 @@ class ControllerInput(private val context: Context) {
         /* We're not ready yet! */
         if (retroView.frameRendered.value == false) return true
 
+        // BLOQUEAR START quando menu está aberto (RetroMenu3)
+        if (keyCode == KeyEvent.KEYCODE_BUTTON_START && shouldHandleStartButton()) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "START blocked - menu is open, closing menu instead"
+                )
+                startButtonCallback()
+            }
+            return true // Consumir o evento, não enviar ao core
+        }
+
         // CRITICAL FIX: Block ACTION_UP for keys that were pressed when menu opened
         // This prevents partial signals (ACTION_UP without ACTION_DOWN) from reaching the core
         if (event.action == KeyEvent.ACTION_UP && keysToBlockAfterMenuClose.contains(keyCode)) {
@@ -161,10 +206,33 @@ class ControllerInput(private val context: Context) {
             }
             KeyEvent.ACTION_UP -> {
                 keyLog.remove(keyCode)
+                // Reset combo flag when any combo button is released
+                if (keyCode == KeyEvent.KEYCODE_BUTTON_START ||
+                                keyCode == KeyEvent.KEYCODE_BUTTON_SELECT
+                ) {
+                    if (comboAlreadyTriggered) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "Combo button released, resetting comboAlreadyTriggered"
+                        )
+                    }
+                    comboAlreadyTriggered = false
+                }
             }
         }
 
         checkMenuKeyCombo()
+
+        // BLOQUEAR START e SELECT de chegarem ao core quando o combo é detectado
+        if ((keyCode == KeyEvent.KEYCODE_BUTTON_START ||
+                        keyCode == KeyEvent.KEYCODE_BUTTON_SELECT) && keyLog == KEYCOMBO_MENU
+        ) {
+            android.util.Log.d(
+                    "ControllerInput",
+                    "Blocking START/SELECT from reaching core - combo detected"
+            )
+            return true // Consumir o evento, não enviar ao core
+        }
 
         // Normal key, send to core
         retroView.view.sendKeyEvent(event.action, keyCode, port)

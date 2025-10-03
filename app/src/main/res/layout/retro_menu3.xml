@@ -5,91 +5,76 @@
     android:layout_height="match_parent"
     android:clickable="true"
     android:focusable="true"
-    android:background="@android:color/transparent"
+    android:background="#CC000000"
     android:fitsSystemWindows="false">
 
-    <!-- Floating Menu Container -->
-    <com.google.android.material.card.MaterialCardView
+    <!-- Fullscreen Menu Container -->
+    <LinearLayout
         android:id="@+id/menu_container"
-        android:layout_width="320dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginVertical="16dp"
-        android:maxHeight="400dp"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp"
-        app:cardBackgroundColor="#FEFBFF">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingHorizontal="32dp"
+        android:paddingVertical="48dp">
 
+        <!-- Header Section -->
         <LinearLayout
+            android:id="@+id/menu_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingBottom="24dp">
 
-            <!-- Header Section - Fixed at top (outside ScrollView) -->
-            <LinearLayout
-                android:id="@+id/menu_header"
-                android:layout_width="match_parent"
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_gamepad_24"
+                app:tint="#FFFFFF"
+                android:contentDescription="@string/game_menu_icon" />
+
+            <TextView
+                android:id="@+id/menu_title"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="20dp"
-                android:paddingBottom="12dp"
-                android:background="#FEFBFF">
+                android:layout_marginStart="12dp"
+                android:text="@string/game_menu_title"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF" />
 
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_gamepad_24"
-                    app:tint="#1C1B1F"
-                    android:contentDescription="@string/game_menu_icon" />
+        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/menu_title"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="12dp"
-                    android:text="@string/game_menu_title"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    android:textColor="#1C1B1F" />
-
-            </LinearLayout>
-
-            <!-- Scrollable Content (only menu items) -->
-            <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fillViewport="false"
-                android:overScrollMode="never"
-                android:scrollbars="none"
-                android:fadeScrollbars="false"
-                android:maxHeight="300dp">
+        <!-- Scrollable Content (only menu items) -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="false"
+            android:overScrollMode="never"
+            android:scrollbars="none"
+            android:fadeScrollbars="false">
 
                 <!-- Menu Items Container - Scrollable -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingHorizontal="8dp"
-                    android:paddingBottom="16dp">
+                    android:paddingBottom="8dp">
 
                         <!-- Continue Game -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/menu_continue"
                             style="@style/Widget.Material3.CardView.Outlined"
                             android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            android:layout_marginHorizontal="8dp"
-                            android:layout_marginVertical="3dp"
+                            android:layout_height="72dp"
+                            android:layout_marginVertical="6dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            app:cardCornerRadius="14dp"
+                            app:cardCornerRadius="16dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
+                            app:strokeWidth="2dp"
                             app:strokeColor="#E7E0EC"
                             app:cardBackgroundColor="#FEFBFF">
 
@@ -139,15 +124,15 @@
                             android:id="@+id/menu_reset"
                             style="@style/Widget.Material3.CardView.Outlined"
                             android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            android:layout_marginHorizontal="8dp"
-                            android:layout_marginVertical="3dp"
+                            android:layout_height="72dp"
+                            android:layout_marginHorizontal="0dp"
+                            android:layout_marginVertical="6dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            app:cardCornerRadius="14dp"
+                            app:cardCornerRadius="16dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
+                            app:strokeWidth="2dp"
                             app:strokeColor="#E7E0EC"
                             app:cardBackgroundColor="#FEFBFF">
 
@@ -197,15 +182,15 @@
                             android:id="@+id/menu_save_state"
                             style="@style/Widget.Material3.CardView.Outlined"
                             android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            android:layout_marginHorizontal="8dp"
-                            android:layout_marginVertical="3dp"
+                            android:layout_height="72dp"
+                            android:layout_marginHorizontal="0dp"
+                            android:layout_marginVertical="6dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            app:cardCornerRadius="14dp"
+                            app:cardCornerRadius="16dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
+                            app:strokeWidth="2dp"
                             app:strokeColor="#E7E0EC"
                             app:cardBackgroundColor="#FEFBFF">
 
@@ -255,15 +240,15 @@
                             android:id="@+id/menu_load_state"
                             style="@style/Widget.Material3.CardView.Outlined"
                             android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            android:layout_marginHorizontal="8dp"
-                            android:layout_marginVertical="3dp"
+                            android:layout_height="72dp"
+                            android:layout_marginHorizontal="0dp"
+                            android:layout_marginVertical="6dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            app:cardCornerRadius="14dp"
+                            app:cardCornerRadius="16dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
+                            app:strokeWidth="2dp"
                             app:strokeColor="#E7E0EC"
                             app:cardBackgroundColor="#FEFBFF">
 
@@ -315,15 +300,15 @@
                             android:id="@+id/menu_toggle_audio"
                             style="@style/Widget.Material3.CardView.Outlined"
                             android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            android:layout_marginHorizontal="8dp"
-                            android:layout_marginVertical="3dp"
+                            android:layout_height="72dp"
+                            android:layout_marginHorizontal="0dp"
+                            android:layout_marginVertical="6dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            app:cardCornerRadius="14dp"
+                            app:cardCornerRadius="16dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
+                            app:strokeWidth="2dp"
                             app:strokeColor="#E7E0EC"
                             app:cardBackgroundColor="#FEFBFF">
 
@@ -383,15 +368,15 @@
                             android:id="@+id/menu_fast_forward"
                             style="@style/Widget.Material3.CardView.Outlined"
                             android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            android:layout_marginHorizontal="8dp"
-                            android:layout_marginVertical="3dp"
+                            android:layout_height="72dp"
+                            android:layout_marginHorizontal="0dp"
+                            android:layout_marginVertical="6dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            app:cardCornerRadius="14dp"
+                            app:cardCornerRadius="16dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
+                            app:strokeWidth="2dp"
                             app:strokeColor="#E7E0EC"
                             app:cardBackgroundColor="#FEFBFF">
 
@@ -451,15 +436,15 @@
                             android:id="@+id/menu_exit"
                             style="@style/Widget.Material3.CardView.Outlined"
                             android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            android:layout_marginHorizontal="8dp"
-                            android:layout_marginVertical="3dp"
+                            android:layout_height="72dp"
+                            android:layout_marginHorizontal="0dp"
+                            android:layout_marginVertical="6dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            app:cardCornerRadius="14dp"
+                            app:cardCornerRadius="16dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
+                            app:strokeWidth="2dp"
                             app:strokeColor="#E7E0EC"
                             app:cardBackgroundColor="#FEFBFF">
 
@@ -508,8 +493,6 @@
 
             </ScrollView>
 
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
 
 </FrameLayout>

@@ -71,6 +71,13 @@ class GameActivityViewModel(application: Application) :
 
         // Configure RetroMenu3 callback for SELECT+START combo
         controllerInput.selectStartComboCallback = { showRetroMenu3(activity) }
+
+        // Configure START button callback to close RetroMenu3
+        controllerInput.startButtonCallback = { dismissRetroMenu3() }
+
+        // Controlar quando START sozinho deve funcionar (apenas quando RetroMenu3 está REALMENTE
+        // aberto)
+        controllerInput.shouldHandleStartButton = { isRetroMenu3Open() }
     }
 
     /** Create an instance of the modern menu overlay (activated by back button) */
@@ -126,6 +133,13 @@ class GameActivityViewModel(application: Application) :
     /** Show the RetroMenu3 (activated by SELECT+START combo) */
     fun showRetroMenu3(activity: FragmentActivity) {
         android.util.Log.d("GameActivityViewModel", "showRetroMenu3 called!")
+
+        // CRITICAL: Prevent multiple calls if menu is already open
+        if (isRetroMenu3Open()) {
+            android.util.Log.d("GameActivityViewModel", "RetroMenu3 already open, ignoring call")
+            return
+        }
+
         if (retroView?.frameRendered?.value == true) {
             // CRITICAL: Capture currently pressed keys BEFORE showing menu
             controllerInput.captureKeysOnMenuOpen()
@@ -170,6 +184,8 @@ class GameActivityViewModel(application: Application) :
     /** Dismiss the RetroMenu3 */
     fun dismissRetroMenu3() {
         retroMenu3Fragment?.dismissMenuPublic()
+        // CRITICAL: Clear keyLog to prevent phantom key presses
+        controllerInput.clearKeyLog()
         // CRITICAL: Clear blocked keys after menu dismissal
         controllerInput.clearBlockedKeysDelayed()
     }
