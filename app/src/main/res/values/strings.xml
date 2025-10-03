@@ -4,6 +4,7 @@
     <string name="pref_audio_enabled">audio_enabled</string>
 
     <!-- Menu options -->
+    <string name="menu_continue">Continue</string>
     <string name="menu_reset">Reset</string>
     <string name="menu_save_state">Save State</string>
     <string name="menu_load_state">Load State</string>
@@ -14,6 +15,7 @@
 
     <!-- Menu headers and descriptions -->
     <string name="game_menu_title">Game Menu</string>
+    <string name="menu_continue_description">Resume the game</string>
     <string name="menu_reset_description">Restart the current game</string>
     <string name="menu_save_state_description">Save current game progress</string>
     <string name="menu_load_state_description">Load saved game progress</string>

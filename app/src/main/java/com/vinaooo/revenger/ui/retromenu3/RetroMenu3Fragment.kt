@@ -26,6 +26,7 @@ class RetroMenu3Fragment : Fragment() {
     // Menu item views
     private lateinit var menuContainer: MaterialCardView
     private lateinit var menuHeader: LinearLayout
+    private lateinit var continueMenu: MaterialCardView
     private lateinit var resetMenu: MaterialCardView
     private lateinit var saveStateMenu: MaterialCardView
     private lateinit var loadStateMenu: MaterialCardView
@@ -93,6 +94,7 @@ class RetroMenu3Fragment : Fragment() {
         menuHeader = view.findViewById<LinearLayout>(R.id.menu_header)
 
         // Menu items
+        continueMenu = view.findViewById(R.id.menu_continue)
         resetMenu = view.findViewById(R.id.menu_reset)
         saveStateMenu = view.findViewById(R.id.menu_save_state)
         loadStateMenu = view.findViewById(R.id.menu_load_state)
@@ -116,6 +118,11 @@ class RetroMenu3Fragment : Fragment() {
     }
 
     private fun setupClickListeners() {
+        continueMenu.setOnClickListener {
+            // Apenas fecha o menu e retorna ao jogo
+            animateMenuOut { dismissMenu() }
+        }
+
         resetMenu.setOnClickListener {
             // Use centralized implementation
             viewModel.resetGameCentralized { animateMenuOut { dismissMenu() } }
