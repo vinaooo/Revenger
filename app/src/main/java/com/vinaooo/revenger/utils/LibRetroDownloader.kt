@@ -26,11 +26,11 @@ class LibRetroDownloader {
 
         /** Baixa e extrai um core LibRetro */
         @JvmStatic
-    @Suppress("UNUSED_PARAMETER")
-    fun downloadAndExtractCore(
+        @Suppress("UNUSED_PARAMETER")
+        fun downloadAndExtractCore(
                 coreUrl: String,
                 destinationDir: File,
-        coreName: String
+                coreName: String
         ): Boolean {
             return try {
                 // Criar diretório se não existir

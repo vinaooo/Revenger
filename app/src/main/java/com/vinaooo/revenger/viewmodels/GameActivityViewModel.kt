@@ -443,10 +443,12 @@ class GameActivityViewModel(application: Application) :
         }
 
         // Send appropriate unpause signal(s) based on configured mode
-        val view = retroView?.view ?: run {
-            onComplete?.invoke()
-            return
-        }
+        val view =
+                retroView?.view
+                        ?: run {
+                            onComplete?.invoke()
+                            return
+                        }
 
         val handler = android.os.Handler(android.os.Looper.getMainLooper())
 
@@ -455,11 +457,7 @@ class GameActivityViewModel(application: Application) :
                 view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
                 handler.postDelayed(
                         {
-                            view.sendKeyEvent(
-                                    KeyEvent.ACTION_UP,
-                                    KeyEvent.KEYCODE_BUTTON_START,
-                                    0
-                            )
+                            view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
                             handler.postDelayed({ onComplete?.invoke() }, 100)
                         },
                         200
@@ -469,11 +467,7 @@ class GameActivityViewModel(application: Application) :
                 view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
                 handler.postDelayed(
                         {
-                            view.sendKeyEvent(
-                                    KeyEvent.ACTION_UP,
-                                    KeyEvent.KEYCODE_BUTTON_SELECT,
-                                    0
-                            )
+                            view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
                             handler.postDelayed({ onComplete?.invoke() }, 100)
                         },
                         200
@@ -484,16 +478,8 @@ class GameActivityViewModel(application: Application) :
                 view.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 0)
                 handler.postDelayed(
                         {
-                            view.sendKeyEvent(
-                                    KeyEvent.ACTION_UP,
-                                    KeyEvent.KEYCODE_BUTTON_START,
-                                    0
-                            )
-                            view.sendKeyEvent(
-                                    KeyEvent.ACTION_UP,
-                                    KeyEvent.KEYCODE_BUTTON_SELECT,
-                                    0
-                            )
+                            view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START, 0)
+                            view.sendKeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT, 0)
                             handler.postDelayed({ onComplete?.invoke() }, 100)
                         },
                         200
@@ -766,9 +752,7 @@ class GameActivityViewModel(application: Application) :
      * @param enabled true para ligar, false para desligar
      */
     fun setAudioEnabled(enabled: Boolean) {
-        retroView?.let {
-            audioController?.setAudioEnabled(it.view, enabled)
-        }
+        retroView?.let { audioController?.setAudioEnabled(it.view, enabled) }
     }
 
     /**
@@ -776,23 +760,17 @@ class GameActivityViewModel(application: Application) :
      * @param speed velocidade desejada (1 = normal, > 1 = fast forward)
      */
     fun setGameSpeed(speed: Int) {
-        retroView?.let {
-            speedController?.setSpeed(it.view, speed)
-        }
+        retroView?.let { speedController?.setSpeed(it.view, speed) }
     }
 
     /** Ativa fast forward usando controller modular */
     fun enableFastForward() {
-        retroView?.let {
-            speedController?.enableFastForward(it.view)
-        }
+        retroView?.let { speedController?.enableFastForward(it.view) }
     }
 
     /** Desativa fast forward usando controller modular */
     fun disableFastForward() {
-        retroView?.let {
-            speedController?.disableFastForward(it.view)
-        }
+        retroView?.let { speedController?.disableFastForward(it.view) }
     }
 
     // ============================================================

@@ -115,7 +115,6 @@ class GameActivity : FragmentActivity() {
                 else 0,
                 android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
         )
-
     }
 
     /** Listen for new controller additions and removals */
