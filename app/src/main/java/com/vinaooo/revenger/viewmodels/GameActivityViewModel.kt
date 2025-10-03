@@ -20,7 +20,6 @@ import com.vinaooo.revenger.controllers.SpeedController
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
-import com.vinaooo.revenger.retromenu2.RetroMenu2Fragment
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment
 import com.vinaooo.revenger.ui.retromenu.RetroMenuFragment
@@ -44,18 +43,12 @@ class GameActivityViewModel(application: Application) :
     // Retro menu fragment (activated by gamepad buttons)
     private var retroMenuFragment: RetroMenuFragment? = null
 
-    // RetroMenu2 fragment (new menu system)
-    private var retroMenu2Fragment: RetroMenu2Fragment? = null
-
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput(application.applicationContext)
 
     // Controllers for modular audio and speed control
     private var audioController: AudioController? = null
     private var speedController: SpeedController? = null
-
-    // MenuSoundManager compartilhado (inicializado uma vez no app startup)
-    private var menuSoundManager: com.vinaooo.revenger.retromenu2.MenuSoundManager? = null
 
     // Flag to prevent tempState from overwriting a manual Load State
     private var skipNextTempStateLoad = false
@@ -102,23 +95,8 @@ class GameActivityViewModel(application: Application) :
         }
 
         controllerInput.selectStartPauseCallback = {
-            // SELECT + START together (mode 3 or RetroMenu2)
-            if (isRetroMenu2Enabled()) {
-                // RetroMenu2 usa SELECT+START como trigger exclusivo
-
-                // PASSO 0: Preparar fragment e SoundManager ANTES do delay
-                // Isso garante que o SoundPool tenha tempo de carregar os sons
-                prepareRetroMenu2(activity)
-
-                // PASSO 1: Pausar emulador PRIMEIRO (frameSpeed = 0)
-                pauseEmulator()
-
-                // PASSO 2: Aguardar 300ms para evitar sobreposição de sons
-                // Neste tempo o SoundPool carrega os arquivos WAV
-                android.os.Handler(android.os.Looper.getMainLooper())
-                        .postDelayed({ showRetroMenu2(activity) }, 300)
-            } else if (isPauseOverlayEnabled()) {
-                // RetroMenu1 original
+            // SELECT + START together (mode 3)
+            if (isPauseOverlayEnabled()) {
                 showPauseOverlay(activity)
             }
         }
@@ -143,34 +121,6 @@ class GameActivityViewModel(application: Application) :
 
         retroMenuFragment =
                 RetroMenuFragment.newInstance().apply { retroMenuMode = getPauseOverlayMode() }
-    }
-
-    /** Create an instance of RetroMenu2 (new menu system) */
-    fun prepareRetroMenu2(activity: ComponentActivity) {
-        if (retroMenu2Fragment != null) return
-
-        retroMenu2Fragment = RetroMenu2Fragment.newInstance()
-    }
-
-    /** Show RetroMenu2 overlay */
-    fun showRetroMenu2(activity: FragmentActivity) {
-        if (retroView?.frameRendered?.value == true) {
-            // RetroMenu2 irá pausar o emulador no onResume()
-            // usando frameSpeed = 0
-
-            retroMenu2Fragment?.let { menu ->
-                if (!menu.isAdded) {
-                    activity.supportFragmentManager
-                            .beginTransaction()
-                            .add(
-                                    android.R.id.content,
-                                    menu,
-                                    RetroMenu2Fragment::class.java.simpleName
-                            )
-                            .commit()
-                }
-            }
-        }
     }
 
     /** Show the retro menu overlay */
@@ -572,15 +522,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Process a key event and return the result */
     fun processKeyEvent(keyCode: Int, event: KeyEvent): Boolean? {
-        // PRIORITY: Se RetroMenu2 está visível, encaminhar para ele
-        retroMenu2Fragment?.let { menu ->
-            if (menu.isAdded && menu.isVisible) {
-                val handled = menu.handleKeyEvent(keyCode, event)
-                if (handled) return true
-            }
-        }
-
-        // Processar normalmente via ControllerInput
+        // Process normally via ControllerInput
         retroView?.let {
             return controllerInput.processKeyEvent(keyCode, event, it)
         }
@@ -590,15 +532,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Process a motion event and return the result */
     fun processMotionEvent(event: MotionEvent): Boolean? {
-        // PRIORITY: Se RetroMenu2 está visível, encaminhar para ele
-        retroMenu2Fragment?.let { menu ->
-            if (menu.isAdded && menu.isVisible) {
-                val handled = menu.handleMotionEvent(event)
-                if (handled) return true
-            }
-        }
-
-        // Processar normalmente via ControllerInput
+        // Process normally via ControllerInput
         retroView?.let {
             return controllerInput.processMotionEvent(event, it)
         }
@@ -657,11 +591,6 @@ class GameActivityViewModel(application: Application) :
         return resources.getBoolean(R.bool.config_pause_overlay)
     }
 
-    /** Check if RetroMenu2 is enabled (new menu system) */
-    fun isRetroMenu2Enabled(): Boolean {
-        return resources.getBoolean(R.bool.config_use_retromenu2)
-    }
-
     /** Get the pause overlay mode (0=disabled, 1=enabled) */
     fun getPauseOverlayMode(): Int {
         return if (resources.getBoolean(R.bool.config_pause_overlay)) 1 else 0
@@ -669,36 +598,21 @@ class GameActivityViewModel(application: Application) :
 
     /** Check if START alone should trigger pause overlay */
     fun shouldHandleStartPause(): Boolean {
-        // RetroMenu2 NÃO usa START sozinho (apenas SELECT+START)
-        if (isRetroMenu2Enabled()) {
-            return false
-        }
-
-        // RetroMenu1 original: só se config_pause_overlay == 1
+        // Only if config_pause_overlay == 1
         val mode = getPauseOverlayMode()
         return mode == 1 // START button alone
     }
 
     /** Check if SELECT alone should trigger pause overlay */
     fun shouldHandleSelectPause(): Boolean {
-        // RetroMenu2 NÃO usa SELECT sozinho (apenas SELECT+START)
-        if (isRetroMenu2Enabled()) {
-            return false
-        }
-
-        // RetroMenu1 original: só se config_pause_overlay == 2
+        // Only if config_pause_overlay == 2
         val mode = getPauseOverlayMode()
         return mode == 2 // SELECT button alone
     }
 
     /** Check if SELECT+START combo should trigger pause overlay */
     fun shouldHandleSelectStartPause(): Boolean {
-        // RetroMenu2 SEMPRE usa SELECT+START, independente do config_pause_overlay
-        if (isRetroMenu2Enabled()) {
-            return true
-        }
-
-        // RetroMenu1 original: só se config_pause_overlay == 3
+        // Only if config_pause_overlay == 3
         val mode = getPauseOverlayMode()
         return mode == 3 // SELECT + START together
     }
@@ -711,14 +625,6 @@ class GameActivityViewModel(application: Application) :
         val sharedPreferences = activity.getPreferences(android.content.Context.MODE_PRIVATE)
         audioController = AudioController(activity.applicationContext, sharedPreferences)
         speedController = SpeedController(activity.applicationContext, sharedPreferences)
-
-        // Inicializar MenuSoundManager uma única vez no app startup
-        // Isso garante que os sons estejam sempre carregados e prontos
-        if (menuSoundManager == null) {
-            menuSoundManager =
-                    com.vinaooo.revenger.retromenu2.MenuSoundManager(activity.applicationContext)
-            menuSoundManager?.initialize()
-        }
     }
 
     // MÉTODOS PÚBLICOS PARA ACESSO AOS CONTROLLERS MODULARES
@@ -737,14 +643,6 @@ class GameActivityViewModel(application: Application) :
      */
     fun getSpeedController(): SpeedController? {
         return speedController
-    }
-
-    /**
-     * Obtém referência ao MenuSoundManager compartilhado Este manager é inicializado uma vez no app
-     * startup e compartilhado entre todos os fragments
-     */
-    fun getMenuSoundManager(): com.vinaooo.revenger.retromenu2.MenuSoundManager? {
-        return menuSoundManager
     }
 
     /**
@@ -771,46 +669,5 @@ class GameActivityViewModel(application: Application) :
     /** Desativa fast forward usando controller modular */
     fun disableFastForward() {
         retroView?.let { speedController?.disableFastForward(it.view) }
-    }
-
-    // ============================================================
-    // RETROMENU2 SUPPORT METHODS
-    // ============================================================
-
-    /** Pausa o emulador usando frameSpeed = 0 (RetroMenu2) */
-    fun pauseEmulator() {
-        retroView?.view?.frameSpeed = 0
-    }
-
-    /** Retoma o emulador usando frameSpeed salvo ou 1 (RetroMenu2) */
-    fun resumeEmulator() {
-        retroView?.view?.let { view ->
-            // Restaurar velocidade salva (pode ser 1 ou 2 do Settings)
-            val savedSpeed = speedController?.getCurrentSpeed() ?: 1
-            view.frameSpeed = savedSpeed
-        }
-    }
-
-    /**
-     * Limpa o keyLog do ControllerInput para evitar detecção de combos após fechar menu. CRÍTICO:
-     * Previne que SELECT+START reabre menu imediatamente após fechar.
-     */
-    fun clearInputKeyLog() {
-        controllerInput.clearKeyLog()
-    }
-
-    /** Reinicia o jogo usando reset() (RetroMenu2) */
-    fun resetGame() {
-        resetGameCentralized()
-    }
-
-    /** Salva o estado do jogo (RetroMenu2) */
-    fun saveGameState() {
-        saveStateCentralized()
-    }
-
-    /** Carrega o estado do jogo (RetroMenu2) */
-    fun loadGameState() {
-        loadStateCentralized()
     }
 }

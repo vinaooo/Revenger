@@ -7,11 +7,11 @@
     <string name="config_name">Não jogar</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="config_core">genesis_plus_gx</string>
+    <string name="config_core">smsplus</string>
     <!-- Snes = snes9x -->
     <!-- megadrive = genesis_plus_gx -->
     <!-- gb = gambatte -->
-    <!-- master = genesis_plus_gx -->
+    <!-- master = smsplus -->
     
     <!-- rom name, the same name the rom file in res/raw without extension -->
     <string name="config_rom">sth</string>
@@ -72,7 +72,4 @@
 
     <!-- Should we show pause overlay when START button is pressed alone? -->
     <bool name="config_pause_overlay">true</bool>
-
-    <!-- Use RetroMenu2 (new retro-style menu) instead of RetroMenu1 (fullscreen classic menu) -->
-    <bool name="config_use_retromenu2">true</bool>
 </resources>
