@@ -5,10 +5,9 @@
     android:layout_height="match_parent"
     android:clickable="true"
     android:focusable="true"
-    android:background="#CC000000"
+    android:background="#CC333333"
     android:fitsSystemWindows="false">
 
-    <!-- Fullscreen Container with 3 sections HORIZONTAL -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -40,7 +39,11 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"
                 android:letterSpacing="0.05"
-                android:fontFamily="@font/arcade_normal" />
+                android:fontFamily="@font/arcade_normal"
+                android:shadowColor="#000000"
+                android:shadowDx="4"
+                android:shadowDy="4"
+                android:shadowRadius="8" />
 
             <ScrollView
                 android:layout_width="match_parent"
@@ -74,19 +77,38 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
                             android:padding="8dp">
+                            <TextView
+                                android:id="@+id/selection_arrow_continue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=">"
+                                android:textSize="18sp"
+                                android:textColor="#FFFFFF"
+                                android:fontFamily="@font/arcade_normal"
+                                android:layout_marginStart="12dp"
+                                android:layout_marginEnd="8dp"
+                                android:visibility="gone"
+                                android:shadowColor="#000000"
+                                android:shadowDx="4"
+                                android:shadowDy="4"
+                                android:shadowRadius="8" />
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="12dp"
                                 android:orientation="vertical">
                                 <TextView
+                                    android:id="@+id/continue_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_continue"
                                     android:textSize="16sp"
                                     android:textColor="#FFFFFF"
-                                    android:fontFamily="@font/arcade_normal" />
+                                    android:fontFamily="@font/arcade_normal"
+                                    android:shadowColor="#000000"
+                                    android:shadowDx="4"
+                                    android:shadowDy="4"
+                                    android:shadowRadius="8" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -109,19 +131,38 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
                             android:padding="8dp">
+                            <TextView
+                                android:id="@+id/selection_arrow_reset"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=">"
+                                android:textSize="18sp"
+                                android:textColor="#FFFFFF"
+                                android:fontFamily="@font/arcade_normal"
+                                android:layout_marginStart="12dp"
+                                android:layout_marginEnd="8dp"
+                                android:visibility="gone"
+                                android:shadowColor="#000000"
+                                android:shadowDx="4"
+                                android:shadowDy="4"
+                                android:shadowRadius="8" />
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="12dp"
                                 android:orientation="vertical">
                                 <TextView
+                                    android:id="@+id/reset_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_reset"
                                     android:textSize="16sp"
                                     android:textColor="#FFFFFF"
-                                    android:fontFamily="@font/arcade_normal" />
+                                    android:fontFamily="@font/arcade_normal"
+                                    android:shadowColor="#000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="4" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -144,19 +185,38 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
                             android:padding="8dp">
+                            <TextView
+                                android:id="@+id/selection_arrow_save"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=">"
+                                android:textSize="18sp"
+                                android:textColor="#FFFFFF"
+                                android:fontFamily="@font/arcade_normal"
+                                android:layout_marginStart="12dp"
+                                android:layout_marginEnd="8dp"
+                                android:visibility="gone"
+                                android:shadowColor="#000000"
+                                android:shadowDx="4"
+                                android:shadowDy="4"
+                                android:shadowRadius="8" />
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="12dp"
                                 android:orientation="vertical">
                                 <TextView
+                                    android:id="@+id/save_state_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_save_state"
                                     android:textSize="16sp"
                                     android:textColor="#FFFFFF"
-                                    android:fontFamily="@font/arcade_normal" />
+                                    android:fontFamily="@font/arcade_normal"
+                                    android:shadowColor="#000000"
+                                    android:shadowDx="4"
+                                    android:shadowDy="4"
+                                    android:shadowRadius="8" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -179,19 +239,38 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
                             android:padding="8dp">
+                            <TextView
+                                android:id="@+id/selection_arrow_load"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=">"
+                                android:textSize="18sp"
+                                android:textColor="#FFFFFF"
+                                android:fontFamily="@font/arcade_normal"
+                                android:layout_marginStart="12dp"
+                                android:layout_marginEnd="8dp"
+                                android:visibility="gone"
+                                android:shadowColor="#000000"
+                                android:shadowDx="4"
+                                android:shadowDy="4"
+                                android:shadowRadius="8" />
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="12dp"
                                 android:orientation="vertical">
                                 <TextView
+                                    android:id="@+id/load_state_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_load_state"
                                     android:textSize="16sp"
                                     android:textColor="#FFFFFF"
-                                    android:fontFamily="@font/arcade_normal" />
+                                    android:fontFamily="@font/arcade_normal"
+                                    android:shadowColor="#000000"
+                                    android:shadowDx="4"
+                                    android:shadowDy="4"
+                                    android:shadowRadius="8" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -214,11 +293,25 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
                             android:padding="8dp">
+                            <TextView
+                                android:id="@+id/selection_arrow_audio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=">"
+                                android:textSize="18sp"
+                                android:textColor="#FFFFFF"
+                                android:fontFamily="@font/arcade_normal"
+                                android:layout_marginStart="12dp"
+                                android:layout_marginEnd="8dp"
+                                android:visibility="gone"
+                                android:shadowColor="#000000"
+                                android:shadowDx="4"
+                                android:shadowDy="4"
+                                android:shadowRadius="8" />
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="12dp"
                                 android:orientation="vertical">
                                 <TextView
                                     android:id="@+id/audio_toggle_title"
@@ -227,7 +320,11 @@
                                     android:text="@string/audio_on"
                                     android:textSize="16sp"
                                     android:textColor="#FFFFFF"
-                                    android:fontFamily="@font/arcade_normal" />
+                                    android:fontFamily="@font/arcade_normal"
+                                    android:shadowColor="#000000"
+                                    android:shadowDx="4"
+                                    android:shadowDy="4"
+                                    android:shadowRadius="8" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -250,11 +347,25 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
                             android:padding="8dp">
+                            <TextView
+                                android:id="@+id/selection_arrow_fast_forward"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=">"
+                                android:textSize="18sp"
+                                android:textColor="#FFFFFF"
+                                android:fontFamily="@font/arcade_normal"
+                                android:layout_marginStart="12dp"
+                                android:layout_marginEnd="8dp"
+                                android:visibility="gone"
+                                android:shadowColor="#000000"
+                                android:shadowDx="4"
+                                android:shadowDy="4"
+                                android:shadowRadius="8" />
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="12dp"
                                 android:orientation="vertical">
                                 <TextView
                                     android:id="@+id/fast_forward_title"
@@ -263,7 +374,11 @@
                                     android:text="@string/menu_fast_forward"
                                     android:textSize="16sp"
                                     android:textColor="#FFFFFF"
-                                    android:fontFamily="@font/arcade_normal" />
+                                    android:fontFamily="@font/arcade_normal"
+                                    android:shadowColor="#000000"
+                                    android:shadowDx="4"
+                                    android:shadowDy="4"
+                                    android:shadowRadius="8" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -286,19 +401,38 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
                             android:padding="8dp">
+                            <TextView
+                                android:id="@+id/selection_arrow_exit"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=">"
+                                android:textSize="18sp"
+                                android:textColor="#FFFFFF"
+                                android:fontFamily="@font/arcade_normal"
+                                android:layout_marginStart="12dp"
+                                android:layout_marginEnd="8dp"
+                                android:visibility="gone"
+                                android:shadowColor="#000000"
+                                android:shadowDx="4"
+                                android:shadowDy="4"
+                                android:shadowRadius="8" />
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="12dp"
                                 android:orientation="vertical">
                                 <TextView
+                                    android:id="@+id/exit_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_exit"
                                     android:textSize="16sp"
                                     android:textColor="#FFFFFF"
-                                    android:fontFamily="@font/arcade_normal" />
+                                    android:fontFamily="@font/arcade_normal"
+                                    android:shadowColor="#000000"
+                                    android:shadowDx="4"
+                                    android:shadowDy="4"
+                                    android:shadowRadius="8" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>

@@ -39,6 +39,22 @@ class RetroMenu3Fragment : Fragment() {
     private lateinit var audioToggleTitle: TextView
     private lateinit var fastForwardTitle: TextView
 
+    // Menu option titles for color control
+    private lateinit var continueTitle: TextView
+    private lateinit var resetTitle: TextView
+    private lateinit var saveStateTitle: TextView
+    private lateinit var loadStateTitle: TextView
+    private lateinit var exitTitle: TextView
+
+    // Selection arrows
+    private lateinit var selectionArrowContinue: TextView
+    private lateinit var selectionArrowReset: TextView
+    private lateinit var selectionArrowSave: TextView
+    private lateinit var selectionArrowLoad: TextView
+    private lateinit var selectionArrowAudio: TextView
+    private lateinit var selectionArrowFastForward: TextView
+    private lateinit var selectionArrowExit: TextView
+
     // Callback interface
     interface RetroMenu3Listener {
         fun onResetGame()
@@ -108,6 +124,22 @@ class RetroMenu3Fragment : Fragment() {
         // Dynamic content views (only views that exist in layout)
         audioToggleTitle = view.findViewById(R.id.audio_toggle_title)
         fastForwardTitle = view.findViewById(R.id.fast_forward_title)
+
+        // Initialize menu option titles
+        continueTitle = view.findViewById(R.id.continue_title)
+        resetTitle = view.findViewById(R.id.reset_title)
+        saveStateTitle = view.findViewById(R.id.save_state_title)
+        loadStateTitle = view.findViewById(R.id.load_state_title)
+        exitTitle = view.findViewById(R.id.exit_title)
+
+        // Initialize selection arrows
+        selectionArrowContinue = view.findViewById(R.id.selection_arrow_continue)
+        selectionArrowReset = view.findViewById(R.id.selection_arrow_reset)
+        selectionArrowSave = view.findViewById(R.id.selection_arrow_save)
+        selectionArrowLoad = view.findViewById(R.id.selection_arrow_load)
+        selectionArrowAudio = view.findViewById(R.id.selection_arrow_audio)
+        selectionArrowFastForward = view.findViewById(R.id.selection_arrow_fast_forward)
+        selectionArrowExit = view.findViewById(R.id.selection_arrow_exit)
 
         // Definir primeiro item como selecionado
         updateSelectionVisual()
@@ -227,21 +259,67 @@ class RetroMenu3Fragment : Fragment() {
 
     /** Atualizar visual da seleção */
     private fun updateSelectionVisual() {
-        menuItems.forEachIndexed { index, item ->
-            if (index == currentSelectedIndex) {
-                // Item selecionado - destaque visual apenas com background
-                item.strokeWidth = 0
-                item.strokeColor = android.graphics.Color.TRANSPARENT
-                item.setCardBackgroundColor(
-                        android.graphics.Color.parseColor("#40FFFFFF")
-                ) // Branco semi-transparente
-            } else {
-                // Item não selecionado - aparência normal sem bordas
-                item.strokeWidth = 0
-                item.strokeColor = android.graphics.Color.TRANSPARENT
-                item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
-            }
+        menuItems.forEach { item ->
+            // Removido: background color dos cards individuais
+            // Seleção agora indicada apenas por texto amarelo e setas
+            item.strokeWidth = 0
+            item.strokeColor = android.graphics.Color.TRANSPARENT
+            item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
         }
+
+        // Control text colors based on selection
+        continueTitle.setTextColor(
+                if (currentSelectedIndex == 0) android.graphics.Color.YELLOW
+                else android.graphics.Color.WHITE
+        )
+        resetTitle.setTextColor(
+                if (currentSelectedIndex == 1) android.graphics.Color.YELLOW
+                else android.graphics.Color.WHITE
+        )
+        saveStateTitle.setTextColor(
+                if (currentSelectedIndex == 2) android.graphics.Color.YELLOW
+                else android.graphics.Color.WHITE
+        )
+        loadStateTitle.setTextColor(
+                if (currentSelectedIndex == 3) android.graphics.Color.YELLOW
+                else android.graphics.Color.WHITE
+        )
+        audioToggleTitle.setTextColor(
+                if (currentSelectedIndex == 4) android.graphics.Color.YELLOW
+                else android.graphics.Color.WHITE
+        )
+        fastForwardTitle.setTextColor(
+                if (currentSelectedIndex == 5) android.graphics.Color.YELLOW
+                else android.graphics.Color.WHITE
+        )
+        exitTitle.setTextColor(
+                if (currentSelectedIndex == 6) android.graphics.Color.YELLOW
+                else android.graphics.Color.WHITE
+        )
+
+        // Control selection arrows colors and visibility
+        selectionArrowContinue.setTextColor(android.graphics.Color.YELLOW)
+        selectionArrowContinue.visibility =
+                if (currentSelectedIndex == 0) View.VISIBLE else View.GONE
+
+        selectionArrowReset.setTextColor(android.graphics.Color.YELLOW)
+        selectionArrowReset.visibility = if (currentSelectedIndex == 1) View.VISIBLE else View.GONE
+
+        selectionArrowSave.setTextColor(android.graphics.Color.YELLOW)
+        selectionArrowSave.visibility = if (currentSelectedIndex == 2) View.VISIBLE else View.GONE
+
+        selectionArrowLoad.setTextColor(android.graphics.Color.YELLOW)
+        selectionArrowLoad.visibility = if (currentSelectedIndex == 3) View.VISIBLE else View.GONE
+
+        selectionArrowAudio.setTextColor(android.graphics.Color.YELLOW)
+        selectionArrowAudio.visibility = if (currentSelectedIndex == 4) View.VISIBLE else View.GONE
+
+        selectionArrowFastForward.setTextColor(android.graphics.Color.YELLOW)
+        selectionArrowFastForward.visibility =
+                if (currentSelectedIndex == 5) View.VISIBLE else View.GONE
+
+        selectionArrowExit.setTextColor(android.graphics.Color.YELLOW)
+        selectionArrowExit.visibility = if (currentSelectedIndex == 6) View.VISIBLE else View.GONE
     }
 
     /** Public method to dismiss the menu from outside */
