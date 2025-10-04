@@ -33,7 +33,7 @@
                 android:id="@+id/menu_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Retro Menu 3"
+                android:text="Game Menu"
                 android:textSize="24sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
