@@ -32,8 +32,11 @@ class RetroMenu3Fragment : Fragment() {
     private lateinit var fastForwardMenu: MaterialCardView
     private lateinit var exitMenu: MaterialCardView
 
+    // Lista ordenada dos itens do menu para navegação
+    private lateinit var menuItems: List<MaterialCardView>
+    private var currentSelectedIndex = 0 // Começar com "Continue"
+
     // Dynamic content views (only views that exist in layout)
-    private lateinit var loadStateStatus: TextView
     private lateinit var audioToggleTitle: TextView
     private lateinit var audioSwitch: MaterialSwitch
     private lateinit var fastForwardTitle: TextView
@@ -93,12 +96,26 @@ class RetroMenu3Fragment : Fragment() {
         fastForwardMenu = view.findViewById(R.id.menu_fast_forward)
         exitMenu = view.findViewById(R.id.menu_exit)
 
+        // Inicializar lista ordenada dos itens do menu
+        menuItems =
+                listOf(
+                        continueMenu,
+                        resetMenu,
+                        saveStateMenu,
+                        loadStateMenu,
+                        audioToggleMenu,
+                        fastForwardMenu,
+                        exitMenu
+                )
+
         // Dynamic content views (only views that exist in layout)
-        loadStateStatus = view.findViewById(R.id.load_state_status)
         audioToggleTitle = view.findViewById(R.id.audio_toggle_title)
         audioSwitch = view.findViewById(R.id.audio_switch)
         fastForwardTitle = view.findViewById(R.id.fast_forward_title)
         fastForwardSwitch = view.findViewById(R.id.fast_forward_switch)
+
+        // Definir primeiro item como selecionado
+        updateSelectionVisual()
     }
 
     private fun setupClickListeners() {
@@ -143,11 +160,6 @@ class RetroMenu3Fragment : Fragment() {
         // Update load state appearance and enable/disable state
         loadStateMenu.isEnabled = hasSaveState
         loadStateMenu.alpha = if (hasSaveState) 1.0f else 0.5f
-        loadStateStatus.text =
-                getString(
-                        if (hasSaveState) R.string.save_state_available
-                        else R.string.save_state_not_available
-                )
 
         // Update audio toggle
         audioSwitch.isChecked = isAudioEnabled
@@ -193,6 +205,50 @@ class RetroMenu3Fragment : Fragment() {
 
     private fun dismissMenu() {
         animateMenuOut { parentFragmentManager.beginTransaction().remove(this).commit() }
+    }
+
+    /** Navegar para cima no menu */
+    fun navigateUp() {
+        currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.size) % menuItems.size
+        updateSelectionVisual()
+    }
+
+    /** Navegar para baixo no menu */
+    fun navigateDown() {
+        currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.size
+        updateSelectionVisual()
+    }
+
+    /** Confirmar seleção atual */
+    fun confirmSelection() {
+        when (currentSelectedIndex) {
+            0 -> continueMenu.performClick() // Continue
+            1 -> resetMenu.performClick() // Reset
+            2 -> saveStateMenu.performClick() // Save State
+            3 -> loadStateMenu.performClick() // Load State
+            4 -> audioToggleMenu.performClick() // Audio Toggle
+            5 -> fastForwardMenu.performClick() // Fast Forward
+            6 -> exitMenu.performClick() // Exit
+        }
+    }
+
+    /** Atualizar visual da seleção */
+    private fun updateSelectionVisual() {
+        menuItems.forEachIndexed { index, item ->
+            if (index == currentSelectedIndex) {
+                // Item selecionado - destaque visual apenas com background
+                item.strokeWidth = 0
+                item.strokeColor = android.graphics.Color.TRANSPARENT
+                item.setCardBackgroundColor(
+                        android.graphics.Color.parseColor("#40FFFFFF")
+                ) // Branco semi-transparente
+            } else {
+                // Item não selecionado - aparência normal sem bordas
+                item.strokeWidth = 0
+                item.strokeColor = android.graphics.Color.TRANSPARENT
+                item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+            }
+        }
     }
 
     /** Public method to dismiss the menu from outside */

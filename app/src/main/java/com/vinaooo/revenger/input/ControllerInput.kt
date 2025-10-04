@@ -83,6 +83,14 @@ class ControllerInput(private val context: Context) {
     /** Function to check if START button alone should trigger callback */
     var shouldHandleStartButton: () -> Boolean = { false }
 
+    /** Callbacks para navegação no RetroMenu3 */
+    var menuNavigateUpCallback: () -> Unit = {}
+    var menuNavigateDownCallback: () -> Unit = {}
+    var menuConfirmCallback: () -> Unit = {}
+
+    /** Function to check if devemos interceptar DPAD para menu */
+    var shouldInterceptDpadForMenu: () -> Boolean = { false }
+
     /**
      * Check for single-trigger directional input (UP/DOWN only) Returns the keycode if there's a
      * NEW press (transition from false to true) Returns null if no new input or input is being held
@@ -237,6 +245,15 @@ class ControllerInput(private val context: Context) {
             return true // Consumir o evento, não enviar ao core
         }
 
+        // INTERCEPTAR BOTÃO A para confirmação quando menu estiver aberto
+        if (keyCode == KeyEvent.KEYCODE_BUTTON_A && shouldInterceptDpadForMenu()) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                android.util.Log.d("ControllerInput", "BUTTON_A intercepted for menu confirmation")
+                menuConfirmCallback()
+            }
+            return true // Consumir o evento, não enviar ao core
+        }
+
         // CRITICAL FIX: Block ACTION_UP for keys that were pressed when menu opened
         // This prevents partial signals (ACTION_UP without ACTION_DOWN) from reaching the core
         if (event.action == KeyEvent.ACTION_UP && keysToBlockAfterMenuClose.contains(keyCode)) {
@@ -313,6 +330,42 @@ class ControllerInput(private val context: Context) {
     fun processMotionEvent(event: MotionEvent, retroView: RetroView): Boolean? {
         /* We're not ready yet! */
         if (retroView.frameRendered.value == false) return null
+
+        // INTERCEPTAR DPAD para navegação no menu quando RetroMenu3 estiver aberto
+        if (shouldInterceptDpadForMenu()) {
+            val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+
+            // Detectar mudanças no DPAD vertical
+            // Valores: -1 = UP, 0 = CENTER, 1 = DOWN
+            when {
+                hatY == -1.0f && dpadState.up == false -> {
+                    // DPAD UP pressionado (transição de false para true)
+                    dpadState.up = true
+                    android.util.Log.d("ControllerInput", "DPAD UP detected for menu navigation")
+                    menuNavigateUpCallback()
+                    return true // Consumir evento
+                }
+                hatY == 1.0f && dpadState.down == false -> {
+                    // DPAD DOWN pressionado (transição de false para true)
+                    dpadState.down = true
+                    android.util.Log.d("ControllerInput", "DPAD DOWN detected for menu navigation")
+                    menuNavigateDownCallback()
+                    return true // Consumir evento
+                }
+                hatY == 0.0f -> {
+                    // DPAD liberado (CENTER)
+                    if (dpadState.up) {
+                        dpadState.up = false
+                        android.util.Log.d("ControllerInput", "DPAD UP released")
+                    }
+                    if (dpadState.down) {
+                        dpadState.down = false
+                        android.util.Log.d("ControllerInput", "DPAD DOWN released")
+                    }
+                    return true // Consumir evento
+                }
+            }
+        }
 
         // Send motion events to game
         val port = getPort(event)

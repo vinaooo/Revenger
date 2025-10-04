@@ -75,6 +75,14 @@ class GameActivityViewModel(application: Application) :
         // Configure START button callback to close RetroMenu3
         controllerInput.startButtonCallback = { dismissRetroMenu3() }
 
+        // Configurar callbacks de navegação para RetroMenu3
+        controllerInput.menuNavigateUpCallback = { retroMenu3Fragment?.navigateUp() }
+        controllerInput.menuNavigateDownCallback = { retroMenu3Fragment?.navigateDown() }
+        controllerInput.menuConfirmCallback = { retroMenu3Fragment?.confirmSelection() }
+
+        // Controlar quando interceptar DPAD para menu
+        controllerInput.shouldInterceptDpadForMenu = { isRetroMenu3Open() }
+
         // Controlar quando START sozinho deve funcionar (apenas quando RetroMenu3 está REALMENTE
         // aberto)
         controllerInput.shouldHandleStartButton = { isRetroMenu3Open() }
