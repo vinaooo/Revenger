@@ -39,7 +39,8 @@
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"
-                android:letterSpacing="0.05" />
+                android:letterSpacing="0.05"
+                android:fontFamily="@font/arcade_normal" />
 
             <ScrollView
                 android:layout_width="match_parent"
@@ -84,7 +85,8 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_continue"
                                     android:textSize="16sp"
-                                    android:textColor="#FFFFFF" />
+                                    android:textColor="#FFFFFF"
+                                    android:fontFamily="@font/arcade_normal" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -118,7 +120,8 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_reset"
                                     android:textSize="16sp"
-                                    android:textColor="#FFFFFF" />
+                                    android:textColor="#FFFFFF"
+                                    android:fontFamily="@font/arcade_normal" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -152,7 +155,8 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_save_state"
                                     android:textSize="16sp"
-                                    android:textColor="#FFFFFF" />
+                                    android:textColor="#FFFFFF"
+                                    android:fontFamily="@font/arcade_normal" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -186,7 +190,8 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_load_state"
                                     android:textSize="16sp"
-                                    android:textColor="#FFFFFF" />
+                                    android:textColor="#FFFFFF"
+                                    android:fontFamily="@font/arcade_normal" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -221,7 +226,8 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/audio_on"
                                     android:textSize="16sp"
-                                    android:textColor="#FFFFFF" />
+                                    android:textColor="#FFFFFF"
+                                    android:fontFamily="@font/arcade_normal" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -256,7 +262,8 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_fast_forward"
                                     android:textSize="16sp"
-                                    android:textColor="#FFFFFF" />
+                                    android:textColor="#FFFFFF"
+                                    android:fontFamily="@font/arcade_normal" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -290,7 +297,8 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_exit"
                                     android:textSize="16sp"
-                                    android:textColor="#FFFFFF" />
+                                    android:textColor="#FFFFFF"
+                                    android:fontFamily="@font/arcade_normal" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
