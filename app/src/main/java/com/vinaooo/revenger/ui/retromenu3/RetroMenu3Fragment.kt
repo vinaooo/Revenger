@@ -9,7 +9,6 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
-import com.google.android.material.materialswitch.MaterialSwitch
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -38,9 +37,7 @@ class RetroMenu3Fragment : Fragment() {
 
     // Dynamic content views (only views that exist in layout)
     private lateinit var audioToggleTitle: TextView
-    private lateinit var audioSwitch: MaterialSwitch
     private lateinit var fastForwardTitle: TextView
-    private lateinit var fastForwardSwitch: MaterialSwitch
 
     // Callback interface
     interface RetroMenu3Listener {
@@ -110,9 +107,7 @@ class RetroMenu3Fragment : Fragment() {
 
         // Dynamic content views (only views that exist in layout)
         audioToggleTitle = view.findViewById(R.id.audio_toggle_title)
-        audioSwitch = view.findViewById(R.id.audio_switch)
         fastForwardTitle = view.findViewById(R.id.fast_forward_title)
-        fastForwardSwitch = view.findViewById(R.id.fast_forward_switch)
 
         // Definir primeiro item como selecionado
         updateSelectionVisual()
@@ -162,12 +157,10 @@ class RetroMenu3Fragment : Fragment() {
         loadStateMenu.alpha = if (hasSaveState) 1.0f else 0.5f
 
         // Update audio toggle
-        audioSwitch.isChecked = isAudioEnabled
         audioToggleTitle.text =
                 getString(if (isAudioEnabled) R.string.audio_on else R.string.audio_off)
 
         // Update fast forward toggle
-        fastForwardSwitch.isChecked = isFastForwardEnabled
         fastForwardTitle.text =
                 getString(
                         if (isFastForwardEnabled) R.string.fast_forward_active

@@ -30,12 +30,12 @@
     <string name="menu_handle_description">Drag handle to resize menu</string>
 
     <!-- Status indicators -->
-    <string name="audio_on">Audio On</string>
-    <string name="audio_off">Audio Off</string>
+    <string name="audio_on">Audio: On</string>
+    <string name="audio_off">Audio: Off</string>
     <string name="save_state_available">Save available</string>
     <string name="save_state_not_available">No save available</string>
-    <string name="fast_forward_active">Fast forward active</string>
-    <string name="fast_forward_inactive">Normal speed</string>
+    <string name="fast_forward_active">Game Speed: Fast</string>
+    <string name="fast_forward_inactive">Game Speed: Normal</string>
 
     <!-- Exit game confirmation dialog -->
     <string name="exit_game_title">Exit Game</string>

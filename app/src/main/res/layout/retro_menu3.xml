@@ -27,8 +27,7 @@
             android:layout_height="match_parent"
             android:layout_weight="0.50"
             android:orientation="vertical"
-            android:gravity="center"
-            android:paddingVertical="48dp">
+            android:paddingVertical="16dp">
 
             <!-- Menu Title -->
             <TextView
@@ -39,7 +38,7 @@
                 android:textSize="24sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="12dp"
                 android:letterSpacing="0.05" />
 
             <ScrollView
@@ -49,12 +48,12 @@
                 android:fillViewport="false"
                 android:overScrollMode="never"
                 android:scrollbars="none"
-                android:fadeScrollbars="false">
+                android:fadeScrollbars="false"
+                android:clipToPadding="false">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingBottom="8dp">
+                    android:orientation="vertical">
 
                     <!-- Continue Game -->
                     <com.google.android.material.card.MaterialCardView
@@ -224,13 +223,6 @@
                                     android:textSize="16sp"
                                     android:textColor="#FFFFFF" />
                             </LinearLayout>
-                            <com.google.android.material.materialswitch.MaterialSwitch
-                                android:id="@+id/audio_switch"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:clickable="false"
-                                android:focusable="false" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
@@ -266,13 +258,6 @@
                                     android:textSize="16sp"
                                     android:textColor="#FFFFFF" />
                             </LinearLayout>
-                            <com.google.android.material.materialswitch.MaterialSwitch
-                                android:id="@+id/fast_forward_switch"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:clickable="false"
-                                android:focusable="false" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
@@ -309,6 +294,11 @@
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Extra space for last item -->
+                    <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="16dp" />
 
                 </LinearLayout>
             </ScrollView>
