@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -25,7 +24,6 @@ class RetroMenu3Fragment : Fragment() {
 
     // Menu item views
     private lateinit var menuContainer: LinearLayout
-    private lateinit var menuHeader: LinearLayout
     private lateinit var continueMenu: MaterialCardView
     private lateinit var resetMenu: MaterialCardView
     private lateinit var saveStateMenu: MaterialCardView
@@ -34,13 +32,10 @@ class RetroMenu3Fragment : Fragment() {
     private lateinit var fastForwardMenu: MaterialCardView
     private lateinit var exitMenu: MaterialCardView
 
-    // Dynamic content views
-    private lateinit var loadStateIcon: ImageView
+    // Dynamic content views (only views that exist in layout)
     private lateinit var loadStateStatus: TextView
-    private lateinit var audioToggleIcon: ImageView
     private lateinit var audioToggleTitle: TextView
     private lateinit var audioSwitch: MaterialSwitch
-    private lateinit var fastForwardIcon: ImageView
     private lateinit var fastForwardTitle: TextView
     private lateinit var fastForwardSwitch: MaterialSwitch
 
@@ -81,17 +76,13 @@ class RetroMenu3Fragment : Fragment() {
         updateMenuState()
         animateMenuIn()
 
-        // Dismiss on background tap - covers entire screen
-        view.setOnClickListener { dismissMenuPublic() }
-
-        // Prevent menu container clicks from dismissing
-        menuContainer.setOnClickListener { /* Do nothing */}
+        // REMOVIDO: Não fecha mais ao tocar nas laterais
+        // Menu só fecha quando pressionar START novamente ou selecionar Continue
     }
 
     private fun setupViews(view: View) {
         // Main container
         menuContainer = view.findViewById(R.id.menu_container)
-        menuHeader = view.findViewById<LinearLayout>(R.id.menu_header)
 
         // Menu items
         continueMenu = view.findViewById(R.id.menu_continue)
@@ -102,19 +93,12 @@ class RetroMenu3Fragment : Fragment() {
         fastForwardMenu = view.findViewById(R.id.menu_fast_forward)
         exitMenu = view.findViewById(R.id.menu_exit)
 
-        // Dynamic content views
-        loadStateIcon = view.findViewById(R.id.load_state_icon)
+        // Dynamic content views (only views that exist in layout)
         loadStateStatus = view.findViewById(R.id.load_state_status)
-        audioToggleIcon = view.findViewById(R.id.audio_toggle_icon)
         audioToggleTitle = view.findViewById(R.id.audio_toggle_title)
         audioSwitch = view.findViewById(R.id.audio_switch)
-        fastForwardIcon = view.findViewById(R.id.fast_forward_icon)
         fastForwardTitle = view.findViewById(R.id.fast_forward_title)
         fastForwardSwitch = view.findViewById(R.id.fast_forward_switch)
-
-        // MUDANÇA: Alterar título do menu para "Retro Menu 3"
-        val menuTitle = view.findViewById<TextView>(R.id.menu_title)
-        menuTitle?.text = "Retro Menu 3"
     }
 
     private fun setupClickListeners() {
@@ -159,9 +143,6 @@ class RetroMenu3Fragment : Fragment() {
         // Update load state appearance and enable/disable state
         loadStateMenu.isEnabled = hasSaveState
         loadStateMenu.alpha = if (hasSaveState) 1.0f else 0.5f
-        loadStateIcon.setImageResource(
-                if (hasSaveState) R.drawable.ic_load_24 else R.drawable.ic_load_24
-        )
         loadStateStatus.text =
                 getString(
                         if (hasSaveState) R.string.save_state_available
@@ -170,18 +151,11 @@ class RetroMenu3Fragment : Fragment() {
 
         // Update audio toggle
         audioSwitch.isChecked = isAudioEnabled
-        audioToggleIcon.setImageResource(
-                if (isAudioEnabled) R.drawable.ic_volume_up_24 else R.drawable.ic_volume_off_24
-        )
         audioToggleTitle.text =
                 getString(if (isAudioEnabled) R.string.audio_on else R.string.audio_off)
 
         // Update fast forward toggle
         fastForwardSwitch.isChecked = isFastForwardEnabled
-        fastForwardIcon.setImageResource(
-                if (isFastForwardEnabled) R.drawable.ic_fast_forward_24
-                else R.drawable.ic_fast_forward_24
-        )
         fastForwardTitle.text =
                 getString(
                         if (isFastForwardEnabled) R.string.fast_forward_active
