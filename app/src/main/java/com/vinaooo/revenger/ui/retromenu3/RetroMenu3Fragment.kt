@@ -302,28 +302,95 @@ class RetroMenu3Fragment : Fragment() {
         )
 
         // Control selection arrows colors and visibility
-        selectionArrowContinue.setTextColor(android.graphics.Color.YELLOW)
-        selectionArrowContinue.visibility =
-                if (currentSelectedIndex == 0) View.VISIBLE else View.GONE
+        // CORREÇÃO: Item selecionado mostra seta sem margem (colada ao texto)
+        val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
-        selectionArrowReset.setTextColor(android.graphics.Color.YELLOW)
-        selectionArrowReset.visibility = if (currentSelectedIndex == 1) View.VISIBLE else View.GONE
+        // Continue
+        if (currentSelectedIndex == 0) {
+            selectionArrowContinue.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowContinue.visibility = View.VISIBLE
+            (selectionArrowContinue.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0 // Sem espaço antes da seta
+                marginEnd = arrowMarginEnd
+            }
+        } else {
+            selectionArrowContinue.visibility = View.GONE
+        }
 
-        selectionArrowSave.setTextColor(android.graphics.Color.YELLOW)
-        selectionArrowSave.visibility = if (currentSelectedIndex == 2) View.VISIBLE else View.GONE
+        // Reset
+        if (currentSelectedIndex == 1) {
+            selectionArrowReset.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowReset.visibility = View.VISIBLE
+            (selectionArrowReset.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0 // Sem espaço antes da seta
+                marginEnd = arrowMarginEnd
+            }
+        } else {
+            selectionArrowReset.visibility = View.GONE
+        }
 
-        selectionArrowLoad.setTextColor(android.graphics.Color.YELLOW)
-        selectionArrowLoad.visibility = if (currentSelectedIndex == 3) View.VISIBLE else View.GONE
+        // Save State
+        if (currentSelectedIndex == 2) {
+            selectionArrowSave.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowSave.visibility = View.VISIBLE
+            (selectionArrowSave.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0 // Sem espaço antes da seta
+                marginEnd = arrowMarginEnd
+            }
+        } else {
+            selectionArrowSave.visibility = View.GONE
+        }
 
-        selectionArrowAudio.setTextColor(android.graphics.Color.YELLOW)
-        selectionArrowAudio.visibility = if (currentSelectedIndex == 4) View.VISIBLE else View.GONE
+        // Load State
+        if (currentSelectedIndex == 3) {
+            selectionArrowLoad.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowLoad.visibility = View.VISIBLE
+            (selectionArrowLoad.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0 // Sem espaço antes da seta
+                marginEnd = arrowMarginEnd
+            }
+        } else {
+            selectionArrowLoad.visibility = View.GONE
+        }
 
-        selectionArrowFastForward.setTextColor(android.graphics.Color.YELLOW)
-        selectionArrowFastForward.visibility =
-                if (currentSelectedIndex == 5) View.VISIBLE else View.GONE
+        // Audio Toggle
+        if (currentSelectedIndex == 4) {
+            selectionArrowAudio.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowAudio.visibility = View.VISIBLE
+            (selectionArrowAudio.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0 // Sem espaço antes da seta
+                marginEnd = arrowMarginEnd
+            }
+        } else {
+            selectionArrowAudio.visibility = View.GONE
+        }
 
-        selectionArrowExit.setTextColor(android.graphics.Color.YELLOW)
-        selectionArrowExit.visibility = if (currentSelectedIndex == 6) View.VISIBLE else View.GONE
+        // Fast Forward
+        if (currentSelectedIndex == 5) {
+            selectionArrowFastForward.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowFastForward.visibility = View.VISIBLE
+            (selectionArrowFastForward.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0 // Sem espaço antes da seta
+                marginEnd = arrowMarginEnd
+            }
+        } else {
+            selectionArrowFastForward.visibility = View.GONE
+        }
+
+        // Exit
+        if (currentSelectedIndex == 6) {
+            selectionArrowExit.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowExit.visibility = View.VISIBLE
+            (selectionArrowExit.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0 // Sem espaço antes da seta
+                marginEnd = arrowMarginEnd
+            }
+        } else {
+            selectionArrowExit.visibility = View.GONE
+        }
+
+        // Forçar atualização do layout
+        menuContainer.requestLayout()
     }
 
     /** Public method to dismiss the menu from outside */
