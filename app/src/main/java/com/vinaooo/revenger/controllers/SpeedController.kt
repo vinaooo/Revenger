@@ -52,11 +52,19 @@ class SpeedController(
     }
 
     /**
-     * Desativa o fast forward (velocidade 1x)
-     * @param retroView RetroView onde aplicar a mudança
+     * Pausa o jogo (frameSpeed = 0)
+     * @param retroView RetroView onde aplicar a pausa
      */
-    fun disableFastForward(retroView: GLRetroView) {
-        setSpeed(retroView, 1)
+    fun pause(retroView: GLRetroView) {
+        retroView.frameSpeed = 0
+    }
+
+    /**
+     * Despausa o jogo (retorna à velocidade normal)
+     * @param retroView RetroView onde remover a pausa
+     */
+    fun resume(retroView: GLRetroView) {
+        retroView.frameSpeed = 1
     }
 
     /**

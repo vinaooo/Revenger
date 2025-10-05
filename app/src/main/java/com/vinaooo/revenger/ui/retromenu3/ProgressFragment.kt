@@ -95,6 +95,11 @@ class ProgressFragment : Fragment() {
         selectionArrowLoadState = view.findViewById(R.id.selection_arrow_load_state)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
+        // Check if save state exists and disable Load State if not available
+        val hasSaveState = viewModel.hasSaveState()
+        loadState.isEnabled = hasSaveState
+        loadState.alpha = if (hasSaveState) 1.0f else 0.5f
+
         // Definir primeiro item como selecionado
         updateSelectionVisual()
     }
@@ -102,13 +107,27 @@ class ProgressFragment : Fragment() {
     private fun setupClickListeners() {
 
         saveState.setOnClickListener {
-            // Save State - Use centralized implementation
-            viewModel.saveStateCentralized { /* No dismiss needed - stay in submenu */}
+            // Save State - First close menus, then set correct frameSpeed, then save
+            // Close menus first
+            viewModel.dismissAllMenus()
+
+            // A) Set frameSpeed to correct value (1 or 2) from Game Speed sharedPreference
+            viewModel.restoreGameSpeedFromPreferences()
+
+            // B) Take existing actions to save the state
+            viewModel.saveStateCentralized { /* Menus already closed */}
         }
 
         loadState.setOnClickListener {
-            // Load State - Use centralized implementation
-            viewModel.loadStateCentralized { /* No dismiss needed - stay in submenu */}
+            // Load State - First close menus, then set correct frameSpeed, then load
+            // A) Close all menus first
+            viewModel.dismissAllMenus()
+
+            // B) Set frameSpeed to correct value (1 or 2) from Game Speed sharedPreference
+            viewModel.restoreGameSpeedFromPreferences()
+
+            // C) Load the saved game state
+            viewModel.loadStateCentralized { /* Menus already closed */}
         }
 
         backProgress.setOnClickListener {
@@ -125,13 +144,17 @@ class ProgressFragment : Fragment() {
 
     /** Navegar para cima no menu */
     fun navigateUp() {
-        currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.size) % menuItems.size
+        do {
+            currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.size) % menuItems.size
+        } while (currentSelectedIndex == 1 && !loadState.isEnabled)
         updateSelectionVisual()
     }
 
     /** Navegar para baixo no menu */
     fun navigateDown() {
-        currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.size
+        do {
+            currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.size
+        } while (currentSelectedIndex == 1 && !loadState.isEnabled)
         updateSelectionVisual()
     }
 
@@ -139,7 +162,7 @@ class ProgressFragment : Fragment() {
     fun confirmSelection() {
         when (currentSelectedIndex) {
             0 -> saveState.performClick() // Save State
-            1 -> loadState.performClick() // Load State
+            1 -> if (loadState.isEnabled) loadState.performClick() // Load State (only if enabled)
             2 -> backProgress.performClick() // Back
         }
     }
@@ -160,7 +183,8 @@ class ProgressFragment : Fragment() {
                 else android.graphics.Color.WHITE
         )
         loadStateTitle.setTextColor(
-                if (currentSelectedIndex == 1) android.graphics.Color.YELLOW
+                if (currentSelectedIndex == 1 && loadState.isEnabled) android.graphics.Color.YELLOW
+                else if (!loadState.isEnabled) android.graphics.Color.GRAY
                 else android.graphics.Color.WHITE
         )
         backTitle.setTextColor(

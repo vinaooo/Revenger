@@ -101,7 +101,14 @@ class ExitFragment : Fragment() {
 
     private fun setupClickListeners() {
         saveAndExit.setOnClickListener {
-            // Save and Exit - Save state and then exit game
+            // Save and Exit - Close menu, restore frameSpeed, then save and exit
+            // A) Close menu first
+            viewModel.dismissAllMenus()
+
+            // B) Restore frameSpeed to correct value from sharedPreferences
+            viewModel.restoreGameSpeedFromPreferences()
+
+            // C) Apply existing functionality (save state and exit)
             viewModel.saveStateCentralized {
                 // After saving, exit the game completely
                 android.os.Process.killProcess(android.os.Process.myPid())
@@ -109,7 +116,14 @@ class ExitFragment : Fragment() {
         }
 
         exitWithoutSave.setOnClickListener {
-            // Exit without Save - Exit game immediately without saving
+            // Exit without Save - Close menu, restore frameSpeed, then exit without saving
+            // A) Close menu first
+            viewModel.dismissAllMenus()
+
+            // B) Restore frameSpeed to correct value from sharedPreferences
+            viewModel.restoreGameSpeedFromPreferences()
+
+            // C) Apply existing functionality (exit without saving)
             android.os.Process.killProcess(android.os.Process.myPid())
         }
 

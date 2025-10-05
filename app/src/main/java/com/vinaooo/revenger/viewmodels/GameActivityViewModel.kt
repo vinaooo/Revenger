@@ -123,7 +123,12 @@ class GameActivityViewModel(application: Application) :
                 isProgressActive -> dismissProgress()
                 isExitActive -> dismissExit()
                 isSettingsMenuActive -> dismissSettingsMenu()
-                isRetroMenu3Open() -> dismissRetroMenu3()
+                isRetroMenu3Open() -> {
+                    dismissRetroMenu3()
+                    // Only restore game speed when closing the main menu (RetroMenu3), not when
+                    // going back from submenus
+                    restoreGameSpeedFromPreferences()
+                }
             }
         }
 
@@ -215,6 +220,9 @@ class GameActivityViewModel(application: Application) :
             controllerInput.captureKeysOnMenuOpen()
 
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
+
+            // PAUSE the game when menu opens
+            retroView?.let { speedController?.pause(it.view) }
 
             // Show RetroMenu3
             retroMenu3Fragment?.let { menu ->
@@ -462,10 +470,34 @@ class GameActivityViewModel(application: Application) :
             dismissRetroMenu3()
         }
 
+        // Restore game speed from sharedpreferences when exiting menu with Start
+        restoreGameSpeedFromPreferences()
+
         // Reset flag after all menus are dismissed
         isDismissingAllMenus = false
 
         android.util.Log.d("GameActivityViewModel", "dismissAllMenus: Cascade dismissal completed")
+    }
+
+    /** Restore game speed from sharedpreferences when exiting menu with Start */
+    fun restoreGameSpeedFromPreferences() {
+        retroView?.let { retroView ->
+            // Get saved game speed from sharedpreferences
+            val savedSpeed =
+                    sharedPreferences?.getInt(
+                            getApplication<Application>().getString(R.string.pref_frame_speed),
+                            1
+                    )
+                            ?: 1
+
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "restoreGameSpeedFromPreferences: Setting frameSpeed to $savedSpeed"
+            )
+
+            // Apply the saved speed (1 for Normal, 2+ for Fast)
+            retroView.view.frameSpeed = savedSpeed
+        }
     }
 
     /** Register the SettingsMenuFragment when it's created */
@@ -895,6 +927,6 @@ class GameActivityViewModel(application: Application) :
 
     /** Desativa fast forward usando controller modular */
     fun disableFastForward() {
-        retroView?.let { speedController?.disableFastForward(it.view) }
+        retroView?.let { speedController?.setSpeed(it.view, 1) }
     }
 }

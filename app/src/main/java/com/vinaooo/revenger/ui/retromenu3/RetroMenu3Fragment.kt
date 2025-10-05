@@ -135,17 +135,34 @@ class RetroMenu3Fragment : Fragment() {
 
     private fun setupClickListeners() {
         continueMenu.setOnClickListener {
-            // Fecha o menu E limpa os estados do ControllerInput (incluindo comboAlreadyTriggered)
+            // Continue - Close menu, set correct frameSpeed, then continue game
+            // A) Close menu first
             animateMenuOut {
                 dismissMenu()
                 // Limpa keyLog e reseta comboAlreadyTriggered após fechar
                 viewModel.clearControllerInputState()
             }
+
+            // B) Set frameSpeed to correct value from Game Speed sharedPreference
+            viewModel.restoreGameSpeedFromPreferences()
+
+            // C) Continue game (no additional function needed - just close menu and restore speed)
         }
 
         resetMenu.setOnClickListener {
-            // Use centralized implementation
-            viewModel.resetGameCentralized { animateMenuOut { dismissMenu() } }
+            // Reset - First close menu, then set correct frameSpeed, then reset game
+            // A) Close menu first
+            animateMenuOut {
+                dismissMenu()
+                // Limpa keyLog e reseta comboAlreadyTriggered após fechar
+                viewModel.clearControllerInputState()
+            }
+
+            // B) Set frameSpeed to correct value (1 or 2) from Game Speed sharedPreference
+            viewModel.restoreGameSpeedFromPreferences()
+
+            // C) Apply reset function
+            viewModel.resetGameCentralized()
         }
 
         progressMenu.setOnClickListener {

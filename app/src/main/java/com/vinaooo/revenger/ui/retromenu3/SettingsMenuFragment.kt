@@ -115,14 +115,18 @@ class SettingsMenuFragment : Fragment() {
         }
 
         gameSpeedSettings.setOnClickListener {
-            // Toggle fast forward
+            // Game Speed - First close all menus, then apply the functionality
+            // A) Close all menus first
+            viewModel.dismissAllMenus()
+
+            // B) Apply existing functionality (toggle fast forward)
             val currentFastForwardState = viewModel.getFastForwardState()
             if (currentFastForwardState) {
                 viewModel.disableFastForward()
             } else {
                 viewModel.enableFastForward()
             }
-            updateMenuState()
+            // Note: No need to call updateMenuState() since menus are being dismissed
         }
 
         backSettings.setOnClickListener {
