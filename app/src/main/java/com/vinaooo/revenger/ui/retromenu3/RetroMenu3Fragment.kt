@@ -13,8 +13,20 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * RetroMenu3 Fragment - Cópia do ModernMenu Ativado pelo combo SELECT+START Menu fullscreen overlay
- * com Material Design 3
+ * RetroMenu3 Fragment - Cópia do ModernMenu Ativado pelo combo // Adicionar listener para detectar
+ * quando o back stack muda (submenu é removido) parentFragmentManager.addOnBackStackChangedListener
+ * { android.util.Log.d( "RetroMenu3Fragment", "BackStack changed - backStackCount =
+ * ${parentFragmentManager.backStackEntryCount}" )
+ *
+ * // Se o back stack está vazio, significa que o submenu foi removido if
+ * (parentFragmentManager.backStackEntryCount == 0) { // Only show main menu if we're not dismissing
+ * all menus at once if (viewModel.isDismissingAllMenus()) {
+ * android.util.Log.d("RetroMenu3Fragment", "BackStack empty - NOT showing main menu (dismissing all
+ * menus)") } else { android.util.Log.d("RetroMenu3Fragment", "BackStack empty - showing main menu")
+ * // Mostrar o menu principal novamente showMainMenu() } } }
+ *
+ * parentFragmentManager .beginTransaction() .add(android.R.id.content, submenu2Fragment,
+ * "ExitFragment")fullscreen overlay com Material Design 3
  */
 class RetroMenu3Fragment : Fragment() {
 
@@ -25,38 +37,27 @@ class RetroMenu3Fragment : Fragment() {
     private lateinit var menuContainer: LinearLayout
     private lateinit var continueMenu: MaterialCardView
     private lateinit var resetMenu: MaterialCardView
-    private lateinit var saveStateMenu: MaterialCardView
-    private lateinit var loadStateMenu: MaterialCardView
+    private lateinit var progressMenu: MaterialCardView
     private lateinit var settingsMenu: MaterialCardView
-    private lateinit var audioToggleMenu: MaterialCardView
-    private lateinit var fastForwardMenu: MaterialCardView
-    private lateinit var exitMenu: MaterialCardView
+    private lateinit var submenu2Menu: MaterialCardView
 
     // Lista ordenada dos itens do menu para navegação
     private lateinit var menuItems: List<MaterialCardView>
     private var currentSelectedIndex = 0 // Começar com "Continue"
 
-    // Dynamic content views (only views that exist in layout)
-    private lateinit var audioToggleTitle: TextView
-    private lateinit var fastForwardTitle: TextView
-
     // Menu option titles for color control
     private lateinit var continueTitle: TextView
     private lateinit var resetTitle: TextView
-    private lateinit var saveStateTitle: TextView
-    private lateinit var loadStateTitle: TextView
+    private lateinit var progressTitle: TextView
     private lateinit var settingsTitle: TextView
-    private lateinit var exitTitle: TextView
+    private lateinit var submenu2Title: TextView
 
     // Selection arrows
     private lateinit var selectionArrowContinue: TextView
     private lateinit var selectionArrowReset: TextView
-    private lateinit var selectionArrowSave: TextView
-    private lateinit var selectionArrowLoad: TextView
+    private lateinit var selectionArrowProgress: TextView
     private lateinit var selectionArrowSettings: TextView
-    private lateinit var selectionArrowAudio: TextView
-    private lateinit var selectionArrowFastForward: TextView
-    private lateinit var selectionArrowExit: TextView
+    private lateinit var selectionArrowSubmenu2: TextView
 
     // Callback interface
     interface RetroMenu3Listener {
@@ -106,47 +107,27 @@ class RetroMenu3Fragment : Fragment() {
         // Menu items
         continueMenu = view.findViewById(R.id.menu_continue)
         resetMenu = view.findViewById(R.id.menu_reset)
-        saveStateMenu = view.findViewById(R.id.menu_save_state)
-        loadStateMenu = view.findViewById(R.id.menu_load_state)
+        progressMenu = view.findViewById(R.id.menu_submenu1)
         settingsMenu = view.findViewById(R.id.menu_settings)
-        audioToggleMenu = view.findViewById(R.id.menu_toggle_audio)
-        fastForwardMenu = view.findViewById(R.id.menu_fast_forward)
-        exitMenu = view.findViewById(R.id.menu_exit)
+        submenu2Menu = view.findViewById(R.id.menu_submenu2)
 
         // Inicializar lista ordenada dos itens do menu
-        menuItems =
-                listOf(
-                        continueMenu,
-                        resetMenu,
-                        saveStateMenu,
-                        loadStateMenu,
-                        settingsMenu,
-                        audioToggleMenu,
-                        fastForwardMenu,
-                        exitMenu
-                )
+        menuItems = listOf(continueMenu, resetMenu, progressMenu, settingsMenu, submenu2Menu)
 
         // Dynamic content views (only views that exist in layout)
-        audioToggleTitle = view.findViewById(R.id.audio_toggle_title)
-        fastForwardTitle = view.findViewById(R.id.fast_forward_title)
-
         // Initialize menu option titles
         continueTitle = view.findViewById(R.id.continue_title)
         resetTitle = view.findViewById(R.id.reset_title)
-        saveStateTitle = view.findViewById(R.id.save_state_title)
-        loadStateTitle = view.findViewById(R.id.load_state_title)
+        progressTitle = view.findViewById(R.id.submenu1_title)
         settingsTitle = view.findViewById(R.id.settings_title)
-        exitTitle = view.findViewById(R.id.exit_title)
+        submenu2Title = view.findViewById(R.id.submenu2_title)
 
         // Initialize selection arrows
         selectionArrowContinue = view.findViewById(R.id.selection_arrow_continue)
         selectionArrowReset = view.findViewById(R.id.selection_arrow_reset)
-        selectionArrowSave = view.findViewById(R.id.selection_arrow_save)
-        selectionArrowLoad = view.findViewById(R.id.selection_arrow_load)
+        selectionArrowProgress = view.findViewById(R.id.selection_arrow_submenu1)
         selectionArrowSettings = view.findViewById(R.id.selection_arrow_settings)
-        selectionArrowAudio = view.findViewById(R.id.selection_arrow_audio)
-        selectionArrowFastForward = view.findViewById(R.id.selection_arrow_fast_forward)
-        selectionArrowExit = view.findViewById(R.id.selection_arrow_exit)
+        selectionArrowSubmenu2 = view.findViewById(R.id.selection_arrow_submenu2)
 
         // Definir primeiro item como selecionado
         updateSelectionVisual()
@@ -167,53 +148,24 @@ class RetroMenu3Fragment : Fragment() {
             viewModel.resetGameCentralized { animateMenuOut { dismissMenu() } }
         }
 
-        saveStateMenu.setOnClickListener {
-            // Use centralized implementation - no need for animateMenuOut since it's built-in
-            viewModel.saveStateCentralized { dismissMenu() }
+        progressMenu.setOnClickListener {
+            // Abrir submenu Progress
+            openProgress()
         }
-
-        loadStateMenu.setOnClickListener { viewModel.loadStateCentralized { dismissMenu() } }
 
         settingsMenu.setOnClickListener {
             // Abrir submenu de configurações
             openSettingsSubmenu()
         }
 
-        audioToggleMenu.setOnClickListener {
-            menuListener?.onToggleAudio()
-            updateMenuState()
-        }
-
-        fastForwardMenu.setOnClickListener {
-            menuListener?.onFastForward()
-            updateMenuState()
-        }
-
-        exitMenu.setOnClickListener {
-            activity?.let { menuListener?.onExitGame(it) }
-            animateMenuOut { dismissMenu() }
+        submenu2Menu.setOnClickListener {
+            // Abrir submenu 2
+            openSubmenu2()
         }
     }
 
     private fun updateMenuState() {
-        val hasSaveState = menuListener?.hasSaveState() == true
-        val isAudioEnabled = menuListener?.getAudioState() == true
-        val isFastForwardEnabled = menuListener?.getFastForwardState() == true
-
-        // Update load state appearance and enable/disable state
-        loadStateMenu.isEnabled = hasSaveState
-        loadStateMenu.alpha = if (hasSaveState) 1.0f else 0.5f
-
-        // Update audio toggle
-        audioToggleTitle.text =
-                getString(if (isAudioEnabled) R.string.audio_on else R.string.audio_off)
-
-        // Update fast forward toggle
-        fastForwardTitle.text =
-                getString(
-                        if (isFastForwardEnabled) R.string.fast_forward_active
-                        else R.string.fast_forward_inactive
-                )
+        // Menu principal não tem mais opções dinâmicas - tudo foi movido para submenus
     }
 
     private fun animateMenuIn() {
@@ -267,12 +219,9 @@ class RetroMenu3Fragment : Fragment() {
         when (currentSelectedIndex) {
             0 -> continueMenu.performClick() // Continue
             1 -> resetMenu.performClick() // Reset
-            2 -> saveStateMenu.performClick() // Save State
-            3 -> loadStateMenu.performClick() // Load State
-            4 -> settingsMenu.performClick() // Settings
-            5 -> audioToggleMenu.performClick() // Audio Toggle
-            6 -> fastForwardMenu.performClick() // Fast Forward
-            7 -> exitMenu.performClick() // Exit
+            2 -> openProgress() // Progress
+            3 -> settingsMenu.performClick() // Settings
+            4 -> openSubmenu2() // Submenu2
         }
     }
 
@@ -307,6 +256,9 @@ class RetroMenu3Fragment : Fragment() {
 
         // Garantir que o alpha esteja em 1.0 (totalmente visível)
         menuContainer.alpha = 1.0f
+
+        // Atualizar o estado do menu (incluindo áudio) quando volta do submenu
+        updateMenuState()
 
         // Garantir que a seleção visual seja atualizada quando o menu voltar a ser visível
         updateSelectionVisual()
@@ -352,28 +304,16 @@ class RetroMenu3Fragment : Fragment() {
                 if (currentSelectedIndex == 1) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
-        saveStateTitle.setTextColor(
+        progressTitle.setTextColor(
                 if (currentSelectedIndex == 2) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
-        loadStateTitle.setTextColor(
+        settingsTitle.setTextColor(
                 if (currentSelectedIndex == 3) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
-        settingsTitle.setTextColor(
+        submenu2Title.setTextColor(
                 if (currentSelectedIndex == 4) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
-        )
-        audioToggleTitle.setTextColor(
-                if (currentSelectedIndex == 5) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
-        )
-        fastForwardTitle.setTextColor(
-                if (currentSelectedIndex == 6) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
-        )
-        exitTitle.setTextColor(
-                if (currentSelectedIndex == 7) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
 
@@ -405,32 +345,20 @@ class RetroMenu3Fragment : Fragment() {
             selectionArrowReset.visibility = View.GONE
         }
 
-        // Save State
+        // Progress
         if (currentSelectedIndex == 2) {
-            selectionArrowSave.setTextColor(android.graphics.Color.YELLOW)
-            selectionArrowSave.visibility = View.VISIBLE
-            (selectionArrowSave.layoutParams as LinearLayout.LayoutParams).apply {
+            selectionArrowProgress.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowProgress.visibility = View.VISIBLE
+            (selectionArrowProgress.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // Sem espaço antes da seta
                 marginEnd = arrowMarginEnd
             }
         } else {
-            selectionArrowSave.visibility = View.GONE
-        }
-
-        // Load State
-        if (currentSelectedIndex == 3) {
-            selectionArrowLoad.setTextColor(android.graphics.Color.YELLOW)
-            selectionArrowLoad.visibility = View.VISIBLE
-            (selectionArrowLoad.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
-                marginEnd = arrowMarginEnd
-            }
-        } else {
-            selectionArrowLoad.visibility = View.GONE
+            selectionArrowProgress.visibility = View.GONE
         }
 
         // Settings
-        if (currentSelectedIndex == 4) {
+        if (currentSelectedIndex == 3) {
             selectionArrowSettings.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowSettings.visibility = View.VISIBLE
             (selectionArrowSettings.layoutParams as LinearLayout.LayoutParams).apply {
@@ -441,40 +369,16 @@ class RetroMenu3Fragment : Fragment() {
             selectionArrowSettings.visibility = View.GONE
         }
 
-        // Audio Toggle
-        if (currentSelectedIndex == 5) {
-            selectionArrowAudio.setTextColor(android.graphics.Color.YELLOW)
-            selectionArrowAudio.visibility = View.VISIBLE
-            (selectionArrowAudio.layoutParams as LinearLayout.LayoutParams).apply {
+        // Submenu2
+        if (currentSelectedIndex == 4) {
+            selectionArrowSubmenu2.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowSubmenu2.visibility = View.VISIBLE
+            (selectionArrowSubmenu2.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // Sem espaço antes da seta
                 marginEnd = arrowMarginEnd
             }
         } else {
-            selectionArrowAudio.visibility = View.GONE
-        }
-
-        // Fast Forward
-        if (currentSelectedIndex == 6) {
-            selectionArrowFastForward.setTextColor(android.graphics.Color.YELLOW)
-            selectionArrowFastForward.visibility = View.VISIBLE
-            (selectionArrowFastForward.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
-                marginEnd = arrowMarginEnd
-            }
-        } else {
-            selectionArrowFastForward.visibility = View.GONE
-        }
-
-        // Exit
-        if (currentSelectedIndex == 7) {
-            selectionArrowExit.setTextColor(android.graphics.Color.YELLOW)
-            selectionArrowExit.visibility = View.VISIBLE
-            (selectionArrowExit.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
-                marginEnd = arrowMarginEnd
-            }
-        } else {
-            selectionArrowExit.visibility = View.GONE
+            selectionArrowSubmenu2.visibility = View.GONE
         }
 
         // Forçar atualização do layout
@@ -520,9 +424,17 @@ class RetroMenu3Fragment : Fragment() {
 
             // Se o back stack está vazio, significa que o submenu foi removido
             if (parentFragmentManager.backStackEntryCount == 0) {
-                android.util.Log.d("RetroMenu3Fragment", "BackStack empty - showing main menu")
-                // Mostrar o menu principal novamente
-                showMainMenu()
+                // Only show main menu if we're not dismissing all menus at once
+                if (viewModel.isDismissingAllMenus()) {
+                    android.util.Log.d(
+                            "RetroMenu3Fragment",
+                            "BackStack empty - NOT showing main menu (dismissing all menus)"
+                    )
+                } else {
+                    android.util.Log.d("RetroMenu3Fragment", "BackStack empty - showing main menu")
+                    // Mostrar o menu principal novamente
+                    showMainMenu()
+                }
             }
         }
 
@@ -537,6 +449,109 @@ class RetroMenu3Fragment : Fragment() {
                 "RetroMenu3Fragment",
                 "openSettingsSubmenu: Settings submenu should be open now"
         )
+    }
+
+    private fun openProgress() {
+        android.util.Log.d("RetroMenu3Fragment", "openProgress: Starting to open progress submenu")
+        // Tornar o menu principal invisível antes de abrir o submenu
+        hideMainMenu()
+
+        // Criar e mostrar o ProgressFragment
+        val progressFragment = ProgressFragment.newInstance()
+
+        android.util.Log.d("RetroMenu3Fragment", "openProgress: ProgressFragment created")
+        // Registrar o fragment no ViewModel para que a navegação funcione
+        viewModel.registerProgressFragment(progressFragment)
+
+        android.util.Log.d(
+                "RetroMenu3Fragment",
+                "openProgress: ProgressFragment registered with ViewModel"
+        )
+
+        // Adicionar listener para detectar quando o back stack muda (submenu é removido)
+        parentFragmentManager.addOnBackStackChangedListener {
+            android.util.Log.d(
+                    "RetroMenu3Fragment",
+                    "BackStack changed - backStackCount = ${parentFragmentManager.backStackEntryCount}"
+            )
+
+            // Se o back stack está vazio, significa que o submenu foi removido
+            if (parentFragmentManager.backStackEntryCount == 0) {
+                // Only show main menu if we're not dismissing all menus at once
+                if (viewModel.isDismissingAllMenus()) {
+                    android.util.Log.d(
+                            "RetroMenu3Fragment",
+                            "BackStack empty - NOT showing main menu (dismissing all menus)"
+                    )
+                } else {
+                    android.util.Log.d("RetroMenu3Fragment", "BackStack empty - showing main menu")
+                    // Mostrar o menu principal novamente
+                    showMainMenu()
+                }
+            }
+        }
+
+        parentFragmentManager
+                .beginTransaction()
+                .add(android.R.id.content, progressFragment, "ProgressFragment")
+                .addToBackStack("ProgressFragment")
+                .commit()
+        // Garantir que a transação seja executada imediatamente
+        parentFragmentManager.executePendingTransactions()
+        android.util.Log.d(
+                "RetroMenu3Fragment",
+                "openProgress: Progress submenu should be open now"
+        )
+    }
+
+    private fun openSubmenu2() {
+        android.util.Log.d("RetroMenu3Fragment", "openSubmenu2: Starting to open submenu2")
+        // Tornar o menu principal invisível antes de abrir o submenu
+        hideMainMenu()
+
+        // Criar e mostrar o ExitFragment
+        val submenu2Fragment = ExitFragment.newInstance()
+
+        android.util.Log.d("RetroMenu3Fragment", "openSubmenu2: ExitFragment created")
+        // Registrar o fragment no ViewModel para que a navegação funcione
+        viewModel.registerExitFragment(submenu2Fragment)
+
+        android.util.Log.d(
+                "RetroMenu3Fragment",
+                "openSubmenu2: Submenu2Fragment registered with ViewModel"
+        )
+
+        // Adicionar listener para detectar quando o back stack muda (submenu é removido)
+        parentFragmentManager.addOnBackStackChangedListener {
+            android.util.Log.d(
+                    "RetroMenu3Fragment",
+                    "BackStack changed - backStackCount = ${parentFragmentManager.backStackEntryCount}"
+            )
+
+            // Se o back stack está vazio, significa que o submenu foi removido
+            if (parentFragmentManager.backStackEntryCount == 0) {
+                // Only show main menu if we're not dismissing all menus at once
+                if (viewModel.isDismissingAllMenus()) {
+                    android.util.Log.d(
+                            "RetroMenu3Fragment",
+                            "BackStack empty - NOT showing main menu (dismissing all menus)"
+                    )
+                } else {
+                    android.util.Log.d("RetroMenu3Fragment", "BackStack empty - showing main menu")
+                    // Mostrar o menu principal novamente
+                    showMainMenu()
+                }
+            }
+        }
+
+        parentFragmentManager
+                .beginTransaction()
+                .add(android.R.id.content, submenu2Fragment, "Submenu2Fragment")
+                .addToBackStack("Submenu2Fragment")
+                .commit()
+        // Garantir que a transação seja executada imediatamente
+        parentFragmentManager.executePendingTransactions()
+        android.util.Log.d("RetroMenu3Fragment", "openSubmenu2: Submenu2 should be open now")
     }
 
     override fun onDestroy() {

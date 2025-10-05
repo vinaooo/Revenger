@@ -26,7 +26,7 @@ class SettingsMenuFragment : Fragment() {
 
     // Lista ordenada dos itens do menu para navegação
     private lateinit var menuItems: List<MaterialCardView>
-    private var currentSelectedIndex = 0 // Começar com "Sound"
+    private var currentSelectedIndex = 0 // Começar com "Video Settings"
 
     // Menu option titles for color control
     private lateinit var soundTitle: TextView
@@ -132,6 +132,15 @@ class SettingsMenuFragment : Fragment() {
         }
     }
 
+    private fun dismissMenu() {
+        // IMPORTANTE: Não chamar dismissRetroMenu3() aqui para evitar crashes
+        // Apenas remover o fragment visualmente - SEM animação
+        parentFragmentManager.beginTransaction().remove(this).commit()
+    }
+
+            }
+    }
+
     private fun updateMenuState() {
         val isAudioEnabled = viewModel.getAudioState()
         val isFastForwardEnabled = viewModel.getFastForwardState()
@@ -140,11 +149,10 @@ class SettingsMenuFragment : Fragment() {
         soundTitle.text = getString(if (isAudioEnabled) R.string.audio_on else R.string.audio_off)
 
         // Update game speed title
-        gameSpeedTitle.text =
-                getString(
-                        if (isFastForwardEnabled) R.string.fast_forward_active
-                        else R.string.fast_forward_inactive
-                )
+        gameSpeedTitle.text = getString(
+                if (isFastForwardEnabled) R.string.fast_forward_active
+                else R.string.fast_forward_inactive
+        )
     }
 
     /** Navegar para cima no menu */
@@ -230,65 +238,8 @@ class SettingsMenuFragment : Fragment() {
             }
         } else {
             selectionArrowBack.visibility = View.GONE
-        }
-
-        // Forçar atualização do layout
+        }        // Forçar atualização do layout
         settingsMenuContainer.requestLayout()
-    }
-
-    /** Tornar o menu principal invisível (quando submenu é aberto) */
-    fun hideMainMenu() {
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "hideMainMenu: Hiding menu content but keeping background"
-        )
-        // Esconder apenas o conteúdo do menu, mantendo o fundo para o submenu
-        settingsMenuContainer.visibility = View.INVISIBLE
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "hideMainMenu: Menu content hidden, background should remain visible"
-        )
-    }
-
-    /** Tornar o menu principal visível novamente (quando submenu é fechado) */
-    fun showMainMenu() {
-        android.util.Log.d("SettingsMenuFragment", "showMainMenu: Showing menu content again")
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "showMainMenu: BEFORE - visibility = ${settingsMenuContainer.visibility}"
-        )
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "showMainMenu: BEFORE - alpha = ${settingsMenuContainer.alpha}"
-        )
-
-        // Tornar visível
-        settingsMenuContainer.visibility = View.VISIBLE
-
-        // Garantir que o alpha esteja em 1.0 (totalmente visível)
-        settingsMenuContainer.alpha = 1.0f
-
-        // Garantir que a seleção visual seja atualizada quando o menu voltar a ser visível
-        updateSelectionVisual()
-
-        // Forçar redesenho completo
-        settingsMenuContainer.invalidate()
-        settingsMenuContainer.requestLayout()
-
-        // REMOVIDO: bringToFront() causa problema com layout_weight
-        // O SettingsMenuFragment já foi completamente removido com popBackStack()
-        // então não há necessidade de trazer para frente
-
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "showMainMenu: AFTER - visibility = ${settingsMenuContainer.visibility}"
-        )
-    }
-
-    private fun dismissMenu() {
-        // IMPORTANTE: Não chamar dismissRetroMenu3() aqui para evitar crashes
-        // Apenas remover o fragment visualmente - SEM animação
-        parentFragmentManager.beginTransaction().remove(this).commit()
     }
 
     /** Public method to dismiss the menu from outside */

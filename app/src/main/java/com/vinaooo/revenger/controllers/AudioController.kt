@@ -71,7 +71,7 @@ class AudioController(
     private fun saveAudioState(enabled: Boolean) {
         with(sharedPreferences.edit()) {
             putBoolean(context.getString(R.string.pref_audio_enabled), enabled)
-            apply()
+            commit() // Usar commit() em vez de apply() para garantir sincronia
         }
     }
 

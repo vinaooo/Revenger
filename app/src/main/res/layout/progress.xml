@@ -21,7 +21,7 @@
 
         <!-- Center 50% - Menu Content -->
         <LinearLayout
-            android:id="@+id/settings_menu_container"
+            android:id="@+id/progress_container"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="@dimen/retro_menu3_center_content_weight"
@@ -30,10 +30,10 @@
 
             <!-- Menu Title -->
             <TextView
-                android:id="@+id/settings_menu_title"
+                android:id="@+id/progress_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_menu_title"
+                android:text="@string/submenu1_title"
                 android:textSize="@dimen/retro_menu3_title_text_size"
                 android:textColor="@color/retro_menu3_text_color"
                 android:textStyle="bold"
@@ -59,9 +59,9 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Sound -->
+                    <!-- Save State -->
                     <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/settings_sound"
+                        android:id="@+id/progress_save_state"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
@@ -71,37 +71,35 @@
                         app:strokeWidth="@dimen/retro_menu3_menu_item_stroke_width"
                         app:strokeColor="@color/retro_menu3_card_stroke"
                         app:cardBackgroundColor="@color/retro_menu3_card_background">
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="horizontal"
-                            android:gravity="center_vertical"
                             android:padding="@dimen/retro_menu3_menu_item_padding">
+
+                            <!-- Selection Arrow -->
                             <TextView
-                                android:id="@+id/selection_arrow_sound"
+                                android:id="@+id/selection_arrow_save_state"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
-                                android:textColor="@color/retro_menu3_text_color"
+                                android:textColor="@android:color/transparent"
                                 android:fontFamily="@font/arcade_normal"
-                                android:layout_marginStart="0dp"
-                                android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
-                                android:visibility="gone"
-                                android:shadowColor="@color/retro_menu3_shadow_color"
-                                android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                                android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                                android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                                android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end" />
+
+                            <!-- Content -->
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
                                 <TextView
-                                    android:id="@+id/sound_title"
+                                    android:id="@+id/save_state_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/audio_on"
+                                    android:text="@string/menu_save_state"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
                                     android:fontFamily="@font/arcade_normal"
@@ -113,9 +111,9 @@
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Game Speed -->
+                    <!-- Load State -->
                     <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/settings_game_speed"
+                        android:id="@+id/progress_load_state"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
@@ -125,37 +123,35 @@
                         app:strokeWidth="@dimen/retro_menu3_menu_item_stroke_width"
                         app:strokeColor="@color/retro_menu3_card_stroke"
                         app:cardBackgroundColor="@color/retro_menu3_card_background">
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:orientation="horizontal"
-                            android:gravity="center_vertical"
                             android:padding="@dimen/retro_menu3_menu_item_padding">
+
+                            <!-- Selection Arrow -->
                             <TextView
-                                android:id="@+id/selection_arrow_game_speed"
+                                android:id="@+id/selection_arrow_load_state"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
-                                android:textColor="@color/retro_menu3_text_color"
+                                android:textColor="@android:color/transparent"
                                 android:fontFamily="@font/arcade_normal"
-                                android:layout_marginStart="0dp"
-                                android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
-                                android:visibility="gone"
-                                android:shadowColor="@color/retro_menu3_shadow_color"
-                                android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                                android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                                android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                                android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end" />
+
+                            <!-- Content -->
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
                                 <TextView
-                                    android:id="@+id/game_speed_title"
+                                    android:id="@+id/load_state_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/fast_forward_inactive"
+                                    android:text="@string/menu_load_state"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
                                     android:fontFamily="@font/arcade_normal"
@@ -169,7 +165,7 @@
 
                     <!-- Back -->
                     <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/settings_back"
+                        android:id="@+id/progress_back"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
