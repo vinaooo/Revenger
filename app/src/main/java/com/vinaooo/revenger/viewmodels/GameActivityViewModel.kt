@@ -271,7 +271,38 @@ class GameActivityViewModel(application: Application) :
 
     /** Dismiss the Settings submenu */
     fun dismissSettingsMenu() {
-        settingsMenuFragment?.dismissMenuPublic()
+        android.util.Log.d("GameActivityViewModel", "dismissSettingsMenu: Starting")
+
+        // IMPORTANTE: Como o SettingsMenuFragment foi adicionado ao back stack,
+        // devemos usar popBackStack() ao invés de remove() manual
+        // Isso garante que o FragmentManager gerencia corretamente a hierarquia
+
+        // Verificar se há algo no back stack antes de tentar remover
+        val activity = settingsMenuFragment?.activity as? FragmentActivity
+        if (activity != null) {
+            val fragmentManager = activity.supportFragmentManager
+            val backStackCount = fragmentManager.backStackEntryCount
+
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "dismissSettingsMenu: backStackCount = $backStackCount"
+            )
+
+            if (backStackCount > 0) {
+                // Usar popBackStack para remover o SettingsMenuFragment corretamente
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "dismissSettingsMenu: Calling popBackStackImmediate()"
+                )
+                fragmentManager.popBackStackImmediate()
+            } else {
+                android.util.Log.w(
+                        "GameActivityViewModel",
+                        "dismissSettingsMenu: Back stack is empty, nothing to pop"
+                )
+            }
+        }
+
         // Clear keyLog to prevent phantom key presses
         controllerInput.clearKeyLog()
         // Clear blocked keys after menu dismissal
@@ -279,6 +310,8 @@ class GameActivityViewModel(application: Application) :
         // Clear the fragment reference and flag
         settingsMenuFragment = null
         isSettingsMenuActive = false
+
+        android.util.Log.d("GameActivityViewModel", "dismissSettingsMenu: Completed")
     }
 
     /** Register the SettingsMenuFragment when it's created */
@@ -372,14 +405,31 @@ class GameActivityViewModel(application: Application) :
 
     // Implementation of SettingsMenuFragment.SettingsMenuListener interface
     override fun onBackToMainMenu() {
-        android.util.Log.d("GameActivityViewModel", "onBackToMainMenu: Starting to show main menu")
-        // Fechar o submenu de configurações primeiro
-        dismissSettingsMenu()
-        // Depois tornar o menu principal visível novamente
-        retroMenu3Fragment?.showMainMenu()
+        android.util.Log.d("GameActivityViewModel", "onBackToMainMenu: User wants to go back")
         android.util.Log.d(
                 "GameActivityViewModel",
-                "onBackToMainMenu: Main menu should be visible now"
+                "onBackToMainMenu: retroMenu3Fragment = $retroMenu3Fragment"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onBackToMainMenu: retroMenu3Fragment.isAdded = ${retroMenu3Fragment?.isAdded}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onBackToMainMenu: settingsMenuFragment = $settingsMenuFragment"
+        )
+
+        // Simplesmente fechar o submenu usando popBackStack
+        // O OnBackStackChangedListener no RetroMenu3Fragment cuidará de mostrar o menu principal
+        dismissSettingsMenu()
+
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onBackToMainMenu: dismissSettingsMenu() called"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onBackToMainMenu: Back stack listener will handle showing main menu"
         )
     }
 

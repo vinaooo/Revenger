@@ -144,7 +144,8 @@ class SettingsMenuFragment : Fragment() {
 
         backSettings.setOnClickListener {
             // Voltar ao menu principal
-            animateMenuOut { settingsListener?.onBackToMainMenu() }
+            // Apenas notificar o listener, a animação será feita pelo dismissSettingsMenu()
+            settingsListener?.onBackToMainMenu()
         }
     }
 

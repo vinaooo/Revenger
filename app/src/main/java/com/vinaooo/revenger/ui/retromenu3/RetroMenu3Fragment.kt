@@ -293,12 +293,43 @@ class RetroMenu3Fragment : Fragment() {
     /** Tornar o menu principal visível novamente (quando submenu é fechado) */
     fun showMainMenu() {
         android.util.Log.d("RetroMenu3Fragment", "showMainMenu: Showing menu content again")
-        menuContainer.visibility = View.VISIBLE
-        // Garantir que a seleção visual seja atualizada quando o menu voltar a ser visível
-        updateSelectionVisual()
         android.util.Log.d(
                 "RetroMenu3Fragment",
-                "showMainMenu: Menu should be fully visible now, visibility = ${menuContainer.visibility}"
+                "showMainMenu: BEFORE - visibility = ${menuContainer.visibility}"
+        )
+        android.util.Log.d(
+                "RetroMenu3Fragment",
+                "showMainMenu: BEFORE - alpha = ${menuContainer.alpha}"
+        )
+
+        // Tornar visível
+        menuContainer.visibility = View.VISIBLE
+
+        // Garantir que o alpha esteja em 1.0 (totalmente visível)
+        menuContainer.alpha = 1.0f
+
+        // Garantir que a seleção visual seja atualizada quando o menu voltar a ser visível
+        updateSelectionVisual()
+
+        // Forçar redesenho completo
+        menuContainer.invalidate()
+        menuContainer.requestLayout()
+
+        // REMOVIDO: bringToFront() causa problema com layout_weight
+        // O SettingsMenuFragment já foi completamente removido com popBackStack()
+        // então não há necessidade de trazer para frente
+
+        android.util.Log.d(
+                "RetroMenu3Fragment",
+                "showMainMenu: AFTER - visibility = ${menuContainer.visibility}"
+        )
+        android.util.Log.d(
+                "RetroMenu3Fragment",
+                "showMainMenu: AFTER - alpha = ${menuContainer.alpha}"
+        )
+        android.util.Log.d(
+                "RetroMenu3Fragment",
+                "showMainMenu: Menu should be fully visible now (VISIBLE=${View.VISIBLE}, actual=${menuContainer.visibility})"
         )
     }
 
@@ -479,6 +510,22 @@ class RetroMenu3Fragment : Fragment() {
                 "RetroMenu3Fragment",
                 "openSettingsSubmenu: Adding fragment to back stack"
         )
+
+        // Adicionar listener para detectar quando o back stack muda (submenu é removido)
+        parentFragmentManager.addOnBackStackChangedListener {
+            android.util.Log.d(
+                    "RetroMenu3Fragment",
+                    "BackStack changed - backStackCount = ${parentFragmentManager.backStackEntryCount}"
+            )
+
+            // Se o back stack está vazio, significa que o submenu foi removido
+            if (parentFragmentManager.backStackEntryCount == 0) {
+                android.util.Log.d("RetroMenu3Fragment", "BackStack empty - showing main menu")
+                // Mostrar o menu principal novamente
+                showMainMenu()
+            }
+        }
+
         parentFragmentManager
                 .beginTransaction()
                 .add(android.R.id.content, settingsFragment, "SettingsMenuFragment")
