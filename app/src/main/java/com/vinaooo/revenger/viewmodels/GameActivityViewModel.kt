@@ -198,6 +198,15 @@ class GameActivityViewModel(application: Application) :
         controllerInput.clearBlockedKeysDelayed()
     }
 
+    /**
+     * Limpa apenas os estados do controlador sem fechar o fragment Usado quando o fragment fecha
+     * por conta própria (ex: botão Continue)
+     */
+    fun clearControllerInputState() {
+        controllerInput.clearKeyLog()
+        controllerInput.clearBlockedKeysDelayed()
+    }
+
     /** Check if the modern menu is currently open */
     fun isMenuOpen(): Boolean {
         return modernMenuFragment?.isAdded == true

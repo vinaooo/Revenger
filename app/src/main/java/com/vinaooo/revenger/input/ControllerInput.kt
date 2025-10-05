@@ -149,6 +149,26 @@ class ControllerInput(private val context: Context) {
         // Verificar se temos exatamente os dois botões pressionados
         val hasSelectAndStart = keyLog.containsAll(KEYCOMBO_MENU) && keyLog.size == 2
 
+        // Verificar cooldown para evitar detecções muito rápidas
+        val currentTime = System.currentTimeMillis()
+        val timeSinceLastTrigger = currentTime - lastComboTriggerTime
+
+        // 🔧 SAFETY: Auto-reset comboAlreadyTriggered if stuck for too long (5 seconds)
+        // This handles rare edge cases where the flag gets stuck
+        val AUTO_RESET_TIMEOUT = 5000L // 5 seconds
+        if (comboAlreadyTriggered && timeSinceLastTrigger > AUTO_RESET_TIMEOUT) {
+            android.util.Log.w(
+                    "ControllerInput",
+                    "⚠️ AUTO-RESET: comboAlreadyTriggered was stuck for ${timeSinceLastTrigger}ms (>${AUTO_RESET_TIMEOUT}ms)"
+            )
+            android.util.Log.w(
+                    "ControllerInput",
+                    "   This shouldn't happen! Forcing reset to recover from stuck state."
+            )
+            comboAlreadyTriggered = false
+            lastComboTriggerTime = 0L
+        }
+
         // Log para debug - DETALHADO
         android.util.Log.d(
                 "ControllerInput",
@@ -158,11 +178,6 @@ class ControllerInput(private val context: Context) {
         android.util.Log.d("ControllerInput", "│ keyLog: $keyLog")
         android.util.Log.d("ControllerInput", "│ hasSelectAndStart: $hasSelectAndStart")
         android.util.Log.d("ControllerInput", "│ comboAlreadyTriggered: $comboAlreadyTriggered")
-
-        // Verificar cooldown para evitar detecções muito rápidas
-        val currentTime = System.currentTimeMillis()
-        val timeSinceLastTrigger = currentTime - lastComboTriggerTime
-
         android.util.Log.d(
                 "ControllerInput",
                 "│ timeSinceLastTrigger: ${timeSinceLastTrigger}ms (cooldown: ${COMBO_COOLDOWN_MS}ms)"
@@ -181,6 +196,10 @@ class ControllerInput(private val context: Context) {
             android.util.Log.d("ControllerInput", "│ ✅ ALL CONDITIONS MET - COMBO DETECTED!")
             comboAlreadyTriggered = true // Mark combo as triggered
             lastComboTriggerTime = currentTime
+            android.util.Log.d(
+                    "ControllerInput",
+                    "│ 🔵 comboAlreadyTriggered SET TO TRUE at timestamp: $lastComboTriggerTime"
+            )
             selectStartComboCallback()
             android.util.Log.d(
                     "ControllerInput",
@@ -196,17 +215,49 @@ class ControllerInput(private val context: Context) {
                         "ControllerInput",
                         "│    - comboAlreadyTriggered = true (already triggered)"
                 )
+                // 🔍 DEBUGGING: Only log as RARE BUG if menu is NOT open
+                // If shouldHandleSelectStartCombo() = true, menu is closed (should have been reset)
+                // If shouldHandleSelectStartCombo() = false, menu is open (expected behavior)
+                if (shouldHandleSelectStartCombo()) {
+                    // Menu is CLOSED but flag is still true - this is the real bug!
+                    android.util.Log.w(
+                            "ControllerInput",
+                            "│    ⚠️ REAL BUG: Menu closed but comboAlreadyTriggered still true!"
+                    )
+                    android.util.Log.w(
+                            "ControllerInput",
+                            "│       lastComboTriggerTime: $lastComboTriggerTime (${timeSinceLastTrigger}ms ago)"
+                    )
+                    android.util.Log.w(
+                            "ControllerInput",
+                            "│       Flag should have been reset when menu closed"
+                    )
+                } else {
+                    // Menu is OPEN - this is expected, not a bug
+                    android.util.Log.d(
+                            "ControllerInput",
+                            "│    ℹ️  Menu is open, flag=true is correct (not a bug)"
+                    )
+                }
             }
             if (!shouldHandleSelectStartCombo()) {
                 android.util.Log.d(
                         "ControllerInput",
                         "│    - shouldHandleSelectStartCombo() = false"
                 )
+                android.util.Log.w(
+                        "ControllerInput",
+                        "│    ⚠️ Menu is already open? This is expected behavior."
+                )
             }
             if (timeSinceLastTrigger <= COMBO_COOLDOWN_MS) {
                 android.util.Log.d(
                         "ControllerInput",
                         "│    - cooldown active (${timeSinceLastTrigger}ms < ${COMBO_COOLDOWN_MS}ms)"
+                )
+                android.util.Log.w(
+                        "ControllerInput",
+                        "│    ⚠️ User pressing too fast! Wait ${COMBO_COOLDOWN_MS - timeSinceLastTrigger}ms more"
                 )
             }
         }

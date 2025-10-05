@@ -147,8 +147,12 @@ class RetroMenu3Fragment : Fragment() {
 
     private fun setupClickListeners() {
         continueMenu.setOnClickListener {
-            // Apenas fecha o menu e retorna ao jogo
-            animateMenuOut { dismissMenu() }
+            // Fecha o menu E limpa os estados do ControllerInput (incluindo comboAlreadyTriggered)
+            animateMenuOut {
+                dismissMenu()
+                // Limpa keyLog e reseta comboAlreadyTriggered após fechar
+                viewModel.clearControllerInputState()
+            }
         }
 
         resetMenu.setOnClickListener {
