@@ -1,0 +1,705 @@
+--------- beginning of main
+10-04 22:26:56.406 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:26:56.406 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:26:56.406 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:26:56.406 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:26:56.406 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:26:56.406 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:26:56.407 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627616406ms (cooldown: 500ms)
+10-04 22:26:56.407 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:26:56.407 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:26:56.407 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:26:56.407 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:26:56.797 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:26:56.797 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:26:56.846 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:26:56.846 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:26:56.897 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:26:56.898 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:26:56.947 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:26:56.948 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:26:56.998 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:26:56.998 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:26:57.048 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:26:57.048 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:26:57.100 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:26:57.100 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:26:57.151 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:26:57.151 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:26:57.203 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:26:57.203 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:26:57.219 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:26:57.220 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:26:57.220 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:26:57.220 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:26:57.220 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:26:57.220 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:26:57.220 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627617220ms (cooldown: 500ms)
+10-04 22:26:57.220 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:26:57.220 D/ControllerInput(31560): │ ✅ ALL CONDITIONS MET - COMBO DETECTED!
+10-04 22:26:57.220 D/ControllerInput(31560): 📸 captureKeysOnMenuOpen() - capturing current keyLog: [109, 108]
+10-04 22:26:57.221 D/ControllerInput(31560):    keysToBlockAfterMenuClose: [109, 108]
+10-04 22:26:57.262 D/ControllerInput(31560): │ comboAlreadyTriggered NOW: true, timestamp: 1759627617220
+10-04 22:26:57.262 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:26:57.262 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:26:57.802 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=109 (was in keysToBlockAfterMenuClose)
+10-04 22:26:57.802 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [109, 108]
+10-04 22:26:57.802 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: [108]
+10-04 22:26:57.802 D/ControllerInput(31560):    keyLog AFTER: [108]
+10-04 22:26:57.802 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=false
+10-04 22:26:57.803 D/ControllerInput(31560):    ⏳ Waiting for other button (START pressed: true, SELECT pressed: false)
+10-04 22:27:01.116 D/ControllerInput(31560): 🛑 START pressed while menu open - CLOSING MENU
+10-04 22:27:01.116 D/ControllerInput(31560):    keyLog BEFORE startButtonCallback: [108]
+10-04 22:27:01.116 D/ControllerInput(31560):    comboAlreadyTriggered: true
+10-04 22:27:01.118 D/ControllerInput(31560): 
+10-04 22:27:01.118 D/ControllerInput(31560): 🧹 clearKeyLog() CALLED
+10-04 22:27:01.118 D/ControllerInput(31560):    BEFORE: keyLog=[108], comboAlreadyTriggered=true
+10-04 22:27:01.119 D/ControllerInput(31560):    AFTER: keyLog=[], comboAlreadyTriggered=true (kept as-is)
+10-04 22:27:01.119 D/ControllerInput(31560): 
+10-04 22:27:01.119 D/ControllerInput(31560):    startButtonCallback() completed
+10-04 22:27:01.308 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=108 (was in keysToBlockAfterMenuClose)
+10-04 22:27:01.308 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [108]
+10-04 22:27:01.308 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: []
+10-04 22:27:01.308 D/ControllerInput(31560):    keyLog AFTER: []
+10-04 22:27:01.308 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=true
+10-04 22:27:01.308 D/ControllerInput(31560):    ✅ BOTH combo buttons released! comboAlreadyTriggered: true -> false
+10-04 22:27:02.428 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:02.428 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:02.428 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:02.428 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:02.428 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:02.428 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:02.429 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627622428ms (cooldown: 500ms)
+10-04 22:27:02.429 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:02.429 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:02.429 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:02.429 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:02.828 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:02.829 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:02.877 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:02.877 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:02.928 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:02.928 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:02.977 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:02.978 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:03.029 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:03.029 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:03.078 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:03.078 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:03.130 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:03.130 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:03.147 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:03.147 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:03.147 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:03.147 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:03.147 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:03.147 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:03.147 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627623147ms (cooldown: 500ms)
+10-04 22:27:03.148 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:03.148 D/ControllerInput(31560): │ ✅ ALL CONDITIONS MET - COMBO DETECTED!
+10-04 22:27:03.148 D/ControllerInput(31560): 📸 captureKeysOnMenuOpen() - capturing current keyLog: [109, 108]
+10-04 22:27:03.148 D/ControllerInput(31560):    keysToBlockAfterMenuClose: [109, 108]
+10-04 22:27:03.170 D/ControllerInput(31560): │ comboAlreadyTriggered NOW: true, timestamp: 1759627623147
+10-04 22:27:03.170 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:03.170 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:04.194 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=109 (was in keysToBlockAfterMenuClose)
+10-04 22:27:04.194 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [109, 108]
+10-04 22:27:04.194 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: [108]
+10-04 22:27:04.194 D/ControllerInput(31560):    keyLog AFTER: [108]
+10-04 22:27:04.194 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=false
+10-04 22:27:04.194 D/ControllerInput(31560):    ⏳ Waiting for other button (START pressed: true, SELECT pressed: false)
+10-04 22:27:04.687 D/ControllerInput(31560): 🛑 START pressed while menu open - CLOSING MENU
+10-04 22:27:04.688 D/ControllerInput(31560):    keyLog BEFORE startButtonCallback: [108]
+10-04 22:27:04.688 D/ControllerInput(31560):    comboAlreadyTriggered: true
+10-04 22:27:04.689 D/ControllerInput(31560): 
+10-04 22:27:04.689 D/ControllerInput(31560): 🧹 clearKeyLog() CALLED
+10-04 22:27:04.689 D/ControllerInput(31560):    BEFORE: keyLog=[108], comboAlreadyTriggered=true
+10-04 22:27:04.689 D/ControllerInput(31560):    AFTER: keyLog=[], comboAlreadyTriggered=true (kept as-is)
+10-04 22:27:04.689 D/ControllerInput(31560): 
+10-04 22:27:04.689 D/ControllerInput(31560):    startButtonCallback() completed
+10-04 22:27:04.982 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=108 (was in keysToBlockAfterMenuClose)
+10-04 22:27:04.983 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [108]
+10-04 22:27:04.983 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: []
+10-04 22:27:04.983 D/ControllerInput(31560):    keyLog AFTER: []
+10-04 22:27:04.983 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=true
+10-04 22:27:04.983 D/ControllerInput(31560):    ✅ BOTH combo buttons released! comboAlreadyTriggered: true -> false
+10-04 22:27:05.487 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:05.487 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:05.487 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:05.487 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:05.487 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:05.487 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:05.488 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627625488ms (cooldown: 500ms)
+10-04 22:27:05.488 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:05.488 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:05.488 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:05.488 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:05.831 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:05.831 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:05.831 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:05.831 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:05.831 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:05.831 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:05.831 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627625831ms (cooldown: 500ms)
+10-04 22:27:05.831 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:05.831 D/ControllerInput(31560): │ ✅ ALL CONDITIONS MET - COMBO DETECTED!
+10-04 22:27:05.832 D/ControllerInput(31560): 📸 captureKeysOnMenuOpen() - capturing current keyLog: [109, 108]
+10-04 22:27:05.832 D/ControllerInput(31560):    keysToBlockAfterMenuClose: [109, 108]
+10-04 22:27:05.854 D/ControllerInput(31560): │ comboAlreadyTriggered NOW: true, timestamp: 1759627625831
+10-04 22:27:05.854 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:05.854 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:06.236 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=109 (was in keysToBlockAfterMenuClose)
+10-04 22:27:06.236 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [109, 108]
+10-04 22:27:06.236 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: [108]
+10-04 22:27:06.236 D/ControllerInput(31560):    keyLog AFTER: [108]
+10-04 22:27:06.236 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=false
+10-04 22:27:06.236 D/ControllerInput(31560):    ⏳ Waiting for other button (START pressed: true, SELECT pressed: false)
+10-04 22:27:07.139 D/ControllerInput(31560): 🛑 START pressed while menu open - CLOSING MENU
+10-04 22:27:07.139 D/ControllerInput(31560):    keyLog BEFORE startButtonCallback: [108]
+10-04 22:27:07.139 D/ControllerInput(31560):    comboAlreadyTriggered: true
+10-04 22:27:07.140 D/ControllerInput(31560): 
+10-04 22:27:07.140 D/ControllerInput(31560): 🧹 clearKeyLog() CALLED
+10-04 22:27:07.141 D/ControllerInput(31560):    BEFORE: keyLog=[108], comboAlreadyTriggered=true
+10-04 22:27:07.141 D/ControllerInput(31560):    AFTER: keyLog=[], comboAlreadyTriggered=true (kept as-is)
+10-04 22:27:07.141 D/ControllerInput(31560): 
+10-04 22:27:07.141 D/ControllerInput(31560):    startButtonCallback() completed
+10-04 22:27:07.913 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:07.913 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:07.914 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:07.914 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:07.914 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:07.914 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:07.914 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627627914ms (cooldown: 500ms)
+10-04 22:27:07.914 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:07.914 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:07.914 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:07.914 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:07.914 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:08.160 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:08.160 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:08.160 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:08.160 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:08.160 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:08.160 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:08.160 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627628160ms (cooldown: 500ms)
+10-04 22:27:08.160 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:08.160 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:08.160 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:08.160 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:08.160 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:08.352 D/ControllerInput(31560): ⬆️ ACTION_UP: START (108), keyLog: [109]
+10-04 22:27:08.352 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:08.352 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:08.352 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:08.352 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:08.352 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:08.352 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627628352ms (cooldown: 500ms)
+10-04 22:27:08.352 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:08.352 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:08.352 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:08.352 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:08.352 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:08.629 D/ControllerInput(31560): ⬆️ ACTION_UP: SELECT (109), keyLog: []
+10-04 22:27:08.630 D/ControllerInput(31560):    ✅ BOTH combo buttons released (normal flow), resetting comboAlreadyTriggered
+10-04 22:27:08.630 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:08.630 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:08.630 D/ControllerInput(31560): │ keyLog: []
+10-04 22:27:08.630 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:08.630 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:08.630 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627628630ms (cooldown: 500ms)
+10-04 22:27:08.630 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:08.630 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:08.630 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:08.630 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:09.364 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:09.364 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:09.364 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:09.364 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:09.364 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:09.364 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:09.364 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627629364ms (cooldown: 500ms)
+10-04 22:27:09.364 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:09.364 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:09.364 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:09.364 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:09.602 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:09.602 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:09.602 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:09.602 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:09.602 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:09.602 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:09.603 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627629603ms (cooldown: 500ms)
+10-04 22:27:09.603 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:09.603 D/ControllerInput(31560): │ ✅ ALL CONDITIONS MET - COMBO DETECTED!
+10-04 22:27:09.603 D/ControllerInput(31560): 📸 captureKeysOnMenuOpen() - capturing current keyLog: [109, 108]
+10-04 22:27:09.603 D/ControllerInput(31560):    keysToBlockAfterMenuClose: [109, 108]
+10-04 22:27:09.637 D/ControllerInput(31560): │ comboAlreadyTriggered NOW: true, timestamp: 1759627629603
+10-04 22:27:09.637 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:09.637 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:10.053 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=109 (was in keysToBlockAfterMenuClose)
+10-04 22:27:10.053 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [109, 108]
+10-04 22:27:10.053 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: [108]
+10-04 22:27:10.053 D/ControllerInput(31560):    keyLog AFTER: [108]
+10-04 22:27:10.053 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=false
+10-04 22:27:10.053 D/ControllerInput(31560):    ⏳ Waiting for other button (START pressed: true, SELECT pressed: false)
+10-04 22:27:10.802 D/ControllerInput(31560): 🛑 START pressed while menu open - CLOSING MENU
+10-04 22:27:10.803 D/ControllerInput(31560):    keyLog BEFORE startButtonCallback: [108]
+10-04 22:27:10.803 D/ControllerInput(31560):    comboAlreadyTriggered: true
+10-04 22:27:10.804 D/ControllerInput(31560): 
+10-04 22:27:10.804 D/ControllerInput(31560): 🧹 clearKeyLog() CALLED
+10-04 22:27:10.804 D/ControllerInput(31560):    BEFORE: keyLog=[108], comboAlreadyTriggered=true
+10-04 22:27:10.804 D/ControllerInput(31560):    AFTER: keyLog=[], comboAlreadyTriggered=true (kept as-is)
+10-04 22:27:10.804 D/ControllerInput(31560): 
+10-04 22:27:10.804 D/ControllerInput(31560):    startButtonCallback() completed
+10-04 22:27:10.982 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=108 (was in keysToBlockAfterMenuClose)
+10-04 22:27:10.982 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [108]
+10-04 22:27:10.983 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: []
+10-04 22:27:10.983 D/ControllerInput(31560):    keyLog AFTER: []
+10-04 22:27:10.983 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=true
+10-04 22:27:10.983 D/ControllerInput(31560):    ✅ BOTH combo buttons released! comboAlreadyTriggered: true -> false
+10-04 22:27:11.513 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:11.513 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:11.513 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:11.513 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:11.513 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:11.513 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:11.513 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627631513ms (cooldown: 500ms)
+10-04 22:27:11.514 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:11.514 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:11.514 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:11.514 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:11.766 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:11.767 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:11.767 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:11.767 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:11.767 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:11.767 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:11.767 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627631767ms (cooldown: 500ms)
+10-04 22:27:11.767 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:11.767 D/ControllerInput(31560): │ ✅ ALL CONDITIONS MET - COMBO DETECTED!
+10-04 22:27:11.767 D/ControllerInput(31560): 📸 captureKeysOnMenuOpen() - capturing current keyLog: [109, 108]
+10-04 22:27:11.767 D/ControllerInput(31560):    keysToBlockAfterMenuClose: [109, 108]
+10-04 22:27:11.804 D/ControllerInput(31560): │ comboAlreadyTriggered NOW: true, timestamp: 1759627631767
+10-04 22:27:11.805 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:11.805 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:12.292 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=109 (was in keysToBlockAfterMenuClose)
+10-04 22:27:12.292 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [109, 108]
+10-04 22:27:12.292 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: [108]
+10-04 22:27:12.292 D/ControllerInput(31560):    keyLog AFTER: [108]
+10-04 22:27:12.292 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=false
+10-04 22:27:12.292 D/ControllerInput(31560):    ⏳ Waiting for other button (START pressed: true, SELECT pressed: false)
+10-04 22:27:12.808 D/ControllerInput(31560): 🛑 START pressed while menu open - CLOSING MENU
+10-04 22:27:12.809 D/ControllerInput(31560):    keyLog BEFORE startButtonCallback: [108]
+10-04 22:27:12.809 D/ControllerInput(31560):    comboAlreadyTriggered: true
+10-04 22:27:12.810 D/ControllerInput(31560): 
+10-04 22:27:12.810 D/ControllerInput(31560): 🧹 clearKeyLog() CALLED
+10-04 22:27:12.810 D/ControllerInput(31560):    BEFORE: keyLog=[108], comboAlreadyTriggered=true
+10-04 22:27:12.810 D/ControllerInput(31560):    AFTER: keyLog=[], comboAlreadyTriggered=true (kept as-is)
+10-04 22:27:12.810 D/ControllerInput(31560): 
+10-04 22:27:12.810 D/ControllerInput(31560):    startButtonCallback() completed
+10-04 22:27:13.062 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=108 (was in keysToBlockAfterMenuClose)
+10-04 22:27:13.062 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [108]
+10-04 22:27:13.062 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: []
+10-04 22:27:13.062 D/ControllerInput(31560):    keyLog AFTER: []
+10-04 22:27:13.063 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=true
+10-04 22:27:13.063 D/ControllerInput(31560):    ✅ BOTH combo buttons released! comboAlreadyTriggered: true -> false
+10-04 22:27:13.682 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:13.682 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:13.682 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:13.682 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:13.682 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:13.682 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:13.682 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627633682ms (cooldown: 500ms)
+10-04 22:27:13.683 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:13.683 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:13.683 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:13.683 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:14.083 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:14.084 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:14.130 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:14.131 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:14.183 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:14.183 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:14.233 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:14.233 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:14.285 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:14.285 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:14.335 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:14.335 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:14.388 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:14.388 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:14.436 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:14.436 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:14.476 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:14.476 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:14.476 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:14.476 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:14.476 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:14.476 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:14.476 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627634476ms (cooldown: 500ms)
+10-04 22:27:14.476 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:14.477 D/ControllerInput(31560): │ ✅ ALL CONDITIONS MET - COMBO DETECTED!
+10-04 22:27:14.477 D/ControllerInput(31560): 📸 captureKeysOnMenuOpen() - capturing current keyLog: [109, 108]
+10-04 22:27:14.477 D/ControllerInput(31560):    keysToBlockAfterMenuClose: [109, 108]
+10-04 22:27:14.503 D/ControllerInput(31560): │ comboAlreadyTriggered NOW: true, timestamp: 1759627634476
+10-04 22:27:14.503 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:14.503 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:15.018 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=109 (was in keysToBlockAfterMenuClose)
+10-04 22:27:15.018 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [109, 108]
+10-04 22:27:15.018 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: [108]
+10-04 22:27:15.018 D/ControllerInput(31560):    keyLog AFTER: [108]
+10-04 22:27:15.018 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=false
+10-04 22:27:15.018 D/ControllerInput(31560):    ⏳ Waiting for other button (START pressed: true, SELECT pressed: false)
+10-04 22:27:15.487 D/ControllerInput(31560): 🛑 START pressed while menu open - CLOSING MENU
+10-04 22:27:15.487 D/ControllerInput(31560):    keyLog BEFORE startButtonCallback: [108]
+10-04 22:27:15.487 D/ControllerInput(31560):    comboAlreadyTriggered: true
+10-04 22:27:15.488 D/ControllerInput(31560): 
+10-04 22:27:15.488 D/ControllerInput(31560): 🧹 clearKeyLog() CALLED
+10-04 22:27:15.488 D/ControllerInput(31560):    BEFORE: keyLog=[108], comboAlreadyTriggered=true
+10-04 22:27:15.488 D/ControllerInput(31560):    AFTER: keyLog=[], comboAlreadyTriggered=true (kept as-is)
+10-04 22:27:15.488 D/ControllerInput(31560): 
+10-04 22:27:15.489 D/ControllerInput(31560):    startButtonCallback() completed
+10-04 22:27:15.665 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=108 (was in keysToBlockAfterMenuClose)
+10-04 22:27:15.665 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [108]
+10-04 22:27:15.665 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: []
+10-04 22:27:15.666 D/ControllerInput(31560):    keyLog AFTER: []
+10-04 22:27:15.666 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=true
+10-04 22:27:15.666 D/ControllerInput(31560):    ✅ BOTH combo buttons released! comboAlreadyTriggered: true -> false
+10-04 22:27:16.229 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:16.229 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:16.229 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:16.229 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:16.229 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:16.229 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:16.229 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627636229ms (cooldown: 500ms)
+10-04 22:27:16.229 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:16.229 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:16.229 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:16.229 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:16.461 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:16.461 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:16.461 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:16.461 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:16.461 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:16.462 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:16.462 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627636462ms (cooldown: 500ms)
+10-04 22:27:16.462 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:16.462 D/ControllerInput(31560): │ ✅ ALL CONDITIONS MET - COMBO DETECTED!
+10-04 22:27:16.462 D/ControllerInput(31560): 📸 captureKeysOnMenuOpen() - capturing current keyLog: [109, 108]
+10-04 22:27:16.463 D/ControllerInput(31560):    keysToBlockAfterMenuClose: [109, 108]
+10-04 22:27:16.487 D/ControllerInput(31560): │ comboAlreadyTriggered NOW: true, timestamp: 1759627636462
+10-04 22:27:16.487 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:16.487 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:16.748 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=109 (was in keysToBlockAfterMenuClose)
+10-04 22:27:16.749 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [109, 108]
+10-04 22:27:16.749 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: [108]
+10-04 22:27:16.749 D/ControllerInput(31560):    keyLog AFTER: [108]
+10-04 22:27:16.749 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=false
+10-04 22:27:16.749 D/ControllerInput(31560):    ⏳ Waiting for other button (START pressed: true, SELECT pressed: false)
+10-04 22:27:17.257 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [108, 109]
+10-04 22:27:17.257 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:17.258 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:17.258 D/ControllerInput(31560): │ keyLog: [108, 109]
+10-04 22:27:17.258 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:17.258 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:17.258 D/ControllerInput(31560): │ timeSinceLastTrigger: 796ms (cooldown: 500ms)
+10-04 22:27:17.258 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:17.258 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:17.258 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:17.258 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:17.258 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:17.462 D/ControllerInput(31560): ⬆️ ACTION_UP: SELECT (109), keyLog: [108]
+10-04 22:27:17.462 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:17.462 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:17.463 D/ControllerInput(31560): │ keyLog: [108]
+10-04 22:27:17.463 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:17.463 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:17.463 D/ControllerInput(31560): │ timeSinceLastTrigger: 1001ms (cooldown: 500ms)
+10-04 22:27:17.463 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:17.463 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:17.463 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:17.463 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:17.463 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:18.783 D/ControllerInput(31560): 🛑 START pressed while menu open - CLOSING MENU
+10-04 22:27:18.783 D/ControllerInput(31560):    keyLog BEFORE startButtonCallback: [108]
+10-04 22:27:18.783 D/ControllerInput(31560):    comboAlreadyTriggered: true
+10-04 22:27:18.784 D/ControllerInput(31560): 
+10-04 22:27:18.784 D/ControllerInput(31560): 🧹 clearKeyLog() CALLED
+10-04 22:27:18.784 D/ControllerInput(31560):    BEFORE: keyLog=[108], comboAlreadyTriggered=true
+10-04 22:27:18.784 D/ControllerInput(31560):    AFTER: keyLog=[], comboAlreadyTriggered=true (kept as-is)
+10-04 22:27:18.784 D/ControllerInput(31560): 
+10-04 22:27:18.784 D/ControllerInput(31560):    startButtonCallback() completed
+10-04 22:27:19.742 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:19.742 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:19.742 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:19.742 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:19.742 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:19.742 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:19.743 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627639742ms (cooldown: 500ms)
+10-04 22:27:19.743 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:19.743 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:19.743 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:19.743 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:19.743 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:19.896 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:19.896 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:19.896 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:19.896 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:19.896 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:19.897 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:19.897 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627639897ms (cooldown: 500ms)
+10-04 22:27:19.897 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:19.897 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:19.897 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:19.897 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:19.897 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:20.056 D/ControllerInput(31560): ⬆️ ACTION_UP: START (108), keyLog: [109]
+10-04 22:27:20.056 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:20.056 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:20.056 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:20.056 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:20.056 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:20.056 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627640056ms (cooldown: 500ms)
+10-04 22:27:20.057 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:20.057 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:20.057 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:20.057 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:20.057 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:20.191 D/ControllerInput(31560): ⬆️ ACTION_UP: SELECT (109), keyLog: []
+10-04 22:27:20.191 D/ControllerInput(31560):    ✅ BOTH combo buttons released (normal flow), resetting comboAlreadyTriggered
+10-04 22:27:20.192 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:20.192 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:20.192 D/ControllerInput(31560): │ keyLog: []
+10-04 22:27:20.192 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:20.192 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:20.192 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627640192ms (cooldown: 500ms)
+10-04 22:27:20.193 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:20.193 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:20.193 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:20.193 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:21.222 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:21.222 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:21.222 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:21.222 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:21.222 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:21.222 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:21.222 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627641222ms (cooldown: 500ms)
+10-04 22:27:21.222 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:21.223 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:21.223 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:21.223 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:21.500 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:21.500 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:21.501 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:21.501 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:21.501 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:21.501 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:21.501 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627641501ms (cooldown: 500ms)
+10-04 22:27:21.501 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:21.501 D/ControllerInput(31560): │ ✅ ALL CONDITIONS MET - COMBO DETECTED!
+10-04 22:27:21.502 D/ControllerInput(31560): 📸 captureKeysOnMenuOpen() - capturing current keyLog: [109, 108]
+10-04 22:27:21.502 D/ControllerInput(31560):    keysToBlockAfterMenuClose: [109, 108]
+10-04 22:27:21.535 D/ControllerInput(31560): │ comboAlreadyTriggered NOW: true, timestamp: 1759627641501
+10-04 22:27:21.536 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:21.536 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:21.815 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=109 (was in keysToBlockAfterMenuClose)
+10-04 22:27:21.815 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [109, 108]
+10-04 22:27:21.815 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: [108]
+10-04 22:27:21.816 D/ControllerInput(31560):    keyLog AFTER: [108]
+10-04 22:27:21.816 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=false
+10-04 22:27:21.816 D/ControllerInput(31560):    ⏳ Waiting for other button (START pressed: true, SELECT pressed: false)
+10-04 22:27:22.935 D/ControllerInput(31560): 🛑 START pressed while menu open - CLOSING MENU
+10-04 22:27:22.935 D/ControllerInput(31560):    keyLog BEFORE startButtonCallback: [108]
+10-04 22:27:22.935 D/ControllerInput(31560):    comboAlreadyTriggered: true
+10-04 22:27:22.936 D/ControllerInput(31560): 
+10-04 22:27:22.936 D/ControllerInput(31560): 🧹 clearKeyLog() CALLED
+10-04 22:27:22.936 D/ControllerInput(31560):    BEFORE: keyLog=[108], comboAlreadyTriggered=true
+10-04 22:27:22.936 D/ControllerInput(31560):    AFTER: keyLog=[], comboAlreadyTriggered=true (kept as-is)
+10-04 22:27:22.936 D/ControllerInput(31560): 
+10-04 22:27:22.936 D/ControllerInput(31560):    startButtonCallback() completed
+10-04 22:27:23.583 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:23.584 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:23.584 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:23.584 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:23.584 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:23.584 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:23.584 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627643584ms (cooldown: 500ms)
+10-04 22:27:23.584 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:23.584 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:23.584 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:23.584 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:23.584 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:23.747 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:23.747 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:23.748 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:23.748 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:23.748 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:23.748 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:23.748 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627643748ms (cooldown: 500ms)
+10-04 22:27:23.748 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:23.748 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:23.748 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:23.748 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:23.748 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:23.922 D/ControllerInput(31560): ⬆️ ACTION_UP: START (108), keyLog: [109]
+10-04 22:27:23.922 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:23.923 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:23.923 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:23.923 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:23.923 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:23.923 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627643923ms (cooldown: 500ms)
+10-04 22:27:23.923 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:23.923 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:23.923 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:23.923 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:23.923 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:24.242 D/ControllerInput(31560): ⬆️ ACTION_UP: SELECT (109), keyLog: []
+10-04 22:27:24.242 D/ControllerInput(31560):    ✅ BOTH combo buttons released (normal flow), resetting comboAlreadyTriggered
+10-04 22:27:24.242 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:24.242 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:24.242 D/ControllerInput(31560): │ keyLog: []
+10-04 22:27:24.242 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:24.242 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:24.242 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627644242ms (cooldown: 500ms)
+10-04 22:27:24.243 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:24.243 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:24.243 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:24.243 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:24.772 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:24.772 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:24.772 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:24.772 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:24.772 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:24.772 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:24.773 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627644773ms (cooldown: 500ms)
+10-04 22:27:24.773 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:24.773 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:24.773 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:24.773 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:25.026 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:25.026 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:25.026 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:25.026 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:25.026 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:25.026 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:25.027 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627645027ms (cooldown: 500ms)
+10-04 22:27:25.027 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:25.027 D/ControllerInput(31560): │ ✅ ALL CONDITIONS MET - COMBO DETECTED!
+10-04 22:27:25.027 D/ControllerInput(31560): 📸 captureKeysOnMenuOpen() - capturing current keyLog: [109, 108]
+10-04 22:27:25.027 D/ControllerInput(31560):    keysToBlockAfterMenuClose: [109, 108]
+10-04 22:27:25.052 D/ControllerInput(31560): │ comboAlreadyTriggered NOW: true, timestamp: 1759627645027
+10-04 22:27:25.052 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:25.052 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:25.457 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=109 (was in keysToBlockAfterMenuClose)
+10-04 22:27:25.457 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [109, 108]
+10-04 22:27:25.457 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: [108]
+10-04 22:27:25.457 D/ControllerInput(31560):    keyLog AFTER: [108]
+10-04 22:27:25.457 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=false
+10-04 22:27:25.457 D/ControllerInput(31560):    ⏳ Waiting for other button (START pressed: true, SELECT pressed: false)
+10-04 22:27:26.036 D/ControllerInput(31560): 🛑 START pressed while menu open - CLOSING MENU
+10-04 22:27:26.036 D/ControllerInput(31560):    keyLog BEFORE startButtonCallback: [108]
+10-04 22:27:26.036 D/ControllerInput(31560):    comboAlreadyTriggered: true
+10-04 22:27:26.037 D/ControllerInput(31560): 
+10-04 22:27:26.037 D/ControllerInput(31560): 🧹 clearKeyLog() CALLED
+10-04 22:27:26.037 D/ControllerInput(31560):    BEFORE: keyLog=[108], comboAlreadyTriggered=true
+10-04 22:27:26.037 D/ControllerInput(31560):    AFTER: keyLog=[], comboAlreadyTriggered=true (kept as-is)
+10-04 22:27:26.038 D/ControllerInput(31560): 
+10-04 22:27:26.038 D/ControllerInput(31560):    startButtonCallback() completed
+10-04 22:27:26.700 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:26.700 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:26.700 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:26.700 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:26.700 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:26.700 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:26.700 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627646700ms (cooldown: 500ms)
+10-04 22:27:26.700 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:26.701 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:26.701 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:26.701 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:26.701 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:27.100 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:27.101 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:27.148 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: true, keyLog: [109]
+10-04 22:27:27.148 D/ControllerInput(31560):    ⚠️ Ignoring repeated ACTION_DOWN for SELECT
+10-04 22:27:27.163 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:27.163 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:27.163 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:27.164 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:27.164 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:27.164 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:27.164 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627647164ms (cooldown: 500ms)
+10-04 22:27:27.164 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:27.164 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:27.164 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:27.164 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:27.164 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:27.343 D/ControllerInput(31560): ⬆️ ACTION_UP: START (108), keyLog: [109]
+10-04 22:27:27.343 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:27.343 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:27.343 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:27.343 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:27.343 D/ControllerInput(31560): │ comboAlreadyTriggered: true
+10-04 22:27:27.343 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627647343ms (cooldown: 500ms)
+10-04 22:27:27.343 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:27.343 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:27.343 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:27.344 D/ControllerInput(31560): │    - comboAlreadyTriggered = true (already triggered)
+10-04 22:27:27.344 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:27.464 D/ControllerInput(31560): ⬆️ ACTION_UP: SELECT (109), keyLog: []
+10-04 22:27:27.465 D/ControllerInput(31560):    ✅ BOTH combo buttons released (normal flow), resetting comboAlreadyTriggered
+10-04 22:27:27.465 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:27.465 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:27.465 D/ControllerInput(31560): │ keyLog: []
+10-04 22:27:27.465 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:27.465 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:27.465 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627647465ms (cooldown: 500ms)
+10-04 22:27:27.465 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:27.465 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:27.465 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:27.466 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:28.213 D/ControllerInput(31560): ⬇️ ACTION_DOWN: SELECT (109), wasAlreadyPressed: false, keyLog: [109]
+10-04 22:27:28.213 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:28.213 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:28.214 D/ControllerInput(31560): │ keyLog: [109]
+10-04 22:27:28.214 D/ControllerInput(31560): │ hasSelectAndStart: false
+10-04 22:27:28.214 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:28.214 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627648214ms (cooldown: 500ms)
+10-04 22:27:28.214 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:28.214 D/ControllerInput(31560): │ ❌ COMBO NOT TRIGGERED - Missing condition:
+10-04 22:27:28.214 D/ControllerInput(31560): │    - hasSelectAndStart = false
+10-04 22:27:28.214 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:28.498 D/ControllerInput(31560): ⬇️ ACTION_DOWN: START (108), wasAlreadyPressed: false, keyLog: [109, 108]
+10-04 22:27:28.499 D/ControllerInput(31560): ┌─────────────────────────────────────────────────────────
+10-04 22:27:28.499 D/ControllerInput(31560): │ checkMenuKeyCombo CALLED
+10-04 22:27:28.499 D/ControllerInput(31560): │ keyLog: [109, 108]
+10-04 22:27:28.499 D/ControllerInput(31560): │ hasSelectAndStart: true
+10-04 22:27:28.499 D/ControllerInput(31560): │ comboAlreadyTriggered: false
+10-04 22:27:28.499 D/ControllerInput(31560): │ timeSinceLastTrigger: 1759627648499ms (cooldown: 500ms)
+10-04 22:27:28.499 D/ControllerInput(31560): │ shouldHandleSelectStartCombo(): true
+10-04 22:27:28.499 D/ControllerInput(31560): │ ✅ ALL CONDITIONS MET - COMBO DETECTED!
+10-04 22:27:28.499 D/ControllerInput(31560): 📸 captureKeysOnMenuOpen() - capturing current keyLog: [109, 108]
+10-04 22:27:28.500 D/ControllerInput(31560):    keysToBlockAfterMenuClose: [109, 108]
+10-04 22:27:28.536 D/ControllerInput(31560): │ comboAlreadyTriggered NOW: true, timestamp: 1759627648499
+10-04 22:27:28.536 D/ControllerInput(31560): └─────────────────────────────────────────────────────────
+10-04 22:27:28.536 D/ControllerInput(31560): Blocking START/SELECT from reaching core - combo detected
+10-04 22:27:28.962 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=109 (was in keysToBlockAfterMenuClose)
+10-04 22:27:28.962 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [109, 108]
+10-04 22:27:28.962 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: [108]
+10-04 22:27:28.963 D/ControllerInput(31560):    keyLog AFTER: [108]
+10-04 22:27:28.963 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=false
+10-04 22:27:28.963 D/ControllerInput(31560):    ⏳ Waiting for other button (START pressed: true, SELECT pressed: false)
+10-04 22:27:30.464 D/ControllerInput(31560): 🛑 START pressed while menu open - CLOSING MENU
+10-04 22:27:30.464 D/ControllerInput(31560):    keyLog BEFORE startButtonCallback: [108]
+10-04 22:27:30.465 D/ControllerInput(31560):    comboAlreadyTriggered: true
+10-04 22:27:30.465 D/ControllerInput(31560): 
+10-04 22:27:30.465 D/ControllerInput(31560): 🧹 clearKeyLog() CALLED
+10-04 22:27:30.466 D/ControllerInput(31560):    BEFORE: keyLog=[108], comboAlreadyTriggered=true
+10-04 22:27:30.466 D/ControllerInput(31560):    AFTER: keyLog=[], comboAlreadyTriggered=true (kept as-is)
+10-04 22:27:30.466 D/ControllerInput(31560): 
+10-04 22:27:30.466 D/ControllerInput(31560):    startButtonCallback() completed
+10-04 22:27:30.658 D/ControllerInput(31560): 🚫 BLOCKING ACTION_UP for keyCode=108 (was in keysToBlockAfterMenuClose)
+10-04 22:27:30.658 D/ControllerInput(31560):    keysToBlockAfterMenuClose BEFORE: [108]
+10-04 22:27:30.658 D/ControllerInput(31560):    keysToBlockAfterMenuClose AFTER: []
+10-04 22:27:30.659 D/ControllerInput(31560):    keyLog AFTER: []
+10-04 22:27:30.659 D/ControllerInput(31560):    Checking combo reset: isComboButton=true, bothReleased=true
+10-04 22:27:30.659 D/ControllerInput(31560):    ✅ BOTH combo buttons released! comboAlreadyTriggered: true -> false

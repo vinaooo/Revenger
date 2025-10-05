@@ -72,15 +72,21 @@ class ControllerInput(private val context: Context) {
      * A lógica correta de reset está no processKeyEvent() (linhas 293-303)
      */
     fun clearKeyLog() {
-        android.util.Log.d("ControllerInput", "clearKeyLog called - current keyLog: $keyLog")
+        android.util.Log.d("ControllerInput", "")
+        android.util.Log.d("ControllerInput", "🧹 clearKeyLog() CALLED")
+        android.util.Log.d(
+                "ControllerInput",
+                "   BEFORE: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered"
+        )
         keyLog.clear()
         // NÃO resetar comboAlreadyTriggered aqui - deixar o reset natural acontecer
         // quando AMBOS os botões forem fisicamente soltos pelo usuário
         lastComboTriggerTime = 0L // Reset cooldown timer to allow immediate combo detection
         android.util.Log.d(
                 "ControllerInput",
-                "keyLog cleared, cooldown timer reset - comboAlreadyTriggered will reset naturally on ACTION_UP"
+                "   AFTER: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered (kept as-is)"
         )
+        android.util.Log.d("ControllerInput", "")
     }
 
     /** The callback for when the user inputs the menu key-combination */
@@ -143,15 +149,28 @@ class ControllerInput(private val context: Context) {
         // Verificar se temos exatamente os dois botões pressionados
         val hasSelectAndStart = keyLog.containsAll(KEYCOMBO_MENU) && keyLog.size == 2
 
-        // Log para debug
+        // Log para debug - DETALHADO
         android.util.Log.d(
                 "ControllerInput",
-                "checkMenuKeyCombo - keyLog: $keyLog, hasSelectAndStart: $hasSelectAndStart, comboAlreadyTriggered: $comboAlreadyTriggered"
+                "┌─────────────────────────────────────────────────────────"
         )
+        android.util.Log.d("ControllerInput", "│ checkMenuKeyCombo CALLED")
+        android.util.Log.d("ControllerInput", "│ keyLog: $keyLog")
+        android.util.Log.d("ControllerInput", "│ hasSelectAndStart: $hasSelectAndStart")
+        android.util.Log.d("ControllerInput", "│ comboAlreadyTriggered: $comboAlreadyTriggered")
 
         // Verificar cooldown para evitar detecções muito rápidas
         val currentTime = System.currentTimeMillis()
         val timeSinceLastTrigger = currentTime - lastComboTriggerTime
+
+        android.util.Log.d(
+                "ControllerInput",
+                "│ timeSinceLastTrigger: ${timeSinceLastTrigger}ms (cooldown: ${COMBO_COOLDOWN_MS}ms)"
+        )
+        android.util.Log.d(
+                "ControllerInput",
+                "│ shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()}"
+        )
 
         if (hasSelectAndStart &&
                         !comboAlreadyTriggered &&
@@ -159,18 +178,42 @@ class ControllerInput(private val context: Context) {
                         timeSinceLastTrigger > COMBO_COOLDOWN_MS
         ) {
 
-            android.util.Log.d(
-                    "ControllerInput",
-                    "SELECT+START combo detected! Calling selectStartComboCallback"
-            )
+            android.util.Log.d("ControllerInput", "│ ✅ ALL CONDITIONS MET - COMBO DETECTED!")
             comboAlreadyTriggered = true // Mark combo as triggered
             lastComboTriggerTime = currentTime
             selectStartComboCallback()
             android.util.Log.d(
                     "ControllerInput",
-                    "comboAlreadyTriggered set to true, timestamp: $lastComboTriggerTime"
+                    "│ comboAlreadyTriggered NOW: true, timestamp: $lastComboTriggerTime"
             )
+        } else {
+            android.util.Log.d("ControllerInput", "│ ❌ COMBO NOT TRIGGERED - Missing condition:")
+            if (!hasSelectAndStart) {
+                android.util.Log.d("ControllerInput", "│    - hasSelectAndStart = false")
+            }
+            if (comboAlreadyTriggered) {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│    - comboAlreadyTriggered = true (already triggered)"
+                )
+            }
+            if (!shouldHandleSelectStartCombo()) {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│    - shouldHandleSelectStartCombo() = false"
+                )
+            }
+            if (timeSinceLastTrigger <= COMBO_COOLDOWN_MS) {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│    - cooldown active (${timeSinceLastTrigger}ms < ${COMBO_COOLDOWN_MS}ms)"
+                )
+            }
         }
+        android.util.Log.d(
+                "ControllerInput",
+                "└─────────────────────────────────────────────────────────"
+        )
     }
 
     fun processGamePadButtonEvent(keyCode: Int, action: Int) {
@@ -226,8 +269,16 @@ class ControllerInput(private val context: Context) {
      * after menu closes to prevent partial signals
      */
     fun captureKeysOnMenuOpen() {
+        android.util.Log.d(
+                "ControllerInput",
+                "📸 captureKeysOnMenuOpen() - capturing current keyLog: $keyLog"
+        )
         keysToBlockAfterMenuClose.clear()
         keysToBlockAfterMenuClose.addAll(keyLog)
+        android.util.Log.d(
+                "ControllerInput",
+                "   keysToBlockAfterMenuClose: $keysToBlockAfterMenuClose"
+        )
     }
 
     /**
@@ -253,9 +304,26 @@ class ControllerInput(private val context: Context) {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 android.util.Log.d(
                         "ControllerInput",
-                        "START blocked - menu is open, closing menu instead"
+                        "🛑 START pressed while menu open - CLOSING MENU"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   keyLog BEFORE startButtonCallback: $keyLog"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   comboAlreadyTriggered BEFORE: $comboAlreadyTriggered"
                 )
                 startButtonCallback()
+                // 🔧 BUGFIX: Reset comboAlreadyTriggered when START closes menu
+                // At this point we KNOW the user is CLOSING the menu, not trying to open it
+                // So it's safe to reset the flag immediately
+                comboAlreadyTriggered = false
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   ✅ comboAlreadyTriggered reset to false (START closed menu)"
+                )
+                android.util.Log.d("ControllerInput", "   startButtonCallback() completed")
             }
             return true // Consumir o evento, não enviar ao core
         }
@@ -272,8 +340,49 @@ class ControllerInput(private val context: Context) {
         // CRITICAL FIX: Block ACTION_UP for keys that were pressed when menu opened
         // This prevents partial signals (ACTION_UP without ACTION_DOWN) from reaching the core
         if (event.action == KeyEvent.ACTION_UP && keysToBlockAfterMenuClose.contains(keyCode)) {
+            android.util.Log.d(
+                    "ControllerInput",
+                    "🚫 BLOCKING ACTION_UP for keyCode=$keyCode (was in keysToBlockAfterMenuClose)"
+            )
+            android.util.Log.d(
+                    "ControllerInput",
+                    "   keysToBlockAfterMenuClose BEFORE: $keysToBlockAfterMenuClose"
+            )
             keysToBlockAfterMenuClose.remove(keyCode) // Remove after blocking once
             keyLog.remove(keyCode)
+            android.util.Log.d(
+                    "ControllerInput",
+                    "   keysToBlockAfterMenuClose AFTER: $keysToBlockAfterMenuClose"
+            )
+            android.util.Log.d("ControllerInput", "   keyLog AFTER: $keyLog")
+
+            // BUGFIX: Reset combo flag if BOTH combo buttons are released (even when blocked)
+            // This fixes the issue where user needs to press SELECT+START twice after closing menu
+            val isComboButton =
+                    (keyCode == KeyEvent.KEYCODE_BUTTON_START ||
+                            keyCode == KeyEvent.KEYCODE_BUTTON_SELECT)
+            val startNotPressed = !keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)
+            val selectNotPressed = !keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)
+            val bothReleased = startNotPressed && selectNotPressed
+
+            android.util.Log.d(
+                    "ControllerInput",
+                    "   Checking combo reset: isComboButton=$isComboButton, bothReleased=$bothReleased"
+            )
+
+            if (isComboButton && bothReleased) {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   ✅ BOTH combo buttons released! comboAlreadyTriggered: $comboAlreadyTriggered -> false"
+                )
+                comboAlreadyTriggered = false
+            } else {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   ⏳ Waiting for other button (START pressed: ${!startNotPressed}, SELECT pressed: ${!selectNotPressed})"
+                )
+            }
+
             return true // Block this ACTION_UP
         }
 
@@ -283,24 +392,39 @@ class ControllerInput(private val context: Context) {
         when (event.action) {
             KeyEvent.ACTION_DOWN -> {
                 val wasAlreadyPressed = keyLog.contains(keyCode)
+                val keyName =
+                        when (keyCode) {
+                            KeyEvent.KEYCODE_BUTTON_START -> "START"
+                            KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
+                            else -> keyCode.toString()
+                        }
                 keyLog.add(keyCode)
                 android.util.Log.d(
                         "ControllerInput",
-                        "ACTION_DOWN: $keyCode, wasAlreadyPressed: $wasAlreadyPressed, keyLog: $keyLog"
+                        "⬇️ ACTION_DOWN: $keyName ($keyCode), wasAlreadyPressed: $wasAlreadyPressed, keyLog: $keyLog"
                 )
 
                 // Se o botão já estava pressionado, não verificar combo novamente
                 if (wasAlreadyPressed) {
                     android.util.Log.d(
                             "ControllerInput",
-                            "Ignoring repeated ACTION_DOWN for $keyCode"
+                            "   ⚠️ Ignoring repeated ACTION_DOWN for $keyName"
                     )
                     return true // Ignorar evento repetido
                 }
             }
             KeyEvent.ACTION_UP -> {
+                val keyName =
+                        when (keyCode) {
+                            KeyEvent.KEYCODE_BUTTON_START -> "START"
+                            KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
+                            else -> keyCode.toString()
+                        }
                 keyLog.remove(keyCode)
-                android.util.Log.d("ControllerInput", "ACTION_UP: $keyCode, keyLog: $keyLog")
+                android.util.Log.d(
+                        "ControllerInput",
+                        "⬆️ ACTION_UP: $keyName ($keyCode), keyLog: $keyLog"
+                )
 
                 // Reset combo flag ONLY when BOTH combo buttons are released
                 if ((keyCode == KeyEvent.KEYCODE_BUTTON_START ||
@@ -312,7 +436,7 @@ class ControllerInput(private val context: Context) {
                     if (comboAlreadyTriggered) {
                         android.util.Log.d(
                                 "ControllerInput",
-                                "BOTH combo buttons released, resetting comboAlreadyTriggered"
+                                "   ✅ BOTH combo buttons released (normal flow), resetting comboAlreadyTriggered"
                         )
                     }
                     comboAlreadyTriggered = false
