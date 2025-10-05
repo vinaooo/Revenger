@@ -86,6 +86,12 @@ class GameActivityViewModel(application: Application) :
         // Controlar quando START sozinho deve funcionar (apenas quando RetroMenu3 está REALMENTE
         // aberto)
         controllerInput.shouldHandleStartButton = { isRetroMenu3Open() }
+
+        // Controlar quando bloquear TODOS os inputs do gamepad (quando RetroMenu3 estiver aberto)
+        controllerInput.shouldBlockAllGamepadInput = { isRetroMenu3Open() }
+
+        // Controlar se RetroMenu3 está aberto para reset do combo
+        controllerInput.isRetroMenu3Open = { isRetroMenu3Open() }
     }
 
     /** Create an instance of the modern menu overlay (activated by back button) */
@@ -560,6 +566,11 @@ class GameActivityViewModel(application: Application) :
     /** Ativa fast forward usando controller modular */
     fun enableFastForward() {
         retroView?.let { speedController?.enableFastForward(it.view) }
+    }
+
+    /** Clear controller key log (used by RetroMenu3Fragment on destroy) */
+    fun clearControllerKeyLog() {
+        controllerInput.clearKeyLog()
     }
 
     /** Desativa fast forward usando controller modular */

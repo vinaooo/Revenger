@@ -233,6 +233,8 @@ class RetroMenu3Fragment : Fragment() {
     }
 
     private fun dismissMenu() {
+        // IMPORTANTE: Não chamar dismissRetroMenu3() aqui para evitar crashes
+        // Apenas remover o fragment visualmente
         animateMenuOut { parentFragmentManager.beginTransaction().remove(this).commit() }
     }
 
@@ -396,6 +398,20 @@ class RetroMenu3Fragment : Fragment() {
     /** Public method to dismiss the menu from outside */
     fun dismissMenuPublic() {
         dismissMenu()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Garantir que comboAlreadyTriggered seja resetado quando o fragment for destruído
+        try {
+            (menuListener as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)?.let {
+                    viewModel ->
+                // Chamar clearKeyLog através do ViewModel para resetar o estado do combo
+                viewModel.clearControllerKeyLog()
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("RetroMenu3Fragment", "Erro ao resetar combo state no onDestroy", e)
+        }
     }
 
     companion object {

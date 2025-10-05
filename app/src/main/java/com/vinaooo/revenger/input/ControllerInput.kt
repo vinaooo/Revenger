@@ -56,20 +56,8 @@ class ControllerInput(private val context: Context) {
     /**
      * Limpa o keyLog para evitar detecção de combos após fechar o menu.
      *
-     * IMPORTANTE: NÃO reseta comboAlreadyTriggered aqui! O reset de comboAlreadyTriggered deve
-     * acontecer APENAS quando AMBOS os botões do combo (START e SELECT) são fisicamente SOLTOS pelo
-     * usuário (ACTION_UP).
-     *
-     * Isso previne o bug onde:
-     * 1. Menu abre com SELECT+START (comboAlreadyTriggered = true)
-     * 2. START fecha o menu e chama clearKeyLog()
-     * 3. Se resetássemos comboAlreadyTriggered aqui, e o usuário ainda estivesse
-     * ```
-     *    segurando os botões, o ACTION_UP subsequente poderia causar detecções fantasmas
-     * ```
-     * 4. Resultado: usuário precisa apertar SELECT+START DUAS VEZES para reabrir o menu
-     *
-     * A lógica correta de reset está no processKeyEvent() (linhas 293-303)
+     * IMPORTANTE: Reseta comboAlreadyTriggered APENAS se o menu não estiver mais aberto. Se o menu
+     * ainda estiver aberto, mantém o flag para evitar detecções falsas.
      */
     fun clearKeyLog() {
         android.util.Log.d("ControllerInput", "")
@@ -79,12 +67,27 @@ class ControllerInput(private val context: Context) {
                 "   BEFORE: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered"
         )
         keyLog.clear()
-        // NÃO resetar comboAlreadyTriggered aqui - deixar o reset natural acontecer
-        // quando AMBOS os botões forem fisicamente soltos pelo usuário
+
+        // 🔧 FIX: Reset comboAlreadyTriggered apenas se o menu não estiver aberto
+        // Isso previne detecções falsas quando o menu é fechado, mas evita
+        // resetar o flag se o menu ainda estiver aberto (ex: durante operações)
+        if (!isRetroMenu3Open()) {
+            android.util.Log.d(
+                    "ControllerInput",
+                    "   ✅ Menu is closed, resetting comboAlreadyTriggered to prevent double-press bug"
+            )
+            comboAlreadyTriggered = false
+        } else {
+            android.util.Log.d(
+                    "ControllerInput",
+                    "   ⏳ Menu still open, keeping comboAlreadyTriggered=true to prevent false detections"
+            )
+        }
+
         lastComboTriggerTime = 0L // Reset cooldown timer to allow immediate combo detection
         android.util.Log.d(
                 "ControllerInput",
-                "   AFTER: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered (kept as-is)"
+                "   AFTER: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered"
         )
         android.util.Log.d("ControllerInput", "")
     }
@@ -103,6 +106,12 @@ class ControllerInput(private val context: Context) {
 
     /** Function to check if START button alone should trigger callback */
     var shouldHandleStartButton: () -> Boolean = { false }
+
+    /** Function to check if devemos bloquear TODOS os inputs do gamepad */
+    var shouldBlockAllGamepadInput: () -> Boolean = { false }
+
+    /** Function to check if RetroMenu3 is currently open */
+    var isRetroMenu3Open: () -> Boolean = { false }
 
     /** Callbacks para navegação no RetroMenu3 */
     var menuNavigateUpCallback: () -> Unit = {}
@@ -153,22 +162,6 @@ class ControllerInput(private val context: Context) {
         val currentTime = System.currentTimeMillis()
         val timeSinceLastTrigger = currentTime - lastComboTriggerTime
 
-        // 🔧 SAFETY: Auto-reset comboAlreadyTriggered if stuck for too long (5 seconds)
-        // This handles rare edge cases where the flag gets stuck
-        val AUTO_RESET_TIMEOUT = 5000L // 5 seconds
-        if (comboAlreadyTriggered && timeSinceLastTrigger > AUTO_RESET_TIMEOUT) {
-            android.util.Log.w(
-                    "ControllerInput",
-                    "⚠️ AUTO-RESET: comboAlreadyTriggered was stuck for ${timeSinceLastTrigger}ms (>${AUTO_RESET_TIMEOUT}ms)"
-            )
-            android.util.Log.w(
-                    "ControllerInput",
-                    "   This shouldn't happen! Forcing reset to recover from stuck state."
-            )
-            comboAlreadyTriggered = false
-            lastComboTriggerTime = 0L
-        }
-
         // Log para debug - DETALHADO
         android.util.Log.d(
                 "ControllerInput",
@@ -186,6 +179,18 @@ class ControllerInput(private val context: Context) {
                 "ControllerInput",
                 "│ shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()}"
         )
+        android.util.Log.d(
+                "ControllerInput",
+                "│ SELECT pressed: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)}"
+        )
+        android.util.Log.d(
+                "ControllerInput",
+                "│ START pressed: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)}"
+        )
+        android.util.Log.d(
+                "ControllerInput",
+                "│ keyLog.size: ${keyLog.size} (should be 2 for combo)"
+        )
 
         if (hasSelectAndStart &&
                         !comboAlreadyTriggered &&
@@ -194,6 +199,19 @@ class ControllerInput(private val context: Context) {
         ) {
 
             android.util.Log.d("ControllerInput", "│ ✅ ALL CONDITIONS MET - COMBO DETECTED!")
+            android.util.Log.d("ControllerInput", "│    - hasSelectAndStart: $hasSelectAndStart")
+            android.util.Log.d(
+                    "ControllerInput",
+                    "│    - comboAlreadyTriggered: $comboAlreadyTriggered"
+            )
+            android.util.Log.d(
+                    "ControllerInput",
+                    "│    - shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()}"
+            )
+            android.util.Log.d(
+                    "ControllerInput",
+                    "│    - timeSinceLastTrigger: ${timeSinceLastTrigger}ms > ${COMBO_COOLDOWN_MS}ms"
+            )
             comboAlreadyTriggered = true // Mark combo as triggered
             lastComboTriggerTime = currentTime
             android.util.Log.d(
@@ -209,6 +227,15 @@ class ControllerInput(private val context: Context) {
             android.util.Log.d("ControllerInput", "│ ❌ COMBO NOT TRIGGERED - Missing condition:")
             if (!hasSelectAndStart) {
                 android.util.Log.d("ControllerInput", "│    - hasSelectAndStart = false")
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│    - SELECT in keyLog: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)}"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│    - START in keyLog: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)}"
+                )
+                android.util.Log.d("ControllerInput", "│    - keyLog contents: $keyLog")
             }
             if (comboAlreadyTriggered) {
                 android.util.Log.d(
@@ -243,7 +270,7 @@ class ControllerInput(private val context: Context) {
             if (!shouldHandleSelectStartCombo()) {
                 android.util.Log.d(
                         "ControllerInput",
-                        "│    - shouldHandleSelectStartCombo() = false"
+                        "│    - shouldHandleSelectStartCombo() = false (menu already open?)"
                 )
                 android.util.Log.w(
                         "ControllerInput",
@@ -388,6 +415,50 @@ class ControllerInput(private val context: Context) {
             return true // Consumir o evento, não enviar ao core
         }
 
+        // INTERCEPTAR DPAD (KeyEvents) para navegação quando menu estiver aberto
+        if (shouldInterceptDpadForMenu() &&
+                        (keyCode == KeyEvent.KEYCODE_DPAD_UP ||
+                                keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                                keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                                keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
+        ) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "DPAD UP (KeyEvent) intercepted for menu navigation"
+                        )
+                        menuNavigateUpCallback()
+                    }
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "DPAD DOWN (KeyEvent) intercepted for menu navigation"
+                        )
+                        menuNavigateDownCallback()
+                    }
+                    KeyEvent.KEYCODE_DPAD_LEFT -> {
+                        android.util.Log.d("ControllerInput", "DPAD LEFT (KeyEvent) intercepted")
+                    }
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        android.util.Log.d("ControllerInput", "DPAD RIGHT (KeyEvent) intercepted")
+                    }
+                }
+            }
+            return true // Consumir o evento, não enviar ao core
+        }
+
+        // BLOQUEAR COMPLETAMENTE todos os controles quando RetroMenu3 estiver aberto
+        // EXCETO os que já foram tratados acima (START, A, DPAD)
+        if (shouldBlockAllGamepadInput()) {
+            android.util.Log.d(
+                    "ControllerInput",
+                    "🛑 BLOCKING GAMEPAD INPUT - RetroMenu3 is open (keyCode: $keyCode)"
+            )
+            return true // Bloquear completamente, não enviar ao core
+        }
+
         // CRITICAL FIX: Block ACTION_UP for keys that were pressed when menu opened
         // This prevents partial signals (ACTION_UP without ACTION_DOWN) from reaching the core
         if (event.action == KeyEvent.ACTION_UP && keysToBlockAfterMenuClose.contains(keyCode)) {
@@ -521,38 +592,48 @@ class ControllerInput(private val context: Context) {
         /* We're not ready yet! */
         if (retroView.frameRendered.value == false) return null
 
+        // BLOQUEAR COMPLETAMENTE todos os controles quando RetroMenu3 estiver aberto
+        // EXCETO DPAD (AXIS_HAT) que é usado para navegação no menu
+        if (shouldBlockAllGamepadInput()) {
+            // Permitir apenas eventos de DPAD (hat axes) quando menu está aberto
+            val isDpadEvent =
+                    event.getAxisValue(MotionEvent.AXIS_HAT_X) != 0f ||
+                            event.getAxisValue(MotionEvent.AXIS_HAT_Y) != 0f
+
+            if (!isDpadEvent) {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)"
+                )
+                return true // Bloquear motion events não-DPAD quando menu está aberto
+            }
+            // Se é DPAD event, deixar passar para a lógica de navegação abaixo
+        }
+
         // INTERCEPTAR DPAD para navegação no menu quando RetroMenu3 estiver aberto
         if (shouldInterceptDpadForMenu()) {
+            val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
             val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
 
-            // Detectar mudanças no DPAD vertical
-            // Valores: -1 = UP, 0 = CENTER, 1 = DOWN
+            // Lógica simplificada: detectar direção atual do DPAD
             when {
-                hatY == -1.0f && dpadState.up == false -> {
-                    // DPAD UP pressionado (transição de false para true)
-                    dpadState.up = true
-                    android.util.Log.d("ControllerInput", "DPAD UP detected for menu navigation")
+                hatY < -0.5f -> { // DPAD UP
+                    android.util.Log.d("ControllerInput", "DPAD UP pressed for menu navigation")
                     menuNavigateUpCallback()
-                    return true // Consumir evento
+                    return true
                 }
-                hatY == 1.0f && dpadState.down == false -> {
-                    // DPAD DOWN pressionado (transição de false para true)
-                    dpadState.down = true
-                    android.util.Log.d("ControllerInput", "DPAD DOWN detected for menu navigation")
+                hatY > 0.5f -> { // DPAD DOWN
+                    android.util.Log.d("ControllerInput", "DPAD DOWN pressed for menu navigation")
                     menuNavigateDownCallback()
-                    return true // Consumir evento
+                    return true
                 }
-                hatY == 0.0f -> {
-                    // DPAD liberado (CENTER)
-                    if (dpadState.up) {
-                        dpadState.up = false
-                        android.util.Log.d("ControllerInput", "DPAD UP released")
-                    }
-                    if (dpadState.down) {
-                        dpadState.down = false
-                        android.util.Log.d("ControllerInput", "DPAD DOWN released")
-                    }
-                    return true // Consumir evento
+                hatX < -0.5f -> { // DPAD LEFT (se necessário no futuro)
+                    android.util.Log.d("ControllerInput", "DPAD LEFT pressed")
+                    return true
+                }
+                hatX > 0.5f -> { // DPAD RIGHT (se necessário no futuro)
+                    android.util.Log.d("ControllerInput", "DPAD RIGHT pressed")
+                    return true
                 }
             }
         }
