@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ============================================ -->
+    <!-- MODERN MENU - STRINGS EXCLUSIVAS            -->
+    <!-- Todas as strings usadas pelo ModernMenuFragment -->
+    <!-- ============================================ -->
+    
+    <!-- Menu Title -->
+    <string name="game_menu_title">Game Menu</string>
+    
+    <!-- Menu Icon Content Description -->
+    <string name="game_menu_icon">Game menu icon</string>
+    
+    <!-- Toggle Audio Label -->
+    <string name="menu_toggle_audio">Toggle Audio</string>
+    
+    <!-- Menu Options -->
+    <string name="modern_menu_reset">Reset</string>
+    <string name="modern_menu_save_state">Save State</string>
+    <string name="modern_menu_load_state">Load State</string>
+    <string name="modern_menu_fast_forward">Fast Forward</string>
+    <string name="modern_menu_exit">Exit Game</string>
+    
+    <!-- Status Indicators -->
+    <string name="modern_audio_on">Audio: On</string>
+    <string name="modern_audio_off">Audio: Off</string>
+    <string name="modern_save_state_available">Save available</string>
+    <string name="modern_save_state_not_available">No save available</string>
+    <string name="modern_fast_forward_active">Game Speed: Fast</string>
+    <string name="modern_fast_forward_inactive">Game Speed: Normal</string>
+    
+</resources>

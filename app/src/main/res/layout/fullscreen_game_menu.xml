@@ -103,7 +103,7 @@
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_reset_24"
                                     app:tint="?attr/colorOnSurfaceVariant"
-                                    android:contentDescription="@string/menu_reset" />
+                                    android:contentDescription="@string/modern_menu_reset" />
 
                                 <LinearLayout
                                     android:layout_width="0dp"
@@ -115,16 +115,9 @@
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="@string/menu_reset"
+                                        android:text="@string/modern_menu_reset"
                                         android:textAppearance="?attr/textAppearanceBodyLarge"
                                         android:textColor="?attr/colorOnSurface" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/menu_reset_description"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                                 </LinearLayout>
 
@@ -160,7 +153,7 @@
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_save_24"
                                     app:tint="?attr/colorOnSurfaceVariant"
-                                    android:contentDescription="@string/menu_save_state" />
+                                    android:contentDescription="@string/modern_menu_save_state" />
 
                                 <LinearLayout
                                     android:layout_width="0dp"
@@ -172,16 +165,9 @@
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="@string/menu_save_state"
+                                        android:text="@string/modern_menu_save_state"
                                         android:textAppearance="?attr/textAppearanceBodyLarge"
                                         android:textColor="?attr/colorOnSurface" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/menu_save_state_description"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                                 </LinearLayout>
 
@@ -217,8 +203,7 @@
                                     android:layout_width="22dp"
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_load_24"
-                                    app:tint="?attr/colorOnSurfaceVariant"
-                                    android:contentDescription="@string/menu_item_icon_description" />
+                                    app:tint="?attr/colorOnSurfaceVariant" />
 
                                 <LinearLayout
                                     android:layout_width="0dp"
@@ -230,7 +215,7 @@
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="@string/menu_load_state"
+                                        android:text="@string/modern_menu_load_state"
                                         android:textAppearance="?attr/textAppearanceBodyLarge"
                                         android:textColor="?attr/colorOnSurface" />
 
@@ -276,8 +261,7 @@
                                     android:layout_width="22dp"
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_volume_up_24"
-                                    app:tint="?attr/colorOnSurfaceVariant"
-                                    android:contentDescription="@string/menu_item_icon_description" />
+                                    app:tint="?attr/colorOnSurfaceVariant" />
 
                                 <LinearLayout
                                     android:layout_width="0dp"
@@ -343,8 +327,7 @@
                                     android:layout_width="22dp"
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_fast_forward_24"
-                                    app:tint="?attr/colorOnSurfaceVariant"
-                                    android:contentDescription="@string/menu_item_icon_description" />
+                                    app:tint="?attr/colorOnSurfaceVariant" />
 
                                 <LinearLayout
                                     android:layout_width="0dp"
@@ -357,16 +340,9 @@
                                         android:id="@+id/fast_forward_title"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="@string/menu_fast_forward"
+                                        android:text="@string/modern_menu_fast_forward"
                                         android:textAppearance="?attr/textAppearanceBodyLarge"
                                         android:textColor="?attr/colorOnSurface" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/menu_fast_forward_description"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                                 </LinearLayout>
 
@@ -410,7 +386,7 @@
                                     android:layout_height="22dp"
                                     android:src="@drawable/ic_close_24"
                                     app:tint="?attr/colorOnSurfaceVariant"
-                                    android:contentDescription="@string/menu_exit" />
+                                    android:contentDescription="@string/modern_menu_exit" />
 
                                 <LinearLayout
                                     android:layout_width="0dp"
@@ -422,16 +398,9 @@
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="@string/menu_exit"
+                                        android:text="@string/modern_menu_exit"
                                         android:textAppearance="?attr/textAppearanceBodyLarge"
                                         android:textColor="?attr/colorOnSurface" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/menu_exit_description"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                                 </LinearLayout>
 

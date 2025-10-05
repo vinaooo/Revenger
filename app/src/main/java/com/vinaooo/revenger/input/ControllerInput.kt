@@ -54,17 +54,32 @@ class ControllerInput(private val context: Context) {
     private val COMBO_COOLDOWN_MS = 500L // 500ms cooldown between combo detections
 
     /**
-     * Limpa o keyLog para evitar detecção de combos após fechar o menu. CRÍTICO: Deve ser chamado
-     * quando o menu fecha para evitar reabertura imediata.
+     * Limpa o keyLog para evitar detecção de combos após fechar o menu.
+     *
+     * IMPORTANTE: NÃO reseta comboAlreadyTriggered aqui! O reset de comboAlreadyTriggered deve
+     * acontecer APENAS quando AMBOS os botões do combo (START e SELECT) são fisicamente SOLTOS pelo
+     * usuário (ACTION_UP).
+     *
+     * Isso previne o bug onde:
+     * 1. Menu abre com SELECT+START (comboAlreadyTriggered = true)
+     * 2. START fecha o menu e chama clearKeyLog()
+     * 3. Se resetássemos comboAlreadyTriggered aqui, e o usuário ainda estivesse
+     * ```
+     *    segurando os botões, o ACTION_UP subsequente poderia causar detecções fantasmas
+     * ```
+     * 4. Resultado: usuário precisa apertar SELECT+START DUAS VEZES para reabrir o menu
+     *
+     * A lógica correta de reset está no processKeyEvent() (linhas 293-303)
      */
     fun clearKeyLog() {
         android.util.Log.d("ControllerInput", "clearKeyLog called - current keyLog: $keyLog")
         keyLog.clear()
-        comboAlreadyTriggered = false // Reset flag when clearing keyLog
+        // NÃO resetar comboAlreadyTriggered aqui - deixar o reset natural acontecer
+        // quando AMBOS os botões forem fisicamente soltos pelo usuário
         lastComboTriggerTime = 0L // Reset cooldown timer to allow immediate combo detection
         android.util.Log.d(
                 "ControllerInput",
-                "keyLog cleared, combo flag reset, and cooldown timer reset"
+                "keyLog cleared, cooldown timer reset - comboAlreadyTriggered will reset naturally on ACTION_UP"
         )
     }
 

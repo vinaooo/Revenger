@@ -18,8 +18,7 @@
         android:layout_width="@dimen/menu_item_icon_size"
         android:layout_height="@dimen/menu_item_icon_size"
         android:layout_marginEnd="@dimen/menu_item_icon_margin_end"
-        android:contentDescription="@string/menu_item_icon_description"
-    app:tint="?attr/colorPrimary" />
+        app:tint="?attr/colorPrimary" />
 
     <!-- Text Content -->
     <LinearLayout
@@ -66,7 +65,6 @@
         android:layout_height="20dp"
         android:layout_marginStart="8dp"
         android:visibility="gone"
-        android:contentDescription="@string/menu_item_secondary_icon_description"
         app:tint="?attr/colorOnSurfaceVariant" />
 
 </LinearLayout>

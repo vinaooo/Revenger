@@ -154,8 +154,8 @@ class ModernMenuFragment : Fragment() {
         )
         loadStateStatus.text =
                 getString(
-                        if (hasSaveState) R.string.save_state_available
-                        else R.string.save_state_not_available
+                        if (hasSaveState) R.string.modern_save_state_available
+                        else R.string.modern_save_state_not_available
                 )
 
         // Update audio toggle
@@ -164,7 +164,9 @@ class ModernMenuFragment : Fragment() {
                 if (isAudioEnabled) R.drawable.ic_volume_up_24 else R.drawable.ic_volume_off_24
         )
         audioToggleTitle.text =
-                getString(if (isAudioEnabled) R.string.audio_on else R.string.audio_off)
+                getString(
+                        if (isAudioEnabled) R.string.modern_audio_on else R.string.modern_audio_off
+                )
 
         // Update fast forward toggle
         fastForwardSwitch.isChecked = isFastForwardEnabled
@@ -174,8 +176,8 @@ class ModernMenuFragment : Fragment() {
         )
         fastForwardTitle.text =
                 getString(
-                        if (isFastForwardEnabled) R.string.fast_forward_active
-                        else R.string.fast_forward_inactive
+                        if (isFastForwardEnabled) R.string.modern_fast_forward_active
+                        else R.string.modern_fast_forward_inactive
                 )
     }
 
