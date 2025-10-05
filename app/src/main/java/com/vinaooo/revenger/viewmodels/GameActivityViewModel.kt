@@ -23,13 +23,15 @@ import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
+import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
         AndroidViewModel(application),
         ModernMenuFragment.ModernMenuListener,
-        RetroMenu3Fragment.RetroMenu3Listener {
+        RetroMenu3Fragment.RetroMenu3Listener,
+        SettingsMenuFragment.SettingsMenuListener {
 
     private val resources = application.resources
 
@@ -44,6 +46,10 @@ class GameActivityViewModel(application: Application) :
 
     // RetroMenu3 fragment (activated by SELECT+START combo)
     private var retroMenu3Fragment: RetroMenu3Fragment? = null
+
+    // Settings submenu fragment
+    private var settingsMenuFragment: SettingsMenuFragment? = null
+    private var isSettingsMenuActive = false
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput(application.applicationContext)
@@ -76,22 +82,50 @@ class GameActivityViewModel(application: Application) :
         controllerInput.startButtonCallback = { dismissRetroMenu3() }
 
         // Configurar callbacks de navegação para RetroMenu3
-        controllerInput.menuNavigateUpCallback = { retroMenu3Fragment?.navigateUp() }
-        controllerInput.menuNavigateDownCallback = { retroMenu3Fragment?.navigateDown() }
-        controllerInput.menuConfirmCallback = { retroMenu3Fragment?.confirmSelection() }
+        controllerInput.menuNavigateUpCallback = {
+            if (isSettingsMenuActive) {
+                settingsMenuFragment?.navigateUp()
+            } else {
+                retroMenu3Fragment?.navigateUp()
+            }
+        }
+        controllerInput.menuNavigateDownCallback = {
+            if (isSettingsMenuActive) {
+                settingsMenuFragment?.navigateDown()
+            } else {
+                retroMenu3Fragment?.navigateDown()
+            }
+        }
+        controllerInput.menuConfirmCallback = {
+            if (isSettingsMenuActive) {
+                settingsMenuFragment?.confirmSelection()
+            } else {
+                retroMenu3Fragment?.confirmSelection()
+            }
+        }
+        controllerInput.menuBackCallback = {
+            if (isSettingsMenuActive) {
+                // Se estamos no submenu, voltar ao menu principal
+                dismissSettingsMenu()
+            } else if (isRetroMenu3Open()) {
+                // Se estamos no menu principal, fechar o menu e voltar ao jogo
+                dismissRetroMenu3()
+            }
+        }
 
         // Controlar quando interceptar DPAD para menu
-        controllerInput.shouldInterceptDpadForMenu = { isRetroMenu3Open() }
+        controllerInput.shouldInterceptDpadForMenu = { isRetroMenu3Open() || isSettingsMenuActive }
 
-        // Controlar quando START sozinho deve funcionar (apenas quando RetroMenu3 está REALMENTE
-        // aberto)
-        controllerInput.shouldHandleStartButton = { isRetroMenu3Open() }
+        // Controlar quando START sozinho deve funcionar (apenas quando RetroMenu3 ou SettingsMenu
+        // estiver REALMENTE aberto)
+        controllerInput.shouldHandleStartButton = { isRetroMenu3Open() || isSettingsMenuActive }
 
-        // Controlar quando bloquear TODOS os inputs do gamepad (quando RetroMenu3 estiver aberto)
-        controllerInput.shouldBlockAllGamepadInput = { isRetroMenu3Open() }
+        // Controlar quando bloquear TODOS os inputs do gamepad (quando RetroMenu3 ou SettingsMenu
+        // estiver aberto)
+        controllerInput.shouldBlockAllGamepadInput = { isRetroMenu3Open() || isSettingsMenuActive }
 
-        // Controlar se RetroMenu3 está aberto para reset do combo
-        controllerInput.isRetroMenu3Open = { isRetroMenu3Open() }
+        // Controlar se RetroMenu3 ou SettingsMenu está aberto para reset do combo
+        controllerInput.isRetroMenu3Open = { isRetroMenu3Open() || isSettingsMenuActive }
     }
 
     /** Create an instance of the modern menu overlay (activated by back button) */
@@ -223,6 +257,36 @@ class GameActivityViewModel(application: Application) :
         return retroMenu3Fragment?.isAdded == true
     }
 
+    /** Check if the Settings submenu is currently open */
+    fun isSettingsMenuOpen(): Boolean {
+        val isOpen = settingsMenuFragment != null
+        if (settingsMenuFragment != null) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "isSettingsMenuOpen check: fragment=${settingsMenuFragment}, isAdded=${settingsMenuFragment?.isAdded}, result=$isOpen"
+            )
+        }
+        return isOpen
+    }
+
+    /** Dismiss the Settings submenu */
+    fun dismissSettingsMenu() {
+        settingsMenuFragment?.dismissMenuPublic()
+        // Clear keyLog to prevent phantom key presses
+        controllerInput.clearKeyLog()
+        // Clear blocked keys after menu dismissal
+        controllerInput.clearBlockedKeysDelayed()
+        // Clear the fragment reference and flag
+        settingsMenuFragment = null
+        isSettingsMenuActive = false
+    }
+
+    /** Register the SettingsMenuFragment when it's created */
+    fun registerSettingsMenuFragment(fragment: SettingsMenuFragment) {
+        settingsMenuFragment = fragment
+        isSettingsMenuActive = true
+    }
+
     // Implementation of GameMenuBottomSheet.GameMenuListener interface
     override fun onResetGame() {
         // Legacy method - now using resetGameCentralized() instead
@@ -305,6 +369,19 @@ class GameActivityViewModel(application: Application) :
     }
 
     override fun hasSaveState(): Boolean = retroViewUtils?.hasSaveState() == true
+
+    // Implementation of SettingsMenuFragment.SettingsMenuListener interface
+    override fun onBackToMainMenu() {
+        android.util.Log.d("GameActivityViewModel", "onBackToMainMenu: Starting to show main menu")
+        // Fechar o submenu de configurações primeiro
+        dismissSettingsMenu()
+        // Depois tornar o menu principal visível novamente
+        retroMenu3Fragment?.showMainMenu()
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onBackToMainMenu: Main menu should be visible now"
+        )
+    }
 
     /**
      * Centralized load state implementation with improved debugging CORREÇÃO: Despausa

@@ -117,6 +117,7 @@ class ControllerInput(private val context: Context) {
     var menuNavigateUpCallback: () -> Unit = {}
     var menuNavigateDownCallback: () -> Unit = {}
     var menuConfirmCallback: () -> Unit = {}
+    var menuBackCallback: () -> Unit = {}
 
     /** Function to check if devemos interceptar DPAD para menu */
     var shouldInterceptDpadForMenu: () -> Boolean = { false }
@@ -411,6 +412,15 @@ class ControllerInput(private val context: Context) {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 android.util.Log.d("ControllerInput", "BUTTON_A intercepted for menu confirmation")
                 menuConfirmCallback()
+            }
+            return true // Consumir o evento, não enviar ao core
+        }
+
+        // INTERCEPTAR BOTÃO B para voltar quando menu estiver aberto
+        if (keyCode == KeyEvent.KEYCODE_BUTTON_B && shouldInterceptDpadForMenu()) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                android.util.Log.d("ControllerInput", "BUTTON_B intercepted for menu back")
+                menuBackCallback()
             }
             return true // Consumir o evento, não enviar ao core
         }
