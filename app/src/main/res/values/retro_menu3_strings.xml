@@ -7,13 +7,17 @@
     
     <!-- Menu Title -->
     <string name="retro_menu3_title">Game Menu</string>
-    
+    <!-- Title style: 
+            0 = use retro_menu3_title
+            1 = use config_name from config.xml -->
+    <integer name="retro_menu3_title_style">1</integer>
+
     <!-- Selection Arrow -->
     <string name="retro_menu3_selection_arrow">&gt;</string>
     
     <!-- Menu Options -->
-    <string name="menu_continue">Continue</string>
-    <string name="menu_reset">Reset</string>
+    <string name="menu_continue">Resume</string>
+    <string name="menu_reset">Restart</string>
     <string name="menu_save_state">Save State</string>
     <string name="menu_load_state">Load State</string>
     <string name="menu_settings">Settings</string>
@@ -35,10 +39,8 @@
     <string name="settings_controls">Controls</string>
     <string name="settings_back">Back</string>
 
-    <!-- Submenu1 -->
-    <string name="submenu1_title">Progress</string>
-    <string name="submenu1_option1">Option 1</string>
-    <string name="submenu1_option2">Option 2</string>
+    <!-- Progress Menu -->
+    <string name="progress_menu_title">Progress</string>
 
     <!-- Exit Menu -->
     <string name="submenu2_title">Exit</string>

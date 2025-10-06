@@ -92,12 +92,30 @@ class RetroMenu3Fragment : Fragment() {
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
         setupViews(view)
+        setupDynamicTitle()
         setupClickListeners()
         updateMenuState()
         animateMenuIn()
 
         // REMOVIDO: Não fecha mais ao tocar nas laterais
         // Menu só fecha quando pressionar START novamente ou selecionar Continue
+    }
+
+    private fun setupDynamicTitle() {
+        val titleTextView = view?.findViewById<TextView>(R.id.menu_title)
+
+        val titleStyle = resources.getInteger(R.integer.retro_menu3_title_style)
+
+        val titleText =
+                when (titleStyle) {
+                    1 -> {
+                        resources.getString(R.string.config_name)
+                    }
+                    else -> {
+                        resources.getString(R.string.retro_menu3_title)
+                    }
+                }
+        titleTextView?.text = titleText
     }
 
     private fun setupViews(view: View) {
@@ -118,7 +136,7 @@ class RetroMenu3Fragment : Fragment() {
         // Initialize menu option titles
         continueTitle = view.findViewById(R.id.continue_title)
         resetTitle = view.findViewById(R.id.reset_title)
-        progressTitle = view.findViewById(R.id.submenu1_title)
+        progressTitle = view.findViewById(R.id.progress_menu_title)
         settingsTitle = view.findViewById(R.id.settings_title)
         submenu2Title = view.findViewById(R.id.submenu2_title)
 

@@ -206,10 +206,10 @@
                                 android:layout_weight="1"
                                 android:orientation="vertical">
                                 <TextView
-                                    android:id="@+id/submenu1_title"
+                                    android:id="@+id/progress_menu_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/submenu1_title"
+                                    android:text="@string/progress_menu_title"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
                                     android:fontFamily="@font/arcade_normal"
