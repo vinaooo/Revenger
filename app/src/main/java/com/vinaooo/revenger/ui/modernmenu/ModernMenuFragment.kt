@@ -1,4 +1,4 @@
-package com.vinaooo.revenger.ui.menu
+package com.vinaooo.revenger.ui.modernmenu
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,12 +8,20 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/** Fullscreen overlay Fragment that provides better touch handling across entire screen */
-class GameMenuFullscreenFragment : Fragment() {
+/**
+ * Modern menu Fragment activated by Android back button - fullscreen overlay with better touch
+ * handling
+ */
+class ModernMenuFragment : Fragment() {
+
+    // Get ViewModel reference for centralized methods
+    private lateinit var viewModel: GameActivityViewModel
 
     // Menu item views
     private lateinit var menuContainer: MaterialCardView
@@ -36,7 +44,7 @@ class GameMenuFullscreenFragment : Fragment() {
     private lateinit var fastForwardSwitch: MaterialSwitch
 
     // Callback interface
-    interface GameMenuListener {
+    interface ModernMenuListener {
         fun onResetGame()
         fun onSaveState()
         fun onLoadState()
@@ -48,9 +56,9 @@ class GameMenuFullscreenFragment : Fragment() {
         fun hasSaveState(): Boolean
     }
 
-    private var menuListener: GameMenuListener? = null
+    private var menuListener: ModernMenuListener? = null
 
-    fun setMenuListener(listener: GameMenuListener) {
+    fun setMenuListener(listener: ModernMenuListener) {
         this.menuListener = listener
     }
 
@@ -64,6 +72,9 @@ class GameMenuFullscreenFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Initialize ViewModel
+        viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
         setupViews(view)
         setupClickListeners()
@@ -103,21 +114,16 @@ class GameMenuFullscreenFragment : Fragment() {
 
     private fun setupClickListeners() {
         resetMenu.setOnClickListener {
-            menuListener?.onResetGame()
-            animateMenuOut { dismissMenu() }
+            // Use centralized implementation
+            viewModel.resetGameCentralized { animateMenuOut { dismissMenu() } }
         }
 
         saveStateMenu.setOnClickListener {
-            menuListener?.onSaveState()
-            animateMenuOut { dismissMenu() }
+            // Use centralized implementation - no need for animateMenuOut since it's built-in
+            viewModel.saveStateCentralized { dismissMenu() }
         }
 
-        loadStateMenu.setOnClickListener {
-            if (menuListener?.hasSaveState() == true) {
-                menuListener?.onLoadState()
-                animateMenuOut { dismissMenu() }
-            }
-        }
+        loadStateMenu.setOnClickListener { viewModel.loadStateCentralized { dismissMenu() } }
 
         audioToggleMenu.setOnClickListener {
             menuListener?.onToggleAudio()
@@ -148,8 +154,8 @@ class GameMenuFullscreenFragment : Fragment() {
         )
         loadStateStatus.text =
                 getString(
-                        if (hasSaveState) R.string.save_state_available
-                        else R.string.save_state_not_available
+                        if (hasSaveState) R.string.modern_save_state_available
+                        else R.string.modern_save_state_not_available
                 )
 
         // Update audio toggle
@@ -158,7 +164,9 @@ class GameMenuFullscreenFragment : Fragment() {
                 if (isAudioEnabled) R.drawable.ic_volume_up_24 else R.drawable.ic_volume_off_24
         )
         audioToggleTitle.text =
-                getString(if (isAudioEnabled) R.string.audio_on else R.string.audio_off)
+                getString(
+                        if (isAudioEnabled) R.string.modern_audio_on else R.string.modern_audio_off
+                )
 
         // Update fast forward toggle
         fastForwardSwitch.isChecked = isFastForwardEnabled
@@ -168,8 +176,8 @@ class GameMenuFullscreenFragment : Fragment() {
         )
         fastForwardTitle.text =
                 getString(
-                        if (isFastForwardEnabled) R.string.fast_forward_active
-                        else R.string.fast_forward_inactive
+                        if (isFastForwardEnabled) R.string.modern_fast_forward_active
+                        else R.string.modern_fast_forward_inactive
                 )
     }
 
@@ -211,8 +219,8 @@ class GameMenuFullscreenFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(): GameMenuFullscreenFragment {
-            return GameMenuFullscreenFragment()
+        fun newInstance(): ModernMenuFragment {
+            return ModernMenuFragment()
         }
     }
 }

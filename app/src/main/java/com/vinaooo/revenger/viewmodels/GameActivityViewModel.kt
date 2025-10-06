@@ -3,7 +3,10 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Activity
 import android.app.Application
 import android.content.pm.ActivityInfo
+import android.os.Handler
+import android.os.Looper
 import android.view.*
+import android.view.KeyEvent
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
@@ -12,16 +15,26 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.controllers.AudioController
+import com.vinaooo.revenger.controllers.SpeedController
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
-import com.vinaooo.revenger.ui.menu.GameMenuFullscreenFragment
+import com.vinaooo.revenger.ui.modernmenu.ModernMenuFragment
+import com.vinaooo.revenger.ui.retromenu3.ExitFragment
+import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
+import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
+import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
-        AndroidViewModel(application), GameMenuFullscreenFragment.GameMenuListener {
+        AndroidViewModel(application),
+        ModernMenuFragment.ModernMenuListener,
+        RetroMenu3Fragment.RetroMenu3Listener,
+        SettingsMenuFragment.SettingsMenuListener {
+
     private val resources = application.resources
 
     var retroView: RetroView? = null
@@ -30,11 +43,35 @@ class GameActivityViewModel(application: Application) :
     private var leftGamePad: GamePad? = null
     private var rightGamePad: GamePad? = null
 
-    // Replace with new GameMenuFullscreenFragment
-    private var gameMenuFragment: GameMenuFullscreenFragment? = null
+    // Modern menu fragment (activated by Android back button)
+    private var modernMenuFragment: ModernMenuFragment? = null
+
+    // RetroMenu3 fragment (activated by SELECT+START combo)
+    private var retroMenu3Fragment: RetroMenu3Fragment? = null
+
+    // Settings submenu fragment
+    private var settingsMenuFragment: SettingsMenuFragment? = null
+    private var isSettingsMenuActive = false
+
+    // New submenu fragments
+    private var progressFragment: ProgressFragment? = null
+    private var isProgressActive = false
+    private var exitFragment: ExitFragment? = null
+    private var isExitActive = false
+
+    // Flag to prevent showing main menu when dismissing all menus at once
+    private var isDismissingAllMenus = false
 
     private var compositeDisposable = CompositeDisposable()
-    private val controllerInput = ControllerInput()
+    private val controllerInput = ControllerInput(application.applicationContext)
+
+    // Controllers modulares
+    private var audioController: AudioController? = null
+    private var speedController: SpeedController? = null
+    private var sharedPreferences: android.content.SharedPreferences? = null
+
+    // Flag to prevent tempState from overwriting a manual Load State
+    private var skipNextTempStateLoad = false
 
     init {
         // Set the callback to check if SELECT+START combo should work
@@ -49,17 +86,97 @@ class GameActivityViewModel(application: Application) :
                 showMenu(activity)
             }
         }
+
+        // Configure RetroMenu3 callback for SELECT+START combo
+        controllerInput.selectStartComboCallback = { showRetroMenu3(activity) }
+
+        // Configure START button callback to close ALL menus (submenus first, then main menu)
+        controllerInput.startButtonCallback = { dismissAllMenus() }
+
+        // Configurar callbacks de navegação para RetroMenu3
+        controllerInput.menuNavigateUpCallback = {
+            when {
+                isProgressActive -> progressFragment?.navigateUp()
+                isExitActive -> exitFragment?.navigateUp()
+                isSettingsMenuActive -> settingsMenuFragment?.navigateUp()
+                else -> retroMenu3Fragment?.navigateUp()
+            }
+        }
+        controllerInput.menuNavigateDownCallback = {
+            when {
+                isProgressActive -> progressFragment?.navigateDown()
+                isExitActive -> exitFragment?.navigateDown()
+                isSettingsMenuActive -> settingsMenuFragment?.navigateDown()
+                else -> retroMenu3Fragment?.navigateDown()
+            }
+        }
+        controllerInput.menuConfirmCallback = {
+            when {
+                isProgressActive -> progressFragment?.confirmSelection()
+                isExitActive -> exitFragment?.confirmSelection()
+                isSettingsMenuActive -> settingsMenuFragment?.confirmSelection()
+                else -> retroMenu3Fragment?.confirmSelection()
+            }
+        }
+        controllerInput.menuBackCallback = {
+            when {
+                isProgressActive -> dismissProgress()
+                isExitActive -> dismissExit()
+                isSettingsMenuActive -> dismissSettingsMenu()
+                isRetroMenu3Open() -> {
+                    dismissRetroMenu3()
+                    // Only restore game speed when closing the main menu (RetroMenu3), not when
+                    // going back from submenus
+                    restoreGameSpeedFromPreferences()
+                }
+            }
+        }
+
+        // Controlar quando interceptar DPAD para menu
+        controllerInput.shouldInterceptDpadForMenu = {
+            isRetroMenu3Open() || isSettingsMenuActive || isProgressActive || isExitActive
+        }
+
+        // Controlar quando START sozinho deve funcionar (apenas quando RetroMenu3 ou SettingsMenu
+        // estiver REALMENTE aberto)
+        controllerInput.shouldHandleStartButton = {
+            isRetroMenu3Open() || isSettingsMenuActive || isProgressActive || isExitActive
+        }
+
+        // Controlar quando bloquear TODOS os inputs do gamepad (quando RetroMenu3 ou SettingsMenu
+        // estiver aberto)
+        controllerInput.shouldBlockAllGamepadInput = {
+            isRetroMenu3Open() || isSettingsMenuActive || isProgressActive || isExitActive
+        }
+
+        // Controlar se RetroMenu3 ou SettingsMenu está aberto para reset do combo
+        controllerInput.isRetroMenu3Open = {
+            isRetroMenu3Open() || isSettingsMenuActive || isProgressActive || isExitActive
+        }
     }
 
-    /** Create an instance of the fullscreen game menu overlay */
+    /** Create an instance of the modern menu overlay (activated by back button) */
     fun prepareMenu(activity: ComponentActivity) {
-        if (gameMenuFragment != null) return
+        if (modernMenuFragment != null) return
 
         val fragmentActivity = activity as? FragmentActivity ?: return
         setupMenuCallback(fragmentActivity)
 
-        gameMenuFragment =
-                GameMenuFullscreenFragment.newInstance().apply {
+        modernMenuFragment =
+                ModernMenuFragment.newInstance().apply {
+                    setMenuListener(this@GameActivityViewModel)
+                }
+
+        // Preparar também o RetroMenu3
+        prepareRetroMenu3(activity)
+    }
+
+    /** Create an instance of the RetroMenu3 overlay (activated by SELECT+START) */
+    fun prepareRetroMenu3(activity: ComponentActivity) {
+        if (retroMenu3Fragment != null) return
+
+        retroMenu3Fragment =
+                RetroMenu3Fragment.newInstance().apply {
                     setMenuListener(this@GameActivityViewModel)
                 }
     }
@@ -67,17 +184,20 @@ class GameActivityViewModel(application: Application) :
     /** Show the fullscreen game menu */
     fun showMenu(activity: FragmentActivity) {
         if (retroView?.frameRendered?.value == true) {
+            // CRITICAL: Capture currently pressed keys BEFORE showing menu
+            controllerInput.captureKeysOnMenuOpen()
+
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
 
-            // Show new fullscreen game menu
-            gameMenuFragment?.let { menu ->
+            // Show new modern menu
+            modernMenuFragment?.let { menu ->
                 if (!menu.isAdded) {
                     activity.supportFragmentManager
                             .beginTransaction()
                             .add(
                                     android.R.id.content,
                                     menu,
-                                    GameMenuFullscreenFragment::class.java.simpleName
+                                    ModernMenuFragment::class.java.simpleName
                             )
                             .commit()
                 }
@@ -85,43 +205,341 @@ class GameActivityViewModel(application: Application) :
         }
     }
 
-    /** Dismiss the fullscreen menu */
-    fun dismissMenu() {
-        gameMenuFragment?.dismissMenuPublic()
+    /** Show the RetroMenu3 (activated by SELECT+START combo) */
+    fun showRetroMenu3(activity: FragmentActivity) {
+        android.util.Log.d("GameActivityViewModel", "showRetroMenu3 called!")
+
+        // CRITICAL: Prevent multiple calls if menu is already open
+        if (isRetroMenu3Open()) {
+            android.util.Log.d("GameActivityViewModel", "RetroMenu3 already open, ignoring call")
+            return
+        }
+
+        if (retroView?.frameRendered?.value == true) {
+            // CRITICAL: Capture currently pressed keys BEFORE showing menu
+            controllerInput.captureKeysOnMenuOpen()
+
+            retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
+
+            // PAUSE the game when menu opens
+            retroView?.let { speedController?.pause(it.view) }
+
+            // Show RetroMenu3
+            retroMenu3Fragment?.let { menu ->
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "RetroMenu3Fragment is available, showing it"
+                )
+                if (!menu.isAdded) {
+                    activity.supportFragmentManager
+                            .beginTransaction()
+                            .add(
+                                    android.R.id.content,
+                                    menu,
+                                    RetroMenu3Fragment::class.java.simpleName
+                            )
+                            .commit()
+                } else {
+                    android.util.Log.d("GameActivityViewModel", "RetroMenu3Fragment already added!")
+                }
+            }
+                    ?: android.util.Log.e("GameActivityViewModel", "RetroMenu3Fragment is NULL!")
+        } else {
+            android.util.Log.e(
+                    "GameActivityViewModel",
+                    "retroView not ready or frameRendered = false"
+            )
+        }
     }
 
-    /** Check if the menu is currently open */
+    /** Dismiss the modern menu */
+    fun dismissMenu() {
+        modernMenuFragment?.dismissMenuPublic()
+        // CRITICAL: Clear blocked keys after menu dismissal
+        controllerInput.clearBlockedKeysDelayed()
+    }
+
+    /** Dismiss the RetroMenu3 */
+    fun dismissRetroMenu3() {
+        retroMenu3Fragment?.dismissMenuPublic()
+        // CRITICAL: Clear keyLog to prevent phantom key presses
+        controllerInput.clearKeyLog()
+        // CRITICAL: Clear blocked keys after menu dismissal
+        controllerInput.clearBlockedKeysDelayed()
+    }
+
+    /**
+     * Limpa apenas os estados do controlador sem fechar o fragment Usado quando o fragment fecha
+     * por conta própria (ex: botão Continue)
+     */
+    fun clearControllerInputState() {
+        controllerInput.clearKeyLog()
+        controllerInput.clearBlockedKeysDelayed()
+    }
+
+    /** Check if the modern menu is currently open */
     fun isMenuOpen(): Boolean {
-        return gameMenuFragment?.isAdded == true
+        return modernMenuFragment?.isAdded == true
+    }
+
+    /** Check if the RetroMenu3 is currently open */
+    fun isRetroMenu3Open(): Boolean {
+        return retroMenu3Fragment?.isAdded == true
+    }
+
+    /** Check if the Settings submenu is currently open */
+    fun isSettingsMenuOpen(): Boolean {
+        val isOpen = settingsMenuFragment != null
+        if (settingsMenuFragment != null) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "isSettingsMenuOpen check: fragment=${settingsMenuFragment}, isAdded=${settingsMenuFragment?.isAdded}, result=$isOpen"
+            )
+        }
+        return isOpen
+    }
+
+    /** Dismiss the Settings submenu */
+    fun dismissSettingsMenu() {
+        android.util.Log.d("GameActivityViewModel", "dismissSettingsMenu: Starting")
+
+        // IMPORTANTE: Como o SettingsMenuFragment foi adicionado ao back stack,
+        // devemos usar popBackStack() ao invés de remove() manual
+        // Isso garante que o FragmentManager gerencia corretamente a hierarquia
+
+        // Verificar se há algo no back stack antes de tentar remover
+        val activity = settingsMenuFragment?.activity as? FragmentActivity
+        if (activity != null) {
+            val fragmentManager = activity.supportFragmentManager
+            val backStackCount = fragmentManager.backStackEntryCount
+
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "dismissSettingsMenu: backStackCount = $backStackCount"
+            )
+
+            if (backStackCount > 0) {
+                // Usar popBackStack para remover o SettingsMenuFragment corretamente
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "dismissSettingsMenu: Calling popBackStackImmediate()"
+                )
+                fragmentManager.popBackStackImmediate()
+            } else {
+                android.util.Log.w(
+                        "GameActivityViewModel",
+                        "dismissSettingsMenu: Back stack is empty, nothing to pop"
+                )
+            }
+        }
+
+        // Clear keyLog to prevent phantom key presses
+        controllerInput.clearKeyLog()
+        // Clear blocked keys after menu dismissal
+        controllerInput.clearBlockedKeysDelayed()
+        // Clear the fragment reference and flag
+        settingsMenuFragment = null
+        isSettingsMenuActive = false
+
+        android.util.Log.d("GameActivityViewModel", "dismissSettingsMenu: Completed")
+    }
+
+    /** Dismiss the Progress submenu */
+    fun dismissProgress() {
+        android.util.Log.d("GameActivityViewModel", "dismissProgress: Starting")
+
+        // IMPORTANTE: Como o ProgressFragment foi adicionado ao back stack,
+        // devemos usar popBackStack() ao invés de remove() manual
+        // Isso garante que o FragmentManager gerencia corretamente a hierarquia
+
+        // Verificar se há algo no back stack antes de tentar remover
+        val activity = progressFragment?.activity as? FragmentActivity
+        if (activity != null) {
+            val fragmentManager = activity.supportFragmentManager
+            val backStackCount = fragmentManager.backStackEntryCount
+
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "dismissProgress: backStackCount = $backStackCount"
+            )
+
+            if (backStackCount > 0) {
+                // Usar popBackStack para remover o ProgressFragment corretamente
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "dismissProgress: Calling popBackStackImmediate()"
+                )
+                fragmentManager.popBackStackImmediate()
+            } else {
+                android.util.Log.w(
+                        "GameActivityViewModel",
+                        "dismissProgress: Back stack is empty, nothing to pop"
+                )
+            }
+        }
+
+        // Clear keyLog to prevent phantom key presses
+        controllerInput.clearKeyLog()
+        // Clear blocked keys after menu dismissal
+        controllerInput.clearBlockedKeysDelayed()
+        // Clear the fragment reference and flag
+        progressFragment = null
+        isProgressActive = false
+
+        android.util.Log.d("GameActivityViewModel", "dismissProgress: Completed")
+    }
+
+    /** Dismiss the Exit submenu */
+    fun dismissExit() {
+        android.util.Log.d("GameActivityViewModel", "dismissExit: Starting")
+
+        // IMPORTANTE: Como o ExitFragment foi adicionado ao back stack,
+        // devemos usar popBackStack() ao invés de remove() manual
+        // Isso garante que o FragmentManager gerencia corretamente a hierarquia
+
+        // Verificar se há algo no back stack antes de tentar remover
+        val activity = exitFragment?.activity as? FragmentActivity
+        if (activity != null) {
+            val fragmentManager = activity.supportFragmentManager
+            val backStackCount = fragmentManager.backStackEntryCount
+
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "dismissExit: backStackCount = $backStackCount"
+            )
+
+            if (backStackCount > 0) {
+                // Usar popBackStack para remover o ExitFragment corretamente
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "dismissExit: Calling popBackStackImmediate()"
+                )
+                fragmentManager.popBackStackImmediate()
+            } else {
+                android.util.Log.w(
+                        "GameActivityViewModel",
+                        "dismissExit: Back stack is empty, nothing to pop"
+                )
+            }
+        }
+
+        // Clear keyLog to prevent phantom key presses
+        controllerInput.clearKeyLog()
+        // Clear blocked keys after menu dismissal
+        controllerInput.clearBlockedKeysDelayed()
+        // Clear the fragment reference and flag
+        exitFragment = null
+        isExitActive = false
+
+        android.util.Log.d("GameActivityViewModel", "dismissExit: Completed")
+    }
+
+    /** Dismiss ALL menus in cascade order (submenus first, then main menu) */
+    fun dismissAllMenus() {
+        android.util.Log.d("GameActivityViewModel", "dismissAllMenus: Starting cascade dismissal")
+
+        // Set flag to prevent showing main menu when submenus are dismissed
+        isDismissingAllMenus = true
+
+        // Dismiss submenus first (in reverse order of opening)
+        if (isExitActive) {
+            android.util.Log.d("GameActivityViewModel", "dismissAllMenus: Dismissing Exit submenu")
+            dismissExit()
+        }
+        if (isProgressActive) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "dismissAllMenus: Dismissing Progress submenu"
+            )
+            dismissProgress()
+        }
+        if (isSettingsMenuActive) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "dismissAllMenus: Dismissing Settings submenu"
+            )
+            dismissSettingsMenu()
+        }
+
+        // Finally dismiss the main RetroMenu3
+        if (isRetroMenu3Open()) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "dismissAllMenus: Dismissing main RetroMenu3"
+            )
+            dismissRetroMenu3()
+        }
+
+        // Restore game speed from sharedpreferences when exiting menu with Start
+        restoreGameSpeedFromPreferences()
+
+        // Reset flag after all menus are dismissed
+        isDismissingAllMenus = false
+
+        android.util.Log.d("GameActivityViewModel", "dismissAllMenus: Cascade dismissal completed")
+    }
+
+    /** Restore game speed from sharedpreferences when exiting menu with Start */
+    fun restoreGameSpeedFromPreferences() {
+        retroView?.let { retroView ->
+            // Get saved game speed from sharedpreferences
+            val savedSpeed =
+                    sharedPreferences?.getInt(
+                            getApplication<Application>().getString(R.string.pref_frame_speed),
+                            1
+                    )
+                            ?: 1
+
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "restoreGameSpeedFromPreferences: Setting frameSpeed to $savedSpeed"
+            )
+
+            // Apply the saved speed (1 for Normal, 2+ for Fast)
+            retroView.view.frameSpeed = savedSpeed
+        }
+    }
+
+    /** Register the SettingsMenuFragment when it's created */
+    fun registerSettingsMenuFragment(fragment: SettingsMenuFragment) {
+        settingsMenuFragment = fragment
+        isSettingsMenuActive = true
+    }
+
+    /** Register the ProgressFragment when it's created */
+    fun registerProgressFragment(fragment: ProgressFragment) {
+        progressFragment = fragment
+        isProgressActive = true
+    }
+
+    /** Register the ExitFragment when it's created */
+    fun registerExitFragment(fragment: ExitFragment) {
+        exitFragment = fragment
+        isExitActive = true
     }
 
     // Implementation of GameMenuBottomSheet.GameMenuListener interface
     override fun onResetGame() {
-        retroView?.view?.reset()
+        // Legacy method - now using resetGameCentralized() instead
+        // Kept for interface compatibility but should not be called
     }
 
     override fun onSaveState() {
-        retroView?.let { retroViewUtils?.saveState(it) }
+        // Legacy method - now using saveStateCentralized() instead
+        // Kept for interface compatibility but should not be called
     }
 
     override fun onLoadState() {
-        retroView?.let { retroViewUtils?.loadState(it) }
+        // Legacy method - now using loadStateCentralized() instead
+        // Kept for interface compatibility but should not be called
     }
 
     override fun onToggleAudio() {
-        retroView?.let {
-            it.view.audioEnabled = !it.view.audioEnabled
-            // Save the new audio state immediately
-            retroViewUtils?.preserveEmulatorState(it)
-        }
+        retroView?.let { audioController?.toggleAudio(it.view) }
     }
 
     override fun onFastForward() {
-        retroView?.let {
-            retroViewUtils?.fastForward(it)
-            // Save the new speed state immediately
-            retroViewUtils?.preserveEmulatorState(it)
-        }
+        retroView?.let { speedController?.toggleFastForward(it.view) }
     }
 
     override fun onExitGame(activity: FragmentActivity) {
@@ -137,9 +555,10 @@ class GameActivityViewModel(application: Application) :
                         .setPositiveButton(R.string.exit_game_save_and_exit) {
                                 _: android.content.DialogInterface,
                                 _: Int ->
-                            // Save state and then exit
-                            onSaveState()
-                            android.os.Process.killProcess(android.os.Process.myPid())
+                            // Save state and then exit (using centralized method)
+                            saveStateCentralized {
+                                android.os.Process.killProcess(android.os.Process.myPid())
+                            }
                         }
                         .setNegativeButton(R.string.exit_game_exit_without_save) {
                                 _: android.content.DialogInterface,
@@ -171,15 +590,131 @@ class GameActivityViewModel(application: Application) :
     }
 
     override fun getAudioState(): Boolean {
-        return retroViewUtils?.getAudioState() ?: true
+        // Se o controller já foi inicializado, usar ele
+        audioController?.let {
+            return it.getAudioState()
+        }
+
+        // Se o controller ainda não foi inicializado, ler diretamente das SharedPreferences
+        // Isso acontece quando o menu é criado antes do RetroView
+        return sharedPreferences?.getBoolean(
+                getApplication<Application>().getString(R.string.pref_audio_enabled),
+                true
+        )
+                ?: true
     }
 
     override fun getFastForwardState(): Boolean {
-        return retroViewUtils?.getFastForwardState() ?: false
+        // Se o controller já foi inicializado, usar ele
+        speedController?.let {
+            return it.getFastForwardState()
+        }
+
+        // Se o controller ainda não foi inicializado, ler diretamente das SharedPreferences
+        // Isso acontece quando o menu é criado antes do RetroView
+        return (sharedPreferences?.getInt(
+                getApplication<Application>().getString(R.string.pref_frame_speed),
+                1
+        )
+                ?: 1) > 1
     }
 
-    override fun hasSaveState(): Boolean {
-        return retroViewUtils?.hasSaveState() ?: false
+    override fun hasSaveState(): Boolean = retroViewUtils?.hasSaveState() == true
+
+    // Implementation of SettingsMenuFragment.SettingsMenuListener interface
+    override fun onBackToMainMenu() {
+        android.util.Log.d("GameActivityViewModel", "onBackToMainMenu: User wants to go back")
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onBackToMainMenu: retroMenu3Fragment = $retroMenu3Fragment"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onBackToMainMenu: retroMenu3Fragment.isAdded = ${retroMenu3Fragment?.isAdded}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onBackToMainMenu: settingsMenuFragment = $settingsMenuFragment"
+        )
+
+        // Simplesmente fechar o submenu usando popBackStack
+        // O OnBackStackChangedListener no RetroMenu3Fragment cuidará de mostrar o menu principal
+        dismissSettingsMenu()
+
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onBackToMainMenu: dismissSettingsMenu() called"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onBackToMainMenu: Back stack listener will handle showing main menu"
+        )
+    }
+
+    /**
+     * Centralized load state implementation with improved debugging CORREÇÃO: Despausa
+     * temporariamente APENAS durante o load, sem enviar sinais ao core
+     */
+    fun loadStateCentralized(onComplete: (() -> Unit)? = null) {
+        val currentRetroView = retroView
+        val utils = retroViewUtils
+
+        if (currentRetroView?.frameRendered?.value != true || utils == null) {
+            onComplete?.invoke()
+            return
+        }
+
+        if (utils.hasSaveState() != true) {
+            onComplete?.invoke()
+            return
+        }
+
+        val savedFrameSpeed = currentRetroView.view.frameSpeed
+        currentRetroView.view.frameSpeed = 1
+        utils.loadState(currentRetroView)
+        currentRetroView.view.frameSpeed = savedFrameSpeed
+        skipNextTempStateLoad = true
+        onComplete?.invoke()
+    }
+
+    /**
+     * Centralized save state implementation with improved debugging CORREÇÃO: Removido delay
+     * desnecessário que pode causar problemas de timing
+     */
+    fun saveStateCentralized(onComplete: (() -> Unit)? = null) {
+        val currentRetroView = retroView
+        val utils = retroViewUtils
+
+        if (currentRetroView == null || utils == null) {
+            onComplete?.invoke()
+            return
+        }
+
+        val savedFrameSpeed = currentRetroView.view.frameSpeed
+        if (savedFrameSpeed == 0) {
+            currentRetroView.view.frameSpeed = 1
+            Handler(Looper.getMainLooper())
+                    .postDelayed(
+                            {
+                                utils.saveState(currentRetroView)
+                                currentRetroView.view.frameSpeed = savedFrameSpeed
+                                onComplete?.invoke()
+                            },
+                            200
+                    )
+        } else {
+            utils.saveState(currentRetroView)
+            onComplete?.invoke()
+        }
+    }
+
+    /**
+     * Centralized reset game implementation with improved debugging CORREÇÃO: Garantir que o reset
+     * realmente reinicie o jogo do início
+     */
+    fun resetGameCentralized(onComplete: (() -> Unit)? = null) {
+        retroView?.view?.reset()
+        onComplete?.invoke()
     }
 
     /** Hide the system bars */
@@ -199,16 +734,26 @@ class GameActivityViewModel(application: Application) :
         retroView = RetroView(activity, viewModelScope)
         retroViewUtils = RetroViewUtils(activity)
 
+        // Inicializar controllers com as mesmas SharedPreferences que RetroViewUtils usa
+        initializeControllers(activity)
+
         retroView?.let { retroView ->
             container.addView(retroView.view)
             activity.lifecycle.addObserver(retroView.view)
             retroView.registerFrameRenderedListener()
 
-            /* Restore state after first frame loaded */
+            /* CORREÇÃO: NÃO restaurar state automaticamente no primeiro frame
+             * O jogo deve começar do zero e o usuário decide quando carregar o save
+             * Isso corrige o bug onde Load State não funcionava após restart porque
+             * o save já tinha sido carregado automaticamente na inicialização
+             */
             retroView.frameRendered.observe(activity) {
                 if (it != true) return@observe
 
-                retroViewUtils?.restoreEmulatorState(retroView)
+                // IMPORTANTE: Inicializar velocidade E áudio, SEM carregar save state
+                // O save só deve ser carregado quando usuário clicar em "Load State"
+                speedController?.initializeSpeedState(retroView.view)
+                audioController?.initializeAudioState(retroView.view)
             }
         }
     }
@@ -222,8 +767,14 @@ class GameActivityViewModel(application: Application) :
         val context = getApplication<Application>().applicationContext
 
         val gamePadConfig = GamePadConfig(context, resources)
-        leftGamePad = GamePad(context, gamePadConfig.left)
-        rightGamePad = GamePad(context, gamePadConfig.right)
+        leftGamePad =
+                GamePad(context, gamePadConfig.left) { event ->
+                    controllerInput.processGamePadButtonEvent(event.id, event.action)
+                }
+        rightGamePad =
+                GamePad(context, gamePadConfig.right) { event ->
+                    controllerInput.processGamePadButtonEvent(event.id, event.action)
+                }
 
         leftGamePad?.let {
             leftContainer.addView(it.pad)
@@ -250,6 +801,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Process a key event and return the result */
     fun processKeyEvent(keyCode: Int, event: KeyEvent): Boolean? {
+        // Process normally via ControllerInput
         retroView?.let {
             return controllerInput.processKeyEvent(keyCode, event, it)
         }
@@ -259,6 +811,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Process a motion event and return the result */
     fun processMotionEvent(event: MotionEvent): Boolean? {
+        // Process normally via ControllerInput
         retroView?.let {
             return controllerInput.processMotionEvent(event, it)
         }
@@ -310,5 +863,70 @@ class GameActivityViewModel(application: Application) :
     fun shouldHandleSelectStartCombo(): Boolean {
         val menuMode = resources.getInteger(R.integer.config_menu_mode)
         return menuMode == 2 || menuMode == 3 // 2 = combo only, 3 = both
+    }
+
+    /**
+     * Inicializa os controllers modulares com as mesmas SharedPreferences do RetroViewUtils Garante
+     * compatibilidade com o sistema existente
+     */
+    private fun initializeControllers(activity: Activity) {
+        val sharedPrefs = activity.getPreferences(android.content.Context.MODE_PRIVATE)
+        sharedPreferences = sharedPrefs
+        audioController = AudioController(activity.applicationContext, sharedPrefs)
+        speedController = SpeedController(activity.applicationContext, sharedPrefs)
+    }
+
+    // MÉTODOS PÚBLICOS PARA ACESSO AOS CONTROLLERS MODULARES
+
+    /**
+     * Obtém referência ao AudioController para uso em outros componentes Permite acesso modular às
+     * funcionalidades de áudio
+     */
+    fun getAudioController(): AudioController? {
+        return audioController
+    }
+
+    /**
+     * Obtém referência ao SpeedController para uso em outros componentes Permite acesso modular às
+     * funcionalidades de velocidade
+     */
+    fun getSpeedController(): SpeedController? {
+        return speedController
+    }
+
+    /**
+     * Controle de áudio usando controller modular
+     * @param enabled true para ligar, false para desligar
+     */
+    fun setAudioEnabled(enabled: Boolean) {
+        retroView?.let { audioController?.setAudioEnabled(it.view, enabled) }
+    }
+
+    /**
+     * Controle de velocidade usando controller modular
+     * @param speed velocidade desejada (1 = normal, > 1 = fast forward)
+     */
+    fun setGameSpeed(speed: Int) {
+        retroView?.let { speedController?.setSpeed(it.view, speed) }
+    }
+
+    /** Ativa fast forward usando controller modular */
+    fun enableFastForward() {
+        retroView?.let { speedController?.enableFastForward(it.view) }
+    }
+
+    /** Clear controller key log (used by RetroMenu3Fragment on destroy) */
+    fun clearControllerKeyLog() {
+        controllerInput.clearKeyLog()
+    }
+
+    /** Check if we are currently dismissing all menus (used by RetroMenu3Fragment) */
+    fun isDismissingAllMenus(): Boolean {
+        return isDismissingAllMenus
+    }
+
+    /** Desativa fast forward usando controller modular */
+    fun disableFastForward() {
+        retroView?.let { speedController?.setSpeed(it.view, 1) }
     }
 }

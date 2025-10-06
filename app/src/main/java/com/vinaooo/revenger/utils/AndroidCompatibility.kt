@@ -1,15 +1,12 @@
 package com.vinaooo.revenger.utils
 
 import android.os.Build
-import android.util.Log
 
 /**
  * Android Version Compatibility Manager Phase 9.4: Target SDK 36 Features with backward
  * compatibility
  */
 object AndroidCompatibility {
-
-    private const val TAG = "AndroidCompatibility"
 
     /** Check if running on Android 12+ (API 31) Features: Material You, Dynamic Colors, etc. */
     fun isAndroid12Plus(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
@@ -39,31 +36,23 @@ object AndroidCompatibility {
 
     /** Apply features conditionally based on Android version */
     fun applyConditionalFeatures() {
-        Log.d(TAG, "Android Version: ${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE})")
-
         when {
             isAndroid16Plus() -> {
-                Log.d(TAG, "✅ Android 16+: All SDK 36 features enabled")
                 // Enable latest SDK 36 features
             }
             isAndroid15Plus() -> {
-                Log.d(TAG, "✅ Android 15+: Enhanced features enabled")
                 // Enable Android 15 features
             }
             isAndroid14Plus() -> {
-                Log.d(TAG, "✅ Android 14+: Security features enabled")
                 // Enable Android 14 features
             }
             isAndroid13Plus() -> {
-                Log.d(TAG, "✅ Android 13+: Material You features enabled")
                 // Enable Android 13 features
             }
             isAndroid12Plus() -> {
-                Log.d(TAG, "✅ Android 12+: Dynamic colors enabled")
                 // Enable Android 12 features
             }
             else -> {
-                Log.d(TAG, "✅ Android 11+: Base features enabled (minimum supported)")
                 // Base functionality - guaranteed to work
             }
         }

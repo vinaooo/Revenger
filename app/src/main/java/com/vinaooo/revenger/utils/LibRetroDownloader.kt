@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.utils
 
-import android.util.Log
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
@@ -13,17 +12,13 @@ import java.util.zip.ZipInputStream
 class LibRetroDownloader {
 
     companion object {
-        private const val TAG = "LibRetroDownloader"
         private const val CONNECT_TIMEOUT = 30000 // 30s
         private const val READ_TIMEOUT = 60000 // 60s
 
         /** Main para ser chamado pelo Gradle */
         @JvmStatic
         fun main(args: Array<String>) {
-            if (args.size != 3) {
-                Log.e(TAG, "Uso: LibRetroDownloader <url> <destDir> <coreName>")
-                System.exit(1)
-            }
+            require(args.size == 3) { "Uso: LibRetroDownloader <url> <destDir> <coreName>" }
 
             val success = downloadAndExtractCore(args[0], File(args[1]), args[2])
             System.exit(if (success) 0 else 1)
@@ -31,14 +26,13 @@ class LibRetroDownloader {
 
         /** Baixa e extrai um core LibRetro */
         @JvmStatic
+        @Suppress("UNUSED_PARAMETER")
         fun downloadAndExtractCore(
                 coreUrl: String,
                 destinationDir: File,
                 coreName: String
         ): Boolean {
             return try {
-                Log.i(TAG, "Baixando $coreUrl")
-
                 // Criar diretório se não existir
                 destinationDir.mkdirs()
 
@@ -47,11 +41,8 @@ class LibRetroDownloader {
 
                 // Extrair e renomear
                 extractAndRename(zipBytes, destinationDir)
-
-                Log.i(TAG, "Sucesso - $coreName extraído para ${destinationDir.absolutePath}")
                 true
             } catch (e: Exception) {
-                Log.e(TAG, "ERRO ao baixar $coreUrl - ${e.message}", e)
                 false
             }
         }
@@ -89,8 +80,6 @@ class LibRetroDownloader {
                         val outputFile = File(destinationDir, "libcore.so")
 
                         FileOutputStream(outputFile).use { output -> zipIn.copyTo(output) }
-
-                        Log.i(TAG, "Extraído ${entry.name} -> libcore.so")
                         break
                     }
                     entry = zipIn.nextEntry
