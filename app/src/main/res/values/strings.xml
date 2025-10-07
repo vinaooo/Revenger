@@ -19,7 +19,6 @@
     
     <!-- ============================================ -->
     <!-- SPECIFIC STRINGS - See separate files: -->
-    <!-- - strings_modern_menu.xml (ModernMenuFragment) -->
     <!-- - retro_menu3_strings.xml (RetroMenu3Fragment) -->
     <!-- - strings_old_menu.xml (Old system - MenuItemViewHolder) -->
     <!-- ============================================ -->

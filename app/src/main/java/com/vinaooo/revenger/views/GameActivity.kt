@@ -72,9 +72,10 @@ class GameActivity : FragmentActivity() {
         registerInputListener()
         viewModel.setConfigOrientation(this)
         viewModel.updateGamePadVisibility(this, leftContainer, rightContainer)
-        viewModel.prepareMenu(this)
         viewModel.setupRetroView(this, retroviewContainer)
         viewModel.setupGamePads(this, leftContainer, rightContainer)
+        viewModel.prepareRetroMenu3(this)
+        viewModel.setupMenuCallback(this)
     }
 
     /** Initialize SDK 36 features with backward compatibility Phase 9.4: Target SDK 36 Features */
@@ -145,25 +146,14 @@ class GameActivity : FragmentActivity() {
                 null
         )
 
-        /* Setup modern back pressed handling */
+        /* Setup back pressed handling - use default behavior */
         onBackPressedDispatcher.addCallback(
                 this,
                 object : OnBackPressedCallback(true) {
                     override fun handleOnBackPressed() {
-                        // Check if menu should be handled by back button
-                        if (viewModel.shouldHandleBackButton()) {
-                            if (viewModel.isMenuOpen()) {
-                                // Menu is open, close it
-                                viewModel.dismissMenu()
-                            } else {
-                                // Menu is closed, open it
-                                viewModel.showMenu(this@GameActivity)
-                            }
-                        } else {
-                            // If menu is disabled via back button, use default behavior
-                            isEnabled = false
-                            onBackPressedDispatcher.onBackPressed()
-                        }
+                        // Use default back button behavior
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
                     }
                 }
         )
@@ -174,7 +164,6 @@ class GameActivity : FragmentActivity() {
         AdvancedPerformanceProfiler.stopProfiling()
 
         // Clean up view model
-        viewModel.dismissMenu()
         viewModel.dispose()
         viewModel.detachRetroView(this)
         super.onDestroy()
