@@ -33,6 +33,9 @@ class RetroMenu3Fragment : Fragment() {
     // Get ViewModel reference for centralized methods
     private lateinit var viewModel: GameActivityViewModel
 
+    // View hint
+    private lateinit var controlsHint: TextView
+
     // Menu item views
     private lateinit var menuContainer: LinearLayout
     private lateinit var continueMenu: MaterialCardView
@@ -122,6 +125,9 @@ class RetroMenu3Fragment : Fragment() {
         // Main container
         menuContainer = view.findViewById(R.id.menu_container)
 
+        // Controls hint
+        controlsHint = view.findViewById(R.id.retro_menu3_controls_hint)
+
         // Menu items
         continueMenu = view.findViewById(R.id.menu_continue)
         resetMenu = view.findViewById(R.id.menu_reset)
@@ -208,7 +214,12 @@ class RetroMenu3Fragment : Fragment() {
         menuContainer.scaleX = 0.8f
         menuContainer.scaleY = 0.8f
 
+        controlsHint.alpha = 0f
+        controlsHint.scaleX = 0.8f
+        controlsHint.scaleY = 0.8f
+
         menuContainer.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(200).start()
+        controlsHint.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(200).start()
     }
 
     private fun animateMenuOut(onEnd: () -> Unit) {
@@ -229,6 +240,7 @@ class RetroMenu3Fragment : Fragment() {
                         }
                 )
                 .start()
+        controlsHint.animate().alpha(0f).scaleX(0.8f).scaleY(0.8f).setDuration(150).start()
     }
 
     private fun dismissMenu() {

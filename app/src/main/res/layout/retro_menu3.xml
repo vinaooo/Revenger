@@ -345,5 +345,20 @@
             android:layout_weight="@dimen/retro_menu3_side_space_weight" />
 
     </LinearLayout>
-
+        <!-- Controls Hint - Bottom Right Corner -->
+        <TextView
+            android:id="@+id/retro_menu3_controls_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/retro_menu3_controls_hint"
+            android:textSize="@dimen/retro_menu3_menu_item_text_size"
+            android:textColor="@color/retro_menu3_text_color"
+            android:fontFamily="@font/arcade_normal"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="@dimen/retro_menu3_container_padding_vertical"
+            android:layout_marginBottom="@dimen/retro_menu3_container_padding_vertical"
+            android:shadowColor="@color/retro_menu3_shadow_color"
+            android:shadowDx="@dimen/retro_menu3_shadow_dx"
+            android:shadowDy="@dimen/retro_menu3_shadow_dy"
+            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
 </FrameLayout>

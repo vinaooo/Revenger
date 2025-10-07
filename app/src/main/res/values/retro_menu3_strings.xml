@@ -48,4 +48,7 @@
     <string name="submenu2_option_b">Exit without Save</string>
     <string name="submenu2_option_c">Back</string>
 
+    <!-- Menu Control hint -->
+    <string name="retro_menu3_controls_hint">[A] Confirm  [B] Back</string>
+
 </resources>
