@@ -153,7 +153,8 @@ class GameActivityViewModel(application: Application) :
                 }
     }
 
-    /** Create an instance of the RetroMenu3 overlay (activated by SELECT+START) */    /** Show the RetroMenu3 (activated by SELECT+START combo) */
+    /** Create an instance of the RetroMenu3 overlay (activated by SELECT+START) */
+    /** Show the RetroMenu3 (activated by SELECT+START combo) */
     fun showRetroMenu3(activity: FragmentActivity) {
         android.util.Log.d("GameActivityViewModel", "showRetroMenu3 called!")
 
