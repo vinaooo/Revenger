@@ -12,7 +12,7 @@ import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/** ProgressFragment - Submenu de progresso com visual idêntico ao RetroMenu3 */
+/** ProgressFragment - Progress submenu with visual identical to RetroMenu3 */
 class ProgressFragment : Fragment() {
 
     // Get ViewModel reference for centralized methods
@@ -24,9 +24,9 @@ class ProgressFragment : Fragment() {
     private lateinit var loadState: MaterialCardView
     private lateinit var backProgress: MaterialCardView
 
-    // Lista ordenada dos itens do menu para navegação
+    // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
-    private var currentSelectedIndex = 0 // Começar com "Save State"
+    private var currentSelectedIndex = 0 // Start with "Save State"
 
     // Menu option titles for color control
     private lateinit var saveStateTitle: TextView
@@ -66,11 +66,11 @@ class ProgressFragment : Fragment() {
 
         setupViews(view)
         setupClickListeners()
-        // REMOVIDO: animateMenuIn() - submenu agora aparece instantaneamente sem animação
+        // REMOVED: animateMenuIn() - submenu now appears instantly without animation
 
         android.util.Log.d("ProgressFragment", "onViewCreated: ProgressFragment setup completed")
-        // REMOVIDO: Não fecha mais ao tocar nas laterais
-        // Menu só fecha quando selecionar Back
+        // REMOVED: No longer closes when touching the sides
+        // Menu only closes when selecting Back
     }
 
     private fun setupViews(view: View) {
@@ -82,7 +82,7 @@ class ProgressFragment : Fragment() {
         loadState = view.findViewById(R.id.progress_load_state)
         backProgress = view.findViewById(R.id.progress_back)
 
-        // Inicializar lista ordenada dos itens do menu
+        // Initialize ordered list of menu items
         menuItems = listOf(saveState, loadState, backProgress)
 
         // Initialize menu option titles
@@ -100,7 +100,7 @@ class ProgressFragment : Fragment() {
         loadState.isEnabled = hasSaveState
         loadState.alpha = if (hasSaveState) 1.0f else 0.5f
 
-        // Definir primeiro item como selecionado
+        // Set first item as selected
         updateSelectionVisual()
     }
 
@@ -131,18 +131,18 @@ class ProgressFragment : Fragment() {
         }
 
         backProgress.setOnClickListener {
-            // Voltar ao menu principal chamando o método do ViewModel
+            // Return to main menu by calling ViewModel method
             viewModel.dismissProgress()
         }
     }
 
     private fun dismissMenu() {
-        // IMPORTANTE: Não chamar dismissRetroMenu3() aqui para evitar crashes
-        // Apenas remover o fragment visualmente - SEM animação
+        // IMPORTANT: Do not call dismissRetroMenu3() here to avoid crashes
+        // Just remove the fragment visually - WITHOUT animation
         parentFragmentManager.beginTransaction().remove(this).commit()
     }
 
-    /** Navegar para cima no menu */
+    /** Navigate up in the menu */
     fun navigateUp() {
         do {
             currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.size) % menuItems.size
@@ -150,7 +150,7 @@ class ProgressFragment : Fragment() {
         updateSelectionVisual()
     }
 
-    /** Navegar para baixo no menu */
+    /** Navigate down in the menu */
     fun navigateDown() {
         do {
             currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.size
@@ -158,7 +158,7 @@ class ProgressFragment : Fragment() {
         updateSelectionVisual()
     }
 
-    /** Confirmar seleção atual */
+    /** Confirm current selection */
     fun confirmSelection() {
         when (currentSelectedIndex) {
             0 -> saveState.performClick() // Save State
@@ -167,11 +167,11 @@ class ProgressFragment : Fragment() {
         }
     }
 
-    /** Atualizar visual da seleção */
+    /** Update selection visual */
     private fun updateSelectionVisual() {
         menuItems.forEach { item ->
-            // Removido: background color dos cards individuais
-            // Seleção agora indicada apenas por texto amarelo e setas
+            // Removed: background color of individual cards
+            // Selection now indicated only by yellow text and arrows
             item.strokeWidth = 0
             item.strokeColor = android.graphics.Color.TRANSPARENT
             item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
@@ -193,7 +193,7 @@ class ProgressFragment : Fragment() {
         )
 
         // Control selection arrows colors and visibility
-        // CORREÇÃO: Item selecionado mostra seta sem margem (colada ao texto)
+        // FIX: Selected item shows arrow without margin (attached to text)
         val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Save State
@@ -201,7 +201,7 @@ class ProgressFragment : Fragment() {
             selectionArrowSaveState.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowSaveState.visibility = View.VISIBLE
             (selectionArrowSaveState.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
+                marginStart = 0 // No space before the arrow
                 marginEnd = arrowMarginEnd
             }
         } else {
@@ -213,7 +213,7 @@ class ProgressFragment : Fragment() {
             selectionArrowLoadState.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowLoadState.visibility = View.VISIBLE
             (selectionArrowLoadState.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
+                marginStart = 0 // No space before the arrow
                 marginEnd = arrowMarginEnd
             }
         } else {
@@ -225,14 +225,14 @@ class ProgressFragment : Fragment() {
             selectionArrowBack.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
+                marginStart = 0 // No space before the arrow
                 marginEnd = arrowMarginEnd
             }
         } else {
             selectionArrowBack.visibility = View.GONE
         }
 
-        // Forçar atualização do layout
+        // Force layout update
         progressContainer.requestLayout()
     }
 
@@ -243,15 +243,15 @@ class ProgressFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Garantir que comboAlreadyTriggered seja resetado quando o fragment for destruído
+        // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
         try {
             (progressListener as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)?.let {
                     viewModel ->
-                // Chamar clearKeyLog através do ViewModel para resetar o estado do combo
+                // Call clearKeyLog through ViewModel to reset combo state
                 viewModel.clearControllerKeyLog()
             }
         } catch (e: Exception) {
-            android.util.Log.w("ProgressFragment", "Erro ao resetar combo state no onDestroy", e)
+            android.util.Log.w("ProgressFragment", "Error resetting combo state in onDestroy", e)
         }
     }
 

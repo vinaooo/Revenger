@@ -6,37 +6,37 @@ import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.R
 
 /**
- * Controller modular para gerenciar funcionalidades de velocidade (fast forward) do emulador
- * Permite controle centralizado de velocidade que pode ser reutilizado em diferentes partes do
- * sistema
+ * Modular controller to manage emulator speed functionalities (fast forward)
+ * Allows centralized speed control that can be reused in different parts of the
+ * system
  */
 class SpeedController(
         private val context: Context,
         private val sharedPreferences: SharedPreferences
 ) {
-    // Velocidade de fast forward configurada no config.xml
+    // Fast forward speed configured in config.xml
     private val fastForwardSpeed =
             context.resources.getInteger(R.integer.config_fast_forward_multiplier)
 
     /**
-     * Alterna entre velocidade normal (1x) e fast forward (configurável)
-     * @param retroView RetroView onde aplicar a mudança
-     * @return novo estado do fast forward (true = ativo, false = inativo)
+     * Toggles between normal speed (1x) and fast forward (configurable)
+     * @param retroView RetroView where to apply the change
+     * @return new fast forward state (true = active, false = inactive)
      */
     fun toggleFastForward(retroView: GLRetroView): Boolean {
         val newSpeed = if (retroView.frameSpeed == 1) fastForwardSpeed else 1
         retroView.frameSpeed = newSpeed
 
-        // Salvar o novo estado imediatamente
+        // Save the new state immediately
         saveSpeedState(newSpeed)
 
         return newSpeed > 1
     }
 
     /**
-     * Define a velocidade específica
-     * @param retroView RetroView onde aplicar a mudança
-     * @param speed velocidade desejada (1 = normal, > 1 = fast forward)
+     * Sets the specific speed
+     * @param retroView RetroView where to apply the change
+     * @param speed desired speed (1 = normal, > 1 = fast forward)
      */
     fun setSpeed(retroView: GLRetroView, speed: Int) {
         retroView.frameSpeed = speed
@@ -44,41 +44,41 @@ class SpeedController(
     }
 
     /**
-     * Ativa o fast forward (velocidade configurada)
-     * @param retroView RetroView onde aplicar a mudança
+     * Enables fast forward (configured speed)
+     * @param retroView RetroView where to apply the change
      */
     fun enableFastForward(retroView: GLRetroView) {
         setSpeed(retroView, fastForwardSpeed)
     }
 
     /**
-     * Pausa o jogo (frameSpeed = 0)
-     * @param retroView RetroView onde aplicar a pausa
+     * Pauses the game (frameSpeed = 0)
+     * @param retroView RetroView where to apply the pause
      */
     fun pause(retroView: GLRetroView) {
         retroView.frameSpeed = 0
     }
 
     /**
-     * Despausa o jogo (retorna à velocidade normal)
-     * @param retroView RetroView onde remover a pausa
+     * Resumes the game (returns to normal speed)
+     * @param retroView RetroView where to remove the pause
      */
     fun resume(retroView: GLRetroView) {
         retroView.frameSpeed = 1
     }
 
     /**
-     * Verifica se o fast forward está ativo
-     * @param retroView RetroView para verificar o estado
-     * @return true se fast forward está ativo, false caso contrário
+     * Checks if fast forward is active
+     * @param retroView RetroView to check the state
+     * @return true if fast forward is active, false otherwise
      */
     fun isFastForwardActive(retroView: GLRetroView): Boolean {
         return retroView.frameSpeed > 1
     }
 
     /**
-     * Obtém o estado do fast forward das preferências
-     * @return true se fast forward está ativo, false caso contrário
+     * Gets the fast forward state from preferences
+     * @return true if fast forward is active, false otherwise
      */
     fun getFastForwardState(): Boolean {
         val savedSpeed = sharedPreferences.getInt(context.getString(R.string.pref_frame_speed), 1)
@@ -86,41 +86,41 @@ class SpeedController(
     }
 
     /**
-     * Obtém a velocidade atual das preferências CORREÇÃO: Nunca retornar 0 (pausado) - tratar como
-     * velocidade normal
-     * @return velocidade atual (1 = normal, > 1 = fast forward)
+     * Gets the current speed from preferences FIX: Never return 0 (paused) - treat as
+     * normal speed
+     * @return current speed (1 = normal, > 1 = fast forward)
      */
     fun getCurrentSpeed(): Int {
         val savedSpeed = sharedPreferences.getInt(context.getString(R.string.pref_frame_speed), 1)
-        // CRÍTICO: Se for 0 (pausado), retornar 1 (normal)
+        // CRITICAL: If it's 0 (paused), return 1 (normal)
         return if (savedSpeed == 0) 1 else savedSpeed
     }
 
     /**
-     * Obtém a velocidade atual do RetroView
-     * @param retroView RetroView para verificar a velocidade
-     * @return velocidade atual
+     * Gets the current speed from RetroView
+     * @param retroView RetroView to check the speed
+     * @return current speed
      */
     fun getCurrentSpeed(retroView: GLRetroView): Int {
         return retroView.frameSpeed
     }
 
     /**
-     * Inicializa o estado da velocidade no RetroView com base nas preferências salvas CORREÇÃO:
-     * Nunca aplicar frameSpeed = 0 (pausado) na inicialização Se savedSpeed == 0, significa que app
-     * foi fechado com menu aberto Nesse caso, restaurar para 1 (velocidade normal)
-     * @param retroView RetroView para configurar
+     * Initializes the speed state in RetroView based on saved preferences FIX:
+     * Never apply frameSpeed = 0 (paused) on initialization If savedSpeed == 0, it means the app
+     * was closed with menu open In this case, restore to 1 (normal speed)
+     * @param retroView RetroView to configure
      */
     fun initializeSpeedState(retroView: GLRetroView) {
         val savedSpeed = getCurrentSpeed()
-        // CRÍTICO: Garantir que nunca seja 0 (pausado)
+        // CRITICAL: Ensure it's never 0 (paused)
         val safeSpeed = if (savedSpeed == 0) 1 else savedSpeed
         retroView.frameSpeed = safeSpeed
     }
 
     /**
-     * Salva o estado atual da velocidade nas preferências
-     * @param speed velocidade a ser salva
+     * Saves the current speed state to preferences
+     * @param speed speed to be saved
      */
     private fun saveSpeedState(speed: Int) {
         with(sharedPreferences.edit()) {
@@ -130,8 +130,8 @@ class SpeedController(
     }
 
     /**
-     * Obtém descrição textual do estado atual da velocidade
-     * @return String com o estado atual ("Fast Forward Active" ou "Normal Speed")
+     * Gets textual description of the current speed state
+     * @return String with current state ("Fast Forward Active" or "Normal Speed")
      */
     fun getSpeedStateDescription(): String {
         return if (getFastForwardState()) {
@@ -142,17 +142,17 @@ class SpeedController(
     }
 
     /**
-     * Obtém ID do ícone apropriado para o estado atual da velocidade
-     * @return Resource ID do ícone
+     * Gets the appropriate icon ID for the current speed state
+     * @return Resource ID of the icon
      */
     fun getSpeedIconResource(): Int {
-        // Por enquanto usa o mesmo ícone, mas pode ser diferenciado no futuro
+        // For now uses the same icon, but can be differentiated in the future
         return R.drawable.ic_fast_forward_24
     }
 
     /**
-     * Obtém a velocidade de fast forward configurada
-     * @return multiplicador de velocidade para fast forward
+     * Gets the configured fast forward speed
+     * @return speed multiplier for fast forward
      */
     fun getFastForwardSpeed(): Int {
         return fastForwardSpeed

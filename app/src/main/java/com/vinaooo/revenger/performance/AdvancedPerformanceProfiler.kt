@@ -133,7 +133,7 @@ object AdvancedPerformanceProfiler {
         performanceData["timestamp"] = timestamp
 
         if (timestamp % (MONITORING_INTERVAL_MS * 5) == 0L) {
-            // Ponto de verificação mantido para futuras integrações de monitoramento sem logs
+            // Checkpoint maintained for future monitoring integrations without logs
         }
     }
 
@@ -163,17 +163,17 @@ object AdvancedPerformanceProfiler {
 
     /** Basic GPU profiling */
     private fun startBasicGpuProfiling() {
-        // Inicialização simbólica preservada
+        // Symbolic initialization preserved
     }
 
     /** Standard memory profiling */
     private fun startStandardMemoryProfiling() {
-        // Inicialização simbólica preservada
+        // Symbolic initialization preserved
     }
 
     /** Basic system monitoring */
     private fun startBasicSystemMonitoring() {
-        // Inicialização simbólica preservada
+        // Symbolic initialization preserved
     }
 
     /** Collect advanced metrics for Android 16 */
@@ -224,7 +224,7 @@ object AdvancedPerformanceProfiler {
 
     /** Log performance summary */
     private fun logPerformanceSummary() {
-        // Mantido para compatibilidade futura - anteriormente registrava o resumo de desempenho
+        // Kept for future compatibility - previously logged performance summary
     }
 
     /** Add frame time measurement */

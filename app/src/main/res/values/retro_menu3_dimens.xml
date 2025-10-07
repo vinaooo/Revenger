@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- RetroMenu3 - Dimensões e Tamanhos -->
+    <!-- RetroMenu3 - Dimensions and Sizes -->
     
     <!-- Layout Weights -->
     <item name="retro_menu3_side_space_weight" format="float" type="dimen">0.25</item>
     <item name="retro_menu3_center_content_weight" format="float" type="dimen">0.50</item>
     
-    <!-- Padding e Margins -->
+    <!-- Padding and Margins -->
     <dimen name="retro_menu3_container_padding_vertical">16dp</dimen>
     <dimen name="retro_menu3_title_margin_bottom">12dp</dimen>
     <dimen name="retro_menu3_extra_space_height">16dp</dimen>
@@ -27,7 +27,7 @@
     <dimen name="retro_menu3_arrow_text_size">18sp</dimen>
     <dimen name="retro_menu3_menu_item_text_size">16sp</dimen>
     
-        <!-- Text Shadow (sombra do texto) - valores devem ser float sem unidade -->
+    <!-- Text Shadow - values must be float without unit -->
     <item name="retro_menu3_shadow_dx" format="float" type="dimen">4.0</item>
     <item name="retro_menu3_shadow_dy" format="float" type="dimen">4.0</item>
     <item name="retro_menu3_shadow_radius" format="float" type="dimen">8.0</item>

@@ -36,7 +36,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 val romName = context.getString(R.string.config_rom)
                 @SuppressLint(
                         "DiscouragedApi"
-                ) // Reflexão necessária para manter genericidade - permite qualquer ROM sem
+                ) // Reflection necessary to maintain genericity - allows any ROM without
                 // recompilar
                 val romResourceId = resources.getIdentifier(romName, "raw", context.packageName)
 
@@ -78,8 +78,8 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
         params.gravity = Gravity.CENTER
         view.layoutParams = params
 
-        // CORREÇÃO: Inicializar frameSpeed = 1 para garantir que emulação comece rodando
-        // Sem isso, LibretroDroid pode iniciar pausado (frameSpeed = 0) causando tela preta
+        // FIX: Initialize frameSpeed = 1 to ensure emulation starts running
+        // Without this, LibretroDroid may start paused (frameSpeed = 0) causing black screen
         view.frameSpeed = 1
     }
 

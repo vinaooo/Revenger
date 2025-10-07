@@ -3,7 +3,7 @@ package com.vinaooo.revenger.repositories
 import android.content.Context
 import java.io.File
 
-/** Singleton responsável por fornecer caminhos estáveis para ROM, SRAM e save states. */
+/** Singleton responsible for providing stable paths for ROM, SRAM and save states. */
 class Storage(context: Context) {
     companion object {
         @Volatile private var instance: Storage? = null
@@ -53,11 +53,10 @@ class Storage(context: Context) {
         try {
             legacyFile.copyTo(target, overwrite = false)
             if (!legacyFile.delete()) {
-                // Remoção falhou; arquivo legado será mantido sem afetar o novo estado
+                // Removal failed; legacy file will be kept without affecting the new state
             }
         } catch (e: Exception) {
-            // Falhas de migração são ignoradas para manter compatibilidade com o comportamento
-            // anterior
+            // Migration failures are ignored to maintain compatibility with previous behavior
         }
     }
 }

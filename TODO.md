@@ -1,49 +1,49 @@
 # TODO - Android Library Alignment Issues
 
-## Gradle Version Compatibility Issue ⚠️ ATENÇÃO
+## Gradle Version Compatibility Issue ⚠️ ATTENTION
 
-**Issue**: Versão do Gradle Wrapper desatualizada causando conflito com Android Gradle Plugin (AGP).
+**Issue**: Outdated Gradle Wrapper version causing conflict with Android Gradle Plugin (AGP).
 
-**Problema Detectado** (03/10/2025):
-- **AGP instalado:** 8.13.0 (requer Gradle 8.13+)
-- **Gradle atual:** 8.9 (detectado no sistema)
-- **Gradle no wrapper:** 8.14 (configurado mas não aplicado)
-- **Erro de build:** "Minimum supported Gradle version is 8.13. Current version is 8.9"
+**Detected Problem** (03/10/2025):
+- **AGP installed:** 8.13.0 (requires Gradle 8.13+)
+- **Current Gradle:** 8.9 (detected in system)
+- **Gradle in wrapper:** 8.14 (configured but not applied)
+- **Build error:** "Minimum supported Gradle version is 8.13. Current version is 8.9"
 
-**Impacto**: 
-- Build falha com erro de versão mínima
-- Impossível gerar APKs até resolução
-- Bloqueia desenvolvimento
+**Impact**:
+- Build fails with minimum version error
+- Impossible to generate APKs until resolution
+- Blocks development
 
-**Arquivos Afetados**:
-- `gradle/wrapper/gradle-wrapper.properties` - contém `gradle-8.14-bin.zip`
-- Sistema usa Gradle 8.9 (possivelmente cache ou instalação global)
+**Affected Files**:
+- `gradle/wrapper/gradle-wrapper.properties` - contains `gradle-8.14-bin.zip`
+- System uses Gradle 8.9 (possibly cache or global installation)
 
-**Solução Imediata**:
+**Immediate Solution**:
 ```bash
-# Regenerar wrapper com versão correta
+# Regenerate wrapper with correct version
 ./gradlew wrapper --gradle-version=8.14
 
-# Limpar cache e rebuild
+# Clean cache and rebuild
 ./gradlew clean
 ./gradlew assembleDebug
 ```
 
-**Verificação Pós-Fix**:
+**Post-Fix Verification**:
 ```bash
 ./gradlew --version
-# Deve mostrar: Gradle 8.14
+# Should show: Gradle 8.14
 ```
 
-**Causa Provável**:
-- Wrapper properties atualizado manualmente mas daemon Gradle não regenerado
-- Cache do Gradle usando versão antiga
-- Gradle global do sistema sendo usado em vez do wrapper
+**Probable Cause**:
+- Wrapper properties updated manually but Gradle daemon not regenerated
+- Gradle cache using old version
+- System global Gradle being used instead of wrapper
 
-**Status**: 🔴 CRÍTICO - Bloqueia build
-**Prioridade**: ALTA - Resolver antes de qualquer desenvolvimento
-**Data detectada**: 03/10/2025
-**Responsável**: Análise automática do sistema
+**Status**: 🔴 CRITICAL - Blocks build
+**Priority**: HIGH - Resolve before any development
+**Date detected**: 03/10/2025
+**Responsible**: Automatic system analysis
 
 ---
 
@@ -160,11 +160,11 @@
 ### Thread.sleep() in UI Code ⚠️
 **Issue**: Using `Thread.sleep()` in UI thread context can cause Application Not Responding (ANR) errors.
 
-**Location**: 
+**Location**:
 - `GameActivityViewModel.kt` - `continueGameCentralized()` method
 - Used for timing delays between key events (200ms, 100ms)
 
-**Risk**: 
+**Risk**:
 - Blocks main thread during sleep period
 - Can cause UI freezing and poor user experience
 - May trigger ANR dialog on slower devices
@@ -181,20 +181,20 @@
 ### Resource Reflection Overhead ⚠️
 **Issue**: Using `getIdentifier()` for runtime resource loading has performance overhead.
 
-**Location**: 
+**Location**:
 - `RetroView.kt` - ROM resource loading via reflection
 
-**Current justification**: 
+**Current justification**:
 - Necessary for maintaining project genericness
 - Allows any ROM/emulator combination without recompiling
 - Suppressed lint warning with proper documentation
 
-**Trade-off**: 
+**Trade-off**:
 - ✅ Flexibility: Single codebase for all ROM/core combinations
 - ⚠️ Performance: Reflection slower than direct resource access
 - ⚠️ ProGuard: May cause issues with R8/ProGuard optimization
 
-**Recommendation**: 
+**Recommendation**:
 - Keep current implementation (benefits outweigh costs)
 - Document reflection usage clearly
 - Add ProGuard keep rules if minification enabled
@@ -234,12 +234,12 @@ if (BuildConfig.DEBUG) {
 ### Known LibretroDroid 16KB Alignment Issue ⚠️
 **Issue**: LibretroDroid 0.12.0 native libraries not aligned to 16KB pages.
 
-**Impact**: 
+**Impact**:
 - May not work on future Android devices requiring 16KB page alignment
 - Affects ARM64 devices with 16KB memory page size
 - Google Play may reject apps in the future
 
-**Current workaround**: 
+**Current workaround**:
 - Disabled `Aligned16KB` lint check
 - App functional on current devices
 

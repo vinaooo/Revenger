@@ -6,17 +6,17 @@ import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.R
 
 /**
- * Controller modular para gerenciar funcionalidades de áudio do emulador Permite controle
- * centralizado de som que pode ser reutilizado em diferentes partes do sistema
+ * Modular controller to manage emulator audio functionalities. Allows centralized sound control
+ * that can be reused across different parts of the system
  */
 class AudioController(
         private val context: Context,
         private val sharedPreferences: SharedPreferences
 ) {
     /**
-     * Alterna o estado do áudio (liga/desliga)
-     * @param retroView RetroView onde aplicar a mudança
-     * @return novo estado do áudio (true = ligado, false = desligado)
+     * Toggles the audio state (on/off)
+     * @param retroView RetroView where to apply the change
+     * @return new audio state (true = on, false = off)
      */
     fun toggleAudio(retroView: GLRetroView): Boolean {
         val newState = !retroView.audioEnabled
@@ -29,9 +29,9 @@ class AudioController(
     }
 
     /**
-     * Define o estado do áudio
-     * @param retroView RetroView onde aplicar a mudança
-     * @param enabled true para ligar, false para desligar
+     * Sets the audio state
+     * @param retroView RetroView where to apply the change
+     * @param enabled true to turn on, false to turn off
      */
     fun setAudioEnabled(retroView: GLRetroView, enabled: Boolean) {
         retroView.audioEnabled = enabled
@@ -39,25 +39,25 @@ class AudioController(
     }
 
     /**
-     * Obtém o estado atual do áudio das preferências
-     * @return true se áudio está habilitado, false caso contrário
+     * Gets the current audio state from preferences
+     * @return true if audio is enabled, false otherwise
      */
     fun getAudioState(): Boolean {
         return sharedPreferences.getBoolean(context.getString(R.string.pref_audio_enabled), true)
     }
 
     /**
-     * Obtém o estado atual do áudio diretamente do RetroView
-     * @param retroView RetroView para verificar o estado
-     * @return true se áudio está habilitado, false caso contrário
+     * Gets the current audio state directly from RetroView
+     * @param retroView RetroView to check the state
+     * @return true if audio is enabled, false otherwise
      */
     fun getAudioState(retroView: GLRetroView): Boolean {
         return retroView.audioEnabled
     }
 
     /**
-     * Inicializa o estado do áudio no RetroView com base nas preferências salvas
-     * @param retroView RetroView para configurar
+     * Initializes the audio state in RetroView based on saved preferences
+     * @param retroView RetroView to configure
      */
     fun initializeAudioState(retroView: GLRetroView) {
         val savedState = getAudioState()
@@ -65,19 +65,19 @@ class AudioController(
     }
 
     /**
-     * Salva o estado atual do áudio nas preferências
-     * @param enabled estado a ser salvo
+     * Saves the current audio state to preferences
+     * @param enabled state to be saved
      */
     private fun saveAudioState(enabled: Boolean) {
         with(sharedPreferences.edit()) {
             putBoolean(context.getString(R.string.pref_audio_enabled), enabled)
-            commit() // Usar commit() em vez de apply() para garantir sincronia
+            commit() // Use commit() instead of apply() to ensure synchronization
         }
     }
 
     /**
-     * Obtém descrição textual do estado atual do áudio
-     * @return String com o estado atual ("Audio ON" ou "Audio OFF")
+     * Gets textual description of the current audio state
+     * @return String with current state ("Audio ON" or "Audio OFF")
      */
     fun getAudioStateDescription(): String {
         return if (getAudioState()) {
@@ -88,8 +88,8 @@ class AudioController(
     }
 
     /**
-     * Obtém ID do ícone apropriado para o estado atual do áudio
-     * @return Resource ID do ícone
+     * Gets appropriate icon ID for the current audio state
+     * @return Resource ID of the icon
      */
     fun getAudioIconResource(): Int {
         return if (getAudioState()) {

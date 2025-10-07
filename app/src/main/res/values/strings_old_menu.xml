@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Old Menu System (MenuItemViewHolder) - Strings Específicas -->
-    <!-- NOTA: Este sistema pode ser removido se não estiver mais em uso -->
+    <!-- Old Menu System (MenuItemViewHolder) - Specific Strings -->
+    <!-- NOTE: This system can be removed if no longer in use -->
     
     <!-- Audio Toggle States -->
     <string name="menu_mute">Mute</string>
