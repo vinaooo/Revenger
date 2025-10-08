@@ -70,7 +70,6 @@ class RetroMenu3Fragment : Fragment() {
         fun onLoadState()
         fun onToggleAudio()
         fun onFastForward()
-        fun onExitGame(activity: androidx.fragment.app.FragmentActivity)
         fun getAudioState(): Boolean
         fun getFastForwardState(): Boolean
         fun hasSaveState(): Boolean

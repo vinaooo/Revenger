@@ -15,11 +15,10 @@
         android:label="@string/config_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Revenger">
+        android:theme="@style/Theme.Material3.DayNight.NoActionBar">
         <activity android:name=".views.GameActivity"
             android:exported="true"
             android:screenOrientation="landscape"
-            android:theme="@style/Theme.Revenger.Game"
             android:configChanges="keyboardHidden|orientation|screenSize|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

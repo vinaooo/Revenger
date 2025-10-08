@@ -4,11 +4,11 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.utils.PreferencesConstants
 
 /**
- * Modular controller to manage emulator speed functionalities (fast forward)
- * Allows centralized speed control that can be reused in different parts of the
- * system
+ * Modular controller to manage emulator speed functionalities (fast forward) Allows centralized
+ * speed control that can be reused in different parts of the system
  */
 class SpeedController(
         private val context: Context,
@@ -81,17 +81,16 @@ class SpeedController(
      * @return true if fast forward is active, false otherwise
      */
     fun getFastForwardState(): Boolean {
-        val savedSpeed = sharedPreferences.getInt(context.getString(R.string.pref_frame_speed), 1)
+        val savedSpeed = sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1)
         return savedSpeed > 1
     }
 
     /**
-     * Gets the current speed from preferences FIX: Never return 0 (paused) - treat as
-     * normal speed
+     * Gets the current speed from preferences FIX: Never return 0 (paused) - treat as normal speed
      * @return current speed (1 = normal, > 1 = fast forward)
      */
     fun getCurrentSpeed(): Int {
-        val savedSpeed = sharedPreferences.getInt(context.getString(R.string.pref_frame_speed), 1)
+        val savedSpeed = sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1)
         // CRITICAL: If it's 0 (paused), return 1 (normal)
         return if (savedSpeed == 0) 1 else savedSpeed
     }
@@ -106,9 +105,9 @@ class SpeedController(
     }
 
     /**
-     * Initializes the speed state in RetroView based on saved preferences FIX:
-     * Never apply frameSpeed = 0 (paused) on initialization If savedSpeed == 0, it means the app
-     * was closed with menu open In this case, restore to 1 (normal speed)
+     * Initializes the speed state in RetroView based on saved preferences FIX: Never apply
+     * frameSpeed = 0 (paused) on initialization If savedSpeed == 0, it means the app was closed
+     * with menu open In this case, restore to 1 (normal speed)
      * @param retroView RetroView to configure
      */
     fun initializeSpeedState(retroView: GLRetroView) {
@@ -124,7 +123,7 @@ class SpeedController(
      */
     private fun saveSpeedState(speed: Int) {
         with(sharedPreferences.edit()) {
-            putInt(context.getString(R.string.pref_frame_speed), speed)
+            putInt(PreferencesConstants.PREF_FRAME_SPEED, speed)
             apply()
         }
     }

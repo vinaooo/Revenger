@@ -9,7 +9,6 @@ import android.view.*
 import android.view.KeyEvent
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
@@ -26,6 +25,7 @@ import com.vinaooo.revenger.ui.retromenu3.ExitFragment
 import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
 import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
@@ -443,11 +443,7 @@ class GameActivityViewModel(application: Application) :
         retroView?.let { retroView ->
             // Get saved game speed from sharedpreferences
             val savedSpeed =
-                    sharedPreferences?.getInt(
-                            getApplication<Application>().getString(R.string.pref_frame_speed),
-                            1
-                    )
-                            ?: 1
+                    sharedPreferences?.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) ?: 1
 
             android.util.Log.d(
                     "GameActivityViewModel",
@@ -501,53 +497,6 @@ class GameActivityViewModel(application: Application) :
         retroView?.let { speedController?.toggleFastForward(it.view) }
     }
 
-    override fun onExitGame(activity: FragmentActivity) {
-        // Show confirmation dialog asking if user wants to save before exiting
-        // Create context with the same theme as the menu
-        val themedContext =
-                android.view.ContextThemeWrapper(activity, R.style.Theme_Revenger_FloatingMenu)
-
-        val dialog =
-                AlertDialog.Builder(themedContext)
-                        .setTitle(R.string.exit_game_title)
-                        .setMessage(R.string.exit_game_message)
-                        .setPositiveButton(R.string.exit_game_save_and_exit) {
-                                _: android.content.DialogInterface,
-                                _: Int ->
-                            // Save state and then exit (using centralized method)
-                            saveStateCentralized {
-                                android.os.Process.killProcess(android.os.Process.myPid())
-                            }
-                        }
-                        .setNegativeButton(R.string.exit_game_exit_without_save) {
-                                _: android.content.DialogInterface,
-                                _: Int ->
-                            // Exit without saving
-                            android.os.Process.killProcess(android.os.Process.myPid())
-                        }
-                        .setNeutralButton(R.string.cancel, null)
-                        .create()
-
-        // Apply the same background color as the menu with rounded corners (Material 3 surface
-        // color)
-        val backgroundColor = android.util.TypedValue()
-        themedContext.theme.resolveAttribute(
-                com.google.android.material.R.attr.colorSurface,
-                backgroundColor,
-                true
-        )
-
-        // Create rounded background drawable (same radius as menu: 28dp)
-        val cornerRadiusPx = (28 * themedContext.resources.displayMetrics.density).toInt()
-        val roundedBackground = android.graphics.drawable.GradientDrawable()
-        roundedBackground.setColor(backgroundColor.data)
-        roundedBackground.cornerRadius = cornerRadiusPx.toFloat()
-
-        dialog.window?.setBackgroundDrawable(roundedBackground)
-
-        dialog.show()
-    }
-
     override fun getAudioState(): Boolean {
         // If the controller has already been initialized, use it
         audioController?.let {
@@ -556,11 +505,7 @@ class GameActivityViewModel(application: Application) :
 
         // If the controller has not been initialized yet, read directly from SharedPreferences
         // This happens when the menu is created before RetroView
-        return sharedPreferences?.getBoolean(
-                getApplication<Application>().getString(R.string.pref_audio_enabled),
-                true
-        )
-                ?: true
+        return sharedPreferences?.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true) ?: true
     }
 
     override fun getFastForwardState(): Boolean {
@@ -571,11 +516,7 @@ class GameActivityViewModel(application: Application) :
 
         // If the controller has not been initialized yet, read directly from SharedPreferences
         // This happens when the menu is created before RetroView
-        return (sharedPreferences?.getInt(
-                getApplication<Application>().getString(R.string.pref_frame_speed),
-                1
-        )
-                ?: 1) > 1
+        return (sharedPreferences?.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) ?: 1) > 1
     }
 
     override fun hasSaveState(): Boolean = retroViewUtils?.hasSaveState() == true

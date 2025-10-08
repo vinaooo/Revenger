@@ -29,11 +29,10 @@ class RetroViewUtils(private val activity: Activity) {
         // FIX: Restore frameSpeed, but ensure it never is 0 (paused)
         // If saved frameSpeed is 0, it means app was closed with menu open
         // In this case, restore to 1 (normal speed) to avoid black screen
-        val savedFrameSpeed =
-                sharedPreferences.getInt(activity.getString(R.string.pref_frame_speed), 1)
+        val savedFrameSpeed = sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1)
         retroView.view.frameSpeed = if (savedFrameSpeed == 0) 1 else savedFrameSpeed
         retroView.view.audioEnabled =
-                sharedPreferences.getBoolean(activity.getString(R.string.pref_audio_enabled), true)
+                sharedPreferences.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true)
 
         // CRITICAL FIX: Do not load tempState if we just did manual Load State
         // This prevents tempState from overwriting the save state that user just loaded
@@ -59,9 +58,9 @@ class RetroViewUtils(private val activity: Activity) {
             // In this case, we keep the last valid saved value (don't overwrite)
             val currentFrameSpeed = retroView.view.frameSpeed
             if (currentFrameSpeed > 0) {
-                putInt(activity.getString(R.string.pref_frame_speed), currentFrameSpeed)
+                putInt(PreferencesConstants.PREF_FRAME_SPEED, currentFrameSpeed)
             }
-            putBoolean(activity.getString(R.string.pref_audio_enabled), retroView.view.audioEnabled)
+            putBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, retroView.view.audioEnabled)
         }
     }
 
@@ -119,7 +118,7 @@ class RetroViewUtils(private val activity: Activity) {
 
     /** Check if fast forward is currently active Required for Material You menu state tracking */
     fun isFastForwardActive(): Boolean {
-        return sharedPreferences.getInt(activity.getString(R.string.pref_frame_speed), 1) > 1
+        return sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) > 1
     }
 
     /**
@@ -135,11 +134,11 @@ class RetroViewUtils(private val activity: Activity) {
 
     /** Get the current audio state from preferences */
     fun getAudioState(): Boolean {
-        return sharedPreferences.getBoolean(activity.getString(R.string.pref_audio_enabled), true)
+        return sharedPreferences.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true)
     }
 
     /** Get the current fast forward state from preferences */
     fun getFastForwardState(): Boolean {
-        return sharedPreferences.getInt(activity.getString(R.string.pref_frame_speed), 1) > 1
+        return sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) > 1
     }
 }
