@@ -39,7 +39,7 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="@dimen/retro_menu3_title_margin_bottom"
                 android:letterSpacing="@dimen/retro_menu3_title_letter_spacing"
-                android:fontFamily="@font/arcade_normal"
+                
                 android:shadowColor="@color/retro_menu3_shadow_color"
                 android:shadowDx="@dimen/retro_menu3_shadow_dx"
                 android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -84,7 +84,7 @@
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@color/retro_menu3_text_color"
-                                android:fontFamily="@font/arcade_normal"
+                                
                                 android:layout_marginStart="0dp"
                                 android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
                                 android:visibility="gone"
@@ -104,7 +104,7 @@
                                     android:text="@string/submenu2_option_a"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    android:fontFamily="@font/arcade_normal"
+                                    
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -138,7 +138,7 @@
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@color/retro_menu3_text_color"
-                                android:fontFamily="@font/arcade_normal"
+                                
                                 android:layout_marginStart="0dp"
                                 android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
                                 android:visibility="gone"
@@ -158,7 +158,7 @@
                                     android:text="@string/submenu2_option_b"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    android:fontFamily="@font/arcade_normal"
+                                    
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -192,7 +192,7 @@
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@color/retro_menu3_text_color"
-                                android:fontFamily="@font/arcade_normal"
+                                
                                 android:layout_marginStart="0dp"
                                 android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
                                 android:visibility="gone"
@@ -212,7 +212,7 @@
                                     android:text="@string/submenu2_option_c"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    android:fontFamily="@font/arcade_normal"
+                                    
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"

@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** ProgressFragment - Progress submenu with visual identical to RetroMenu3 */
@@ -118,6 +119,24 @@ class ProgressFragment : Fragment() {
 
         // Set first item as selected
         updateSelectionVisual()
+
+        // Apply arcade font to all text views
+        applyArcadeFontToViews()
+    }
+
+    private fun applyArcadeFontToViews() {
+        val context = requireContext()
+
+        // Apply font to all text views in the progress menu
+        FontUtils.applyArcadeFont(
+                context,
+                saveStateTitle,
+                loadStateTitle,
+                backTitle,
+                selectionArrowSaveState,
+                selectionArrowLoadState,
+                selectionArrowBack
+        )
     }
 
     private fun setupClickListeners() {

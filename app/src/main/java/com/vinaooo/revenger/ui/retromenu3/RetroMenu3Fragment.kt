@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
@@ -175,6 +176,29 @@ class RetroMenu3Fragment : Fragment() {
 
         // Set first item as selected
         updateSelectionVisual()
+
+        // Apply arcade font to all text views
+        applyArcadeFontToViews()
+    }
+
+    private fun applyArcadeFontToViews() {
+        val context = requireContext()
+
+        // Apply font to all text views in the menu
+        FontUtils.applyArcadeFont(
+                context,
+                controlsHint,
+                continueTitle,
+                resetTitle,
+                progressTitle,
+                settingsTitle,
+                submenu2Title,
+                selectionArrowContinue,
+                selectionArrowReset,
+                selectionArrowProgress,
+                selectionArrowSettings,
+                selectionArrowSubmenu2
+        )
     }
 
     private fun setupClickListeners() {
