@@ -67,13 +67,15 @@ class GamePad(
         private fun eventHandler(event: Event, retroView: GLRetroView) {
                 when (event) {
                         is Event.Button -> {
-                                // Always send to ControllerInput for processing (it will decide if menu is open)
+                                // Always send to ControllerInput for processing (it will decide if
+                                // menu is open)
                                 onButtonEvent?.invoke(event)
                                 // Also send to core if not handled by menu
                                 retroView.sendKeyEvent(event.action, event.id)
                         }
                         is Event.Direction -> {
-                                // Always send to ControllerInput for processing (it will decide if menu is open)
+                                // Always send to ControllerInput for processing (it will decide if
+                                // menu is open)
                                 onButtonEvent?.invoke(event)
                                 // Also send to core if not handled by menu
                                 when (event.id) {

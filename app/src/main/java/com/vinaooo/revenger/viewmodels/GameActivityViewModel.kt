@@ -14,12 +14,12 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
+import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.controllers.AudioController
 import com.vinaooo.revenger.controllers.SpeedController
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
-import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.retromenu3.ExitFragment
@@ -730,7 +730,7 @@ class GameActivityViewModel(application: Application) :
                 GamePad(context, gamePadConfig.left) { event ->
                     when (event) {
                         is Event.Button ->
-                            controllerInput.processGamePadButtonEvent(event.id, event.action)
+                                controllerInput.processGamePadButtonEvent(event.id, event.action)
                         is Event.Direction -> {
                             // Create synthetic MotionEvent for DPAD using PointerCoords
                             val pointerCoords = MotionEvent.PointerCoords()
@@ -745,15 +745,23 @@ class GameActivityViewModel(application: Application) :
                             pointerProperties.id = 0
                             pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
 
-                            val motionEvent = MotionEvent.obtain(
-                                android.os.SystemClock.uptimeMillis(),
-                                android.os.SystemClock.uptimeMillis(),
-                                MotionEvent.ACTION_MOVE,
-                                1,
-                                arrayOf(pointerProperties),
-                                arrayOf(pointerCoords),
-                                0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_JOYSTICK, 0
-                            )
+                            val motionEvent =
+                                    MotionEvent.obtain(
+                                            android.os.SystemClock.uptimeMillis(),
+                                            android.os.SystemClock.uptimeMillis(),
+                                            MotionEvent.ACTION_MOVE,
+                                            1,
+                                            arrayOf(pointerProperties),
+                                            arrayOf(pointerCoords),
+                                            0,
+                                            0,
+                                            1f,
+                                            1f,
+                                            0,
+                                            0,
+                                            InputDevice.SOURCE_JOYSTICK,
+                                            0
+                                    )
                             controllerInput.processMotionEvent(motionEvent, retroView!!)
                         }
                     }
@@ -762,7 +770,7 @@ class GameActivityViewModel(application: Application) :
                 GamePad(context, gamePadConfig.right) { event ->
                     when (event) {
                         is Event.Button ->
-                            controllerInput.processGamePadButtonEvent(event.id, event.action)
+                                controllerInput.processGamePadButtonEvent(event.id, event.action)
                         is Event.Direction -> {
                             // Create synthetic MotionEvent for DPAD using PointerCoords
                             val pointerCoords = MotionEvent.PointerCoords()
@@ -777,15 +785,23 @@ class GameActivityViewModel(application: Application) :
                             pointerProperties.id = 0
                             pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
 
-                            val motionEvent = MotionEvent.obtain(
-                                android.os.SystemClock.uptimeMillis(),
-                                android.os.SystemClock.uptimeMillis(),
-                                MotionEvent.ACTION_MOVE,
-                                1,
-                                arrayOf(pointerProperties),
-                                arrayOf(pointerCoords),
-                                0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_JOYSTICK, 0
-                            )
+                            val motionEvent =
+                                    MotionEvent.obtain(
+                                            android.os.SystemClock.uptimeMillis(),
+                                            android.os.SystemClock.uptimeMillis(),
+                                            MotionEvent.ACTION_MOVE,
+                                            1,
+                                            arrayOf(pointerProperties),
+                                            arrayOf(pointerCoords),
+                                            0,
+                                            0,
+                                            1f,
+                                            1f,
+                                            0,
+                                            0,
+                                            InputDevice.SOURCE_JOYSTICK,
+                                            0
+                                    )
                             controllerInput.processMotionEvent(motionEvent, retroView!!)
                         }
                     }
