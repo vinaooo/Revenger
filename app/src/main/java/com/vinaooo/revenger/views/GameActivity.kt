@@ -104,6 +104,22 @@ class GameActivity : FragmentActivity() {
         super.onConfigurationChanged(newConfig)
         Log.d(TAG, "Configuration changed - adjusting gamepad position")
         adjustGamePadPositionForOrientation(gamePadContainer)
+
+        // --- SOLUÇÃO: Reinflar RetroMenu3Fragment se estiver aberto ---
+        val fragmentManager = supportFragmentManager
+        val retroMenu3Tag =
+                com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment::class.java.simpleName
+        val retroMenu3Fragment = fragmentManager.findFragmentByTag(retroMenu3Tag)
+        if (retroMenu3Fragment != null && retroMenu3Fragment.isAdded) {
+            Log.d(TAG, "RetroMenu3Fragment está aberto, forçando reinflar após rotação")
+            fragmentManager
+                    .beginTransaction()
+                    .remove(retroMenu3Fragment)
+                    .commitNowAllowingStateLoss()
+            // Recria o fragment usando o método padrão do ViewModel
+            viewModel.prepareRetroMenu3(this)
+            viewModel.showRetroMenu3(this)
+        }
     }
 
     /** Initialize SDK 36 features with backward compatibility Phase 9.4: Target SDK 36 Features */

@@ -7,7 +7,7 @@
     <item name="retro_menu3_center_content_weight" format="float" type="dimen">0.50</item>
     
     <!-- Padding and Margins -->
-    <dimen name="retro_menu3_container_padding_vertical">16dp</dimen>
+    <dimen name="retro_menu3_container_padding_vertical">24dp</dimen>
     <dimen name="retro_menu3_title_margin_bottom">12dp</dimen>
     <dimen name="retro_menu3_extra_space_height">16dp</dimen>
     

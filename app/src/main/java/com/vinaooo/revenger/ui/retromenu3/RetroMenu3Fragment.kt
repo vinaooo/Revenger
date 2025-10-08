@@ -131,14 +131,14 @@ class RetroMenu3Fragment : Fragment() {
 
         val titleText =
                 when (titleStyle) {
-                    1 -> {
-                        resources.getString(R.string.config_name)
-                    }
-                    else -> {
-                        resources.getString(R.string.retro_menu3_title)
-                    }
+                    1 -> resources.getString(R.string.config_name)
+                    else -> resources.getString(R.string.retro_menu3_title)
                 }
         titleTextView?.text = titleText
+        // Garante fonte Arcade no título
+        if (titleTextView != null) {
+            FontUtils.applyArcadeFont(requireContext(), titleTextView)
+        }
     }
 
     private fun setupViews(view: View) {
