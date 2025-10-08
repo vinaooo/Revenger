@@ -65,7 +65,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                 resources.getBoolean(R.bool.config_gamepad_l1)
                                             },
                                     SecondaryDialConfig.SingleButton(
-                                                    index = 10,
+                                                    index = 2,
                                                     scale = 1f,
                                                     distance = 0f,
                                                     buttonConfig = BUTTON_SELECT
@@ -122,7 +122,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                 resources.getBoolean(R.bool.config_gamepad_r1)
                                             },
                                     SecondaryDialConfig.SingleButton(
-                                                    index = 8,
+                                                    index = 4,
                                                     scale = 1f,
                                                     distance = 0f,
                                                     buttonConfig = BUTTON_START

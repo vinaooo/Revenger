@@ -41,6 +41,12 @@ class GameActivityViewModel(application: Application) :
     private var leftGamePad: GamePad? = null
     private var rightGamePad: GamePad? = null
 
+    // Menu container reference (from activity layout)
+    private var menuContainerView: FrameLayout? = null
+    
+    // GamePad container reference (needed to force it on top of menu)
+    private var gamePadContainerView: android.widget.LinearLayout? = null
+
     // RetroMenu3 fragment (activated by SELECT+START combo)
     private var retroMenu3Fragment: RetroMenu3Fragment? = null
 
@@ -153,7 +159,18 @@ class GameActivityViewModel(application: Application) :
                 }
     }
 
-    /** Create an instance of the RetroMenu3 overlay (activated by SELECT+START) */
+    /** Set menu container reference from activity layout */
+    fun setMenuContainer(container: FrameLayout) {
+        menuContainerView = container
+        android.util.Log.d("GameActivityViewModel", "Menu container set: $container")
+    }
+    
+    /** Set GamePad container reference to force it on top when menu opens */
+    fun setGamePadContainer(container: android.widget.LinearLayout) {
+        gamePadContainerView = container
+        android.util.Log.d("GameActivityViewModel", "GamePad container set: $container")
+    }
+
     /** Show the RetroMenu3 (activated by SELECT+START combo) */
     fun showRetroMenu3(activity: FragmentActivity) {
         android.util.Log.d("GameActivityViewModel", "showRetroMenu3 called!")
@@ -163,6 +180,10 @@ class GameActivityViewModel(application: Application) :
             android.util.Log.d("GameActivityViewModel", "RetroMenu3 already open, ignoring call")
             return
         }
+
+        // Verificar se temos o container do menu
+        val containerId = menuContainerView?.id ?: R.id.menu_container
+        android.util.Log.d("GameActivityViewModel", "Using menu container ID: $containerId")
 
         if (retroView?.frameRendered?.value == true) {
             // CRITICAL: Capture currently pressed keys BEFORE showing menu
@@ -183,11 +204,12 @@ class GameActivityViewModel(application: Application) :
                     activity.supportFragmentManager
                             .beginTransaction()
                             .add(
-                                    android.R.id.content,
+                                    containerId,
                                     menu,
                                     RetroMenu3Fragment::class.java.simpleName
                             )
                             .commit()
+                    android.util.Log.d("GameActivityViewModel", "RetroMenu3 fragment added successfully")
                 } else {
                     android.util.Log.d("GameActivityViewModel", "RetroMenu3Fragment already added!")
                 }

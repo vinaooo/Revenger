@@ -67,6 +67,9 @@ class SettingsMenuFragment : Fragment() {
         // Initialize ViewModel
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
+        // CRITICAL: Force all views to z=0 to stay below gamepad
+        forceZeroElevationRecursively(view)
+
         setupViews(view)
         setupClickListeners()
         updateMenuState()
@@ -78,6 +81,21 @@ class SettingsMenuFragment : Fragment() {
         )
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when selecting Back
+    }
+    
+    /**
+     * Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad.
+     */
+    private fun forceZeroElevationRecursively(view: View) {
+        view.z = 0f
+        view.elevation = 0f
+        view.translationZ = 0f
+        
+        if (view is android.view.ViewGroup) {
+            for (i in 0 until view.childCount) {
+                forceZeroElevationRecursively(view.getChildAt(i))
+            }
+        }
     }
 
     private fun setupViews(view: View) {

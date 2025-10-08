@@ -21,6 +21,7 @@ class GameActivity : FragmentActivity() {
     private lateinit var leftContainer: FrameLayout
     private lateinit var rightContainer: FrameLayout
     private lateinit var retroviewContainer: FrameLayout
+    private lateinit var menuContainer: FrameLayout
     private val viewModel: GameActivityViewModel by viewModels()
 
     // Performance monitoring
@@ -62,6 +63,13 @@ class GameActivity : FragmentActivity() {
         leftContainer = findViewById(R.id.left_container)
         rightContainer = findViewById(R.id.right_container)
         retroviewContainer = findViewById(R.id.retroview_container)
+        menuContainer = findViewById(R.id.menu_container)
+        
+        // Get gamepad container reference
+        val gamepadContainers = findViewById<android.widget.LinearLayout>(R.id.containers)
+        
+        // Pass gamepad container reference to ViewModel
+        viewModel.setGamePadContainer(gamepadContainers)
 
         /* Use immersive mode when we change the window insets */
         window.decorView.setOnApplyWindowInsetsListener { view, windowInsets ->
@@ -76,6 +84,7 @@ class GameActivity : FragmentActivity() {
         viewModel.setupGamePads(this, leftContainer, rightContainer)
         viewModel.prepareRetroMenu3(this)
         viewModel.setupMenuCallback(this)
+        viewModel.setMenuContainer(menuContainer)
     }
 
     /** Initialize SDK 36 features with backward compatibility Phase 9.4: Target SDK 36 Features */

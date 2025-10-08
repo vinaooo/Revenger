@@ -94,6 +94,9 @@ class RetroMenu3Fragment : Fragment() {
         // Initialize ViewModel
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
+        // CRITICAL: Force all views in this fragment to have z=0 to stay below gamepad
+        forceZeroElevationRecursively(view)
+
         setupViews(view)
         setupDynamicTitle()
         setupClickListeners()
@@ -102,6 +105,23 @@ class RetroMenu3Fragment : Fragment() {
 
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when pressing START again or selecting Continue
+    }
+    
+    /**
+     * Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad.
+     * This is necessary because Material Design components have default elevation that
+     * overrides XML attributes.
+     */
+    private fun forceZeroElevationRecursively(view: View) {
+        view.z = 0f
+        view.elevation = 0f
+        view.translationZ = 0f
+        
+        if (view is ViewGroup) {
+            for (i in 0 until view.childCount) {
+                forceZeroElevationRecursively(view.getChildAt(i))
+            }
+        }
     }
 
     private fun setupDynamicTitle() {
@@ -485,9 +505,12 @@ class RetroMenu3Fragment : Fragment() {
             }
         }
 
+        // Use the same container as the parent fragment (menu_container)
+        val containerId = (view?.parent as? android.view.View)?.id ?: R.id.menu_container
+
         parentFragmentManager
                 .beginTransaction()
-                .add(android.R.id.content, settingsFragment, "SettingsMenuFragment")
+                .add(containerId, settingsFragment, "SettingsMenuFragment")
                 .addToBackStack("SettingsMenuFragment")
                 .commit()
         // Ensure that the transaction is executed immediately
@@ -538,9 +561,12 @@ class RetroMenu3Fragment : Fragment() {
             }
         }
 
+        // Use the same container as the parent fragment (menu_container)
+        val containerId = (view?.parent as? android.view.View)?.id ?: R.id.menu_container
+
         parentFragmentManager
                 .beginTransaction()
-                .add(android.R.id.content, progressFragment, "ProgressFragment")
+                .add(containerId, progressFragment, "ProgressFragment")
                 .addToBackStack("ProgressFragment")
                 .commit()
         // Ensure that the transaction is executed immediately
@@ -591,9 +617,12 @@ class RetroMenu3Fragment : Fragment() {
             }
         }
 
+        // Use the same container as the parent fragment (menu_container)
+        val containerId = (view?.parent as? android.view.View)?.id ?: R.id.menu_container
+
         parentFragmentManager
                 .beginTransaction()
-                .add(android.R.id.content, submenu2Fragment, "Submenu2Fragment")
+                .add(containerId, submenu2Fragment, "Submenu2Fragment")
                 .addToBackStack("Submenu2Fragment")
                 .commit()
         // Ensure that the transaction is executed immediately
