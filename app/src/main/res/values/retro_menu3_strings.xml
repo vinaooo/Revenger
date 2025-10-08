@@ -43,10 +43,10 @@
     <string name="progress_menu_title">Progress</string>
 
     <!-- Exit Menu -->
-    <string name="submenu2_title">Exit</string>
-    <string name="submenu2_option_a">Save and Exit</string>
-    <string name="submenu2_option_b">Exit without Save</string>
-    <string name="submenu2_option_c">Back</string>
+    <string name="exit_menu_title">Exit</string>
+    <string name="exit_menu_option_a">Save and Exit</string>
+    <string name="exit_menu_option_b">Exit without Save</string>
+    <string name="exit_menu_option_c">Back</string>
 
     <!-- Menu Control hint -->
     <string name="retro_menu3_controls_hint">[A] Confirm  [B] Back</string>

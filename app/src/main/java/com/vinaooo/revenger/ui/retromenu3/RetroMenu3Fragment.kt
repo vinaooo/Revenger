@@ -26,7 +26,7 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
  * menus)") } else { android.util.Log.d("RetroMenu3Fragment", "BackStack empty - showing main menu")
  * // Show main menu again showMainMenu() } } }
  *
- * parentFragmentManager .beginTransaction() .add(android.R.id.content, submenu2Fragment,
+ * parentFragmentManager .beginTransaction() .add(android.R.id.content, exitFragment,
  * "ExitFragment")fullscreen overlay with Material Design 3
  */
 class RetroMenu3Fragment : Fragment() {
@@ -43,7 +43,7 @@ class RetroMenu3Fragment : Fragment() {
     private lateinit var resetMenu: MaterialCardView
     private lateinit var progressMenu: MaterialCardView
     private lateinit var settingsMenu: MaterialCardView
-    private lateinit var submenu2Menu: MaterialCardView
+    private lateinit var exitMenu: MaterialCardView
 
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
@@ -54,14 +54,14 @@ class RetroMenu3Fragment : Fragment() {
     private lateinit var resetTitle: TextView
     private lateinit var progressTitle: TextView
     private lateinit var settingsTitle: TextView
-    private lateinit var submenu2Title: TextView
+    private lateinit var exitTitle: TextView
 
     // Selection arrows
     private lateinit var selectionArrowContinue: TextView
     private lateinit var selectionArrowReset: TextView
     private lateinit var selectionArrowProgress: TextView
     private lateinit var selectionArrowSettings: TextView
-    private lateinit var selectionArrowSubmenu2: TextView
+    private lateinit var selectionArrowExit: TextView
 
     // Callback interface
     interface RetroMenu3Listener {
@@ -153,10 +153,10 @@ class RetroMenu3Fragment : Fragment() {
         resetMenu = view.findViewById(R.id.menu_reset)
         progressMenu = view.findViewById(R.id.menu_submenu1)
         settingsMenu = view.findViewById(R.id.menu_settings)
-        submenu2Menu = view.findViewById(R.id.menu_submenu2)
+        exitMenu = view.findViewById(R.id.menu_exit)
 
         // Initialize ordered list of menu items
-        menuItems = listOf(continueMenu, resetMenu, progressMenu, settingsMenu, submenu2Menu)
+        menuItems = listOf(continueMenu, resetMenu, progressMenu, settingsMenu, exitMenu)
 
         // Dynamic content views (only views that exist in layout)
         // Initialize menu option titles
@@ -164,14 +164,14 @@ class RetroMenu3Fragment : Fragment() {
         resetTitle = view.findViewById(R.id.reset_title)
         progressTitle = view.findViewById(R.id.progress_menu_title)
         settingsTitle = view.findViewById(R.id.settings_title)
-        submenu2Title = view.findViewById(R.id.submenu2_title)
+        exitTitle = view.findViewById(R.id.exit_title)
 
         // Initialize selection arrows
         selectionArrowContinue = view.findViewById(R.id.selection_arrow_continue)
         selectionArrowReset = view.findViewById(R.id.selection_arrow_reset)
         selectionArrowProgress = view.findViewById(R.id.selection_arrow_submenu1)
         selectionArrowSettings = view.findViewById(R.id.selection_arrow_settings)
-        selectionArrowSubmenu2 = view.findViewById(R.id.selection_arrow_submenu2)
+        selectionArrowExit = view.findViewById(R.id.selection_arrow_exit)
 
         // Set first item as selected
         updateSelectionVisual()
@@ -191,12 +191,12 @@ class RetroMenu3Fragment : Fragment() {
                 resetTitle,
                 progressTitle,
                 settingsTitle,
-                submenu2Title,
+                exitTitle,
                 selectionArrowContinue,
                 selectionArrowReset,
                 selectionArrowProgress,
                 selectionArrowSettings,
-                selectionArrowSubmenu2
+                selectionArrowExit
         )
     }
 
@@ -242,9 +242,9 @@ class RetroMenu3Fragment : Fragment() {
             openSettingsSubmenu()
         }
 
-        submenu2Menu.setOnClickListener {
-            // Open submenu 2
-            openSubmenu2()
+        exitMenu.setOnClickListener {
+            // Open exit menu
+            openExitMenu()
         }
     }
 
@@ -311,7 +311,7 @@ class RetroMenu3Fragment : Fragment() {
             1 -> resetMenu.performClick() // Reset
             2 -> openProgress() // Progress
             3 -> settingsMenu.performClick() // Settings
-            4 -> openSubmenu2() // Submenu2
+            4 -> openExitMenu() // Exit Menu
         }
     }
 
@@ -402,7 +402,7 @@ class RetroMenu3Fragment : Fragment() {
                 if (currentSelectedIndex == 3) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
-        submenu2Title.setTextColor(
+        exitTitle.setTextColor(
                 if (currentSelectedIndex == 4) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
@@ -459,16 +459,16 @@ class RetroMenu3Fragment : Fragment() {
             selectionArrowSettings.visibility = View.GONE
         }
 
-        // Submenu2
+        // Exit Menu
         if (currentSelectedIndex == 4) {
-            selectionArrowSubmenu2.setTextColor(android.graphics.Color.YELLOW)
-            selectionArrowSubmenu2.visibility = View.VISIBLE
-            (selectionArrowSubmenu2.layoutParams as LinearLayout.LayoutParams).apply {
+            selectionArrowExit.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowExit.visibility = View.VISIBLE
+            (selectionArrowExit.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
                 marginEnd = arrowMarginEnd
             }
         } else {
-            selectionArrowSubmenu2.visibility = View.GONE
+            selectionArrowExit.visibility = View.GONE
         }
 
         // Force layout update
@@ -600,21 +600,21 @@ class RetroMenu3Fragment : Fragment() {
         )
     }
 
-    private fun openSubmenu2() {
-        android.util.Log.d("RetroMenu3Fragment", "openSubmenu2: Starting to open submenu2")
+    private fun openExitMenu() {
+        android.util.Log.d("RetroMenu3Fragment", "openExitMenu: Starting to open exit menu")
         // Make main menu invisible before opening submenu
         hideMainMenu()
 
         // Create and show ExitFragment
-        val submenu2Fragment = ExitFragment.newInstance()
+        val exitFragment = ExitFragment.newInstance()
 
-        android.util.Log.d("RetroMenu3Fragment", "openSubmenu2: ExitFragment created")
+        android.util.Log.d("RetroMenu3Fragment", "openExitMenu: ExitFragment created")
         // Register the fragment in ViewModel so navigation works
-        viewModel.registerExitFragment(submenu2Fragment)
+        viewModel.registerExitFragment(exitFragment)
 
         android.util.Log.d(
                 "RetroMenu3Fragment",
-                "openSubmenu2: Submenu2Fragment registered with ViewModel"
+                "openExitMenu: ExitFragment registered with ViewModel"
         )
 
         // Add listener to detect when back stack changes (submenu is removed)
@@ -645,12 +645,12 @@ class RetroMenu3Fragment : Fragment() {
 
         parentFragmentManager
                 .beginTransaction()
-                .add(containerId, submenu2Fragment, "Submenu2Fragment")
-                .addToBackStack("Submenu2Fragment")
+                .add(containerId, exitFragment, "ExitFragment")
+                .addToBackStack("ExitFragment")
                 .commit()
         // Ensure that the transaction is executed immediately
         parentFragmentManager.executePendingTransactions()
-        android.util.Log.d("RetroMenu3Fragment", "openSubmenu2: Submenu2 should be open now")
+        android.util.Log.d("RetroMenu3Fragment", "openExitMenu: Exit menu should be open now")
     }
 
     override fun onDestroy() {

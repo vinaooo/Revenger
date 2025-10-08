@@ -282,9 +282,9 @@
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Submenu 2 -->
+                    <!-- Exit Menu -->
                     <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/menu_submenu2"
+                        android:id="@+id/menu_exit"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
@@ -301,7 +301,7 @@
                             android:gravity="center_vertical"
                             android:padding="@dimen/retro_menu3_menu_item_padding">
                             <TextView
-                                android:id="@+id/selection_arrow_submenu2"
+                                android:id="@+id/selection_arrow_exit"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/retro_menu3_selection_arrow"
@@ -321,10 +321,10 @@
                                 android:layout_weight="1"
                                 android:orientation="vertical">
                                 <TextView
-                                    android:id="@+id/submenu2_title"
+                                    android:id="@+id/exit_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/submenu2_title"
+                                    android:text="@string/exit_menu_title"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
                                     

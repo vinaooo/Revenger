@@ -20,10 +20,10 @@ class ExitFragment : Fragment() {
     private lateinit var viewModel: GameActivityViewModel
 
     // Menu item views
-    private lateinit var submenu2Container: LinearLayout
+    private lateinit var exitMenuContainer: LinearLayout
     private lateinit var saveAndExit: MaterialCardView
     private lateinit var exitWithoutSave: MaterialCardView
-    private lateinit var backSubmenu2: MaterialCardView
+    private lateinit var backExitMenu: MaterialCardView
 
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
@@ -55,7 +55,7 @@ class ExitFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.submenu2, container, false)
+        return inflater.inflate(R.layout.exit_menu, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -92,15 +92,15 @@ class ExitFragment : Fragment() {
 
     private fun setupViews(view: View) {
         // Main container
-        submenu2Container = view.findViewById(R.id.submenu2_container)
+        exitMenuContainer = view.findViewById(R.id.exit_menu_container)
 
         // Menu items
-        saveAndExit = view.findViewById(R.id.submenu2_option_a)
-        exitWithoutSave = view.findViewById(R.id.submenu2_option_b)
-        backSubmenu2 = view.findViewById(R.id.submenu2_option_c)
+        saveAndExit = view.findViewById(R.id.exit_menu_option_a)
+        exitWithoutSave = view.findViewById(R.id.exit_menu_option_b)
+        backExitMenu = view.findViewById(R.id.exit_menu_option_c)
 
         // Initialize ordered list of menu items
-        menuItems = listOf(saveAndExit, exitWithoutSave, backSubmenu2)
+        menuItems = listOf(saveAndExit, exitWithoutSave, backExitMenu)
 
         // Initialize menu option titles
         saveAndExitTitle = view.findViewById(R.id.option_a_title)
@@ -162,7 +162,7 @@ class ExitFragment : Fragment() {
             android.os.Process.killProcess(android.os.Process.myPid())
         }
 
-        backSubmenu2.setOnClickListener {
+        backExitMenu.setOnClickListener {
             // Back - Return to main menu
             viewModel.dismissExit()
         }
@@ -191,7 +191,7 @@ class ExitFragment : Fragment() {
         when (currentSelectedIndex) {
             0 -> saveAndExit.performClick() // Save and Exit
             1 -> exitWithoutSave.performClick() // Exit without Save
-            2 -> backSubmenu2.performClick() // Back
+            2 -> backExitMenu.performClick() // Back
         }
     }
 
@@ -260,7 +260,7 @@ class ExitFragment : Fragment() {
         }
 
         // Force layout update
-        submenu2Container.requestLayout()
+        exitMenuContainer.requestLayout()
     }
 
     /** Public method to dismiss the menu from outside */
