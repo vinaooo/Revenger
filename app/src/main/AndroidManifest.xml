@@ -18,7 +18,6 @@
         android:theme="@style/Theme.Material3.DayNight.NoActionBar">
         <activity android:name=".views.GameActivity"
             android:exported="true"
-            android:screenOrientation="landscape"
             android:configChanges="keyboardHidden|orientation|screenSize|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

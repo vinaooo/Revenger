@@ -38,7 +38,7 @@
                 as it involves rebuilding the
                 emulator instance!
     -->
-    <integer name="config_orientation">2</integer>
+    <integer name="config_orientation">3</integer>
 
     <!-- Menu display modes
         0: No menu (disabled)
@@ -60,12 +60,12 @@
     <!-- GamePad buttons to display -->
     <bool name="config_gamepad_a">true</bool>
     <bool name="config_gamepad_b">true</bool>
-    <bool name="config_gamepad_x">true</bool>
-    <bool name="config_gamepad_y">true</bool>
+    <bool name="config_gamepad_x">false</bool>
+    <bool name="config_gamepad_y">false</bool>
     <bool name="config_gamepad_start">true</bool>
     <bool name="config_gamepad_select">true</bool>
-    <bool name="config_gamepad_l1">true</bool>
-    <bool name="config_gamepad_r1">true</bool>
+    <bool name="config_gamepad_l1">false</bool>
+    <bool name="config_gamepad_r1">false</bool>
     <bool name="config_gamepad_l2">false</bool>
     <bool name="config_gamepad_r2">false</bool>
 
