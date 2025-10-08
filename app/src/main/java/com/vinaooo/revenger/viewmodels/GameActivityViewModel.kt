@@ -19,6 +19,7 @@ import com.vinaooo.revenger.controllers.AudioController
 import com.vinaooo.revenger.controllers.SpeedController
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
+import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.retromenu3.ExitFragment
@@ -727,11 +728,67 @@ class GameActivityViewModel(application: Application) :
         val gamePadConfig = GamePadConfig(context, resources)
         leftGamePad =
                 GamePad(context, gamePadConfig.left) { event ->
-                    controllerInput.processGamePadButtonEvent(event.id, event.action)
+                    when (event) {
+                        is Event.Button ->
+                            controllerInput.processGamePadButtonEvent(event.id, event.action)
+                        is Event.Direction -> {
+                            // Create synthetic MotionEvent for DPAD using PointerCoords
+                            val pointerCoords = MotionEvent.PointerCoords()
+                            pointerCoords.x = 0f
+                            pointerCoords.y = 0f
+                            pointerCoords.pressure = 1f
+                            pointerCoords.size = 1f
+                            pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_X, event.xAxis)
+                            pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_Y, event.yAxis)
+
+                            val pointerProperties = MotionEvent.PointerProperties()
+                            pointerProperties.id = 0
+                            pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
+
+                            val motionEvent = MotionEvent.obtain(
+                                android.os.SystemClock.uptimeMillis(),
+                                android.os.SystemClock.uptimeMillis(),
+                                MotionEvent.ACTION_MOVE,
+                                1,
+                                arrayOf(pointerProperties),
+                                arrayOf(pointerCoords),
+                                0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_JOYSTICK, 0
+                            )
+                            controllerInput.processMotionEvent(motionEvent, retroView!!)
+                        }
+                    }
                 }
         rightGamePad =
                 GamePad(context, gamePadConfig.right) { event ->
-                    controllerInput.processGamePadButtonEvent(event.id, event.action)
+                    when (event) {
+                        is Event.Button ->
+                            controllerInput.processGamePadButtonEvent(event.id, event.action)
+                        is Event.Direction -> {
+                            // Create synthetic MotionEvent for DPAD using PointerCoords
+                            val pointerCoords = MotionEvent.PointerCoords()
+                            pointerCoords.x = 0f
+                            pointerCoords.y = 0f
+                            pointerCoords.pressure = 1f
+                            pointerCoords.size = 1f
+                            pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_X, event.xAxis)
+                            pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_Y, event.yAxis)
+
+                            val pointerProperties = MotionEvent.PointerProperties()
+                            pointerProperties.id = 0
+                            pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
+
+                            val motionEvent = MotionEvent.obtain(
+                                android.os.SystemClock.uptimeMillis(),
+                                android.os.SystemClock.uptimeMillis(),
+                                MotionEvent.ACTION_MOVE,
+                                1,
+                                arrayOf(pointerProperties),
+                                arrayOf(pointerCoords),
+                                0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_JOYSTICK, 0
+                            )
+                            controllerInput.processMotionEvent(motionEvent, retroView!!)
+                        }
+                    }
                 }
 
         leftGamePad?.let {

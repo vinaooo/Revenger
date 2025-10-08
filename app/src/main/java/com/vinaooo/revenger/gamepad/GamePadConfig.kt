@@ -18,6 +18,10 @@ class GamePadConfig(context: Context, private val resources: Resources) {
 
                 val BUTTON_R1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_R1, label = "R")
 
+                val BUTTON_L2 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_L2, label = "L2")
+
+                val BUTTON_R2 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_R2, label = "R2")
+
                 val BUTTON_A = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_A, label = "A")
 
                 val BUTTON_B = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_B, label = "B")
@@ -65,6 +69,17 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                 .takeIf {
                                                         resources.getBoolean(
                                                                 R.bool.config_gamepad_l1
+                                                        )
+                                                },
+                                        SecondaryDialConfig.SingleButton(
+                                                        index = 6,
+                                                        scale = 1f,
+                                                        distance = 0f,
+                                                        buttonConfig = BUTTON_L2
+                                                )
+                                                .takeIf {
+                                                        resources.getBoolean(
+                                                                R.bool.config_gamepad_l2
                                                         )
                                                 },
                                         SecondaryDialConfig.SingleButton(
@@ -126,6 +141,17 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                 .takeIf {
                                                         resources.getBoolean(
                                                                 R.bool.config_gamepad_r1
+                                                        )
+                                                },
+                                        SecondaryDialConfig.SingleButton(
+                                                        index = 6,
+                                                        scale = 1f,
+                                                        distance = 0f,
+                                                        buttonConfig = BUTTON_R2
+                                                )
+                                                .takeIf {
+                                                        resources.getBoolean(
+                                                                R.bool.config_gamepad_r2
                                                         )
                                                 },
                                         SecondaryDialConfig.SingleButton(

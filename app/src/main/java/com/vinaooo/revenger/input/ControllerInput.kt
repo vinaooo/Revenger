@@ -320,6 +320,60 @@ class ControllerInput(private val context: Context) {
         }
 
         fun processGamePadButtonEvent(keyCode: Int, action: Int) {
+                // INTERCEPT BUTTON A for confirmation when menu is open
+                if (keyCode == KeyEvent.KEYCODE_BUTTON_A && shouldInterceptDpadForMenu()) {
+                        if (action == KeyEvent.ACTION_DOWN) {
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "BUTTON_A (GamePad) intercepted for menu confirmation"
+                                )
+                                menuConfirmCallback()
+                        }
+                        return // Consume the event, don't process further
+                }
+
+                // INTERCEPT BUTTON B to go back when menu is open
+                if (keyCode == KeyEvent.KEYCODE_BUTTON_B && shouldInterceptDpadForMenu()) {
+                        if (action == KeyEvent.ACTION_DOWN) {
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "BUTTON_B (GamePad) intercepted for menu back"
+                                )
+                                menuBackCallback()
+                        }
+                        return // Consume the event, don't process further
+                }
+
+                // INTERCEPT START button when menu is open (to close menu)
+                if (keyCode == KeyEvent.KEYCODE_BUTTON_START && shouldHandleStartButton()) {
+                        if (action == KeyEvent.ACTION_DOWN) {
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "START (GamePad) pressed while menu open - CLOSING MENU"
+                                )
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "   keyLog BEFORE startButtonCallback: $keyLog"
+                                )
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "   comboAlreadyTriggered BEFORE: $comboAlreadyTriggered"
+                                )
+                                startButtonCallback()
+                                // Reset comboAlreadyTriggered when START closes menu
+                                comboAlreadyTriggered = false
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "   ✅ comboAlreadyTriggered reset to false (START closed menu)"
+                                )
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "   startButtonCallback() completed"
+                                )
+                        }
+                        return // Consume the event, don't process further
+                }
+
                 /* Keep track of user input events */
                 when (action) {
                         KeyEvent.ACTION_DOWN -> {

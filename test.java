@@ -1,0 +1,1 @@
+package test; import android.view.KeyEvent; public class Test { public static void main(String[] args) { System.out.println("L2: " + KeyEvent.KEYCODE_BUTTON_L2); System.out.println("R2: " + KeyEvent.KEYCODE_BUTTON_R2); } }
