@@ -64,10 +64,10 @@ class GameActivity : FragmentActivity() {
         rightContainer = findViewById(R.id.right_container)
         retroviewContainer = findViewById(R.id.retroview_container)
         menuContainer = findViewById(R.id.menu_container)
-        
+
         // Get gamepad container reference
         val gamepadContainers = findViewById<android.widget.LinearLayout>(R.id.containers)
-        
+
         // Pass gamepad container reference to ViewModel
         viewModel.setGamePadContainer(gamepadContainers)
 

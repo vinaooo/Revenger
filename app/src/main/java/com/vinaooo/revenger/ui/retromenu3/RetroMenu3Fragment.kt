@@ -106,17 +106,17 @@ class RetroMenu3Fragment : Fragment() {
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when pressing START again or selecting Continue
     }
-    
+
     /**
-     * Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad.
-     * This is necessary because Material Design components have default elevation that
-     * overrides XML attributes.
+     * Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad. This is
+     * necessary because Material Design components have default elevation that overrides XML
+     * attributes.
      */
     private fun forceZeroElevationRecursively(view: View) {
         view.z = 0f
         view.elevation = 0f
         view.translationZ = 0f
-        
+
         if (view is ViewGroup) {
             for (i in 0 until view.childCount) {
                 forceZeroElevationRecursively(view.getChildAt(i))

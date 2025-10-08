@@ -43,7 +43,7 @@ class GameActivityViewModel(application: Application) :
 
     // Menu container reference (from activity layout)
     private var menuContainerView: FrameLayout? = null
-    
+
     // GamePad container reference (needed to force it on top of menu)
     private var gamePadContainerView: android.widget.LinearLayout? = null
 
@@ -164,7 +164,7 @@ class GameActivityViewModel(application: Application) :
         menuContainerView = container
         android.util.Log.d("GameActivityViewModel", "Menu container set: $container")
     }
-    
+
     /** Set GamePad container reference to force it on top when menu opens */
     fun setGamePadContainer(container: android.widget.LinearLayout) {
         gamePadContainerView = container
@@ -203,13 +203,12 @@ class GameActivityViewModel(application: Application) :
                 if (!menu.isAdded) {
                     activity.supportFragmentManager
                             .beginTransaction()
-                            .add(
-                                    containerId,
-                                    menu,
-                                    RetroMenu3Fragment::class.java.simpleName
-                            )
+                            .add(containerId, menu, RetroMenu3Fragment::class.java.simpleName)
                             .commit()
-                    android.util.Log.d("GameActivityViewModel", "RetroMenu3 fragment added successfully")
+                    android.util.Log.d(
+                            "GameActivityViewModel",
+                            "RetroMenu3 fragment added successfully"
+                    )
                 } else {
                     android.util.Log.d("GameActivityViewModel", "RetroMenu3Fragment already added!")
                 }
