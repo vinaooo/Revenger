@@ -25,6 +25,9 @@ class ExitFragment : Fragment() {
     private lateinit var exitWithoutSave: MaterialCardView
     private lateinit var backExitMenu: MaterialCardView
 
+    // Menu title
+    private lateinit var exitMenuTitle: TextView
+
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
     private var currentSelectedIndex = 0 // Start with "Option A"
@@ -94,6 +97,9 @@ class ExitFragment : Fragment() {
         // Main container
         exitMenuContainer = view.findViewById(R.id.exit_menu_container)
 
+        // Menu title
+        exitMenuTitle = view.findViewById(R.id.exit_menu_title)
+
         // Menu items
         saveAndExit = view.findViewById(R.id.exit_menu_option_a)
         exitWithoutSave = view.findViewById(R.id.exit_menu_option_b)
@@ -125,6 +131,7 @@ class ExitFragment : Fragment() {
         // Apply font to all text views in the exit menu
         FontUtils.applyArcadeFont(
                 context,
+                exitMenuTitle,
                 saveAndExitTitle,
                 exitWithoutSaveTitle,
                 backTitle,

@@ -25,6 +25,9 @@ class SettingsMenuFragment : Fragment() {
     private lateinit var gameSpeedSettings: MaterialCardView
     private lateinit var backSettings: MaterialCardView
 
+    // Menu title
+    private lateinit var settingsMenuTitle: TextView
+
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
     private var currentSelectedIndex = 0 // Start with "Sound"
@@ -101,6 +104,9 @@ class SettingsMenuFragment : Fragment() {
         // Main container
         settingsMenuContainer = view.findViewById(R.id.settings_menu_container)
 
+        // Menu title
+        settingsMenuTitle = view.findViewById(R.id.settings_menu_title)
+
         // Menu items
         soundSettings = view.findViewById(R.id.settings_sound)
         gameSpeedSettings = view.findViewById(R.id.settings_game_speed)
@@ -132,6 +138,7 @@ class SettingsMenuFragment : Fragment() {
         // Apply font to all text views in the settings menu
         FontUtils.applyArcadeFont(
                 context,
+                settingsMenuTitle,
                 soundTitle,
                 gameSpeedTitle,
                 backTitle,

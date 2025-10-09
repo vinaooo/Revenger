@@ -25,6 +25,9 @@ class ProgressFragment : Fragment() {
     private lateinit var loadState: MaterialCardView
     private lateinit var backProgress: MaterialCardView
 
+    // Menu title
+    private lateinit var progressTitle: TextView
+
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
     private var currentSelectedIndex = 0 // Start with "Save State"
@@ -94,6 +97,9 @@ class ProgressFragment : Fragment() {
         // Main container
         progressContainer = view.findViewById(R.id.progress_container)
 
+        // Menu title
+        progressTitle = view.findViewById(R.id.progress_title)
+
         // Menu items
         saveState = view.findViewById(R.id.progress_save_state)
         loadState = view.findViewById(R.id.progress_load_state)
@@ -130,6 +136,7 @@ class ProgressFragment : Fragment() {
         // Apply font to all text views in the progress menu
         FontUtils.applyArcadeFont(
                 context,
+                progressTitle,
                 saveStateTitle,
                 loadStateTitle,
                 backTitle,
