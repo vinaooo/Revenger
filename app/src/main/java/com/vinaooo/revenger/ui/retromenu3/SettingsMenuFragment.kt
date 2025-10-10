@@ -14,7 +14,7 @@ import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** SettingsMenuFragment - Settings submenu with visual identical to RetroMenu3 */
-class SettingsMenuFragment : Fragment() {
+class SettingsMenuFragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods
     private lateinit var viewModel: GameActivityViewModel
@@ -30,7 +30,6 @@ class SettingsMenuFragment : Fragment() {
 
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
-    private var currentSelectedIndex = 0 // Start with "Sound"
 
     // Menu option titles for color control
     private lateinit var soundTitle: TextView
@@ -126,7 +125,7 @@ class SettingsMenuFragment : Fragment() {
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
         // Set first item as selected
-        updateSelectionVisual()
+        updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
         applyArcadeFontToViews()
@@ -194,28 +193,35 @@ class SettingsMenuFragment : Fragment() {
     }
 
     /** Navigate up in the menu */
-    fun navigateUp() {
-        currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.size) % menuItems.size
-        updateSelectionVisual()
+    override fun performNavigateUp() {
+        navigateUpCircular(menuItems.size)
+        updateSelectionVisualInternal()
     }
 
     /** Navigate down in the menu */
-    fun navigateDown() {
-        currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.size
-        updateSelectionVisual()
+    override fun performNavigateDown() {
+        navigateDownCircular(menuItems.size)
+        updateSelectionVisualInternal()
     }
 
     /** Confirm current selection */
-    fun confirmSelection() {
-        when (currentSelectedIndex) {
+    override fun performConfirm() {
+        when (getCurrentSelectedIndex()) {
             0 -> soundSettings.performClick() // Sound
             1 -> gameSpeedSettings.performClick() // Game Speed
             2 -> backSettings.performClick() // Back
         }
     }
 
-    /** Update selection visual */
-    private fun updateSelectionVisual() {
+    /** Back action */
+    override fun performBack(): Boolean {
+        // For settings submenu, back should go to main menu
+        backSettings.performClick()
+        return true
+    }
+
+    /** Update selection visual - specific implementation for SettingsMenuFragment */
+    override fun updateSelectionVisualInternal() {
         menuItems.forEach { item ->
             // Removed: background color of individual cards
             // Selection now indicated only by yellow text and arrows
@@ -226,15 +232,15 @@ class SettingsMenuFragment : Fragment() {
 
         // Control text colors based on selection
         soundTitle.setTextColor(
-                if (currentSelectedIndex == 0) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         gameSpeedTitle.setTextColor(
-                if (currentSelectedIndex == 1) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 1) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         backTitle.setTextColor(
-                if (currentSelectedIndex == 2) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
 
@@ -243,7 +249,7 @@ class SettingsMenuFragment : Fragment() {
         val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Sound
-        if (currentSelectedIndex == 0) {
+        if (getCurrentSelectedIndex() == 0) {
             selectionArrowSound.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowSound.visibility = View.VISIBLE
             (selectionArrowSound.layoutParams as LinearLayout.LayoutParams).apply {
@@ -255,7 +261,7 @@ class SettingsMenuFragment : Fragment() {
         }
 
         // Game Speed
-        if (currentSelectedIndex == 1) {
+        if (getCurrentSelectedIndex() == 1) {
             selectionArrowGameSpeed.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowGameSpeed.visibility = View.VISIBLE
             (selectionArrowGameSpeed.layoutParams as LinearLayout.LayoutParams).apply {
@@ -267,7 +273,7 @@ class SettingsMenuFragment : Fragment() {
         }
 
         // Back
-        if (currentSelectedIndex == 2) {
+        if (getCurrentSelectedIndex() == 2) {
             selectionArrowBack.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
@@ -315,7 +321,7 @@ class SettingsMenuFragment : Fragment() {
         settingsMenuContainer.alpha = 1.0f
 
         // Ensure visual selection is updated when menu becomes visible again
-        updateSelectionVisual()
+        updateSelectionVisualInternal()
 
         // Force complete redraw
         settingsMenuContainer.invalidate()
@@ -357,6 +363,36 @@ class SettingsMenuFragment : Fragment() {
                     "Error resetting combo state in onDestroy",
                     e
             )
+        }
+    }
+
+    // ===== MenuFragmentBase Abstract Methods Implementation =====
+
+    override fun getMenuItems(): List<MenuItem> {
+        return listOf(
+                MenuItem(
+                        "sound",
+                        getString(R.string.settings_audio),
+                        action = MenuAction.TOGGLE_AUDIO
+                ),
+                MenuItem(
+                        "speed",
+                        getString(R.string.menu_fast_forward),
+                        action = MenuAction.TOGGLE_SPEED
+                ),
+                MenuItem("back", getString(R.string.settings_back), action = MenuAction.BACK)
+        )
+    }
+
+    override fun onMenuItemSelected(item: MenuItem) {
+        // Use new MenuAction system, but fallback to old click listeners for compatibility
+        when (item.action) {
+            MenuAction.TOGGLE_AUDIO -> soundSettings.performClick()
+            MenuAction.TOGGLE_SPEED -> gameSpeedSettings.performClick()
+            MenuAction.BACK -> backSettings.performClick()
+            else -> {
+                /* Ignore other actions */
+            }
         }
     }
 

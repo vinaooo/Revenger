@@ -14,7 +14,7 @@ import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** ProgressFragment - Progress submenu with visual identical to RetroMenu3 */
-class ProgressFragment : Fragment() {
+class ProgressFragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods
     private lateinit var viewModel: GameActivityViewModel
@@ -30,7 +30,6 @@ class ProgressFragment : Fragment() {
 
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
-    private var currentSelectedIndex = 0 // Start with "Save State"
 
     // Menu option titles for color control
     private lateinit var saveStateTitle: TextView
@@ -124,7 +123,7 @@ class ProgressFragment : Fragment() {
         loadState.alpha = if (hasSaveState) 1.0f else 0.5f
 
         // Set first item as selected
-        updateSelectionVisual()
+        updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
         applyArcadeFontToViews()
@@ -184,33 +183,40 @@ class ProgressFragment : Fragment() {
         parentFragmentManager.beginTransaction().remove(this).commit()
     }
 
-    /** Navigate up in the menu */
-    fun navigateUp() {
+    /** Navigate up in the menu - with special logic to skip disabled Load State */
+    override fun performNavigateUp() {
         do {
-            currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.size) % menuItems.size
-        } while (currentSelectedIndex == 1 && !loadState.isEnabled)
-        updateSelectionVisual()
+            navigateUpCircular(menuItems.size)
+        } while (getCurrentSelectedIndex() == 1 && !loadState.isEnabled)
+        updateSelectionVisualInternal()
     }
 
-    /** Navigate down in the menu */
-    fun navigateDown() {
+    /** Navigate down in the menu - with special logic to skip disabled Load State */
+    override fun performNavigateDown() {
         do {
-            currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.size
-        } while (currentSelectedIndex == 1 && !loadState.isEnabled)
-        updateSelectionVisual()
+            navigateDownCircular(menuItems.size)
+        } while (getCurrentSelectedIndex() == 1 && !loadState.isEnabled)
+        updateSelectionVisualInternal()
     }
 
     /** Confirm current selection */
-    fun confirmSelection() {
-        when (currentSelectedIndex) {
+    override fun performConfirm() {
+        when (getCurrentSelectedIndex()) {
             0 -> saveState.performClick() // Save State
             1 -> if (loadState.isEnabled) loadState.performClick() // Load State (only if enabled)
             2 -> backProgress.performClick() // Back
         }
     }
 
-    /** Update selection visual */
-    private fun updateSelectionVisual() {
+    /** Back action */
+    override fun performBack(): Boolean {
+        // For progress submenu, back should go to main menu
+        backProgress.performClick()
+        return true
+    }
+
+    /** Update selection visual - specific implementation for ProgressFragment */
+    override fun updateSelectionVisualInternal() {
         menuItems.forEach { item ->
             // Removed: background color of individual cards
             // Selection now indicated only by yellow text and arrows
@@ -221,16 +227,16 @@ class ProgressFragment : Fragment() {
 
         // Control text colors based on selection
         saveStateTitle.setTextColor(
-                if (currentSelectedIndex == 0) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         loadStateTitle.setTextColor(
-                if (currentSelectedIndex == 1 && loadState.isEnabled) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 1 && loadState.isEnabled) android.graphics.Color.YELLOW
                 else if (!loadState.isEnabled) android.graphics.Color.GRAY
                 else android.graphics.Color.WHITE
         )
         backTitle.setTextColor(
-                if (currentSelectedIndex == 2) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
 
@@ -239,7 +245,7 @@ class ProgressFragment : Fragment() {
         val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Save State
-        if (currentSelectedIndex == 0) {
+        if (getCurrentSelectedIndex() == 0) {
             selectionArrowSaveState.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowSaveState.visibility = View.VISIBLE
             (selectionArrowSaveState.layoutParams as LinearLayout.LayoutParams).apply {
@@ -251,7 +257,7 @@ class ProgressFragment : Fragment() {
         }
 
         // Load State
-        if (currentSelectedIndex == 1) {
+        if (getCurrentSelectedIndex() == 1) {
             selectionArrowLoadState.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowLoadState.visibility = View.VISIBLE
             (selectionArrowLoadState.layoutParams as LinearLayout.LayoutParams).apply {
@@ -263,7 +269,7 @@ class ProgressFragment : Fragment() {
         }
 
         // Back
-        if (currentSelectedIndex == 2) {
+        if (getCurrentSelectedIndex() == 2) {
             selectionArrowBack.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
@@ -294,6 +300,37 @@ class ProgressFragment : Fragment() {
             }
         } catch (e: Exception) {
             android.util.Log.w("ProgressFragment", "Error resetting combo state in onDestroy", e)
+        }
+    }
+
+    // ===== MenuFragmentBase Abstract Methods Implementation =====
+
+    override fun getMenuItems(): List<MenuItem> {
+        return listOf(
+                MenuItem(
+                        "save",
+                        getString(R.string.menu_save_state),
+                        action = MenuAction.SAVE_STATE
+                ),
+                MenuItem(
+                        "load",
+                        getString(R.string.menu_load_state),
+                        action = MenuAction.LOAD_STATE,
+                        isEnabled = viewModel.hasSaveState()
+                ),
+                MenuItem("back", getString(R.string.settings_back), action = MenuAction.BACK)
+        )
+    }
+
+    override fun onMenuItemSelected(item: MenuItem) {
+        // Use new MenuAction system, but fallback to old click listeners for compatibility
+        when (item.action) {
+            MenuAction.SAVE_STATE -> saveState.performClick()
+            MenuAction.LOAD_STATE -> loadState.performClick()
+            MenuAction.BACK -> backProgress.performClick()
+            else -> {
+                /* Ignore other actions */
+            }
         }
     }
 

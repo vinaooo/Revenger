@@ -29,7 +29,7 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
  * parentFragmentManager .beginTransaction() .add(android.R.id.content, exitFragment,
  * "ExitFragment")fullscreen overlay with Material Design 3
  */
-class RetroMenu3Fragment : Fragment() {
+class RetroMenu3Fragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods
     private lateinit var viewModel: GameActivityViewModel
@@ -47,7 +47,6 @@ class RetroMenu3Fragment : Fragment() {
 
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
-    private var currentSelectedIndex = 0 // Start with "Continue"
 
     // Menu option titles for color control
     private lateinit var continueTitle: TextView
@@ -292,21 +291,51 @@ class RetroMenu3Fragment : Fragment() {
         animateMenuOut { parentFragmentManager.beginTransaction().remove(this).commit() }
     }
 
+    // ========== IMPLEMENTAÇÃO DOS MÉTODOS ABSTRATOS DA MenuFragmentBase ==========
+
+    override fun getMenuItems(): List<MenuItem> = listOf(
+        MenuItem("continue", "Continuar", action = MenuAction.CONTINUE),
+        MenuItem("reset", "Reiniciar", action = MenuAction.RESET),
+        MenuItem("progress", "Progresso", action = MenuAction.NAVIGATE(MenuState.PROGRESS_MENU)),
+        MenuItem("settings", "Configurações", action = MenuAction.NAVIGATE(MenuState.SETTINGS_MENU)),
+        MenuItem("exit", "Sair", action = MenuAction.NAVIGATE(MenuState.EXIT_MENU))
+    )
+
+    override fun performNavigateUp() {
+        navigateUp()
+    }
+
+    override fun performNavigateDown() {
+        navigateDown()
+    }
+
+    override fun performConfirm() {
+        confirmSelection()
+    }
+
+    override fun performBack(): Boolean {
+        // For main menu, back should close the menu
+        // This will be handled by the MenuManager calling the appropriate action
+        return false // Let MenuManager handle this
+    }
+
+    override fun updateSelectionVisualInternal() {
+        updateSelectionVisual()
+    }
+
     /** Navigate up in the menu */
     fun navigateUp() {
-        currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.size) % menuItems.size
-        updateSelectionVisual()
+        navigateUpCircular(menuItems.size)
     }
 
     /** Navigate down in the menu */
     fun navigateDown() {
-        currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.size
-        updateSelectionVisual()
+        navigateDownCircular(menuItems.size)
     }
 
     /** Confirm current selection */
     fun confirmSelection() {
-        when (currentSelectedIndex) {
+        when (getCurrentSelectedIndex()) {
             0 -> continueMenu.performClick() // Continue
             1 -> resetMenu.performClick() // Reset
             2 -> openProgress() // Progress
@@ -385,25 +414,25 @@ class RetroMenu3Fragment : Fragment() {
             item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
         }
 
-        // Control text colors based on selection
+                // Control text colors based on selection
         continueTitle.setTextColor(
-                if (currentSelectedIndex == 0) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         resetTitle.setTextColor(
-                if (currentSelectedIndex == 1) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 1) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         progressTitle.setTextColor(
-                if (currentSelectedIndex == 2) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         settingsTitle.setTextColor(
-                if (currentSelectedIndex == 3) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 3) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         exitTitle.setTextColor(
-                if (currentSelectedIndex == 4) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 4) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
 
@@ -412,7 +441,7 @@ class RetroMenu3Fragment : Fragment() {
         val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Continue
-        if (currentSelectedIndex == 0) {
+        if (getCurrentSelectedIndex() == 0) {
             selectionArrowContinue.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowContinue.visibility = View.VISIBLE
             (selectionArrowContinue.layoutParams as LinearLayout.LayoutParams).apply {
@@ -424,7 +453,7 @@ class RetroMenu3Fragment : Fragment() {
         }
 
         // Reset
-        if (currentSelectedIndex == 1) {
+        if (getCurrentSelectedIndex() == 1) {
             selectionArrowReset.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowReset.visibility = View.VISIBLE
             (selectionArrowReset.layoutParams as LinearLayout.LayoutParams).apply {
@@ -436,7 +465,7 @@ class RetroMenu3Fragment : Fragment() {
         }
 
         // Progress
-        if (currentSelectedIndex == 2) {
+        if (getCurrentSelectedIndex() == 2) {
             selectionArrowProgress.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowProgress.visibility = View.VISIBLE
             (selectionArrowProgress.layoutParams as LinearLayout.LayoutParams).apply {
@@ -448,7 +477,7 @@ class RetroMenu3Fragment : Fragment() {
         }
 
         // Settings
-        if (currentSelectedIndex == 3) {
+        if (getCurrentSelectedIndex() == 3) {
             selectionArrowSettings.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowSettings.visibility = View.VISIBLE
             (selectionArrowSettings.layoutParams as LinearLayout.LayoutParams).apply {
@@ -460,7 +489,7 @@ class RetroMenu3Fragment : Fragment() {
         }
 
         // Exit Menu
-        if (currentSelectedIndex == 4) {
+        if (getCurrentSelectedIndex() == 4) {
             selectionArrowExit.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowExit.visibility = View.VISIBLE
             (selectionArrowExit.layoutParams as LinearLayout.LayoutParams).apply {
@@ -542,6 +571,9 @@ class RetroMenu3Fragment : Fragment() {
                 "RetroMenu3Fragment",
                 "openSettingsSubmenu: Settings submenu should be open now"
         )
+
+        // Update MenuManager state to SETTINGS_MENU
+        viewModel.updateMenuState(com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU)
     }
 
     private fun openProgress() {
@@ -598,6 +630,9 @@ class RetroMenu3Fragment : Fragment() {
                 "RetroMenu3Fragment",
                 "openProgress: Progress submenu should be open now"
         )
+
+        // Update MenuManager state to PROGRESS_MENU
+        viewModel.updateMenuState(com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU)
     }
 
     private fun openExitMenu() {
@@ -651,6 +686,9 @@ class RetroMenu3Fragment : Fragment() {
         // Ensure that the transaction is executed immediately
         parentFragmentManager.executePendingTransactions()
         android.util.Log.d("RetroMenu3Fragment", "openExitMenu: Exit menu should be open now")
+
+        // Update MenuManager state to EXIT_MENU
+        viewModel.updateMenuState(com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU)
     }
 
     override fun onDestroy() {
@@ -664,6 +702,27 @@ class RetroMenu3Fragment : Fragment() {
             }
         } catch (e: Exception) {
             android.util.Log.w("RetroMenu3Fragment", "Erro ao resetar combo state no onDestroy", e)
+        }
+    }
+
+    override fun onMenuItemSelected(item: MenuItem) {
+        // Use new MenuAction system, but fallback to old click listeners for compatibility
+        when (item.action) {
+            MenuAction.CONTINUE -> continueMenu.performClick()
+            MenuAction.RESET -> resetMenu.performClick()
+            is MenuAction.NAVIGATE -> {
+                when (item.action.targetMenu) {
+                    MenuState.PROGRESS_MENU -> progressMenu.performClick()
+                    MenuState.SETTINGS_MENU -> settingsMenu.performClick()
+                    MenuState.EXIT_MENU -> exitMenu.performClick()
+                    else -> {
+                        /* Ignore */
+                    }
+                }
+            }
+            else -> {
+                /* Ignore other actions */
+            }
         }
     }
 

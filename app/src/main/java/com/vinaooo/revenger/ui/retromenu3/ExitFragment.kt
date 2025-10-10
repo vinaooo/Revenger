@@ -14,7 +14,7 @@ import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** ExitFragment - Exit options menu with visual identical to RetroMenu3 */
-class ExitFragment : Fragment() {
+class ExitFragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods
     private lateinit var viewModel: GameActivityViewModel
@@ -30,7 +30,6 @@ class ExitFragment : Fragment() {
 
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
-    private var currentSelectedIndex = 0 // Start with "Option A"
 
     // Menu option titles for color control
     private lateinit var saveAndExitTitle: TextView
@@ -119,7 +118,7 @@ class ExitFragment : Fragment() {
         selectionArrowBack = view.findViewById(R.id.selection_arrow_option_c)
 
         // Set first item as selected
-        updateSelectionVisual()
+        updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
         applyArcadeFontToViews()
@@ -182,28 +181,35 @@ class ExitFragment : Fragment() {
     }
 
     /** Navigate up in the menu */
-    fun navigateUp() {
-        currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.size) % menuItems.size
-        updateSelectionVisual()
+    override fun performNavigateUp() {
+        navigateUpCircular(menuItems.size)
+        updateSelectionVisualInternal()
     }
 
     /** Navigate down in the menu */
-    fun navigateDown() {
-        currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.size
-        updateSelectionVisual()
+    override fun performNavigateDown() {
+        navigateDownCircular(menuItems.size)
+        updateSelectionVisualInternal()
     }
 
     /** Confirm current selection */
-    fun confirmSelection() {
-        when (currentSelectedIndex) {
+    override fun performConfirm() {
+        when (getCurrentSelectedIndex()) {
             0 -> saveAndExit.performClick() // Save and Exit
             1 -> exitWithoutSave.performClick() // Exit without Save
             2 -> backExitMenu.performClick() // Back
         }
     }
 
-    /** Update selection visual */
-    private fun updateSelectionVisual() {
+    /** Back action */
+    override fun performBack(): Boolean {
+        // For exit submenu, back should go to main menu
+        backExitMenu.performClick()
+        return true
+    }
+
+    /** Update selection visual - specific implementation for ExitFragment */
+    override fun updateSelectionVisualInternal() {
         menuItems.forEach { item ->
             // Removed: background color of individual cards
             // Selection now indicated only by yellow text and arrows
@@ -214,15 +220,15 @@ class ExitFragment : Fragment() {
 
         // Control text colors based on selection
         saveAndExitTitle.setTextColor(
-                if (currentSelectedIndex == 0) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         exitWithoutSaveTitle.setTextColor(
-                if (currentSelectedIndex == 1) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 1) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         backTitle.setTextColor(
-                if (currentSelectedIndex == 2) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
 
@@ -231,7 +237,7 @@ class ExitFragment : Fragment() {
         val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Save and Exit
-        if (currentSelectedIndex == 0) {
+        if (getCurrentSelectedIndex() == 0) {
             selectionArrowSaveAndExit.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowSaveAndExit.visibility = View.VISIBLE
             (selectionArrowSaveAndExit.layoutParams as LinearLayout.LayoutParams).apply {
@@ -243,7 +249,7 @@ class ExitFragment : Fragment() {
         }
 
         // Exit without Save
-        if (currentSelectedIndex == 1) {
+        if (getCurrentSelectedIndex() == 1) {
             selectionArrowExitWithoutSave.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowExitWithoutSave.visibility = View.VISIBLE
             (selectionArrowExitWithoutSave.layoutParams as LinearLayout.LayoutParams).apply {
@@ -255,7 +261,7 @@ class ExitFragment : Fragment() {
         }
 
         // Back
-        if (currentSelectedIndex == 2) {
+        if (getCurrentSelectedIndex() == 2) {
             selectionArrowBack.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
@@ -268,9 +274,7 @@ class ExitFragment : Fragment() {
 
         // Force layout update
         exitMenuContainer.requestLayout()
-    }
-
-    /** Public method to dismiss the menu from outside */
+    }    /** Public method to dismiss the menu from outside */
     fun dismissMenuPublic() {
         dismissMenu()
     }
@@ -282,6 +286,36 @@ class ExitFragment : Fragment() {
             viewModel.clearControllerKeyLog()
         } catch (e: Exception) {
             android.util.Log.w("ExitFragment", "Error resetting combo state in onDestroy", e)
+        }
+    }
+
+    // ===== MenuFragmentBase Abstract Methods Implementation =====
+
+    override fun getMenuItems(): List<MenuItem> {
+        return listOf(
+                MenuItem(
+                        "save_exit",
+                        getString(R.string.exit_menu_option_a),
+                        action = MenuAction.SAVE_AND_EXIT
+                ),
+                MenuItem(
+                        "exit_no_save",
+                        getString(R.string.exit_menu_option_b),
+                        action = MenuAction.EXIT
+                ),
+                MenuItem("back", getString(R.string.exit_menu_option_c), action = MenuAction.BACK)
+        )
+    }
+
+    override fun onMenuItemSelected(item: MenuItem) {
+        // Use new MenuAction system, but fallback to old click listeners for compatibility
+        when (item.action) {
+            MenuAction.SAVE_AND_EXIT -> saveAndExit.performClick()
+            MenuAction.EXIT -> exitWithoutSave.performClick()
+            MenuAction.BACK -> backExitMenu.performClick()
+            else -> {
+                /* Ignore other actions */
+            }
         }
     }
 
