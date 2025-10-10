@@ -14,6 +14,7 @@ sealed class MenuAction {
     object TOGGLE_SPEED : MenuAction()
     object SAVE_AND_EXIT : MenuAction()
     object EXIT : MenuAction()
+    object SAVE_LOG : MenuAction()
     object BACK : MenuAction()
 
     // Navigation actions

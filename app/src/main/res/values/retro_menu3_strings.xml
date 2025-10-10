@@ -23,6 +23,7 @@
     <string name="menu_settings">Settings</string>
     <string name="menu_fast_forward">Fast Forward</string>
     <string name="menu_exit">Exit Options</string>
+    <string name="save_log_menu_title">Save Log</string>
     
     <!-- Status Indicators -->
     <string name="audio_on">Audio: On</string>
