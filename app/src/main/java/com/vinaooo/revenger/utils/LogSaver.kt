@@ -12,12 +12,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** Utilitário para salvar logs do sistema com informações do dispositivo */
+/** Utility for saving system logs with device information */
 object LogSaver {
 
     private const val TAG = "LogSaver"
 
-    /** Salva um arquivo de log completo com informações do dispositivo e logs do sistema */
+    /** Saves a complete log file with device information and system logs */
     fun saveCompleteLog(context: Context): String? {
         return try {
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -39,11 +39,11 @@ object LogSaver {
         }
     }
 
-    /** Constrói o conteúdo completo do log com todas as informações */
+    /** Builds the complete log content with all information */
     private fun buildLogContent(context: Context): String {
         val builder = StringBuilder()
 
-        // Cabeçalho
+        // Header
         builder.append("========================================\n")
         builder.append("        REVENGER LOG REPORT\n")
         builder.append("========================================\n\n")
@@ -53,7 +53,7 @@ object LogSaver {
                 "Generated at: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())}\n\n"
         )
 
-        // Informações do Dispositivo
+        // Device Information
         builder.append("========================================\n")
         builder.append("        DEVICE INFORMATION\n")
         builder.append("========================================\n\n")
@@ -61,7 +61,7 @@ object LogSaver {
         builder.append(getDeviceInfo(context))
         builder.append("\n")
 
-        // Informações da Aplicação
+        // Application Information
         builder.append("========================================\n")
         builder.append("        APPLICATION INFORMATION\n")
         builder.append("========================================\n\n")
@@ -69,7 +69,7 @@ object LogSaver {
         builder.append(getAppInfo(context))
         builder.append("\n")
 
-        // Informações de Configuração
+        // Configuration Information
         builder.append("========================================\n")
         builder.append("        CONFIGURATION INFORMATION\n")
         builder.append("========================================\n\n")
@@ -77,7 +77,7 @@ object LogSaver {
         builder.append(getConfigurationInfo(context))
         builder.append("\n")
 
-        // Logs do Sistema
+        // System Logs
         builder.append("========================================\n")
         builder.append("        SYSTEM LOGS\n")
         builder.append("========================================\n\n")
@@ -87,7 +87,7 @@ object LogSaver {
         return builder.toString()
     }
 
-    /** Coleta informações do dispositivo */
+    /** Collects device information */
     private fun getDeviceInfo(context: Context): String {
         val builder = StringBuilder()
 
@@ -103,7 +103,7 @@ object LogSaver {
         builder.append("CPU ABI: ${Build.CPU_ABI}\n")
         builder.append("CPU ABI2: ${Build.CPU_ABI2}\n")
 
-        // Informações de tela
+        // Screen information
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val displayMetrics = DisplayMetrics()
         windowManager.defaultDisplay.getMetrics(displayMetrics)
@@ -116,7 +116,7 @@ object LogSaver {
         builder.append("Screen Size: ${width}x${height} pixels\n")
         builder.append("Screen Density: ${density} (${densityDpi} dpi)\n")
 
-        // Orientação
+        // Orientation
         val orientation = context.resources.configuration.orientation
         val orientationStr =
                 when (orientation) {
@@ -126,7 +126,7 @@ object LogSaver {
                 }
         builder.append("Screen Orientation: $orientationStr\n")
 
-        // Memória
+        // Memory
         val runtime = Runtime.getRuntime()
         val totalMemory = runtime.totalMemory() / 1024 / 1024
         val freeMemory = runtime.freeMemory() / 1024 / 1024
@@ -139,7 +139,7 @@ object LogSaver {
         return builder.toString()
     }
 
-    /** Coleta informações da aplicação */
+    /** Collects application information */
     private fun getAppInfo(context: Context): String {
         val builder = StringBuilder()
 
@@ -157,14 +157,14 @@ object LogSaver {
         return builder.toString()
     }
 
-    /** Coleta informações de configuração do jogo */
+    /** Collects game configuration information */
     private fun getConfigurationInfo(context: Context): String {
         val builder = StringBuilder()
 
         try {
             val resources = context.resources
 
-            // Configurações do config.xml
+            // Settings from config.xml
             val configId = resources.getString(com.vinaooo.revenger.R.string.config_id)
             val configName = resources.getString(com.vinaooo.revenger.R.string.config_name)
             val configCore = resources.getString(com.vinaooo.revenger.R.string.config_core)
@@ -175,7 +175,7 @@ object LogSaver {
             builder.append("LibRetro Core: $configCore\n")
             builder.append("ROM File: $configRom\n")
 
-            // Verificar se ROM existe
+            // Check if ROM exists
             try {
                 val romStream =
                         resources.openRawResource(
@@ -190,13 +190,13 @@ object LogSaver {
             builder.append("Configuration: Unable to retrieve\n")
         }
 
-        // Informações de input
+        // Input information
         builder.append("Input Method: ${getInputMethodInfo(context)}\n")
 
         return builder.toString()
     }
 
-    /** Determina se está usando gamepad virtual ou físico */
+    /** Determines if using virtual or physical gamepad */
     private fun getInputMethodInfo(context: Context): String {
         return try {
             val inputManager =
@@ -212,7 +212,7 @@ object LogSaver {
                 if (device != null) {
                     val sources = device.sources
 
-                    // Verificar se é um gamepad físico
+                    // Check if it's a physical gamepad
                     if (sources and android.view.InputDevice.SOURCE_GAMEPAD != 0 ||
                                     sources and android.view.InputDevice.SOURCE_JOYSTICK != 0
                     ) {
@@ -236,7 +236,7 @@ object LogSaver {
         }
     }
 
-    /** Captura logs do sistema usando logcat */
+    /** Captures system logs using logcat */
     private fun getSystemLogs(): String {
         return try {
             val process = Runtime.getRuntime().exec("logcat -d -v time *:V")

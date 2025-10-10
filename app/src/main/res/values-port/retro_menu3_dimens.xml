@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Fontes menores para o menu RetroMenu3 em portrait -->
+    <!-- Smaller fonts for the RetroMenu3 menu in portrait -->
     <dimen name="retro_menu3_title_text_size">20sp</dimen>
     <dimen name="retro_menu3_arrow_text_size">15sp</dimen>
     <dimen name="retro_menu3_menu_item_text_size">13sp</dimen>

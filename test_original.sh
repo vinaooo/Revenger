@@ -2,7 +2,7 @@
 
 #!/bin/bash
 
-# Lista de pacotes
+# Package list
 PACKAGES=(
     com.vinaooo.revenger.sak
     com.vinaooo.revenger.sth
@@ -11,7 +11,7 @@ PACKAGES=(
 )
 
 for pkg in "${PACKAGES[@]}"; do
-    # Se instalado, tenta desinstalar
+    # If installed, try to uninstall
     if adb shell pm list packages "$pkg" | grep -q "$pkg"; then
     adb uninstall "$pkg" \
         || adb shell pm uninstall --user 0 "$pkg"

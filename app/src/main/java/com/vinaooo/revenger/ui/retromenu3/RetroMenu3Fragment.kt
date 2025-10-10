@@ -329,18 +329,18 @@ class RetroMenu3Fragment : MenuFragmentBase() {
     override fun getMenuItems(): List<MenuItem> =
             listOf(
                     MenuItem("continue", "Continuar", action = MenuAction.CONTINUE),
-                    MenuItem("reset", "Reiniciar", action = MenuAction.RESET),
+                    MenuItem("reset", "Restart", action = MenuAction.RESET),
                     MenuItem(
                             "progress",
-                            "Progresso",
+                            "Progress",
                             action = MenuAction.NAVIGATE(MenuState.PROGRESS_MENU)
                     ),
                     MenuItem(
                             "settings",
-                            "Configurações",
+                            "Settings",
                             action = MenuAction.NAVIGATE(MenuState.SETTINGS_MENU)
                     ),
-                    MenuItem("exit", "Sair", action = MenuAction.NAVIGATE(MenuState.EXIT_MENU)),
+                    MenuItem("exit", "Exit", action = MenuAction.NAVIGATE(MenuState.EXIT_MENU)),
                     MenuItem("save_log", "Save Log", action = MenuAction.SAVE_LOG)
             )
 
@@ -598,7 +598,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                     withContext(Dispatchers.Main) {
                         android.widget.Toast.makeText(
                                         context,
-                                        "Erro ao salvar log",
+                                        "Error saving log",
                                         android.widget.Toast.LENGTH_SHORT
                                 )
                                 .show()
@@ -611,7 +611,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 withContext(Dispatchers.Main) {
                     android.widget.Toast.makeText(
                                     context,
-                                    "Erro ao salvar log: ${e.message}",
+                                    "Error saving log: ${e.message}",
                                     android.widget.Toast.LENGTH_SHORT
                             )
                             .show()
@@ -820,7 +820,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 viewModel.clearControllerKeyLog()
             }
         } catch (e: Exception) {
-            android.util.Log.w("RetroMenu3Fragment", "Erro ao resetar combo state no onDestroy", e)
+            android.util.Log.w("RetroMenu3Fragment", "Error resetting combo state in onDestroy", e)
         }
     }
 

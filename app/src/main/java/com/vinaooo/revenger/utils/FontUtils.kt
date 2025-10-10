@@ -15,10 +15,10 @@ object FontUtils {
         if (arcadeTypeface == null) {
             try {
                 arcadeTypeface = Typeface.createFromAsset(context.assets, ARCADE_FONT_PATH)
-                Log.d(TAG, "Fonte arcade carregada com sucesso de assets/$ARCADE_FONT_PATH")
+                Log.d(TAG, "Arcade font loaded successfully from assets/$ARCADE_FONT_PATH")
             } catch (e: Exception) {
-                Log.e(TAG, "Erro ao carregar fonte arcade de assets/$ARCADE_FONT_PATH", e)
-                // Fallback para fonte padrão do sistema
+                Log.e(TAG, "Error loading arcade font from assets/$ARCADE_FONT_PATH", e)
+                // Fallback to system default font
                 arcadeTypeface = Typeface.DEFAULT
             }
         }

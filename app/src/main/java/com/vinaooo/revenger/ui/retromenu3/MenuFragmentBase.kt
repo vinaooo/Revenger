@@ -3,16 +3,16 @@ package com.vinaooo.revenger.ui.retromenu3
 import androidx.fragment.app.Fragment
 
 /**
- * Classe base abstrata para todos os fragments de menu no RetroMenu3 system. Elimina código
- * duplicado fornecendo implementações padrão para navegação e gerenciamento de estado de seleção.
+ * Abstract base class for all menu fragments in the RetroMenu3 system. Eliminates duplicate code by
+ * providing default implementations for navigation and selection state management.
  *
- * Fragments que extendem esta classe precisam implementar:
- * - getMenuItems(): List<MenuItem> - retornar lista padronizada de itens
- * - performNavigateUp() - lógica específica de navegação para cima
- * - performNavigateDown() - lógica específica de navegação para baixo
- * - performConfirm() - lógica específica de confirmação
- * - performBack(): Boolean - lógica específica de voltar
- * - updateSelectionVisual() - atualizar visual da seleção
+ * Fragments that extend this class need to implement:
+ * - getMenuItems(): List<MenuItem> - return standardized list of items
+ * - performNavigateUp() - specific navigation logic for up
+ * - performNavigateDown() - specific navigation logic for down
+ * - performConfirm() - specific confirmation logic
+ * - performBack(): Boolean - specific back logic
+ * - updateSelectionVisual() - update selection visual
  */
 abstract class MenuFragmentBase : Fragment(), MenuFragment {
 
