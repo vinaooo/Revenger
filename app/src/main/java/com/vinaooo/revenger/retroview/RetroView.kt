@@ -2,6 +2,7 @@ package com.vinaooo.revenger.retroview
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.view.Gravity
 import android.widget.FrameLayout
 import androidx.lifecycle.LiveData
@@ -11,6 +12,7 @@ import com.swordfish.libretrodroid.GLRetroViewData
 import com.swordfish.libretrodroid.ShaderConfig
 import com.swordfish.libretrodroid.Variable
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.repositories.Storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -97,19 +99,36 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
         }
     }
 
+    /** Register listener for frame rendering events to track FPS */
+    fun registerFrameCallback() {
+        coroutineScope.launch {
+            view.getGLRetroEvents().collectLatest { event ->
+                if (event == GLRetroView.GLRetroEvents.FrameRendered) {
+                    AdvancedPerformanceProfiler.onFrameRendered()
+                }
+            }
+        }
+    }
+
     /** Parse core variables from config */
     private fun getCoreVariables(): Array<Variable> {
         val variables = arrayListOf<Variable>()
         val rawVariablesString = context.getString(R.string.config_variables)
         val rawVariables = rawVariablesString.split(",")
 
+        Log.d("RetroView", "Configurando variáveis do core: '$rawVariablesString'")
+
         for (rawVariable in rawVariables) {
             val rawVariableSplit = rawVariable.split("=")
             if (rawVariableSplit.size != 2) continue
 
-            variables.add(Variable(rawVariableSplit[0], rawVariableSplit[1]))
+            val key = rawVariableSplit[0].trim()
+            val value = rawVariableSplit[1].trim()
+            variables.add(Variable(key, value))
+            Log.d("RetroView", "Variável do core configurada: $key = $value")
         }
 
+        Log.d("RetroView", "Total de variáveis do core configuradas: ${variables.size}")
         return variables.toTypedArray()
     }
 }

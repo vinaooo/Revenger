@@ -4,14 +4,15 @@
     <string name="config_id">sth</string>
 
     <!-- The pretty name for the app -->
-    <string name="config_name">Nao jogar</string>
+    <string name="config_name">Sonic</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="config_core">smsplus</string>
+    <string name="config_core">gearsystem</string>
     <!-- Snes = snes9x -->
     <!-- megadrive = genesis_plus_gx -->
     <!-- gb = gambatte -->
-    <!-- master = smsplus -->
+    <!-- master = gearsystem (best performance for Master System) -->
+    <!-- Master e Mega = picodrive (the best) -->
     
     <!-- rom name, the same name the rom file in res/raw without extension -->
     <string name="config_rom">sth</string>
@@ -20,7 +21,7 @@
     <bool name="config_load_bytes">false</bool>
 
     <!-- Core variables (key=value separated by commas) -->
-    <string name="config_variables"></string>
+    <string name="config_variables">gearsystem_system=master system,gearsystem_region=auto,gearsystem_overscan=disabled,gearsystem_hide_left_bar=always,gearsystem_aspect_ratio=4:3 DAR,gearsystem_ym2413=auto</string>
 
     <!-- Fast forward speed multiplier -->
     <integer name="config_fast_forward_multiplier">2</integer>
@@ -71,4 +72,7 @@
 
     <!-- Should the left DPAD be replaced with an analog stick? -->
     <bool name="config_left_analog">false</bool>
+
+    <!-- Show performance overlay (FPS, memory, CPU) -->
+    <bool name="config_performance_overlay">true</bool>
 </resources>

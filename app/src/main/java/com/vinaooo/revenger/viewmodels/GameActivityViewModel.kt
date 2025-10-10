@@ -586,6 +586,7 @@ class GameActivityViewModel(application: Application) :
             container.addView(retroView.view)
             activity.lifecycle.addObserver(retroView.view)
             retroView.registerFrameRenderedListener()
+            retroView.registerFrameCallback()
 
             /* FIX: DO NOT restore state automatically on first frame
              * The game should start from zero and the user decides when to load the save

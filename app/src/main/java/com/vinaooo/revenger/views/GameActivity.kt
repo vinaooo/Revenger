@@ -131,6 +131,9 @@ class GameActivity : FragmentActivity() {
 
         // Start performance profiling
         AdvancedPerformanceProfiler.startProfiling(this)
+
+        // Show debug overlay after layout is ready
+        window.decorView.post { AdvancedPerformanceProfiler.showDebugOverlay(this@GameActivity) }
     }
 
     /** Configure status/navigation bars based on current theme for optimal visibility */
@@ -206,6 +209,9 @@ class GameActivity : FragmentActivity() {
     override fun onDestroy() {
         // Stop performance profiling
         AdvancedPerformanceProfiler.stopProfiling()
+
+        // Hide debug overlay
+        AdvancedPerformanceProfiler.hideDebugOverlay()
 
         // Clean up view model
         viewModel.dispose()
