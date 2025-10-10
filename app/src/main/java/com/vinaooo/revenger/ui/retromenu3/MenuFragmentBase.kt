@@ -3,9 +3,8 @@ package com.vinaooo.revenger.ui.retromenu3
 import androidx.fragment.app.Fragment
 
 /**
- * Classe base abstrata para todos os fragments de menu no RetroMenu3 system.
- * Elimina código duplicado fornecendo implementações padrão para navegação
- * e gerenciamento de estado de seleção.
+ * Classe base abstrata para todos os fragments de menu no RetroMenu3 system. Elimina código
+ * duplicado fornecendo implementações padrão para navegação e gerenciamento de estado de seleção.
  *
  * Fragments que extendem esta classe precisam implementar:
  * - getMenuItems(): List<MenuItem> - retornar lista padronizada de itens
@@ -44,22 +43,27 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     // ========== IMPLEMENTAÇÃO DA INTERFACE MenuFragment ==========
 
     override fun onNavigateUp(): Boolean {
+        android.util.Log.d("MenuBase", "[NAV] ↑ Navigate Up triggered")
         performNavigateUp()
         return true
     }
 
     override fun onNavigateDown(): Boolean {
+        android.util.Log.d("MenuBase", "[NAV] ↓ Navigate Down triggered")
         performNavigateDown()
         return true
     }
 
     override fun onConfirm(): Boolean {
+        android.util.Log.d("MenuBase", "[ACTION] ✓ Confirm triggered")
         performConfirm()
         return true
     }
 
-    override fun onBack(): Boolean = performBack()
-
+    override fun onBack(): Boolean {
+        android.util.Log.d("MenuBase", "[ACTION] ← Back triggered")
+        return performBack()
+    }
     override fun getCurrentSelectedIndex(): Int = _currentSelectedIndex
 
     override fun setSelectedIndex(index: Int) {
@@ -72,40 +76,34 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
 
     // ========== MÉTODOS AUXILIARES ==========
 
-    /**
-     * Navegação circular para cima (último item volta para o primeiro)
-     */
+    /** Navegação circular para cima (último item volta para o primeiro) */
     protected fun navigateUpCircular(itemsCount: Int) {
-        _currentSelectedIndex = if (_currentSelectedIndex > 0) {
-            _currentSelectedIndex - 1
-        } else {
-            itemsCount - 1
-        }
+        _currentSelectedIndex =
+                if (_currentSelectedIndex > 0) {
+                    _currentSelectedIndex - 1
+                } else {
+                    itemsCount - 1
+                }
         updateSelectionVisualInternal()
     }
 
-    /**
-     * Navegação circular para baixo (primeiro item volta para o último)
-     */
+    /** Navegação circular para baixo (primeiro item volta para o último) */
     protected fun navigateDownCircular(itemsCount: Int) {
-        _currentSelectedIndex = if (_currentSelectedIndex < itemsCount - 1) {
-            _currentSelectedIndex + 1
-        } else {
-            0
-        }
+        _currentSelectedIndex =
+                if (_currentSelectedIndex < itemsCount - 1) {
+                    _currentSelectedIndex + 1
+                } else {
+                    0
+                }
         updateSelectionVisualInternal()
     }
 
-    /**
-     * Valida se o índice atual é válido
-     */
+    /** Valida se o índice atual é válido */
     protected fun isValidSelection(itemsCount: Int): Boolean {
         return _currentSelectedIndex in 0 until itemsCount
     }
 
-    /**
-     * Reseta seleção para o primeiro item
-     */
+    /** Reseta seleção para o primeiro item */
     protected fun resetSelection() {
         _currentSelectedIndex = 0
         updateSelectionVisualInternal()

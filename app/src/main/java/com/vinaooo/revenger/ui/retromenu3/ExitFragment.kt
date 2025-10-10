@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
@@ -62,7 +61,6 @@ class ExitFragment : MenuFragmentBase() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        android.util.Log.d("ExitFragment", "onViewCreated: ExitFragment view created")
 
         // Initialize ViewModel
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
@@ -74,7 +72,6 @@ class ExitFragment : MenuFragmentBase() {
         setupClickListeners()
         // REMOVED: animateMenuIn() - submenu now appears instantly without animation
 
-        android.util.Log.d("ExitFragment", "onViewCreated: ExitFragment setup completed")
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when selecting Back
     }
@@ -182,22 +179,44 @@ class ExitFragment : MenuFragmentBase() {
 
     /** Navigate up in the menu */
     override fun performNavigateUp() {
+        val beforeIndex = getCurrentSelectedIndex()
         navigateUpCircular(menuItems.size)
+        val afterIndex = getCurrentSelectedIndex()
+        android.util.Log.d(TAG, "[NAV] Exit menu: UP navigation - $beforeIndex -> $afterIndex")
         updateSelectionVisualInternal()
     }
 
     /** Navigate down in the menu */
     override fun performNavigateDown() {
+        val beforeIndex = getCurrentSelectedIndex()
         navigateDownCircular(menuItems.size)
+        val afterIndex = getCurrentSelectedIndex()
+        android.util.Log.d(TAG, "[NAV] Exit menu: DOWN navigation - $beforeIndex -> $afterIndex")
         updateSelectionVisualInternal()
     }
 
     /** Confirm current selection */
     override fun performConfirm() {
-        when (getCurrentSelectedIndex()) {
-            0 -> saveAndExit.performClick() // Save and Exit
-            1 -> exitWithoutSave.performClick() // Exit without Save
-            2 -> backExitMenu.performClick() // Back
+        val selectedIndex = getCurrentSelectedIndex()
+        android.util.Log.d(TAG, "[ACTION] Exit menu: CONFIRM on index $selectedIndex")
+        when (selectedIndex) {
+            0 -> {
+                android.util.Log.d(TAG, "[ACTION] Exit menu: Save and Exit selected")
+                saveAndExit.performClick() // Save and Exit
+            }
+            1 -> {
+                android.util.Log.d(TAG, "[ACTION] Exit menu: Exit without Save selected")
+                exitWithoutSave.performClick() // Exit without Save
+            }
+            2 -> {
+                android.util.Log.d(TAG, "[ACTION] Exit menu: Back to main menu selected")
+                backExitMenu.performClick() // Back
+            }
+            else ->
+                    android.util.Log.w(
+                            TAG,
+                            "[ACTION] Exit menu: Invalid selection index $selectedIndex"
+                    )
         }
     }
 
@@ -274,7 +293,8 @@ class ExitFragment : MenuFragmentBase() {
 
         // Force layout update
         exitMenuContainer.requestLayout()
-    }    /** Public method to dismiss the menu from outside */
+    }
+    /** Public method to dismiss the menu from outside */
     fun dismissMenuPublic() {
         dismissMenu()
     }
@@ -320,6 +340,8 @@ class ExitFragment : MenuFragmentBase() {
     }
 
     companion object {
+        private const val TAG = "ExitMenu"
+
         fun newInstance(): ExitFragment {
             return ExitFragment()
         }

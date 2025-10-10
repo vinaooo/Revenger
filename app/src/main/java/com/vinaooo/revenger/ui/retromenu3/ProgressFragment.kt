@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
@@ -62,7 +61,6 @@ class ProgressFragment : MenuFragmentBase() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        android.util.Log.d("ProgressFragment", "onViewCreated: ProgressFragment view created")
 
         // Initialize ViewModel
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
@@ -74,7 +72,6 @@ class ProgressFragment : MenuFragmentBase() {
         setupClickListeners()
         // REMOVED: animateMenuIn() - submenu now appears instantly without animation
 
-        android.util.Log.d("ProgressFragment", "onViewCreated: ProgressFragment setup completed")
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when selecting Back
     }
@@ -185,26 +182,61 @@ class ProgressFragment : MenuFragmentBase() {
 
     /** Navigate up in the menu - with special logic to skip disabled Load State */
     override fun performNavigateUp() {
+        val beforeIndex = getCurrentSelectedIndex()
         do {
             navigateUpCircular(menuItems.size)
         } while (getCurrentSelectedIndex() == 1 && !loadState.isEnabled)
+        val afterIndex = getCurrentSelectedIndex()
+        android.util.Log.d(
+                TAG,
+                "[NAV] Progress menu: UP navigation - $beforeIndex -> $afterIndex (skipping disabled Load State)"
+        )
         updateSelectionVisualInternal()
     }
 
     /** Navigate down in the menu - with special logic to skip disabled Load State */
     override fun performNavigateDown() {
+        val beforeIndex = getCurrentSelectedIndex()
         do {
             navigateDownCircular(menuItems.size)
         } while (getCurrentSelectedIndex() == 1 && !loadState.isEnabled)
+        val afterIndex = getCurrentSelectedIndex()
+        android.util.Log.d(
+                TAG,
+                "[NAV] Progress menu: DOWN navigation - $beforeIndex -> $afterIndex (skipping disabled Load State)"
+        )
         updateSelectionVisualInternal()
     }
 
     /** Confirm current selection */
     override fun performConfirm() {
-        when (getCurrentSelectedIndex()) {
-            0 -> saveState.performClick() // Save State
-            1 -> if (loadState.isEnabled) loadState.performClick() // Load State (only if enabled)
-            2 -> backProgress.performClick() // Back
+        val selectedIndex = getCurrentSelectedIndex()
+        android.util.Log.d(TAG, "[ACTION] Progress menu: CONFIRM on index $selectedIndex")
+        when (selectedIndex) {
+            0 -> {
+                android.util.Log.d(TAG, "[ACTION] Progress menu: Save State selected")
+                saveState.performClick() // Save State
+            }
+            1 -> {
+                if (loadState.isEnabled) {
+                    android.util.Log.d(TAG, "[ACTION] Progress menu: Load State selected")
+                    loadState.performClick() // Load State (only if enabled)
+                } else {
+                    android.util.Log.w(
+                            TAG,
+                            "[ACTION] Progress menu: Load State selected but disabled"
+                    )
+                }
+            }
+            2 -> {
+                android.util.Log.d(TAG, "[ACTION] Progress menu: Back to main menu selected")
+                backProgress.performClick() // Back
+            }
+            else ->
+                    android.util.Log.w(
+                            TAG,
+                            "[ACTION] Progress menu: Invalid selection index $selectedIndex"
+                    )
         }
     }
 
@@ -231,7 +263,8 @@ class ProgressFragment : MenuFragmentBase() {
                 else android.graphics.Color.WHITE
         )
         loadStateTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 1 && loadState.isEnabled) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 1 && loadState.isEnabled)
+                        android.graphics.Color.YELLOW
                 else if (!loadState.isEnabled) android.graphics.Color.GRAY
                 else android.graphics.Color.WHITE
         )
@@ -335,6 +368,8 @@ class ProgressFragment : MenuFragmentBase() {
     }
 
     companion object {
+        private const val TAG = "ProgressMenu"
+
         fun newInstance(): ProgressFragment {
             return ProgressFragment()
         }

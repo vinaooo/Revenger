@@ -18,12 +18,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class GamePad(
-        context: Context,
-        padConfig: RadialGamePadConfig,
-        private val onButtonEvent: ((event: Event) -> Unit)? = null
+  context: Context,
+  private val padConfig: RadialGamePadConfig,
+  private val onButtonEvent: ((event: Event) -> Unit)? = null
 ) {
-        private val padConfig: RadialGamePadConfig = padConfig
-        val pad = RadialGamePad(padConfig, 0f, context)
+  val pad = RadialGamePad(padConfig, 0f, context)
 
         companion object {
                 /** Should the user see the on-screen controls? */
@@ -37,7 +36,7 @@ class GamePad(
                                 activity.packageManager?.hasSystemFeature(
                                         PackageManager.FEATURE_TOUCHSCREEN
                                 )
-                        if (hasTouchScreen == null || hasTouchScreen == false) return false
+                        if (hasTouchScreen == null || !hasTouchScreen) return false
 
                         /* Fetch the current display that the game is running on */
                         val currentDisplayId = activity.display!!.displayId

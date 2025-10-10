@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
@@ -89,19 +88,24 @@ class RetroMenu3Fragment : MenuFragmentBase() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        android.util.Log.d("RetroMenu3", "[LIFECYCLE] Main menu created and initialized")
 
         // Initialize ViewModel
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
-        // CRITICAL: Force all views in this fragment to have z=0 to stay below gamepad
+        // CRITICAL: Force all views to z=0 to stay below gamepad
         forceZeroElevationRecursively(view)
 
-        setupViews(view)
         setupDynamicTitle()
+        setupViews(view)
         setupClickListeners()
         updateMenuState()
         animateMenuIn()
 
+        android.util.Log.d(
+                "RetroMenu3",
+                "[LIFECYCLE] Main menu setup completed - ready for user interaction"
+        )
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when pressing START again or selecting Continue
     }
@@ -201,6 +205,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
     private fun setupClickListeners() {
         continueMenu.setOnClickListener {
+            android.util.Log.d("RetroMenu3", "[ACTION] 🎮 Continue game - closing menu")
             // Continue - Close menu, set correct frameSpeed, then continue game
             // A) Close menu first
             animateMenuOut {
@@ -216,6 +221,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         }
 
         resetMenu.setOnClickListener {
+            android.util.Log.d("RetroMenu3", "[ACTION] 🔄 Reset game - closing menu and resetting")
             // Reset - First close menu, then set correct frameSpeed, then reset game
             // A) Close menu first
             animateMenuOut {
@@ -232,16 +238,19 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         }
 
         progressMenu.setOnClickListener {
+            android.util.Log.d("RetroMenu3", "[ACTION] 📊 Open Progress submenu")
             // Open Progress submenu
             openProgress()
         }
 
         settingsMenu.setOnClickListener {
+            android.util.Log.d("RetroMenu3", "[ACTION] ⚙️ Open Settings submenu")
             // Open settings submenu
             openSettingsSubmenu()
         }
 
         exitMenu.setOnClickListener {
+            android.util.Log.d("RetroMenu3", "[ACTION] 🚪 Open Exit menu")
             // Open exit menu
             openExitMenu()
         }
@@ -293,13 +302,22 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
     // ========== IMPLEMENTAÇÃO DOS MÉTODOS ABSTRATOS DA MenuFragmentBase ==========
 
-    override fun getMenuItems(): List<MenuItem> = listOf(
-        MenuItem("continue", "Continuar", action = MenuAction.CONTINUE),
-        MenuItem("reset", "Reiniciar", action = MenuAction.RESET),
-        MenuItem("progress", "Progresso", action = MenuAction.NAVIGATE(MenuState.PROGRESS_MENU)),
-        MenuItem("settings", "Configurações", action = MenuAction.NAVIGATE(MenuState.SETTINGS_MENU)),
-        MenuItem("exit", "Sair", action = MenuAction.NAVIGATE(MenuState.EXIT_MENU))
-    )
+    override fun getMenuItems(): List<MenuItem> =
+            listOf(
+                    MenuItem("continue", "Continuar", action = MenuAction.CONTINUE),
+                    MenuItem("reset", "Reiniciar", action = MenuAction.RESET),
+                    MenuItem(
+                            "progress",
+                            "Progresso",
+                            action = MenuAction.NAVIGATE(MenuState.PROGRESS_MENU)
+                    ),
+                    MenuItem(
+                            "settings",
+                            "Configurações",
+                            action = MenuAction.NAVIGATE(MenuState.SETTINGS_MENU)
+                    ),
+                    MenuItem("exit", "Sair", action = MenuAction.NAVIGATE(MenuState.EXIT_MENU))
+            )
 
     override fun performNavigateUp() {
         navigateUp()
@@ -325,51 +343,67 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
     /** Navigate up in the menu */
     fun navigateUp() {
+        val oldIndex = getCurrentSelectedIndex()
         navigateUpCircular(menuItems.size)
+        val newIndex = getCurrentSelectedIndex()
+        android.util.Log.d(
+                "RetroMenu3",
+                "[NAV] ↑ UP: $oldIndex → $newIndex (${getMenuItems()[newIndex].title})"
+        )
     }
 
     /** Navigate down in the menu */
     fun navigateDown() {
+        val oldIndex = getCurrentSelectedIndex()
         navigateDownCircular(menuItems.size)
+        val newIndex = getCurrentSelectedIndex()
+        android.util.Log.d(
+                "RetroMenu3",
+                "[NAV] ↓ DOWN: $oldIndex → $newIndex (${getMenuItems()[newIndex].title})"
+        )
     }
 
     /** Confirm current selection */
     fun confirmSelection() {
-        when (getCurrentSelectedIndex()) {
-            0 -> continueMenu.performClick() // Continue
-            1 -> resetMenu.performClick() // Reset
-            2 -> openProgress() // Progress
-            3 -> settingsMenu.performClick() // Settings
-            4 -> openExitMenu() // Exit Menu
+        val currentIndex = getCurrentSelectedIndex()
+        val currentItem = getMenuItems()[currentIndex]
+        android.util.Log.d(
+                "RetroMenu3",
+                "[ACTION] ✓ CONFIRM: ${currentItem.title} (index: $currentIndex)"
+        )
+
+        when (currentIndex) {
+            0 -> {
+                android.util.Log.d("RetroMenu3", "[ACTION] → Continue game")
+                continueMenu.performClick()
+            }
+            1 -> {
+                android.util.Log.d("RetroMenu3", "[ACTION] → Reset game")
+                resetMenu.performClick()
+            }
+            2 -> {
+                android.util.Log.d("RetroMenu3", "[ACTION] → Open Progress menu")
+                openProgress()
+            }
+            3 -> {
+                android.util.Log.d("RetroMenu3", "[ACTION] → Open Settings menu")
+                settingsMenu.performClick()
+            }
+            4 -> {
+                android.util.Log.d("RetroMenu3", "[ACTION] → Open Exit menu")
+                openExitMenu()
+            }
         }
     }
 
     /** Make main menu invisible (when submenu is opened) */
     fun hideMainMenu() {
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "hideMainMenu: Hiding menu content but keeping background"
-        )
         // Hide only the menu content, keeping the background for the submenu
         menuContainer.visibility = View.INVISIBLE
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "hideMainMenu: Menu content hidden, background should remain visible"
-        )
     }
 
     /** Make main menu visible again (when submenu is closed) */
     fun showMainMenu() {
-        android.util.Log.d("RetroMenu3Fragment", "showMainMenu: Showing menu content again")
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "showMainMenu: BEFORE - visibility = ${menuContainer.visibility}"
-        )
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "showMainMenu: BEFORE - alpha = ${menuContainer.alpha}"
-        )
-
         // Make visible
         menuContainer.visibility = View.VISIBLE
 
@@ -385,23 +419,6 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         // Force complete redraw
         menuContainer.invalidate()
         menuContainer.requestLayout()
-
-        // REMOVED: bringToFront() causes problem with layout_weight
-        // The SettingsMenuFragment has been completely removed with popBackStack()
-        // so there is no need to bring to front
-
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "showMainMenu: AFTER - visibility = ${menuContainer.visibility}"
-        )
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "showMainMenu: AFTER - alpha = ${menuContainer.alpha}"
-        )
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "showMainMenu: Menu should be fully visible now (VISIBLE=${View.VISIBLE}, actual=${menuContainer.visibility})"
-        )
     }
 
     /** Update selection visual */
@@ -414,7 +431,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
             item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
         }
 
-                // Control text colors based on selection
+        // Control text colors based on selection
         continueTitle.setTextColor(
                 if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
@@ -511,10 +528,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
     /** Open settings submenu */
     private fun openSettingsSubmenu() {
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "openSettingsSubmenu: Starting to open settings submenu"
-        )
+        android.util.Log.d("RetroMenu3", "[MENU] Opening Settings submenu")
         // Make main menu invisible before opening submenu
         hideMainMenu()
 
@@ -522,35 +536,19 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         val settingsFragment =
                 SettingsMenuFragment.newInstance().apply { setSettingsListener(viewModel) }
 
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "openSettingsSubmenu: SettingsFragment created, registering with ViewModel"
-        )
         // Register the fragment in ViewModel so navigation works
         viewModel.registerSettingsMenuFragment(settingsFragment)
 
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "openSettingsSubmenu: Adding fragment to back stack"
-        )
-
         // Add listener to detect when back stack changes (submenu is removed)
         parentFragmentManager.addOnBackStackChangedListener {
-            android.util.Log.d(
-                    "RetroMenu3Fragment",
-                    "BackStack changed - backStackCount = ${parentFragmentManager.backStackEntryCount}"
-            )
-
             // If the back stack is empty, it means the submenu was removed
             if (parentFragmentManager.backStackEntryCount == 0) {
                 // Only show main menu if we're not dismissing all menus at once
-                if (viewModel.isDismissingAllMenus()) {
+                if (!viewModel.isDismissingAllMenus()) {
                     android.util.Log.d(
-                            "RetroMenu3Fragment",
-                            "BackStack empty - NOT showing main menu (dismissing all menus)"
+                            "RetroMenu3",
+                            "[MENU] Settings submenu closed, showing main menu"
                     )
-                } else {
-                    android.util.Log.d("RetroMenu3Fragment", "BackStack empty - showing main menu")
                     // Mostrar o menu principal novamente
                     showMainMenu()
                 }
@@ -567,49 +565,33 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 .commit()
         // Ensure that the transaction is executed immediately
         parentFragmentManager.executePendingTransactions()
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "openSettingsSubmenu: Settings submenu should be open now"
-        )
 
         // Update MenuManager state to SETTINGS_MENU
         viewModel.updateMenuState(com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU)
+        android.util.Log.d("RetroMenu3", "[MENU] Settings submenu opened successfully")
     }
 
     private fun openProgress() {
-        android.util.Log.d("RetroMenu3Fragment", "openProgress: Starting to open progress submenu")
+        android.util.Log.d("RetroMenu3", "[MENU] Opening Progress submenu")
         // Make main menu invisible before opening submenu
         hideMainMenu()
 
         // Create and show ProgressFragment
         val progressFragment = ProgressFragment.newInstance()
 
-        android.util.Log.d("RetroMenu3Fragment", "openProgress: ProgressFragment created")
         // Register the fragment in ViewModel so navigation works
         viewModel.registerProgressFragment(progressFragment)
 
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "openProgress: ProgressFragment registered with ViewModel"
-        )
-
         // Add listener to detect when back stack changes (submenu is removed)
         parentFragmentManager.addOnBackStackChangedListener {
-            android.util.Log.d(
-                    "RetroMenu3Fragment",
-                    "BackStack changed - backStackCount = ${parentFragmentManager.backStackEntryCount}"
-            )
-
             // If the back stack is empty, it means the submenu was removed
             if (parentFragmentManager.backStackEntryCount == 0) {
                 // Only show main menu if we're not dismissing all menus at once
-                if (viewModel.isDismissingAllMenus()) {
+                if (!viewModel.isDismissingAllMenus()) {
                     android.util.Log.d(
-                            "RetroMenu3Fragment",
-                            "BackStack empty - NOT showing main menu (dismissing all menus)"
+                            "RetroMenu3",
+                            "[MENU] Progress submenu closed, showing main menu"
                     )
-                } else {
-                    android.util.Log.d("RetroMenu3Fragment", "BackStack empty - showing main menu")
                     // Mostrar o menu principal novamente
                     showMainMenu()
                 }
@@ -626,49 +608,33 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 .commit()
         // Ensure that the transaction is executed immediately
         parentFragmentManager.executePendingTransactions()
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "openProgress: Progress submenu should be open now"
-        )
 
         // Update MenuManager state to PROGRESS_MENU
         viewModel.updateMenuState(com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU)
+        android.util.Log.d("RetroMenu3", "[MENU] Progress submenu opened successfully")
     }
 
     private fun openExitMenu() {
-        android.util.Log.d("RetroMenu3Fragment", "openExitMenu: Starting to open exit menu")
+        android.util.Log.d("RetroMenu3", "[MENU] Opening Exit submenu")
         // Make main menu invisible before opening submenu
         hideMainMenu()
 
         // Create and show ExitFragment
         val exitFragment = ExitFragment.newInstance()
 
-        android.util.Log.d("RetroMenu3Fragment", "openExitMenu: ExitFragment created")
         // Register the fragment in ViewModel so navigation works
         viewModel.registerExitFragment(exitFragment)
 
-        android.util.Log.d(
-                "RetroMenu3Fragment",
-                "openExitMenu: ExitFragment registered with ViewModel"
-        )
-
         // Add listener to detect when back stack changes (submenu is removed)
         parentFragmentManager.addOnBackStackChangedListener {
-            android.util.Log.d(
-                    "RetroMenu3Fragment",
-                    "BackStack changed - backStackCount = ${parentFragmentManager.backStackEntryCount}"
-            )
-
             // If the back stack is empty, it means the submenu was removed
             if (parentFragmentManager.backStackEntryCount == 0) {
                 // Only show main menu if we're not dismissing all menus at once
-                if (viewModel.isDismissingAllMenus()) {
+                if (!viewModel.isDismissingAllMenus()) {
                     android.util.Log.d(
-                            "RetroMenu3Fragment",
-                            "BackStack empty - NOT showing main menu (dismissing all menus)"
+                            "RetroMenu3",
+                            "[MENU] Exit submenu closed, showing main menu"
                     )
-                } else {
-                    android.util.Log.d("RetroMenu3Fragment", "BackStack empty - showing main menu")
                     // Mostrar o menu principal novamente
                     showMainMenu()
                 }
@@ -685,14 +651,15 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 .commit()
         // Ensure that the transaction is executed immediately
         parentFragmentManager.executePendingTransactions()
-        android.util.Log.d("RetroMenu3Fragment", "openExitMenu: Exit menu should be open now")
 
         // Update MenuManager state to EXIT_MENU
         viewModel.updateMenuState(com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU)
+        android.util.Log.d("RetroMenu3", "[MENU] Exit submenu opened successfully")
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        android.util.Log.d("RetroMenu3", "[LIFECYCLE] Main menu destroyed - cleaning up resources")
         // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
         try {
             (menuListener as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)?.let {

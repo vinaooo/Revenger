@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
@@ -62,10 +61,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "onViewCreated: SettingsMenuFragment view created"
-        )
 
         // Initialize ViewModel
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
@@ -77,13 +72,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
         setupClickListeners()
         updateMenuState()
         // REMOVED: animateMenuIn() - submenu now appears instantly without animation
-
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "onViewCreated: SettingsMenuFragment setup completed"
-        )
-        // REMOVED: No longer closes when touching the sides
-        // Menu only closes when selecting Back
     }
 
     /** Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad. */
@@ -194,22 +182,47 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     /** Navigate up in the menu */
     override fun performNavigateUp() {
+        val beforeIndex = getCurrentSelectedIndex()
         navigateUpCircular(menuItems.size)
+        val afterIndex = getCurrentSelectedIndex()
+        android.util.Log.d(TAG, "[NAV] Settings menu: UP navigation - $beforeIndex -> $afterIndex")
         updateSelectionVisualInternal()
     }
 
     /** Navigate down in the menu */
     override fun performNavigateDown() {
+        val beforeIndex = getCurrentSelectedIndex()
         navigateDownCircular(menuItems.size)
+        val afterIndex = getCurrentSelectedIndex()
+        android.util.Log.d(
+                TAG,
+                "[NAV] Settings menu: DOWN navigation - $beforeIndex -> $afterIndex"
+        )
         updateSelectionVisualInternal()
     }
 
     /** Confirm current selection */
     override fun performConfirm() {
-        when (getCurrentSelectedIndex()) {
-            0 -> soundSettings.performClick() // Sound
-            1 -> gameSpeedSettings.performClick() // Game Speed
-            2 -> backSettings.performClick() // Back
+        val selectedIndex = getCurrentSelectedIndex()
+        android.util.Log.d(TAG, "[ACTION] Settings menu: CONFIRM on index $selectedIndex")
+        when (selectedIndex) {
+            0 -> {
+                android.util.Log.d(TAG, "[ACTION] Settings menu: Sound toggle selected")
+                soundSettings.performClick() // Sound
+            }
+            1 -> {
+                android.util.Log.d(TAG, "[ACTION] Settings menu: Game speed toggle selected")
+                gameSpeedSettings.performClick() // Game Speed
+            }
+            2 -> {
+                android.util.Log.d(TAG, "[ACTION] Settings menu: Back to main menu selected")
+                backSettings.performClick() // Back
+            }
+            else ->
+                    android.util.Log.w(
+                            TAG,
+                            "[ACTION] Settings menu: Invalid selection index $selectedIndex"
+                    )
         }
     }
 
@@ -290,30 +303,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     /** Make main menu invisible (when submenu is opened) */
     fun hideMainMenu() {
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "hideMainMenu: Hiding menu content but keeping background"
-        )
         // Hide only menu content, keeping background for submenu
         settingsMenuContainer.visibility = View.INVISIBLE
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "hideMainMenu: Menu content hidden, background should remain visible"
-        )
     }
 
     /** Make main menu visible again (when submenu is closed) */
     fun showMainMenu() {
-        android.util.Log.d("SettingsMenuFragment", "showMainMenu: Showing menu content again")
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "showMainMenu: BEFORE - visibility = ${settingsMenuContainer.visibility}"
-        )
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "showMainMenu: BEFORE - alpha = ${settingsMenuContainer.alpha}"
-        )
-
         // Make visible
         settingsMenuContainer.visibility = View.VISIBLE
 
@@ -330,11 +325,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
         // REMOVED: bringToFront() causes problem with layout_weight
         // The SettingsMenuFragment has already been completely removed with popBackStack()
         // so there is no need to bring to front
-
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "showMainMenu: AFTER - visibility = ${settingsMenuContainer.visibility}"
-        )
     }
 
     private fun dismissMenu() {
@@ -397,6 +387,8 @@ class SettingsMenuFragment : MenuFragmentBase() {
     }
 
     companion object {
+        private const val TAG = "SettingsMenu"
+
         fun newInstance(): SettingsMenuFragment {
             return SettingsMenuFragment()
         }
