@@ -586,7 +586,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                     withContext(Dispatchers.Main) {
                         android.widget.Toast.makeText(
                                         context,
-                                        "Log salvo em: ${java.io.File(filePath).name}",
+                                        "Log saved: ${java.io.File(filePath).name}",
                                         android.widget.Toast.LENGTH_LONG
                                 )
                                 .show()
