@@ -6,14 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/** SettingsMenuFragment - Submenu de configurações com visual idêntico ao RetroMenu3 */
-class SettingsMenuFragment : Fragment() {
+/** SettingsMenuFragment - Settings submenu with visual identical to RetroMenu3 */
+class SettingsMenuFragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods
     private lateinit var viewModel: GameActivityViewModel
@@ -24,9 +24,11 @@ class SettingsMenuFragment : Fragment() {
     private lateinit var gameSpeedSettings: MaterialCardView
     private lateinit var backSettings: MaterialCardView
 
-    // Lista ordenada dos itens do menu para navegação
+    // Menu title
+    private lateinit var settingsMenuTitle: TextView
+
+    // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
-    private var currentSelectedIndex = 0 // Começar com "Sound"
 
     // Menu option titles for color control
     private lateinit var soundTitle: TextView
@@ -59,37 +61,45 @@ class SettingsMenuFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "onViewCreated: SettingsMenuFragment view created"
-        )
 
         // Initialize ViewModel
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
+        // CRITICAL: Force all views to z=0 to stay below gamepad
+        forceZeroElevationRecursively(view)
+
         setupViews(view)
         setupClickListeners()
         updateMenuState()
-        // REMOVIDO: animateMenuIn() - submenu agora aparece instantaneamente sem animação
+        // REMOVED: animateMenuIn() - submenu now appears instantly without animation
+    }
 
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "onViewCreated: SettingsMenuFragment setup completed"
-        )
-        // REMOVIDO: Não fecha mais ao tocar nas laterais
-        // Menu só fecha quando selecionar Back
+    /** Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad. */
+    private fun forceZeroElevationRecursively(view: View) {
+        view.z = 0f
+        view.elevation = 0f
+        view.translationZ = 0f
+
+        if (view is android.view.ViewGroup) {
+            for (i in 0 until view.childCount) {
+                forceZeroElevationRecursively(view.getChildAt(i))
+            }
+        }
     }
 
     private fun setupViews(view: View) {
         // Main container
         settingsMenuContainer = view.findViewById(R.id.settings_menu_container)
 
+        // Menu title
+        settingsMenuTitle = view.findViewById(R.id.settings_menu_title)
+
         // Menu items
         soundSettings = view.findViewById(R.id.settings_sound)
         gameSpeedSettings = view.findViewById(R.id.settings_game_speed)
         backSettings = view.findViewById(R.id.settings_back)
 
-        // Inicializar lista ordenada dos itens do menu
+        // Initialize ordered list of menu items
         menuItems = listOf(soundSettings, gameSpeedSettings, backSettings)
 
         // Initialize menu option titles
@@ -102,8 +112,27 @@ class SettingsMenuFragment : Fragment() {
         selectionArrowGameSpeed = view.findViewById(R.id.selection_arrow_game_speed)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
-        // Definir primeiro item como selecionado
-        updateSelectionVisual()
+        // Set first item as selected
+        updateSelectionVisualInternal()
+
+        // Apply arcade font to all text views
+        applyArcadeFontToViews()
+    }
+
+    private fun applyArcadeFontToViews() {
+        val context = requireContext()
+
+        // Apply font to all text views in the settings menu
+        FontUtils.applyArcadeFont(
+                context,
+                settingsMenuTitle,
+                soundTitle,
+                gameSpeedTitle,
+                backTitle,
+                selectionArrowSound,
+                selectionArrowGameSpeed,
+                selectionArrowBack
+        )
     }
 
     private fun setupClickListeners() {
@@ -130,8 +159,8 @@ class SettingsMenuFragment : Fragment() {
         }
 
         backSettings.setOnClickListener {
-            // Voltar ao menu principal
-            // Apenas notificar o listener, a animação será feita pelo dismissSettingsMenu()
+            // Return to main menu
+            // Just notify the listener, animation will be done by dismissSettingsMenu()
             settingsListener?.onBackToMainMenu()
         }
     }
@@ -151,32 +180,64 @@ class SettingsMenuFragment : Fragment() {
                 )
     }
 
-    /** Navegar para cima no menu */
-    fun navigateUp() {
-        currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.size) % menuItems.size
-        updateSelectionVisual()
+    /** Navigate up in the menu */
+    override fun performNavigateUp() {
+        val beforeIndex = getCurrentSelectedIndex()
+        navigateUpCircular(menuItems.size)
+        val afterIndex = getCurrentSelectedIndex()
+        android.util.Log.d(TAG, "[NAV] Settings menu: UP navigation - $beforeIndex -> $afterIndex")
+        updateSelectionVisualInternal()
     }
 
-    /** Navegar para baixo no menu */
-    fun navigateDown() {
-        currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.size
-        updateSelectionVisual()
+    /** Navigate down in the menu */
+    override fun performNavigateDown() {
+        val beforeIndex = getCurrentSelectedIndex()
+        navigateDownCircular(menuItems.size)
+        val afterIndex = getCurrentSelectedIndex()
+        android.util.Log.d(
+                TAG,
+                "[NAV] Settings menu: DOWN navigation - $beforeIndex -> $afterIndex"
+        )
+        updateSelectionVisualInternal()
     }
 
-    /** Confirmar seleção atual */
-    fun confirmSelection() {
-        when (currentSelectedIndex) {
-            0 -> soundSettings.performClick() // Sound
-            1 -> gameSpeedSettings.performClick() // Game Speed
-            2 -> backSettings.performClick() // Back
+    /** Confirm current selection */
+    override fun performConfirm() {
+        val selectedIndex = getCurrentSelectedIndex()
+        android.util.Log.d(TAG, "[ACTION] Settings menu: CONFIRM on index $selectedIndex")
+        when (selectedIndex) {
+            0 -> {
+                android.util.Log.d(TAG, "[ACTION] Settings menu: Sound toggle selected")
+                soundSettings.performClick() // Sound
+            }
+            1 -> {
+                android.util.Log.d(TAG, "[ACTION] Settings menu: Game speed toggle selected")
+                gameSpeedSettings.performClick() // Game Speed
+            }
+            2 -> {
+                android.util.Log.d(TAG, "[ACTION] Settings menu: Back to main menu selected")
+                backSettings.performClick() // Back
+            }
+            else ->
+                    android.util.Log.w(
+                            TAG,
+                            "[ACTION] Settings menu: Invalid selection index $selectedIndex"
+                    )
         }
     }
 
-    /** Atualizar visual da seleção */
-    private fun updateSelectionVisual() {
+    /** Back action */
+    override fun performBack(): Boolean {
+        // For settings submenu, back should go to main menu
+        backSettings.performClick()
+        return true
+    }
+
+    /** Update selection visual - specific implementation for SettingsMenuFragment */
+    override fun updateSelectionVisualInternal() {
         menuItems.forEach { item ->
-            // Removido: background color dos cards individuais
-            // Seleção agora indicada apenas por texto amarelo e setas
+            // Removed: background color of individual cards
+            // Selection now indicated only by yellow text and arrows
             item.strokeWidth = 0
             item.strokeColor = android.graphics.Color.TRANSPARENT
             item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
@@ -184,28 +245,28 @@ class SettingsMenuFragment : Fragment() {
 
         // Control text colors based on selection
         soundTitle.setTextColor(
-                if (currentSelectedIndex == 0) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         gameSpeedTitle.setTextColor(
-                if (currentSelectedIndex == 1) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 1) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         backTitle.setTextColor(
-                if (currentSelectedIndex == 2) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
 
         // Control selection arrows colors and visibility
-        // CORREÇÃO: Item selecionado mostra seta sem margem (colada ao texto)
+        // FIX: Selected item shows arrow without margin (attached to text)
         val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Sound
-        if (currentSelectedIndex == 0) {
+        if (getCurrentSelectedIndex() == 0) {
             selectionArrowSound.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowSound.visibility = View.VISIBLE
             (selectionArrowSound.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
+                marginStart = 0 // No space before the arrow
                 marginEnd = arrowMarginEnd
             }
         } else {
@@ -213,11 +274,11 @@ class SettingsMenuFragment : Fragment() {
         }
 
         // Game Speed
-        if (currentSelectedIndex == 1) {
+        if (getCurrentSelectedIndex() == 1) {
             selectionArrowGameSpeed.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowGameSpeed.visibility = View.VISIBLE
             (selectionArrowGameSpeed.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
+                marginStart = 0 // No space before the arrow
                 marginEnd = arrowMarginEnd
             }
         } else {
@@ -225,73 +286,50 @@ class SettingsMenuFragment : Fragment() {
         }
 
         // Back
-        if (currentSelectedIndex == 2) {
+        if (getCurrentSelectedIndex() == 2) {
             selectionArrowBack.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
+                marginStart = 0 // No space before the arrow
                 marginEnd = arrowMarginEnd
             }
         } else {
             selectionArrowBack.visibility = View.GONE
         }
 
-        // Forçar atualização do layout
+        // Force layout update
         settingsMenuContainer.requestLayout()
     }
 
-    /** Tornar o menu principal invisível (quando submenu é aberto) */
+    /** Make main menu invisible (when submenu is opened) */
     fun hideMainMenu() {
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "hideMainMenu: Hiding menu content but keeping background"
-        )
-        // Esconder apenas o conteúdo do menu, mantendo o fundo para o submenu
+        // Hide only menu content, keeping background for submenu
         settingsMenuContainer.visibility = View.INVISIBLE
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "hideMainMenu: Menu content hidden, background should remain visible"
-        )
     }
 
-    /** Tornar o menu principal visível novamente (quando submenu é fechado) */
+    /** Make main menu visible again (when submenu is closed) */
     fun showMainMenu() {
-        android.util.Log.d("SettingsMenuFragment", "showMainMenu: Showing menu content again")
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "showMainMenu: BEFORE - visibility = ${settingsMenuContainer.visibility}"
-        )
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "showMainMenu: BEFORE - alpha = ${settingsMenuContainer.alpha}"
-        )
-
-        // Tornar visível
+        // Make visible
         settingsMenuContainer.visibility = View.VISIBLE
 
-        // Garantir que o alpha esteja em 1.0 (totalmente visível)
+        // Ensure alpha is at 1.0 (fully visible)
         settingsMenuContainer.alpha = 1.0f
 
-        // Garantir que a seleção visual seja atualizada quando o menu voltar a ser visível
-        updateSelectionVisual()
+        // Ensure visual selection is updated when menu becomes visible again
+        updateSelectionVisualInternal()
 
-        // Forçar redesenho completo
+        // Force complete redraw
         settingsMenuContainer.invalidate()
         settingsMenuContainer.requestLayout()
 
-        // REMOVIDO: bringToFront() causa problema com layout_weight
-        // O SettingsMenuFragment já foi completamente removido com popBackStack()
-        // então não há necessidade de trazer para frente
-
-        android.util.Log.d(
-                "SettingsMenuFragment",
-                "showMainMenu: AFTER - visibility = ${settingsMenuContainer.visibility}"
-        )
+        // REMOVED: bringToFront() causes problem with layout_weight
+        // The SettingsMenuFragment has already been completely removed with popBackStack()
+        // so there is no need to bring to front
     }
 
     private fun dismissMenu() {
-        // IMPORTANTE: Não chamar dismissRetroMenu3() aqui para evitar crashes
-        // Apenas remover o fragment visualmente - SEM animação
+        // IMPORTANT: Do not call dismissRetroMenu3() here to avoid crashes
+        // Just remove the fragment visually - WITHOUT animation
         parentFragmentManager.beginTransaction().remove(this).commit()
     }
 
@@ -302,23 +340,55 @@ class SettingsMenuFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Garantir que comboAlreadyTriggered seja resetado quando o fragment for destruído
+        // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
         try {
             (settingsListener as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)?.let {
                     viewModel ->
-                // Chamar clearKeyLog através do ViewModel para resetar o estado do combo
+                // Call clearKeyLog through ViewModel to reset combo state
                 viewModel.clearControllerKeyLog()
             }
         } catch (e: Exception) {
             android.util.Log.w(
                     "SettingsMenuFragment",
-                    "Erro ao resetar combo state no onDestroy",
+                    "Error resetting combo state in onDestroy",
                     e
             )
         }
     }
 
+    // ===== MenuFragmentBase Abstract Methods Implementation =====
+
+    override fun getMenuItems(): List<MenuItem> {
+        return listOf(
+                MenuItem(
+                        "sound",
+                        getString(R.string.settings_audio),
+                        action = MenuAction.TOGGLE_AUDIO
+                ),
+                MenuItem(
+                        "speed",
+                        getString(R.string.menu_fast_forward),
+                        action = MenuAction.TOGGLE_SPEED
+                ),
+                MenuItem("back", getString(R.string.settings_back), action = MenuAction.BACK)
+        )
+    }
+
+    override fun onMenuItemSelected(item: MenuItem) {
+        // Use new MenuAction system, but fallback to old click listeners for compatibility
+        when (item.action) {
+            MenuAction.TOGGLE_AUDIO -> soundSettings.performClick()
+            MenuAction.TOGGLE_SPEED -> gameSpeedSettings.performClick()
+            MenuAction.BACK -> backSettings.performClick()
+            else -> {
+                /* Ignore other actions */
+            }
+        }
+    }
+
     companion object {
+        private const val TAG = "SettingsMenu"
+
         fun newInstance(): SettingsMenuFragment {
             return SettingsMenuFragment()
         }

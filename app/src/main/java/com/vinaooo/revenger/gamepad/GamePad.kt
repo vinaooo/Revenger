@@ -18,11 +18,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class GamePad(
-        context: Context,
-        padConfig: RadialGamePadConfig,
-        private val onButtonEvent: ((event: Event.Button) -> Unit)? = null
+  context: Context,
+  private val padConfig: RadialGamePadConfig,
+  private val onButtonEvent: ((event: Event) -> Unit)? = null
 ) {
-        val pad = RadialGamePad(padConfig, 0f, context)
+  val pad = RadialGamePad(padConfig, 0f, context)
 
         companion object {
                 /** Should the user see the on-screen controls? */
@@ -36,7 +36,7 @@ class GamePad(
                                 activity.packageManager?.hasSystemFeature(
                                         PackageManager.FEATURE_TOUCHSCREEN
                                 )
-                        if (hasTouchScreen == null || hasTouchScreen == false) return false
+                        if (hasTouchScreen == null || !hasTouchScreen) return false
 
                         /* Fetch the current display that the game is running on */
                         val currentDisplayId = activity.display!!.displayId
@@ -63,15 +63,20 @@ class GamePad(
                 }
         }
 
-        /** Send inputs to the RetroView */
         private fun eventHandler(event: Event, retroView: GLRetroView) {
                 when (event) {
                         is Event.Button -> {
-                                retroView.sendKeyEvent(event.action, event.id)
-                                // Also notify ControllerInput for pause overlay logic
+                                // Always send to ControllerInput for processing (it will decide if
+                                // menu is open)
                                 onButtonEvent?.invoke(event)
+                                // Also send to core if not handled by menu
+                                retroView.sendKeyEvent(event.action, event.id)
                         }
-                        is Event.Direction ->
+                        is Event.Direction -> {
+                                // Always send to ControllerInput for processing (it will decide if
+                                // menu is open)
+                                onButtonEvent?.invoke(event)
+                                // Also send to core if not handled by menu
                                 when (event.id) {
                                         GLRetroView.MOTION_SOURCE_DPAD ->
                                                 retroView.sendMotionEvent(
@@ -92,6 +97,7 @@ class GamePad(
                                                         event.yAxis
                                                 )
                                 }
+                        }
                 }
         }
 

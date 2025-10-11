@@ -4,26 +4,26 @@ import android.content.Context
 import android.graphics.Bitmap
 
 /**
- * Interface para efeitos de background do RetroMenu2 Cada efeito processa o screenshot do jogo
- * pausado de forma diferente
+ * Interface for RetroMenu2 background effects Each effect processes the paused game screenshot
+ * differently
  */
 interface BackgroundEffect {
     /**
-     * Aplica o efeito no bitmap capturado
-     * @param context Contexto Android para acessar recursos
-     * @param screenshot Screenshot original do jogo
-     * @param intensity Intensidade do efeito (0.0 a 1.0)
-     * @return Bitmap processado com o efeito aplicado
+     * Apply the effect to the captured bitmap
+     * @param context Android context to access resources
+     * @param screenshot Original game screenshot
+     * @param intensity Effect intensity (0.0 to 1.0)
+     * @return Processed bitmap with effect applied
      */
     fun apply(context: Context, screenshot: Bitmap, intensity: Float): Bitmap
 }
 
-/** Factory para criar instâncias de efeitos baseado no tipo configurado */
+/** Factory to create effect instances based on configured type */
 object BackgroundEffectFactory {
     /**
-     * Cria o efeito apropriado baseado no tipo
-     * @param type Tipo do efeito (0=None, 3=Scanline)
-     * @return Instância do efeito correspondente
+     * Create the appropriate effect based on type
+     * @param type Effect type (0=None, 3=Scanline)
+     * @return Corresponding effect instance
      */
     fun create(type: Int): BackgroundEffect {
         return when (type) {
@@ -32,10 +32,10 @@ object BackgroundEffectFactory {
         }
     }
 
-    /** Retorna lista com todos os tipos de efeitos disponíveis */
+    /** Returns list with all available effect types */
     fun getAllEffectTypes(): List<Int> = listOf(0, 3)
 
-    /** Retorna nome descritivo do efeito */
+    /** Returns descriptive name of the effect */
     fun getEffectName(type: Int): String {
         return when (type) {
             0 -> "None (Dimming Only)"

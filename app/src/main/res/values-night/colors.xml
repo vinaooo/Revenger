@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Dynamic Colors will be used instead of hardcoded menu colors -->
-    <!-- Removed: menu_surface, menu_surface_variant, etc. to allow Dynamic Colors -->
-
-    <!-- Dynamic colors are now handled automatically by Material 3 in dark mode -->
-</resources>

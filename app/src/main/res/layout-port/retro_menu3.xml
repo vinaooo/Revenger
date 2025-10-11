@@ -1,38 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- CRITICAL: elevation="0dp" keeps menu below gamepad layer -->
+<!-- Portrait override: centraliza verticalmente o menu -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clickable="true"
-    android:focusable="true"
-    android:background="@color/retro_menu3_background"
-    android:fitsSystemWindows="false"
-    android:elevation="0dp">
+    android:background="@color/retro_menu3_background">
 
     <LinearLayout
+        android:id="@+id/menu_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:elevation="0dp">
-
-        <!-- Left 25% - Empty Space -->
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="@dimen/retro_menu3_side_space_weight" />
-
-        <!-- Center 50% - Menu Content -->
-        <LinearLayout
-            android:id="@+id/menu_container"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="@dimen/retro_menu3_center_content_weight"
-            android:orientation="vertical"
-            android:paddingVertical="@dimen/retro_menu3_container_padding_vertical"
-            android:elevation="0dp">
-
-            <!-- Menu Title -->
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingVertical="@dimen/retro_menu3_container_padding_vertical"
+        android:elevation="0dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp">
+        <!-- Menu Title -->
             <TextView
                 android:id="@+id/menu_title"
                 android:layout_width="wrap_content"
@@ -43,7 +27,6 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="@dimen/retro_menu3_title_margin_bottom"
                 android:letterSpacing="@dimen/retro_menu3_title_letter_spacing"
-                
                 android:shadowColor="@color/retro_menu3_shadow_color"
                 android:shadowDx="@dimen/retro_menu3_shadow_dx"
                 android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -65,7 +48,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:elevation="0dp">
-
                     <!-- Continue Game -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/menu_continue"
@@ -91,7 +73,6 @@
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@color/retro_menu3_text_color"
-                                
                                 android:layout_marginStart="0dp"
                                 android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
                                 android:visibility="gone"
@@ -111,7 +92,6 @@
                                     android:text="@string/menu_continue"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -119,7 +99,6 @@
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
-
                     <!-- Reset Game -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/menu_reset"
@@ -145,7 +124,6 @@
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@color/retro_menu3_text_color"
-                                
                                 android:layout_marginStart="0dp"
                                 android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
                                 android:visibility="gone"
@@ -165,7 +143,6 @@
                                     android:text="@string/menu_reset"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -173,7 +150,6 @@
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
-
                     <!-- Submenu 1 -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/menu_submenu1"
@@ -199,7 +175,6 @@
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@color/retro_menu3_text_color"
-                                
                                 android:layout_marginStart="0dp"
                                 android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
                                 android:visibility="gone"
@@ -219,7 +194,6 @@
                                     android:text="@string/progress_menu_title"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -227,7 +201,6 @@
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
-
                     <!-- Settings -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/menu_settings"
@@ -253,7 +226,6 @@
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@color/retro_menu3_text_color"
-                                
                                 android:layout_marginStart="0dp"
                                 android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
                                 android:visibility="gone"
@@ -273,7 +245,6 @@
                                     android:text="@string/menu_settings"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -281,7 +252,6 @@
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
-
                     <!-- Exit Menu -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/menu_exit"
@@ -307,7 +277,6 @@
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@color/retro_menu3_text_color"
-                                
                                 android:layout_marginStart="0dp"
                                 android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
                                 android:visibility="gone"
@@ -327,7 +296,6 @@
                                     android:text="@string/exit_menu_title"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -335,91 +303,30 @@
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Save Log Menu -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/menu_save_log"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/retro_menu3_menu_item_height"
-                        android:clickable="true"
-                        android:focusable="true"
-                        app:cardCornerRadius="@dimen/retro_menu3_menu_item_corner_radius"
-                        app:cardElevation="@dimen/retro_menu3_menu_item_elevation"
-                        app:strokeWidth="@dimen/retro_menu3_menu_item_stroke_width"
-                        app:strokeColor="@color/retro_menu3_card_stroke"
-                        app:cardBackgroundColor="@color/retro_menu3_card_background">
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:padding="@dimen/retro_menu3_menu_item_padding">
-                            <TextView
-                                android:id="@+id/selection_arrow_save_log"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/retro_menu3_selection_arrow"
-                                android:textSize="@dimen/retro_menu3_arrow_text_size"
-                                android:textColor="@color/retro_menu3_text_color"
-
-                                android:layout_marginStart="0dp"
-                                android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
-                                android:visibility="gone"
-                                android:shadowColor="@color/retro_menu3_shadow_color"
-                                android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                                android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                                android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-                                <TextView
-                                    android:id="@+id/save_log_title"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/save_log_menu_title"
-                                    android:textSize="@dimen/retro_menu3_menu_item_text_size"
-                                    android:textColor="@color/retro_menu3_text_color"
-
-                                    android:shadowColor="@color/retro_menu3_shadow_color"
-                                    android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                                    android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                                    android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
-                            </LinearLayout>
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
                     <!-- Extra space for last item -->
                     <Space
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_extra_space_height" />
-
                 </LinearLayout>
             </ScrollView>
+
+            <TextView
+                android:id="@+id/retro_menu3_controls_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/retro_menu3_controls_hint"
+                android:textSize="@dimen/retro_menu3_menu_item_text_size"
+                android:textColor="@color/retro_menu3_text_color"
+                android:layout_marginEnd="0dp"
+                android:layout_marginBottom="@dimen/retro_menu3_container_padding_vertical"
+                android:layout_marginTop="48dp"
+                android:shadowColor="@color/retro_menu3_shadow_color"
+                android:shadowDx="@dimen/retro_menu3_shadow_dx"
+                android:shadowDy="@dimen/retro_menu3_shadow_dy"
+                android:shadowRadius="@dimen/retro_menu3_shadow_radius"
+                android:gravity="end"
+                android:layout_gravity="end"
+            />
         </LinearLayout>
 
-        <!-- Right 25% - Empty Space -->
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="@dimen/retro_menu3_side_space_weight" />
-
-    </LinearLayout>
-        <!-- Controls Hint - Bottom Right Corner -->
-        <TextView
-            android:id="@+id/retro_menu3_controls_hint"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/retro_menu3_controls_hint"
-            android:textSize="@dimen/retro_menu3_menu_item_text_size"
-            android:textColor="@color/retro_menu3_text_color"
-            
-            android:layout_gravity="bottom|end"
-            android:layout_marginEnd="@dimen/retro_menu3_container_padding_vertical"
-            android:layout_marginBottom="@dimen/retro_menu3_container_padding_vertical"
-            android:shadowColor="@color/retro_menu3_shadow_color"
-            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
 </FrameLayout>

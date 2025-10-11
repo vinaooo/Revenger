@@ -7,19 +7,19 @@ import android.graphics.Color
 import android.graphics.Paint
 
 /**
- * Efeito de scanlines simulando TV de tubo CRT (anos 80/90) Desenha linhas horizontais sobre a
- * imagem Usado quando retromenu2_background_effect = 3
+ * Scanline effect simulating CRT tube TV (80s/90s) Draws horizontal lines over the
+ * image Used when retromenu2_background_effect = 3
  */
 class ScanlineEffect : BackgroundEffect {
     override fun apply(context: Context, screenshot: Bitmap, intensity: Float): Bitmap {
         val width = screenshot.width
         val height = screenshot.height
 
-        // Cria cópia mutável
+        // Create mutable copy
         val result = screenshot.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(result)
 
-        // Aplica dimming base
+        // Apply base dimming
         val dimmingPaint =
                 Paint().apply {
                     color = Color.BLACK
@@ -27,30 +27,30 @@ class ScanlineEffect : BackgroundEffect {
                 }
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), dimmingPaint)
 
-        // Intensity controla a espessura das scanlines
+        // Intensity controls the thickness of scanlines
         // 0.1 = linhas muito finas (1px)
         // 1.0 = linhas grossas (4px)
         val lineThickness = (intensity * 4f).coerceIn(1f, 4f)
-        val lineSpacing = lineThickness + 2f // Espaçamento entre linhas
+        val lineSpacing = lineThickness + 2f // Spacing between lines
 
-        // Paint para as scanlines
+        // Paint for scanlines
         val scanlinePaint =
                 Paint().apply {
                     color = Color.BLACK
-                    alpha = (intensity * 180).toInt().coerceIn(50, 180) // Opacidade variável
+                    alpha = (intensity * 180).toInt().coerceIn(50, 180) // Variable opacity
                     strokeWidth = lineThickness
-                    isAntiAlias = false // Linhas pixeladas para efeito retro
+                    isAntiAlias = false // Pixelated lines for retro effect
                 }
 
-        // Desenha scanlines horizontais
+        // Draw horizontal scanlines
         var y = 0f
         while (y < height) {
             canvas.drawLine(0f, y, width.toFloat(), y, scanlinePaint)
             y += lineSpacing
         }
 
-        // Adiciona leve "glow" verde/azul característico de monitores CRT
-        // (opcional - pode ser desabilitado se não ficar bom)
+        // Add light green/blue "glow" characteristic of CRT monitors
+        // (optional - can be disabled if it doesn't look good)
         val glowPaint =
                 Paint().apply {
                     color = Color.rgb(0, 255, 100) // Verde-azulado

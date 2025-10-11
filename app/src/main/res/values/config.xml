@@ -8,10 +8,13 @@
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
     <string name="config_core">smsplus</string>
+    <!-- <string name="config_core">picodrive</string> -->
+
     <!-- Snes = snes9x -->
     <!-- megadrive = genesis_plus_gx -->
     <!-- gb = gambatte -->
-    <!-- master = smsplus -->
+    <!-- master = gearsystem (best performance for Master System) -->
+    <!-- Master e Mega = picodrive (the best) -->
     
     <!-- rom name, the same name the rom file in res/raw without extension -->
     <string name="config_rom">sth</string>
@@ -20,7 +23,7 @@
     <bool name="config_load_bytes">false</bool>
 
     <!-- Core variables (key=value separated by commas) -->
-    <string name="config_variables"></string>
+    <string name="config_variables">smsplusgx_hide_left_border=enabled</string>
 
     <!-- Fast forward speed multiplier -->
     <integer name="config_fast_forward_multiplier">2</integer>
@@ -60,13 +63,18 @@
     <!-- GamePad buttons to display -->
     <bool name="config_gamepad_a">true</bool>
     <bool name="config_gamepad_b">true</bool>
-    <bool name="config_gamepad_x">true</bool>
-    <bool name="config_gamepad_y">true</bool>
+    <bool name="config_gamepad_x">false</bool>
+    <bool name="config_gamepad_y">false</bool>
     <bool name="config_gamepad_start">true</bool>
     <bool name="config_gamepad_select">true</bool>
-    <bool name="config_gamepad_l1">true</bool>
-    <bool name="config_gamepad_r1">true</bool>
+    <bool name="config_gamepad_l1">false</bool>
+    <bool name="config_gamepad_r1">false</bool>
+    <bool name="config_gamepad_l2">false</bool>
+    <bool name="config_gamepad_r2">false</bool>
 
     <!-- Should the left DPAD be replaced with an analog stick? -->
     <bool name="config_left_analog">false</bool>
+
+    <!-- Show performance overlay (FPS, memory, CPU) -->
+    <bool name="config_performance_overlay">false</bool>
 </resources>

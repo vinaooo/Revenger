@@ -7,12 +7,12 @@ import android.graphics.Color
 import android.graphics.Paint
 
 /**
- * Efeito básico que apenas escurece a imagem sem processamento adicional Usado quando
+ * Basic effect that only darkens the image without additional processing. Used when
  * retromenu2_background_effect = 0
  */
 class NoEffect : BackgroundEffect {
     override fun apply(context: Context, screenshot: Bitmap, intensity: Float): Bitmap {
-        // Cria cópia do bitmap original
+        // Create copy of original bitmap
         val result = screenshot.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(result)
 

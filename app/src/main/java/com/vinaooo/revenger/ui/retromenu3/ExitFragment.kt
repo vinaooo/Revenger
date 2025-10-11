@@ -6,27 +6,29 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/** ExitFragment - Menu de opções de saída com visual idêntico ao RetroMenu3 */
-class ExitFragment : Fragment() {
+/** ExitFragment - Exit options menu with visual identical to RetroMenu3 */
+class ExitFragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods
     private lateinit var viewModel: GameActivityViewModel
 
     // Menu item views
-    private lateinit var submenu2Container: LinearLayout
+    private lateinit var exitMenuContainer: LinearLayout
     private lateinit var saveAndExit: MaterialCardView
     private lateinit var exitWithoutSave: MaterialCardView
-    private lateinit var backSubmenu2: MaterialCardView
+    private lateinit var backExitMenu: MaterialCardView
 
-    // Lista ordenada dos itens do menu para navegação
+    // Menu title
+    private lateinit var exitMenuTitle: TextView
+
+    // Ordered list of menu items for navigation
     private lateinit var menuItems: List<MaterialCardView>
-    private var currentSelectedIndex = 0 // Começar com "Option A"
 
     // Menu option titles for color control
     private lateinit var saveAndExitTitle: TextView
@@ -54,36 +56,53 @@ class ExitFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.submenu2, container, false)
+        return inflater.inflate(R.layout.exit_menu, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        android.util.Log.d("ExitFragment", "onViewCreated: ExitFragment view created")
 
         // Initialize ViewModel
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
+        // CRITICAL: Force all views to z=0 to stay below gamepad
+        forceZeroElevationRecursively(view)
+
         setupViews(view)
         setupClickListeners()
-        // REMOVIDO: animateMenuIn() - submenu agora aparece instantaneamente sem animação
+        // REMOVED: animateMenuIn() - submenu now appears instantly without animation
 
-        android.util.Log.d("ExitFragment", "onViewCreated: ExitFragment setup completed")
-        // REMOVIDO: Não fecha mais ao tocar nas laterais
-        // Menu só fecha quando selecionar Back
+        // REMOVED: No longer closes when touching the sides
+        // Menu only closes when selecting Back
+    }
+
+    /** Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad. */
+    private fun forceZeroElevationRecursively(view: View) {
+        view.z = 0f
+        view.elevation = 0f
+        view.translationZ = 0f
+
+        if (view is android.view.ViewGroup) {
+            for (i in 0 until view.childCount) {
+                forceZeroElevationRecursively(view.getChildAt(i))
+            }
+        }
     }
 
     private fun setupViews(view: View) {
         // Main container
-        submenu2Container = view.findViewById(R.id.submenu2_container)
+        exitMenuContainer = view.findViewById(R.id.exit_menu_container)
+
+        // Menu title
+        exitMenuTitle = view.findViewById(R.id.exit_menu_title)
 
         // Menu items
-        saveAndExit = view.findViewById(R.id.submenu2_option_a)
-        exitWithoutSave = view.findViewById(R.id.submenu2_option_b)
-        backSubmenu2 = view.findViewById(R.id.submenu2_option_c)
+        saveAndExit = view.findViewById(R.id.exit_menu_option_a)
+        exitWithoutSave = view.findViewById(R.id.exit_menu_option_b)
+        backExitMenu = view.findViewById(R.id.exit_menu_option_c)
 
-        // Inicializar lista ordenada dos itens do menu
-        menuItems = listOf(saveAndExit, exitWithoutSave, backSubmenu2)
+        // Initialize ordered list of menu items
+        menuItems = listOf(saveAndExit, exitWithoutSave, backExitMenu)
 
         // Initialize menu option titles
         saveAndExitTitle = view.findViewById(R.id.option_a_title)
@@ -95,8 +114,27 @@ class ExitFragment : Fragment() {
         selectionArrowExitWithoutSave = view.findViewById(R.id.selection_arrow_option_b)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_option_c)
 
-        // Definir primeiro item como selecionado
-        updateSelectionVisual()
+        // Set first item as selected
+        updateSelectionVisualInternal()
+
+        // Apply arcade font to all text views
+        applyArcadeFontToViews()
+    }
+
+    private fun applyArcadeFontToViews() {
+        val context = requireContext()
+
+        // Apply font to all text views in the exit menu
+        FontUtils.applyArcadeFont(
+                context,
+                exitMenuTitle,
+                saveAndExitTitle,
+                exitWithoutSaveTitle,
+                backTitle,
+                selectionArrowSaveAndExit,
+                selectionArrowExitWithoutSave,
+                selectionArrowBack
+        )
     }
 
     private fun setupClickListeners() {
@@ -127,44 +165,73 @@ class ExitFragment : Fragment() {
             android.os.Process.killProcess(android.os.Process.myPid())
         }
 
-        backSubmenu2.setOnClickListener {
+        backExitMenu.setOnClickListener {
             // Back - Return to main menu
             viewModel.dismissExit()
         }
     }
 
     private fun dismissMenu() {
-        // IMPORTANTE: Não chamar dismissRetroMenu3() aqui para evitar crashes
-        // Apenas remover o fragment visualmente - SEM animação
+        // IMPORTANT: Do not call dismissRetroMenu3() here to avoid crashes
+        // Just remove the fragment visually - WITHOUT animation
         parentFragmentManager.beginTransaction().remove(this).commit()
     }
 
-    /** Navegar para cima no menu */
-    fun navigateUp() {
-        currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.size) % menuItems.size
-        updateSelectionVisual()
+    /** Navigate up in the menu */
+    override fun performNavigateUp() {
+        val beforeIndex = getCurrentSelectedIndex()
+        navigateUpCircular(menuItems.size)
+        val afterIndex = getCurrentSelectedIndex()
+        android.util.Log.d(TAG, "[NAV] Exit menu: UP navigation - $beforeIndex -> $afterIndex")
+        updateSelectionVisualInternal()
     }
 
-    /** Navegar para baixo no menu */
-    fun navigateDown() {
-        currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.size
-        updateSelectionVisual()
+    /** Navigate down in the menu */
+    override fun performNavigateDown() {
+        val beforeIndex = getCurrentSelectedIndex()
+        navigateDownCircular(menuItems.size)
+        val afterIndex = getCurrentSelectedIndex()
+        android.util.Log.d(TAG, "[NAV] Exit menu: DOWN navigation - $beforeIndex -> $afterIndex")
+        updateSelectionVisualInternal()
     }
 
-    /** Confirmar seleção atual */
-    fun confirmSelection() {
-        when (currentSelectedIndex) {
-            0 -> saveAndExit.performClick() // Save and Exit
-            1 -> exitWithoutSave.performClick() // Exit without Save
-            2 -> backSubmenu2.performClick() // Back
+    /** Confirm current selection */
+    override fun performConfirm() {
+        val selectedIndex = getCurrentSelectedIndex()
+        android.util.Log.d(TAG, "[ACTION] Exit menu: CONFIRM on index $selectedIndex")
+        when (selectedIndex) {
+            0 -> {
+                android.util.Log.d(TAG, "[ACTION] Exit menu: Save and Exit selected")
+                saveAndExit.performClick() // Save and Exit
+            }
+            1 -> {
+                android.util.Log.d(TAG, "[ACTION] Exit menu: Exit without Save selected")
+                exitWithoutSave.performClick() // Exit without Save
+            }
+            2 -> {
+                android.util.Log.d(TAG, "[ACTION] Exit menu: Back to main menu selected")
+                backExitMenu.performClick() // Back
+            }
+            else ->
+                    android.util.Log.w(
+                            TAG,
+                            "[ACTION] Exit menu: Invalid selection index $selectedIndex"
+                    )
         }
     }
 
-    /** Atualizar visual da seleção */
-    private fun updateSelectionVisual() {
+    /** Back action */
+    override fun performBack(): Boolean {
+        // For exit submenu, back should go to main menu
+        backExitMenu.performClick()
+        return true
+    }
+
+    /** Update selection visual - specific implementation for ExitFragment */
+    override fun updateSelectionVisualInternal() {
         menuItems.forEach { item ->
-            // Removido: background color dos cards individuais
-            // Seleção agora indicada apenas por texto amarelo e setas
+            // Removed: background color of individual cards
+            // Selection now indicated only by yellow text and arrows
             item.strokeWidth = 0
             item.strokeColor = android.graphics.Color.TRANSPARENT
             item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
@@ -172,28 +239,28 @@ class ExitFragment : Fragment() {
 
         // Control text colors based on selection
         saveAndExitTitle.setTextColor(
-                if (currentSelectedIndex == 0) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         exitWithoutSaveTitle.setTextColor(
-                if (currentSelectedIndex == 1) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 1) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         backTitle.setTextColor(
-                if (currentSelectedIndex == 2) android.graphics.Color.YELLOW
+                if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
 
         // Control selection arrows colors and visibility
-        // CORREÇÃO: Item selecionado mostra seta sem margem (colada ao texto)
+        // FIX: Selected item shows arrow without margin (attached to text)
         val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Save and Exit
-        if (currentSelectedIndex == 0) {
+        if (getCurrentSelectedIndex() == 0) {
             selectionArrowSaveAndExit.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowSaveAndExit.visibility = View.VISIBLE
             (selectionArrowSaveAndExit.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
+                marginStart = 0 // No space before the arrow
                 marginEnd = arrowMarginEnd
             }
         } else {
@@ -201,11 +268,11 @@ class ExitFragment : Fragment() {
         }
 
         // Exit without Save
-        if (currentSelectedIndex == 1) {
+        if (getCurrentSelectedIndex() == 1) {
             selectionArrowExitWithoutSave.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowExitWithoutSave.visibility = View.VISIBLE
             (selectionArrowExitWithoutSave.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
+                marginStart = 0 // No space before the arrow
                 marginEnd = arrowMarginEnd
             }
         } else {
@@ -213,21 +280,20 @@ class ExitFragment : Fragment() {
         }
 
         // Back
-        if (currentSelectedIndex == 2) {
+        if (getCurrentSelectedIndex() == 2) {
             selectionArrowBack.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Sem espaço antes da seta
+                marginStart = 0 // No space before the arrow
                 marginEnd = arrowMarginEnd
             }
         } else {
             selectionArrowBack.visibility = View.GONE
         }
 
-        // Forçar atualização do layout
-        submenu2Container.requestLayout()
+        // Force layout update
+        exitMenuContainer.requestLayout()
     }
-
     /** Public method to dismiss the menu from outside */
     fun dismissMenuPublic() {
         dismissMenu()
@@ -235,15 +301,47 @@ class ExitFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Garantir que comboAlreadyTriggered seja resetado quando o fragment for destruído
+        // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
         try {
             viewModel.clearControllerKeyLog()
         } catch (e: Exception) {
-            android.util.Log.w("ExitFragment", "Erro ao resetar combo state no onDestroy", e)
+            android.util.Log.w("ExitFragment", "Error resetting combo state in onDestroy", e)
+        }
+    }
+
+    // ===== MenuFragmentBase Abstract Methods Implementation =====
+
+    override fun getMenuItems(): List<MenuItem> {
+        return listOf(
+                MenuItem(
+                        "save_exit",
+                        getString(R.string.exit_menu_option_a),
+                        action = MenuAction.SAVE_AND_EXIT
+                ),
+                MenuItem(
+                        "exit_no_save",
+                        getString(R.string.exit_menu_option_b),
+                        action = MenuAction.EXIT
+                ),
+                MenuItem("back", getString(R.string.exit_menu_option_c), action = MenuAction.BACK)
+        )
+    }
+
+    override fun onMenuItemSelected(item: MenuItem) {
+        // Use new MenuAction system, but fallback to old click listeners for compatibility
+        when (item.action) {
+            MenuAction.SAVE_AND_EXIT -> saveAndExit.performClick()
+            MenuAction.EXIT -> exitWithoutSave.performClick()
+            MenuAction.BACK -> backExitMenu.performClick()
+            else -> {
+                /* Ignore other actions */
+            }
         }
     }
 
     companion object {
+        private const val TAG = "ExitMenu"
+
         fun newInstance(): ExitFragment {
             return ExitFragment()
         }

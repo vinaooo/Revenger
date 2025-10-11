@@ -4,15 +4,15 @@ plugins {
 }
 
 /**
- * Função moderna para leitura de configurações XML
- * Substitui configValue com melhor tratamento de erros e logging
+ * Modern function for reading XML configurations
+ * Replaces configValue with better error handling and logging
  */
 def getConfigValue = { String id ->
     try {
         def configFile = file("${rootProject.projectDir.path}/app/src/main/res/values/config.xml")
         
         if (!configFile.exists()) {
-            throw new GradleException("Arquivo de configuração não encontrado: ${configFile.absolutePath}")
+            throw new GradleException("Configuration file not found: ${configFile.absolutePath}")
         }
         
         def parser = new XmlParser()
@@ -40,11 +40,11 @@ def getConfigValue = { String id ->
             return value
         }
         
-        // Não encontrado
-        throw new GradleException("Configuração '$id' não encontrada no arquivo config.xml")
+        // Not found
+        throw new GradleException("Configuration '$id' not found in config.xml file")
         
     } catch (Exception e) {
-        throw new GradleException("Erro ao ler configuração '$id': ${e.message}", e)
+        throw new GradleException("Error reading configuration '$id': ${e.message}", e)
     }
 }
 
@@ -64,7 +64,7 @@ android {
 
     signingConfigs {
         debug {
-            // mantenha apenas as configurações de keystore padrão
+            // keep only default keystore configurations
             storeFile file("${System.getProperty("user.home")}/.android/debug.keystore")
             storePassword 'android'
             keyAlias 'AndroidDebugKey'
@@ -80,7 +80,7 @@ android {
 
     buildTypes {
         debug {
-            debuggable = true         // Atributo, não método
+            debuggable = true         // Attribute, not method
             minifyEnabled = false
             shrinkResources = false
             signingConfig = signingConfigs.debug
@@ -130,7 +130,7 @@ task prepareCore {
             def jniAbiFolder = file("${rootProject.projectDir}/app/src/main/jniLibs/$abi")
 
             if (jniAbiFolder.exists() && jniAbiFolder.list().length > 0) {
-                println "LibRetro core já existe para $abi, pulando download"
+                println "LibRetro core already exists for $abi, skipping download"
                 continue
             }
 
@@ -142,7 +142,7 @@ task prepareCore {
             
             println "Baixando LibRetro core: $coreName para $abi"
             
-            // Implementação Java nativa de download
+            // Native Java download implementation
             try {
                 def url = new URL(coreUrl)
                 def connection = url.openConnection()
@@ -156,7 +156,7 @@ task prepareCore {
                     }
                 }
                 
-                println "Download concluído: ${zipFile.length()} bytes"
+                println "Download completed: ${zipFile.length()} bytes"
                 
                 // Extrair ZIP
                 copy {
@@ -165,15 +165,15 @@ task prepareCore {
                     rename "${coreName}_libretro_android.so", "libcore.so"
                 }
                 
-                // Limpar arquivo ZIP
+                // Clean ZIP file
                 zipFile.delete()
                 
-                println "Core $coreName extraído com sucesso para $abi"
+                println "Core $coreName successfully extracted for $abi"
                 
             } catch (Exception e) {
                 println "ERRO no download nativo: ${e.message}"
                 
-                // Fallback: usar método antigo se plugin disponível
+                // Fallback: use old method if plugin available
                 try {
                     download {
                         src coreUrl
@@ -214,7 +214,7 @@ dependencies {
     implementation 'com.github.swordfish90:radialgamepad:2.0.0'
     implementation 'com.github.swordfish90:libretrodroid:0.12.0'
 
-    // RxJava 3 para novos códigos
+    // RxJava 3 for new code
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
     implementation 'io.reactivex.rxjava3:rxjava:3.1.12'
     

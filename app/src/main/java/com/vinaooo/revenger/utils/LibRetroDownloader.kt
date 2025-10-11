@@ -6,8 +6,8 @@ import java.net.URL
 import java.util.zip.ZipInputStream
 
 /**
- * Utilitário moderno para download e extração de arquivos LibRetro Substitui o plugin
- * de.undercouch.download por implementação nativa
+ * Modern utility for downloading and extracting LibRetro files. Replaces the plugin
+ * de.undercouch.download with native implementation
  */
 class LibRetroDownloader {
 
@@ -33,13 +33,13 @@ class LibRetroDownloader {
                 coreName: String
         ): Boolean {
             return try {
-                // Criar diretório se não existir
+                // Create directory if it doesn't exist
                 destinationDir.mkdirs()
 
-                // Baixar arquivo ZIP
+                // Download ZIP file
                 val zipBytes = downloadFile(coreUrl)
 
-                // Extrair e renomear
+                // Extract and rename
                 extractAndRename(zipBytes, destinationDir)
                 true
             } catch (e: Exception) {
@@ -76,7 +76,7 @@ class LibRetroDownloader {
 
                 while (entry != null) {
                     if (!entry.isDirectory && entry.name.endsWith(".so")) {
-                        // Extrair diretamente como libcore.so
+                        // Extract directly as libcore.so
                         val outputFile = File(destinationDir, "libcore.so")
 
                         FileOutputStream(outputFile).use { output -> zipIn.copyTo(output) }

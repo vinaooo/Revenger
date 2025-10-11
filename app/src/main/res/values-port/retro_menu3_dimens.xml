@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Smaller fonts for the RetroMenu3 menu in portrait -->
+    <dimen name="retro_menu3_title_text_size">20sp</dimen>
+    <dimen name="retro_menu3_arrow_text_size">15sp</dimen>
+    <dimen name="retro_menu3_menu_item_text_size">13sp</dimen>
+    <!-- Espaçamento reduzido entre opções do menu em portrait -->
+    <dimen name="retro_menu3_menu_item_height">32dp</dimen>
+    <dimen name="retro_menu3_menu_item_padding">4dp</dimen>
+    <dimen name="retro_menu3_extra_space_height">8dp</dimen>
+</resources>

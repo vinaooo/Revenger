@@ -3,6 +3,7 @@ package com.vinaooo.revenger.views
 import android.content.pm.PackageManager
 import android.hardware.input.InputManager
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.FrameLayout
@@ -18,13 +19,21 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** Main game activity for the emulator Phase 9.4: Enhanced with SDK 36 features */
 class GameActivity : FragmentActivity() {
+
+    companion object {
+        private const val TAG = "GameActivity"
+    }
     private lateinit var leftContainer: FrameLayout
     private lateinit var rightContainer: FrameLayout
     private lateinit var retroviewContainer: FrameLayout
+    private lateinit var menuContainer: FrameLayout
     private val viewModel: GameActivityViewModel by viewModels()
 
     // Performance monitoring
     private var frameStartTime = 0L
+
+    // GamePad container reference for orientation changes
+    private lateinit var gamePadContainer: android.widget.LinearLayout
 
     // Modern permission launcher (replaces deprecated onRequestPermissionsResult)
     private val permissionLauncher =
@@ -62,6 +71,14 @@ class GameActivity : FragmentActivity() {
         leftContainer = findViewById(R.id.left_container)
         rightContainer = findViewById(R.id.right_container)
         retroviewContainer = findViewById(R.id.retroview_container)
+        menuContainer = findViewById(R.id.menu_container)
+
+        // Get gamepad container reference
+        val gamepadContainers = findViewById<android.widget.LinearLayout>(R.id.containers)
+        gamePadContainer = gamepadContainers
+
+        // Pass gamepad container reference to ViewModel
+        viewModel.setGamePadContainer(gamepadContainers)
 
         /* Use immersive mode when we change the window insets */
         window.decorView.setOnApplyWindowInsetsListener { view, windowInsets ->
@@ -72,9 +89,37 @@ class GameActivity : FragmentActivity() {
         registerInputListener()
         viewModel.setConfigOrientation(this)
         viewModel.updateGamePadVisibility(this, leftContainer, rightContainer)
-        viewModel.prepareMenu(this)
         viewModel.setupRetroView(this, retroviewContainer)
         viewModel.setupGamePads(this, leftContainer, rightContainer)
+
+        // Force gamepad positioning based on orientation
+        adjustGamePadPositionForOrientation(gamepadContainers)
+
+        viewModel.prepareRetroMenu3(this)
+        viewModel.setupMenuCallback(this)
+        viewModel.setMenuContainer(menuContainer)
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Log.d(TAG, "Configuration changed - adjusting gamepad position")
+        adjustGamePadPositionForOrientation(gamePadContainer)
+
+        // --- SOLUÇÃO: Reinflar RetroMenu3Fragment se estiver aberto ---
+        val fragmentManager = supportFragmentManager
+        val retroMenu3Tag =
+                com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment::class.java.simpleName
+        val retroMenu3Fragment = fragmentManager.findFragmentByTag(retroMenu3Tag)
+        if (retroMenu3Fragment != null && retroMenu3Fragment.isAdded) {
+            Log.d(TAG, "RetroMenu3Fragment está aberto, forçando reinflar após rotação")
+            fragmentManager
+                    .beginTransaction()
+                    .remove(retroMenu3Fragment)
+                    .commitNowAllowingStateLoss()
+            // Recria o fragment usando o método padrão do ViewModel
+            viewModel.prepareRetroMenu3(this)
+            viewModel.showRetroMenu3(this)
+        }
     }
 
     /** Initialize SDK 36 features with backward compatibility Phase 9.4: Target SDK 36 Features */
@@ -86,6 +131,9 @@ class GameActivity : FragmentActivity() {
 
         // Start performance profiling
         AdvancedPerformanceProfiler.startProfiling(this)
+
+        // Show debug overlay after layout is ready
+        window.decorView.post { AdvancedPerformanceProfiler.showDebugOverlay(this@GameActivity) }
     }
 
     /** Configure status/navigation bars based on current theme for optimal visibility */
@@ -145,25 +193,14 @@ class GameActivity : FragmentActivity() {
                 null
         )
 
-        /* Setup modern back pressed handling */
+        /* Setup back pressed handling - use default behavior */
         onBackPressedDispatcher.addCallback(
                 this,
                 object : OnBackPressedCallback(true) {
                     override fun handleOnBackPressed() {
-                        // Check if menu should be handled by back button
-                        if (viewModel.shouldHandleBackButton()) {
-                            if (viewModel.isMenuOpen()) {
-                                // Menu is open, close it
-                                viewModel.dismissMenu()
-                            } else {
-                                // Menu is closed, open it
-                                viewModel.showMenu(this@GameActivity)
-                            }
-                        } else {
-                            // If menu is disabled via back button, use default behavior
-                            isEnabled = false
-                            onBackPressedDispatcher.onBackPressed()
-                        }
+                        // Use default back button behavior
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
                     }
                 }
         )
@@ -173,8 +210,10 @@ class GameActivity : FragmentActivity() {
         // Stop performance profiling
         AdvancedPerformanceProfiler.stopProfiling()
 
+        // Hide debug overlay
+        AdvancedPerformanceProfiler.hideDebugOverlay()
+
         // Clean up view model
-        viewModel.dismissMenu()
         viewModel.dispose()
         viewModel.detachRetroView(this)
         super.onDestroy()
@@ -195,6 +234,69 @@ class GameActivity : FragmentActivity() {
         recordFrameTime()
 
         return viewModel.processKeyEvent(keyCode, event) ?: super.onKeyDown(keyCode, event)
+    }
+
+    /** Adjust gamepad position based on screen orientation */
+    private fun adjustGamePadPositionForOrientation(gamepadContainer: android.widget.LinearLayout) {
+        val layoutParams = gamepadContainer.layoutParams as FrameLayout.LayoutParams
+
+        // Check current orientation
+        val isPortrait =
+                resources.configuration.orientation ==
+                        android.content.res.Configuration.ORIENTATION_PORTRAIT
+
+        Log.d(TAG, "Current orientation: ${if (isPortrait) "PORTRAIT" else "LANDSCAPE"}")
+        Log.d(TAG, "Current layout gravity before: ${layoutParams.gravity}")
+
+        if (isPortrait) {
+            // Force bottom positioning in portrait
+            layoutParams.gravity = android.view.Gravity.BOTTOM
+            Log.d(TAG, "GamePad positioned at BOTTOM for portrait mode")
+
+            // Increase gamepad sizes for portrait (40% each instead of 25%)
+            adjustGamePadSizes(gamepadContainer, 0.40f, 0.2f)
+        } else {
+            // Keep top positioning in landscape
+            layoutParams.gravity = android.view.Gravity.TOP
+            Log.d(TAG, "GamePad positioned at TOP for landscape mode")
+
+            // Keep original sizes for landscape (25% each)
+            adjustGamePadSizes(gamepadContainer, 0.25f, 0.5f)
+        }
+
+        Log.d(TAG, "Final layout gravity: ${layoutParams.gravity}")
+        gamepadContainer.layoutParams = layoutParams
+        gamepadContainer.requestLayout()
+    }
+
+    /** Adjust gamepad container sizes programmatically */
+    private fun adjustGamePadSizes(
+            container: android.widget.LinearLayout,
+            gamePadWeight: Float,
+            centerWeight: Float
+    ) {
+        // Find the child views
+        val leftContainer = container.findViewById<android.widget.FrameLayout>(R.id.left_container)
+        val rightContainer =
+                container.findViewById<android.widget.FrameLayout>(R.id.right_container)
+        val centerView = container.getChildAt(1) // The View in the middle
+
+        // Adjust weights
+        val leftParams = leftContainer.layoutParams as android.widget.LinearLayout.LayoutParams
+        leftParams.weight = gamePadWeight
+        leftContainer.layoutParams = leftParams
+
+        val rightParams = rightContainer.layoutParams as android.widget.LinearLayout.LayoutParams
+        rightParams.weight = gamePadWeight
+        rightContainer.layoutParams = rightParams
+
+        if (centerView != null) {
+            val centerParams = centerView.layoutParams as android.widget.LinearLayout.LayoutParams
+            centerParams.weight = centerWeight
+            centerView.layoutParams = centerParams
+        }
+
+        Log.d(TAG, "GamePad sizes adjusted - GamePads: $gamePadWeight, Center: $centerWeight")
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {

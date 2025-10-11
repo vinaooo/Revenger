@@ -21,7 +21,7 @@
 
         <!-- Center 50% - Menu Content -->
         <LinearLayout
-            android:id="@+id/submenu2_container"
+            android:id="@+id/exit_menu_container"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="@dimen/retro_menu3_center_content_weight"
@@ -30,16 +30,16 @@
 
             <!-- Menu Title -->
             <TextView
-                android:id="@+id/submenu2_title"
+                android:id="@+id/exit_menu_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/submenu2_title"
+                android:text="@string/exit_menu_title"
                 android:textSize="@dimen/retro_menu3_title_text_size"
                 android:textColor="@color/retro_menu3_text_color"
                 android:textStyle="bold"
                 android:layout_marginBottom="@dimen/retro_menu3_title_margin_bottom"
                 android:letterSpacing="@dimen/retro_menu3_title_letter_spacing"
-                android:fontFamily="@font/arcade_normal"
+                
                 android:shadowColor="@color/retro_menu3_shadow_color"
                 android:shadowDx="@dimen/retro_menu3_shadow_dx"
                 android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -61,7 +61,7 @@
 
                     <!-- Option A -->
                     <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/submenu2_option_a"
+                        android:id="@+id/exit_menu_option_a"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
@@ -84,7 +84,7 @@
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@color/retro_menu3_text_color"
-                                android:fontFamily="@font/arcade_normal"
+                                
                                 android:layout_marginStart="0dp"
                                 android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
                                 android:visibility="gone"
@@ -101,10 +101,10 @@
                                     android:id="@+id/option_a_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/submenu2_option_a"
+                                    android:text="@string/exit_menu_option_a"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    android:fontFamily="@font/arcade_normal"
+                                    
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -115,7 +115,7 @@
 
                     <!-- Option B -->
                     <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/submenu2_option_b"
+                        android:id="@+id/exit_menu_option_b"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
@@ -138,7 +138,7 @@
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@color/retro_menu3_text_color"
-                                android:fontFamily="@font/arcade_normal"
+                                
                                 android:layout_marginStart="0dp"
                                 android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
                                 android:visibility="gone"
@@ -155,10 +155,10 @@
                                     android:id="@+id/option_b_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/submenu2_option_b"
+                                    android:text="@string/exit_menu_option_b"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    android:fontFamily="@font/arcade_normal"
+                                    
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -169,7 +169,7 @@
 
                     <!-- Option C -->
                     <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/submenu2_option_c"
+                        android:id="@+id/exit_menu_option_c"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
@@ -192,7 +192,7 @@
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@color/retro_menu3_text_color"
-                                android:fontFamily="@font/arcade_normal"
+                                
                                 android:layout_marginStart="0dp"
                                 android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
                                 android:visibility="gone"
@@ -209,10 +209,10 @@
                                     android:id="@+id/option_c_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/submenu2_option_c"
+                                    android:text="@string/exit_menu_option_c"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    android:fontFamily="@font/arcade_normal"
+                                    
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"

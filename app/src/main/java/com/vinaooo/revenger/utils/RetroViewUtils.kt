@@ -26,17 +26,16 @@ class RetroViewUtils(private val activity: Activity) {
             skipTempStateLoad: Boolean = false,
             autoRestoreManualState: Boolean = false
     ) {
-        // CORREÇÃO: Restaurar frameSpeed, mas garantir que nunca seja 0 (pausado)
-        // Se frameSpeed salvo for 0, significa que app foi fechado com menu aberto
-        // Nesse caso, restaurar para 1 (velocidade normal) para evitar tela preta
-        val savedFrameSpeed =
-                sharedPreferences.getInt(activity.getString(R.string.pref_frame_speed), 1)
+        // FIX: Restore frameSpeed, but ensure it never is 0 (paused)
+        // If saved frameSpeed is 0, it means app was closed with menu open
+        // In this case, restore to 1 (normal speed) to avoid black screen
+        val savedFrameSpeed = sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1)
         retroView.view.frameSpeed = if (savedFrameSpeed == 0) 1 else savedFrameSpeed
         retroView.view.audioEnabled =
-                sharedPreferences.getBoolean(activity.getString(R.string.pref_audio_enabled), true)
+                sharedPreferences.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true)
 
-        // CORREÇÃO CRÍTICA: Não carregar tempState se acabamos de fazer Load State manual
-        // Isso evita que o tempState sobrescreva o save state que o usuário acabou de carregar
+        // CRITICAL FIX: Do not load tempState if we just did manual Load State
+        // This prevents tempState from overwriting the save state that user just loaded
         if (!skipTempStateLoad) {
             val hasSave = hasSaveState()
             val tempExists = storage.tempState.exists()
@@ -54,14 +53,14 @@ class RetroViewUtils(private val activity: Activity) {
         saveTempState(retroView)
 
         sharedPreferences.edit {
-            // CRÍTICO: Nunca salvar frameSpeed = 0 (pausado pelo menu)
-            // Se frameSpeed for 0, significa que o menu está aberto
-            // Nesse caso, mantemos o último valor válido salvo (não sobrescrever)
+            // CRITICAL: Never save frameSpeed = 0 (paused by menu)
+            // If frameSpeed is 0, it means the menu is open
+            // In this case, we keep the last valid saved value (don't overwrite)
             val currentFrameSpeed = retroView.view.frameSpeed
             if (currentFrameSpeed > 0) {
-                putInt(activity.getString(R.string.pref_frame_speed), currentFrameSpeed)
+                putInt(PreferencesConstants.PREF_FRAME_SPEED, currentFrameSpeed)
             }
-            putBoolean(activity.getString(R.string.pref_audio_enabled), retroView.view.audioEnabled)
+            putBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, retroView.view.audioEnabled)
         }
     }
 
@@ -103,8 +102,7 @@ class RetroViewUtils(private val activity: Activity) {
 
             storage.state.outputStream().use { it.write(stateBytes) }
         } catch (e: Exception) {
-            // Erros de salvamento são ignorados para manter compatibilidade com o comportamento
-            // anterior
+            // Save errors are ignored to maintain compatibility with previous behavior
         }
     }
 
@@ -120,7 +118,7 @@ class RetroViewUtils(private val activity: Activity) {
 
     /** Check if fast forward is currently active Required for Material You menu state tracking */
     fun isFastForwardActive(): Boolean {
-        return sharedPreferences.getInt(activity.getString(R.string.pref_frame_speed), 1) > 1
+        return sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) > 1
     }
 
     /**
@@ -136,11 +134,11 @@ class RetroViewUtils(private val activity: Activity) {
 
     /** Get the current audio state from preferences */
     fun getAudioState(): Boolean {
-        return sharedPreferences.getBoolean(activity.getString(R.string.pref_audio_enabled), true)
+        return sharedPreferences.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true)
     }
 
     /** Get the current fast forward state from preferences */
     fun getFastForwardState(): Boolean {
-        return sharedPreferences.getInt(activity.getString(R.string.pref_frame_speed), 1) > 1
+        return sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) > 1
     }
 }
