@@ -37,6 +37,7 @@
     <string name="settings_menu_title">Settings</string>
     <string name="settings_video">Video Settings</string>
     <string name="settings_audio">Audio Settings</string>
+    <string name="settings_shader">Shader Settings</string>
     <string name="settings_controls">Controls</string>
     <string name="settings_back">Back</string>
 

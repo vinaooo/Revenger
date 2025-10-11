@@ -27,6 +27,37 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
     private val resources = context.resources
     private val storage = Storage.getInstance(context)
 
+    // Shader dinâmico para modo "settings"
+    private var _dynamicShader: String = "sharp"
+    var dynamicShader: String
+        get() = _dynamicShader
+        set(value) {
+            _dynamicShader = value
+            // Aplicar shader em tempo real se estiver no modo settings
+            if (isSettingsMode()) {
+                applyShaderInRealtime(value)
+            }
+        }
+
+    private fun isSettingsMode(): Boolean {
+        return context.getString(R.string.config_shader).lowercase() == "settings"
+    }
+
+    private fun applyShaderInRealtime(shaderName: String) {
+        val shaderConfig =
+                when (shaderName) {
+                    "disabled" -> ShaderConfig.Default
+                    "sharp" -> ShaderConfig.Sharp
+                    "crt" -> ShaderConfig.CRT
+                    "lcd" -> ShaderConfig.LCD
+                    else -> ShaderConfig.Sharp
+                }
+
+        // Aplicar shader via propriedade do GLRetroView
+        view.shader = shaderConfig
+        Log.i("RetroView", "Shader aplicado em tempo real: $shaderName")
+    }
+
     /**
      * Get shader configuration from config.xml
      *
@@ -54,6 +85,20 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
             "lcd" -> {
                 Log.i("RetroView", "Shader configurado: LCD (efeito de matriz LCD)")
                 ShaderConfig.LCD
+            }
+            "settings" -> {
+                Log.i(
+                        "RetroView",
+                        "Shader configurado: Settings (modo dinâmico) - usando: $_dynamicShader"
+                )
+                // Modo settings: usar shader dinâmico
+                when (_dynamicShader) {
+                    "disabled" -> ShaderConfig.Default
+                    "sharp" -> ShaderConfig.Sharp
+                    "crt" -> ShaderConfig.CRT
+                    "lcd" -> ShaderConfig.LCD
+                    else -> ShaderConfig.Sharp
+                }
             }
             else -> {
                 Log.w(

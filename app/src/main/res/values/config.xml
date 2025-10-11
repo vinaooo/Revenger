@@ -79,11 +79,12 @@
     <bool name="config_performance_overlay">false</bool>
 
     <!-- Shader configuration for video rendering
-        Options: disabled, sharp, crt, lcd
+        Options: disabled, sharp, crt, lcd, settings
         - disabled: No shader applied (raw output)
         - sharp: Sharp bilinear filtering
         - crt: CRT monitor simulation
         - lcd: LCD matrix effect
+        - settings: Dynamic shader selection via in-game menu
     -->
-    <string name="config_shader">disabled</string>
+    <string name="config_shader">settings</string>
 </resources>

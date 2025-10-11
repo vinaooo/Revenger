@@ -21,6 +21,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
     // Menu item views
     private lateinit var settingsMenuContainer: LinearLayout
     private lateinit var soundSettings: MaterialCardView
+    private lateinit var shaderSettings: MaterialCardView
     private lateinit var gameSpeedSettings: MaterialCardView
     private lateinit var backSettings: MaterialCardView
 
@@ -32,11 +33,13 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     // Menu option titles for color control
     private lateinit var soundTitle: TextView
+    private lateinit var shaderTitle: TextView
     private lateinit var gameSpeedTitle: TextView
     private lateinit var backTitle: TextView
 
     // Selection arrows
     private lateinit var selectionArrowSound: TextView
+    private lateinit var selectionArrowShader: TextView
     private lateinit var selectionArrowGameSpeed: TextView
     private lateinit var selectionArrowBack: TextView
 
@@ -96,19 +99,22 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
         // Menu items
         soundSettings = view.findViewById(R.id.settings_sound)
+        shaderSettings = view.findViewById(R.id.settings_shader)
         gameSpeedSettings = view.findViewById(R.id.settings_game_speed)
         backSettings = view.findViewById(R.id.settings_back)
 
         // Initialize ordered list of menu items
-        menuItems = listOf(soundSettings, gameSpeedSettings, backSettings)
+        menuItems = listOf(soundSettings, shaderSettings, gameSpeedSettings, backSettings)
 
         // Initialize menu option titles
         soundTitle = view.findViewById(R.id.sound_title)
+        shaderTitle = view.findViewById(R.id.shader_title)
         gameSpeedTitle = view.findViewById(R.id.game_speed_title)
         backTitle = view.findViewById(R.id.back_title)
 
         // Initialize selection arrows
         selectionArrowSound = view.findViewById(R.id.selection_arrow_sound)
+        selectionArrowShader = view.findViewById(R.id.selection_arrow_shader)
         selectionArrowGameSpeed = view.findViewById(R.id.selection_arrow_game_speed)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
@@ -127,9 +133,11 @@ class SettingsMenuFragment : MenuFragmentBase() {
                 context,
                 settingsMenuTitle,
                 soundTitle,
+                shaderTitle,
                 gameSpeedTitle,
                 backTitle,
                 selectionArrowSound,
+                selectionArrowShader,
                 selectionArrowGameSpeed,
                 selectionArrowBack
         )
@@ -140,6 +148,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
             // Toggle audio
             val currentAudioState = viewModel.getAudioState()
             viewModel.setAudioEnabled(!currentAudioState)
+            updateMenuState()
+        }
+
+        shaderSettings.setOnClickListener {
+            // Toggle shader
+            viewModel.onToggleShader()
             updateMenuState()
         }
 
@@ -168,9 +182,13 @@ class SettingsMenuFragment : MenuFragmentBase() {
     private fun updateMenuState() {
         val isAudioEnabled = viewModel.getAudioState()
         val isFastForwardEnabled = viewModel.getFastForwardState()
+        val currentShader = viewModel.getShaderState()
 
         // Update sound title
         soundTitle.text = getString(if (isAudioEnabled) R.string.audio_on else R.string.audio_off)
+
+        // Update shader title
+        shaderTitle.text = getString(R.string.settings_shader) + ": $currentShader"
 
         // Update game speed title
         gameSpeedTitle.text =
@@ -183,7 +201,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
     /** Navigate up in the menu */
     override fun performNavigateUp() {
         val beforeIndex = getCurrentSelectedIndex()
-        navigateUpCircular(menuItems.size)
+        navigateUpCircular(getMenuItems().size)
         val afterIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[NAV] Settings menu: UP navigation - $beforeIndex -> $afterIndex")
         updateSelectionVisualInternal()
@@ -192,7 +210,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
     /** Navigate down in the menu */
     override fun performNavigateDown() {
         val beforeIndex = getCurrentSelectedIndex()
-        navigateDownCircular(menuItems.size)
+        navigateDownCircular(getMenuItems().size)
         val afterIndex = getCurrentSelectedIndex()
         android.util.Log.d(
                 TAG,
@@ -211,10 +229,14 @@ class SettingsMenuFragment : MenuFragmentBase() {
                 soundSettings.performClick() // Sound
             }
             1 -> {
+                android.util.Log.d(TAG, "[ACTION] Settings menu: Shader toggle selected")
+                shaderSettings.performClick() // Shader
+            }
+            2 -> {
                 android.util.Log.d(TAG, "[ACTION] Settings menu: Game speed toggle selected")
                 gameSpeedSettings.performClick() // Game Speed
             }
-            2 -> {
+            3 -> {
                 android.util.Log.d(TAG, "[ACTION] Settings menu: Back to main menu selected")
                 backSettings.performClick() // Back
             }
@@ -248,12 +270,16 @@ class SettingsMenuFragment : MenuFragmentBase() {
                 if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
-        gameSpeedTitle.setTextColor(
+        shaderTitle.setTextColor(
                 if (getCurrentSelectedIndex() == 1) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
-        backTitle.setTextColor(
+        gameSpeedTitle.setTextColor(
                 if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
+                else android.graphics.Color.WHITE
+        )
+        backTitle.setTextColor(
+                if (getCurrentSelectedIndex() == 3) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
 
@@ -273,8 +299,20 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowSound.visibility = View.GONE
         }
 
-        // Game Speed
+        // Shader
         if (getCurrentSelectedIndex() == 1) {
+            selectionArrowShader.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowShader.visibility = View.VISIBLE
+            (selectionArrowShader.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0 // No space before the arrow
+                marginEnd = arrowMarginEnd
+            }
+        } else {
+            selectionArrowShader.visibility = View.GONE
+        }
+
+        // Game Speed
+        if (getCurrentSelectedIndex() == 2) {
             selectionArrowGameSpeed.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowGameSpeed.visibility = View.VISIBLE
             (selectionArrowGameSpeed.layoutParams as LinearLayout.LayoutParams).apply {
@@ -286,7 +324,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
         }
 
         // Back
-        if (getCurrentSelectedIndex() == 2) {
+        if (getCurrentSelectedIndex() == 3) {
             selectionArrowBack.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
@@ -369,6 +407,11 @@ class SettingsMenuFragment : MenuFragmentBase() {
                         "speed",
                         getString(R.string.menu_fast_forward),
                         action = MenuAction.TOGGLE_SPEED
+                ),
+                MenuItem(
+                        "shader",
+                        getString(R.string.settings_shader),
+                        action = MenuAction.TOGGLE_SHADER
                 ),
                 MenuItem("back", getString(R.string.settings_back), action = MenuAction.BACK)
         )

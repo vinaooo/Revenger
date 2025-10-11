@@ -80,8 +80,10 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         fun onLoadState()
         fun onToggleAudio()
         fun onFastForward()
+        fun onToggleShader()
         fun getAudioState(): Boolean
         fun getFastForwardState(): Boolean
+        fun getShaderState(): String
         fun hasSaveState(): Boolean
     }
 

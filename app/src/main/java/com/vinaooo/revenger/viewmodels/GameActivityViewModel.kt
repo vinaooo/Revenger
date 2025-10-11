@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.controllers.AudioController
+import com.vinaooo.revenger.controllers.ShaderController
 import com.vinaooo.revenger.controllers.SpeedController
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
@@ -75,6 +76,7 @@ class GameActivityViewModel(application: Application) :
     // Controllers modulares
     private var audioController: AudioController? = null
     private var speedController: SpeedController? = null
+    private var shaderController: ShaderController? = null
     private var sharedPreferences: android.content.SharedPreferences? = null
 
     // Flag to prevent tempState from overwriting a manual Load State
@@ -442,6 +444,10 @@ class GameActivityViewModel(application: Application) :
         retroView?.let { speedController?.toggleFastForward(it.view) }
     }
 
+    override fun onToggleShader() {
+        shaderController?.cycleShader()
+    }
+
     override fun getAudioState(): Boolean {
         // If the controller has already been initialized, use it
         audioController?.let {
@@ -462,6 +468,24 @@ class GameActivityViewModel(application: Application) :
         // If the controller has not been initialized yet, read directly from SharedPreferences
         // This happens when the menu is created before RetroView
         return (sharedPreferences?.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) ?: 1) > 1
+    }
+
+    override fun getShaderState(): String {
+        // If the controller has already been initialized, use it
+        shaderController?.let {
+            return it.getCurrentShaderDisplayName()
+        }
+
+        // If the controller has not been initialized yet, read directly from SharedPreferences
+        // This happens when the menu is created before RetroView
+        val currentShader = sharedPreferences?.getString("current_shader", "sharp") ?: "sharp"
+        return when (currentShader) {
+            "disabled" -> "Disabled"
+            "sharp" -> "Sharp"
+            "crt" -> "CRT"
+            "lcd" -> "LCD"
+            else -> "Unknown"
+        }
     }
 
     override fun hasSaveState(): Boolean = retroViewUtils?.hasSaveState() == true
@@ -600,6 +624,9 @@ class GameActivityViewModel(application: Application) :
                 // Save state should only be loaded when user clicks "Load State"
                 speedController?.initializeSpeedState(retroView.view)
                 audioController?.initializeAudioState(retroView.view)
+
+                // Connect ShaderController to RetroView for real-time shader switching
+                shaderController?.connect(retroView)
             }
         }
     }
@@ -792,6 +819,7 @@ class GameActivityViewModel(application: Application) :
         sharedPreferences = sharedPrefs
         audioController = AudioController(activity.applicationContext, sharedPrefs)
         speedController = SpeedController(activity.applicationContext, sharedPrefs)
+        shaderController = ShaderController(activity.applicationContext, sharedPrefs)
     }
 
     // PUBLIC METHODS FOR ACCESS TO MODULAR CONTROLLERS
@@ -810,6 +838,14 @@ class GameActivityViewModel(application: Application) :
      */
     fun getSpeedController(): SpeedController? {
         return speedController
+    }
+
+    /**
+     * Gets reference to ShaderController for use in other components. Allows modular access to
+     * shader functionalities
+     */
+    fun getShaderController(): ShaderController? {
+        return shaderController
     }
 
     /**
@@ -857,6 +893,7 @@ class GameActivityViewModel(application: Application) :
             com.vinaooo.revenger.ui.retromenu3.MenuAction.RESET -> resetGameCentralized()
             com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_AUDIO -> onToggleAudio()
             com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SPEED -> onFastForward()
+            com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SHADER -> onToggleShader()
             com.vinaooo.revenger.ui.retromenu3.MenuAction.SAVE_AND_EXIT -> {
                 // Save and exit - same logic as in ExitFragment
                 saveStateCentralized { android.os.Process.killProcess(android.os.Process.myPid()) }
