@@ -72,6 +72,32 @@ Here's how Revenger is configured:
 - Edit `app/src/main/res/values/config.xml` and change your configuration
 - Copy your ROM to `app/src/main/res/raw/` (filename should match `config_rom` in config.xml)
 
+## Shader Configuration
+Revenger supports configurable video shaders for enhanced visual experience:
+
+### Available Shaders
+- **`disabled`**: No shader applied (raw output) - Best performance
+- **`sharp`**: Sharp bilinear filtering (default) - Balanced quality/performance  
+- **`crt`**: CRT monitor simulation - Retro gaming aesthetic
+- **`lcd`**: LCD matrix effect - Modern display simulation
+
+### Configuration
+Set the desired shader in `config.xml`:
+```xml
+<string name="config_shader">sharp</string>
+```
+
+### Performance Impact
+- **Disabled**: Minimal GPU usage
+- **Sharp**: Light filtering, negligible impact
+- **CRT/LCD**: Moderate GPU usage, may reduce FPS on low-end devices
+
+### Recommendations
+- Use **Sharp** for most games (default)
+- Use **Disabled** for maximum performance
+- Use **CRT** for retro gaming experience
+- Use **LCD** for modern aesthetic
+
 # Building
 Use standard Gradle commands for building:
 

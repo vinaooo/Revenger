@@ -27,6 +27,44 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
     private val resources = context.resources
     private val storage = Storage.getInstance(context)
 
+    /**
+     * Get shader configuration from config.xml
+     *
+     * Maps string values from config.xml to LibretroDroid ShaderConfig enum values. Provides
+     * fallback to Sharp shader for invalid configurations.
+     *
+     * @return ShaderConfig enum value for video rendering
+     */
+    private fun getShaderConfig(): ShaderConfig {
+        val shaderString = context.getString(R.string.config_shader).lowercase()
+
+        return when (shaderString) {
+            "disabled" -> {
+                Log.i("RetroView", "Shader configurado: Disabled (sem shader aplicado)")
+                ShaderConfig.Default
+            }
+            "sharp" -> {
+                Log.i("RetroView", "Shader configurado: Sharp (filtragem bilinear nítida)")
+                ShaderConfig.Sharp
+            }
+            "crt" -> {
+                Log.i("RetroView", "Shader configurado: CRT (simulação de monitor CRT)")
+                ShaderConfig.CRT
+            }
+            "lcd" -> {
+                Log.i("RetroView", "Shader configurado: LCD (efeito de matriz LCD)")
+                ShaderConfig.LCD
+            }
+            else -> {
+                Log.w(
+                        "RetroView",
+                        "Configuração de shader inválida: '$shaderString'. Usando Sharp como fallback."
+                )
+                ShaderConfig.Sharp
+            }
+        }
+    }
+
     private val _frameRendered = MutableLiveData(false)
     val frameRendered: LiveData<Boolean> = _frameRendered
 
@@ -60,7 +98,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                     gameFilePath = storage.rom.absolutePath
                 }
 
-                shader = ShaderConfig.Sharp
+                shader = getShaderConfig()
                 variables = getCoreVariables()
 
                 if (storage.sram.exists()) {

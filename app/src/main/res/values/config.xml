@@ -77,4 +77,13 @@
 
     <!-- Show performance overlay (FPS, memory, CPU) -->
     <bool name="config_performance_overlay">false</bool>
+
+    <!-- Shader configuration for video rendering
+        Options: disabled, sharp, crt, lcd
+        - disabled: No shader applied (raw output)
+        - sharp: Sharp bilinear filtering
+        - crt: CRT monitor simulation
+        - lcd: LCD matrix effect
+    -->
+    <string name="config_shader">disabled</string>
 </resources>
