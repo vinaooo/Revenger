@@ -43,6 +43,11 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
         return context.getString(R.string.config_shader).lowercase() == "settings"
     }
 
+    /** Public method to check if shader selection is enabled */
+    fun isShaderSelectionEnabled(): Boolean {
+        return isSettingsMode()
+    }
+
     private fun applyShaderInRealtime(shaderName: String) {
         val shaderConfig =
                 when (shaderName) {

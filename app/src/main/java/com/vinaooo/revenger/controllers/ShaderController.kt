@@ -32,11 +32,19 @@ class ShaderController(
         Log.d("ShaderController", "Shader inicial carregado: $currentShader")
     }
 
+    /** Verifica se está no modo settings (seleção dinâmica de shader) */
+    private fun isSettingsMode(): Boolean {
+        // Como não temos acesso direto ao context aqui, vamos verificar via RetroView
+        return retroView?.isShaderSelectionEnabled() ?: false
+    }
+
     /** Conecta o controller ao RetroView */
     fun connect(retroView: RetroView) {
         this.retroView = retroView
-        // Aplicar shader atual ao conectar
-        applyCurrentShader()
+        // Só aplicar shader se estiver no modo settings
+        if (isSettingsMode()) {
+            applyCurrentShader()
+        }
         Log.d("ShaderController", "Conectado ao RetroView")
     }
 

@@ -86,5 +86,5 @@
         - lcd: LCD matrix effect
         - settings: Dynamic shader selection via in-game menu
     -->
-    <string name="config_shader">settings</string>
+    <string name="config_shader">crt</string>
 </resources>
