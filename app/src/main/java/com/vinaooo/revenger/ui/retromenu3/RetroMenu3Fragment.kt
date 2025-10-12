@@ -482,6 +482,10 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 if (getCurrentSelectedIndex() == 4) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
+        saveLogTitle.setTextColor(
+                if (getCurrentSelectedIndex() == 5) android.graphics.Color.YELLOW
+                else android.graphics.Color.WHITE
+        )
 
         // Control selection arrows colors and visibility
         // FIX: Selected item shows arrow without margin (attached to text)
