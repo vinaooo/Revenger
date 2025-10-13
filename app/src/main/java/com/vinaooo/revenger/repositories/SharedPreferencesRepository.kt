@@ -28,6 +28,9 @@ class SharedPreferencesRepository(
     private val _shaderName = MutableStateFlow(ShaderType.SHARP.configName)
     override val shaderName: StateFlow<String> = _shaderName.asStateFlow()
 
+    private val _fastForwardEnabled = MutableStateFlow(false)
+    override val fastForwardEnabled: StateFlow<Boolean> = _fastForwardEnabled.asStateFlow()
+
     init {
         // Load initial values
         loadInitialValues()
@@ -44,6 +47,11 @@ class SharedPreferencesRepository(
                             ShaderType.SHARP.configName
                     )
                             ?: ShaderType.SHARP.configName
+            _fastForwardEnabled.value =
+                    sharedPreferences.getBoolean(
+                            PreferencesConstants.PREF_FAST_FORWARD_ENABLED,
+                            false
+                    )
         }
     }
 
@@ -65,6 +73,14 @@ class SharedPreferencesRepository(
         _shaderName.value = name
     }
 
+    override suspend fun setFastForwardEnabled(enabled: Boolean) {
+        sharedPreferences
+                .edit()
+                .putBoolean(PreferencesConstants.PREF_FAST_FORWARD_ENABLED, enabled)
+                .apply()
+        _fastForwardEnabled.value = enabled
+    }
+
     override fun getAudioEnabledSync(): Boolean {
         return sharedPreferences.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true)
     }
@@ -79,5 +95,9 @@ class SharedPreferencesRepository(
                 ShaderType.SHARP.configName
         )
                 ?: ShaderType.SHARP.configName
+    }
+
+    override fun getFastForwardEnabledSync(): Boolean {
+        return sharedPreferences.getBoolean(PreferencesConstants.PREF_FAST_FORWARD_ENABLED, false)
     }
 }

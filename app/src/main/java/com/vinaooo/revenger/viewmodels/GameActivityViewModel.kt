@@ -37,16 +37,24 @@ class GameActivityViewModel(application: Application) :
 
     // ===== SPECIALIZED VIEWMODELS =====
     // Using composition pattern to separate concerns
-    // FUTURE: Implement specialized ViewModels for better separation of concerns
 
     /** Menu management ViewModel */
-    // private lateinit var menuViewModel: MenuViewModel
+    private lateinit var menuViewModel: MenuViewModel
 
     /** Game state management ViewModel */
-    // private lateinit var gameStateViewModel: GameStateViewModel
+    private lateinit var gameStateViewModel: GameStateViewModel
 
     /** Input management ViewModel */
-    // private lateinit var inputViewModel: InputViewModel
+    private lateinit var inputViewModel: InputViewModel
+
+    /** Audio management ViewModel */
+    private lateinit var audioViewModel: AudioViewModel
+
+    /** Shader management ViewModel */
+    private lateinit var shaderViewModel: ShaderViewModel
+
+    /** Speed management ViewModel */
+    private lateinit var speedViewModel: SpeedViewModel
 
     // ===== SHARED REFERENCES =====
     // These are shared between specialized ViewModels
@@ -185,10 +193,13 @@ class GameActivityViewModel(application: Application) :
         // Initialize unified Menu Manager
         menuManager = MenuManager(this, menuStateManager)
 
-        // FUTURE: Initialize specialized ViewModels using composition pattern
-        // menuViewModel = MenuViewModel(application)
-        // gameStateViewModel = GameStateViewModel(application)
-        // inputViewModel = InputViewModel(application)
+        // Initialize specialized ViewModels using composition pattern
+        menuViewModel = MenuViewModel(application)
+        gameStateViewModel = GameStateViewModel(application)
+        inputViewModel = InputViewModel(application)
+        audioViewModel = AudioViewModel(application)
+        shaderViewModel = ShaderViewModel(application)
+        speedViewModel = SpeedViewModel(application)
 
         // Set the callback to check if SELECT+START combo should work
         controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
@@ -245,6 +256,7 @@ class GameActivityViewModel(application: Application) :
     /** Set menu container reference from activity layout */
     fun setMenuContainer(container: FrameLayout) {
         menuContainerView = container
+        menuViewModel.setMenuContainer(container)
         android.util.Log.d("GameActivityViewModel", "Menu container set: $container")
     }
 
@@ -322,6 +334,7 @@ class GameActivityViewModel(application: Application) :
      * its own (e.g.: Continue button)
      */
     fun clearControllerInputState() {
+        inputViewModel.clearControllerInputState()
         controllerInput.clearKeyLog()
         controllerInput.clearBlockedKeysDelayed()
     }
@@ -494,6 +507,7 @@ class GameActivityViewModel(application: Application) :
     /** Register the SettingsMenuFragment when it's created */
     fun registerSettingsMenuFragment(fragment: SettingsMenuFragment) {
         settingsMenuFragment = fragment
+        menuViewModel.registerSettingsMenuFragment(fragment)
         activateSettingsMenu()
         // Register with MenuManager
         menuManager.registerFragment(
@@ -505,6 +519,7 @@ class GameActivityViewModel(application: Application) :
     /** Register the ProgressFragment when it's created */
     fun registerProgressFragment(fragment: ProgressFragment) {
         progressFragment = fragment
+        menuViewModel.registerProgressFragment(fragment)
         activateProgressMenu()
         // Register with MenuManager
         menuManager.registerFragment(
@@ -516,6 +531,7 @@ class GameActivityViewModel(application: Application) :
     /** Register the ExitFragment when it's created */
     fun registerExitFragment(fragment: ExitFragment) {
         exitFragment = fragment
+        menuViewModel.registerExitFragment(fragment)
         activateExitMenu()
         // Register with MenuManager
         menuManager.registerFragment(
@@ -541,7 +557,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     override fun onToggleAudio() {
-        retroView?.let { audioController?.toggleAudio(it.view) }
+        retroView?.let { audioViewModel.toggleAudio(it.view) }
     }
 
     override fun onFastForward() {
@@ -549,47 +565,19 @@ class GameActivityViewModel(application: Application) :
     }
 
     override fun onToggleShader() {
-        shaderController?.cycleShader()
+        shaderViewModel.toggleShader()
     }
 
     override fun getAudioState(): Boolean {
-        // If the controller has already been initialized, use it
-        audioController?.let {
-            return it.getAudioState()
-        }
-
-        // If the controller has not been initialized yet, read directly from SharedPreferences
-        // This happens when the menu is created before RetroView
-        return sharedPreferences?.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true) ?: true
+        return audioViewModel.getAudioState()
     }
 
     override fun getFastForwardState(): Boolean {
-        // If the controller has already been initialized, use it
-        speedController?.let {
-            return it.getFastForwardState()
-        }
-
-        // If the controller has not been initialized yet, read directly from SharedPreferences
-        // This happens when the menu is created before RetroView
-        return (sharedPreferences?.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) ?: 1) > 1
+        return speedViewModel.getFastForwardState()
     }
 
     override fun getShaderState(): String {
-        // If the controller has already been initialized, use it
-        shaderController?.let {
-            return it.getCurrentShaderDisplayName()
-        }
-
-        // If the controller has not been initialized yet, read directly from SharedPreferences
-        // This happens when the menu is created before RetroView
-        val currentShader = sharedPreferences?.getString("current_shader", "sharp") ?: "sharp"
-        return when (currentShader) {
-            "disabled" -> "Disabled"
-            "sharp" -> "Sharp"
-            "crt" -> "CRT"
-            "lcd" -> "LCD"
-            else -> "Unknown"
-        }
+        return shaderViewModel.getCurrentShaderDisplayName()
     }
 
     override fun hasSaveState(): Boolean = retroViewUtils?.hasSaveState() == true
@@ -924,6 +912,11 @@ class GameActivityViewModel(application: Application) :
         audioController = AudioController(activity.applicationContext, sharedPrefs)
         speedController = SpeedController(activity.applicationContext, sharedPrefs)
         shaderController = ShaderController(activity.applicationContext, sharedPrefs)
+
+        // Set controllers in ViewModels
+        audioController?.let { audioViewModel.setAudioController(it) }
+        speedController?.let { speedViewModel.setSpeedController(it) }
+        shaderController?.let { shaderViewModel.setShaderController(it) }
     }
 
     // PUBLIC METHODS FOR ACCESS TO MODULAR CONTROLLERS
@@ -957,7 +950,7 @@ class GameActivityViewModel(application: Application) :
      * @param enabled true to turn on, false to turn off
      */
     fun setAudioEnabled(enabled: Boolean) {
-        retroView?.let { audioController?.setAudioEnabled(it.view, enabled) }
+        audioViewModel.setAudioEnabled(retroView?.view, enabled)
     }
 
     /**
@@ -970,7 +963,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Ativa fast forward usando controller modular */
     fun enableFastForward() {
-        retroView?.let { speedController?.enableFastForward(it.view) }
+        speedViewModel.enableFastForward(retroView?.view)
     }
 
     /** Clear controller key log (used by RetroMenu3Fragment on destroy) */
@@ -1064,7 +1057,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Desativa fast forward usando controller modular */
     fun disableFastForward() {
-        retroView?.let { speedController?.setSpeed(it.view, 1) }
+        speedViewModel.disableFastForward(retroView?.view)
     }
 
     /**

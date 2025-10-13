@@ -10,13 +10,16 @@ interface PreferencesRepository {
     val audioEnabled: StateFlow<Boolean>
     val gameSpeed: StateFlow<Int>
     val shaderName: StateFlow<String>
+    val fastForwardEnabled: StateFlow<Boolean>
 
     suspend fun setAudioEnabled(enabled: Boolean)
     suspend fun setGameSpeed(speed: Int)
     suspend fun setShaderName(name: String)
+    suspend fun setFastForwardEnabled(enabled: Boolean)
 
     // Synchronous getters for immediate access (when coroutines not available)
     fun getAudioEnabledSync(): Boolean
     fun getGameSpeedSync(): Int
     fun getShaderNameSync(): String
+    fun getFastForwardEnabledSync(): Boolean
 }

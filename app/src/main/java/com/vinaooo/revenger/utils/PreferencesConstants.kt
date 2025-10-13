@@ -13,4 +13,7 @@ object PreferencesConstants {
 
     // Shader preference key
     const val PREF_SHADER_NAME = "current_shader"
+
+    // Fast forward enabled preference key
+    const val PREF_FAST_FORWARD_ENABLED = "fast_forward_enabled"
 }
