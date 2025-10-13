@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.utils.FontUtils
+import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** SettingsMenuFragment - Settings submenu with visual identical to RetroMenu3 */
@@ -69,25 +69,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
         // CRITICAL: Force all views to z=0 to stay below gamepad
-        forceZeroElevationRecursively(view)
+        ViewUtils.forceZeroElevationRecursively(view)
 
         setupViews(view)
         setupClickListeners()
         updateMenuState()
         // REMOVED: animateMenuIn() - submenu now appears instantly without animation
-    }
-
-    /** Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad. */
-    private fun forceZeroElevationRecursively(view: View) {
-        view.z = 0f
-        view.elevation = 0f
-        view.translationZ = 0f
-
-        if (view is android.view.ViewGroup) {
-            for (i in 0 until view.childCount) {
-                forceZeroElevationRecursively(view.getChildAt(i))
-            }
-        }
     }
 
     private fun setupViews(view: View) {
@@ -133,21 +120,8 @@ class SettingsMenuFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
-        applyArcadeFontToViews()
-    }
-
-    /** Check if shader selection is enabled based on config_shader setting */
-    private fun isShaderSelectionEnabled(): Boolean {
-        val configShader = resources.getString(R.string.config_shader)
-        return configShader == "settings"
-    }
-
-    private fun applyArcadeFontToViews() {
-        val context = requireContext()
-
-        // Apply font to all text views in the settings menu
-        FontUtils.applyArcadeFont(
-                context,
+        ViewUtils.applyArcadeFontToViews(
+                requireContext(),
                 settingsMenuTitle,
                 soundTitle,
                 shaderTitle,
@@ -158,6 +132,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
                 selectionArrowGameSpeed,
                 selectionArrowBack
         )
+    }
+
+    /** Check if shader selection is enabled based on config_shader setting */
+    private fun isShaderSelectionEnabled(): Boolean {
+        val configShader = resources.getString(R.string.config_shader)
+        return configShader == "settings"
     }
 
     private fun setupClickListeners() {

@@ -1066,4 +1066,40 @@ class GameActivityViewModel(application: Application) :
     fun disableFastForward() {
         retroView?.let { speedController?.setSpeed(it.view, 1) }
     }
+
+    /**
+     * Cleanup method called when ViewModel is being destroyed. Prevents memory leaks by clearing
+     * references and disposing resources.
+     */
+    override fun onCleared() {
+        android.util.Log.d("GameActivityViewModel", "onCleared: Starting cleanup")
+
+        // Dispose RxJava subscriptions to prevent memory leaks
+        compositeDisposable.dispose()
+
+        // Clear fragment references to prevent memory leaks
+        retroMenu3Fragment = null
+        settingsMenuFragment = null
+        progressFragment = null
+        exitFragment = null
+
+        // Clear container references
+        menuContainerView = null
+        gamePadContainerView = null
+
+        // Clear other references
+        retroView = null
+        retroViewUtils = null
+        leftGamePad = null
+        rightGamePad = null
+
+        // Clear controllers
+        audioController = null
+        speedController = null
+        shaderController = null
+        sharedPreferences = null
+
+        android.util.Log.d("GameActivityViewModel", "onCleared: Cleanup completed")
+        super.onCleared()
+    }
 }

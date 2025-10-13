@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.utils.FontUtils
+import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** ExitFragment - Exit options menu with visual identical to RetroMenu3 */
@@ -66,7 +66,7 @@ class ExitFragment : MenuFragmentBase() {
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
         // CRITICAL: Force all views to z=0 to stay below gamepad
-        forceZeroElevationRecursively(view)
+        ViewUtils.forceZeroElevationRecursively(view)
 
         setupViews(view)
         setupClickListeners()
@@ -74,19 +74,6 @@ class ExitFragment : MenuFragmentBase() {
 
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when selecting Back
-    }
-
-    /** Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad. */
-    private fun forceZeroElevationRecursively(view: View) {
-        view.z = 0f
-        view.elevation = 0f
-        view.translationZ = 0f
-
-        if (view is android.view.ViewGroup) {
-            for (i in 0 until view.childCount) {
-                forceZeroElevationRecursively(view.getChildAt(i))
-            }
-        }
     }
 
     private fun setupViews(view: View) {
@@ -118,15 +105,8 @@ class ExitFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
-        applyArcadeFontToViews()
-    }
-
-    private fun applyArcadeFontToViews() {
-        val context = requireContext()
-
-        // Apply font to all text views in the exit menu
-        FontUtils.applyArcadeFont(
-                context,
+        ViewUtils.applyArcadeFontToViews(
+                requireContext(),
                 exitMenuTitle,
                 saveAndExitTitle,
                 exitWithoutSaveTitle,

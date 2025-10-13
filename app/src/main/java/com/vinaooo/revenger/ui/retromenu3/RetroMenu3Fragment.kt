@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.FontUtils
+import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -108,7 +109,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
         // CRITICAL: Force all views to z=0 to stay below gamepad
-        forceZeroElevationRecursively(view)
+        ViewUtils.forceZeroElevationRecursively(view)
 
         setupDynamicTitle()
         setupViews(view)
@@ -122,23 +123,6 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         )
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when pressing START again or selecting Continue
-    }
-
-    /**
-     * Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad. This is
-     * necessary because Material Design components have default elevation that overrides XML
-     * attributes.
-     */
-    private fun forceZeroElevationRecursively(view: View) {
-        view.z = 0f
-        view.elevation = 0f
-        view.translationZ = 0f
-
-        if (view is ViewGroup) {
-            for (i in 0 until view.childCount) {
-                forceZeroElevationRecursively(view.getChildAt(i))
-            }
-        }
     }
 
     private fun setupDynamicTitle() {
@@ -198,15 +182,8 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         updateSelectionVisual()
 
         // Apply arcade font to all text views
-        applyArcadeFontToViews()
-    }
-
-    private fun applyArcadeFontToViews() {
-        val context = requireContext()
-
-        // Apply font to all text views in the menu
-        FontUtils.applyArcadeFont(
-                context,
+        ViewUtils.applyArcadeFontToViews(
+                requireContext(),
                 controlsHint,
                 continueTitle,
                 resetTitle,
@@ -287,37 +264,23 @@ class RetroMenu3Fragment : MenuFragmentBase() {
     }
 
     private fun animateMenuIn() {
-        menuContainer.alpha = 0f
-        menuContainer.scaleX = 0.8f
-        menuContainer.scaleY = 0.8f
-
-        controlsHint.alpha = 0f
-        controlsHint.scaleX = 0.8f
-        controlsHint.scaleY = 0.8f
-
-        menuContainer.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(200).start()
-        controlsHint.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(200).start()
+        // Use optimized batch animation for better performance
+        ViewUtils.animateMenuViewsBatch(
+                arrayOf(menuContainer, controlsHint),
+                toAlpha = 1f,
+                toScale = 1f,
+                duration = 200
+        )
     }
 
     private fun animateMenuOut(onEnd: () -> Unit) {
-        menuContainer
-                .animate()
-                .alpha(0f)
-                .scaleX(0.8f)
-                .scaleY(0.8f)
-                .setDuration(150)
-                .setListener(
-                        object : android.animation.Animator.AnimatorListener {
-                            override fun onAnimationStart(animation: android.animation.Animator) {}
-                            override fun onAnimationEnd(animation: android.animation.Animator) {
-                                onEnd()
-                            }
-                            override fun onAnimationCancel(animation: android.animation.Animator) {}
-                            override fun onAnimationRepeat(animation: android.animation.Animator) {}
-                        }
-                )
-                .start()
-        controlsHint.animate().alpha(0f).scaleX(0.8f).scaleY(0.8f).setDuration(150).start()
+        // Use optimized batch animation with callback
+        ViewUtils.animateMenuViewsBatch(
+                arrayOf(menuContainer, controlsHint),
+                toAlpha = 0f,
+                toScale = 0.8f,
+                duration = 150
+        ) { onEnd() }
     }
 
     private fun dismissMenu() {
@@ -446,9 +409,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         // Ensure visual selection is updated when menu becomes visible again
         updateSelectionVisual()
 
-        // Force complete redraw
-        menuContainer.invalidate()
-        menuContainer.requestLayout()
+        // Layout will be updated automatically when properties change
     }
 
     /** Update selection visual */
@@ -563,8 +524,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
             selectionArrowSaveLog.visibility = View.GONE
         }
 
-        // Force layout update
-        menuContainer.requestLayout()
+        // Layout will be updated automatically when visibility changes
     }
 
     /** Public method to dismiss the menu from outside */
