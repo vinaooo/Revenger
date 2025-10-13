@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- CRITICAL: elevation="0dp" keeps menu below gamepad layer -->
+<!-- Content container - menus are added here -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/menu_content_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clickable="true"
@@ -31,8 +32,6 @@
             android:orientation="vertical"
             android:paddingVertical="@dimen/retro_menu3_container_padding_vertical"
             android:elevation="0dp">
-
-            <!-- Menu Title -->
             <TextView
                 android:id="@+id/menu_title"
                 android:layout_width="wrap_content"
@@ -406,20 +405,22 @@
             android:layout_weight="@dimen/retro_menu3_side_space_weight" />
 
     </LinearLayout>
-        <!-- Controls Hint - Bottom Right Corner -->
-        <TextView
-            android:id="@+id/retro_menu3_controls_hint"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/retro_menu3_controls_hint"
-            android:textSize="@dimen/retro_menu3_menu_item_text_size"
-            android:textColor="@color/retro_menu3_text_color"
-            
-            android:layout_gravity="bottom|end"
-            android:layout_marginEnd="@dimen/retro_menu3_container_padding_vertical"
-            android:layout_marginBottom="@dimen/retro_menu3_container_padding_vertical"
-            android:shadowColor="@color/retro_menu3_shadow_color"
-            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+
+    <!-- Controls Hint - Bottom Right Corner -->
+    <TextView
+        android:id="@+id/retro_menu3_controls_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/retro_menu3_controls_hint"
+        android:textSize="@dimen/retro_menu3_menu_item_text_size"
+        android:textColor="@color/retro_menu3_text_color"
+
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/retro_menu3_container_padding_vertical"
+        android:layout_marginBottom="@dimen/retro_menu3_container_padding_vertical"
+        android:shadowColor="@color/retro_menu3_shadow_color"
+        android:shadowDx="@dimen/retro_menu3_shadow_dx"
+        android:shadowDy="@dimen/retro_menu3_shadow_dy"
+        android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+
 </FrameLayout>

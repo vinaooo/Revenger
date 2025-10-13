@@ -40,12 +40,11 @@ class MenuActionHandler(
     private fun executeContinue() {
         Log.d(TAG, "[ACTION] 🎮 Continue game - closing menu")
 
-        // Close menu first
-        viewManager.animateMenuOut {
-            dismissMenu()
-            // Clear keyLog and reset comboAlreadyTriggered after closing
-            viewModel.clearControllerInputState()
-        }
+        // Close menu first using the public method
+        (fragment as? RetroMenu3Fragment)?.dismissMenuPublic()
+
+        // Clear keyLog and reset comboAlreadyTriggered after closing
+        viewModel.clearControllerInputState()
 
         // Set frameSpeed to correct value from Game Speed sharedPreference
         viewModel.restoreGameSpeedFromPreferences()
@@ -55,12 +54,11 @@ class MenuActionHandler(
     private fun executeReset() {
         Log.d(TAG, "[ACTION] 🔄 Reset game - closing menu and resetting")
 
-        // Close menu first
-        viewManager.animateMenuOut {
-            dismissMenu()
-            // Clear keyLog and reset comboAlreadyTriggered after closing
-            viewModel.clearControllerInputState()
-        }
+        // Close menu first using the public method
+        (fragment as? RetroMenu3Fragment)?.dismissMenuPublic()
+
+        // Clear keyLog and reset comboAlreadyTriggered after closing
+        viewModel.clearControllerInputState()
 
         // Set frameSpeed to correct value from Game Speed sharedPreference
         viewModel.restoreGameSpeedFromPreferences()

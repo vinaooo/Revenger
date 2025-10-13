@@ -2,6 +2,7 @@
 <!-- Portrait override: centraliza verticalmente o menu -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/menu_content_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/retro_menu3_background">
