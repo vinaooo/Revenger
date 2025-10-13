@@ -33,21 +33,58 @@ class SubmenuCoordinator(
         // Create new listener for submenu session
         backStackChangeListener =
                 FragmentManager.OnBackStackChangedListener {
+                    val backStackCount = fragment.parentFragmentManager.backStackEntryCount
+                    val isDismissing = viewModel.isDismissingAllMenus()
+                    val hasActiveSubmenus =
+                            viewModel.isSettingsMenuOpen() ||
+                                    viewModel.isProgressMenuOpen() ||
+                                    viewModel.isExitMenuOpen()
+
+                    Log.d(
+                            TAG,
+                            "[SUBMENU] 🔍 BACK STACK LISTENER: count=$backStackCount, isDismissing=$isDismissing, hasActive=$hasActiveSubmenus, isRetroMenu3Open=${viewModel.isRetroMenu3Open()}"
+                    )
+
                     // If the back stack is empty, it means the submenu was removed
-                    if (fragment.parentFragmentManager.backStackEntryCount == 0) {
-                        // Only show main menu if we're not dismissing all menus at once
-                        if (!viewModel.isDismissingAllMenus()) {
-                            Log.d(TAG, "[SUBMENU] Submenu closed, restoring main menu")
-                            restoreMainMenu()
+                    if (backStackCount == 0) {
+                        Log.d(TAG, "[SUBMENU] 📭 Back stack is empty - submenu was removed")
+
+                        // CRITICAL FIX: During cascade dismissal (START button), never restore main
+                        // menu
+                        // The dismissAllMenus() method will handle everything in the correct order
+                        if (isDismissing || !viewModel.isRetroMenu3Open()) {
+                            Log.d(
+                                    TAG,
+                                    "[SUBMENU] 🚫 Cascade dismissal in progress or main menu closed - NOT restoring main menu"
+                            )
+                            return@OnBackStackChangedListener
                         }
 
-                        // Remove the listener after use
+                        // Only restore main menu for normal navigation (back button, individual
+                        // submenu close)
+                        // In normal navigation, submenus close one at a time, so hasActiveSubmenus
+                        // should be false
+                        // when the last submenu is closed
+                        if (!hasActiveSubmenus) {
+                            Log.d(TAG, "[SUBMENU] ✅ Normal navigation - restoring main menu")
+                            restoreMainMenu()
+                        } else {
+                            Log.d(
+                                    TAG,
+                                    "[SUBMENU] ⏳ Other submenus still active - NOT restoring main menu"
+                            )
+                        }
+
+                        // Always remove the listener after use
                         backStackChangeListener?.let { listener ->
+                            Log.d(TAG, "[SUBMENU] 🗑️ Removing back stack listener")
                             fragment.parentFragmentManager.removeOnBackStackChangedListener(
                                     listener
                             )
                             backStackChangeListener = null
                         }
+                    } else {
+                        Log.d(TAG, "[SUBMENU] 📚 Back stack not empty, ignoring change")
                     }
                 }
 
@@ -78,38 +115,61 @@ class SubmenuCoordinator(
     ) {
         Log.d(TAG, "[SUBMENU] Replacing main menu with submenu: $tag")
 
-        // Use the menu container for the submenu (same as main menu)
-        val containerId = R.id.menu_container
+        // CRITICAL FIX: Instead of using replace() which causes visibility issues,
+        // let's manage fragments manually to avoid FragmentManager state restoration glitches
 
+        // Hide main menu first
+        (fragment as? RetroMenu3Fragment)?.hideMainMenu()
+        Log.d(TAG, "[SUBMENU] Main menu hidden")
+
+        // Add submenu on top without replacing (to avoid back stack visibility issues)
+        val containerId = R.id.menu_container
         fragment.parentFragmentManager
                 .beginTransaction()
-                .replace(containerId, submenuFragment, tag)
+                .add(containerId, submenuFragment, tag)
                 .addToBackStack(tag)
                 .commit()
 
         // Update MenuManager state
         viewModel.updateMenuState(menuState)
-        Log.d(TAG, "[SUBMENU] Submenu $tag opened successfully")
+        Log.d(TAG, "[SUBMENU] Submenu $tag opened successfully (manual management)")
     }
 
     /** Restaura o menu principal */
     private fun restoreMainMenu() {
-        Log.d(TAG, "[SUBMENU] Restoring main menu")
+        // CRITICAL: Never restore main menu if we're in the middle of dismissing all menus
+        // Check if the main RetroMenu3 is still supposed to be open
+        if (viewModel.isDismissingAllMenus() || !viewModel.isRetroMenu3Open()) {
+            Log.d(
+                    TAG,
+                    "[SUBMENU] 🚫 restoreMainMenu: BLOCKED - isDismissing=${viewModel.isDismissingAllMenus()}, isRetroMenu3Open=${viewModel.isRetroMenu3Open()}"
+            )
+            return
+        }
 
-        // Instead of creating a new instance, use popBackStack to restore the original main menu
-        // The original RetroMenu3Fragment should still be in the back stack
+        Log.d(TAG, "[SUBMENU] 🔄 restoreMainMenu: Starting restoration")
+
+        // With manual fragment management (.add() instead of .replace()),
+        // the main menu is still in the container, just hidden
         val fragmentManager = fragment.parentFragmentManager
 
         if (fragmentManager.backStackEntryCount > 0) {
-            Log.d(TAG, "[SUBMENU] Popping back stack to restore main menu")
+            Log.d(
+                    TAG,
+                    "[SUBMENU] 🔄 restoreMainMenu: Popping back stack (count=${fragmentManager.backStackEntryCount})"
+            )
             fragmentManager.popBackStackImmediate()
+            // Main menu is already in container, just need to show it
+            (fragment as? RetroMenu3Fragment)?.showMainMenu()
         } else {
-            Log.w(TAG, "[SUBMENU] No back stack entries found, cannot restore main menu")
+            Log.d(TAG, "[SUBMENU] 🔄 restoreMainMenu: Back stack empty, showing main menu")
+            // If back stack is empty, just show the main menu
+            (fragment as? RetroMenu3Fragment)?.showMainMenu()
         }
 
         // Update MenuManager state
         viewModel.updateMenuState(MenuState.MAIN_MENU)
-        Log.d(TAG, "[SUBMENU] Main menu restored")
+        Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: Main menu restored successfully")
     }
 
     /** Abre submenu de progresso */

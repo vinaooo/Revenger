@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="dynamic_selection_arrow" type="id"/>
+    <item name="dynamic_title" type="id"/>
+</resources>

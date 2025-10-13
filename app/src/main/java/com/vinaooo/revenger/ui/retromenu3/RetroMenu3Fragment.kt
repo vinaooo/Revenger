@@ -51,6 +51,9 @@ class RetroMenu3Fragment : MenuFragmentBase() {
     private lateinit var submenuCoordinator: SubmenuCoordinator
     private lateinit var viewManager: MenuViewManager
 
+    // Menu configuration for dynamic menu creation
+    private lateinit var menuConfiguration: MenuConfiguration
+
     // View hint
     private lateinit var controlsHint: TextView
 
@@ -162,6 +165,28 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         // Controls hint
         controlsHint = view.findViewById(R.id.retro_menu3_controls_hint)
 
+        // Check if we should use dynamic view generation or hardcoded views
+        if (menuConfiguration.items.size == 6 &&
+                        menuConfiguration.items.map { it.id } ==
+                                listOf(
+                                        "continue",
+                                        "reset",
+                                        "progress",
+                                        "settings",
+                                        "exit",
+                                        "save_log"
+                                )
+        ) {
+            // Use hardcoded views for backward compatibility with main menu
+            setupHardcodedViews(view)
+        } else {
+            // Use dynamic view generation for custom configurations
+            setupDynamicViews()
+        }
+    }
+
+    /** Setup views using hardcoded layout IDs (for backward compatibility) */
+    private fun setupHardcodedViews(view: View) {
         // Menu items
         continueMenu = view.findViewById(R.id.menu_continue)
         resetMenu = view.findViewById(R.id.menu_reset)
@@ -191,9 +216,6 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         selectionArrowExit = view.findViewById(R.id.selection_arrow_exit)
         selectionArrowSaveLog = view.findViewById(R.id.selection_arrow_save_log)
 
-        // Set first item as selected
-        updateSelectionVisual()
-
         // Apply arcade font to all text views
         ViewUtils.applyArcadeFontToViews(
                 requireContext(),
@@ -211,6 +233,157 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 selectionArrowExit,
                 selectionArrowSaveLog
         )
+
+        // Set first item as selected
+        updateSelectionVisual()
+    }
+
+    /** Setup views dynamically based on menu configuration */
+    private fun setupDynamicViews() {
+        // Clear existing views from container
+        menuContainer.removeAllViews()
+
+        // Create dynamic menu items based on configuration
+        val dynamicMenuItems = mutableListOf<MaterialCardView>()
+        val dynamicTitles = mutableListOf<TextView>()
+        val dynamicArrows = mutableListOf<TextView>()
+
+        menuConfiguration.items.forEachIndexed { index, menuItem ->
+            val (cardView, titleView, arrowView) = createMenuItemView(menuItem, index)
+            menuContainer.addView(cardView)
+            dynamicMenuItems.add(cardView)
+            dynamicTitles.add(titleView)
+            dynamicArrows.add(arrowView)
+        }
+
+        // Store references for navigation
+        menuItems = dynamicMenuItems
+
+        // Apply arcade font to all text views
+        ViewUtils.applyArcadeFontToViews(
+                requireContext(),
+                controlsHint,
+                *dynamicTitles.toTypedArray(),
+                *dynamicArrows.toTypedArray()
+        )
+
+        // Set first item as selected
+        updateSelectionVisual()
+    }
+
+    /** Create a dynamic menu item view based on configuration */
+    private fun createMenuItemView(
+            menuItem: MenuItem,
+            index: Int
+    ): Triple<MaterialCardView, TextView, TextView> {
+        val context = requireContext()
+
+        // Create main card view
+        val cardView =
+                MaterialCardView(context).apply {
+                    layoutParams =
+                            LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.MATCH_PARENT,
+                                    resources.getDimensionPixelSize(
+                                            R.dimen.retro_menu3_menu_item_height
+                                    )
+                            )
+                    radius = resources.getDimension(R.dimen.retro_menu3_menu_item_corner_radius)
+                    elevation = resources.getDimension(R.dimen.retro_menu3_menu_item_elevation)
+                    strokeWidth =
+                            resources.getDimensionPixelSize(
+                                    R.dimen.retro_menu3_menu_item_stroke_width
+                            )
+                    setStrokeColor(
+                            resources.getColorStateList(R.color.retro_menu3_card_stroke, null)
+                    )
+                    setCardBackgroundColor(
+                            resources.getColorStateList(R.color.retro_menu3_card_background, null)
+                    )
+                    isClickable = menuItem.isEnabled
+                    isFocusable = menuItem.isEnabled
+                    alpha = if (menuItem.isEnabled) 1.0f else 0.5f
+
+                    // Set click listener
+                    setOnClickListener { menuActionHandler.executeAction(menuItem.action) }
+                }
+
+        // Create horizontal layout for content
+        val contentLayout =
+                LinearLayout(context).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = android.view.Gravity.CENTER_VERTICAL
+                    val padding =
+                            resources.getDimensionPixelSize(R.dimen.retro_menu3_menu_item_padding)
+                    setPadding(padding, padding, padding, padding)
+                }
+
+        // Create selection arrow
+        val arrowView =
+                TextView(context).apply {
+                    id = R.id.dynamic_selection_arrow // Set ID for dynamic access
+                    text = getString(R.string.retro_menu3_selection_arrow)
+                    setTextSize(
+                            android.util.TypedValue.COMPLEX_UNIT_PX,
+                            resources.getDimension(R.dimen.retro_menu3_arrow_text_size)
+                    )
+                    setTextColor(resources.getColor(R.color.retro_menu3_text_color, null))
+                    visibility =
+                            if (index == menuConfiguration.defaultSelectedIndex) View.VISIBLE
+                            else View.GONE
+
+                    // Shadow effects
+                    setShadowLayer(
+                            resources.getDimension(R.dimen.retro_menu3_shadow_radius),
+                            resources.getDimension(R.dimen.retro_menu3_shadow_dx),
+                            resources.getDimension(R.dimen.retro_menu3_shadow_dy),
+                            resources.getColor(R.color.retro_menu3_shadow_color, null)
+                    )
+                }
+
+        // Create title text view
+        val titleView =
+                TextView(context).apply {
+                    id = R.id.dynamic_title // Set ID for dynamic access
+                    text = menuItem.title
+                    setTextSize(
+                            android.util.TypedValue.COMPLEX_UNIT_PX,
+                            resources.getDimension(R.dimen.retro_menu3_menu_item_text_size)
+                    )
+                    setTextColor(resources.getColor(R.color.retro_menu3_text_color, null))
+
+                    // Shadow effects
+                    setShadowLayer(
+                            resources.getDimension(R.dimen.retro_menu3_shadow_radius),
+                            resources.getDimension(R.dimen.retro_menu3_shadow_dx),
+                            resources.getDimension(R.dimen.retro_menu3_shadow_dy),
+                            resources.getColor(R.color.retro_menu3_shadow_color, null)
+                    )
+                }
+
+        // Add views to layout
+        contentLayout.addView(
+                arrowView,
+                LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                        .apply {
+                            marginEnd =
+                                    resources.getDimensionPixelSize(
+                                            R.dimen.retro_menu3_arrow_margin_end
+                                    )
+                        }
+        )
+
+        contentLayout.addView(
+                titleView,
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        )
+
+        cardView.addView(contentLayout)
+
+        return Triple(cardView, titleView, arrowView)
     }
 
     private fun setupClickListeners() {
@@ -258,30 +431,21 @@ class RetroMenu3Fragment : MenuFragmentBase() {
     }
 
     private fun dismissMenu() {
+        android.util.Log.d("RetroMenu3", "[DISMISS] dismissMenu: Starting animation")
         // IMPORTANT: Don't call dismissRetroMenu3() here to avoid crashes
         // Just remove the fragment visually
-        animateMenuOut { parentFragmentManager.beginTransaction().remove(this).commit() }
+        animateMenuOut {
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "[DISMISS] dismissMenu: Animation completed, removing fragment"
+            )
+            parentFragmentManager.beginTransaction().remove(this).commit()
+        }
     }
 
     // ========== IMPLEMENTAÇÃO DOS MÉTODOS ABSTRATOS DA MenuFragmentBase ==========
 
-    override fun getMenuItems(): List<MenuItem> =
-            listOf(
-                    MenuItem("continue", "Continuar", action = MenuAction.CONTINUE),
-                    MenuItem("reset", "Restart", action = MenuAction.RESET),
-                    MenuItem(
-                            "progress",
-                            "Progress",
-                            action = MenuAction.NAVIGATE(MenuState.PROGRESS_MENU)
-                    ),
-                    MenuItem(
-                            "settings",
-                            "Settings",
-                            action = MenuAction.NAVIGATE(MenuState.SETTINGS_MENU)
-                    ),
-                    MenuItem("exit", "Exit", action = MenuAction.NAVIGATE(MenuState.EXIT_MENU)),
-                    MenuItem("save_log", "Save Log", action = MenuAction.SAVE_LOG)
-            )
+    override fun getMenuItems(): List<MenuItem> = menuConfiguration.items
 
     /** Mapa de ações por índice para substituir switch case no confirmSelection */
     private val actionMap: Map<Int, MenuAction> by lazy {
@@ -360,8 +524,10 @@ class RetroMenu3Fragment : MenuFragmentBase() {
             return
         }
 
+        android.util.Log.d("RetroMenu3", "[HIDE] 🔇 hideMainMenu: Hiding menu container")
         // Hide only the menu content, keeping the background for the submenu
         menuContainer.visibility = View.INVISIBLE
+        android.util.Log.d("RetroMenu3", "[HIDE] ✅ hideMainMenu: Menu container is now INVISIBLE")
     }
 
     /** Make main menu visible again (when submenu is closed) */
@@ -375,6 +541,8 @@ class RetroMenu3Fragment : MenuFragmentBase() {
             return
         }
 
+        android.util.Log.d("RetroMenu3", "[SHOW] 🎨 showMainMenu: Making menu visible")
+
         // Make visible
         menuContainer.visibility = View.VISIBLE
 
@@ -387,14 +555,39 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         // Ensure visual selection is updated when menu becomes visible again
         updateSelectionVisual()
 
+        android.util.Log.d("RetroMenu3", "[SHOW] ✅ showMainMenu: Menu is now visible")
+
         // Layout will be updated automatically when properties change
     }
 
     /** Update selection visual */
     private fun updateSelectionVisual() {
+        val currentIndex = getCurrentSelectedIndex()
+
+        // Check if using dynamic configuration or hardcoded views
+        if (menuConfiguration.items.size == 6 &&
+                        menuConfiguration.items.map { it.id } ==
+                                listOf(
+                                        "continue",
+                                        "reset",
+                                        "progress",
+                                        "settings",
+                                        "exit",
+                                        "save_log"
+                                )
+        ) {
+            // Use hardcoded logic for backward compatibility
+            updateSelectionVisualHardcoded(currentIndex)
+        } else {
+            // Use dynamic logic for custom configurations
+            updateSelectionVisualDynamic(currentIndex)
+        }
+    }
+
+    /** Update selection visual for hardcoded menu (backward compatibility) */
+    private fun updateSelectionVisualHardcoded(currentIndex: Int) {
+        // Reset all cards to transparent
         menuItems.forEach { item ->
-            // Removed: background color of individual cards
-            // Selection now indicated only by yellow text and arrows
             item.strokeWidth = 0
             item.strokeColor = android.graphics.Color.TRANSPARENT
             item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
@@ -402,40 +595,39 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
         // Control text colors based on selection
         continueTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
+                if (currentIndex == 0) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         resetTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 1) android.graphics.Color.YELLOW
+                if (currentIndex == 1) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         progressTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
+                if (currentIndex == 2) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         settingsTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 3) android.graphics.Color.YELLOW
+                if (currentIndex == 3) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         exitTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 4) android.graphics.Color.YELLOW
+                if (currentIndex == 4) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
         saveLogTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 5) android.graphics.Color.YELLOW
+                if (currentIndex == 5) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
         )
 
         // Control selection arrows colors and visibility
-        // FIX: Selected item shows arrow without margin (attached to text)
         val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Continue
-        if (getCurrentSelectedIndex() == 0) {
+        if (currentIndex == 0) {
             selectionArrowContinue.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowContinue.visibility = View.VISIBLE
             (selectionArrowContinue.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
+                marginStart = 0
                 marginEnd = arrowMarginEnd
             }
         } else {
@@ -443,11 +635,11 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         }
 
         // Reset
-        if (getCurrentSelectedIndex() == 1) {
+        if (currentIndex == 1) {
             selectionArrowReset.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowReset.visibility = View.VISIBLE
             (selectionArrowReset.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
+                marginStart = 0
                 marginEnd = arrowMarginEnd
             }
         } else {
@@ -455,11 +647,11 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         }
 
         // Progress
-        if (getCurrentSelectedIndex() == 2) {
+        if (currentIndex == 2) {
             selectionArrowProgress.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowProgress.visibility = View.VISIBLE
             (selectionArrowProgress.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
+                marginStart = 0
                 marginEnd = arrowMarginEnd
             }
         } else {
@@ -467,11 +659,11 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         }
 
         // Settings
-        if (getCurrentSelectedIndex() == 3) {
+        if (currentIndex == 3) {
             selectionArrowSettings.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowSettings.visibility = View.VISIBLE
             (selectionArrowSettings.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
+                marginStart = 0
                 marginEnd = arrowMarginEnd
             }
         } else {
@@ -479,11 +671,11 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         }
 
         // Exit Menu
-        if (getCurrentSelectedIndex() == 4) {
+        if (currentIndex == 4) {
             selectionArrowExit.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowExit.visibility = View.VISIBLE
             (selectionArrowExit.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
+                marginStart = 0
                 marginEnd = arrowMarginEnd
             }
         } else {
@@ -491,22 +683,51 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         }
 
         // Save Log
-        if (getCurrentSelectedIndex() == 5) {
+        if (currentIndex == 5) {
             selectionArrowSaveLog.setTextColor(android.graphics.Color.YELLOW)
             selectionArrowSaveLog.visibility = View.VISIBLE
             (selectionArrowSaveLog.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
+                marginStart = 0
                 marginEnd = arrowMarginEnd
             }
         } else {
             selectionArrowSaveLog.visibility = View.GONE
         }
+    }
 
-        // Layout will be updated automatically when visibility changes
+    /** Update selection visual for dynamic menu configurations */
+    private fun updateSelectionVisualDynamic(currentIndex: Int) {
+        // Reset all cards to transparent
+        menuItems.forEach { item ->
+            item.strokeWidth = 0
+            item.strokeColor = android.graphics.Color.TRANSPARENT
+            item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+        }
+
+        // For dynamic menus, we need to find the arrow and title views within each card
+        menuItems.forEachIndexed { index, cardView ->
+            val isSelected = index == currentIndex
+
+            // Find arrow and title views within the card
+            val arrowView = cardView.findViewById<TextView>(R.id.dynamic_selection_arrow)
+            val titleView = cardView.findViewById<TextView>(R.id.dynamic_title)
+
+            if (arrowView != null && titleView != null) {
+                if (isSelected) {
+                    arrowView.setTextColor(android.graphics.Color.YELLOW)
+                    arrowView.visibility = View.VISIBLE
+                    titleView.setTextColor(android.graphics.Color.YELLOW)
+                } else {
+                    arrowView.visibility = View.GONE
+                    titleView.setTextColor(android.graphics.Color.WHITE)
+                }
+            }
+        }
     }
 
     /** Public method to dismiss the menu from outside */
     fun dismissMenuPublic() {
+        android.util.Log.d("RetroMenu3", "[DISMISS_PUBLIC] dismissMenuPublic: Called")
         dismissMenu()
     }
 
@@ -561,8 +782,25 @@ class RetroMenu3Fragment : MenuFragmentBase() {
     }
 
     companion object {
+        /** Create a new instance with default main menu configuration */
         fun newInstance(): RetroMenu3Fragment {
-            return RetroMenu3Fragment()
+            val fragment = RetroMenu3Fragment()
+            fragment.menuConfiguration = MenuConfigurationBuilder.createMainMenu().build()
+            return fragment
+        }
+
+        /** Create a new instance with custom menu configuration */
+        fun newInstance(configuration: MenuConfiguration): RetroMenu3Fragment {
+            val fragment = RetroMenu3Fragment()
+            fragment.menuConfiguration = configuration
+            return fragment
+        }
+
+        /** Create a new instance with configuration built from builder */
+        fun newInstance(builder: MenuConfigurationBuilder): RetroMenu3Fragment {
+            val fragment = RetroMenu3Fragment()
+            fragment.menuConfiguration = builder.build()
+            return fragment
         }
     }
 }

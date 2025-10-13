@@ -268,7 +268,20 @@ class GameActivityViewModel(application: Application) :
 
     /** Show the RetroMenu3 (activated by SELECT+START combo) */
     fun showRetroMenu3(activity: FragmentActivity) {
-        android.util.Log.d("GameActivityViewModel", "showRetroMenu3 called!")
+        android.util.Log.d("GameActivityViewModel", "[SHOW_RETRO_MENU] showRetroMenu3 called!")
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[SHOW_RETRO_MENU] Current back stack count: ${activity.supportFragmentManager.backStackEntryCount}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[SHOW_RETRO_MENU] isDismissingAllMenus: ${isDismissingAllMenus()}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[SHOW_RETRO_MENU] isRetroMenu3Open: ${isRetroMenu3Open()}"
+        )
+        android.util.Log.d("GameActivityViewModel", "[SHOW_RETRO_MENU] Stack trace:", Exception())
 
         // CRITICAL: Prevent multiple calls if menu is already open
         if (isRetroMenu3Open()) {
@@ -322,11 +335,13 @@ class GameActivityViewModel(application: Application) :
 
     /** Dismiss the RetroMenu3 */
     fun dismissRetroMenu3() {
+        android.util.Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Starting")
         retroMenu3Fragment?.dismissMenuPublic()
         // CRITICAL: Clear keyLog to prevent phantom key presses
         controllerInput.clearKeyLog()
         // CRITICAL: Clear blocked keys after menu dismissal
         controllerInput.clearBlockedKeysDelayed()
+        android.util.Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Completed")
     }
 
     /**
@@ -418,6 +433,16 @@ class GameActivityViewModel(application: Application) :
         return isOpen
     }
 
+    /** Check if the Progress submenu is currently open */
+    fun isProgressMenuOpen(): Boolean {
+        return progressFragment != null
+    }
+
+    /** Check if the Exit submenu is currently open */
+    fun isExitMenuOpen(): Boolean {
+        return exitFragment != null
+    }
+
     /** Dismiss the Settings submenu */
     fun dismissSettingsMenu() {
         dismissSubmenuFragment(settingsMenuFragment, "SettingsMenu") {
@@ -444,38 +469,64 @@ class GameActivityViewModel(application: Application) :
 
     /** Dismiss ALL menus in cascade order (submenus first, then main menu) */
     fun dismissAllMenus() {
-        android.util.Log.d("GameActivityViewModel", "dismissAllMenus: Starting cascade dismissal")
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[DISMISS_ALL] dismissAllMenus: Starting cascade dismissal"
+        )
 
         // Set flag to prevent showing main menu when submenus are dismissed
         setDismissingAllMenus(true)
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[DISMISS_ALL] dismissAllMenus: Set isDismissingAllMenus = true"
+        )
 
         // Dismiss submenus first (in reverse order of opening)
         if (isExitActive()) {
-            android.util.Log.d("GameActivityViewModel", "dismissAllMenus: Dismissing Exit submenu")
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Dismissing Exit submenu"
+            )
             dismissExit()
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Exit submenu dismissed"
+            )
         }
         if (isProgressActive()) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "dismissAllMenus: Dismissing Progress submenu"
+                    "[DISMISS_ALL] dismissAllMenus: Dismissing Progress submenu"
             )
             dismissProgress()
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Progress submenu dismissed"
+            )
         }
         if (isSettingsMenuActive()) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "dismissAllMenus: Dismissing Settings submenu"
+                    "[DISMISS_ALL] dismissAllMenus: Dismissing Settings submenu"
             )
             dismissSettingsMenu()
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Settings submenu dismissed"
+            )
         }
 
         // Finally dismiss the main RetroMenu3
         if (isRetroMenu3Open()) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "dismissAllMenus: Dismissing main RetroMenu3"
+                    "[DISMISS_ALL] dismissAllMenus: Dismissing main RetroMenu3"
             )
             dismissRetroMenu3()
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Main RetroMenu3 dismissed"
+            )
         }
 
         // Restore game speed from sharedpreferences when exiting menu with Start
@@ -483,8 +534,15 @@ class GameActivityViewModel(application: Application) :
 
         // Reset flag after all menus are dismissed
         setDismissingAllMenus(false)
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[DISMISS_ALL] dismissAllMenus: Reset isDismissingAllMenus = false"
+        )
 
-        android.util.Log.d("GameActivityViewModel", "dismissAllMenus: Cascade dismissal completed")
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[DISMISS_ALL] dismissAllMenus: Cascade dismissal completed"
+        )
     }
 
     /** Restore game speed from sharedpreferences when exiting menu with Start */
