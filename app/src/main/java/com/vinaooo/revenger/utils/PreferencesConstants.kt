@@ -10,4 +10,7 @@ object PreferencesConstants {
 
     // Audio enabled preference key
     const val PREF_AUDIO_ENABLED = "audio_enabled"
+
+    // Shader preference key
+    const val PREF_SHADER_NAME = "current_shader"
 }
