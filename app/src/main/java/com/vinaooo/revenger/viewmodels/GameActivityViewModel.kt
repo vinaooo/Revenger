@@ -29,7 +29,6 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
         AndroidViewModel(application),
-        RetroMenu3Fragment.RetroMenu3Listener,
         SettingsMenuFragment.SettingsMenuListener,
         MenuManager.MenuManagerListener {
 
@@ -243,7 +242,8 @@ class GameActivityViewModel(application: Application) :
 
         retroMenu3Fragment =
                 RetroMenu3Fragment.newInstance().apply {
-                    setMenuListener(this@GameActivityViewModel)
+                    // REMOVED: setMenuListener - migrated to unified MenuAction/MenuEvent system
+                    // setMenuListener(this@GameActivityViewModel)
                 }
 
         // Register RetroMenu3Fragment with MenuManager
@@ -541,47 +541,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     // Implementation of GameMenuBottomSheet.GameMenuListener interface
-    override fun onResetGame() {
-        // Legacy method - now using resetGameCentralized() instead
-        // Kept for interface compatibility but should not be called
-    }
-
-    override fun onSaveState() {
-        // Legacy method - now using saveStateCentralized() instead
-        // Kept for interface compatibility but should not be called
-    }
-
-    override fun onLoadState() {
-        // Legacy method - now using loadStateCentralized() instead
-        // Kept for interface compatibility but should not be called
-    }
-
-    override fun onToggleAudio() {
-        retroView?.let { audioViewModel.toggleAudio(it.view) }
-    }
-
-    override fun onFastForward() {
-        retroView?.let { speedController?.toggleFastForward(it.view) }
-    }
-
-    override fun onToggleShader() {
-        shaderViewModel.toggleShader()
-    }
-
-    override fun getAudioState(): Boolean {
-        return audioViewModel.getAudioState()
-    }
-
-    override fun getFastForwardState(): Boolean {
-        return speedViewModel.getFastForwardState()
-    }
-
-    override fun getShaderState(): String {
-        return shaderViewModel.getCurrentShaderDisplayName()
-    }
-
-    override fun hasSaveState(): Boolean = retroViewUtils?.hasSaveState() == true
-
+    // REMOVED: RetroMenu3Listener implementation - migrated to unified MenuAction/MenuEvent system
     // Implementation of SettingsMenuFragment.SettingsMenuListener interface
     override fun onBackToMainMenu() {
         android.util.Log.d("GameActivityViewModel", "onBackToMainMenu: User wants to go back")
@@ -676,6 +636,31 @@ class GameActivityViewModel(application: Application) :
     fun resetGameCentralized(onComplete: (() -> Unit)? = null) {
         retroView?.view?.reset()
         onComplete?.invoke()
+    }
+
+    /** Check if save state exists for UI state management */
+    fun hasSaveState(): Boolean {
+        return retroViewUtils?.hasSaveState() ?: false
+    }
+
+    /** Get current audio state for UI management */
+    fun getAudioState(): Boolean {
+        return audioViewModel.getAudioState()
+    }
+
+    /** Get current fast forward state for UI management */
+    fun getFastForwardState(): Boolean {
+        return speedController?.getFastForwardState() ?: false
+    }
+
+    /** Toggle shader for visual effects */
+    fun onToggleShader(): String {
+        return shaderViewModel.toggleShader()
+    }
+
+    /** Get current shader state for UI management */
+    fun getShaderState(): String {
+        return shaderViewModel.getShaderState()
     }
 
     /** Hide the system bars */
@@ -993,9 +978,15 @@ class GameActivityViewModel(application: Application) :
                     com.vinaooo.revenger.ui.retromenu3.MenuAction.LOAD_STATE ->
                             loadStateCentralized()
                     com.vinaooo.revenger.ui.retromenu3.MenuAction.RESET -> resetGameCentralized()
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_AUDIO -> onToggleAudio()
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SPEED -> onFastForward()
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SHADER -> onToggleShader()
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_AUDIO -> {
+                        retroView?.let { audioViewModel.toggleAudio(it.view) }
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SPEED -> {
+                        retroView?.let { speedController?.toggleFastForward(it.view) }
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SHADER -> {
+                        shaderViewModel.toggleShader()
+                    }
                     com.vinaooo.revenger.ui.retromenu3.MenuAction.SAVE_AND_EXIT -> {
                         // Save and exit - same logic as in ExitFragment
                         saveStateCentralized {

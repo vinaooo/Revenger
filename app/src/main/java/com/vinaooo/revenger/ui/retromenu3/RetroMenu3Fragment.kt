@@ -82,25 +82,25 @@ class RetroMenu3Fragment : MenuFragmentBase() {
     private lateinit var selectionArrowExit: TextView
     private lateinit var selectionArrowSaveLog: TextView
 
-    // Callback interface
-    interface RetroMenu3Listener {
-        fun onResetGame()
-        fun onSaveState()
-        fun onLoadState()
-        fun onToggleAudio()
-        fun onFastForward()
-        fun onToggleShader()
-        fun getAudioState(): Boolean
-        fun getFastForwardState(): Boolean
-        fun getShaderState(): String
-        fun hasSaveState(): Boolean
-    }
+    // Callback interface - REMOVED: Migrated to unified MenuAction/MenuEvent system
+    // interface RetroMenu3Listener {
+    //     fun onResetGame()
+    //     fun onSaveState()
+    //     fun onLoadState()
+    //     fun onToggleAudio()
+    //     fun onFastForward()
+    //     fun onToggleShader()
+    //     fun getAudioState(): Boolean
+    //     fun getFastForwardState(): Boolean
+    //     fun getShaderState(): String
+    //     fun hasSaveState(): Boolean
+    // }
 
-    private var menuListener: RetroMenu3Listener? = null
+    // private var menuListener: RetroMenu3Listener? = null
 
-    fun setMenuListener(listener: RetroMenu3Listener) {
-        this.menuListener = listener
-    }
+    // fun setMenuListener(listener: RetroMenu3Listener) {
+    //     this.menuListener = listener
+    // }
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -283,6 +283,11 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                     MenuItem("save_log", "Save Log", action = MenuAction.SAVE_LOG)
             )
 
+    /** Mapa de ações por índice para substituir switch case no confirmSelection */
+    private val actionMap: Map<Int, MenuAction> by lazy {
+        getMenuItems().mapIndexed { index, menuItem -> index to menuItem.action }.toMap()
+    }
+
     override fun performNavigateUp() {
         navigateUp()
     }
@@ -335,31 +340,12 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         val itemTitle = currentItem?.title ?: "INVALID"
         android.util.Log.d("RetroMenu3", "[ACTION] ✓ CONFIRM: $itemTitle (index: $currentIndex)")
 
-        when (currentIndex) {
-            0 -> {
-                android.util.Log.d("RetroMenu3", "[ACTION] → Continue game")
-                continueMenu.performClick()
-            }
-            1 -> {
-                android.util.Log.d("RetroMenu3", "[ACTION] → Reset game")
-                resetMenu.performClick()
-            }
-            2 -> {
-                android.util.Log.d("RetroMenu3", "[ACTION] → Open Progress menu")
-                progressMenu.performClick()
-            }
-            3 -> {
-                android.util.Log.d("RetroMenu3", "[ACTION] → Open Settings menu")
-                settingsMenu.performClick()
-            }
-            4 -> {
-                android.util.Log.d("RetroMenu3", "[ACTION] → Open Exit menu")
-                exitMenu.performClick()
-            }
-            5 -> {
-                android.util.Log.d("RetroMenu3", "[ACTION] → Save log file")
-                saveLogMenu.performClick()
-            }
+        // Use action map instead of switch case for better maintainability
+        val action = actionMap[currentIndex]
+        if (action != null) {
+            menuActionHandler.executeAction(action)
+        } else {
+            android.util.Log.w("RetroMenu3", "[ACTION] No action found for index: $currentIndex")
         }
     }
 
@@ -540,11 +526,14 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
         // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
         try {
-            (menuListener as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)?.let {
-                    viewModel ->
-                // Call clearKeyLog through ViewModel to reset combo state
-                viewModel.clearControllerKeyLog()
-            }
+            // REMOVED: menuListener no longer exists - migrated to unified event system
+            // (menuListener as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)?.let {
+            //         viewModel ->
+            //     // Call clearKeyLog through ViewModel to reset combo state
+            //     viewModel.clearControllerKeyLog()
+            // }
+            // Use viewModel directly since it's available in the fragment
+            viewModel.clearControllerKeyLog()
         } catch (e: Exception) {
             android.util.Log.w("RetroMenu3Fragment", "Error resetting combo state in onDestroy", e)
         }
