@@ -17,6 +17,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/** Data class to group related views for each menu item */
+data class MenuItemView(
+        val titleTextView: TextView,
+        val arrowTextView: TextView,
+        val cardView: MaterialCardView
+)
+
 /**
  * RetroMenu3 Fragment - Copy of ModernMenu Activated by combo // Add listener to detect when the
  * back stack changes (submenu is removed) parentFragmentManager.addOnBackStackChangedListener {
@@ -391,12 +398,30 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
     /** Make main menu invisible (when submenu is opened) */
     fun hideMainMenu() {
+        // Check if menuContainer is initialized
+        if (!::menuContainer.isInitialized) {
+            android.util.Log.e(
+                    "RetroMenu3",
+                    "[HIDE] MenuContainer not initialized, cannot hide main menu"
+            )
+            return
+        }
+
         // Hide only the menu content, keeping the background for the submenu
         menuContainer.visibility = View.INVISIBLE
     }
 
     /** Make main menu visible again (when submenu is closed) */
     fun showMainMenu() {
+        // Check if menuContainer is initialized
+        if (!::menuContainer.isInitialized) {
+            android.util.Log.e(
+                    "RetroMenu3",
+                    "[SHOW] MenuContainer not initialized, cannot show main menu"
+            )
+            return
+        }
+
         // Make visible
         menuContainer.visibility = View.VISIBLE
 
@@ -589,6 +614,16 @@ class RetroMenu3Fragment : MenuFragmentBase() {
     /** Open settings submenu */
     private fun openSettingsSubmenu() {
         android.util.Log.d("RetroMenu3", "[MENU] Opening Settings submenu")
+
+        // Check if ViewModel is initialized
+        if (!::viewModel.isInitialized) {
+            android.util.Log.e(
+                    "RetroMenu3",
+                    "[MENU] ViewModel not initialized, cannot open settings submenu"
+            )
+            return
+        }
+
         // Make main menu invisible before opening submenu
         hideMainMenu()
 
@@ -650,6 +685,16 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
     private fun openProgress() {
         android.util.Log.d("RetroMenu3", "[MENU] Opening Progress submenu")
+
+        // Check if ViewModel is initialized
+        if (!::viewModel.isInitialized) {
+            android.util.Log.e(
+                    "RetroMenu3",
+                    "[MENU] ViewModel not initialized, cannot open progress submenu"
+            )
+            return
+        }
+
         // Make main menu invisible before opening submenu
         hideMainMenu()
 
@@ -710,6 +755,16 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
     private fun openExitMenu() {
         android.util.Log.d("RetroMenu3", "[MENU] Opening Exit submenu")
+
+        // Check if ViewModel is initialized
+        if (!::viewModel.isInitialized) {
+            android.util.Log.e(
+                    "RetroMenu3",
+                    "[MENU] ViewModel not initialized, cannot open exit submenu"
+            )
+            return
+        }
+
         // Make main menu invisible before opening submenu
         hideMainMenu()
 
