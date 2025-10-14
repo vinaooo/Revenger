@@ -147,7 +147,7 @@ class MenuViewManager(private val fragment: Fragment) {
     /** Anima a entrada do menu na tela */
     fun animateMenuIn() {
         // Use optimized batch animation for better performance
-        ViewUtils.animateMenuViewsBatch(
+        ViewUtils.animateMenuViewsBatchOptimized(
                 arrayOf(menuContainerView, controlsHint),
                 toAlpha = 1f,
                 toScale = 1f,
@@ -158,7 +158,7 @@ class MenuViewManager(private val fragment: Fragment) {
     /** Anima a saída do menu da tela */
     fun animateMenuOut(onEnd: () -> Unit) {
         // Use optimized batch animation with callback
-        ViewUtils.animateMenuViewsBatch(
+        ViewUtils.animateMenuViewsBatchOptimized(
                 arrayOf(menuContainerView, controlsHint),
                 toAlpha = 0f,
                 toScale = 0.8f,

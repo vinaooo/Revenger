@@ -63,9 +63,29 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun clearControllerInputState() {
+        android.util.Log.d(
+                "InputViewModel",
+                "🔥 [CLEAR_INPUT_STATE] ===== clearControllerInputState() CALLED ====="
+        )
+        android.util.Log.d(
+                "InputViewModel",
+                "🔥 [CLEAR_INPUT_STATE] Timestamp: ${System.currentTimeMillis()}"
+        )
         controllerInput.clearKeyLog()
+        android.util.Log.d(
+                "InputViewModel",
+                "🔥 [CLEAR_INPUT_STATE] controllerInput.clearKeyLog() completed"
+        )
         // TODO: Implementar resetComboAlreadyTriggered se necessário
         // controllerInput.resetComboAlreadyTriggered()
+        android.util.Log.d(
+                "InputViewModel",
+                "🔥 [CLEAR_INPUT_STATE] ===== clearControllerInputState() COMPLETED ====="
+        )
+        android.util.Log.d(
+                "InputViewModel",
+                "🔥 [CLEAR_INPUT_STATE] Final Timestamp: ${System.currentTimeMillis()}"
+        )
     }
 
     // ========== GETTERS PARA COMPATIBILIDADE ==========

@@ -55,6 +55,10 @@ class ControllerInput(private val context: Context) {
         private var lastComboTriggerTime = 0L
         private val COMBO_COOLDOWN_MS = 500L // 500ms cooldown between combo detections
 
+        /** Timestamp to prevent combo detection immediately after menu closes */
+        private var menuCloseDebounceTime = 0L
+        private val MENU_CLOSE_DEBOUNCE_MS = 200L // 200ms debounce after menu closes
+
         /**
          * Clears the keyLog to avoid combo detection after closing the menu.
          *
@@ -62,6 +66,18 @@ class ControllerInput(private val context: Context) {
          * is still open, keeps the flag to avoid false detections.
          */
         fun clearKeyLog() {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔥 [CLEAR_KEYLOG] ===== clearKeyLog() CALLED ====="
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔥 [CLEAR_KEYLOG] Timestamp: ${System.currentTimeMillis()}"
+                )
                 android.util.Log.d("ControllerInput", "")
                 android.util.Log.d("ControllerInput", "🧹 clearKeyLog() CALLED")
                 android.util.Log.d(
@@ -87,11 +103,19 @@ class ControllerInput(private val context: Context) {
                 }
 
                 lastComboTriggerTime = 0L // Reset cooldown timer to allow immediate combo detection
+                menuCloseDebounceTime = System.currentTimeMillis() // Set debounce timestamp
                 android.util.Log.d(
                         "ControllerInput",
-                        "   AFTER: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered"
+                        "   AFTER: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered, menuCloseDebounceTime=$menuCloseDebounceTime"
                 )
-                android.util.Log.d("ControllerInput", "")
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔥 [CLEAR_KEYLOG] ===== clearKeyLog() COMPLETED ====="
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥"
+                )
         }
 
         /** The callback for when the user inputs the menu key-combination */
@@ -194,15 +218,17 @@ class ControllerInput(private val context: Context) {
                         "ControllerInput",
                         "│ START pressed: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)}"
                 )
+                val timeSinceMenuClose = currentTime - menuCloseDebounceTime
                 android.util.Log.d(
                         "ControllerInput",
-                        "│ keyLog.size: ${keyLog.size} (should be 2 for combo)"
+                        "│ timeSinceMenuClose: ${timeSinceMenuClose}ms (debounce: ${MENU_CLOSE_DEBOUNCE_MS}ms)"
                 )
 
                 if (hasSelectAndStart &&
                                 !comboAlreadyTriggered &&
                                 shouldHandleSelectStartCombo() &&
-                                timeSinceLastTrigger > COMBO_COOLDOWN_MS
+                                timeSinceLastTrigger > COMBO_COOLDOWN_MS &&
+                                timeSinceMenuClose > MENU_CLOSE_DEBOUNCE_MS
                 ) {
 
                         android.util.Log.d(
@@ -224,6 +250,10 @@ class ControllerInput(private val context: Context) {
                         android.util.Log.d(
                                 "ControllerInput",
                                 "│    - timeSinceLastTrigger: ${timeSinceLastTrigger}ms > ${COMBO_COOLDOWN_MS}ms"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│    - timeSinceMenuClose: ${timeSinceMenuClose}ms > ${MENU_CLOSE_DEBOUNCE_MS}ms"
                         )
                         comboAlreadyTriggered = true // Mark combo as triggered
                         lastComboTriggerTime = currentTime
@@ -310,6 +340,16 @@ class ControllerInput(private val context: Context) {
                                 android.util.Log.w(
                                         "ControllerInput",
                                         "│    ⚠️ User pressing too fast! Wait ${COMBO_COOLDOWN_MS - timeSinceLastTrigger}ms more"
+                                )
+                        }
+                        if (timeSinceMenuClose <= MENU_CLOSE_DEBOUNCE_MS) {
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "│    - menu close debounce active (${timeSinceMenuClose}ms < ${MENU_CLOSE_DEBOUNCE_MS}ms)"
+                                )
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "│    ℹ️ Menu just closed, preventing immediate re-open"
                                 )
                         }
                 }

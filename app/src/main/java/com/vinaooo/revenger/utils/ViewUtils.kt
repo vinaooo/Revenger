@@ -2,6 +2,7 @@ package com.vinaooo.revenger.utils
 
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewPropertyAnimator
 
 /**
  * Utility class for common view operations used across menu fragments. Eliminates code duplication
@@ -107,63 +108,30 @@ object ViewUtils {
     }
 
     /**
-     * Batch animation for multiple views to reduce animation overhead. Useful for animating menu
-     * containers and hints together.
-     *
-     * @param views Array of views to animate
-     * @param toAlpha Target alpha value
-     * @param toScale Target scale value
-     * @param duration Animation duration
-     * @param onEnd Callback when all animations complete
+     * Animação otimizada de view usando ViewPropertyAnimator com pool de objetos. Substitui
+     * animateView para melhor performance.
      */
-    fun animateMenuViewsBatch(
+    fun animateViewOptimized(
+            view: View,
+            toAlpha: Float,
+            toScale: Float,
+            duration: Long = 200,
+            onEnd: (() -> Unit)? = null
+    ): ViewPropertyAnimator {
+        return AnimationOptimizer.animateViewOptimized(view, toAlpha, toScale, duration, onEnd)
+    }
+
+    /**
+     * Animação em lote otimizada usando pools de objetos. Substitui animateMenuViewsBatch para
+     * melhor performance.
+     */
+    fun animateMenuViewsBatchOptimized(
             views: Array<View>,
             toAlpha: Float,
             toScale: Float,
             duration: Long = 200,
             onEnd: (() -> Unit)? = null
     ) {
-        val animatorSet = android.animation.AnimatorSet()
-        val animators = mutableListOf<android.animation.Animator>()
-
-        views.forEach { view ->
-            // Use hardware layer for each view
-            view.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-
-            // Create ObjectAnimator for better control
-            val alphaAnimator = android.animation.ObjectAnimator.ofFloat(view, "alpha", toAlpha)
-            val scaleXAnimator = android.animation.ObjectAnimator.ofFloat(view, "scaleX", toScale)
-            val scaleYAnimator = android.animation.ObjectAnimator.ofFloat(view, "scaleY", toScale)
-
-            // Set common properties
-            alphaAnimator.duration = duration
-            scaleXAnimator.duration = duration
-            scaleYAnimator.duration = duration
-            alphaAnimator.interpolator = android.view.animation.DecelerateInterpolator()
-            scaleXAnimator.interpolator = android.view.animation.DecelerateInterpolator()
-            scaleYAnimator.interpolator = android.view.animation.DecelerateInterpolator()
-
-            animators.add(alphaAnimator)
-            animators.add(scaleXAnimator)
-            animators.add(scaleYAnimator)
-        }
-
-        animatorSet.playTogether(animators)
-        animatorSet.addListener(
-                object : android.animation.Animator.AnimatorListener {
-                    override fun onAnimationStart(animation: android.animation.Animator) {}
-                    override fun onAnimationEnd(animation: android.animation.Animator) {
-                        // Restore layer types
-                        views.forEach { it.setLayerType(View.LAYER_TYPE_NONE, null) }
-                        onEnd?.invoke()
-                    }
-                    override fun onAnimationCancel(animation: android.animation.Animator) {
-                        // Restore layer types even if cancelled
-                        views.forEach { it.setLayerType(View.LAYER_TYPE_NONE, null) }
-                    }
-                    override fun onAnimationRepeat(animation: android.animation.Animator) {}
-                }
-        )
-        animatorSet.start()
+        AnimationOptimizer.animateViewsBatchOptimized(views, toAlpha, toScale, duration, onEnd)
     }
 }

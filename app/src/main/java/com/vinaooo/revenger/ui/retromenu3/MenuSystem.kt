@@ -112,7 +112,7 @@ data class MenuSystemState(
  * state, replacing the distributed boolean flags. Uses immutable state updates for thread safety
  * and predictability.
  */
-class MenuStateManager {
+class MenuStateManager(private val onStateChanged: ((MenuSystemState) -> Unit)? = null) {
 
     private var _currentState = MenuSystemState()
 
@@ -123,6 +123,7 @@ class MenuStateManager {
     /** Update state using a transformation function */
     fun updateState(transform: (MenuSystemState) -> MenuSystemState) {
         _currentState = transform(_currentState)
+        onStateChanged?.invoke(_currentState)
         android.util.Log.d(TAG, "Menu state updated: $_currentState")
     }
 

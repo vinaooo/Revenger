@@ -3,6 +3,8 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.vinaooo.revenger.ui.retromenu3.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * ViewModel especializado para gerenciamento de menus. Responsável por toda a lógica relacionada a
@@ -10,8 +12,16 @@ import com.vinaooo.revenger.ui.retromenu3.*
  */
 class MenuViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Estado do menu
-    private val menuStateManager = MenuStateManager()
+    // Estado do menu com StateFlow para reatividade
+    private val menuStateManager = MenuStateManager { newState -> _menuState.value = newState }
+    private val _menuState: MutableStateFlow<MenuSystemState>
+    val menuState: StateFlow<MenuSystemState>
+        get() = _menuState
+
+    init {
+        _menuState = MutableStateFlow(menuStateManager.currentState)
+    }
+
     private var menuManager: MenuManager? = null
 
     // Referências aos fragments (mantidas para compatibilidade)

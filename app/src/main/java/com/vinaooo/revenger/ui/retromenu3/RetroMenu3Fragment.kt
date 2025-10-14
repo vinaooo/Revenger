@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.FontUtils
+import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -45,6 +46,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods
     private lateinit var viewModel: GameActivityViewModel
+    private lateinit var menuViewModel: com.vinaooo.revenger.viewmodels.MenuViewModel
 
     // Specialized classes for separation of concerns
     private lateinit var menuActionHandler: MenuActionHandler
@@ -114,10 +116,12 @@ class RetroMenu3Fragment : MenuFragmentBase() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        android.util.Log.d("RetroMenu3", "[LIFECYCLE] Main menu created and initialized")
+        MenuLogger.lifecycle("Main menu created and initialized")
 
-        // Initialize ViewModel
+        // Initialize ViewModels
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
+        menuViewModel =
+                ViewModelProvider(this)[com.vinaooo.revenger.viewmodels.MenuViewModel::class.java]
 
         // Initialize specialized classes for composition (in correct order)
         viewManager = MenuViewManager(this)
@@ -411,35 +415,121 @@ class RetroMenu3Fragment : MenuFragmentBase() {
     }
 
     private fun animateMenuIn() {
+        android.util.Log.d("RetroMenu3", "🎬 [ANIMATE_IN] ===== STARTING MENU IN ANIMATION =====")
+        android.util.Log.d("RetroMenu3", "🎬 [ANIMATE_IN] Timestamp: ${System.currentTimeMillis()}")
+        android.util.Log.d("RetroMenu3", "🎬 [ANIMATE_IN] Fragment isVisible: ${this.isVisible}")
+        android.util.Log.d(
+                "RetroMenu3",
+                "🎬 [ANIMATE_IN] menuContainer alpha: ${menuContainer.alpha}, scaleX: ${menuContainer.scaleX}"
+        )
+        android.util.Log.d(
+                "RetroMenu3",
+                "🎬 [ANIMATE_IN] controlsHint alpha: ${controlsHint.alpha}, scaleX: ${controlsHint.scaleX}"
+        )
+
         // Use optimized batch animation for better performance
-        ViewUtils.animateMenuViewsBatch(
+        ViewUtils.animateMenuViewsBatchOptimized(
                 arrayOf(menuContainer, controlsHint),
                 toAlpha = 1f,
                 toScale = 1f,
                 duration = 200
         )
+
+        android.util.Log.d("RetroMenu3", "🎬 [ANIMATE_IN] Animation started - duration: 200ms")
+        android.util.Log.d("RetroMenu3", "🎬 [ANIMATE_IN] ===== MENU IN ANIMATION INITIATED =====")
     }
 
     private fun animateMenuOut(onEnd: () -> Unit) {
+        android.util.Log.d("RetroMenu3", "🎭 [ANIMATE_OUT] ===== STARTING MENU OUT ANIMATION =====")
+        android.util.Log.d(
+                "RetroMenu3",
+                "🎭 [ANIMATE_OUT] Timestamp: ${System.currentTimeMillis()}"
+        )
+        android.util.Log.d("RetroMenu3", "🎭 [ANIMATE_OUT] Fragment isVisible: ${this.isVisible}")
+        android.util.Log.d(
+                "RetroMenu3",
+                "🎭 [ANIMATE_OUT] menuContainer alpha: ${menuContainer.alpha}, scaleX: ${menuContainer.scaleX}"
+        )
+        android.util.Log.d(
+                "RetroMenu3",
+                "🎭 [ANIMATE_OUT] controlsHint alpha: ${controlsHint.alpha}, scaleX: ${controlsHint.scaleX}"
+        )
+
         // Use optimized batch animation with callback
-        ViewUtils.animateMenuViewsBatch(
+        ViewUtils.animateMenuViewsBatchOptimized(
                 arrayOf(menuContainer, controlsHint),
                 toAlpha = 0f,
                 toScale = 0.8f,
                 duration = 150
-        ) { onEnd() }
+        ) {
+            android.util.Log.d("RetroMenu3", "🎭 [ANIMATE_OUT] Animation completed callback fired")
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "🎭 [ANIMATE_OUT] Timestamp: ${System.currentTimeMillis()}"
+            )
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "🎭 [ANIMATE_OUT] Fragment isVisible after animation: ${this.isVisible}"
+            )
+            android.util.Log.d("RetroMenu3", "🎭 [ANIMATE_OUT] Calling onEnd callback")
+            onEnd()
+            android.util.Log.d("RetroMenu3", "🎭 [ANIMATE_OUT] onEnd callback completed")
+        }
+
+        android.util.Log.d(
+                "RetroMenu3",
+                "🎭 [ANIMATE_OUT] Animation started - duration: 150ms, target alpha: 0.0, scale: 0.8"
+        )
+        android.util.Log.d(
+                "RetroMenu3",
+                "🎭 [ANIMATE_OUT] ===== MENU OUT ANIMATION INITIATED ====="
+        )
     }
 
     private fun dismissMenu() {
-        android.util.Log.d("RetroMenu3", "[DISMISS] dismissMenu: Starting animation")
+        android.util.Log.d("RetroMenu3", "🔥 [DISMISS_MENU] ===== STARTING DISMISS MENU =====")
+        android.util.Log.d(
+                "RetroMenu3",
+                "🔥 [DISMISS_MENU] Timestamp: ${System.currentTimeMillis()}"
+        )
+        android.util.Log.d("RetroMenu3", "🔥 [DISMISS_MENU] Fragment isAdded: ${this.isAdded}")
+        android.util.Log.d("RetroMenu3", "🔥 [DISMISS_MENU] Fragment isVisible: ${this.isVisible}")
+        android.util.Log.d("RetroMenu3", "🔥 [DISMISS_MENU] Fragment isResumed: ${this.isResumed}")
+        android.util.Log.d("RetroMenu3", "🔥 [DISMISS_MENU] Starting animation")
+
         // IMPORTANT: Don't call dismissRetroMenu3() here to avoid crashes
         // Just remove the fragment visually
         animateMenuOut {
             android.util.Log.d(
                     "RetroMenu3",
-                    "[DISMISS] dismissMenu: Animation completed, removing fragment"
+                    "🔥 [DISMISS_MENU] Animation completed callback - Timestamp: ${System.currentTimeMillis()}"
+            )
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "🔥 [DISMISS_MENU] Animation completed, removing fragment"
+            )
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "🔥 [DISMISS_MENU] Fragment isVisible before removal: ${this.isVisible}"
+            )
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "🔥 [DISMISS_MENU] menuContainer alpha after animation: ${menuContainer.alpha}, scaleX: ${menuContainer.scaleX}"
+            )
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "🔥 [DISMISS_MENU] Calling parentFragmentManager.beginTransaction().remove()"
             )
             parentFragmentManager.beginTransaction().remove(this).commitAllowingStateLoss()
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "🔥 [DISMISS_MENU] Fragment removal transaction committed"
+            )
+            android.util.Log.d("RetroMenu3", "🔥 [DISMISS_MENU] ===== DISMISS MENU COMPLETED =====")
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "🔥 [DISMISS_MENU] Final Timestamp: ${System.currentTimeMillis()}"
+            )
         }
     }
 
@@ -498,7 +588,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         val itemTitle =
                 if (newIndex in getMenuItems().indices) getMenuItems()[newIndex].title
                 else "INVALID"
-        android.util.Log.d("RetroMenu3", "[NAV] ↑ UP: $oldIndex → $newIndex ($itemTitle)")
+        MenuLogger.navigation("↑ UP: $oldIndex → $newIndex ($itemTitle)")
     }
 
     /** Navigate down in the menu */
@@ -509,24 +599,44 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         val itemTitle =
                 if (newIndex in getMenuItems().indices) getMenuItems()[newIndex].title
                 else "INVALID"
-        android.util.Log.d("RetroMenu3", "[NAV] ↓ DOWN: $oldIndex → $newIndex ($itemTitle)")
+        MenuLogger.navigation("↓ DOWN: $oldIndex → $newIndex ($itemTitle)")
     }
 
     /** Confirm current selection */
     fun confirmSelection() {
+        android.util.Log.d("RetroMenu3", "🔥 [CONFIRM] ===== CONFIRM SELECTION START =====")
+        android.util.Log.d("RetroMenu3", "🔥 [CONFIRM] Timestamp: ${System.currentTimeMillis()}")
+
         val currentIndex = getCurrentSelectedIndex()
         val currentItem =
                 if (currentIndex in getMenuItems().indices) getMenuItems()[currentIndex] else null
         val itemTitle = currentItem?.title ?: "INVALID"
-        android.util.Log.d("RetroMenu3", "[ACTION] ✓ CONFIRM: $itemTitle (index: $currentIndex)")
+
+        // 🔍 LOG DETALHADO: Início da confirmação
+        android.util.Log.d("RetroMenu3", "🔥 [CONFIRM] Current index: $currentIndex")
+        android.util.Log.d("RetroMenu3", "🔥 [CONFIRM] Item title: $itemTitle")
+        android.util.Log.d("RetroMenu3", "🔥 [CONFIRM] Fragment isAdded: ${this.isAdded}")
+        android.util.Log.d("RetroMenu3", "🔥 [CONFIRM] Fragment isVisible: ${this.isVisible}")
+        android.util.Log.d("RetroMenu3", "🔥 [CONFIRM] Fragment isResumed: ${this.isResumed}")
+
+        MenuLogger.action("✓ CONFIRM: $itemTitle (index: $currentIndex)")
 
         // Use action map instead of switch case for better maintainability
         val action = actionMap[currentIndex]
         if (action != null) {
+            android.util.Log.d("RetroMenu3", "🔥 [CONFIRM] Action found: $action")
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "🔥 [CONFIRM] Calling menuActionHandler.executeAction()"
+            )
             menuActionHandler.executeAction(action)
+            android.util.Log.d("RetroMenu3", "🔥 [CONFIRM] executeAction() completed")
         } else {
             android.util.Log.w("RetroMenu3", "[ACTION] No action found for index: $currentIndex")
         }
+
+        android.util.Log.d("RetroMenu3", "🔥 [CONFIRM] ===== CONFIRM SELECTION END =====")
+        android.util.Log.d("RetroMenu3", "🔥 [CONFIRM] Timestamp: ${System.currentTimeMillis()}")
     }
 
     /** Make main menu invisible (when submenu is opened) */
@@ -869,8 +979,22 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
     /** Public method to dismiss the menu from outside */
     fun dismissMenuPublic() {
-        android.util.Log.d("RetroMenu3", "[DISMISS_PUBLIC] dismissMenuPublic: Called")
+        android.util.Log.d(
+                "RetroMenu3",
+                "🔥 [DISMISS_PUBLIC] ===== dismissMenuPublic() CALLED ====="
+        )
+        android.util.Log.d("RetroMenu3", "🔥 [DISMISS_PUBLIC] Fragment isAdded: ${this.isAdded}")
+        android.util.Log.d(
+                "RetroMenu3",
+                "🔥 [DISMISS_PUBLIC] Fragment isVisible: ${this.isVisible}"
+        )
+        android.util.Log.d("RetroMenu3", "🔥 [DISMISS_PUBLIC] Calling dismissMenu()")
         dismissMenu()
+        android.util.Log.d("RetroMenu3", "🔥 [DISMISS_PUBLIC] dismissMenu() returned")
+        android.util.Log.d(
+                "RetroMenu3",
+                "🔥 [DISMISS_PUBLIC] ===== dismissMenuPublic() COMPLETED ====="
+        )
     }
 
     /** Save complete log file with device and system information */
