@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -20,15 +19,15 @@ class ProgressFragment : MenuFragmentBase() {
 
     // Menu item views
     private lateinit var progressContainer: LinearLayout
-    private lateinit var saveState: MaterialCardView
-    private lateinit var loadState: MaterialCardView
-    private lateinit var backProgress: MaterialCardView
+    private lateinit var saveState: RetroCardView
+    private lateinit var loadState: RetroCardView
+    private lateinit var backProgress: RetroCardView
 
     // Menu title
     private lateinit var progressTitle: TextView
 
     // Ordered list of menu items for navigation
-    private lateinit var menuItems: List<MaterialCardView>
+    private lateinit var menuItems: List<RetroCardView>
 
     // Menu option titles for color control
     private lateinit var saveStateTitle: TextView
@@ -232,9 +231,10 @@ class ProgressFragment : MenuFragmentBase() {
         menuItems.forEach { item ->
             // Removed: background color of individual cards
             // Selection now indicated only by yellow text and arrows
-            item.strokeWidth = 0
-            item.strokeColor = android.graphics.Color.TRANSPARENT
-            item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+            // TODO: Fase 4.4 - Remover propriedades específicas do MaterialCardView
+            // item.strokeWidth = 0
+            // item.strokeColor = android.graphics.Color.TRANSPARENT
+            // item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
         }
 
         // Control text colors based on selection
