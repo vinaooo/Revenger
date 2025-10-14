@@ -90,6 +90,12 @@ class ProgressFragment : MenuFragmentBase() {
         // Initialize ordered list of menu items
         menuItems = listOf(saveState, loadState, backProgress)
 
+        // Configure ProgressFragment to not use background colors on cards
+        // (unlike main menu which uses yellow background for selection)
+        saveState.setUseBackgroundColor(false)
+        loadState.setUseBackgroundColor(false)
+        backProgress.setUseBackgroundColor(false)
+
         // Initialize menu option titles
         saveStateTitle = view.findViewById(R.id.save_state_title)
         loadStateTitle = view.findViewById(R.id.load_state_title)
@@ -228,16 +234,18 @@ class ProgressFragment : MenuFragmentBase() {
 
     /** Update selection visual - specific implementation for ProgressFragment */
     override fun updateSelectionVisualInternal() {
-        menuItems.forEach { item ->
-            // Removed: background color of individual cards
-            // Selection now indicated only by yellow text and arrows
-            // TODO: Fase 4.4 - Remover propriedades específicas do MaterialCardView
-            // item.strokeWidth = 0
-            // item.strokeColor = android.graphics.Color.TRANSPARENT
-            // item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+        // Update each menu item based on selection state
+        menuItems.forEachIndexed { index, menuItem ->
+            if (index == getCurrentSelectedIndex()) {
+                // Item selecionado - usar estado SELECTED do RetroCardView
+                menuItem.setState(RetroCardView.State.SELECTED)
+            } else {
+                // Item não selecionado - usar estado NORMAL do RetroCardView
+                menuItem.setState(RetroCardView.State.NORMAL)
+            }
         }
 
-        // Control text colors based on selection
+        // Control text colors based on selection and state
         saveStateTitle.setTextColor(
                 if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE

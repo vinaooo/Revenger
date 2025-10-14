@@ -28,6 +28,9 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     // Estado atual
     private var currentState = State.NORMAL
 
+    // Propriedade para controlar se deve usar cor de fundo
+    private var useBackgroundColor = true
+
     // Cores retro baseadas no tema
     private val colorSelected = Color.YELLOW
     private val colorPressed = Color.WHITE
@@ -74,7 +77,10 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     /** Atualiza a aparência visual baseada no estado atual */
     private fun updateVisualState() {
-        android.util.Log.d("RetroCardView", "updateVisualState called, currentState: $currentState")
+        android.util.Log.d(
+                "RetroCardView",
+                "updateVisualState called, currentState: $currentState, useBackgroundColor: $useBackgroundColor"
+        )
         try {
             when (currentState) {
                 State.NORMAL -> {
@@ -86,20 +92,38 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                     )
                 }
                 State.SELECTED -> {
-                    // Background amarelo para estado selecionado
-                    setBackgroundColor(colorSelected)
-                    android.util.Log.d(
-                            "RetroCardView",
-                            "updateVisualState: SELECTED - background yellow"
-                    )
+                    if (useBackgroundColor) {
+                        // Background amarelo para estado selecionado (padrão)
+                        setBackgroundColor(colorSelected)
+                        android.util.Log.d(
+                                "RetroCardView",
+                                "updateVisualState: SELECTED - background yellow"
+                        )
+                    } else {
+                        // Background transparente para estado selecionado (ProgressFragment)
+                        setBackgroundColor(Color.TRANSPARENT)
+                        android.util.Log.d(
+                                "RetroCardView",
+                                "updateVisualState: SELECTED - background transparent (no background mode)"
+                        )
+                    }
                 }
                 State.PRESSED -> {
-                    // Background branco para estado pressionado
-                    setBackgroundColor(colorPressed)
-                    android.util.Log.d(
-                            "RetroCardView",
-                            "updateVisualState: PRESSED - background white"
-                    )
+                    if (useBackgroundColor) {
+                        // Background branco para estado pressionado (padrão)
+                        setBackgroundColor(colorPressed)
+                        android.util.Log.d(
+                                "RetroCardView",
+                                "updateVisualState: PRESSED - background white"
+                        )
+                    } else {
+                        // Background transparente para estado pressionado (ProgressFragment)
+                        setBackgroundColor(Color.TRANSPARENT)
+                        android.util.Log.d(
+                                "RetroCardView",
+                                "updateVisualState: PRESSED - background transparent (no background mode)"
+                        )
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -108,11 +132,15 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         }
     }
 
-    /** Método utilitário para definir estado baseado em interações */
-    override fun setSelected(selected: Boolean) {
-        super.setSelected(selected)
-        setState(if (selected) State.SELECTED else State.NORMAL)
+    /** Define se deve usar cor de fundo nos estados selecionado/pressionado */
+    fun setUseBackgroundColor(useBackground: Boolean) {
+        android.util.Log.d("RetroCardView", "setUseBackgroundColor: $useBackground")
+        useBackgroundColor = useBackground
+        updateVisualState() // Atualiza visual imediatamente
     }
+
+    /** Obtém se está usando cor de fundo */
+    fun getUseBackgroundColor(): Boolean = useBackgroundColor
 
     override fun setPressed(pressed: Boolean) {
         super.setPressed(pressed)
