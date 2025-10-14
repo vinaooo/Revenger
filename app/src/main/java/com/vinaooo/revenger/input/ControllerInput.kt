@@ -84,12 +84,16 @@ class ControllerInput(private val context: Context) {
                         "ControllerInput",
                         "   BEFORE: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered"
                 )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   BEFORE: isRetroMenu3Open=${isRetroMenu3Open?.invoke() ?: false}"
+                )
                 keyLog.clear()
 
                 // 🔧 FIX: Reset comboAlreadyTriggered only if menu is not open
                 // This prevents false detections when menu is closed, but avoids
                 // resetting the flag if menu is still open (ex: during operations)
-                if (!isRetroMenu3Open()) {
+                if (!isRetroMenu3Open?.invoke()!!) {
                         android.util.Log.d(
                                 "ControllerInput",
                                 "   ✅ Menu is closed, resetting comboAlreadyTriggered to prevent double-press bug"
@@ -145,6 +149,9 @@ class ControllerInput(private val context: Context) {
         var menuConfirmCallback: () -> Unit = {}
         var menuBackCallback: () -> Unit = {}
 
+        /** Getter for comboAlreadyTriggered (for debugging) */
+        fun getComboAlreadyTriggered(): Boolean = comboAlreadyTriggered
+
         /** Function to check if devemos interceptar DPAD para menu */
         var shouldInterceptDpadForMenu: () -> Boolean = { false }
 
@@ -183,6 +190,20 @@ class ControllerInput(private val context: Context) {
 
         /** Check if we should be showing the user the menu */
         private fun checkMenuKeyCombo() {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔍 checkMenuKeyCombo() - INÍCIO DA VERIFICAÇÃO"
+                )
+                android.util.Log.d("ControllerInput", "   keyLog atual: $keyLog")
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   comboAlreadyTriggered: $comboAlreadyTriggered"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()}"
+                )
+
                 // Check if we have exactly the two buttons pressed
                 val hasSelectAndStart = keyLog.containsAll(KEYCOMBO_MENU) && keyLog.size == 2
 
@@ -269,8 +290,29 @@ class ControllerInput(private val context: Context) {
                 } else {
                         android.util.Log.d(
                                 "ControllerInput",
-                                "│ ❌ COMBO NOT TRIGGERED - Missing condition:"
+                                "❌ COMBO REJEITADO - Verificando condições faltantes:"
                         )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   hasSelectAndStart: $hasSelectAndStart (precisa ser true)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   comboAlreadyTriggered: $comboAlreadyTriggered (precisa ser false)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()} (precisa ser true)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   timeSinceLastTrigger: ${timeSinceLastTrigger}ms (precisa ser > ${COMBO_COOLDOWN_MS}ms)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   timeSinceMenuClose: ${timeSinceMenuClose}ms (precisa ser > ${MENU_CLOSE_DEBOUNCE_MS}ms)"
+                        )
+
                         if (!hasSelectAndStart) {
                                 android.util.Log.d(
                                         "ControllerInput",
@@ -353,6 +395,11 @@ class ControllerInput(private val context: Context) {
                                 )
                         }
                 }
+                android.util.Log.d("ControllerInput", "🔚 checkMenuKeyCombo() - FIM DA VERIFICAÇÃO")
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   Estado final - comboAlreadyTriggered: $comboAlreadyTriggered"
+                )
                 android.util.Log.d(
                         "ControllerInput",
                         "└─────────────────────────────────────────────────────────"

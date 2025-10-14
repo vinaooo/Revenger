@@ -44,7 +44,7 @@
                 android:textColor="@color/retro_menu3_text_color"
                 android:textStyle="bold"
                 android:letterSpacing="@dimen/retro_menu3_title_letter_spacing"
-                android:gravity="center"
+                android:gravity="left"
                 android:shadowColor="@color/retro_menu3_shadow_color"
                 android:shadowDx="@dimen/retro_menu3_shadow_dx"
                 android:shadowDy="@dimen/retro_menu3_shadow_dy"

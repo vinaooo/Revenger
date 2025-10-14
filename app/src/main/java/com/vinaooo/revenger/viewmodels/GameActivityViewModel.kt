@@ -391,11 +391,39 @@ class GameActivityViewModel(application: Application) :
     /** Dismiss the RetroMenu3 */
     fun dismissRetroMenu3() {
         android.util.Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Starting")
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[DISMISS_MAIN] dismissRetroMenu3: isRetroMenu3Open before dismiss: ${isRetroMenu3Open()}"
+        )
+
         retroMenu3Fragment?.dismissMenuPublic()
-        // CRITICAL: Clear keyLog to prevent phantom key presses
-        controllerInput.clearKeyLog()
-        // CRITICAL: Clear blocked keys after menu dismissal
-        controllerInput.clearBlockedKeysDelayed()
+
+        // CRITICAL: Add small delay before clearing keyLog to ensure fragment is fully removed
+        // This prevents comboAlreadyTriggered from staying true when menu closes
+        android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[DISMISS_MAIN] dismissRetroMenu3: DELAYED - isRetroMenu3Open after delay: ${isRetroMenu3Open()}"
+                            )
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[DISMISS_MAIN] dismissRetroMenu3: DELAYED - clearing keyLog now"
+                            )
+
+                            // CRITICAL: Clear keyLog to prevent phantom key presses
+                            controllerInput.clearKeyLog()
+                            // CRITICAL: Clear blocked keys after menu dismissal
+                            controllerInput.clearBlockedKeysDelayed()
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[DISMISS_MAIN] dismissRetroMenu3: KeyLog cleared after delay"
+                            )
+                        },
+                        200
+                ) // 200ms delay to ensure fragment removal is complete
+
         android.util.Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Completed")
     }
 
@@ -404,9 +432,44 @@ class GameActivityViewModel(application: Application) :
      * its own (e.g.: Continue button)
      */
     fun clearControllerInputState() {
-        inputViewModel.clearControllerInputState()
-        controllerInput.clearKeyLog()
-        controllerInput.clearBlockedKeysDelayed()
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[CLEAR_STATE] clearControllerInputState: STARTING"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[CLEAR_STATE] clearControllerInputState: comboAlreadyTriggered before: ${controllerInput.getComboAlreadyTriggered()}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[CLEAR_STATE] clearControllerInputState: isRetroMenu3Open: ${isRetroMenu3Open()}"
+        )
+
+        // Add small delay to ensure fragment is fully destroyed before clearing combo state
+        android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[CLEAR_STATE] clearControllerInputState: DELAYED - clearing now"
+                            )
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[CLEAR_STATE] clearControllerInputState: isRetroMenu3Open after delay: ${isRetroMenu3Open()}"
+                            )
+                            inputViewModel.clearControllerInputState()
+                            controllerInput.clearKeyLog()
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[CLEAR_STATE] clearControllerInputState: comboAlreadyTriggered after: ${controllerInput.getComboAlreadyTriggered()}"
+                            )
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[CLEAR_STATE] clearControllerInputState: COMPLETED"
+                            )
+                        },
+                        200
+                ) // 200ms delay to ensure fragment destruction is complete
     }
 
     /** Check if the RetroMenu3 is currently open */

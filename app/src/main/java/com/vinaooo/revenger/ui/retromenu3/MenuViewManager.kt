@@ -34,7 +34,6 @@ class MenuViewManager(private val fragment: Fragment) {
     private lateinit var progressMenu: RetroCardView
     private lateinit var settingsMenu: RetroCardView
     private lateinit var exitMenu: RetroCardView
-    private lateinit var saveLogMenu: RetroCardView
 
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<RetroCardView>
@@ -48,7 +47,6 @@ class MenuViewManager(private val fragment: Fragment) {
     private lateinit var progressTitle: TextView
     private lateinit var settingsTitle: TextView
     private lateinit var exitTitle: TextView
-    private lateinit var saveLogTitle: TextView
 
     // Selection arrows
     private lateinit var selectionArrowContinue: TextView
@@ -56,7 +54,6 @@ class MenuViewManager(private val fragment: Fragment) {
     private lateinit var selectionArrowProgress: TextView
     private lateinit var selectionArrowSettings: TextView
     private lateinit var selectionArrowExit: TextView
-    private lateinit var selectionArrowSaveLog: TextView
 
     /** Configura o título dinâmico do menu baseado no estilo configurado */
     fun setupDynamicTitle(view: View) {
@@ -261,8 +258,6 @@ class MenuViewManager(private val fragment: Fragment) {
         get() = settingsMenu
     val exitMenuItem: RetroCardView
         get() = exitMenu
-    val saveLogMenuItem: RetroCardView
-        get() = saveLogMenu
 
     // Getter para o container do menu
     val menuContainer: LinearLayout
