@@ -3,6 +3,9 @@
 ## Overview
 Essential principles and practices for RetroMenu3 development. Maintain UI/UX, follow SOLID, ensure performance.
 
+## UI Design Principles
+The RetroMenu3 system does not use and should not use Material Design, Material You, or Material You Expressive. The UI has its own characteristics with a retro style that attempts to resemble old video games, using retro fonts, navigation via touch DPAD or USB, confirmation buttons also on touch or USB gamepads, in addition to direct touch control - that is, touching options directly with fingers should also work.
+
 ## Core Principles
 - **SOLID**: Single responsibility, open/closed, Liskov, interface segregation, dependency inversion
 - **Reactive**: StateFlow for state management, unidirectional data flow
