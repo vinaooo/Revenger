@@ -8,6 +8,13 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 
+/** Representa um item de menu composto por título, seta de seleção e card view */
+data class MenuItemView(
+        val titleTextView: TextView,
+        val arrowTextView: TextView,
+        val cardView: RetroCardView
+)
+
 /**
  * Gerencia a configuração e atualização visual das views do menu RetroMenu3. Responsável por:
  * - Configuração inicial das views
@@ -79,41 +86,36 @@ class MenuViewManager(private val fragment: Fragment) {
         // Menu items
         continueMenu = view.findViewById(R.id.menu_continue)
         resetMenu = view.findViewById(R.id.menu_reset)
-        progressMenu = view.findViewById(R.id.menu_submenu1)
-        settingsMenu = view.findViewById(R.id.menu_settings)
+        settingsMenu = view.findViewById(R.id.menu_submenu1)
+        progressMenu = view.findViewById(R.id.menu_submenu2)
         exitMenu = view.findViewById(R.id.menu_exit)
-        saveLogMenu = view.findViewById(R.id.menu_save_log)
 
         // Initialize ordered list of menu items
-        menuItems =
-                listOf(continueMenu, resetMenu, progressMenu, settingsMenu, exitMenu, saveLogMenu)
+        menuItems = listOf(continueMenu, resetMenu, settingsMenu, progressMenu, exitMenu)
 
         // Dynamic content views (only views that exist in layout)
         // Initialize menu option titles
         continueTitle = view.findViewById(R.id.continue_title)
         resetTitle = view.findViewById(R.id.reset_title)
-        progressTitle = view.findViewById(R.id.progress_menu_title)
-        settingsTitle = view.findViewById(R.id.settings_title)
+        settingsTitle = view.findViewById(R.id.submenu1_title)
+        progressTitle = view.findViewById(R.id.submenu2_title)
         exitTitle = view.findViewById(R.id.exit_title)
-        saveLogTitle = view.findViewById(R.id.save_log_title)
 
         // Initialize selection arrows
         selectionArrowContinue = view.findViewById(R.id.selection_arrow_continue)
         selectionArrowReset = view.findViewById(R.id.selection_arrow_reset)
-        selectionArrowProgress = view.findViewById(R.id.selection_arrow_submenu1)
-        selectionArrowSettings = view.findViewById(R.id.selection_arrow_settings)
+        selectionArrowSettings = view.findViewById(R.id.selection_arrow_submenu1)
+        selectionArrowProgress = view.findViewById(R.id.selection_arrow_submenu2)
         selectionArrowExit = view.findViewById(R.id.selection_arrow_exit)
-        selectionArrowSaveLog = view.findViewById(R.id.selection_arrow_save_log)
 
         // Initialize menu item views list
         menuItemViews =
                 listOf(
                         MenuItemView(continueTitle, selectionArrowContinue, continueMenu),
                         MenuItemView(resetTitle, selectionArrowReset, resetMenu),
-                        MenuItemView(progressTitle, selectionArrowProgress, progressMenu),
                         MenuItemView(settingsTitle, selectionArrowSettings, settingsMenu),
-                        MenuItemView(exitTitle, selectionArrowExit, exitMenu),
-                        MenuItemView(saveLogTitle, selectionArrowSaveLog, saveLogMenu)
+                        MenuItemView(progressTitle, selectionArrowProgress, progressMenu),
+                        MenuItemView(exitTitle, selectionArrowExit, exitMenu)
                 )
 
         // Apply arcade font to all text views
@@ -125,13 +127,11 @@ class MenuViewManager(private val fragment: Fragment) {
                 progressTitle,
                 settingsTitle,
                 exitTitle,
-                saveLogTitle,
                 selectionArrowContinue,
                 selectionArrowReset,
                 selectionArrowProgress,
                 selectionArrowSettings,
-                selectionArrowExit,
-                selectionArrowSaveLog
+                selectionArrowExit
         )
 
         // Set first item as selected

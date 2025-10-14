@@ -45,3 +45,7 @@ build.gradle_backup
 gradle-wrapper.properties_backup
 
 revenger_log*
+retromenu3_debug*
+revenger_debug*
+*log*
+*debug*

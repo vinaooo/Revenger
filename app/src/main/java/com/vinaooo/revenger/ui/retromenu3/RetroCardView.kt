@@ -1,12 +1,9 @@
 package com.vinaooo.revenger.ui.retromenu3
 
 import android.content.Context
-import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
 import android.util.AttributeSet
-import android.widget.FrameLayout
+import android.widget.LinearLayout
 
 /**
  * RetroCardView - View customizada que substitui MaterialCardView seguindo o estilo retro do
@@ -19,7 +16,7 @@ import android.widget.FrameLayout
 class RetroCardView
 @JvmOverloads
 constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
-        FrameLayout(context, attrs, defStyleAttr) {
+        LinearLayout(context, attrs, defStyleAttr) {
 
     // Estados da view
     enum class State {
@@ -31,106 +28,84 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     // Estado atual
     private var currentState = State.NORMAL
 
-    // Paint para desenhar as bordas
-    private val borderPaint =
-            Paint().apply {
-                style = Paint.Style.STROKE
-                strokeWidth = 2f
-                isAntiAlias = false // Pixel perfect para estilo retro
-            }
-
-    // Paint para o background
-    private val backgroundPaint =
-            Paint().apply {
-                style = Paint.Style.FILL
-                isAntiAlias = false
-            }
-
-    // Paint para efeito de glow no estado selecionado
-    private val glowPaint =
-            Paint().apply {
-                style = Paint.Style.STROKE
-                strokeWidth = 4f
-                isAntiAlias = false
-                color = Color.YELLOW
-            }
-
     // Cores retro baseadas no tema
-    private val colorNormal = Color.BLACK
     private val colorSelected = Color.YELLOW
     private val colorPressed = Color.WHITE
-    private val colorBorder = Color.WHITE
-
-    // Padding interno para conteúdo (como MaterialCardView)
-    private val internalPadding = 16 // dp convertido para px será feito depois
-
-    // Retângulo para cálculos de desenho
-    private val drawRect = Rect()
-    private val contentRect = Rect()
 
     init {
-        // Configurações iniciais
-        setWillNotDraw(false) // Permite onDraw
-        isClickable = true
+        android.util.Log.d("RetroCardView", "RetroCardView init START")
+        try {
+            // Configurações iniciais
+            isClickable = true
 
-        // Converte padding para pixels
-        val density = context.resources.displayMetrics.density
-        setPadding(
-                (internalPadding * density).toInt(),
-                (internalPadding * density).toInt(),
-                (internalPadding * density).toInt(),
-                (internalPadding * density).toInt()
-        )
+            // Background transparente para não interferir com conteúdo filho
+            setBackgroundColor(Color.TRANSPARENT)
 
-        updateVisualState()
+            // Orientação será definida pelo XML (horizontal para itens do menu)
+            // Não definir orientação padrão para evitar conflitos com XML
+
+            // Não aplica padding interno para compatibilidade com layouts existentes
+            // O padding é controlado pelos layouts XML individuais
+
+            updateVisualState()
+            android.util.Log.d("RetroCardView", "RetroCardView init COMPLETED")
+        } catch (e: Exception) {
+            android.util.Log.e("RetroCardView", "RetroCardView init ERROR", e)
+            throw e
+        }
     }
 
     /** Define o estado visual da view */
     fun setState(state: State) {
-        if (currentState != state) {
-            currentState = state
-            updateVisualState()
-            invalidate()
+        android.util.Log.d("RetroCardView", "setState called: $state (current: $currentState)")
+        try {
+            if (currentState != state) {
+                currentState = state
+                updateVisualState()
+                android.util.Log.d("RetroCardView", "setState completed: new state $state")
+            } else {
+                android.util.Log.d("RetroCardView", "setState skipped: state already $state")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("RetroCardView", "setState ERROR", e)
+            throw e
         }
     }
 
     /** Atualiza a aparência visual baseada no estado atual */
     private fun updateVisualState() {
-        when (currentState) {
-            State.NORMAL -> {
-                backgroundPaint.color = colorNormal
-                borderPaint.color = colorBorder
+        android.util.Log.d("RetroCardView", "updateVisualState called, currentState: $currentState")
+        try {
+            when (currentState) {
+                State.NORMAL -> {
+                    // Background transparente para estado normal
+                    setBackgroundColor(Color.TRANSPARENT)
+                    android.util.Log.d(
+                            "RetroCardView",
+                            "updateVisualState: NORMAL - background transparent"
+                    )
+                }
+                State.SELECTED -> {
+                    // Background amarelo para estado selecionado
+                    setBackgroundColor(colorSelected)
+                    android.util.Log.d(
+                            "RetroCardView",
+                            "updateVisualState: SELECTED - background yellow"
+                    )
+                }
+                State.PRESSED -> {
+                    // Background branco para estado pressionado
+                    setBackgroundColor(colorPressed)
+                    android.util.Log.d(
+                            "RetroCardView",
+                            "updateVisualState: PRESSED - background white"
+                    )
+                }
             }
-            State.SELECTED -> {
-                backgroundPaint.color = colorSelected
-                borderPaint.color = Color.BLACK // Borda escura para contraste
-            }
-            State.PRESSED -> {
-                backgroundPaint.color = colorPressed
-                borderPaint.color = Color.BLACK
-            }
+        } catch (e: Exception) {
+            android.util.Log.e("RetroCardView", "updateVisualState ERROR", e)
+            throw e
         }
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-
-        // Calcula retângulo de desenho (preenchendo toda a view)
-        drawRect.set(0, 0, width, height)
-
-        // Calcula retângulo de conteúdo (com padding interno)
-        contentRect.set(paddingLeft, paddingTop, width - paddingRight, height - paddingBottom)
-
-        // Desenha background
-        canvas.drawRect(drawRect, backgroundPaint)
-
-        // Desenha efeito de glow para estado selecionado
-        if (currentState == State.SELECTED) {
-            canvas.drawRect(drawRect, glowPaint)
-        }
-
-        // Desenha borda pixelada
-        canvas.drawRect(drawRect, borderPaint)
     }
 
     /** Método utilitário para definir estado baseado em interações */
@@ -146,4 +121,24 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     /** Obtém o estado atual */
     fun getState(): State = currentState
+
+    /** Garante que os LayoutParams sejam do tipo correto para LinearLayout */
+    override fun generateLayoutParams(
+            attrs: android.util.AttributeSet?
+    ): LinearLayout.LayoutParams {
+        return LinearLayout.LayoutParams(context, attrs)
+    }
+
+    override fun generateDefaultLayoutParams(): LinearLayout.LayoutParams {
+        return LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+    }
+
+    override fun generateLayoutParams(
+            lp: android.view.ViewGroup.LayoutParams?
+    ): LinearLayout.LayoutParams {
+        return LinearLayout.LayoutParams(lp)
+    }
 }
