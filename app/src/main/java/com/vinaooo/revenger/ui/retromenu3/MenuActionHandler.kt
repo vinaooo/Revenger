@@ -149,6 +149,6 @@ class MenuActionHandler(
     /** Dismiss do menu (fecha o fragment) */
     private fun dismissMenu() {
         // Remove the fragment visually
-        fragment.parentFragmentManager.beginTransaction().remove(fragment).commit()
+        fragment.parentFragmentManager.beginTransaction().remove(fragment).commitAllowingStateLoss()
     }
 }

@@ -526,16 +526,24 @@ class ControllerInput(private val context: Context) {
                                         KeyEvent.KEYCODE_DPAD_UP -> {
                                                 android.util.Log.d(
                                                         "ControllerInput",
-                                                        "DPAD UP (KeyEvent) intercepted for menu navigation"
+                                                        "DPAD UP (KeyEvent) intercepted for menu navigation - calling callback"
                                                 )
                                                 menuNavigateUpCallback()
+                                                android.util.Log.d(
+                                                        "ControllerInput",
+                                                        "DPAD UP (KeyEvent) callback completed"
+                                                )
                                         }
                                         KeyEvent.KEYCODE_DPAD_DOWN -> {
                                                 android.util.Log.d(
                                                         "ControllerInput",
-                                                        "DPAD DOWN (KeyEvent) intercepted for menu navigation"
+                                                        "DPAD DOWN (KeyEvent) intercepted for menu navigation - calling callback"
                                                 )
                                                 menuNavigateDownCallback()
+                                                android.util.Log.d(
+                                                        "ControllerInput",
+                                                        "DPAD DOWN (KeyEvent) callback completed"
+                                                )
                                         }
                                         KeyEvent.KEYCODE_DPAD_LEFT -> {
                                                 android.util.Log.d(
@@ -722,36 +730,95 @@ class ControllerInput(private val context: Context) {
 
                 // INTERCEPT DPAD for menu navigation when RetroMenu3 is open
                 if (shouldInterceptDpadForMenu()) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION START =========="
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "[INTERCEPT] 📊 shouldInterceptDpadForMenu=${shouldInterceptDpadForMenu()}"
+                        )
+
                         val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
                         val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+
+                        android.util.Log.d("ControllerInput", "[INTERCEPT] 📊 MotionEvent values:")
+                        android.util.Log.d("ControllerInput", "[INTERCEPT]   🎯 hatX=$hatX")
+                        android.util.Log.d("ControllerInput", "[INTERCEPT]   🎯 hatY=$hatY")
 
                         // Simplified logic: detect current DPAD direction
                         when {
                                 hatY < -0.5f -> { // DPAD UP
                                         android.util.Log.d(
                                                 "ControllerInput",
-                                                "DPAD UP pressed for menu navigation"
+                                                "[INTERCEPT] ⬆️ DPAD UP detected - calling menuNavigateUpCallback"
                                         )
                                         menuNavigateUpCallback()
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ✅ DPAD UP callback completed - returning true"
+                                        )
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION END (UP) =========="
+                                        )
                                         return true
                                 }
                                 hatY > 0.5f -> { // DPAD DOWN
                                         android.util.Log.d(
                                                 "ControllerInput",
-                                                "DPAD DOWN pressed for menu navigation"
+                                                "[INTERCEPT] ⬇️ DPAD DOWN detected - calling menuNavigateDownCallback"
                                         )
                                         menuNavigateDownCallback()
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ✅ DPAD DOWN callback completed - returning true"
+                                        )
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION END (DOWN) =========="
+                                        )
                                         return true
                                 }
                                 hatX < -0.5f -> { // DPAD LEFT (if needed in the future)
-                                        android.util.Log.d("ControllerInput", "DPAD LEFT pressed")
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ⬅️ DPAD LEFT detected - blocking"
+                                        )
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION END (LEFT) =========="
+                                        )
                                         return true
                                 }
                                 hatX > 0.5f -> { // DPAD RIGHT (if needed in the future)
-                                        android.util.Log.d("ControllerInput", "DPAD RIGHT pressed")
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ➡️ DPAD RIGHT detected - blocking"
+                                        )
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION END (RIGHT) =========="
+                                        )
                                         return true
                                 }
+                                else -> {
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ⭕ No DPAD direction detected - values too small"
+                                        )
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION END (NONE) =========="
+                                        )
+                                        // No direction detected, let the event pass through
+                                }
                         }
+                } else {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "[INTERCEPT] 🚫 DPAD interception disabled - shouldInterceptDpadForMenu=${shouldInterceptDpadForMenu()}"
+                        )
                 }
 
                 // Send motion events to game

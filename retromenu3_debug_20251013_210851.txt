@@ -1,0 +1,414 @@
+10-13 21:09:17.887 D/GameActivityViewModel(29865): [SHOW_RETRO_MENU] showRetroMenu3 called!
+10-13 21:09:17.887 D/GameActivityViewModel(29865): [SHOW_RETRO_MENU] Current back stack count: 0
+10-13 21:09:17.887 D/GameActivityViewModel(29865): [SHOW_RETRO_MENU] isDismissingAllMenus: false
+10-13 21:09:17.887 D/GameActivityViewModel(29865): [SHOW_RETRO_MENU] isRetroMenu3Open: false
+10-13 21:09:17.894 D/GameActivityViewModel(29865): [SHOW_RETRO_MENU] Stack trace:
+10-13 21:09:17.894 D/GameActivityViewModel(29865): 	at com.vinaooo.revenger.viewmodels.GameActivityViewModel.showRetroMenu3(GameActivityViewModel.kt:339)
+10-13 21:09:17.919 D/GameActivityViewModel(29865): RetroMenu3Fragment is available, showing it
+10-13 21:09:17.923 D/GameActivityViewModel(29865): RetroMenu3 fragment added successfully
+10-13 21:09:17.923 D/MenuStateManager(29865): Menu state updated: MenuSystemState(currentState=MAIN_MENU, activeMenus=[], navigationStack=[], isRetroMenu3Open=false, isDismissingAllMenus=false)
+10-13 21:09:18.022 D/RetroMenu3(29865): [LIFECYCLE] Main menu created and initialized
+10-13 21:09:18.036 D/RetroMenu3(29865): [LIFECYCLE] Main menu setup completed - ready for user interaction
+10-13 21:09:18.095 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD INPUT - RetroMenu3 is open (keyCode: 109)
+10-13 21:09:18.586 D/MenuManager(29865): [SEND] sendNavigateDown: Sending navigate down event
+10-13 21:09:18.586 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== STARTING NAVIGATE DOWN ==========
+10-13 21:09:18.586 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=MAIN_MENU, fragment=RetroMenu3Fragment, isAdded=true
+10-13 21:09:18.587 D/MenuManager(29865): [NAV] ↓ navigateDown: Fragment status check
+10-13 21:09:18.587 D/MenuManager(29865): [NAV]   📋 fragment=RetroMenu3Fragment
+10-13 21:09:18.587 D/MenuManager(29865): [NAV]   ✅ isAdded=true
+10-13 21:09:18.587 D/MenuManager(29865): [NAV]   🎯 hasContext=true
+10-13 21:09:18.587 D/MenuManager(29865): [NAV]   👁️ isVisible=true
+10-13 21:09:18.587 D/MenuManager(29865): [NAV]   🎮 isResumed=true
+10-13 21:09:18.587 D/MenuManager(29865): [NAV]   📊 currentState=MAIN_MENU
+10-13 21:09:18.587 D/MenuManager(29865): [NAV] ↓ navigateDown: Calling fragment.onNavigateDown()
+10-13 21:09:18.587 D/MenuBase(29865): [NAV] ↓ onNavigateDown triggered - calling performNavigateDown
+10-13 21:09:18.587 D/RetroMenu3(29865): [NAV] ↓ performNavigateDown called - currentIndex=0, isVisible=true, isResumed=true, hasFocus=false
+10-13 21:09:18.588 D/RetroMenu3(29865): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-13 21:09:18.588 D/RetroMenu3(29865): [NAV] ↓ performNavigateDown completed - newIndex=1
+10-13 21:09:18.588 D/MenuBase(29865): [NAV] ↓ onNavigateDown completed - result=kotlin.Unit
+10-13 21:09:18.588 D/MenuManager(29865): [NAV] ↓ navigateDown: Result=true
+10-13 21:09:18.589 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== NAVIGATE DOWN COMPLETED ==========
+10-13 21:09:18.589 D/MenuManager(29865): [SEND] sendNavigateDown: Event sent
+10-13 21:09:18.701 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)
+10-13 21:09:18.785 D/MenuManager(29865): [SEND] sendNavigateDown: Sending navigate down event
+10-13 21:09:18.786 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== STARTING NAVIGATE DOWN ==========
+10-13 21:09:18.786 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=MAIN_MENU, fragment=RetroMenu3Fragment, isAdded=true
+10-13 21:09:18.786 D/MenuManager(29865): [NAV] ↓ navigateDown: Fragment status check
+10-13 21:09:18.786 D/MenuManager(29865): [NAV]   📋 fragment=RetroMenu3Fragment
+10-13 21:09:18.786 D/MenuManager(29865): [NAV]   ✅ isAdded=true
+10-13 21:09:18.786 D/MenuManager(29865): [NAV]   🎯 hasContext=true
+10-13 21:09:18.786 D/MenuManager(29865): [NAV]   👁️ isVisible=true
+10-13 21:09:18.786 D/MenuManager(29865): [NAV]   🎮 isResumed=true
+10-13 21:09:18.786 D/MenuManager(29865): [NAV]   📊 currentState=MAIN_MENU
+10-13 21:09:18.786 D/MenuManager(29865): [NAV] ↓ navigateDown: Calling fragment.onNavigateDown()
+10-13 21:09:18.786 D/MenuBase(29865): [NAV] ↓ onNavigateDown triggered - calling performNavigateDown
+10-13 21:09:18.786 D/RetroMenu3(29865): [NAV] ↓ performNavigateDown called - currentIndex=1, isVisible=true, isResumed=true, hasFocus=false
+10-13 21:09:18.787 D/RetroMenu3(29865): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-13 21:09:18.787 D/RetroMenu3(29865): [NAV] ↓ performNavigateDown completed - newIndex=2
+10-13 21:09:18.787 D/MenuBase(29865): [NAV] ↓ onNavigateDown completed - result=kotlin.Unit
+10-13 21:09:18.787 D/MenuManager(29865): [NAV] ↓ navigateDown: Result=true
+10-13 21:09:18.788 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== NAVIGATE DOWN COMPLETED ==========
+10-13 21:09:18.788 D/MenuManager(29865): [SEND] sendNavigateDown: Event sent
+10-13 21:09:18.901 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)
+10-13 21:09:19.708 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=MAIN_MENU, fragment=RetroMenu3Fragment, isAdded=true
+10-13 21:09:19.708 D/RetroMenu3(29865): [ACTION] ✓ CONFIRM: Progress (index: 2)
+10-13 21:09:19.709 D/MenuActionHandler(29865): [ACTION] Executing action: NAVIGATE(targetMenu=PROGRESS_MENU)
+10-13 21:09:19.710 D/SubmenuCoordinator(29865): [SUBMENU] 🚪 openSubmenu: ========== OPENING SUBMENU ==========
+10-13 21:09:19.710 D/SubmenuCoordinator(29865): [SUBMENU]   📋 menuState=PROGRESS_MENU
+10-13 21:09:19.710 D/SubmenuCoordinator(29865): [SUBMENU]   📊 currentState=MAIN_MENU
+10-13 21:09:19.710 D/SubmenuCoordinator(29865): [SUBMENU]   🎮 isRetroMenu3Open=true
+10-13 21:09:19.710 D/SubmenuCoordinator(29865): [SUBMENU] 🎧 openSubmenu: Setting up back stack listener
+10-13 21:09:19.710 D/SubmenuCoordinator(29865): [SUBMENU] 🎧 setupGlobalBackStackListener: STARTING setup
+10-13 21:09:19.710 D/SubmenuCoordinator(29865): [SUBMENU] 🎧 setupGlobalBackStackListener: Adding listener to FragmentManager
+10-13 21:09:19.710 D/SubmenuCoordinator(29865): [SUBMENU] ✅ setupGlobalBackStackListener: COMPLETED
+10-13 21:09:19.710 D/SubmenuCoordinator(29865): [SUBMENU] 🔄 openSubmenu: Processing submenu type
+10-13 21:09:19.710 D/SubmenuCoordinator(29865): [SUBMENU] 📊 openSubmenu: Opening PROGRESS submenu
+10-13 21:09:19.710 D/SubmenuCoordinator(29865): [SUBMENU] Opening progress submenu
+10-13 21:09:19.714 D/MenuStateManager(29865): Menu state updated: MenuSystemState(currentState=MAIN_MENU, activeMenus=[PROGRESS_MENU], navigationStack=[], isRetroMenu3Open=false, isDismissingAllMenus=false)
+10-13 21:09:19.714 D/SubmenuCoordinator(29865): [SUBMENU] 🔄 replaceMainMenuWithSubmenu: ========== REPLACING MAIN MENU ==========
+10-13 21:09:19.714 D/SubmenuCoordinator(29865): [SUBMENU]   🏷️ tag=ProgressFragment
+10-13 21:09:19.714 D/SubmenuCoordinator(29865): [SUBMENU]   📋 menuState=PROGRESS_MENU
+10-13 21:09:19.714 D/SubmenuCoordinator(29865): [SUBMENU]   📦 submenuFragment=ProgressFragment
+10-13 21:09:19.714 D/SubmenuCoordinator(29865): [SUBMENU] 👁️ replaceMainMenuWithSubmenu: Hiding main menu
+10-13 21:09:19.714 D/RetroMenu3(29865): [HIDE] 🔇 hideMainMenu: ========== STARTING HIDE MAIN MENU ==========
+10-13 21:09:19.714 D/RetroMenu3(29865): [HIDE] 📊 hideMainMenu: Pre-hide state
+10-13 21:09:19.715 D/RetroMenu3(29865): [HIDE]   👁️ menuContainer.isShown=true
+10-13 21:09:19.715 D/RetroMenu3(29865): [HIDE]   👁️ menuContainer.visibility=0
+10-13 21:09:19.715 D/RetroMenu3(29865): [HIDE]   🎨 menuContainer.alpha=1.0
+10-13 21:09:19.715 D/RetroMenu3(29865): [HIDE]   🎯 menuContainer.hasFocus=false
+10-13 21:09:19.715 D/RetroMenu3(29865): [HIDE] 🔇 hideMainMenu: Hiding menu container
+10-13 21:09:19.717 D/RetroMenu3(29865): [HIDE] 📊 hideMainMenu: Post-hide state
+10-13 21:09:19.717 D/RetroMenu3(29865): [HIDE]   👁️ menuContainer.isShown=false
+10-13 21:09:19.717 D/RetroMenu3(29865): [HIDE]   👁️ menuContainer.visibility=4
+10-13 21:09:19.718 D/RetroMenu3(29865): [HIDE]   🎨 menuContainer.alpha=1.0
+10-13 21:09:19.718 D/RetroMenu3(29865): [HIDE]   🎯 menuContainer.hasFocus=false
+10-13 21:09:19.718 D/RetroMenu3(29865): [HIDE] ✅ hideMainMenu: ========== HIDE MAIN MENU COMPLETED ==========
+10-13 21:09:19.718 D/SubmenuCoordinator(29865): [SUBMENU] ✅ replaceMainMenuWithSubmenu: Main menu hidden
+10-13 21:09:19.718 D/SubmenuCoordinator(29865): [SUBMENU] ➕ replaceMainMenuWithSubmenu: Adding submenu fragment
+10-13 21:09:19.718 D/SubmenuCoordinator(29865): [SUBMENU] 💾 replaceMainMenuWithSubmenu: Committing transaction
+10-13 21:09:19.718 D/SubmenuCoordinator(29865): [SUBMENU] ✅ replaceMainMenuWithSubmenu: Transaction committed
+10-13 21:09:19.718 D/SubmenuCoordinator(29865): [SUBMENU] 🔄 replaceMainMenuWithSubmenu: Updating MenuManager state
+10-13 21:09:19.718 D/MenuStateManager(29865): Menu state updated: MenuSystemState(currentState=PROGRESS_MENU, activeMenus=[PROGRESS_MENU], navigationStack=[], isRetroMenu3Open=false, isDismissingAllMenus=false)
+10-13 21:09:19.718 D/SubmenuCoordinator(29865): [SUBMENU] ✅ replaceMainMenuWithSubmenu: MenuManager state updated to PROGRESS_MENU
+10-13 21:09:19.719 D/SubmenuCoordinator(29865): [SUBMENU] ✅ replaceMainMenuWithSubmenu: ========== SUBMENU REPLACEMENT COMPLETED ==========
+10-13 21:09:19.719 D/SubmenuCoordinator(29865): [SUBMENU] ✅ openSubmenu: ========== SUBMENU OPENED ==========
+10-13 21:09:19.749 D/SubmenuCoordinator(29865): [SUBMENU] 🔍 BACK STACK LISTENER TRIGGERED:
+10-13 21:09:19.749 D/SubmenuCoordinator(29865): [SUBMENU]   📊 backStackCount=1
+10-13 21:09:19.749 D/SubmenuCoordinator(29865): [SUBMENU]   🚫 isDismissing=false
+10-13 21:09:19.749 D/SubmenuCoordinator(29865): [SUBMENU]   📂 hasActiveSubmenus=true
+10-13 21:09:19.749 D/SubmenuCoordinator(29865): [SUBMENU]   🎮 isRetroMenu3Open=true
+10-13 21:09:19.749 D/SubmenuCoordinator(29865): [SUBMENU]   📋 currentMenuState=PROGRESS_MENU
+10-13 21:09:19.749 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=PROGRESS_MENU, fragment=ProgressFragment, isAdded=true
+10-13 21:09:19.749 D/SubmenuCoordinator(29865): [SUBMENU]   🔍 currentFragment=ProgressFragment
+10-13 21:09:19.750 D/SubmenuCoordinator(29865): [SUBMENU] 📚 BACK STACK NOT EMPTY: Ignoring change
+10-13 21:09:19.750 D/SubmenuCoordinator(29865): [SUBMENU]   📊 backStackCount=1
+10-13 21:09:20.092 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=PROGRESS_MENU, fragment=ProgressFragment, isAdded=true
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU] 🔍 BACK STACK LISTENER TRIGGERED:
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU]   📊 backStackCount=0
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU]   🚫 isDismissing=false
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU]   📂 hasActiveSubmenus=true
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU]   🎮 isRetroMenu3Open=true
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU]   📋 currentMenuState=PROGRESS_MENU
+10-13 21:09:20.109 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=PROGRESS_MENU, fragment=ProgressFragment, isAdded=false
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU]   🔍 currentFragment=ProgressFragment
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU] 📭 BACK STACK IS EMPTY - SUBMENU WAS REMOVED
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU]   🔍 Checking dismissal conditions...
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU] ✅ NORMAL NAVIGATION: Checking if should restore main menu...
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU]   📊 hasActiveSubmenus=true
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU] ⏳ WAITING: Other submenus still active
+10-13 21:09:20.109 D/SubmenuCoordinator(29865): [SUBMENU]   📊 Active: settings=false, progress=true, exit=false
+10-13 21:09:20.110 D/SubmenuCoordinator(29865): [SUBMENU] 🗑️ REMOVING BACK STACK LISTENER
+10-13 21:09:20.110 D/SubmenuCoordinator(29865): [SUBMENU] ✅ Listener removed successfully
+10-13 21:09:20.110 D/MenuStateManager(29865): Menu state updated: MenuSystemState(currentState=PROGRESS_MENU, activeMenus=[], navigationStack=[], isRetroMenu3Open=false, isDismissingAllMenus=false)
+10-13 21:09:20.111 D/RetroMenu3(29865): [SHOW] 🎨 showMainMenu: ========== STARTING SHOW MAIN MENU ==========
+10-13 21:09:20.111 D/RetroMenu3(29865): [SHOW] 📊 showMainMenu: Pre-show state
+10-13 21:09:20.111 D/RetroMenu3(29865): [SHOW]   👁️ menuContainer.isShown=false
+10-13 21:09:20.111 D/RetroMenu3(29865): [SHOW]   👁️ menuContainer.visibility=4
+10-13 21:09:20.111 D/RetroMenu3(29865): [SHOW]   🎨 menuContainer.alpha=1.0
+10-13 21:09:20.111 D/RetroMenu3(29865): [SHOW]   🎯 menuContainer.hasFocus=false
+10-13 21:09:20.111 D/RetroMenu3(29865): [SHOW]   📋 currentSelectedIndex=2
+10-13 21:09:20.111 D/RetroMenu3(29865): [SHOW]   📊 isAdded=true
+10-13 21:09:20.111 D/RetroMenu3(29865): [SHOW]   � context=com.vinaooo.revenger.views.GameActivity@f069228
+10-13 21:09:20.111 D/RetroMenu3(29865): [SHOW]   👁️ isVisible=true
+10-13 21:09:20.111 D/RetroMenu3(29865): [SHOW] 🔄 showMainMenu: Making menu visible
+10-13 21:09:20.113 D/RetroMenu3(29865): [SHOW] ✅ showMainMenu: Visibility set to VISIBLE
+10-13 21:09:20.113 D/RetroMenu3(29865): [SHOW] ✅ showMainMenu: Alpha set to 1.0
+10-13 21:09:20.113 D/RetroMenu3(29865): [SHOW] 🔄 showMainMenu: Updating menu state
+10-13 21:09:20.113 D/RetroMenu3(29865): [SHOW] ✅ showMainMenu: Menu state updated
+10-13 21:09:20.113 D/RetroMenu3(29865): [SHOW] 🔄 showMainMenu: Updating selection visual
+10-13 21:09:20.114 D/RetroMenu3(29865): [SHOW] ✅ showMainMenu: Selection visual updated
+10-13 21:09:20.114 D/RetroMenu3(29865): [SHOW] 🎯 showMainMenu: Requesting focus
+10-13 21:09:20.114 D/RetroMenu3(29865): [SHOW] 📱 showMainMenu: Root view available, requesting focus
+10-13 21:09:20.115 D/RetroMenu3(29865): [SHOW] 🎯 showMainMenu: Root view focus: had=false, now=false
+10-13 21:09:20.115 D/RetroMenu3(29865): [SHOW] 🎯 showMainMenu: Menu container focus: had=false, now=false, visibility=0
+10-13 21:09:20.115 D/RetroMenu3(29865): [SHOW] 📊 showMainMenu: Post-show state
+10-13 21:09:20.115 D/RetroMenu3(29865): [SHOW]   👁️ menuContainer.isShown=true
+10-13 21:09:20.115 D/RetroMenu3(29865): [SHOW]   👁️ menuContainer.visibility=0
+10-13 21:09:20.115 D/RetroMenu3(29865): [SHOW]   🎨 menuContainer.alpha=1.0
+10-13 21:09:20.115 D/RetroMenu3(29865): [SHOW]   🎯 menuContainer.hasFocus=false
+10-13 21:09:20.115 D/RetroMenu3(29865): [SHOW] ✅ showMainMenu: ========== SHOW MAIN MENU COMPLETED ==========
+10-13 21:09:20.523 D/MenuManager(29865): [SEND] sendNavigateDown: Sending navigate down event
+10-13 21:09:20.523 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== STARTING NAVIGATE DOWN ==========
+10-13 21:09:20.523 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=PROGRESS_MENU, fragment=ProgressFragment, isAdded=false
+10-13 21:09:20.523 D/MenuManager(29865): [NAV] ↓ navigateDown: Fragment status check
+10-13 21:09:20.523 D/MenuManager(29865): [NAV]   📋 fragment=ProgressFragment
+10-13 21:09:20.523 D/MenuManager(29865): [NAV]   ✅ isAdded=false
+10-13 21:09:20.523 D/MenuManager(29865): [NAV]   🎯 hasContext=false
+10-13 21:09:20.523 D/MenuManager(29865): [NAV]   👁️ isVisible=false
+10-13 21:09:20.523 D/MenuManager(29865): [NAV]   🎮 isResumed=false
+10-13 21:09:20.523 D/MenuManager(29865): [NAV]   📊 currentState=PROGRESS_MENU
+10-13 21:09:20.524 W/MenuManager(29865): [NAV] navigateDown: Fragment not available or not attached - fragment=ProgressFragment{36c6506} (d96dab95-4ab7-439a-a631-fdf81d8c1518), isAdded=false, hasContext=false, isVisible=false, isResumed=false
+10-13 21:09:20.524 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== NAVIGATE DOWN FAILED ==========
+10-13 21:09:20.524 D/MenuManager(29865): [SEND] sendNavigateDown: Event sent
+10-13 21:09:20.677 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)
+10-13 21:09:21.692 D/MenuManager(29865): [NAV] ↑ navigateUp: ========== STARTING NAVIGATE UP ==========
+10-13 21:09:21.692 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=PROGRESS_MENU, fragment=ProgressFragment, isAdded=false
+10-13 21:09:21.692 D/MenuManager(29865): [NAV] ↑ navigateUp: Fragment status check
+10-13 21:09:21.692 D/MenuManager(29865): [NAV]   📋 fragment=ProgressFragment
+10-13 21:09:21.692 D/MenuManager(29865): [NAV]   ✅ isAdded=false
+10-13 21:09:21.692 D/MenuManager(29865): [NAV]   🎯 hasContext=false
+10-13 21:09:21.692 D/MenuManager(29865): [NAV]   👁️ isVisible=false
+10-13 21:09:21.692 D/MenuManager(29865): [NAV]   🎮 isResumed=false
+10-13 21:09:21.693 D/MenuManager(29865): [NAV]   📊 currentState=PROGRESS_MENU
+10-13 21:09:21.693 W/MenuManager(29865): [NAV] navigateUp: Fragment not available or not attached - fragment=ProgressFragment{36c6506} (d96dab95-4ab7-439a-a631-fdf81d8c1518), isAdded=false, hasContext=false, isVisible=false, isResumed=false
+10-13 21:09:21.693 D/MenuManager(29865): [NAV] ↑ navigateUp: ========== NAVIGATE UP FAILED ==========
+10-13 21:09:21.842 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)
+10-13 21:09:22.062 D/MenuManager(29865): [SEND] sendNavigateDown: Sending navigate down event
+10-13 21:09:22.062 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== STARTING NAVIGATE DOWN ==========
+10-13 21:09:22.062 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=PROGRESS_MENU, fragment=ProgressFragment, isAdded=false
+10-13 21:09:22.062 D/MenuManager(29865): [NAV] ↓ navigateDown: Fragment status check
+10-13 21:09:22.062 D/MenuManager(29865): [NAV]   📋 fragment=ProgressFragment
+10-13 21:09:22.062 D/MenuManager(29865): [NAV]   ✅ isAdded=false
+10-13 21:09:22.062 D/MenuManager(29865): [NAV]   🎯 hasContext=false
+10-13 21:09:22.062 D/MenuManager(29865): [NAV]   👁️ isVisible=false
+10-13 21:09:22.062 D/MenuManager(29865): [NAV]   🎮 isResumed=false
+10-13 21:09:22.062 D/MenuManager(29865): [NAV]   📊 currentState=PROGRESS_MENU
+10-13 21:09:22.062 W/MenuManager(29865): [NAV] navigateDown: Fragment not available or not attached - fragment=ProgressFragment{36c6506} (d96dab95-4ab7-439a-a631-fdf81d8c1518), isAdded=false, hasContext=false, isVisible=false, isResumed=false
+10-13 21:09:22.062 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== NAVIGATE DOWN FAILED ==========
+10-13 21:09:22.062 D/MenuManager(29865): [SEND] sendNavigateDown: Event sent
+10-13 21:09:22.181 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)
+10-13 21:09:22.412 D/MenuManager(29865): [NAV] ↑ navigateUp: ========== STARTING NAVIGATE UP ==========
+10-13 21:09:22.412 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=PROGRESS_MENU, fragment=ProgressFragment, isAdded=false
+10-13 21:09:22.412 D/MenuManager(29865): [NAV] ↑ navigateUp: Fragment status check
+10-13 21:09:22.412 D/MenuManager(29865): [NAV]   📋 fragment=ProgressFragment
+10-13 21:09:22.412 D/MenuManager(29865): [NAV]   ✅ isAdded=false
+10-13 21:09:22.412 D/MenuManager(29865): [NAV]   🎯 hasContext=false
+10-13 21:09:22.412 D/MenuManager(29865): [NAV]   👁️ isVisible=false
+10-13 21:09:22.412 D/MenuManager(29865): [NAV]   🎮 isResumed=false
+10-13 21:09:22.412 D/MenuManager(29865): [NAV]   📊 currentState=PROGRESS_MENU
+10-13 21:09:22.412 W/MenuManager(29865): [NAV] navigateUp: Fragment not available or not attached - fragment=ProgressFragment{36c6506} (d96dab95-4ab7-439a-a631-fdf81d8c1518), isAdded=false, hasContext=false, isVisible=false, isResumed=false
+10-13 21:09:22.413 D/MenuManager(29865): [NAV] ↑ navigateUp: ========== NAVIGATE UP FAILED ==========
+10-13 21:09:22.544 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)
+10-13 21:09:22.959 D/MenuStateManager(29865): Menu state updated: MenuSystemState(currentState=PROGRESS_MENU, activeMenus=[], navigationStack=[], isRetroMenu3Open=false, isDismissingAllMenus=true)
+10-13 21:09:22.959 D/GameActivityViewModel(29865): [DISMISS_ALL] dismissAllMenus: Dismissing main RetroMenu3
+10-13 21:09:22.959 D/GameActivityViewModel(29865): [DISMISS_MAIN] dismissRetroMenu3: Starting
+10-13 21:09:22.959 D/RetroMenu3(29865): [DISMISS_PUBLIC] dismissMenuPublic: Called
+10-13 21:09:22.959 D/RetroMenu3(29865): [DISMISS] dismissMenu: Starting animation
+10-13 21:09:22.962 D/GameActivityViewModel(29865): [DISMISS_MAIN] dismissRetroMenu3: Completed
+10-13 21:09:22.962 D/GameActivityViewModel(29865): [DISMISS_ALL] dismissAllMenus: Main RetroMenu3 dismissed
+10-13 21:09:22.962 D/MenuStateManager(29865): Menu state updated: MenuSystemState(currentState=PROGRESS_MENU, activeMenus=[], navigationStack=[], isRetroMenu3Open=false, isDismissingAllMenus=false)
+10-13 21:09:23.126 D/RetroMenu3(29865): [DISMISS] dismissMenu: Animation completed, removing fragment
+10-13 21:09:23.136 D/RetroMenu3(29865): [LIFECYCLE] Main menu destroyed - cleaning up resources
+10-13 21:09:24.208 D/GameActivityViewModel(29865): [SHOW_RETRO_MENU] showRetroMenu3 called!
+10-13 21:09:24.208 D/GameActivityViewModel(29865): [SHOW_RETRO_MENU] Current back stack count: 0
+10-13 21:09:24.208 D/GameActivityViewModel(29865): [SHOW_RETRO_MENU] isDismissingAllMenus: false
+10-13 21:09:24.208 D/GameActivityViewModel(29865): [SHOW_RETRO_MENU] isRetroMenu3Open: false
+10-13 21:09:24.209 D/GameActivityViewModel(29865): [SHOW_RETRO_MENU] Stack trace:
+10-13 21:09:24.209 D/GameActivityViewModel(29865): 	at com.vinaooo.revenger.viewmodels.GameActivityViewModel.showRetroMenu3(GameActivityViewModel.kt:339)
+10-13 21:09:24.235 D/GameActivityViewModel(29865): RetroMenu3Fragment is available, showing it
+10-13 21:09:24.236 D/GameActivityViewModel(29865): RetroMenu3 fragment added successfully
+10-13 21:09:24.237 D/MenuStateManager(29865): Menu state updated: MenuSystemState(currentState=MAIN_MENU, activeMenus=[], navigationStack=[], isRetroMenu3Open=false, isDismissingAllMenus=false)
+10-13 21:09:24.278 D/RetroMenu3(29865): [LIFECYCLE] Main menu created and initialized
+10-13 21:09:24.281 D/RetroMenu3(29865): [LIFECYCLE] Main menu setup completed - ready for user interaction
+10-13 21:09:24.369 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD INPUT - RetroMenu3 is open (keyCode: 109)
+10-13 21:09:24.783 D/MenuManager(29865): [SEND] sendNavigateDown: Sending navigate down event
+10-13 21:09:24.784 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== STARTING NAVIGATE DOWN ==========
+10-13 21:09:24.784 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=MAIN_MENU, fragment=RetroMenu3Fragment, isAdded=true
+10-13 21:09:24.784 D/MenuManager(29865): [NAV] ↓ navigateDown: Fragment status check
+10-13 21:09:24.784 D/MenuManager(29865): [NAV]   📋 fragment=RetroMenu3Fragment
+10-13 21:09:24.784 D/MenuManager(29865): [NAV]   ✅ isAdded=true
+10-13 21:09:24.784 D/MenuManager(29865): [NAV]   🎯 hasContext=true
+10-13 21:09:24.784 D/MenuManager(29865): [NAV]   👁️ isVisible=true
+10-13 21:09:24.784 D/MenuManager(29865): [NAV]   🎮 isResumed=true
+10-13 21:09:24.785 D/MenuManager(29865): [NAV]   📊 currentState=MAIN_MENU
+10-13 21:09:24.785 D/MenuManager(29865): [NAV] ↓ navigateDown: Calling fragment.onNavigateDown()
+10-13 21:09:24.785 D/MenuBase(29865): [NAV] ↓ onNavigateDown triggered - calling performNavigateDown
+10-13 21:09:24.785 D/RetroMenu3(29865): [NAV] ↓ performNavigateDown called - currentIndex=2, isVisible=true, isResumed=true, hasFocus=false
+10-13 21:09:24.786 D/RetroMenu3(29865): [NAV] ↓ DOWN: 2 → 3 (Settings)
+10-13 21:09:24.786 D/RetroMenu3(29865): [NAV] ↓ performNavigateDown completed - newIndex=3
+10-13 21:09:24.786 D/MenuBase(29865): [NAV] ↓ onNavigateDown completed - result=kotlin.Unit
+10-13 21:09:24.786 D/MenuManager(29865): [NAV] ↓ navigateDown: Result=true
+10-13 21:09:24.786 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== NAVIGATE DOWN COMPLETED ==========
+10-13 21:09:24.786 D/MenuManager(29865): [SEND] sendNavigateDown: Event sent
+10-13 21:09:24.899 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)
+10-13 21:09:25.057 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=MAIN_MENU, fragment=RetroMenu3Fragment, isAdded=true
+10-13 21:09:25.057 D/RetroMenu3(29865): [ACTION] ✓ CONFIRM: Settings (index: 3)
+10-13 21:09:25.057 D/MenuActionHandler(29865): [ACTION] Executing action: NAVIGATE(targetMenu=SETTINGS_MENU)
+10-13 21:09:25.057 D/SubmenuCoordinator(29865): [SUBMENU] 🚪 openSubmenu: ========== OPENING SUBMENU ==========
+10-13 21:09:25.057 D/SubmenuCoordinator(29865): [SUBMENU]   📋 menuState=SETTINGS_MENU
+10-13 21:09:25.057 D/SubmenuCoordinator(29865): [SUBMENU]   📊 currentState=MAIN_MENU
+10-13 21:09:25.057 D/SubmenuCoordinator(29865): [SUBMENU]   🎮 isRetroMenu3Open=true
+10-13 21:09:25.057 D/SubmenuCoordinator(29865): [SUBMENU] 🎧 openSubmenu: Setting up back stack listener
+10-13 21:09:25.058 D/SubmenuCoordinator(29865): [SUBMENU] 🎧 setupGlobalBackStackListener: STARTING setup
+10-13 21:09:25.058 D/SubmenuCoordinator(29865): [SUBMENU] 🎧 setupGlobalBackStackListener: Adding listener to FragmentManager
+10-13 21:09:25.058 D/SubmenuCoordinator(29865): [SUBMENU] ✅ setupGlobalBackStackListener: COMPLETED
+10-13 21:09:25.058 D/SubmenuCoordinator(29865): [SUBMENU] 🔄 openSubmenu: Processing submenu type
+10-13 21:09:25.058 D/SubmenuCoordinator(29865): [SUBMENU] ⚙️ openSubmenu: Opening SETTINGS submenu
+10-13 21:09:25.058 D/SubmenuCoordinator(29865): [SUBMENU] Opening settings submenu
+10-13 21:09:25.062 D/MenuStateManager(29865): Menu state updated: MenuSystemState(currentState=MAIN_MENU, activeMenus=[SETTINGS_MENU], navigationStack=[], isRetroMenu3Open=false, isDismissingAllMenus=false)
+10-13 21:09:25.062 D/SubmenuCoordinator(29865): [SUBMENU] 🔄 replaceMainMenuWithSubmenu: ========== REPLACING MAIN MENU ==========
+10-13 21:09:25.062 D/SubmenuCoordinator(29865): [SUBMENU]   🏷️ tag=SettingsMenuFragment
+10-13 21:09:25.062 D/SubmenuCoordinator(29865): [SUBMENU]   📋 menuState=SETTINGS_MENU
+10-13 21:09:25.062 D/SubmenuCoordinator(29865): [SUBMENU]   📦 submenuFragment=SettingsMenuFragment
+10-13 21:09:25.062 D/SubmenuCoordinator(29865): [SUBMENU] 👁️ replaceMainMenuWithSubmenu: Hiding main menu
+10-13 21:09:25.062 D/RetroMenu3(29865): [HIDE] 🔇 hideMainMenu: ========== STARTING HIDE MAIN MENU ==========
+10-13 21:09:25.062 D/RetroMenu3(29865): [HIDE] 📊 hideMainMenu: Pre-hide state
+10-13 21:09:25.062 D/RetroMenu3(29865): [HIDE]   👁️ menuContainer.isShown=true
+10-13 21:09:25.062 D/RetroMenu3(29865): [HIDE]   👁️ menuContainer.visibility=0
+10-13 21:09:25.062 D/RetroMenu3(29865): [HIDE]   🎨 menuContainer.alpha=1.0
+10-13 21:09:25.062 D/RetroMenu3(29865): [HIDE]   🎯 menuContainer.hasFocus=false
+10-13 21:09:25.062 D/RetroMenu3(29865): [HIDE] 🔇 hideMainMenu: Hiding menu container
+10-13 21:09:25.065 D/RetroMenu3(29865): [HIDE] 📊 hideMainMenu: Post-hide state
+10-13 21:09:25.065 D/RetroMenu3(29865): [HIDE]   👁️ menuContainer.isShown=false
+10-13 21:09:25.065 D/RetroMenu3(29865): [HIDE]   👁️ menuContainer.visibility=4
+10-13 21:09:25.065 D/RetroMenu3(29865): [HIDE]   🎨 menuContainer.alpha=1.0
+10-13 21:09:25.065 D/RetroMenu3(29865): [HIDE]   🎯 menuContainer.hasFocus=false
+10-13 21:09:25.065 D/RetroMenu3(29865): [HIDE] ✅ hideMainMenu: ========== HIDE MAIN MENU COMPLETED ==========
+10-13 21:09:25.065 D/SubmenuCoordinator(29865): [SUBMENU] ✅ replaceMainMenuWithSubmenu: Main menu hidden
+10-13 21:09:25.065 D/SubmenuCoordinator(29865): [SUBMENU] ➕ replaceMainMenuWithSubmenu: Adding submenu fragment
+10-13 21:09:25.065 D/SubmenuCoordinator(29865): [SUBMENU] 💾 replaceMainMenuWithSubmenu: Committing transaction
+10-13 21:09:25.065 D/SubmenuCoordinator(29865): [SUBMENU] ✅ replaceMainMenuWithSubmenu: Transaction committed
+10-13 21:09:25.065 D/SubmenuCoordinator(29865): [SUBMENU] 🔄 replaceMainMenuWithSubmenu: Updating MenuManager state
+10-13 21:09:25.065 D/MenuStateManager(29865): Menu state updated: MenuSystemState(currentState=SETTINGS_MENU, activeMenus=[SETTINGS_MENU], navigationStack=[], isRetroMenu3Open=false, isDismissingAllMenus=false)
+10-13 21:09:25.066 D/SubmenuCoordinator(29865): [SUBMENU] ✅ replaceMainMenuWithSubmenu: MenuManager state updated to SETTINGS_MENU
+10-13 21:09:25.066 D/SubmenuCoordinator(29865): [SUBMENU] ✅ replaceMainMenuWithSubmenu: ========== SUBMENU REPLACEMENT COMPLETED ==========
+10-13 21:09:25.066 D/SubmenuCoordinator(29865): [SUBMENU] ✅ openSubmenu: ========== SUBMENU OPENED ==========
+10-13 21:09:25.102 D/SubmenuCoordinator(29865): [SUBMENU] 🔍 BACK STACK LISTENER TRIGGERED:
+10-13 21:09:25.102 D/SubmenuCoordinator(29865): [SUBMENU]   📊 backStackCount=1
+10-13 21:09:25.102 D/SubmenuCoordinator(29865): [SUBMENU]   🚫 isDismissing=false
+10-13 21:09:25.102 D/SubmenuCoordinator(29865): [SUBMENU]   📂 hasActiveSubmenus=true
+10-13 21:09:25.102 D/SubmenuCoordinator(29865): [SUBMENU]   🎮 isRetroMenu3Open=true
+10-13 21:09:25.102 D/SubmenuCoordinator(29865): [SUBMENU]   📋 currentMenuState=SETTINGS_MENU
+10-13 21:09:25.102 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=SETTINGS_MENU, fragment=SettingsMenuFragment, isAdded=true
+10-13 21:09:25.102 D/SubmenuCoordinator(29865): [SUBMENU]   🔍 currentFragment=SettingsMenuFragment
+10-13 21:09:25.102 D/SubmenuCoordinator(29865): [SUBMENU] 📚 BACK STACK NOT EMPTY: Ignoring change
+10-13 21:09:25.102 D/SubmenuCoordinator(29865): [SUBMENU]   📊 backStackCount=1
+10-13 21:09:28.228 D/MenuManager(29865): [SEND] sendNavigateDown: Sending navigate down event
+10-13 21:09:28.228 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== STARTING NAVIGATE DOWN ==========
+10-13 21:09:28.228 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=SETTINGS_MENU, fragment=SettingsMenuFragment, isAdded=true
+10-13 21:09:28.228 D/MenuManager(29865): [NAV] ↓ navigateDown: Fragment status check
+10-13 21:09:28.228 D/MenuManager(29865): [NAV]   📋 fragment=SettingsMenuFragment
+10-13 21:09:28.228 D/MenuManager(29865): [NAV]   ✅ isAdded=true
+10-13 21:09:28.228 D/MenuManager(29865): [NAV]   🎯 hasContext=true
+10-13 21:09:28.228 D/MenuManager(29865): [NAV]   👁️ isVisible=true
+10-13 21:09:28.228 D/MenuManager(29865): [NAV]   🎮 isResumed=true
+10-13 21:09:28.228 D/MenuManager(29865): [NAV]   📊 currentState=SETTINGS_MENU
+10-13 21:09:28.228 D/MenuManager(29865): [NAV] ↓ navigateDown: Calling fragment.onNavigateDown()
+10-13 21:09:28.228 D/MenuBase(29865): [NAV] ↓ onNavigateDown triggered - calling performNavigateDown
+10-13 21:09:28.230 D/SettingsMenu(29865): [NAV] Settings menu: DOWN navigation - 0 -> 1
+10-13 21:09:28.230 D/MenuBase(29865): [NAV] ↓ onNavigateDown completed - result=kotlin.Unit
+10-13 21:09:28.230 D/MenuManager(29865): [NAV] ↓ navigateDown: Result=true
+10-13 21:09:28.230 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== NAVIGATE DOWN COMPLETED ==========
+10-13 21:09:28.230 D/MenuManager(29865): [SEND] sendNavigateDown: Event sent
+10-13 21:09:28.357 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)
+10-13 21:09:28.475 D/MenuManager(29865): [SEND] sendNavigateDown: Sending navigate down event
+10-13 21:09:28.475 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== STARTING NAVIGATE DOWN ==========
+10-13 21:09:28.475 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=SETTINGS_MENU, fragment=SettingsMenuFragment, isAdded=true
+10-13 21:09:28.475 D/MenuManager(29865): [NAV] ↓ navigateDown: Fragment status check
+10-13 21:09:28.475 D/MenuManager(29865): [NAV]   📋 fragment=SettingsMenuFragment
+10-13 21:09:28.476 D/MenuManager(29865): [NAV]   ✅ isAdded=true
+10-13 21:09:28.476 D/MenuManager(29865): [NAV]   🎯 hasContext=true
+10-13 21:09:28.476 D/MenuManager(29865): [NAV]   👁️ isVisible=true
+10-13 21:09:28.476 D/MenuManager(29865): [NAV]   🎮 isResumed=true
+10-13 21:09:28.476 D/MenuManager(29865): [NAV]   📊 currentState=SETTINGS_MENU
+10-13 21:09:28.476 D/MenuManager(29865): [NAV] ↓ navigateDown: Calling fragment.onNavigateDown()
+10-13 21:09:28.476 D/MenuBase(29865): [NAV] ↓ onNavigateDown triggered - calling performNavigateDown
+10-13 21:09:28.477 D/SettingsMenu(29865): [NAV] Settings menu: DOWN navigation - 1 -> 2
+10-13 21:09:28.477 D/MenuBase(29865): [NAV] ↓ onNavigateDown completed - result=kotlin.Unit
+10-13 21:09:28.477 D/MenuManager(29865): [NAV] ↓ navigateDown: Result=true
+10-13 21:09:28.477 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== NAVIGATE DOWN COMPLETED ==========
+10-13 21:09:28.477 D/MenuManager(29865): [SEND] sendNavigateDown: Event sent
+10-13 21:09:28.591 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)
+10-13 21:09:28.897 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=SETTINGS_MENU, fragment=SettingsMenuFragment, isAdded=true
+10-13 21:09:28.898 D/GameActivityViewModel(29865): onBackToMainMenu: retroMenu3Fragment = RetroMenu3Fragment{4502059} (0a5ed63b-6383-4855-a8c0-20a53ee81485 id=0x7f08011d tag=RetroMenu3Fragment)
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU] 🔍 BACK STACK LISTENER TRIGGERED:
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU]   📊 backStackCount=0
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU]   🚫 isDismissing=false
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU]   📂 hasActiveSubmenus=true
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU]   🎮 isRetroMenu3Open=true
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU]   📋 currentMenuState=SETTINGS_MENU
+10-13 21:09:28.910 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=SETTINGS_MENU, fragment=SettingsMenuFragment, isAdded=false
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU]   🔍 currentFragment=SettingsMenuFragment
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU] 📭 BACK STACK IS EMPTY - SUBMENU WAS REMOVED
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU]   🔍 Checking dismissal conditions...
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU] ✅ NORMAL NAVIGATION: Checking if should restore main menu...
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU]   📊 hasActiveSubmenus=true
+10-13 21:09:28.910 D/SubmenuCoordinator(29865): [SUBMENU] ⏳ WAITING: Other submenus still active
+10-13 21:09:28.911 D/SubmenuCoordinator(29865): [SUBMENU]   📊 Active: settings=true, progress=false, exit=false
+10-13 21:09:28.911 D/SubmenuCoordinator(29865): [SUBMENU] 🗑️ REMOVING BACK STACK LISTENER
+10-13 21:09:28.911 D/SubmenuCoordinator(29865): [SUBMENU] ✅ Listener removed successfully
+10-13 21:09:28.911 D/MenuStateManager(29865): Menu state updated: MenuSystemState(currentState=SETTINGS_MENU, activeMenus=[], navigationStack=[], isRetroMenu3Open=false, isDismissingAllMenus=false)
+10-13 21:09:28.911 D/RetroMenu3(29865): [SHOW] 🎨 showMainMenu: ========== STARTING SHOW MAIN MENU ==========
+10-13 21:09:28.911 D/RetroMenu3(29865): [SHOW] 📊 showMainMenu: Pre-show state
+10-13 21:09:28.911 D/RetroMenu3(29865): [SHOW]   👁️ menuContainer.isShown=false
+10-13 21:09:28.911 D/RetroMenu3(29865): [SHOW]   👁️ menuContainer.visibility=4
+10-13 21:09:28.912 D/RetroMenu3(29865): [SHOW]   🎨 menuContainer.alpha=1.0
+10-13 21:09:28.912 D/RetroMenu3(29865): [SHOW]   🎯 menuContainer.hasFocus=false
+10-13 21:09:28.912 D/RetroMenu3(29865): [SHOW]   📋 currentSelectedIndex=3
+10-13 21:09:28.912 D/RetroMenu3(29865): [SHOW]   📊 isAdded=true
+10-13 21:09:28.912 D/RetroMenu3(29865): [SHOW]   � context=com.vinaooo.revenger.views.GameActivity@f069228
+10-13 21:09:28.912 D/RetroMenu3(29865): [SHOW]   👁️ isVisible=true
+10-13 21:09:28.912 D/RetroMenu3(29865): [SHOW] 🔄 showMainMenu: Making menu visible
+10-13 21:09:28.913 D/RetroMenu3(29865): [SHOW] ✅ showMainMenu: Visibility set to VISIBLE
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW] ✅ showMainMenu: Alpha set to 1.0
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW] 🔄 showMainMenu: Updating menu state
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW] ✅ showMainMenu: Menu state updated
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW] 🔄 showMainMenu: Updating selection visual
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW] ✅ showMainMenu: Selection visual updated
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW] 🎯 showMainMenu: Requesting focus
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW] 📱 showMainMenu: Root view available, requesting focus
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW] 🎯 showMainMenu: Root view focus: had=false, now=false
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW] 🎯 showMainMenu: Menu container focus: had=false, now=false, visibility=0
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW] 📊 showMainMenu: Post-show state
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW]   👁️ menuContainer.isShown=true
+10-13 21:09:28.914 D/RetroMenu3(29865): [SHOW]   👁️ menuContainer.visibility=0
+10-13 21:09:28.915 D/RetroMenu3(29865): [SHOW]   🎨 menuContainer.alpha=1.0
+10-13 21:09:28.915 D/RetroMenu3(29865): [SHOW]   🎯 menuContainer.hasFocus=false
+10-13 21:09:28.915 D/RetroMenu3(29865): [SHOW] ✅ showMainMenu: ========== SHOW MAIN MENU COMPLETED ==========
+10-13 21:09:29.744 D/MenuManager(29865): [SEND] sendNavigateDown: Sending navigate down event
+10-13 21:09:29.744 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== STARTING NAVIGATE DOWN ==========
+10-13 21:09:29.744 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=SETTINGS_MENU, fragment=SettingsMenuFragment, isAdded=false
+10-13 21:09:29.744 D/MenuManager(29865): [NAV] ↓ navigateDown: Fragment status check
+10-13 21:09:29.744 D/MenuManager(29865): [NAV]   📋 fragment=SettingsMenuFragment
+10-13 21:09:29.744 D/MenuManager(29865): [NAV]   ✅ isAdded=false
+10-13 21:09:29.744 D/MenuManager(29865): [NAV]   🎯 hasContext=false
+10-13 21:09:29.744 D/MenuManager(29865): [NAV]   👁️ isVisible=false
+10-13 21:09:29.744 D/MenuManager(29865): [NAV]   🎮 isResumed=false
+10-13 21:09:29.744 D/MenuManager(29865): [NAV]   📊 currentState=SETTINGS_MENU
+10-13 21:09:29.745 W/MenuManager(29865): [NAV] navigateDown: Fragment not available or not attached - fragment=SettingsMenuFragment{b29e7f1} (5beb4fb4-3bf8-4593-9b2b-6a07a194c2cf), isAdded=false, hasContext=false, isVisible=false, isResumed=false
+10-13 21:09:29.745 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== NAVIGATE DOWN FAILED ==========
+10-13 21:09:29.745 D/MenuManager(29865): [SEND] sendNavigateDown: Event sent
+10-13 21:09:29.878 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)
+10-13 21:09:30.063 D/MenuManager(29865): [NAV] ↑ navigateUp: ========== STARTING NAVIGATE UP ==========
+10-13 21:09:30.063 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=SETTINGS_MENU, fragment=SettingsMenuFragment, isAdded=false
+10-13 21:09:30.063 D/MenuManager(29865): [NAV] ↑ navigateUp: Fragment status check
+10-13 21:09:30.063 D/MenuManager(29865): [NAV]   📋 fragment=SettingsMenuFragment
+10-13 21:09:30.063 D/MenuManager(29865): [NAV]   ✅ isAdded=false
+10-13 21:09:30.063 D/MenuManager(29865): [NAV]   🎯 hasContext=false
+10-13 21:09:30.063 D/MenuManager(29865): [NAV]   👁️ isVisible=false
+10-13 21:09:30.063 D/MenuManager(29865): [NAV]   🎮 isResumed=false
+10-13 21:09:30.063 D/MenuManager(29865): [NAV]   📊 currentState=SETTINGS_MENU
+10-13 21:09:30.064 W/MenuManager(29865): [NAV] navigateUp: Fragment not available or not attached - fragment=SettingsMenuFragment{b29e7f1} (5beb4fb4-3bf8-4593-9b2b-6a07a194c2cf), isAdded=false, hasContext=false, isVisible=false, isResumed=false
+10-13 21:09:30.064 D/MenuManager(29865): [NAV] ↑ navigateUp: ========== NAVIGATE UP FAILED ==========
+10-13 21:09:30.145 D/ControllerInput(29865): 🛑 BLOCKING GAMEPAD MOTION INPUT - RetroMenu3 is open (non-DPAD)
+10-13 21:09:30.297 D/MenuManager(29865): [SEND] sendNavigateDown: Sending navigate down event
+10-13 21:09:30.297 D/MenuManager(29865): [NAV] ↓ navigateDown: ========== STARTING NAVIGATE DOWN ==========
+10-13 21:09:30.297 D/MenuManager(29865): [FRAGMENT] getCurrentFragment: state=SETTINGS_MENU, fragment=SettingsMenuFragment, isAdded=false
+10-13 21:09:30.297 D/MenuManager(29865): [NAV] ↓ navigateDown: Fragment status check
+10-13 21:09:30.297 D/MenuManager(29865): [NAV]   📋 fragment=SettingsMenuFragment
+10-13 21:09:30.297 D/MenuManager(29865): [NAV]   ✅ isAdded=false
+10-13 21:09:30.297 D/MenuManager(29865): [NAV]   🎯 hasContext=false
+10-13 21:09:30.297 D/MenuManager(29865): [NAV]   👁️ isVisible=false
+10-13 21:09:30.297 D/MenuManager(29865): [NAV]   🎮 isResumed=false
+10-13 21:09:30.297 D/MenuManager(29865): [NAV]   📊 currentState=SETTINGS_MENU
+10

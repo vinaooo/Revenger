@@ -49,8 +49,12 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     }
 
     override fun onNavigateDown(): Boolean {
-        android.util.Log.d("MenuBase", "[NAV] ↓ Navigate Down triggered")
-        performNavigateDown()
+        android.util.Log.d(
+                "MenuBase",
+                "[NAV] ↓ onNavigateDown triggered - calling performNavigateDown"
+        )
+        val result = performNavigateDown()
+        android.util.Log.d("MenuBase", "[NAV] ↓ onNavigateDown completed - result=$result")
         return true
     }
 

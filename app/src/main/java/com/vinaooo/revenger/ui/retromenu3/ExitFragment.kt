@@ -154,7 +154,7 @@ class ExitFragment : MenuFragmentBase() {
     private fun dismissMenu() {
         // IMPORTANT: Do not call dismissRetroMenu3() here to avoid crashes
         // Just remove the fragment visually - WITHOUT animation
-        parentFragmentManager.beginTransaction().remove(this).commit()
+        parentFragmentManager.beginTransaction().remove(this).commitAllowingStateLoss()
     }
 
     /** Navigate up in the menu */

@@ -439,7 +439,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                     "RetroMenu3",
                     "[DISMISS] dismissMenu: Animation completed, removing fragment"
             )
-            parentFragmentManager.beginTransaction().remove(this).commit()
+            parentFragmentManager.beginTransaction().remove(this).commitAllowingStateLoss()
         }
     }
 
@@ -453,11 +453,27 @@ class RetroMenu3Fragment : MenuFragmentBase() {
     }
 
     override fun performNavigateUp() {
+        android.util.Log.d(
+                "RetroMenu3",
+                "[NAV] ↑ performNavigateUp called - currentIndex=${getCurrentSelectedIndex()}, isVisible=$isVisible, isResumed=$isResumed, hasFocus=${view?.hasFocus()}"
+        )
         navigateUp()
+        android.util.Log.d(
+                "RetroMenu3",
+                "[NAV] ↑ performNavigateUp completed - newIndex=${getCurrentSelectedIndex()}"
+        )
     }
 
     override fun performNavigateDown() {
+        android.util.Log.d(
+                "RetroMenu3",
+                "[NAV] ↓ performNavigateDown called - currentIndex=${getCurrentSelectedIndex()}, isVisible=$isVisible, isResumed=$isResumed, hasFocus=${view?.hasFocus()}"
+        )
         navigateDown()
+        android.util.Log.d(
+                "RetroMenu3",
+                "[NAV] ↓ performNavigateDown completed - newIndex=${getCurrentSelectedIndex()}"
+        )
     }
 
     override fun performConfirm() {
@@ -515,49 +531,175 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
     /** Make main menu invisible (when submenu is opened) */
     fun hideMainMenu() {
+        android.util.Log.d(
+                "RetroMenu3",
+                "[HIDE] 🔇 hideMainMenu: ========== STARTING HIDE MAIN MENU =========="
+        )
+
         // Check if menuContainer is initialized
         if (!::menuContainer.isInitialized) {
             android.util.Log.e(
                     "RetroMenu3",
-                    "[HIDE] MenuContainer not initialized, cannot hide main menu"
+                    "[HIDE] ❌ MenuContainer not initialized, cannot hide main menu"
+            )
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "[HIDE] 🔇 hideMainMenu: ========== HIDE FAILED - CONTAINER NOT INITIALIZED =========="
             )
             return
         }
+
+        android.util.Log.d("RetroMenu3", "[HIDE] 📊 hideMainMenu: Pre-hide state")
+        android.util.Log.d(
+                "RetroMenu3",
+                "[HIDE]   👁️ menuContainer.isShown=${menuContainer.isShown}"
+        )
+        android.util.Log.d(
+                "RetroMenu3",
+                "[HIDE]   👁️ menuContainer.visibility=${menuContainer.visibility}"
+        )
+        android.util.Log.d("RetroMenu3", "[HIDE]   🎨 menuContainer.alpha=${menuContainer.alpha}")
+        android.util.Log.d(
+                "RetroMenu3",
+                "[HIDE]   🎯 menuContainer.hasFocus=${menuContainer.hasFocus()}"
+        )
 
         android.util.Log.d("RetroMenu3", "[HIDE] 🔇 hideMainMenu: Hiding menu container")
         // Hide only the menu content, keeping the background for the submenu
         menuContainer.visibility = View.INVISIBLE
-        android.util.Log.d("RetroMenu3", "[HIDE] ✅ hideMainMenu: Menu container is now INVISIBLE")
+
+        android.util.Log.d("RetroMenu3", "[HIDE] 📊 hideMainMenu: Post-hide state")
+        android.util.Log.d(
+                "RetroMenu3",
+                "[HIDE]   👁️ menuContainer.isShown=${menuContainer.isShown}"
+        )
+        android.util.Log.d(
+                "RetroMenu3",
+                "[HIDE]   👁️ menuContainer.visibility=${menuContainer.visibility}"
+        )
+        android.util.Log.d("RetroMenu3", "[HIDE]   🎨 menuContainer.alpha=${menuContainer.alpha}")
+        android.util.Log.d(
+                "RetroMenu3",
+                "[HIDE]   🎯 menuContainer.hasFocus=${menuContainer.hasFocus()}"
+        )
+
+        android.util.Log.d(
+                "RetroMenu3",
+                "[HIDE] ✅ hideMainMenu: ========== HIDE MAIN MENU COMPLETED =========="
+        )
     }
 
     /** Make main menu visible again (when submenu is closed) */
     fun showMainMenu() {
+        android.util.Log.d(
+                "RetroMenu3",
+                "[SHOW] 🎨 showMainMenu: ========== STARTING SHOW MAIN MENU =========="
+        )
+
         // Check if menuContainer is initialized
         if (!::menuContainer.isInitialized) {
             android.util.Log.e(
                     "RetroMenu3",
-                    "[SHOW] MenuContainer not initialized, cannot show main menu"
+                    "[SHOW] ❌ MenuContainer not initialized, cannot show main menu"
+            )
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "[SHOW] 🎨 showMainMenu: ========== SHOW FAILED - CONTAINER NOT INITIALIZED =========="
             )
             return
         }
 
-        android.util.Log.d("RetroMenu3", "[SHOW] 🎨 showMainMenu: Making menu visible")
+        android.util.Log.d("RetroMenu3", "[SHOW] 📊 showMainMenu: Pre-show state")
+        android.util.Log.d(
+                "RetroMenu3",
+                "[SHOW]   👁️ menuContainer.isShown=${menuContainer.isShown}"
+        )
+        android.util.Log.d(
+                "RetroMenu3",
+                "[SHOW]   👁️ menuContainer.visibility=${menuContainer.visibility}"
+        )
+        android.util.Log.d("RetroMenu3", "[SHOW]   🎨 menuContainer.alpha=${menuContainer.alpha}")
+        android.util.Log.d(
+                "RetroMenu3",
+                "[SHOW]   🎯 menuContainer.hasFocus=${menuContainer.hasFocus()}"
+        )
+        android.util.Log.d(
+                "RetroMenu3",
+                "[SHOW]   📋 currentSelectedIndex=${getCurrentSelectedIndex()}"
+        )
+        android.util.Log.d("RetroMenu3", "[SHOW]   📊 isAdded=${isAdded}")
+        android.util.Log.d("RetroMenu3", "[SHOW]   � context=${context}")
+        android.util.Log.d("RetroMenu3", "[SHOW]   👁️ isVisible=${isVisible}")
 
+        android.util.Log.d("RetroMenu3", "[SHOW] 🔄 showMainMenu: Making menu visible")
         // Make visible
         menuContainer.visibility = View.VISIBLE
+        android.util.Log.d("RetroMenu3", "[SHOW] ✅ showMainMenu: Visibility set to VISIBLE")
 
         // Ensure alpha is at 1.0 (fully visible)
         menuContainer.alpha = 1.0f
+        android.util.Log.d("RetroMenu3", "[SHOW] ✅ showMainMenu: Alpha set to 1.0")
 
+        android.util.Log.d("RetroMenu3", "[SHOW] 🔄 showMainMenu: Updating menu state")
         // Update menu state (including audio) when returning from submenu
         updateMenuState()
+        android.util.Log.d("RetroMenu3", "[SHOW] ✅ showMainMenu: Menu state updated")
 
+        android.util.Log.d("RetroMenu3", "[SHOW] 🔄 showMainMenu: Updating selection visual")
         // Ensure visual selection is updated when menu becomes visible again
         updateSelectionVisual()
+        android.util.Log.d("RetroMenu3", "[SHOW] ✅ showMainMenu: Selection visual updated")
 
-        android.util.Log.d("RetroMenu3", "[SHOW] ✅ showMainMenu: Menu is now visible")
+        android.util.Log.d("RetroMenu3", "[SHOW] 🎯 showMainMenu: Requesting focus")
+        // CRITICAL: Request focus to ensure DPAD navigation works
+        val rootView = view
+        if (rootView != null) {
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "[SHOW] 📱 showMainMenu: Root view available, requesting focus"
+            )
+            val hadFocus = rootView.hasFocus()
+            rootView.requestFocus()
+            val nowHasFocus = rootView.hasFocus()
+            android.util.Log.d(
+                    "RetroMenu3",
+                    "[SHOW] 🎯 showMainMenu: Root view focus: had=$hadFocus, now=$nowHasFocus"
+            )
+        } else {
+            android.util.Log.w(
+                    "RetroMenu3",
+                    "[SHOW] ⚠️ showMainMenu: Root view is null, cannot request focus"
+            )
+        }
+
+        val hadContainerFocus = menuContainer.hasFocus()
+        menuContainer.requestFocus()
+        val nowContainerHasFocus = menuContainer.hasFocus()
+        android.util.Log.d(
+                "RetroMenu3",
+                "[SHOW] 🎯 showMainMenu: Menu container focus: had=$hadContainerFocus, now=$nowContainerHasFocus, visibility=${menuContainer.visibility}"
+        )
+
+        android.util.Log.d("RetroMenu3", "[SHOW] 📊 showMainMenu: Post-show state")
+        android.util.Log.d(
+                "RetroMenu3",
+                "[SHOW]   👁️ menuContainer.isShown=${menuContainer.isShown}"
+        )
+        android.util.Log.d(
+                "RetroMenu3",
+                "[SHOW]   👁️ menuContainer.visibility=${menuContainer.visibility}"
+        )
+        android.util.Log.d("RetroMenu3", "[SHOW]   🎨 menuContainer.alpha=${menuContainer.alpha}")
+        android.util.Log.d(
+                "RetroMenu3",
+                "[SHOW]   🎯 menuContainer.hasFocus=${menuContainer.hasFocus()}"
+        )
 
         // Layout will be updated automatically when properties change
+        android.util.Log.d(
+                "RetroMenu3",
+                "[SHOW] ✅ showMainMenu: ========== SHOW MAIN MENU COMPLETED =========="
+        )
     }
 
     /** Update selection visual */
