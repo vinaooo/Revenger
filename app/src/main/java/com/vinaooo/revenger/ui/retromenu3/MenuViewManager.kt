@@ -4,7 +4,6 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
@@ -23,15 +22,15 @@ class MenuViewManager(private val fragment: Fragment) {
 
     // Menu item views
     private lateinit var menuContainerView: LinearLayout
-    private lateinit var continueMenu: MaterialCardView
-    private lateinit var resetMenu: MaterialCardView
-    private lateinit var progressMenu: MaterialCardView
-    private lateinit var settingsMenu: MaterialCardView
-    private lateinit var exitMenu: MaterialCardView
-    private lateinit var saveLogMenu: MaterialCardView
+    private lateinit var continueMenu: RetroCardView
+    private lateinit var resetMenu: RetroCardView
+    private lateinit var progressMenu: RetroCardView
+    private lateinit var settingsMenu: RetroCardView
+    private lateinit var exitMenu: RetroCardView
+    private lateinit var saveLogMenu: RetroCardView
 
     // Ordered list of menu items for navigation
-    private lateinit var menuItems: List<MaterialCardView>
+    private lateinit var menuItems: List<RetroCardView>
 
     // Ordered list of menu item views for unified selection handling
     private lateinit var menuItemViews: List<MenuItemView>
@@ -180,22 +179,16 @@ class MenuViewManager(private val fragment: Fragment) {
                         )
             }
         }
-        menuItemView.cardView.apply {
-            strokeWidth = 0
-            strokeColor = android.graphics.Color.TRANSPARENT
-            setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
-        }
+        // RetroCardView usa estados internos para visual
+        menuItemView.cardView.setState(RetroCardView.State.SELECTED)
     }
 
     /** Define um item de menu como não selecionado */
     private fun setItemUnselected(menuItemView: MenuItemView) {
         menuItemView.titleTextView.setTextColor(android.graphics.Color.WHITE)
         menuItemView.arrowTextView.visibility = View.GONE
-        menuItemView.cardView.apply {
-            strokeWidth = 0
-            strokeColor = android.graphics.Color.TRANSPARENT
-            setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
-        }
+        // RetroCardView volta ao estado normal
+        menuItemView.cardView.setState(RetroCardView.State.NORMAL)
     }
 
     /** Atualiza a visualização da seleção baseado no índice atual */
@@ -251,22 +244,24 @@ class MenuViewManager(private val fragment: Fragment) {
         updateSelectionVisual(currentSelectedIndex)
 
         // Layout will be updated automatically when properties change
-    } // Getters para acesso às views quando necessário
-    fun getMenuItems(): List<MaterialCardView> = menuItems
+    }
+
+    // Getters para acesso às views quando necessário
+    fun getMenuItems(): List<RetroCardView> = menuItems
     fun getMenuItemViews(): List<MenuItemView> = menuItemViews
 
     // Getters para itens específicos do menu
-    val continueMenuItem: MaterialCardView
+    val continueMenuItem: RetroCardView
         get() = continueMenu
-    val resetMenuItem: MaterialCardView
+    val resetMenuItem: RetroCardView
         get() = resetMenu
-    val progressMenuItem: MaterialCardView
+    val progressMenuItem: RetroCardView
         get() = progressMenu
-    val settingsMenuItem: MaterialCardView
+    val settingsMenuItem: RetroCardView
         get() = settingsMenu
-    val exitMenuItem: MaterialCardView
+    val exitMenuItem: RetroCardView
         get() = exitMenu
-    val saveLogMenuItem: MaterialCardView
+    val saveLogMenuItem: RetroCardView
         get() = saveLogMenu
 
     // Getter para o container do menu
