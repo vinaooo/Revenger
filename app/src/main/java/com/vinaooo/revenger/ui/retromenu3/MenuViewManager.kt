@@ -83,12 +83,12 @@ class MenuViewManager(private val fragment: Fragment) {
         // Menu items
         continueMenu = view.findViewById(R.id.menu_continue)
         resetMenu = view.findViewById(R.id.menu_reset)
-        settingsMenu = view.findViewById(R.id.menu_submenu1)
         progressMenu = view.findViewById(R.id.menu_submenu2)
+        settingsMenu = view.findViewById(R.id.menu_submenu1)
         exitMenu = view.findViewById(R.id.menu_exit)
 
         // Initialize ordered list of menu items
-        menuItems = listOf(continueMenu, resetMenu, settingsMenu, progressMenu, exitMenu)
+        menuItems = listOf(continueMenu, resetMenu, progressMenu, settingsMenu, exitMenu)
 
         // Dynamic content views (only views that exist in layout)
         // Initialize menu option titles
@@ -110,8 +110,8 @@ class MenuViewManager(private val fragment: Fragment) {
                 listOf(
                         MenuItemView(continueTitle, selectionArrowContinue, continueMenu),
                         MenuItemView(resetTitle, selectionArrowReset, resetMenu),
-                        MenuItemView(settingsTitle, selectionArrowSettings, settingsMenu),
                         MenuItemView(progressTitle, selectionArrowProgress, progressMenu),
+                        MenuItemView(settingsTitle, selectionArrowSettings, settingsMenu),
                         MenuItemView(exitTitle, selectionArrowExit, exitMenu)
                 )
 
