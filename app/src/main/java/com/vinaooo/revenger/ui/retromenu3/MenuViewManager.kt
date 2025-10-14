@@ -105,6 +105,21 @@ class MenuViewManager(private val fragment: Fragment) {
         selectionArrowProgress = view.findViewById(R.id.selection_arrow_submenu2)
         selectionArrowExit = view.findViewById(R.id.selection_arrow_exit)
 
+        // Force zero marginStart for all arrows to prevent spacing issues
+        listOf(
+                        selectionArrowContinue,
+                        selectionArrowReset,
+                        selectionArrowSettings,
+                        selectionArrowProgress,
+                        selectionArrowExit
+                )
+                .forEach { arrow ->
+                    (arrow.layoutParams as? LinearLayout.LayoutParams)?.apply {
+                        marginStart = 0
+                        marginEnd = 0
+                    }
+                }
+
         // Initialize menu item views list
         menuItemViews =
                 listOf(
@@ -169,11 +184,12 @@ class MenuViewManager(private val fragment: Fragment) {
             setTextColor(android.graphics.Color.YELLOW)
             visibility = View.VISIBLE
             (layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
+                marginStart = 0 // Force zero margin - critical fix
                 marginEnd =
                         fragment.resources.getDimensionPixelSize(
                                 R.dimen.retro_menu3_arrow_margin_end
                         )
+                leftMargin = 0 // Additional force for left margin
             }
         }
         // RetroCardView usa estados internos para visual

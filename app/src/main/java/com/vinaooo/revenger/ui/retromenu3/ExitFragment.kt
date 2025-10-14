@@ -233,7 +233,8 @@ class ExitFragment : MenuFragmentBase() {
 
         // Control selection arrows colors and visibility
         // FIX: Selected item shows arrow without margin (attached to text)
-        val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
+        // val arrowMarginEnd =
+        // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Save and Exit
         if (getCurrentSelectedIndex() == 0) {
@@ -241,7 +242,7 @@ class ExitFragment : MenuFragmentBase() {
             selectionArrowSaveAndExit.visibility = View.VISIBLE
             (selectionArrowSaveAndExit.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowSaveAndExit.visibility = View.GONE
@@ -253,7 +254,7 @@ class ExitFragment : MenuFragmentBase() {
             selectionArrowExitWithoutSave.visibility = View.VISIBLE
             (selectionArrowExitWithoutSave.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowExitWithoutSave.visibility = View.GONE
@@ -265,7 +266,7 @@ class ExitFragment : MenuFragmentBase() {
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowBack.visibility = View.GONE

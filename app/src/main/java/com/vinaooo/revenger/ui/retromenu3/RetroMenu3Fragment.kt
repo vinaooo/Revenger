@@ -197,6 +197,21 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 selectionArrowProgress = view.findViewById(R.id.selection_arrow_submenu2)
                 selectionArrowExit = view.findViewById(R.id.selection_arrow_exit)
 
+                // Force zero marginStart for all arrows to prevent spacing issues
+                listOf(
+                                selectionArrowContinue,
+                                selectionArrowReset,
+                                selectionArrowSettings,
+                                selectionArrowProgress,
+                                selectionArrowExit
+                        )
+                        .forEach { arrow ->
+                                (arrow.layoutParams as? LinearLayout.LayoutParams)?.apply {
+                                        marginStart = 0
+                                        marginEnd = 0
+                                }
+                        }
+
                 // Set first item as selected
                 updateSelectionVisual()
 
@@ -458,16 +473,22 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
                 // Control selection arrows colors and visibility
                 // FIX: Selected item shows arrow without margin (attached to text)
-                val arrowMarginEnd =
-                        resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
+                // val arrowMarginEnd =
+                // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
                 // Continue
                 if (getCurrentSelectedIndex() == 0) {
+                        android.util.Log.d("ArrowDebug", "Setting Continue arrow visible")
                         selectionArrowContinue.setTextColor(android.graphics.Color.YELLOW)
                         selectionArrowContinue.visibility = View.VISIBLE
                         (selectionArrowContinue.layoutParams as LinearLayout.LayoutParams).apply {
-                                marginStart = 0 // No space before the arrow
-                                marginEnd = arrowMarginEnd
+                                marginStart = 0 // No space before the arrow - force zero margin
+                                marginEnd = 0 // Force zero margin after arrow - attached to text
+                                leftMargin = 0
+                                android.util.Log.d(
+                                        "ArrowDebug",
+                                        "Continue arrow margins - start: $marginStart, end: $marginEnd, left: $leftMargin"
+                                )
                         }
                 } else {
                         selectionArrowContinue.visibility = View.GONE
@@ -475,12 +496,21 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
                 // Reset
                 if (getCurrentSelectedIndex() == 1) {
+                        android.util.Log.d("ArrowDebug", "Setting Reset arrow visible")
                         selectionArrowReset.setTextColor(android.graphics.Color.YELLOW)
                         selectionArrowReset.visibility = View.VISIBLE
                         (selectionArrowReset.layoutParams as LinearLayout.LayoutParams).apply {
-                                marginStart = 0 // No space before the arrow
-                                marginEnd = arrowMarginEnd
+                                marginStart = 0 // Force zero margin - critical for Reset
+                                marginEnd = 0 // Force zero margin after arrow - attached to text
+                                leftMargin = 0 // Additional force for left margin
+                                android.util.Log.d(
+                                        "ArrowDebug",
+                                        "Reset arrow margins - start: $marginStart, end: $marginEnd, left: $leftMargin"
+                                )
                         }
+                        // Force layout update
+                        selectionArrowReset.requestLayout()
+                        selectionArrowReset.invalidate()
                 } else {
                         selectionArrowReset.visibility = View.GONE
                 }
@@ -491,7 +521,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                         selectionArrowProgress.visibility = View.VISIBLE
                         (selectionArrowProgress.layoutParams as LinearLayout.LayoutParams).apply {
                                 marginStart = 0 // No space before the arrow
-                                marginEnd = arrowMarginEnd
+                                marginEnd = 0 // Force zero margin after arrow - attached to text
                         }
                 } else {
                         selectionArrowProgress.visibility = View.GONE
@@ -503,7 +533,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                         selectionArrowSettings.visibility = View.VISIBLE
                         (selectionArrowSettings.layoutParams as LinearLayout.LayoutParams).apply {
                                 marginStart = 0 // No space before the arrow
-                                marginEnd = arrowMarginEnd
+                                marginEnd = 0 // Force zero margin after arrow - attached to text
                         }
                 } else {
                         selectionArrowSettings.visibility = View.GONE
@@ -515,7 +545,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                         selectionArrowExit.visibility = View.VISIBLE
                         (selectionArrowExit.layoutParams as LinearLayout.LayoutParams).apply {
                                 marginStart = 0 // No space before the arrow
-                                marginEnd = arrowMarginEnd
+                                marginEnd = 0 // Force zero margin after arrow - attached to text
                         }
                 } else {
                         selectionArrowExit.visibility = View.GONE

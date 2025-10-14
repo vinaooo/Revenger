@@ -302,7 +302,8 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
         // Control selection arrows colors and visibility
         // FIX: Selected item shows arrow without margin (attached to text)
-        val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
+        // val arrowMarginEnd =
+        // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Sound
         if (selectedIndex == 0) {
@@ -310,7 +311,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowSound.visibility = View.VISIBLE
             (selectionArrowSound.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowSound.visibility = View.GONE
@@ -322,7 +323,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowShader.visibility = View.VISIBLE
             (selectionArrowShader.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowShader.visibility = View.GONE
@@ -335,7 +336,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowGameSpeed.visibility = View.VISIBLE
             (selectionArrowGameSpeed.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowGameSpeed.visibility = View.GONE
@@ -348,7 +349,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowBack.visibility = View.GONE

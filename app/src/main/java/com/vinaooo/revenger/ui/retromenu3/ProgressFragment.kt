@@ -263,7 +263,8 @@ class ProgressFragment : MenuFragmentBase() {
 
         // Control selection arrows colors and visibility
         // FIX: Selected item shows arrow without margin (attached to text)
-        val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
+        // val arrowMarginEnd =
+        // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Save State
         if (getCurrentSelectedIndex() == 0) {
@@ -271,7 +272,7 @@ class ProgressFragment : MenuFragmentBase() {
             selectionArrowSaveState.visibility = View.VISIBLE
             (selectionArrowSaveState.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowSaveState.visibility = View.GONE
@@ -283,7 +284,7 @@ class ProgressFragment : MenuFragmentBase() {
             selectionArrowLoadState.visibility = View.VISIBLE
             (selectionArrowLoadState.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowLoadState.visibility = View.GONE
@@ -295,7 +296,7 @@ class ProgressFragment : MenuFragmentBase() {
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowBack.visibility = View.GONE
