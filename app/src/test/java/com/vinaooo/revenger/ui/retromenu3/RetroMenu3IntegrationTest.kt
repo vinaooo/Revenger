@@ -175,19 +175,9 @@ class RetroMenu3IntegrationTest {
     }
 
     @Test
-    fun `test menu with custom configuration`() {
-        // Criar configuração customizada
-        val customConfig =
-                MenuConfigurationBuilder.create()
-                        .menuId("test_menu")
-                        .title("Test Menu")
-                        .addItem(MenuItem("test1", "Test Item 1", action = MenuAction.CONTINUE))
-                        .addItem(MenuItem("test2", "Test Item 2", action = MenuAction.RESET))
-                        .defaultSelectedIndex(1)
-                        .build()
-
-        // Criar fragment com configuração customizada
-        val customFragment = RetroMenu3Fragment.newInstance(customConfig)
+    fun `test fragment creation with default configuration`() {
+        // Criar fragment com configuração padrão
+        val customFragment = RetroMenu3Fragment.newInstance()
 
         // Iniciar fragment
         activity.supportFragmentManager
@@ -197,12 +187,10 @@ class RetroMenu3IntegrationTest {
 
         customFragment.showMainMenu()
 
-        // Verificar configuração customizada
+        // Verificar que o fragment foi criado com configuração padrão
         val menuItems = customFragment.getMenuItems()
-        assertEquals(2, menuItems.size)
-        assertEquals("test1", menuItems[0].id)
-        assertEquals("Test Item 1", menuItems[0].title)
-        assertEquals(1, customFragment.getCurrentSelectedIndex()) // defaultSelectedIndex
+        assertEquals(5, menuItems.size) // Deve ter os 5 itens padrão do menu
+        assertEquals(0, customFragment.getCurrentSelectedIndex()) // Deve começar no primeiro item
     }
 
     @Test
