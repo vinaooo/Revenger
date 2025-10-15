@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- A unique identifier for the app (no spaces or special characters allowed) -->
-    <string name="config_id">juliasth</string>
+    <string name="config_id">sth</string>
 
     <!-- The pretty name for the app -->
-    <string name="config_name">Sonic The Hedgehog</string>
+    <string name="config_name">Nao jogar</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="config_core">smsplus</string>
-    <!-- <string name="config_core">picodrive</string> -->
+    <string name="config_core">picodrive</string>
 
     <!-- Snes = snes9x -->
     <!-- megadrive = genesis_plus_gx -->
     <!-- gb = gambatte -->
     <!-- master = gearsystem (best performance for Master System) -->
     <!-- Master e Mega = picodrive (the best) -->
-    
+
     <!-- rom name, the same name the rom file in res/raw without extension -->
     <string name="config_rom">sth</string>
 
@@ -23,7 +22,7 @@
     <bool name="config_load_bytes">false</bool>
 
     <!-- Core variables (key=value separated by commas) -->
-    <string name="config_variables">smsplusgx_hide_left_border=enabled</string>
+    <string name="config_variables">picodrive_overclk68k=+400%,picodrive_overclksz80=+100%</string>
 
     <!-- Fast forward speed multiplier -->
     <integer name="config_fast_forward_multiplier">2</integer>
@@ -76,15 +75,13 @@
     <bool name="config_left_analog">false</bool>
 
     <!-- Show performance overlay (FPS, memory, CPU) -->
-    <bool name="config_performance_overlay">false</bool>
-
-    <!-- Shader configuration for video rendering
-        Options: disabled, sharp, crt, lcd, settings
-        - disabled: No shader applied (raw output)
-        - sharp: Sharp bilinear filtering
-        - crt: CRT monitor simulation
-        - lcd: LCD matrix effect
-        - settings: Dynamic shader selection via in-game menu
-    -->
-    <string name="config_shader">crt</string>
+    <bool name="config_performance_overlay">true</bool>
+    
+    <!-- Shader configuration
+        "disabled" = No shader applied
+        "sharp" = Sharp bilinear filtering
+        "crt" = CRT shader
+        "lcd" = LCD shader
+        "settings" = Allow user to select shader in menu-->
+    <string name="config_shader">settings</string>
 </resources>

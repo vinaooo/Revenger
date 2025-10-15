@@ -54,6 +54,16 @@ class GameActivity : FragmentActivity() {
             }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        android.util.Log.e(
+                "GAME_ACTIVITY",
+                "🚨🚨🚨🚨🚨 GAME_ACTIVITY ONCREATE CALLED - NEW APK VERSION 🚨🚨🚨🚨🚨"
+        )
+        android.util.Log.e("GAME_ACTIVITY", "📅 TIMESTAMP: ${java.util.Date()}")
+        android.util.Log.e(
+                "GAME_ACTIVITY",
+                "🔧 APK VERSION: DEBUG WITH EXTENSIVE LOGGING - REV ${System.currentTimeMillis()}"
+        )
+
         super.onCreate(savedInstanceState)
 
         // Apply conditional features based on Android version
@@ -116,8 +126,8 @@ class GameActivity : FragmentActivity() {
                     .beginTransaction()
                     .remove(retroMenu3Fragment)
                     .commitNowAllowingStateLoss()
-            // Recria o fragment usando o método padrão do ViewModel
-            viewModel.prepareRetroMenu3(this)
+            // Força recriação completa do fragment usando o novo método
+            viewModel.recreateRetroMenu3(this)
             viewModel.showRetroMenu3(this)
         }
     }

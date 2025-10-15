@@ -55,6 +55,10 @@ class ControllerInput(private val context: Context) {
         private var lastComboTriggerTime = 0L
         private val COMBO_COOLDOWN_MS = 500L // 500ms cooldown between combo detections
 
+        /** Timestamp to prevent combo detection immediately after menu closes */
+        private var menuCloseDebounceTime = 0L
+        private val MENU_CLOSE_DEBOUNCE_MS = 200L // 200ms debounce after menu closes
+
         /**
          * Clears the keyLog to avoid combo detection after closing the menu.
          *
@@ -62,18 +66,34 @@ class ControllerInput(private val context: Context) {
          * is still open, keeps the flag to avoid false detections.
          */
         fun clearKeyLog() {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔥 [CLEAR_KEYLOG] ===== clearKeyLog() CALLED ====="
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔥 [CLEAR_KEYLOG] Timestamp: ${System.currentTimeMillis()}"
+                )
                 android.util.Log.d("ControllerInput", "")
                 android.util.Log.d("ControllerInput", "🧹 clearKeyLog() CALLED")
                 android.util.Log.d(
                         "ControllerInput",
                         "   BEFORE: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered"
                 )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   BEFORE: isRetroMenu3Open=${isRetroMenu3Open?.invoke() ?: false}"
+                )
                 keyLog.clear()
 
                 // 🔧 FIX: Reset comboAlreadyTriggered only if menu is not open
                 // This prevents false detections when menu is closed, but avoids
                 // resetting the flag if menu is still open (ex: during operations)
-                if (!isRetroMenu3Open()) {
+                if (!isRetroMenu3Open?.invoke()!!) {
                         android.util.Log.d(
                                 "ControllerInput",
                                 "   ✅ Menu is closed, resetting comboAlreadyTriggered to prevent double-press bug"
@@ -87,11 +107,19 @@ class ControllerInput(private val context: Context) {
                 }
 
                 lastComboTriggerTime = 0L // Reset cooldown timer to allow immediate combo detection
+                menuCloseDebounceTime = System.currentTimeMillis() // Set debounce timestamp
                 android.util.Log.d(
                         "ControllerInput",
-                        "   AFTER: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered"
+                        "   AFTER: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered, menuCloseDebounceTime=$menuCloseDebounceTime"
                 )
-                android.util.Log.d("ControllerInput", "")
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔥 [CLEAR_KEYLOG] ===== clearKeyLog() COMPLETED ====="
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥"
+                )
         }
 
         /** The callback for when the user inputs the menu key-combination */
@@ -120,6 +148,9 @@ class ControllerInput(private val context: Context) {
         var menuNavigateDownCallback: () -> Unit = {}
         var menuConfirmCallback: () -> Unit = {}
         var menuBackCallback: () -> Unit = {}
+
+        /** Getter for comboAlreadyTriggered (for debugging) */
+        fun getComboAlreadyTriggered(): Boolean = comboAlreadyTriggered
 
         /** Function to check if devemos interceptar DPAD para menu */
         var shouldInterceptDpadForMenu: () -> Boolean = { false }
@@ -159,6 +190,20 @@ class ControllerInput(private val context: Context) {
 
         /** Check if we should be showing the user the menu */
         private fun checkMenuKeyCombo() {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔍 checkMenuKeyCombo() - INÍCIO DA VERIFICAÇÃO"
+                )
+                android.util.Log.d("ControllerInput", "   keyLog atual: $keyLog")
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   comboAlreadyTriggered: $comboAlreadyTriggered"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()}"
+                )
+
                 // Check if we have exactly the two buttons pressed
                 val hasSelectAndStart = keyLog.containsAll(KEYCOMBO_MENU) && keyLog.size == 2
 
@@ -194,15 +239,17 @@ class ControllerInput(private val context: Context) {
                         "ControllerInput",
                         "│ START pressed: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)}"
                 )
+                val timeSinceMenuClose = currentTime - menuCloseDebounceTime
                 android.util.Log.d(
                         "ControllerInput",
-                        "│ keyLog.size: ${keyLog.size} (should be 2 for combo)"
+                        "│ timeSinceMenuClose: ${timeSinceMenuClose}ms (debounce: ${MENU_CLOSE_DEBOUNCE_MS}ms)"
                 )
 
                 if (hasSelectAndStart &&
                                 !comboAlreadyTriggered &&
                                 shouldHandleSelectStartCombo() &&
-                                timeSinceLastTrigger > COMBO_COOLDOWN_MS
+                                timeSinceLastTrigger > COMBO_COOLDOWN_MS &&
+                                timeSinceMenuClose > MENU_CLOSE_DEBOUNCE_MS
                 ) {
 
                         android.util.Log.d(
@@ -225,6 +272,10 @@ class ControllerInput(private val context: Context) {
                                 "ControllerInput",
                                 "│    - timeSinceLastTrigger: ${timeSinceLastTrigger}ms > ${COMBO_COOLDOWN_MS}ms"
                         )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│    - timeSinceMenuClose: ${timeSinceMenuClose}ms > ${MENU_CLOSE_DEBOUNCE_MS}ms"
+                        )
                         comboAlreadyTriggered = true // Mark combo as triggered
                         lastComboTriggerTime = currentTime
                         android.util.Log.d(
@@ -239,8 +290,29 @@ class ControllerInput(private val context: Context) {
                 } else {
                         android.util.Log.d(
                                 "ControllerInput",
-                                "│ ❌ COMBO NOT TRIGGERED - Missing condition:"
+                                "❌ COMBO REJEITADO - Verificando condições faltantes:"
                         )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   hasSelectAndStart: $hasSelectAndStart (precisa ser true)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   comboAlreadyTriggered: $comboAlreadyTriggered (precisa ser false)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()} (precisa ser true)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   timeSinceLastTrigger: ${timeSinceLastTrigger}ms (precisa ser > ${COMBO_COOLDOWN_MS}ms)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   timeSinceMenuClose: ${timeSinceMenuClose}ms (precisa ser > ${MENU_CLOSE_DEBOUNCE_MS}ms)"
+                        )
+
                         if (!hasSelectAndStart) {
                                 android.util.Log.d(
                                         "ControllerInput",
@@ -312,7 +384,22 @@ class ControllerInput(private val context: Context) {
                                         "│    ⚠️ User pressing too fast! Wait ${COMBO_COOLDOWN_MS - timeSinceLastTrigger}ms more"
                                 )
                         }
+                        if (timeSinceMenuClose <= MENU_CLOSE_DEBOUNCE_MS) {
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "│    - menu close debounce active (${timeSinceMenuClose}ms < ${MENU_CLOSE_DEBOUNCE_MS}ms)"
+                                )
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "│    ℹ️ Menu just closed, preventing immediate re-open"
+                                )
+                        }
                 }
+                android.util.Log.d("ControllerInput", "🔚 checkMenuKeyCombo() - FIM DA VERIFICAÇÃO")
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   Estado final - comboAlreadyTriggered: $comboAlreadyTriggered"
+                )
                 android.util.Log.d(
                         "ControllerInput",
                         "└─────────────────────────────────────────────────────────"
@@ -526,16 +613,24 @@ class ControllerInput(private val context: Context) {
                                         KeyEvent.KEYCODE_DPAD_UP -> {
                                                 android.util.Log.d(
                                                         "ControllerInput",
-                                                        "DPAD UP (KeyEvent) intercepted for menu navigation"
+                                                        "DPAD UP (KeyEvent) intercepted for menu navigation - calling callback"
                                                 )
                                                 menuNavigateUpCallback()
+                                                android.util.Log.d(
+                                                        "ControllerInput",
+                                                        "DPAD UP (KeyEvent) callback completed"
+                                                )
                                         }
                                         KeyEvent.KEYCODE_DPAD_DOWN -> {
                                                 android.util.Log.d(
                                                         "ControllerInput",
-                                                        "DPAD DOWN (KeyEvent) intercepted for menu navigation"
+                                                        "DPAD DOWN (KeyEvent) intercepted for menu navigation - calling callback"
                                                 )
                                                 menuNavigateDownCallback()
+                                                android.util.Log.d(
+                                                        "ControllerInput",
+                                                        "DPAD DOWN (KeyEvent) callback completed"
+                                                )
                                         }
                                         KeyEvent.KEYCODE_DPAD_LEFT -> {
                                                 android.util.Log.d(
@@ -722,36 +817,95 @@ class ControllerInput(private val context: Context) {
 
                 // INTERCEPT DPAD for menu navigation when RetroMenu3 is open
                 if (shouldInterceptDpadForMenu()) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION START =========="
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "[INTERCEPT] 📊 shouldInterceptDpadForMenu=${shouldInterceptDpadForMenu()}"
+                        )
+
                         val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
                         val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+
+                        android.util.Log.d("ControllerInput", "[INTERCEPT] 📊 MotionEvent values:")
+                        android.util.Log.d("ControllerInput", "[INTERCEPT]   🎯 hatX=$hatX")
+                        android.util.Log.d("ControllerInput", "[INTERCEPT]   🎯 hatY=$hatY")
 
                         // Simplified logic: detect current DPAD direction
                         when {
                                 hatY < -0.5f -> { // DPAD UP
                                         android.util.Log.d(
                                                 "ControllerInput",
-                                                "DPAD UP pressed for menu navigation"
+                                                "[INTERCEPT] ⬆️ DPAD UP detected - calling menuNavigateUpCallback"
                                         )
                                         menuNavigateUpCallback()
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ✅ DPAD UP callback completed - returning true"
+                                        )
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION END (UP) =========="
+                                        )
                                         return true
                                 }
                                 hatY > 0.5f -> { // DPAD DOWN
                                         android.util.Log.d(
                                                 "ControllerInput",
-                                                "DPAD DOWN pressed for menu navigation"
+                                                "[INTERCEPT] ⬇️ DPAD DOWN detected - calling menuNavigateDownCallback"
                                         )
                                         menuNavigateDownCallback()
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ✅ DPAD DOWN callback completed - returning true"
+                                        )
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION END (DOWN) =========="
+                                        )
                                         return true
                                 }
                                 hatX < -0.5f -> { // DPAD LEFT (if needed in the future)
-                                        android.util.Log.d("ControllerInput", "DPAD LEFT pressed")
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ⬅️ DPAD LEFT detected - blocking"
+                                        )
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION END (LEFT) =========="
+                                        )
                                         return true
                                 }
                                 hatX > 0.5f -> { // DPAD RIGHT (if needed in the future)
-                                        android.util.Log.d("ControllerInput", "DPAD RIGHT pressed")
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ➡️ DPAD RIGHT detected - blocking"
+                                        )
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION END (RIGHT) =========="
+                                        )
                                         return true
                                 }
+                                else -> {
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ⭕ No DPAD direction detected - values too small"
+                                        )
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] 🎮 ========== DPAD INTERCEPTION END (NONE) =========="
+                                        )
+                                        // No direction detected, let the event pass through
+                                }
                         }
+                } else {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "[INTERCEPT] 🚫 DPAD interception disabled - shouldInterceptDpadForMenu=${shouldInterceptDpadForMenu()}"
+                        )
                 }
 
                 // Send motion events to game

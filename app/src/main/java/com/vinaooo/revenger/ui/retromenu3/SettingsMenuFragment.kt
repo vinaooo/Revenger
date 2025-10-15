@@ -7,9 +7,8 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.utils.FontUtils
+import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** SettingsMenuFragment - Settings submenu with visual identical to RetroMenu3 */
@@ -20,16 +19,16 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     // Menu item views
     private lateinit var settingsMenuContainer: LinearLayout
-    private lateinit var soundSettings: MaterialCardView
-    private lateinit var shaderSettings: MaterialCardView
-    private lateinit var gameSpeedSettings: MaterialCardView
-    private lateinit var backSettings: MaterialCardView
+    private lateinit var soundSettings: RetroCardView
+    private lateinit var shaderSettings: RetroCardView
+    private lateinit var gameSpeedSettings: RetroCardView
+    private lateinit var backSettings: RetroCardView
 
     // Menu title
     private lateinit var settingsMenuTitle: TextView
 
     // Ordered list of menu items for navigation
-    private lateinit var menuItems: List<MaterialCardView>
+    private lateinit var menuItems: List<RetroCardView>
 
     // Menu option titles for color control
     private lateinit var soundTitle: TextView
@@ -69,25 +68,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
         // CRITICAL: Force all views to z=0 to stay below gamepad
-        forceZeroElevationRecursively(view)
+        ViewUtils.forceZeroElevationRecursively(view)
 
         setupViews(view)
         setupClickListeners()
         updateMenuState()
         // REMOVED: animateMenuIn() - submenu now appears instantly without animation
-    }
-
-    /** Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad. */
-    private fun forceZeroElevationRecursively(view: View) {
-        view.z = 0f
-        view.elevation = 0f
-        view.translationZ = 0f
-
-        if (view is android.view.ViewGroup) {
-            for (i in 0 until view.childCount) {
-                forceZeroElevationRecursively(view.getChildAt(i))
-            }
-        }
     }
 
     private fun setupViews(view: View) {
@@ -117,6 +103,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
                     listOf(soundSettings, gameSpeedSettings, backSettings)
                 }
 
+        // Configure RetroCardView to use transparent background for selected state (not yellow)
+        soundSettings.setUseBackgroundColor(false)
+        shaderSettings.setUseBackgroundColor(false)
+        gameSpeedSettings.setUseBackgroundColor(false)
+        backSettings.setUseBackgroundColor(false)
+
         // Initialize menu option titles
         soundTitle = view.findViewById(R.id.sound_title)
         shaderTitle = view.findViewById(R.id.shader_title)
@@ -133,21 +125,8 @@ class SettingsMenuFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
-        applyArcadeFontToViews()
-    }
-
-    /** Check if shader selection is enabled based on config_shader setting */
-    private fun isShaderSelectionEnabled(): Boolean {
-        val configShader = resources.getString(R.string.config_shader)
-        return configShader == "settings"
-    }
-
-    private fun applyArcadeFontToViews() {
-        val context = requireContext()
-
-        // Apply font to all text views in the settings menu
-        FontUtils.applyArcadeFont(
-                context,
+        ViewUtils.applyArcadeFontToViews(
+                requireContext(),
                 settingsMenuTitle,
                 soundTitle,
                 shaderTitle,
@@ -158,6 +137,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
                 selectionArrowGameSpeed,
                 selectionArrowBack
         )
+    }
+
+    /** Check if shader selection is enabled based on config_shader setting */
+    private fun isShaderSelectionEnabled(): Boolean {
+        val configShader = resources.getString(R.string.config_shader)
+        return configShader == "settings"
     }
 
     private fun setupClickListeners() {
@@ -175,18 +160,14 @@ class SettingsMenuFragment : MenuFragmentBase() {
         }
 
         gameSpeedSettings.setOnClickListener {
-            // Game Speed - First close all menus, then apply the functionality
-            // A) Close all menus first
-            viewModel.dismissAllMenus()
-
-            // B) Apply existing functionality (toggle fast forward)
+            // Game Speed - Toggle fast forward without closing the menu and without applying
+            // immediately
             val currentFastForwardState = viewModel.getFastForwardState()
-            if (currentFastForwardState) {
-                viewModel.disableFastForward()
-            } else {
-                viewModel.enableFastForward()
-            }
-            // Note: No need to call updateMenuState() since menus are being dismissed
+            viewModel.setFastForwardEnabled(
+                    !currentFastForwardState
+            ) // Toggle state without immediate application
+            // Update menu state to reflect the change
+            updateMenuState()
         }
 
         backSettings.setOnClickListener {
@@ -282,12 +263,15 @@ class SettingsMenuFragment : MenuFragmentBase() {
         val isShaderEnabled = isShaderSelectionEnabled()
         val selectedIndex = getCurrentSelectedIndex()
 
-        menuItems.forEach { item ->
-            // Removed: background color of individual cards
-            // Selection now indicated only by yellow text and arrows
-            item.strokeWidth = 0
-            item.strokeColor = android.graphics.Color.TRANSPARENT
-            item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+        // Update each menu item state based on selection
+        menuItems.forEachIndexed { index, item ->
+            if (index == selectedIndex) {
+                // Item selecionado - usar estado SELECTED do RetroCardView
+                item.setState(RetroCardView.State.SELECTED)
+            } else {
+                // Item não selecionado - usar estado NORMAL do RetroCardView
+                item.setState(RetroCardView.State.NORMAL)
+            }
         }
 
         // Control text colors based on selection (dynamic based on shader visibility)
@@ -322,7 +306,8 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
         // Control selection arrows colors and visibility
         // FIX: Selected item shows arrow without margin (attached to text)
-        val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
+        // val arrowMarginEnd =
+        // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Sound
         if (selectedIndex == 0) {
@@ -330,7 +315,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowSound.visibility = View.VISIBLE
             (selectionArrowSound.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowSound.visibility = View.GONE
@@ -342,7 +327,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowShader.visibility = View.VISIBLE
             (selectionArrowShader.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowShader.visibility = View.GONE
@@ -355,7 +340,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowGameSpeed.visibility = View.VISIBLE
             (selectionArrowGameSpeed.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowGameSpeed.visibility = View.GONE
@@ -368,7 +353,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowBack.visibility = View.GONE
@@ -407,7 +392,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
     private fun dismissMenu() {
         // IMPORTANT: Do not call dismissRetroMenu3() here to avoid crashes
         // Just remove the fragment visually - WITHOUT animation
-        parentFragmentManager.beginTransaction().remove(this).commit()
+        parentFragmentManager.beginTransaction().remove(this).commitAllowingStateLoss()
     }
 
     /** Public method to dismiss the menu from outside */

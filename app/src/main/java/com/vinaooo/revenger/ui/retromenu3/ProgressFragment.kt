@@ -7,9 +7,8 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.utils.FontUtils
+import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** ProgressFragment - Progress submenu with visual identical to RetroMenu3 */
@@ -20,15 +19,15 @@ class ProgressFragment : MenuFragmentBase() {
 
     // Menu item views
     private lateinit var progressContainer: LinearLayout
-    private lateinit var saveState: MaterialCardView
-    private lateinit var loadState: MaterialCardView
-    private lateinit var backProgress: MaterialCardView
+    private lateinit var saveState: RetroCardView
+    private lateinit var loadState: RetroCardView
+    private lateinit var backProgress: RetroCardView
 
     // Menu title
     private lateinit var progressTitle: TextView
 
     // Ordered list of menu items for navigation
-    private lateinit var menuItems: List<MaterialCardView>
+    private lateinit var menuItems: List<RetroCardView>
 
     // Menu option titles for color control
     private lateinit var saveStateTitle: TextView
@@ -66,7 +65,7 @@ class ProgressFragment : MenuFragmentBase() {
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
         // CRITICAL: Force all views to z=0 to stay below gamepad
-        forceZeroElevationRecursively(view)
+        ViewUtils.forceZeroElevationRecursively(view)
 
         setupViews(view)
         setupClickListeners()
@@ -74,19 +73,6 @@ class ProgressFragment : MenuFragmentBase() {
 
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when selecting Back
-    }
-
-    /** Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad. */
-    private fun forceZeroElevationRecursively(view: View) {
-        view.z = 0f
-        view.elevation = 0f
-        view.translationZ = 0f
-
-        if (view is android.view.ViewGroup) {
-            for (i in 0 until view.childCount) {
-                forceZeroElevationRecursively(view.getChildAt(i))
-            }
-        }
     }
 
     private fun setupViews(view: View) {
@@ -103,6 +89,12 @@ class ProgressFragment : MenuFragmentBase() {
 
         // Initialize ordered list of menu items
         menuItems = listOf(saveState, loadState, backProgress)
+
+        // Configure ProgressFragment to not use background colors on cards
+        // (unlike main menu which uses yellow background for selection)
+        saveState.setUseBackgroundColor(false)
+        loadState.setUseBackgroundColor(false)
+        backProgress.setUseBackgroundColor(false)
 
         // Initialize menu option titles
         saveStateTitle = view.findViewById(R.id.save_state_title)
@@ -123,15 +115,8 @@ class ProgressFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
-        applyArcadeFontToViews()
-    }
-
-    private fun applyArcadeFontToViews() {
-        val context = requireContext()
-
-        // Apply font to all text views in the progress menu
-        FontUtils.applyArcadeFont(
-                context,
+        ViewUtils.applyArcadeFontToViews(
+                requireContext(),
                 progressTitle,
                 saveStateTitle,
                 loadStateTitle,
@@ -146,26 +131,32 @@ class ProgressFragment : MenuFragmentBase() {
 
         saveState.setOnClickListener {
             // Save State - First close menus, then set correct frameSpeed, then save
-            // Close menus first
-            viewModel.dismissAllMenus()
-
-            // A) Set frameSpeed to correct value (1 or 2) from Game Speed sharedPreference
-            viewModel.restoreGameSpeedFromPreferences()
-
-            // B) Take existing actions to save the state
-            viewModel.saveStateCentralized { /* Menus already closed */}
+            // Close menus first with callback
+            viewModel.dismissAllMenus {
+                android.util.Log.d(
+                        TAG,
+                        "[ACTION] Progress menu: Animation completed - restoring game speed and saving"
+                )
+                // Set frameSpeed to correct value from Game Speed sharedPreference
+                viewModel.restoreGameSpeedFromPreferences()
+                // Take existing actions to save the state
+                viewModel.saveStateCentralized { /* Menus already closed */}
+            }
         }
 
         loadState.setOnClickListener {
             // Load State - First close menus, then set correct frameSpeed, then load
-            // A) Close all menus first
-            viewModel.dismissAllMenus()
-
-            // B) Set frameSpeed to correct value (1 or 2) from Game Speed sharedPreference
-            viewModel.restoreGameSpeedFromPreferences()
-
-            // C) Load the saved game state
-            viewModel.loadStateCentralized { /* Menus already closed */}
+            // Close all menus first with callback
+            viewModel.dismissAllMenus {
+                android.util.Log.d(
+                        TAG,
+                        "[ACTION] Progress menu: Animation completed - restoring game speed and loading"
+                )
+                // Set frameSpeed to correct value from Game Speed sharedPreference
+                viewModel.restoreGameSpeedFromPreferences()
+                // Load the saved game state
+                viewModel.loadStateCentralized { /* Menus already closed */}
+            }
         }
 
         backProgress.setOnClickListener {
@@ -177,7 +168,7 @@ class ProgressFragment : MenuFragmentBase() {
     private fun dismissMenu() {
         // IMPORTANT: Do not call dismissRetroMenu3() here to avoid crashes
         // Just remove the fragment visually - WITHOUT animation
-        parentFragmentManager.beginTransaction().remove(this).commit()
+        parentFragmentManager.beginTransaction().remove(this).commitAllowingStateLoss()
     }
 
     /** Navigate up in the menu - with special logic to skip disabled Load State */
@@ -249,15 +240,18 @@ class ProgressFragment : MenuFragmentBase() {
 
     /** Update selection visual - specific implementation for ProgressFragment */
     override fun updateSelectionVisualInternal() {
-        menuItems.forEach { item ->
-            // Removed: background color of individual cards
-            // Selection now indicated only by yellow text and arrows
-            item.strokeWidth = 0
-            item.strokeColor = android.graphics.Color.TRANSPARENT
-            item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+        // Update each menu item based on selection state
+        menuItems.forEachIndexed { index, menuItem ->
+            if (index == getCurrentSelectedIndex()) {
+                // Item selecionado - usar estado SELECTED do RetroCardView
+                menuItem.setState(RetroCardView.State.SELECTED)
+            } else {
+                // Item não selecionado - usar estado NORMAL do RetroCardView
+                menuItem.setState(RetroCardView.State.NORMAL)
+            }
         }
 
-        // Control text colors based on selection
+        // Control text colors based on selection and state
         saveStateTitle.setTextColor(
                 if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
                 else android.graphics.Color.WHITE
@@ -275,7 +269,8 @@ class ProgressFragment : MenuFragmentBase() {
 
         // Control selection arrows colors and visibility
         // FIX: Selected item shows arrow without margin (attached to text)
-        val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
+        // val arrowMarginEnd =
+        // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Save State
         if (getCurrentSelectedIndex() == 0) {
@@ -283,7 +278,7 @@ class ProgressFragment : MenuFragmentBase() {
             selectionArrowSaveState.visibility = View.VISIBLE
             (selectionArrowSaveState.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowSaveState.visibility = View.GONE
@@ -295,7 +290,7 @@ class ProgressFragment : MenuFragmentBase() {
             selectionArrowLoadState.visibility = View.VISIBLE
             (selectionArrowLoadState.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowLoadState.visibility = View.GONE
@@ -307,7 +302,7 @@ class ProgressFragment : MenuFragmentBase() {
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowBack.visibility = View.GONE

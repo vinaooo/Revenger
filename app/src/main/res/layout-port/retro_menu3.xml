@@ -2,6 +2,7 @@
 <!-- Portrait override: centraliza verticalmente o menu -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/menu_content_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/retro_menu3_background">
@@ -49,17 +50,12 @@
                     android:orientation="vertical"
                     android:elevation="0dp">
                     <!-- Continue Game -->
-                    <com.google.android.material.card.MaterialCardView
+                    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_continue"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
-                        android:focusable="true"
-                        app:cardCornerRadius="@dimen/retro_menu3_menu_item_corner_radius"
-                        app:cardElevation="@dimen/retro_menu3_menu_item_elevation"
-                        app:strokeWidth="@dimen/retro_menu3_menu_item_stroke_width"
-                        app:strokeColor="@color/retro_menu3_card_stroke"
-                        app:cardBackgroundColor="@color/retro_menu3_card_background">
+                        android:focusable="true">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
@@ -98,19 +94,14 @@
                                     android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
                             </LinearLayout>
                         </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
                     <!-- Reset Game -->
-                    <com.google.android.material.card.MaterialCardView
+                    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_reset"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
-                        android:focusable="true"
-                        app:cardCornerRadius="@dimen/retro_menu3_menu_item_corner_radius"
-                        app:cardElevation="@dimen/retro_menu3_menu_item_elevation"
-                        app:strokeWidth="@dimen/retro_menu3_menu_item_stroke_width"
-                        app:strokeColor="@color/retro_menu3_card_stroke"
-                        app:cardBackgroundColor="@color/retro_menu3_card_background">
+                        android:focusable="true">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
@@ -149,19 +140,14 @@
                                     android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
                             </LinearLayout>
                         </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
                     <!-- Submenu 1 -->
-                    <com.google.android.material.card.MaterialCardView
+                    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_submenu1"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
-                        android:focusable="true"
-                        app:cardCornerRadius="@dimen/retro_menu3_menu_item_corner_radius"
-                        app:cardElevation="@dimen/retro_menu3_menu_item_elevation"
-                        app:strokeWidth="@dimen/retro_menu3_menu_item_stroke_width"
-                        app:strokeColor="@color/retro_menu3_card_stroke"
-                        app:cardBackgroundColor="@color/retro_menu3_card_background">
+                        android:focusable="true">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
@@ -200,19 +186,14 @@
                                     android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
                             </LinearLayout>
                         </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
                     <!-- Settings -->
-                    <com.google.android.material.card.MaterialCardView
+                    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_settings"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
-                        android:focusable="true"
-                        app:cardCornerRadius="@dimen/retro_menu3_menu_item_corner_radius"
-                        app:cardElevation="@dimen/retro_menu3_menu_item_elevation"
-                        app:strokeWidth="@dimen/retro_menu3_menu_item_stroke_width"
-                        app:strokeColor="@color/retro_menu3_card_stroke"
-                        app:cardBackgroundColor="@color/retro_menu3_card_background">
+                        android:focusable="true">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
@@ -251,19 +232,14 @@
                                     android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
                             </LinearLayout>
                         </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
                     <!-- Exit Menu -->
-                    <com.google.android.material.card.MaterialCardView
+                    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_exit"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
-                        android:focusable="true"
-                        app:cardCornerRadius="@dimen/retro_menu3_menu_item_corner_radius"
-                        app:cardElevation="@dimen/retro_menu3_menu_item_elevation"
-                        app:strokeWidth="@dimen/retro_menu3_menu_item_stroke_width"
-                        app:strokeColor="@color/retro_menu3_card_stroke"
-                        app:cardBackgroundColor="@color/retro_menu3_card_background">
+                        android:focusable="true">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
@@ -302,7 +278,7 @@
                                     android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
                             </LinearLayout>
                         </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
                     <!-- Extra space for last item -->
                     <Space
                         android:layout_width="match_parent"

@@ -26,6 +26,26 @@ sealed class MenuAction {
 }
 
 /**
+ * Unified event system for menu interactions. Replaces the hybrid architecture of direct method
+ * calls and callbacks with a single, consistent event-driven approach. This enables better
+ * decoupling, testability, and maintainability of the menu system.
+ */
+sealed class MenuEvent {
+    // Navigation events
+    object NavigateUp : MenuEvent()
+    object NavigateDown : MenuEvent()
+    object Confirm : MenuEvent()
+    object Back : MenuEvent()
+
+    // Action events
+    data class Action(val action: MenuAction) : MenuEvent()
+
+    // State change events
+    data class StateChanged(val from: MenuState, val to: MenuState) : MenuEvent()
+    object MenuClosed : MenuEvent()
+}
+
+/**
  * Enum representing different menu states in the RetroMenu3 system. This provides a clear state
  * machine for menu navigation.
  */
@@ -34,6 +54,123 @@ enum class MenuState {
     PROGRESS_MENU,
     SETTINGS_MENU,
     EXIT_MENU
+}
+
+/**
+ * Centralized state representation for the entire menu system. Replaces the distributed boolean
+ * flags and manual state management with a single, consistent state object. This enables better
+ * state tracking, debugging, and prevents inconsistent states.
+ */
+data class MenuSystemState(
+        val currentState: MenuState = MenuState.MAIN_MENU,
+        val activeMenus: Set<MenuType> = emptySet(),
+        val navigationStack: List<MenuState> = emptyList(),
+        val isRetroMenu3Open: Boolean = false,
+        val isDismissingAllMenus: Boolean = false
+) {
+    enum class MenuType {
+        RETRO_MENU_3,
+        SETTINGS_MENU,
+        PROGRESS_MENU,
+        EXIT_MENU
+    }
+
+    /** Check if any menu is currently active */
+    fun hasActiveMenus(): Boolean = activeMenus.isNotEmpty()
+
+    /** Check if a specific menu type is active */
+    fun isMenuActive(menuType: MenuType): Boolean = menuType in activeMenus
+
+    /** Add a menu to the active set */
+    fun withMenuActivated(menuType: MenuType): MenuSystemState =
+            copy(activeMenus = activeMenus + menuType)
+
+    /** Remove a menu from the active set */
+    fun withMenuDeactivated(menuType: MenuType): MenuSystemState =
+            copy(activeMenus = activeMenus - menuType)
+
+    /** Change current state */
+    fun withState(newState: MenuState): MenuSystemState = copy(currentState = newState)
+
+    /** Push state to navigation stack */
+    fun withStatePushed(state: MenuState): MenuSystemState =
+            copy(navigationStack = navigationStack + state)
+
+    /** Pop state from navigation stack */
+    fun withStatePopped(): MenuSystemState = copy(navigationStack = navigationStack.dropLast(1))
+
+    /** Set RetroMenu3 open/closed */
+    fun withRetroMenu3Open(open: Boolean): MenuSystemState = copy(isRetroMenu3Open = open)
+
+    /** Set dismissing all menus flag */
+    fun withDismissingAllMenus(dismissing: Boolean): MenuSystemState =
+            copy(isDismissingAllMenus = dismissing)
+}
+
+/**
+ * Centralized state manager for the menu system. Provides a single source of truth for all menu
+ * state, replacing the distributed boolean flags. Uses immutable state updates for thread safety
+ * and predictability.
+ */
+class MenuStateManager(private val onStateChanged: ((MenuSystemState) -> Unit)? = null) {
+
+    private var _currentState = MenuSystemState()
+
+    /** Get current state (immutable copy) */
+    val currentState: MenuSystemState
+        get() = _currentState
+
+    /** Update state using a transformation function */
+    fun updateState(transform: (MenuSystemState) -> MenuSystemState) {
+        _currentState = transform(_currentState)
+        onStateChanged?.invoke(_currentState)
+        android.util.Log.d(TAG, "Menu state updated: $_currentState")
+    }
+
+    /** Convenience methods for common state changes */
+    fun activateMenu(menuType: MenuSystemState.MenuType) {
+        updateState { it.withMenuActivated(menuType) }
+    }
+
+    fun deactivateMenu(menuType: MenuSystemState.MenuType) {
+        updateState { it.withMenuDeactivated(menuType) }
+    }
+
+    fun changeState(newState: MenuState) {
+        updateState { it.withState(newState) }
+    }
+
+    fun pushToNavigationStack(state: MenuState) {
+        updateState { it.withStatePushed(state) }
+    }
+
+    fun popFromNavigationStack() {
+        updateState { it.withStatePopped() }
+    }
+
+    fun setRetroMenu3Open(open: Boolean) {
+        updateState { it.withRetroMenu3Open(open) }
+    }
+
+    fun setDismissingAllMenus(dismissing: Boolean) {
+        updateState { it.withDismissingAllMenus(dismissing) }
+    }
+
+    /** Query methods */
+    fun hasActiveMenus(): Boolean = _currentState.hasActiveMenus()
+
+    fun isMenuActive(menuType: MenuSystemState.MenuType): Boolean =
+            _currentState.isMenuActive(menuType)
+
+    fun isRetroMenu3Open(): Boolean = _currentState.isRetroMenu3Open
+
+    fun isDismissingAllMenus(): Boolean = _currentState.isDismissingAllMenus
+
+    fun getCurrentState(): MenuState = _currentState.currentState
+
+    companion object {
+        private const val TAG = "MenuStateManager"
+    }
 }
 
 /**
@@ -96,15 +233,15 @@ interface MenuFragment {
  * Central menu manager that coordinates all menu fragments and handles state transitions. This
  * implements the State Machine pattern for menu navigation.
  */
-class MenuManager(private val listener: MenuManagerListener) {
+class MenuManager(
+        private val listener: MenuManagerListener,
+        private val stateManager: MenuStateManager
+) {
 
     interface MenuManagerListener {
-        fun onMenuAction(action: MenuAction)
-        fun onMenuStateChanged(oldState: MenuState, newState: MenuState)
-        fun onMenuClosed()
+        fun onMenuEvent(event: MenuEvent)
     }
 
-    private var currentState: MenuState = MenuState.MAIN_MENU
     private val fragments = mutableMapOf<MenuState, MenuFragment>()
 
     /** Register a fragment for a specific menu state */
@@ -112,17 +249,32 @@ class MenuManager(private val listener: MenuManagerListener) {
         fragments[state] = fragment
     }
 
+    /** Unregister a fragment for a specific menu state */
+    fun unregisterFragment(state: MenuState) {
+        fragments.remove(state)
+        android.util.Log.d(
+                "MenuManager",
+                "[FRAGMENT] unregisterFragment: Removed fragment for state $state"
+        )
+    }
+
     /** Get the current menu state */
-    fun getCurrentState(): MenuState = currentState
+    fun getCurrentState(): MenuState = stateManager.getCurrentState()
 
     /** Get the current fragment */
-    fun getCurrentFragment(): MenuFragment? = fragments[currentState]
+    fun getCurrentFragment(): MenuFragment? =
+            fragments[stateManager.getCurrentState()].also {
+                android.util.Log.d(
+                        "MenuManager",
+                        "[FRAGMENT] getCurrentFragment: state=${stateManager.getCurrentState()}, fragment=${it?.javaClass?.simpleName}, isAdded=${(it as? androidx.fragment.app.Fragment)?.isAdded}"
+                )
+            }
 
     /** Navigate to a specific menu state */
     fun navigateToState(newState: MenuState) {
-        val oldState = currentState
-        currentState = newState
-        listener.onMenuStateChanged(oldState, newState)
+        val oldState = stateManager.getCurrentState()
+        stateManager.changeState(newState)
+        listener.onMenuEvent(MenuEvent.StateChanged(oldState, newState))
     }
 
     /** Handle a menu action */
@@ -132,35 +284,205 @@ class MenuManager(private val listener: MenuManagerListener) {
                 navigateToState(action.targetMenu)
             }
             MenuAction.BACK -> {
-                if (currentState != MenuState.MAIN_MENU) {
+                if (stateManager.getCurrentState() != MenuState.MAIN_MENU) {
                     navigateToState(MenuState.MAIN_MENU)
                 } else {
-                    listener.onMenuClosed()
+                    listener.onMenuEvent(MenuEvent.MenuClosed)
                 }
             }
             else -> {
-                listener.onMenuAction(action)
+                listener.onMenuEvent(MenuEvent.Action(action))
             }
         }
     }
 
     /** Navigate up in current menu */
-    fun navigateUp(): Boolean = getCurrentFragment()?.onNavigateUp() ?: false
+    fun navigateUp(): Boolean {
+        android.util.Log.d(
+                "MenuManager",
+                "[NAV] ↑ navigateUp: ========== STARTING NAVIGATE UP =========="
+        )
+        val fragment = getCurrentFragment()
+        val isAdded = (fragment as? androidx.fragment.app.Fragment)?.isAdded == true
+        val hasContext = (fragment as? androidx.fragment.app.Fragment)?.context != null
+        val isVisible = (fragment as? androidx.fragment.app.Fragment)?.isVisible == true
+        val isResumed = (fragment as? androidx.fragment.app.Fragment)?.isResumed == true
+
+        android.util.Log.d("MenuManager", "[NAV] ↑ navigateUp: Fragment status check")
+        android.util.Log.d("MenuManager", "[NAV]   📋 fragment=${fragment?.javaClass?.simpleName}")
+        android.util.Log.d("MenuManager", "[NAV]   ✅ isAdded=$isAdded")
+        android.util.Log.d("MenuManager", "[NAV]   🎯 hasContext=$hasContext")
+        android.util.Log.d("MenuManager", "[NAV]   👁️ isVisible=$isVisible")
+        android.util.Log.d("MenuManager", "[NAV]   🎮 isResumed=$isResumed")
+        android.util.Log.d("MenuManager", "[NAV]   📊 currentState=${getCurrentState()}")
+
+        if (fragment != null && isAdded && hasContext) {
+            android.util.Log.d("MenuManager", "[NAV] ↑ navigateUp: Calling fragment.onNavigateUp()")
+            val result = fragment.onNavigateUp()
+            android.util.Log.d("MenuManager", "[NAV] ↑ navigateUp: Result=$result")
+            android.util.Log.d(
+                    "MenuManager",
+                    "[NAV] ↑ navigateUp: ========== NAVIGATE UP COMPLETED =========="
+            )
+            return result
+        } else {
+            android.util.Log.w(
+                    "MenuManager",
+                    "[NAV] navigateUp: Fragment not available or not attached - fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, isVisible=$isVisible, isResumed=$isResumed"
+            )
+            android.util.Log.d(
+                    "MenuManager",
+                    "[NAV] ↑ navigateUp: ========== NAVIGATE UP FAILED =========="
+            )
+            return false
+        }
+    }
 
     /** Navigate down in current menu */
-    fun navigateDown(): Boolean = getCurrentFragment()?.onNavigateDown() ?: false
+    fun navigateDown(): Boolean {
+        android.util.Log.d(
+                "MenuManager",
+                "[NAV] ↓ navigateDown: ========== STARTING NAVIGATE DOWN =========="
+        )
+        val fragment = getCurrentFragment()
+        val isAdded = (fragment as? androidx.fragment.app.Fragment)?.isAdded == true
+        val hasContext = (fragment as? androidx.fragment.app.Fragment)?.context != null
+        val isVisible = (fragment as? androidx.fragment.app.Fragment)?.isVisible == true
+        val isResumed = (fragment as? androidx.fragment.app.Fragment)?.isResumed == true
+
+        android.util.Log.d("MenuManager", "[NAV] ↓ navigateDown: Fragment status check")
+        android.util.Log.d("MenuManager", "[NAV]   📋 fragment=${fragment?.javaClass?.simpleName}")
+        android.util.Log.d("MenuManager", "[NAV]   ✅ isAdded=$isAdded")
+        android.util.Log.d("MenuManager", "[NAV]   🎯 hasContext=$hasContext")
+        android.util.Log.d("MenuManager", "[NAV]   👁️ isVisible=$isVisible")
+        android.util.Log.d("MenuManager", "[NAV]   🎮 isResumed=$isResumed")
+        android.util.Log.d("MenuManager", "[NAV]   📊 currentState=${getCurrentState()}")
+
+        if (fragment != null && isAdded && hasContext) {
+            android.util.Log.d(
+                    "MenuManager",
+                    "[NAV] ↓ navigateDown: Calling fragment.onNavigateDown()"
+            )
+            val result = fragment.onNavigateDown()
+            android.util.Log.d("MenuManager", "[NAV] ↓ navigateDown: Result=$result")
+            android.util.Log.d(
+                    "MenuManager",
+                    "[NAV] ↓ navigateDown: ========== NAVIGATE DOWN COMPLETED =========="
+            )
+            return result
+        } else {
+            android.util.Log.w(
+                    "MenuManager",
+                    "[NAV] navigateDown: Fragment not available or not attached - fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, isVisible=$isVisible, isResumed=$isResumed"
+            )
+            android.util.Log.d(
+                    "MenuManager",
+                    "[NAV] ↓ navigateDown: ========== NAVIGATE DOWN FAILED =========="
+            )
+            return false
+        }
+    }
 
     /** Confirm current selection */
-    fun confirm(): Boolean = getCurrentFragment()?.onConfirm() ?: false
+    fun confirm(): Boolean {
+        val fragment = getCurrentFragment()
+        if (fragment != null &&
+                        (fragment as? androidx.fragment.app.Fragment)?.isAdded == true &&
+                        (fragment as? androidx.fragment.app.Fragment)?.context != null
+        ) {
+            return fragment.onConfirm()
+        } else {
+            android.util.Log.w(
+                    "MenuManager",
+                    "[NAV] confirm: Fragment not available or not attached - fragment=$fragment, isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
+            )
+            return false
+        }
+    }
 
     /** Go back */
-    fun back(): Boolean = getCurrentFragment()?.onBack() ?: false
+    fun back(): Boolean {
+        val fragment = getCurrentFragment()
+        val fragmentHandled =
+                if (fragment != null &&
+                                (fragment as? androidx.fragment.app.Fragment)?.isAdded == true &&
+                                (fragment as? androidx.fragment.app.Fragment)?.context != null
+                ) {
+                    fragment.onBack()
+                } else {
+                    android.util.Log.w(
+                            "MenuManager",
+                            "[NAV] back: Fragment not available or not attached - fragment=$fragment, isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
+                    )
+                    false
+                }
+        // If fragment didn't handle it (returned false) and we're in main menu, close the menu
+        if (!fragmentHandled && stateManager.getCurrentState() == MenuState.MAIN_MENU) {
+            listener.onMenuEvent(MenuEvent.MenuClosed)
+            return true
+        }
+        return fragmentHandled
+    }
 
     /** Get current selected index */
-    fun getCurrentSelectedIndex(): Int = getCurrentFragment()?.getCurrentSelectedIndex() ?: 0
+    fun getCurrentSelectedIndex(): Int {
+        val fragment = getCurrentFragment()
+        return if (fragment != null &&
+                        (fragment as? androidx.fragment.app.Fragment)?.isAdded == true &&
+                        (fragment as? androidx.fragment.app.Fragment)?.context != null
+        ) {
+            fragment.getCurrentSelectedIndex()
+        } else {
+            android.util.Log.w(
+                    "MenuManager",
+                    "[NAV] getCurrentSelectedIndex: Fragment not available or not attached"
+            )
+            0
+        }
+    }
 
     /** Set selected index */
     fun setSelectedIndex(index: Int) {
-        getCurrentFragment()?.setSelectedIndex(index)
+        val fragment = getCurrentFragment()
+        if (fragment != null &&
+                        (fragment as? androidx.fragment.app.Fragment)?.isAdded == true &&
+                        (fragment as? androidx.fragment.app.Fragment)?.context != null
+        ) {
+            fragment.setSelectedIndex(index)
+        } else {
+            android.util.Log.w(
+                    "MenuManager",
+                    "[NAV] setSelectedIndex: Fragment not available or not attached"
+            )
+        }
+    }
+
+    // ===== NOVOS MÉTODOS PARA SISTEMA UNIFICADO DE EVENTOS =====
+
+    /** Send navigation up event */
+    fun sendNavigateUp() {
+        listener.onMenuEvent(MenuEvent.NavigateUp)
+    }
+
+    /** Send navigation down event */
+    fun sendNavigateDown() {
+        android.util.Log.d("MenuManager", "[SEND] sendNavigateDown: Sending navigate down event")
+        listener.onMenuEvent(MenuEvent.NavigateDown)
+        android.util.Log.d("MenuManager", "[SEND] sendNavigateDown: Event sent")
+    }
+
+    /** Send confirm event */
+    fun sendConfirm() {
+        listener.onMenuEvent(MenuEvent.Confirm)
+    }
+
+    /** Send back event */
+    fun sendBack() {
+        listener.onMenuEvent(MenuEvent.Back)
+    }
+
+    /** Send menu action event */
+    fun sendAction(action: MenuAction) {
+        listener.onMenuEvent(MenuEvent.Action(action))
     }
 }
