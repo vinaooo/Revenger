@@ -1,0 +1,640 @@
+=== INÍCIO DO TESTE ===
+--------- beginning of main
+10-15 19:50:11.948 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:11.948 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:11.948 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:11.948 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:11.949 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:11.949 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:11.949 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:11.949 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:11.951 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:11.951 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:11.951 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:11.951 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:11.952 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:11.952 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:11.952 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:11.952 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:11.954 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:11.954 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:11.954 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:11.954 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:11.957 D/RetroMenu3(12308): [LIFECYCLE] onViewCreated START
+10-15 19:50:11.958 D/RetroMenu3(12308): [LIFECYCLE] ViewModel initialized
+10-15 19:50:11.959 D/RetroMenu3(12308): [LIFECYCLE] Elevation forced to zero
+10-15 19:50:11.965 D/RetroMenu3(12308): [LIFECYCLE] Dynamic title setup completed
+10-15 19:50:11.965 D/RetroMenu3(12308): [SETUP_VIEWS] Starting setupViews
+10-15 19:50:11.966 D/RetroMenu3(12308): [SETUP_VIEWS] menuContainer: android.widget.LinearLayout{dc73dd1 V.E...... ......I. 0,0-0,0 #7f080073 app:id/menu_container}
+10-15 19:50:11.966 D/RetroMenu3(12308): [SETUP_VIEWS] controlsHint found: android.widget.TextView{3513036 V.ED..... ......ID 0,0-0,0 #7f080097 app:id/retro_menu3_controls_hint}
+10-15 19:50:11.966 D/RetroMenu3(12308): [SETUP_VIEWS] controlsHint properties - width: 0, height: 0, visibility: 0, alpha: 1.0
+10-15 19:50:11.966 D/RetroMenu3(12308): [SETUP_VIEWS] controlsHint configured: text='[A] Confirm [B] Back', visibility=0, alpha=1.0
+10-15 19:50:11.966 D/RetroMenu3(12308): [SETUP_VIEWS] continueMenu: com.vinaooo.revenger.ui.retromenu3.RetroCardView{6062b37 VFE...C.. ......I. 0,0-0,0 #7f080075 app:id/menu_continue}
+10-15 19:50:11.966 D/RetroMenu3(12308): [SETUP_VIEWS] resetMenu: com.vinaooo.revenger.ui.retromenu3.RetroCardView{55558a4 VFE...C.. ......I. 0,0-0,0 #7f080078 app:id/menu_reset}
+10-15 19:50:11.966 D/RetroMenu3(12308): [SETUP_VIEWS] settingsMenu: com.vinaooo.revenger.ui.retromenu3.RetroCardView{930e60d VFE...C.. ......I. 0,0-0,0 #7f08007a app:id/menu_submenu1}
+10-15 19:50:11.966 D/RetroMenu3(12308): [SETUP_VIEWS] progressMenu: com.vinaooo.revenger.ui.retromenu3.RetroCardView{af819c2 VFE...C.. ......I. 0,0-0,0 #7f08007b app:id/menu_submenu2}
+10-15 19:50:11.967 D/RetroMenu3(12308): [SETUP_VIEWS] exitMenu: com.vinaooo.revenger.ui.retromenu3.RetroCardView{18843d3 VFE...C.. ......I. 0,0-0,0 #7f080076 app:id/menu_exit}
+10-15 19:50:11.967 D/RetroMenu3(12308): [LIFECYCLE] Views setup completed
+10-15 19:50:11.967 D/RetroMenu3(12308): [LIFECYCLE] Click listeners setup completed
+10-15 19:50:11.967 D/RetroMenu3(12308): [LIFECYCLE] Menu state updated
+10-15 19:50:11.967 D/RetroMenu3(12308): [ANIMATE_IN] Starting menu animation
+10-15 19:50:11.967 D/RetroMenu3(12308): [ANIMATE_IN] controlsHint prepared: visibility=0, alpha=1.0, text='[A] Confirm [B] Back'
+10-15 19:50:11.971 D/RetroMenu3(12308): [ANIMATE_IN] Animation started
+10-15 19:50:11.971 D/RetroMenu3(12308): [LIFECYCLE] Menu animation started
+10-15 19:50:11.974 D/RetroMenu3(12308): [LIFECYCLE] Selection visual updated
+10-15 19:50:11.974 D/RetroMenu3(12308): [LIFECYCLE] Main menu setup completed - ready for user interaction
+10-15 19:50:11.982 D/RetroMenu3(12308): [ON_RESUME] Controls hint ensured visible
+10-15 19:50:12.977 D/RetroMenu3(12308): [NAV] ↑ UP: 0 → 4 (Exit)
+10-15 19:50:13.445 D/RetroMenu3(12308): [NAV] ↓ DOWN: 4 → 0 (Continuar)
+10-15 19:50:13.627 D/RetroMenu3(12308): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:50:13.878 D/RetroMenu3(12308): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:50:14.123 D/RetroMenu3(12308): [ACTION] ✓ CONFIRM: Progress (index: 2)
+10-15 19:50:14.123 D/RetroMenu3(12308): [ACTION] → Open Progress menu
+10-15 19:50:14.123 D/RetroMenu3(12308): [MENU] Opening Progress submenu
+10-15 19:50:14.135 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:14.135 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:14.135 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:14.135 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:14.137 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:14.137 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:14.137 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:14.137 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:14.138 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:14.138 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:14.139 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:14.139 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:14.142 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:50:14.142 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:50:14.142 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:14.142 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:50:14.142 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:50:14.142 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:14.142 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:50:14.142 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:50:14.142 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:14.143 D/RetroMenu3(12308): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:50:14.143 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:50:14.143 D/RetroMenu3(12308): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:50:14.143 D/RetroMenu3(12308): [STATE] setState completed: new state SELECTED
+10-15 19:50:14.143 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:50:14.143 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:50:14.143 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:50:14.143 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:50:14.147 D/RetroMenu3(12308): [MENU] Progress submenu opened successfully
+10-15 19:50:14.481 D/RetroMenu3(12308): [MENU] Progress submenu closed, showing main menu
+10-15 19:50:14.482 D/RetroMenu3(12308): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:50:14.482 D/RetroMenu3(12308): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:50:14.484 D/RetroMenu3(12308): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:50:14.484 D/RetroMenu3(12308): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:50:15.451 D/RetroMenu3(12308): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:50:15.633 D/RetroMenu3(12308): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:50:15.851 D/RetroMenu3(12308): [NAV] ↓ DOWN: 2 → 3 (Settings)
+10-15 19:50:16.098 D/RetroMenu3(12308): [ACTION] ✓ CONFIRM: Settings (index: 3)
+10-15 19:50:16.099 D/RetroMenu3(12308): [ACTION] → Open Settings menu
+10-15 19:50:16.099 D/RetroMenu3(12308): [ACTION] ⚙️ Open Settings submenu
+10-15 19:50:16.099 D/RetroMenu3(12308): [MENU] Opening Settings submenu
+10-15 19:50:16.111 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:16.111 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:16.111 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:16.111 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:16.113 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:16.113 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:16.113 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:16.113 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:16.115 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:16.115 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:16.115 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:16.115 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:16.116 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:16.117 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:16.117 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:16.117 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:16.120 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:50:16.120 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:50:16.120 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:16.120 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:50:16.120 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:50:16.120 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] setState completed: new state SELECTED
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:50:16.121 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:50:16.126 D/RetroMenu3(12308): [MENU] Settings submenu opened successfully
+10-15 19:50:16.403 D/RetroMenu3(12308): [MENU] Settings submenu closed, showing main menu
+10-15 19:50:16.404 D/RetroMenu3(12308): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:50:16.404 D/RetroMenu3(12308): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:50:16.406 D/RetroMenu3(12308): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:50:16.406 D/RetroMenu3(12308): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:50:16.752 D/RetroMenu3(12308): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:50:16.936 D/RetroMenu3(12308): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:50:17.120 D/RetroMenu3(12308): [NAV] ↓ DOWN: 2 → 3 (Settings)
+10-15 19:50:17.387 D/RetroMenu3(12308): [NAV] ↓ DOWN: 3 → 4 (Exit)
+10-15 19:50:17.611 D/RetroMenu3(12308): [ACTION] ✓ CONFIRM: Exit (index: 4)
+10-15 19:50:17.611 D/RetroMenu3(12308): [ACTION] → Open Exit menu
+10-15 19:50:17.611 D/RetroMenu3(12308): [MENU] Opening Exit submenu
+10-15 19:50:17.622 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:17.622 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:17.622 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:17.622 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:17.624 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:17.624 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:17.624 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:17.624 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:17.626 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:50:17.626 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:50:17.626 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:17.626 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:50:17.629 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:50:17.629 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:50:17.629 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:17.629 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:50:17.629 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:50:17.629 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:17.630 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:50:17.630 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:50:17.630 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:50:17.630 D/RetroMenu3(12308): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:50:17.630 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:50:17.630 D/RetroMenu3(12308): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:50:17.630 D/RetroMenu3(12308): [STATE] setState completed: new state SELECTED
+10-15 19:50:17.630 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:50:17.630 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:50:17.630 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:50:17.630 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:50:17.634 D/RetroMenu3(12308): [MENU] Exit submenu opened successfully
+10-15 19:50:17.923 D/RetroMenu3(12308): [MENU] Exit submenu closed, showing main menu
+10-15 19:50:17.924 D/RetroMenu3(12308): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:50:17.924 D/RetroMenu3(12308): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:50:17.926 D/RetroMenu3(12308): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:50:17.926 D/RetroMenu3(12308): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:51:35.992 D/RetroMenu3(12308): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:51:36.228 D/RetroMenu3(12308): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:51:36.377 D/RetroMenu3(12308): [NAV] ↓ DOWN: 2 → 3 (Settings)
+10-15 19:51:37.550 D/RetroMenu3(12308): [ACTION] ✓ CONFIRM: Settings (index: 3)
+10-15 19:51:37.550 D/RetroMenu3(12308): [ACTION] → Open Settings menu
+10-15 19:51:37.550 D/RetroMenu3(12308): [ACTION] ⚙️ Open Settings submenu
+10-15 19:51:37.550 D/RetroMenu3(12308): [MENU] Opening Settings submenu
+10-15 19:51:37.559 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:51:37.560 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:51:37.560 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:37.560 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:51:37.562 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:51:37.563 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:51:37.563 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:37.563 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:51:37.564 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:51:37.564 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:51:37.564 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:37.564 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:51:37.566 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:51:37.566 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:51:37.566 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:37.566 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:51:37.570 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:51:37.570 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:51:37.570 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:37.570 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:51:37.570 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:51:37.570 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:37.570 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:51:37.570 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:51:37.570 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:37.570 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:51:37.570 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:51:37.571 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:37.571 D/RetroMenu3(12308): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:51:37.571 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:51:37.571 D/RetroMenu3(12308): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:51:37.571 D/RetroMenu3(12308): [STATE] setState completed: new state SELECTED
+10-15 19:51:37.571 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:51:37.571 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:51:37.571 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:51:37.571 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:51:37.571 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:51:37.571 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:51:37.575 D/RetroMenu3(12308): [MENU] Settings submenu opened successfully
+10-15 19:51:37.930 D/RetroMenu3(12308): [MENU] Settings submenu closed, showing main menu
+10-15 19:51:37.930 D/RetroMenu3(12308): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:51:37.931 D/RetroMenu3(12308): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:51:37.932 D/RetroMenu3(12308): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:51:37.932 D/RetroMenu3(12308): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:51:41.624 D/RetroMenu3(12308): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:51:41.989 D/RetroMenu3(12308): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:51:42.208 D/RetroMenu3(12308): [NAV] ↓ DOWN: 2 → 3 (Settings)
+10-15 19:51:42.608 D/RetroMenu3(12308): [NAV] ↓ DOWN: 3 → 4 (Exit)
+10-15 19:51:43.405 D/RetroMenu3(12308): [ACTION] ✓ CONFIRM: Exit (index: 4)
+10-15 19:51:43.405 D/RetroMenu3(12308): [ACTION] → Open Exit menu
+10-15 19:51:43.405 D/RetroMenu3(12308): [MENU] Opening Exit submenu
+10-15 19:51:43.414 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:51:43.414 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:51:43.415 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:43.415 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:51:43.416 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:51:43.416 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:51:43.416 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:43.416 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:51:43.418 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init START
+10-15 19:51:43.418 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:51:43.418 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:43.418 D/RetroMenu3(12308): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:51:43.421 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:51:43.421 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:51:43.421 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:43.421 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:51:43.421 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] setUseBackgroundColor: false
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] setState completed: new state SELECTED
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:51:43.422 D/RetroMenu3(12308): [STATE] setState skipped: state already NORMAL
+10-15 19:51:43.426 D/RetroMenu3(12308): [MENU] Exit submenu opened successfully
+10-15 19:51:43.734 D/RetroMenu3(12308): [MENU] Exit submenu closed, showing main menu
+10-15 19:51:43.734 D/RetroMenu3(12308): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:51:43.734 D/RetroMenu3(12308): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:51:43.736 D/RetroMenu3(12308): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:51:43.736 D/RetroMenu3(12308): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:54:19.628 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:19.628 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:19.628 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:19.628 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:19.630 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:19.630 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:19.630 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:19.630 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:19.631 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:19.631 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:19.631 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:19.632 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:19.633 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:19.633 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:19.633 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:19.633 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:19.634 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:19.634 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:19.634 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:19.634 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:19.638 D/RetroMenu3(12493): [LIFECYCLE] onViewCreated START
+10-15 19:54:19.639 D/RetroMenu3(12493): [LIFECYCLE] ViewModel initialized
+10-15 19:54:19.640 D/RetroMenu3(12493): [LIFECYCLE] Elevation forced to zero
+10-15 19:54:19.648 D/RetroMenu3(12493): [LIFECYCLE] Dynamic title setup completed
+10-15 19:54:19.648 D/RetroMenu3(12493): [SETUP_VIEWS] Starting setupViews
+10-15 19:54:19.648 D/RetroMenu3(12493): [SETUP_VIEWS] menuContainer: android.widget.LinearLayout{3f179c8 V.E...... ......I. 0,0-0,0 #7f080073 app:id/menu_container}
+10-15 19:54:19.648 D/RetroMenu3(12493): [SETUP_VIEWS] controlsHint found: android.widget.TextView{99bfa61 V.ED..... ......ID 0,0-0,0 #7f080097 app:id/retro_menu3_controls_hint}
+10-15 19:54:19.648 D/RetroMenu3(12493): [SETUP_VIEWS] controlsHint properties - width: 0, height: 0, visibility: 0, alpha: 1.0
+10-15 19:54:19.648 D/RetroMenu3(12493): [SETUP_VIEWS] controlsHint configured: text='[A] Confirm [B] Back', visibility=0, alpha=1.0
+10-15 19:54:19.649 D/RetroMenu3(12493): [SETUP_VIEWS] continueMenu: com.vinaooo.revenger.ui.retromenu3.RetroCardView{5b95986 VFE...C.. ......I. 0,0-0,0 #7f080075 app:id/menu_continue}
+10-15 19:54:19.649 D/RetroMenu3(12493): [SETUP_VIEWS] resetMenu: com.vinaooo.revenger.ui.retromenu3.RetroCardView{cd62247 VFE...C.. ......I. 0,0-0,0 #7f080078 app:id/menu_reset}
+10-15 19:54:19.649 D/RetroMenu3(12493): [SETUP_VIEWS] settingsMenu: com.vinaooo.revenger.ui.retromenu3.RetroCardView{f886a74 VFE...C.. ......I. 0,0-0,0 #7f08007a app:id/menu_submenu1}
+10-15 19:54:19.649 D/RetroMenu3(12493): [SETUP_VIEWS] progressMenu: com.vinaooo.revenger.ui.retromenu3.RetroCardView{73cdb9d VFE...C.. ......I. 0,0-0,0 #7f08007b app:id/menu_submenu2}
+10-15 19:54:19.649 D/RetroMenu3(12493): [SETUP_VIEWS] exitMenu: com.vinaooo.revenger.ui.retromenu3.RetroCardView{8418812 VFE...C.. ......I. 0,0-0,0 #7f080076 app:id/menu_exit}
+10-15 19:54:19.649 D/RetroMenu3(12493): [LIFECYCLE] Views setup completed
+10-15 19:54:19.650 D/RetroMenu3(12493): [LIFECYCLE] Click listeners setup completed
+10-15 19:54:19.650 D/RetroMenu3(12493): [LIFECYCLE] Menu state updated
+10-15 19:54:19.650 D/RetroMenu3(12493): [ANIMATE_IN] Starting menu animation
+10-15 19:54:19.650 D/RetroMenu3(12493): [ANIMATE_IN] controlsHint prepared: visibility=0, alpha=1.0, text='[A] Confirm [B] Back'
+10-15 19:54:19.654 D/RetroMenu3(12493): [ANIMATE_IN] Animation started
+10-15 19:54:19.654 D/RetroMenu3(12493): [LIFECYCLE] Menu animation started
+10-15 19:54:19.655 D/RetroMenu3(12493): [LIFECYCLE] Selection visual updated
+10-15 19:54:19.655 D/RetroMenu3(12493): [LIFECYCLE] Main menu setup completed - ready for user interaction
+10-15 19:54:19.670 D/RetroMenu3(12493): [ON_RESUME] Controls hint ensured visible
+10-15 19:54:20.387 D/RetroMenu3(12493): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:54:20.587 D/RetroMenu3(12493): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:54:20.753 D/RetroMenu3(12493): [NAV] ↓ DOWN: 2 → 3 (Settings)
+10-15 19:54:20.882 D/RetroMenu3(12493): [ACTION] ✓ CONFIRM: Settings (index: 3)
+10-15 19:54:20.882 D/RetroMenu3(12493): [ACTION] → Open Settings menu
+10-15 19:54:20.883 D/RetroMenu3(12493): [ACTION] ⚙️ Open Settings submenu
+10-15 19:54:20.883 D/RetroMenu3(12493): [MENU] Opening Settings submenu
+10-15 19:54:20.895 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:20.895 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:20.895 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:20.895 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:20.897 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:20.897 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:20.897 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:20.897 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:20.899 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:20.899 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:20.899 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:20.899 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:20.900 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:20.901 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:20.901 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:20.901 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:20.904 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] setState completed: new state SELECTED
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:20.905 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:20.906 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:20.906 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:20.906 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:20.906 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:20.910 D/RetroMenu3(12493): [MENU] Settings submenu opened successfully
+10-15 19:54:21.277 D/RetroMenu3(12493): [MENU] Settings submenu closed, showing main menu
+10-15 19:54:21.278 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:54:21.278 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:54:21.280 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:54:21.280 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:54:21.875 D/RetroMenu3(12493): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:54:22.056 D/RetroMenu3(12493): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:54:22.177 D/RetroMenu3(12493): [ACTION] ✓ CONFIRM: Progress (index: 2)
+10-15 19:54:22.177 D/RetroMenu3(12493): [ACTION] → Open Progress menu
+10-15 19:54:22.177 D/RetroMenu3(12493): [MENU] Opening Progress submenu
+10-15 19:54:22.189 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:22.189 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:22.189 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:22.189 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:22.191 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:22.191 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:22.191 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:22.191 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:22.192 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:22.193 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:22.193 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:22.193 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:22.196 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:22.196 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:22.196 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:22.196 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:22.196 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:22.196 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:22.196 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:22.196 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:22.196 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:22.197 D/RetroMenu3(12493): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:54:22.197 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:54:22.197 D/RetroMenu3(12493): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:54:22.197 D/RetroMenu3(12493): [STATE] setState completed: new state SELECTED
+10-15 19:54:22.197 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:22.197 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:22.197 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:22.197 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:22.202 D/RetroMenu3(12493): [MENU] Progress submenu opened successfully
+10-15 19:54:22.459 D/RetroMenu3(12493): [MENU] Progress submenu closed, showing main menu
+10-15 19:54:22.459 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:54:22.459 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:54:22.461 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:54:22.461 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:54:22.759 D/RetroMenu3(12493): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:54:22.959 D/RetroMenu3(12493): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:54:23.160 D/RetroMenu3(12493): [NAV] ↓ DOWN: 2 → 3 (Settings)
+10-15 19:54:23.345 D/RetroMenu3(12493): [NAV] ↓ DOWN: 3 → 4 (Exit)
+10-15 19:54:23.522 D/RetroMenu3(12493): [ACTION] ✓ CONFIRM: Exit (index: 4)
+10-15 19:54:23.522 D/RetroMenu3(12493): [ACTION] → Open Exit menu
+10-15 19:54:23.522 D/RetroMenu3(12493): [MENU] Opening Exit submenu
+10-15 19:54:23.532 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:23.533 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:23.533 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:23.533 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:23.534 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:23.534 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:23.534 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:23.534 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:23.536 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:23.536 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:23.536 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:23.536 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:23.539 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:23.539 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:23.539 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:23.539 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:23.539 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:23.539 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:23.539 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:23.540 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:23.540 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:23.540 D/RetroMenu3(12493): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:54:23.540 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:54:23.540 D/RetroMenu3(12493): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:54:23.540 D/RetroMenu3(12493): [STATE] setState completed: new state SELECTED
+10-15 19:54:23.540 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:23.540 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:23.540 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:23.540 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:23.544 D/RetroMenu3(12493): [MENU] Exit submenu opened successfully
+10-15 19:54:23.820 D/RetroMenu3(12493): [MENU] Exit submenu closed, showing main menu
+10-15 19:54:23.821 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:54:23.821 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:54:23.823 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:54:23.823 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:54:24.064 D/RetroMenu3(12493): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:54:24.264 D/RetroMenu3(12493): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:54:24.590 D/RetroMenu3(12493): [ACTION] ✓ CONFIRM: Progress (index: 2)
+10-15 19:54:24.590 D/RetroMenu3(12493): [ACTION] → Open Progress menu
+10-15 19:54:24.590 D/RetroMenu3(12493): [MENU] Opening Progress submenu
+10-15 19:54:24.600 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:24.600 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:24.600 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:24.600 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:24.602 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:24.602 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:24.602 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:24.602 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:24.603 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:54:24.603 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:54:24.603 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:24.603 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:54:24.607 D/RetroMenu3(12493): [STATE] setState completed: new state SELECTED
+10-15 19:54:24.608 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:24.608 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:24.608 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:24.608 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:24.611 D/RetroMenu3(12493): [MENU] Progress submenu opened successfully
+10-15 19:54:24.879 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: SELECTED)
+10-15 19:54:24.879 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:54:24.879 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:54:24.880 D/RetroMenu3(12493): [STATE] setState completed: new state NORMAL
+10-15 19:54:24.880 D/RetroMenu3(12493): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:54:24.880 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:54:24.880 D/RetroMenu3(12493): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:54:24.880 D/RetroMenu3(12493): [STATE] setState completed: new state SELECTED
+10-15 19:54:24.880 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:24.880 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:24.881 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:24.881 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:24.881 D/RetroMenu3(12493): [STATE] setState called: SELECTED (current: SELECTED)
+10-15 19:54:24.881 D/RetroMenu3(12493): [STATE] setState skipped: state already SELECTED
+10-15 19:54:24.881 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:54:24.881 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:54:25.596 D/RetroMenu3(12493): [MENU] Progress submenu closed, showing main menu
+10-15 19:54:25.596 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:54:25.596 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:54:25.598 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:54:25.598 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:55:03.841 D/RetroMenu3(12493): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:55:04.024 D/RetroMenu3(12493): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:55:04.458 D/RetroMenu3(12493): [ACTION] ✓ CONFIRM: Progress (index: 2)
+10-15 19:55:04.458 D/RetroMenu3(12493): [ACTION] → Open Progress menu
+10-15 19:55:04.458 D/RetroMenu3(12493): [MENU] Opening Progress submenu
+10-15 19:55:04.468 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:55:04.469 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:55:04.469 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:04.469 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:55:04.470 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:55:04.470 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:55:04.470 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:04.470 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:55:04.472 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:55:04.472 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:55:04.472 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:04.472 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:55:04.476 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:55:04.476 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:55:04.476 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:04.476 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:55:04.476 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:55:04.476 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:04.476 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:55:04.476 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:55:04.476 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:04.477 D/RetroMenu3(12493): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:55:04.477 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:55:04.477 D/RetroMenu3(12493): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:55:04.477 D/RetroMenu3(12493): [STATE] setState completed: new state SELECTED
+10-15 19:55:04.477 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:55:04.477 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:55:04.477 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:55:04.477 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:55:04.481 D/RetroMenu3(12493): [MENU] Progress submenu opened successfully
+10-15 19:55:04.838 D/RetroMenu3(12493): [MENU] Progress submenu closed, showing main menu
+10-15 19:55:04.839 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:55:04.839 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:55:04.841 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:55:04.841 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:55:05.446 D/RetroMenu3(12493): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:55:05.628 D/RetroMenu3(12493): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:55:05.812 D/RetroMenu3(12493): [NAV] ↓ DOWN: 2 → 3 (Settings)
+10-15 19:55:06.019 D/RetroMenu3(12493): [ACTION] ✓ CONFIRM: Settings (index: 3)
+10-15 19:55:06.019 D/RetroMenu3(12493): [ACTION] → Open Settings menu
+10-15 19:55:06.019 D/RetroMenu3(12493): [ACTION] ⚙️ Open Settings submenu
+10-15 19:55:06.019 D/RetroMenu3(12493): [MENU] Opening Settings submenu
+10-15 19:55:06.033 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:55:06.033 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:55:06.033 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:06.033 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:55:06.035 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:55:06.035 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:55:06.035 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:06.035 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:55:06.037 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:55:06.037 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:55:06.037 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:06.037 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:55:06.039 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:55:06.039 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:55:06.039 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:06.039 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:06.043 D/RetroMenu3(12493): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:55:06.044 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:55:06.044 D/RetroMenu3(12493): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:55:06.044 D/RetroMenu3(12493): [STATE] setState completed: new state SELECTED
+10-15 19:55:06.044 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:55:06.044 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:55:06.044 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:55:06.044 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:55:06.044 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:55:06.044 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:55:06.049 D/RetroMenu3(12493): [MENU] Settings submenu opened successfully
+10-15 19:55:06.292 D/RetroMenu3(12493): [MENU] Settings submenu closed, showing main menu
+10-15 19:55:06.293 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:55:06.293 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:55:06.295 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:55:06.295 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:55:07.100 D/RetroMenu3(12493): [NAV] ↓ DOWN: 0 → 1 (Restart)
+10-15 19:55:07.266 D/RetroMenu3(12493): [NAV] ↓ DOWN: 1 → 2 (Progress)
+10-15 19:55:08.269 D/RetroMenu3(12493): [NAV] ↓ DOWN: 2 → 3 (Settings)
+10-15 19:55:08.453 D/RetroMenu3(12493): [NAV] ↓ DOWN: 3 → 4 (Exit)
+10-15 19:55:08.775 D/RetroMenu3(12493): [ACTION] ✓ CONFIRM: Exit (index: 4)
+10-15 19:55:08.775 D/RetroMenu3(12493): [ACTION] → Open Exit menu
+10-15 19:55:08.775 D/RetroMenu3(12493): [MENU] Opening Exit submenu
+10-15 19:55:08.784 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:55:08.784 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:55:08.784 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:08.784 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:55:08.786 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:55:08.786 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:55:08.786 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:08.786 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:55:08.788 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init START
+10-15 19:55:08.788 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: true
+10-15 19:55:08.788 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:08.788 D/RetroMenu3(12493): [LIFECYCLE] RetroCardView init COMPLETED
+10-15 19:55:08.791 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:55:08.791 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:55:08.791 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:08.791 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:55:08.791 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:55:08.791 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:08.791 D/RetroMenu3(12493): [STATE] setUseBackgroundColor: false
+10-15 19:55:08.792 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: NORMAL, useBackgroundColor: false
+10-15 19:55:08.792 D/RetroMenu3(12493): [STATE] updateVisualState: NORMAL - background transparent
+10-15 19:55:08.792 D/RetroMenu3(12493): [STATE] setState called: SELECTED (current: NORMAL)
+10-15 19:55:08.792 D/RetroMenu3(12493): [STATE] updateVisualState called, currentState: SELECTED, useBackgroundColor: false
+10-15 19:55:08.792 D/RetroMenu3(12493): [STATE] updateVisualState: SELECTED - background transparent (no background mode)
+10-15 19:55:08.792 D/RetroMenu3(12493): [STATE] setState completed: new state SELECTED
+10-15 19:55:08.792 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:55:08.792 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:55:08.792 D/RetroMenu3(12493): [STATE] setState called: NORMAL (current: NORMAL)
+10-15 19:55:08.792 D/RetroMenu3(12493): [STATE] setState skipped: state already NORMAL
+10-15 19:55:08.796 D/RetroMenu3(12493): [MENU] Exit submenu opened successfully
+10-15 19:55:09.048 D/RetroMenu3(12493): [MENU] Exit submenu closed, showing main menu
+10-15 19:55:09.048 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:55:09.048 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0
+10-15 19:55:09.050 D/RetroMenu3(12493): [CONTROLS_HINT] Setting text: '[A] Confirm [B] Back'
+10-15 19:55:09.050 D/RetroMenu3(12493): [CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: 0

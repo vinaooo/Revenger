@@ -574,7 +574,7 @@ class GameActivityViewModel(application: Application) :
                             RetroMenu3Fragment::class.java.simpleName
                     ) as?
                             RetroMenu3Fragment
-            retroMenu3Fragment?.showMainMenu()
+            retroMenu3Fragment?.showMainMenu(preserveSelection = true)
         } else {
             android.util.Log.d(
                     "GameActivityViewModel",
