@@ -219,8 +219,8 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
     implementation 'io.reactivex.rxjava3:rxjava:3.1.12'
     
-    // Phase 9.4: SDK 36 Features - Material Design Components
-    implementation 'com.google.android.material:material:1.13.0'
+    // Phase 9.4: SDK 36 Features - REMOVED: Material Design Components (replaced with RetroCardView)
+    // implementation 'com.google.android.material:material:1.13.0'
 }
 
 dependencies {
