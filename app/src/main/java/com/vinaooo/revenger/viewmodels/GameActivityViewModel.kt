@@ -389,14 +389,14 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Dismiss the RetroMenu3 */
-    fun dismissRetroMenu3() {
+    fun dismissRetroMenu3(onAnimationEnd: (() -> Unit)? = null) {
         android.util.Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Starting")
         android.util.Log.d(
                 "GameActivityViewModel",
                 "[DISMISS_MAIN] dismissRetroMenu3: isRetroMenu3Open before dismiss: ${isRetroMenu3Open()}"
         )
 
-        retroMenu3Fragment?.dismissMenuPublic()
+        retroMenu3Fragment?.dismissMenuPublic(onAnimationEnd)
 
         // CRITICAL: Add small delay before clearing keyLog to ensure fragment is fully removed
         // This prevents comboAlreadyTriggered from staying true when menu closes
@@ -629,7 +629,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Dismiss ALL menus in cascade order (submenus first, then main menu) */
-    fun dismissAllMenus() {
+    fun dismissAllMenus(onAnimationEnd: (() -> Unit)? = null) {
         android.util.Log.d(
                 "GameActivityViewModel",
                 "[DISMISS_ALL] dismissAllMenus: Starting cascade dismissal"
@@ -677,33 +677,59 @@ class GameActivityViewModel(application: Application) :
             )
         }
 
-        // Finally dismiss the main RetroMenu3
+        // Finally dismiss the main RetroMenu3 with callback
         if (isRetroMenu3Open()) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Dismissing main RetroMenu3"
+                    "[DISMISS_ALL] dismissAllMenus: Dismissing main RetroMenu3 with callback"
             )
-            dismissRetroMenu3()
+            dismissRetroMenu3 {
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[DISMISS_ALL] Animation completed - restoring game speed"
+                )
+                // Restore game speed from sharedpreferences when exiting menu with Start
+                restoreGameSpeedFromPreferences()
+
+                // Reset flag after all menus are dismissed
+                setDismissingAllMenus(false)
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[DISMISS_ALL] dismissAllMenus: Reset isDismissingAllMenus = false"
+                )
+
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[DISMISS_ALL] dismissAllMenus: Cascade dismissal completed"
+                )
+
+                // Execute callback after animation and speed restoration
+                onAnimationEnd?.invoke()
+            }
+        } else {
+            // If no main menu is open, just restore speed and reset flag immediately
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Main RetroMenu3 dismissed"
+                    "[DISMISS_ALL] No main menu open - restoring game speed immediately"
             )
+            // Restore game speed from sharedpreferences when exiting menu with Start
+            restoreGameSpeedFromPreferences()
+
+            // Reset flag after all menus are dismissed
+            setDismissingAllMenus(false)
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Reset isDismissingAllMenus = false"
+            )
+
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Cascade dismissal completed"
+            )
+
+            // Execute callback
+            onAnimationEnd?.invoke()
         }
-
-        // Restore game speed from sharedpreferences when exiting menu with Start
-        restoreGameSpeedFromPreferences()
-
-        // Reset flag after all menus are dismissed
-        setDismissingAllMenus(false)
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[DISMISS_ALL] dismissAllMenus: Reset isDismissingAllMenus = false"
-        )
-
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[DISMISS_ALL] dismissAllMenus: Cascade dismissal completed"
-        )
     }
 
     /** Restore game speed from sharedpreferences when exiting menu with Start */
@@ -869,7 +895,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Get current fast forward state for UI management */
     fun getFastForwardState(): Boolean {
-        return speedController?.getFastForwardState() ?: false
+        return speedViewModel.getFastForwardState()
     }
 
     /** Toggle shader for visual effects */
@@ -1296,6 +1322,19 @@ class GameActivityViewModel(application: Application) :
     /** Desativa fast forward usando controller modular */
     fun disableFastForward() {
         speedViewModel.disableFastForward(retroView?.view)
+    }
+
+    /** Define fast forward enabled/disabled sem aplicar imediatamente (usado pelo menu Settings) */
+    fun setFastForwardEnabled(enabled: Boolean) {
+        if (enabled) {
+            speedViewModel.enableFastForward(null) // Pass null to avoid immediate application
+            // Also save the speed value to preferences for menu closure restoration
+            sharedPreferences?.edit()?.putInt(PreferencesConstants.PREF_FRAME_SPEED, 2)?.apply()
+        } else {
+            speedViewModel.disableFastForward(null) // Pass null to avoid immediate application
+            // Also save the speed value to preferences for menu closure restoration
+            sharedPreferences?.edit()?.putInt(PreferencesConstants.PREF_FRAME_SPEED, 1)?.apply()
+        }
     }
 
     /**

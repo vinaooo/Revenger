@@ -131,26 +131,32 @@ class ProgressFragment : MenuFragmentBase() {
 
         saveState.setOnClickListener {
             // Save State - First close menus, then set correct frameSpeed, then save
-            // Close menus first
-            viewModel.dismissAllMenus()
-
-            // A) Set frameSpeed to correct value (1 or 2) from Game Speed sharedPreference
-            viewModel.restoreGameSpeedFromPreferences()
-
-            // B) Take existing actions to save the state
-            viewModel.saveStateCentralized { /* Menus already closed */}
+            // Close menus first with callback
+            viewModel.dismissAllMenus {
+                android.util.Log.d(
+                        TAG,
+                        "[ACTION] Progress menu: Animation completed - restoring game speed and saving"
+                )
+                // Set frameSpeed to correct value from Game Speed sharedPreference
+                viewModel.restoreGameSpeedFromPreferences()
+                // Take existing actions to save the state
+                viewModel.saveStateCentralized { /* Menus already closed */}
+            }
         }
 
         loadState.setOnClickListener {
             // Load State - First close menus, then set correct frameSpeed, then load
-            // A) Close all menus first
-            viewModel.dismissAllMenus()
-
-            // B) Set frameSpeed to correct value (1 or 2) from Game Speed sharedPreference
-            viewModel.restoreGameSpeedFromPreferences()
-
-            // C) Load the saved game state
-            viewModel.loadStateCentralized { /* Menus already closed */}
+            // Close all menus first with callback
+            viewModel.dismissAllMenus {
+                android.util.Log.d(
+                        TAG,
+                        "[ACTION] Progress menu: Animation completed - restoring game speed and loading"
+                )
+                // Set frameSpeed to correct value from Game Speed sharedPreference
+                viewModel.restoreGameSpeedFromPreferences()
+                // Load the saved game state
+                viewModel.loadStateCentralized { /* Menus already closed */}
+            }
         }
 
         backProgress.setOnClickListener {

@@ -238,18 +238,17 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 continueMenu.setOnClickListener {
                         android.util.Log.d("RetroMenu3", "[ACTION] 🎮 Continue game - closing menu")
                         // Continue - Close menu, set correct frameSpeed, then continue game
-                        // A) Close menu first
-                        animateMenuOut {
-                                dismissMenu()
+                        // A) Close menu first with callback
+                        dismissMenuPublic {
+                                android.util.Log.d(
+                                        "RetroMenu3",
+                                        "[ACTION] 🎮 Animation completed - restoring game speed"
+                                )
                                 // Clear keyLog and reset comboAlreadyTriggered after closing
                                 viewModel.clearControllerInputState()
+                                // Set frameSpeed to correct value from Game Speed sharedPreference
+                                viewModel.restoreGameSpeedFromPreferences()
                         }
-
-                        // B) Set frameSpeed to correct value from Game Speed sharedPreference
-                        viewModel.restoreGameSpeedFromPreferences()
-
-                        // C) Continue game (no additional function needed - just close menu and
-                        // restore speed)
                 }
 
                 resetMenu.setOnClickListener {
@@ -258,19 +257,19 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                                 "[ACTION] 🔄 Reset game - closing menu and resetting"
                         )
                         // Reset - First close menu, then set correct frameSpeed, then reset game
-                        // A) Close menu first
-                        animateMenuOut {
-                                dismissMenu()
+                        // A) Close menu first with callback
+                        dismissMenuPublic {
+                                android.util.Log.d(
+                                        "RetroMenu3",
+                                        "[ACTION] 🔄 Animation completed - restoring game speed and resetting"
+                                )
                                 // Clear keyLog and reset comboAlreadyTriggered after closing
                                 viewModel.clearControllerInputState()
+                                // Set frameSpeed to correct value from Game Speed sharedPreference
+                                viewModel.restoreGameSpeedFromPreferences()
+                                // Apply reset function
+                                viewModel.resetGameCentralized()
                         }
-
-                        // B) Set frameSpeed to correct value (1 or 2) from Game Speed
-                        // sharedPreference
-                        viewModel.restoreGameSpeedFromPreferences()
-
-                        // C) Apply reset function
-                        viewModel.resetGameCentralized()
                 }
 
                 progressMenu.setOnClickListener {
@@ -316,10 +315,14 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 ) { onEnd() }
         }
 
-        private fun dismissMenu() {
+        private fun dismissMenu(onAnimationEnd: (() -> Unit)? = null) {
                 // IMPORTANT: Don't call dismissRetroMenu3() here to avoid crashes
                 // Just remove the fragment visually
-                animateMenuOut { parentFragmentManager.beginTransaction().remove(this).commit() }
+                animateMenuOut {
+                        parentFragmentManager.beginTransaction().remove(this).commit()
+                        // Execute callback after animation and fragment removal
+                        onAnimationEnd?.invoke()
+                }
         }
 
         // ========== IMPLEMENTAÇÃO DOS MÉTODOS ABSTRATOS DA MenuFragmentBase ==========
@@ -560,8 +563,8 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         }
 
         /** Public method to dismiss the menu from outside */
-        fun dismissMenuPublic() {
-                dismissMenu()
+        fun dismissMenuPublic(onAnimationEnd: (() -> Unit)? = null) {
+                dismissMenu(onAnimationEnd)
         }
 
         /** Open settings submenu */

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
 import android.widget.LinearLayout
+import com.vinaooo.revenger.utils.MenuLogger
 
 /**
  * RetroCardView - View customizada que substitui MaterialCardView seguindo o estilo retro do
@@ -18,6 +19,13 @@ class RetroCardView
 constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
         LinearLayout(context, attrs, defStyleAttr) {
 
+    companion object {
+        // Constantes de cores para consistência visual
+        const val COLOR_SELECTED = Color.YELLOW // Item selecionado na navegação
+        const val COLOR_PRESSED = Color.WHITE // Item pressionado/toque
+        const val COLOR_NORMAL = Color.TRANSPARENT // Estado normal
+    }
+
     // Estados da view
     enum class State {
         NORMAL,
@@ -31,12 +39,12 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     // Propriedade para controlar se deve usar cor de fundo
     private var useBackgroundColor = true
 
-    // Cores retro baseadas no tema
-    private val colorSelected = Color.YELLOW
-    private val colorPressed = Color.WHITE
+    // Cores retro baseadas no tema - usa constantes do companion object
+    private val colorSelected = COLOR_SELECTED
+    private val colorPressed = COLOR_PRESSED
 
     init {
-        android.util.Log.d("RetroCardView", "RetroCardView init START")
+        MenuLogger.lifecycle("RetroCardView init START")
         try {
             // Configurações iniciais
             isClickable = true
@@ -51,34 +59,36 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             // O padding é controlado pelos layouts XML individuais
 
             updateVisualState()
-            android.util.Log.d("RetroCardView", "RetroCardView init COMPLETED")
+            MenuLogger.lifecycle("RetroCardView init COMPLETED")
         } catch (e: Exception) {
-            android.util.Log.e("RetroCardView", "RetroCardView init ERROR", e)
-            throw e
+            MenuLogger.e("RetroCardView initialization failed: ${e.message}", e)
+            throw RuntimeException("Failed to initialize RetroCardView: ${e.message}", e)
         }
     }
 
     /** Define o estado visual da view */
     fun setState(state: State) {
-        android.util.Log.d("RetroCardView", "setState called: $state (current: $currentState)")
+        MenuLogger.state("setState called: $state (current: $currentState)")
         try {
             if (currentState != state) {
                 currentState = state
                 updateVisualState()
-                android.util.Log.d("RetroCardView", "setState completed: new state $state")
+                MenuLogger.state("setState completed: new state $state")
             } else {
-                android.util.Log.d("RetroCardView", "setState skipped: state already $state")
+                MenuLogger.state("setState skipped: state already $state")
             }
         } catch (e: Exception) {
-            android.util.Log.e("RetroCardView", "setState ERROR", e)
-            throw e
+            MenuLogger.e("Failed to set RetroCardView state to $state: ${e.message}", e)
+            throw RuntimeException(
+                    "RetroCardView state change failed for state $state: ${e.message}",
+                    e
+            )
         }
     }
 
     /** Atualiza a aparência visual baseada no estado atual */
     private fun updateVisualState() {
-        android.util.Log.d(
-                "RetroCardView",
+        MenuLogger.state(
                 "updateVisualState called, currentState: $currentState, useBackgroundColor: $useBackgroundColor"
         )
         try {
@@ -86,24 +96,17 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                 State.NORMAL -> {
                     // Background transparente para estado normal
                     setBackgroundColor(Color.TRANSPARENT)
-                    android.util.Log.d(
-                            "RetroCardView",
-                            "updateVisualState: NORMAL - background transparent"
-                    )
+                    MenuLogger.state("updateVisualState: NORMAL - background transparent")
                 }
                 State.SELECTED -> {
                     if (useBackgroundColor) {
                         // Background amarelo para estado selecionado (padrão)
                         setBackgroundColor(colorSelected)
-                        android.util.Log.d(
-                                "RetroCardView",
-                                "updateVisualState: SELECTED - background yellow"
-                        )
+                        MenuLogger.state("updateVisualState: SELECTED - background yellow")
                     } else {
                         // Background transparente para estado selecionado (ProgressFragment)
                         setBackgroundColor(Color.TRANSPARENT)
-                        android.util.Log.d(
-                                "RetroCardView",
+                        MenuLogger.state(
                                 "updateVisualState: SELECTED - background transparent (no background mode)"
                         )
                     }
@@ -112,29 +115,31 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                     if (useBackgroundColor) {
                         // Background branco para estado pressionado (padrão)
                         setBackgroundColor(colorPressed)
-                        android.util.Log.d(
-                                "RetroCardView",
-                                "updateVisualState: PRESSED - background white"
-                        )
+                        MenuLogger.state("updateVisualState: PRESSED - background white")
                     } else {
                         // Background transparente para estado pressionado (ProgressFragment)
                         setBackgroundColor(Color.TRANSPARENT)
-                        android.util.Log.d(
-                                "RetroCardView",
+                        MenuLogger.state(
                                 "updateVisualState: PRESSED - background transparent (no background mode)"
                         )
                     }
                 }
             }
         } catch (e: Exception) {
-            android.util.Log.e("RetroCardView", "updateVisualState ERROR", e)
-            throw e
+            MenuLogger.e(
+                    "Failed to update RetroCardView visual state ($currentState): ${e.message}",
+                    e
+            )
+            throw RuntimeException(
+                    "RetroCardView visual update failed for state $currentState: ${e.message}",
+                    e
+            )
         }
     }
 
     /** Define se deve usar cor de fundo nos estados selecionado/pressionado */
     fun setUseBackgroundColor(useBackground: Boolean) {
-        android.util.Log.d("RetroCardView", "setUseBackgroundColor: $useBackground")
+        MenuLogger.state("setUseBackgroundColor: $useBackground")
         useBackgroundColor = useBackground
         updateVisualState() // Atualiza visual imediatamente
     }

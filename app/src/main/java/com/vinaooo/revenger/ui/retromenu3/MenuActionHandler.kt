@@ -59,45 +59,46 @@ class MenuActionHandler(
 
                 android.util.Log.d(
                         "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] Calling dismissMenuPublic()"
+                        "🔥 [EXECUTE_CONTINUE] Calling dismissMenuPublic() with callback"
                 )
-                // Close menu first using the public method
-                (fragment as? RetroMenu3Fragment)?.dismissMenuPublic()
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] dismissMenuPublic() completed"
-                )
+                // Close menu first using the public method with callback
+                (fragment as? RetroMenu3Fragment)?.dismissMenuPublic {
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_CONTINUE] Animation completed - now restoring game speed"
+                        )
 
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] Calling clearControllerInputState()"
-                )
-                // Clear keyLog and reset comboAlreadyTriggered after closing
-                viewModel.clearControllerInputState()
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] clearControllerInputState() completed - comboAlreadyTriggered should be reset now"
-                )
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_CONTINUE] Calling clearControllerInputState()"
+                        )
+                        // Clear keyLog and reset comboAlreadyTriggered after closing
+                        viewModel.clearControllerInputState()
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_CONTINUE] clearControllerInputState() completed - comboAlreadyTriggered should be reset now"
+                        )
 
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] Calling restoreGameSpeedFromPreferences()"
-                )
-                // Set frameSpeed to correct value from Game Speed sharedPreference
-                viewModel.restoreGameSpeedFromPreferences()
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] restoreGameSpeedFromPreferences() completed"
-                )
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_CONTINUE] Calling restoreGameSpeedFromPreferences()"
+                        )
+                        // Set frameSpeed to correct value from Game Speed sharedPreference
+                        viewModel.restoreGameSpeedFromPreferences()
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_CONTINUE] restoreGameSpeedFromPreferences() completed"
+                        )
 
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] ===== CONTINUE COMPLETED ====="
-                )
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] Final Timestamp: ${System.currentTimeMillis()}"
-                )
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_CONTINUE] ===== CONTINUE COMPLETED ====="
+                        )
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_CONTINUE] Final Timestamp: ${System.currentTimeMillis()}"
+                        )
+                }
         }
 
         /** Executa ação de reset do jogo */
@@ -123,56 +124,57 @@ class MenuActionHandler(
 
                 android.util.Log.d(
                         "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] Calling dismissMenuPublic()"
+                        "🔥 [EXECUTE_RESET] Calling dismissMenuPublic() with callback"
                 )
-                // Close menu first using the public method
-                (fragment as? RetroMenu3Fragment)?.dismissMenuPublic()
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] dismissMenuPublic() completed"
-                )
+                // Close menu first using the public method with callback
+                (fragment as? RetroMenu3Fragment)?.dismissMenuPublic {
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_RESET] Animation completed - now restoring game speed"
+                        )
 
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] Calling clearControllerInputState()"
-                )
-                // Clear keyLog and reset comboAlreadyTriggered after closing
-                viewModel.clearControllerInputState()
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] clearControllerInputState() completed"
-                )
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_RESET] Calling clearControllerInputState()"
+                        )
+                        // Clear keyLog and reset comboAlreadyTriggered after closing
+                        viewModel.clearControllerInputState()
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_RESET] clearControllerInputState() completed"
+                        )
 
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] Calling restoreGameSpeedFromPreferences()"
-                )
-                // Set frameSpeed to correct value from Game Speed sharedPreference
-                viewModel.restoreGameSpeedFromPreferences()
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] restoreGameSpeedFromPreferences() completed"
-                )
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_RESET] Calling restoreGameSpeedFromPreferences()"
+                        )
+                        // Set frameSpeed to correct value from Game Speed sharedPreference
+                        viewModel.restoreGameSpeedFromPreferences()
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_RESET] restoreGameSpeedFromPreferences() completed"
+                        )
 
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] Calling resetGameCentralized()"
-                )
-                // Apply reset function
-                viewModel.resetGameCentralized()
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] resetGameCentralized() completed"
-                )
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_RESET] Calling resetGameCentralized()"
+                        )
+                        // Apply reset function
+                        viewModel.resetGameCentralized()
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_RESET] resetGameCentralized() completed"
+                        )
 
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] ===== RESET COMPLETED ====="
-                )
-                android.util.Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] Final Timestamp: ${System.currentTimeMillis()}"
-                )
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_RESET] ===== RESET COMPLETED ====="
+                        )
+                        android.util.Log.d(
+                                "MenuActionHandler",
+                                "🔥 [EXECUTE_RESET] Final Timestamp: ${System.currentTimeMillis()}"
+                        )
+                }
         }
 
         /** Executa ação de salvar log */

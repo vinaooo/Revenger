@@ -10,9 +10,15 @@ object MenuLogger {
 
     private const val TAG = "RetroMenu3"
 
-    // Flag para controlar logs - TODO: Usar BuildConfig.DEBUG quando disponível
+    // Flag para controlar logs - usa BuildConfig.DEBUG quando disponível
     private var isDebugEnabled: Boolean =
-            true // BuildConfig.DEBUG não disponível - manter true por enquanto
+            try {
+                // Tenta acessar BuildConfig.DEBUG se disponível
+                Class.forName("com.vinaooo.revenger.BuildConfig").getField("DEBUG").getBoolean(null)
+            } catch (e: Exception) {
+                // Fallback para true se BuildConfig não estiver disponível
+                true
+            }
 
     /** Habilita ou desabilita logs de debug */
     fun setDebugEnabled(enabled: Boolean) {
