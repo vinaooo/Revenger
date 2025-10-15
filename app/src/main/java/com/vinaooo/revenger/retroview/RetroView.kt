@@ -1,26 +1,25 @@
 package com.vinaooo.revenger.retroview
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.view.Gravity
 import android.widget.FrameLayout
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.vinaooo.revenger.R
-import com.vinaooo.revenger.repositories.Storage
 import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.libretrodroid.GLRetroViewData
-import com.swordfish.libretrodroid.Variable
 import com.swordfish.libretrodroid.ShaderConfig
+import com.swordfish.libretrodroid.Variable
+import com.vinaooo.revenger.R
+import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
+import com.vinaooo.revenger.repositories.Storage
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
-import androidx.lifecycle.LifecycleOwner
 
-class RetroView(
-    private val context: Context, 
-    private val coroutineScope: CoroutineScope
-) {
+class RetroView(private val context: Context, private val coroutineScope: CoroutineScope) {
     companion object {
         var romBytes: ByteArray? = null
     }
@@ -28,90 +27,196 @@ class RetroView(
     private val resources = context.resources
     private val storage = Storage.getInstance(context)
 
+    // Shader dinâmico para modo "settings"
+    private var _dynamicShader: String = "sharp"
+    var dynamicShader: String
+        get() = _dynamicShader
+        set(value) {
+            _dynamicShader = value
+            // Aplicar shader em tempo real se estiver no modo settings
+            if (isSettingsMode()) {
+                applyShaderInRealtime(value)
+            }
+        }
+
+    private fun isSettingsMode(): Boolean {
+        return context.getString(R.string.config_shader).lowercase() == "settings"
+    }
+
+    /** Public method to check if shader selection is enabled */
+    fun isShaderSelectionEnabled(): Boolean {
+        return isSettingsMode()
+    }
+
+    private fun applyShaderInRealtime(shaderName: String) {
+        val shaderConfig =
+                when (shaderName) {
+                    "disabled" -> ShaderConfig.Default
+                    "sharp" -> ShaderConfig.Sharp
+                    "crt" -> ShaderConfig.CRT
+                    "lcd" -> ShaderConfig.LCD
+                    else -> ShaderConfig.Sharp
+                }
+
+        // Aplicar shader via propriedade do GLRetroView
+        view.shader = shaderConfig
+        Log.i("RetroView", "Shader aplicado em tempo real: $shaderName")
+    }
+
+    /**
+     * Get shader configuration from config.xml
+     *
+     * Maps string values from config.xml to LibretroDroid ShaderConfig enum values. Provides
+     * fallback to Sharp shader for invalid configurations.
+     *
+     * @return ShaderConfig enum value for video rendering
+     */
+    private fun getShaderConfig(): ShaderConfig {
+        val shaderString = context.getString(R.string.config_shader).lowercase()
+
+        return when (shaderString) {
+            "disabled" -> {
+                Log.i("RetroView", "Shader configurado: Disabled (sem shader aplicado)")
+                ShaderConfig.Default
+            }
+            "sharp" -> {
+                Log.i("RetroView", "Shader configurado: Sharp (filtragem bilinear nítida)")
+                ShaderConfig.Sharp
+            }
+            "crt" -> {
+                Log.i("RetroView", "Shader configurado: CRT (simulação de monitor CRT)")
+                ShaderConfig.CRT
+            }
+            "lcd" -> {
+                Log.i("RetroView", "Shader configurado: LCD (efeito de matriz LCD)")
+                ShaderConfig.LCD
+            }
+            "settings" -> {
+                Log.i(
+                        "RetroView",
+                        "Shader configurado: Settings (modo dinâmico) - usando: $_dynamicShader"
+                )
+                // Modo settings: usar shader dinâmico
+                when (_dynamicShader) {
+                    "disabled" -> ShaderConfig.Default
+                    "sharp" -> ShaderConfig.Sharp
+                    "crt" -> ShaderConfig.CRT
+                    "lcd" -> ShaderConfig.LCD
+                    else -> ShaderConfig.Sharp
+                }
+            }
+            else -> {
+                Log.w(
+                        "RetroView",
+                        "Configuração de shader inválida: '$shaderString'. Usando Sharp como fallback."
+                )
+                ShaderConfig.Sharp
+            }
+        }
+    }
+
     private val _frameRendered = MutableLiveData(false)
     val frameRendered: LiveData<Boolean> = _frameRendered
 
-    private val retroViewData = GLRetroViewData(context).apply {
-        coreFilePath = "libcore.so"
+    private val retroViewData =
+            GLRetroViewData(context).apply {
+                coreFilePath = "libcore.so"
 
-        /* Prepare the ROM bytes */
-        val romName = context.getString(R.string.config_rom)
-        val romResourceId = resources.getIdentifier(romName, "raw", context.packageName)
-        
-        if (romResourceId == 0) {
-            throw IllegalArgumentException("ROM resource '$romName' not found in raw resources. Check config.xml and ensure the file exists in res/raw/")
-        }
-        
-        val romInputStream = context.resources.openRawResource(romResourceId)
-        if (resources.getBoolean(R.bool.config_load_bytes)) {
-            if (romBytes == null)
-                romBytes = romInputStream.use {it.readBytes() }
-            gameFileBytes = romBytes
-        } else {
-            if (!storage.rom.exists()) {
-                storage.rom.outputStream().use {
-                    romInputStream.copyTo(it)
+                /* Prepare the ROM bytes */
+                val romName = context.getString(R.string.config_rom)
+                @SuppressLint(
+                        "DiscouragedApi"
+                ) // Reflection necessary to maintain genericity - allows any ROM without
+                // recompilar
+                val romResourceId = resources.getIdentifier(romName, "raw", context.packageName)
+
+                if (romResourceId == 0) {
+                    throw IllegalArgumentException(
+                            "ROM resource '$romName' not found in raw resources. Check config.xml and ensure the file exists in res/raw/"
+                    )
+                }
+
+                val romInputStream = context.resources.openRawResource(romResourceId)
+                if (resources.getBoolean(R.bool.config_load_bytes)) {
+                    if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
+                    gameFileBytes = romBytes
+                } else {
+                    if (!storage.rom.exists()) {
+                        storage.rom.outputStream().use { romInputStream.copyTo(it) }
+                    }
+
+                    gameFilePath = storage.rom.absolutePath
+                }
+
+                shader = getShaderConfig()
+                variables = getCoreVariables()
+
+                if (storage.sram.exists()) {
+                    storage.sram.inputStream().use { saveRAMState = it.readBytes() }
                 }
             }
 
-            gameFilePath = storage.rom.absolutePath
-        }
-
-        shader = ShaderConfig.Sharp
-        variables = getCoreVariables()
-
-        if (storage.sram.exists()) {
-            storage.sram.inputStream().use {
-                saveRAMState = it.readBytes()
-            }
-        }
-    }
-
-    /**
-     * GLRetroView instance itself
-     */
+    /** GLRetroView instance itself */
     val view = GLRetroView(context, retroViewData)
 
     init {
-        val params = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.WRAP_CONTENT,
-            FrameLayout.LayoutParams.WRAP_CONTENT,
-        )
+        val params =
+                FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.WRAP_CONTENT,
+                        FrameLayout.LayoutParams.WRAP_CONTENT,
+                )
         params.gravity = Gravity.CENTER
         view.layoutParams = params
+
+        // FIX: Initialize frameSpeed = 1 to ensure emulation starts running
+        // Without this, LibretroDroid may start paused (frameSpeed = 0) causing black screen
+        view.frameSpeed = 1
     }
 
-    /**
-     * Register listener for when first frame is rendered
-     */
+    /** Register listener for when first frame is rendered */
     fun registerFrameRenderedListener() {
         coroutineScope.launch {
-            view.getGLRetroEvents()
-                .takeWhile { _frameRendered.value != true }
-                .collect { event ->
-                    if (event == GLRetroView.GLRetroEvents.FrameRendered && _frameRendered.value == false) {
-                        _frameRendered.postValue(true)
-                    }
+            view.getGLRetroEvents().takeWhile { _frameRendered.value != true }.collectLatest { event
+                ->
+                if (event == GLRetroView.GLRetroEvents.FrameRendered &&
+                                _frameRendered.value == false
+                ) {
+                    _frameRendered.postValue(true)
                 }
+            }
         }
     }
 
-    /**
-     * Parse core variables from config
-     */
+    /** Register listener for frame rendering events to track FPS */
+    fun registerFrameCallback() {
+        coroutineScope.launch {
+            view.getGLRetroEvents().collectLatest { event ->
+                if (event == GLRetroView.GLRetroEvents.FrameRendered) {
+                    AdvancedPerformanceProfiler.onFrameRendered()
+                }
+            }
+        }
+    }
+
+    /** Parse core variables from config */
     private fun getCoreVariables(): Array<Variable> {
         val variables = arrayListOf<Variable>()
         val rawVariablesString = context.getString(R.string.config_variables)
         val rawVariables = rawVariablesString.split(",")
 
+        Log.d("RetroView", "Configurando variáveis do core: '$rawVariablesString'")
+
         for (rawVariable in rawVariables) {
             val rawVariableSplit = rawVariable.split("=")
-            if (rawVariableSplit.size != 2)
-                continue
+            if (rawVariableSplit.size != 2) continue
 
-            variables.add(Variable(rawVariableSplit[0], rawVariableSplit[1]))
+            val key = rawVariableSplit[0].trim()
+            val value = rawVariableSplit[1].trim()
+            variables.add(Variable(key, value))
+            Log.d("RetroView", "Variável do core configurada: $key = $value")
         }
 
+        Log.d("RetroView", "Total de variáveis do core configuradas: ${variables.size}")
         return variables.toTypedArray()
     }
 }

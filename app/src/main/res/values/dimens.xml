@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="gamepad_padding_vertical">20dp</dimen>
+    <!-- Landscape: 25% left, 50% center, 25% right -->
 </resources>

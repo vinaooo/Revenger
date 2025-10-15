@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ============================================ -->
+    <!-- RETRO MENU 3 - STRINGS EXCLUSIVAS           -->
+    <!-- Todas as strings usadas pelo RetroMenu3Fragment -->
+    <!-- ============================================ -->
+    
+    <!-- Menu Title -->
+    <string name="retro_menu3_title">Game Menu</string>
+    <!-- Title style: 
+            0 = use retro_menu3_title
+            1 = use config_name from config.xml -->
+    <integer name="retro_menu3_title_style">1</integer>
+
+    <!-- Selection Arrow -->
+    <string name="retro_menu3_selection_arrow">&gt;</string>
+    
+    <!-- Menu Options -->
+    <string name="menu_continue">Resume</string>
+    <string name="menu_reset">Restart</string>
+    <string name="menu_save_state">Save State</string>
+    <string name="menu_load_state">Load State</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_fast_forward">Fast Forward</string>
+    <string name="menu_exit">Exit Options</string>
+    <string name="save_log_menu_title">Save Log</string>
+    
+    <!-- Status Indicators -->
+    <string name="audio_on">Audio: On</string>
+    <string name="audio_off">Audio: Off</string>
+    <string name="save_state_available">Save available</string>
+    <string name="save_state_not_available">No save available</string>
+    <string name="fast_forward_active">Game Speed: Fast</string>
+    <string name="fast_forward_inactive">Game Speed: Normal</string>
+    
+    <!-- Settings Submenu -->
+    <string name="settings_menu_title">Settings</string>
+    <string name="settings_video">Video Settings</string>
+    <string name="settings_audio">Audio Settings</string>
+    <string name="settings_shader">Shader Settings</string>
+    <string name="settings_controls">Controls</string>
+    <string name="settings_back">Back</string>
+
+    <!-- Progress Menu -->
+    <string name="progress_menu_title">Progress</string>
+
+    <!-- Exit Menu -->
+    <string name="exit_menu_title">Exit</string>
+    <string name="exit_menu_option_a">Save and Exit</string>
+    <string name="exit_menu_option_b">Exit without Save</string>
+    <string name="exit_menu_option_c">Back</string>
+
+    <!-- Menu Control hint -->
+    <string name="retro_menu3_controls_hint">[A] Confirm  [B] Back</string>
+
+</resources>

@@ -1,35 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- FrameLayout permite controle de z-index pela ordem de declaração -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:descendantFocusability="blocksDescendants">
+
+    <!-- Layer 1: Game (Background - Always visible) -->
     <FrameLayout
+        android:id="@+id/retroview_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_centerInParent="true"
-        android:layout_above="@id/containers"
-        android:layout_alignTop="@id/containers"
-        android:id="@+id/retroview_container" />
+        android:background="@android:color/black" />
+
+    <!-- Layer 2: Menu Container (Middle - Conditionally visible) -->
+    <!-- This container will hold RetroMenu3Fragment and its submenus -->
+    <FrameLayout
+        android:id="@+id/menu_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Layer 3: GamePad (Bottom in portrait - Conditionally visible, always above menu) -->
+    <!-- CRITICAL: elevation and translationZ ensure gamepad stays on top of menu -->
     <LinearLayout
+        android:id="@+id/containers"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
         android:baselineAligned="false"
         android:orientation="horizontal"
-        android:layout_alignParentBottom="true"
         android:gravity="bottom"
-        android:id="@+id/containers">
+        android:elevation="100dp"
+        android:translationZ="100dp"
+        android:paddingBottom="16dp">
+
         <FrameLayout
+            android:id="@+id/left_container"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.5"
-            android:layout_marginBottom="@dimen/gamepad_padding_vertical"
-            android:id="@+id/left_container" />
+            android:layout_weight="0.25"
+            android:layout_marginBottom="@dimen/gamepad_padding_vertical" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="0.5" />
+
         <FrameLayout
+            android:id="@+id/right_container"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.5"
-            android:layout_marginBottom="@dimen/gamepad_padding_vertical"
-            android:id="@+id/right_container" />
+            android:layout_weight="0.25"
+            android:layout_marginBottom="@dimen/gamepad_padding_vertical" />
     </LinearLayout>
-</RelativeLayout>
+</FrameLayout>

@@ -3,21 +3,60 @@ package com.vinaooo.revenger.repositories
 import android.content.Context
 import java.io.File
 
-/**
- * Singleton for globally accessible ROM metadata
- */
+/** Singleton responsible for providing stable paths for ROM, SRAM and save states. */
 class Storage(context: Context) {
     companion object {
         @Volatile private var instance: Storage? = null
-        fun getInstance(context: Context): Storage = instance ?: synchronized(this) {
-            instance ?: Storage(context).also { instance = it }
-        }
+
+        fun getInstance(context: Context): Storage =
+                instance
+                        ?: synchronized(this) {
+                            instance ?: Storage(context).also { instance = it }
+                        }
     }
 
-    val storagePath: String = (context.getExternalFilesDir(null) ?: context.filesDir).path
+    private val internalFilesDir: File = context.filesDir
+    private val externalFilesDir: File? = context.getExternalFilesDir(null)
+
+    val storagePath: String = internalFilesDir.path
     val cachePath: String = (context.externalCacheDir ?: context.cacheDir).path
+
     val rom = File("$cachePath/rom")
-    val sram = File("$storagePath/sram")
-    val state = File("$storagePath/state")
-    val tempState = File("$storagePath/tempstate")
+    val sram = File(internalFilesDir, "sram")
+    val state = File(internalFilesDir, "state")
+    val tempState = File(internalFilesDir, "tempstate")
+
+    init {
+        ensureParentDirectories()
+        migrateLegacyFile("state", state)
+        migrateLegacyFile("tempstate", tempState)
+        migrateLegacyFile("sram", sram)
+    }
+
+    private fun ensureParentDirectories() {
+        listOf(rom.parentFile, sram.parentFile, state.parentFile, tempState.parentFile)
+                .filterNotNull()
+                .forEach { parent ->
+                    if (!parent.exists()) {
+                        parent.mkdirs()
+                    }
+                }
+    }
+
+    private fun migrateLegacyFile(fileName: String, target: File) {
+        val legacyDir = externalFilesDir ?: return
+        val legacyFile = File(legacyDir, fileName)
+
+        if (!legacyFile.exists()) return
+        if (target.exists()) return
+
+        try {
+            legacyFile.copyTo(target, overwrite = false)
+            if (!legacyFile.delete()) {
+                // Removal failed; legacy file will be kept without affecting the new state
+            }
+        } catch (e: Exception) {
+            // Migration failures are ignored to maintain compatibility with previous behavior
+        }
+    }
 }

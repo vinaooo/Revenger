@@ -15,22 +15,25 @@ app/src/main/res/raw/*
 *_backup
 *_backup.*
 
-# Pasta de backup de configurações (raiz do projeto)
+# Specific backup created by assistant
+backup_files/themes.xml_backup.xml
+
+# Configuration backup folder (project root)
 /config_backup
 
 # Testes
 /tests
 *_test
 
-# Documentações (Phase 9.4)
+# Documentation (Phase 9.4)
 /docs
 
-# Performance logs e relatórios (Phase 9.4)
+# Performance logs and reports (Phase 9.4)
 performance_*.log
 performance_reports/
 *_test.*
 
-# Documentação
+# Documentation
 # /docs
 
 # Scripts

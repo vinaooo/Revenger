@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- RetroMenu3 - Colors -->
+    
+    <!-- Background -->
+    <color name="retro_menu3_background">#CC333333</color>
+    
+    <!-- Text Colors -->
+    <color name="retro_menu3_text_color">#FFFFFF</color>
+    <color name="retro_menu3_shadow_color">#000000</color>
+    
+    <!-- Card Colors -->
+    <color name="retro_menu3_card_background">@android:color/transparent</color>
+    <color name="retro_menu3_card_stroke">@android:color/transparent</color>
+</resources>

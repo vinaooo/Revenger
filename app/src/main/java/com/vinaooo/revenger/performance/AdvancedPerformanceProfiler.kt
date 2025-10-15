@@ -2,13 +2,11 @@ package com.vinaooo.revenger.performance
 
 import android.app.ActivityManager
 import android.content.Context
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.RequiresApi
 import com.vinaooo.revenger.utils.AndroidCompatibility
 import java.util.concurrent.ConcurrentHashMap
-import java.util.logging.Logger
 
 /**
  * Advanced Performance Profiler for SDK 36 Phase 9.4: Target SDK 36 Features Real-time performance
@@ -16,7 +14,6 @@ import java.util.logging.Logger
  */
 object AdvancedPerformanceProfiler {
 
-    private val logger = Logger.getLogger("PerformanceProfiler")
     private val handler = Handler(Looper.getMainLooper())
 
     private var isProfilingActive = false
@@ -27,11 +24,18 @@ object AdvancedPerformanceProfiler {
     private const val MONITORING_INTERVAL_MS = 1000L
     private const val FRAME_TIME_BUFFER_SIZE = 120 // 2 seconds at 60fps
 
+    // Frame timing for emulator FPS calculation
+    private var lastFrameTime = 0L
+    private var frameCount = 0
+    private var emulatorFps = 0.0
+
+    /** Debug overlay variables */
+    private var debugOverlayView: android.widget.TextView? = null
+    private var debugOverlayUpdateRunnable: Runnable? = null
+
     /** Start performance profiling based on Android version */
     fun startProfiling(context: Context) {
         if (isProfilingActive) return
-
-        logger.info("Starting performance profiling for Android ${Build.VERSION.SDK_INT}")
         isProfilingActive = true
 
         when {
@@ -50,20 +54,15 @@ object AdvancedPerformanceProfiler {
     /** Stop performance profiling */
     fun stopProfiling() {
         if (!isProfilingActive) return
-
-        logger.info("Stopping performance profiling")
         isProfilingActive = false
         handler.removeCallbacksAndMessages(null)
 
-        // Log final performance summary
         logPerformanceSummary()
     }
 
     /** Android 16+: Advanced performance profiling */
     @RequiresApi(36)
     private fun startAdvancedProfiling(context: Context) {
-        logger.info("Starting Android 16 advanced performance profiling")
-
         // Enhanced GPU profiling
         startEnhancedGpuProfiling()
 
@@ -81,8 +80,6 @@ object AdvancedPerformanceProfiler {
 
     /** Android 12+: Standard performance profiling */
     private fun startStandardProfiling(context: Context) {
-        logger.info("Starting Android 12+ standard performance profiling")
-
         // Basic GPU monitoring
         startBasicGpuProfiling()
 
@@ -94,8 +91,6 @@ object AdvancedPerformanceProfiler {
 
     /** Android 11: Basic performance monitoring */
     private fun startBasicProfiling(context: Context) {
-        logger.info("Starting Android 11 basic performance profiling")
-
         // Basic system monitoring only
         startBasicSystemMonitoring()
 
@@ -146,9 +141,8 @@ object AdvancedPerformanceProfiler {
 
         performanceData["timestamp"] = timestamp
 
-        // Log periodic performance update
         if (timestamp % (MONITORING_INTERVAL_MS * 5) == 0L) {
-            logger.info("Performance: CPU ${cpuUsage}%, Memory ${memoryInfo.used / 1024 / 1024}MB")
+            // Checkpoint maintained for future monitoring integrations without logs
         }
     }
 
@@ -156,43 +150,39 @@ object AdvancedPerformanceProfiler {
     @RequiresApi(36)
     private fun startEnhancedGpuProfiling() {
         // Hypothetical advanced GPU profiling APIs
-        logger.info("Started enhanced GPU profiling")
     }
 
     /** Advanced memory profiling for Android 16 */
     @RequiresApi(36)
     private fun startAdvancedMemoryProfiling() {
         // Hypothetical advanced memory profiling APIs
-        logger.info("Started advanced memory profiling")
     }
 
     /** CPU thermal monitoring for Android 16 */
     @RequiresApi(36)
     private fun startThermalMonitoring() {
         // Hypothetical thermal monitoring APIs
-        logger.info("Started thermal monitoring")
     }
 
     /** Frame pacing analysis for Android 16 */
     @RequiresApi(36)
     private fun startFramePacingAnalysis() {
         // Hypothetical frame pacing APIs
-        logger.info("Started frame pacing analysis")
     }
 
     /** Basic GPU profiling */
     private fun startBasicGpuProfiling() {
-        logger.info("Started basic GPU profiling")
+        // Symbolic initialization preserved
     }
 
     /** Standard memory profiling */
     private fun startStandardMemoryProfiling() {
-        logger.info("Started standard memory profiling")
+        // Symbolic initialization preserved
     }
 
     /** Basic system monitoring */
     private fun startBasicSystemMonitoring() {
-        logger.info("Started basic system monitoring")
+        // Symbolic initialization preserved
     }
 
     /** Collect advanced metrics for Android 16 */
@@ -241,15 +231,31 @@ object AdvancedPerformanceProfiler {
 
     @RequiresApi(36) private fun getHypotheticalFramePacing(): Double = 95.0
 
-    /** Log performance summary */
-    private fun logPerformanceSummary() {
-        logger.info("Performance Profiling Summary:")
-        performanceData.forEach { (key, value) -> logger.info("  $key: $value") }
+    /** Get current frame statistics */
+    fun getFrameStats(): FrameStats {
+        synchronized(frameTimeData) {
+            val frameTimesMs = frameTimeData.map { it / 1_000_000.0 } // Convert to milliseconds
+            val averageFrameTimeMs = if (frameTimesMs.isNotEmpty()) frameTimesMs.average() else 0.0
+
+            // Use emulator FPS if available, otherwise calculate from frame times
+            val fps =
+                    if (emulatorFps > 0) {
+                        emulatorFps
+                    } else {
+                        if (averageFrameTimeMs > 0) 1000.0 / averageFrameTimeMs else 0.0
+                    }
+
+            // Count dropped frames (frames that took longer than 16.67ms for 60fps)
+            val targetFrameTimeMs = 1000.0 / 60.0 // 16.67ms for 60fps
+            val droppedFrames = frameTimesMs.count { it > targetFrameTimeMs }
+
+            return FrameStats(fps, averageFrameTimeMs, droppedFrames)
+        }
     }
 
-    /** Get current performance data */
-    fun getCurrentPerformanceData(): Map<String, Any> {
-        return performanceData.toMap()
+    /** Log performance summary */
+    private fun logPerformanceSummary() {
+        // Kept for future compatibility - previously logged performance summary
     }
 
     /** Add frame time measurement */
@@ -262,18 +268,200 @@ object AdvancedPerformanceProfiler {
         }
     }
 
-    /** Get frame rate statistics */
-    fun getFrameRateStats(): FrameStats {
-        synchronized(frameTimeData) {
-            if (frameTimeData.isEmpty()) {
-                return FrameStats(0.0, 0.0, 0)
+    /** Register frame callback from RetroView for accurate FPS calculation */
+    fun onFrameRendered() {
+        val currentTime = System.nanoTime()
+        frameCount++
+
+        if (lastFrameTime > 0) {
+            val frameTimeMs = (currentTime - lastFrameTime) / 1_000_000.0
+            // Calculate FPS based on recent frames (simple moving average)
+            val alpha = 0.1 // Smoothing factor
+            val instantFps = 1000.0 / frameTimeMs
+            emulatorFps = emulatorFps * (1 - alpha) + instantFps * alpha
+        }
+
+        lastFrameTime = currentTime
+
+        // Record frame time for performance analysis (don't double-count)
+        // recordFrameTime(((currentTime - lastFrameTime) / 1_000_000.0).toLong())
+    }
+
+    /** Show debug overlay with performance info */
+    fun showDebugOverlay(context: Context) {
+        android.util.Log.d("PerformanceProfiler", "showDebugOverlay called - checking config")
+        if (!shouldShowPerformanceOverlay(context)) {
+            android.util.Log.d("PerformanceProfiler", "shouldShowPerformanceOverlay returned false")
+            return
+        }
+
+        val activity =
+                context as? android.app.Activity
+                        ?: run {
+                            android.util.Log.d("PerformanceProfiler", "Context is not Activity")
+                            return
+                        }
+        android.util.Log.d("PerformanceProfiler", "Context is Activity, proceeding...")
+
+        activity.runOnUiThread {
+            android.util.Log.d("PerformanceProfiler", "In runOnUiThread, creating overlay")
+            if (debugOverlayView == null) {
+                debugOverlayView =
+                        android.widget.TextView(context).apply {
+                            setBackgroundColor(
+                                    android.graphics.Color.parseColor("#CC000000")
+                            ) // Mais opaco
+                            setTextColor(android.graphics.Color.YELLOW) // Cor mais visível
+                            textSize = 14f // Fonte maior
+                            setPadding(20, 12, 20, 12) // Padding maior
+                            text = "Initializing FPS overlay..."
+                            layoutParams =
+                                    android.widget.FrameLayout.LayoutParams(
+                                                    android.widget.FrameLayout.LayoutParams
+                                                            .WRAP_CONTENT,
+                                                    android.widget.FrameLayout.LayoutParams
+                                                            .WRAP_CONTENT
+                                            )
+                                            .apply {
+                                                gravity =
+                                                        android.view.Gravity.TOP or
+                                                                android.view.Gravity.START
+                                                setMargins(32, 150, 32, 32) // Margens maiores
+                                            }
+                            // Garantir que fique na frente
+                            elevation = 10f
+                            bringToFront()
+                            // Adicionar borda
+                            background =
+                                    android.graphics.drawable.GradientDrawable().apply {
+                                        setColor(android.graphics.Color.parseColor("#CC000000"))
+                                        setStroke(2, android.graphics.Color.YELLOW)
+                                        cornerRadius = 8f
+                                    }
+                            // Garantir visibilidade
+                            visibility = android.view.View.VISIBLE
+                        }
+
+                val rootView =
+                        activity.window.decorView.findViewById<android.widget.FrameLayout>(
+                                android.R.id.content
+                        )
+                android.util.Log.d("PerformanceProfiler", "Adding overlay to root view")
+                rootView.addView(debugOverlayView)
+                android.util.Log.d("PerformanceProfiler", "Debug overlay view added to root view")
+            } else {
+                android.util.Log.d("PerformanceProfiler", "Debug overlay view already exists")
             }
 
-            val avgFrameTime = frameTimeData.average()
-            val fps = 1_000_000_000.0 / avgFrameTime
-            val droppedFrames = frameTimeData.count { it > 16_666_666 } // >16.67ms = dropped frame
+            // Start updating the overlay
+            startDebugOverlayUpdates()
+        }
+    }
 
-            return FrameStats(fps, avgFrameTime / 1_000_000.0, droppedFrames)
+    /** Hide debug overlay */
+    fun hideDebugOverlay() {
+        debugOverlayView?.let { view ->
+            val parent = view.parent as? android.view.ViewGroup
+            parent?.removeView(view)
+            debugOverlayView = null
+        }
+        debugOverlayUpdateRunnable?.let { handler.removeCallbacks(it) }
+        debugOverlayUpdateRunnable = null
+    }
+
+    /** Start updating debug overlay */
+    private fun startDebugOverlayUpdates() {
+        android.util.Log.d("PerformanceProfiler", "startDebugOverlayUpdates called")
+        debugOverlayUpdateRunnable =
+                object : Runnable {
+                    override fun run() {
+                        if (isProfilingActive && debugOverlayView != null) {
+                            val frameStats = getFrameStats()
+                            val memoryInfo = performanceData["memory_used_mb"] as? Long ?: 0L
+                            val cpuUsage = performanceData["cpu_usage_percent"] as? Double ?: 0.0
+
+                            val debugText =
+                                    if (frameStats.averageFps > 0) {
+                                        """
+                        FPS: ${"%.1f".format(frameStats.averageFps)}
+                        Frame Time: ${"%.2f".format(frameStats.averageFrameTimeMs)}ms
+                        Dropped: ${frameStats.droppedFrames}
+                        Memory: ${memoryInfo}MB
+                        CPU: ${"%.1f".format(cpuUsage)}%
+                        """.trimIndent()
+                                    } else {
+                                        """
+                        FPS: Collecting data...
+                        Frame Time: --
+                        Dropped: --
+                        Memory: ${memoryInfo}MB
+                        CPU: ${"%.1f".format(cpuUsage)}%
+                        """.trimIndent()
+                                    }
+
+                            debugOverlayView?.text = debugText
+                            android.util.Log.d(
+                                    "PerformanceProfiler",
+                                    "Overlay text updated: $debugText"
+                            )
+                            handler.postDelayed(this, 500) // Update every 500ms
+                        } else {
+                            android.util.Log.d(
+                                    "PerformanceProfiler",
+                                    "Not updating overlay - isProfilingActive: $isProfilingActive, debugOverlayView: ${debugOverlayView != null}"
+                            )
+                        }
+                    }
+                }
+        handler.post(debugOverlayUpdateRunnable!!)
+        android.util.Log.d("PerformanceProfiler", "Overlay update runnable posted")
+    }
+
+    /** Check if performance overlay should be shown */
+    private fun shouldShowPerformanceOverlay(context: Context): Boolean {
+        // Check config setting first (even in debug builds)
+        return try {
+            val configValue = getConfigBoolean(context, "config_performance_overlay")
+            android.util.Log.d(
+                    "PerformanceProfiler",
+                    "Config value for performance_overlay: $configValue"
+            )
+            configValue
+        } catch (e: Exception) {
+            android.util.Log.e("PerformanceProfiler", "Error reading config: ${e.message}")
+            // Only fallback to debug behavior if config reading fails
+            isDebugBuild(context)
+        }
+    }
+
+    /** Check if this is a debug build */
+    private fun isDebugBuild(context: Context): Boolean {
+        return try {
+            // Check if app was installed via Android Studio (debuggable)
+            val appInfo = context.packageManager.getApplicationInfo(context.packageName, 0)
+            (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        } catch (e: Exception) {
+            // Fallback: check package name for debug indicators
+            context.packageName.contains("debug", ignoreCase = true)
+        }
+    }
+
+    /** Get boolean config value from resources */
+    private fun getConfigBoolean(context: Context, key: String): Boolean {
+        return try {
+            val resources = context.resources
+            val resId = resources.getIdentifier(key, "bool", context.packageName)
+            if (resId != 0) {
+                val value = resources.getBoolean(resId)
+                android.util.Log.d("PerformanceProfiler", "Read boolean $key = $value")
+                value
+            } else {
+                android.util.Log.w("PerformanceProfiler", "Resource ID not found for $key")
+                false
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("PerformanceProfiler", "Error reading boolean $key: ${e.message}")
+            false
         }
     }
 
