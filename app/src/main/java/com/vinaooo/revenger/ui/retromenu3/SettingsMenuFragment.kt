@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -20,16 +19,16 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     // Menu item views
     private lateinit var settingsMenuContainer: LinearLayout
-    private lateinit var soundSettings: MaterialCardView
-    private lateinit var shaderSettings: MaterialCardView
-    private lateinit var gameSpeedSettings: MaterialCardView
-    private lateinit var backSettings: MaterialCardView
+    private lateinit var soundSettings: RetroCardView
+    private lateinit var shaderSettings: RetroCardView
+    private lateinit var gameSpeedSettings: RetroCardView
+    private lateinit var backSettings: RetroCardView
 
     // Menu title
     private lateinit var settingsMenuTitle: TextView
 
     // Ordered list of menu items for navigation
-    private lateinit var menuItems: List<MaterialCardView>
+    private lateinit var menuItems: List<RetroCardView>
 
     // Menu option titles for color control
     private lateinit var soundTitle: TextView
@@ -103,6 +102,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
                 } else {
                     listOf(soundSettings, gameSpeedSettings, backSettings)
                 }
+
+        // Configure RetroCardView to use transparent background for selected state (not yellow)
+        soundSettings.setUseBackgroundColor(false)
+        shaderSettings.setUseBackgroundColor(false)
+        gameSpeedSettings.setUseBackgroundColor(false)
+        backSettings.setUseBackgroundColor(false)
 
         // Initialize menu option titles
         soundTitle = view.findViewById(R.id.sound_title)
@@ -262,12 +267,15 @@ class SettingsMenuFragment : MenuFragmentBase() {
         val isShaderEnabled = isShaderSelectionEnabled()
         val selectedIndex = getCurrentSelectedIndex()
 
-        menuItems.forEach { item ->
-            // Removed: background color of individual cards
-            // Selection now indicated only by yellow text and arrows
-            item.strokeWidth = 0
-            item.strokeColor = android.graphics.Color.TRANSPARENT
-            item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+        // Update each menu item state based on selection
+        menuItems.forEachIndexed { index, item ->
+            if (index == selectedIndex) {
+                // Item selecionado - usar estado SELECTED do RetroCardView
+                item.setState(RetroCardView.State.SELECTED)
+            } else {
+                // Item não selecionado - usar estado NORMAL do RetroCardView
+                item.setState(RetroCardView.State.NORMAL)
+            }
         }
 
         // Control text colors based on selection (dynamic based on shader visibility)

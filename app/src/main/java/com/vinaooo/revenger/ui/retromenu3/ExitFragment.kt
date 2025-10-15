@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -20,15 +19,15 @@ class ExitFragment : MenuFragmentBase() {
 
     // Menu item views
     private lateinit var exitMenuContainer: LinearLayout
-    private lateinit var saveAndExit: MaterialCardView
-    private lateinit var exitWithoutSave: MaterialCardView
-    private lateinit var backExitMenu: MaterialCardView
+    private lateinit var saveAndExit: RetroCardView
+    private lateinit var exitWithoutSave: RetroCardView
+    private lateinit var backExitMenu: RetroCardView
 
     // Menu title
     private lateinit var exitMenuTitle: TextView
 
     // Ordered list of menu items for navigation
-    private lateinit var menuItems: List<MaterialCardView>
+    private lateinit var menuItems: List<RetroCardView>
 
     // Menu option titles for color control
     private lateinit var saveAndExitTitle: TextView
@@ -90,6 +89,11 @@ class ExitFragment : MenuFragmentBase() {
 
         // Initialize ordered list of menu items
         menuItems = listOf(saveAndExit, exitWithoutSave, backExitMenu)
+
+        // Configure RetroCardView to use transparent background for selected state (not yellow)
+        saveAndExit.setUseBackgroundColor(false)
+        exitWithoutSave.setUseBackgroundColor(false)
+        backExitMenu.setUseBackgroundColor(false)
 
         // Initialize menu option titles
         saveAndExitTitle = view.findViewById(R.id.option_a_title)
@@ -209,12 +213,17 @@ class ExitFragment : MenuFragmentBase() {
 
     /** Update selection visual - specific implementation for ExitFragment */
     override fun updateSelectionVisualInternal() {
-        menuItems.forEach { item ->
-            // Removed: background color of individual cards
-            // Selection now indicated only by yellow text and arrows
-            item.strokeWidth = 0
-            item.strokeColor = android.graphics.Color.TRANSPARENT
-            item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+        val selectedIndex = getCurrentSelectedIndex()
+
+        // Update each menu item state based on selection
+        menuItems.forEachIndexed { index, item ->
+            if (index == selectedIndex) {
+                // Item selecionado - usar estado SELECTED do RetroCardView
+                item.setState(RetroCardView.State.SELECTED)
+            } else {
+                // Item não selecionado - usar estado NORMAL do RetroCardView
+                item.setState(RetroCardView.State.NORMAL)
+            }
         }
 
         // Control text colors based on selection
