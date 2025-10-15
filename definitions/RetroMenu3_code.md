@@ -3,8 +3,19 @@
 ## Overview
 Essential principles and practices for RetroMenu3 development. Maintain UI/UX, follow SOLID, ensure performance.
 
+**Last Updated**: October 2025
+**Version**: 2.0 - Post Material Design Migration
+
 ## UI Design Principles
-The RetroMenu3 system does not use and should not use Material Design, Material You, or Material You Expressive. The UI has its own characteristics with a retro style that attempts to resemble old video games, using retro fonts, navigation via touch DPAD or USB, confirmation buttons also on touch or USB gamepads, in addition to direct touch control - that is, touching options directly with fingers should also work.
+The RetroMenu3 system does **NOT** use and should **NOT** use Material Design, Material You, or Material You Expressive. Following the successful migration completed in October 2025, the UI exclusively uses custom **RetroCardView** components with retro styling that resembles old video games.
+
+### UI Characteristics
+- Retro fonts and pixel-perfect styling
+- Navigation via touch DPAD or USB gamepad
+- Confirmation buttons on touch or USB gamepads
+- Direct touch control (finger touch on options)
+- Custom RetroCardView with transparent backgrounds
+- No Material Design shadows, corners, or theming
 
 ## Core Principles
 - **SOLID**: Single responsibility, open/closed, Liskov, interface segregation, dependency inversion
@@ -23,16 +34,30 @@ RetroMenu3Fragment (UI)
 ├── MenuSystem (Logic)
 │   ├── MenuActionHandler (Actions)
 │   ├── SubmenuCoordinator (Navigation)
-│   └── MenuViewManager (UI Updates)
+│   └── MenuViewManager (UI Updates with RetroCardView)
+├── RetroCardView (Custom UI Component)
 ├── AnimationOptimizer (Performance)
-└── Test Suite (Validation)
+└── Test Suite (Unit + Integration + Robolectric)
 ```
 
+### Component Standards
+- **RetroCardView**: Custom card component replacing MaterialCardView
+- **No External UI Dependencies**: All components are custom-built
+- **Retro Styling**: Pixel-perfect, arcade-style appearance
+- **Performance Optimized**: Object pooling for animations
+
 ## Testing Requirements
-- Unit tests for all classes
-- Integration tests for workflows
-- Performance benchmarks before/after changes
-- UI tests for visual states
+- **Unit tests** for all classes (RetroMenu3FragmentTest)
+- **Integration tests** for workflows (RetroMenu3IntegrationTest with Robolectric)
+<!-- - **Robolectric tests** for Android framework interactions -->
+- **Performance benchmarks** before/after changes
+- **UI validation** for visual states and RetroCardView rendering
+
+### Testing Implementation
+- **JUnit 4/5** for unit and integration tests
+- **Robolectric 4.11.1** for Android framework simulation
+- **MockK** for dependency mocking
+- **GitHub Actions** for CI/CD validation
 
 ## Code Standards
 - PascalCase classes, camelCase methods/variables
@@ -41,27 +66,47 @@ RetroMenu3Fragment (UI)
 - Immutable state objects
 
 ## Maintenance Rules
-1. Preserve existing UI/UX
-2. Maintain backward compatibility
-3. Add tests for new features
-4. Update this guide for architecture changes
-5. Performance test all changes
-6. Follow established patterns
-7. Code review required
+1. **Preserve existing UI/UX**: Maintain retro styling and RetroCardView appearance
+2. **Maintain backward compatibility**: All existing functionality must work
+3. **Add tests for new features**: Unit + integration tests required
+4. **Update this guide for architecture changes**: Document all modifications
+5. **Performance test all changes**: Benchmark against established metrics
+6. **Follow established patterns**: Use RetroCardView, avoid external UI libraries
+7. **Code review required**: All changes must be peer-reviewed
+8. **No Material Design**: Never reintroduce Material Design dependencies
+
+## Migration History
+
+### Material Design Migration (October 2025) ✅ COMPLETED
+**Objective**: Complete removal of Material Design dependencies and implementation of custom RetroCardView
+
+**Technical Achievements**:
+- Custom UI component architecture
+- Robolectric integration testing
+- Zero breaking changes
+- Performance optimization maintained
+- Complete test suite validation
 
 ## Development Guidelines
-- Extend via composition, not inheritance
-- Use reactive patterns for state
-- Optimize animations with pools
-- Test thoroughly before deploy
-- Document complex logic
-- Monitor performance metrics
+- **Extend via composition, not inheritance**
+- **Use reactive patterns** for state management
+- **Optimize animations** with object pools
+- **Use RetroCardView exclusively** for UI components
+- **Test thoroughly** before deploy (Unit + Integration + Robolectric)
+- **Document complex logic** and architecture changes
+- **Monitor performance metrics** against established benchmarks
+- **Never reintroduce Material Design** dependencies
+- **Maintain retro styling** in all UI components
+- **Follow migration patterns** for future component updates
 
 ## Best Practices
-- SOLID principles in all code
-- Reactive state with StateFlow
-- Optimized animations
-- Comprehensive testing
-- Conditional logging
-- Incremental changes
-- Peer reviews mandatory
+- **SOLID principles** in all code
+- **Reactive state** with StateFlow
+- **RetroCardView only** - no Material Design components
+- **Optimized animations** with object pools
+- **Comprehensive testing**: Unit + Integration + Robolectric
+- **Conditional logging** (debug only in development)
+- **Incremental changes** with thorough testing
+- **Peer reviews mandatory** for all changes
+- **Performance monitoring** with benchmarks
+- **Zero external UI dependencies**
