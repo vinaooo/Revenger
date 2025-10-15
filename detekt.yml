@@ -41,7 +41,7 @@ console-reports:
 
 output-reports:
   active: true
-  exclude:
+  # exclude:
   # - 'TxtOutputReport'
   # - 'XmlOutputReport'
   # - 'HtmlOutputReport'
@@ -536,9 +536,9 @@ style:
     forbiddenPatterns: ''
   ForbiddenMethodCall:
     active: false
-    methods:
-      - 'kotlin.io.print'
-      - 'kotlin.io.println'
+    # methods:
+    # - 'kotlin.io.print'
+    # - 'kotlin.io.println'
   ForbiddenPublicDataClass:
     active: true
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/nativeTest/**']
@@ -553,7 +553,7 @@ style:
     active: true
     ignoreOverridableFunction: true
     ignoreActualFunction: true
-    excludedFunctions: ''
+    excludedFunctions: []
     excludeAnnotatedFunction: ['dagger.Provides']
   LoopWithTooManyJumpStatements:
     active: true
@@ -624,7 +624,7 @@ style:
   ReturnCount:
     active: true
     max: 2
-    excludedFunctions: 'equals'
+    excludedFunctions: ['equals']
     excludeLabeled: false
     excludeReturnFromLambda: true
     excludeGuardClauses: false
@@ -677,7 +677,6 @@ style:
     active: false
   UseArrayLiteralsInAnnotations:
     active: true
-    active: false
   UseCheckNotNull:
     active: true
   UseCheckOrError:
