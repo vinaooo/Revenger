@@ -315,6 +315,9 @@ class GameActivityViewModel(application: Application) :
         android.util.Log.d("GameActivityViewModel", "Menu container set: $container")
     }
 
+    /** Get menu container ID for consistent fragment placement */
+    fun getMenuContainerId(): Int = menuContainerView?.id ?: R.id.menu_container
+
     /** Set GamePad container reference to force it on top when menu opens */
     fun setGamePadContainer(container: android.widget.LinearLayout) {
         gamePadContainerView = container

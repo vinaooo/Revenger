@@ -3,7 +3,6 @@ package com.vinaooo.revenger.ui.retromenu3
 import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.vinaooo.revenger.R
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
@@ -177,22 +176,24 @@ class SubmenuCoordinator(
         // CRITICAL FIX: Instead of using replace() which causes visibility issues,
         // let's manage fragments manually to avoid FragmentManager state restoration glitches
 
-        Log.d(TAG, "[SUBMENU] 👁️ replaceMainMenuWithSubmenu: Hiding main menu")
-        // Hide main menu first
-        (fragment as? RetroMenu3Fragment)?.hideMainMenu()
-        Log.d(TAG, "[SUBMENU] ✅ replaceMainMenuWithSubmenu: Main menu hidden")
+        Log.d(TAG, "[SUBMENU] 👁️ replaceMainMenuWithSubmenu: Removing main menu fragment")
+        // Remove main menu fragment completely to avoid layout interference
+        val removeTransaction = fragment.parentFragmentManager.beginTransaction()
+        removeTransaction.remove(fragment)
+        removeTransaction.commitAllowingStateLoss()
+        Log.d(TAG, "[SUBMENU] ✅ replaceMainMenuWithSubmenu: Main menu fragment removed")
 
         Log.d(TAG, "[SUBMENU] ➕ replaceMainMenuWithSubmenu: Adding submenu fragment")
-        // Add submenu on top without replacing (to avoid back stack visibility issues)
-        val containerId = R.id.menu_container
-        val transaction =
+        // Add submenu to the same container as the main menu for consistent positioning
+        val containerId = viewModel.getMenuContainerId()
+        val addTransaction =
                 fragment.parentFragmentManager
                         .beginTransaction()
                         .add(containerId, submenuFragment, tag)
                         .addToBackStack(tag)
 
         Log.d(TAG, "[SUBMENU] 💾 replaceMainMenuWithSubmenu: Committing transaction")
-        transaction.commitAllowingStateLoss()
+        addTransaction.commitAllowingStateLoss()
         Log.d(TAG, "[SUBMENU] ✅ replaceMainMenuWithSubmenu: Transaction committed")
 
         Log.d(TAG, "[SUBMENU] 🔄 replaceMainMenuWithSubmenu: Updating MenuManager state")
@@ -277,10 +278,18 @@ class SubmenuCoordinator(
             viewModel.unregisterFragment(currentSubmenuState)
             Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: Submenu fragment unregistered")
 
-            Log.d(TAG, "[SUBMENU] 🔄 restoreMainMenu: Calling showMainMenu()")
-            // Main menu is already in container, just need to show it
-            (fragment as? RetroMenu3Fragment)?.showMainMenu()
-            Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: showMainMenu() called")
+            Log.d(TAG, "[SUBMENU] 🔄 restoreMainMenu: Recreating main menu fragment")
+            // Main menu was removed, need to recreate it
+            val containerId = viewModel.getMenuContainerId()
+            val newMainMenuFragment = RetroMenu3Fragment()
+            val recreateTransaction = fragment.parentFragmentManager.beginTransaction()
+            recreateTransaction.add(
+                    containerId,
+                    newMainMenuFragment,
+                    RetroMenu3Fragment::class.java.simpleName
+            )
+            recreateTransaction.commitAllowingStateLoss()
+            Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: Main menu fragment recreated")
 
             // Verify that the main menu fragment is still registered
             val currentFragment = viewModel.getCurrentFragment()
@@ -307,11 +316,19 @@ class SubmenuCoordinator(
         } else {
             Log.d(
                     TAG,
-                    "[SUBMENU] 🔄 restoreMainMenu: Back stack empty - showing main menu directly"
+                    "[SUBMENU] 🔄 restoreMainMenu: Back stack empty - recreating main menu fragment"
             )
-            // If back stack is empty, just show the main menu
-            (fragment as? RetroMenu3Fragment)?.showMainMenu()
-            Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: showMainMenu() called (no back stack)")
+            // If back stack is empty, recreate the main menu fragment
+            val containerId = viewModel.getMenuContainerId()
+            val newMainMenuFragment = RetroMenu3Fragment()
+            val recreateTransaction = fragment.parentFragmentManager.beginTransaction()
+            recreateTransaction.add(
+                    containerId,
+                    newMainMenuFragment,
+                    RetroMenu3Fragment::class.java.simpleName
+            )
+            recreateTransaction.commitAllowingStateLoss()
+            Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: Main menu fragment recreated (no back stack)")
         }
 
         Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: ========== RESTORATION COMPLETED ==========")

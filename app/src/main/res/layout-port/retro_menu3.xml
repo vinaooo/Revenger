@@ -1,22 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Portrait override: centraliza verticalmente o menu -->
+<!-- Portrait override: uses same layout structure as default but optimized for portrait -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/menu_content_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/retro_menu3_background">
+    android:id="@+id/menu_content_container"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="@color/retro_menu3_background"
+    android:fitsSystemWindows="false"
+    android:elevation="0dp">
 
     <LinearLayout
-        android:id="@+id/menu_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingVertical="@dimen/retro_menu3_container_padding_vertical"
-        android:elevation="0dp"
-        android:layout_gravity="center_vertical"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp">
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="@dimen/retro_menu3_menu_item_padding"
+        android:elevation="0dp">
+        android:elevation="0dp">
+
+        <!-- Left 25% - Empty Space -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="@dimen/retro_menu3_side_space_weight" />
+
+        <!-- Center 50% - Menu Content -->
+        <LinearLayout
+            android:id="@+id/menu_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="@dimen/retro_menu3_center_content_weight"
+            android:orientation="vertical"
+            android:paddingVertical="@dimen/retro_menu3_container_padding_vertical"
+            android:layout_gravity="center_vertical"
+            android:elevation="0dp">
         <!-- Menu Title -->
             <TextView
                 android:id="@+id/menu_title"
@@ -304,5 +322,13 @@
                 android:layout_gravity="end"
             />
         </LinearLayout>
+
+        <!-- Right 25% - Empty Space -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="@dimen/retro_menu3_side_space_weight" />
+
+    </LinearLayout>
 
 </FrameLayout>
