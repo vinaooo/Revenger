@@ -15,7 +15,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
         android:padding="@dimen/retro_menu3_menu_item_padding"
         android:elevation="0dp">
 
@@ -43,6 +42,7 @@
                 android:textSize="@dimen/retro_menu3_title_text_size"
                 android:textColor="@color/retro_menu3_text_color"
                 android:textStyle="bold"
+                android:layout_marginBottom="@dimen/retro_menu3_title_margin_bottom"
                 android:letterSpacing="@dimen/retro_menu3_title_letter_spacing"
                 android:gravity="left"
                 android:shadowColor="@color/retro_menu3_shadow_color"

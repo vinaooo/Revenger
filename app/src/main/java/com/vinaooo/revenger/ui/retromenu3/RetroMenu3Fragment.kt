@@ -129,6 +129,11 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                         animateMenuIn()
                         android.util.Log.d("RetroMenu3", "[LIFECYCLE] Menu animation started")
 
+                        // Ensure first item is selected after animation
+                        setSelectedIndex(0) // FORCE reset to first option on initial menu creation
+                        updateSelectionVisual()
+                        android.util.Log.d("RetroMenu3", "[LIFECYCLE] Selection visual updated")
+
                         android.util.Log.d(
                                 "RetroMenu3",
                                 "[LIFECYCLE] Main menu setup completed - ready for user interaction"
@@ -211,9 +216,6 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                                         marginEnd = 0
                                 }
                         }
-
-                // Set first item as selected
-                updateSelectionVisual()
 
                 // Apply arcade font to all text views
                 ViewUtils.applyArcadeFontToViews(
@@ -432,6 +434,9 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
                 // Ensure alpha is at 1.0 (fully visible)
                 menuContainer.alpha = 1.0f
+
+                // ALWAYS reset to first option when showing main menu
+                setSelectedIndex(0)
 
                 // Update menu state (including audio) when returning from submenu
                 updateMenuState()
