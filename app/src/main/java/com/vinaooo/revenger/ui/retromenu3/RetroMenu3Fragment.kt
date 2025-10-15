@@ -170,7 +170,26 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
                 // Controls hint
                 controlsHint = view.findViewById(R.id.retro_menu3_controls_hint)
-                android.util.Log.d("RetroMenu3", "[SETUP_VIEWS] controlsHint: $controlsHint")
+                android.util.Log.d("RetroMenu3", "[SETUP_VIEWS] controlsHint found: $controlsHint")
+                if (controlsHint == null) {
+                        android.util.Log.e(
+                                "RetroMenu3",
+                                "[SETUP_VIEWS] ERROR: controlsHint is null!"
+                        )
+                } else {
+                        android.util.Log.d(
+                                "RetroMenu3",
+                                "[SETUP_VIEWS] controlsHint properties - width: ${controlsHint.width}, height: ${controlsHint.height}, visibility: ${controlsHint.visibility}, alpha: ${controlsHint.alpha}"
+                        )
+                        // Set text directly
+                        controlsHint.text = getString(R.string.retro_menu3_controls_hint)
+                        controlsHint.visibility = View.VISIBLE
+                        controlsHint.alpha = 1.0f
+                        android.util.Log.d(
+                                "RetroMenu3",
+                                "[SETUP_VIEWS] controlsHint configured: text='${controlsHint.text}', visibility=${controlsHint.visibility}, alpha=${controlsHint.alpha}"
+                        )
+                }
 
                 // Menu items
                 continueMenu = view.findViewById(R.id.menu_continue)
@@ -296,6 +315,15 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         }
 
         private fun animateMenuIn() {
+                android.util.Log.d("RetroMenu3", "[ANIMATE_IN] Starting menu animation")
+                // Ensure controlsHint is visible before animation
+                controlsHint.alpha = 1.0f
+                controlsHint.visibility = View.VISIBLE
+                android.util.Log.d(
+                        "RetroMenu3",
+                        "[ANIMATE_IN] controlsHint prepared: visibility=${controlsHint.visibility}, alpha=${controlsHint.alpha}, text='${controlsHint.text}'"
+                )
+
                 // Use optimized batch animation for better performance
                 ViewUtils.animateMenuViewsBatchOptimized(
                         arrayOf(menuContainer, controlsHint),
@@ -303,6 +331,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                         toScale = 1f,
                         duration = 200
                 )
+                android.util.Log.d("RetroMenu3", "[ANIMATE_IN] Animation started")
         }
 
         private fun animateMenuOut(onEnd: () -> Unit) {
@@ -437,6 +466,9 @@ class RetroMenu3Fragment : MenuFragmentBase() {
 
                 // Ensure alpha is at 1.0 (fully visible)
                 menuContainer.alpha = 1.0f
+
+                // Update controls hint when showing main menu
+                updateControlsHint()
 
                 // ALWAYS reset to first option when showing main menu
                 setSelectedIndex(0)
@@ -796,6 +828,33 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                                 "RetroMenu3Fragment",
                                 "Error resetting combo state in onDestroy",
                                 e
+                        )
+                }
+        }
+
+        /** Atualiza a hint de controles para mostrar as opções disponíveis */
+        private fun updateControlsHint() {
+                val hintText = getString(R.string.retro_menu3_controls_hint)
+                android.util.Log.d("RetroMenu3", "[CONTROLS_HINT] Setting text: '$hintText'")
+                controlsHint.text = hintText
+                controlsHint.visibility = View.VISIBLE
+                controlsHint.alpha = 1.0f
+                android.util.Log.d(
+                        "RetroMenu3",
+                        "[CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: ${controlsHint.visibility}"
+                )
+        }
+
+        override fun onResume() {
+                super.onResume()
+                // Ensure controls hint is always visible
+                if (::controlsHint.isInitialized) {
+                        controlsHint.text = getString(R.string.retro_menu3_controls_hint)
+                        controlsHint.visibility = View.VISIBLE
+                        controlsHint.alpha = 1.0f
+                        android.util.Log.d(
+                                "RetroMenu3",
+                                "[ON_RESUME] Controls hint ensured visible"
                         )
                 }
         }
