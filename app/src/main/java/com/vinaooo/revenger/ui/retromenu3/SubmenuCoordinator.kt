@@ -12,7 +12,11 @@ class SubmenuCoordinator(
 ) {
 
     companion object {
-        private const val TAG = "SubmenuCoordinator"
+        private const val TAG = "RetroMenu3"
+    }
+
+    init {
+        Log.d(TAG, "[INIT] SubmenuCoordinator created and ready!")
     }
 
     fun testMethodExecution(testType: String) {
@@ -22,21 +26,39 @@ class SubmenuCoordinator(
     }
 
     fun openSubmenu(submenuType: MenuState) {
-        // DIMINUIR OPACIDADE DO MENU PRINCIPAL
-        viewManager.dimMainMenu()
-        Log.d(TAG, "SubmenuCoordinator: openSubmenu - Main menu dimmed for $submenuType")
+        Log.d(TAG, "🚪 Calling SubmenuCoordinator.openSubmenu($submenuType)")
 
-        // CRIAR E EXIBIR O FRAGMENT DO SUBMENU
         when (submenuType) {
-            MenuState.SETTINGS_MENU -> showSettingsSubmenu()
             MenuState.PROGRESS_MENU -> showProgressSubmenu()
+            MenuState.SETTINGS_MENU -> showSettingsSubmenu()
             MenuState.EXIT_MENU -> showExitSubmenu()
-            else -> Log.w(TAG, "SubmenuCoordinator: Unknown submenu type: $submenuType")
+            MenuState.MAIN_MENU -> {
+                Log.w(TAG, "openSubmenu called with MAIN_MENU - this should not happen")
+            }
         }
+
+        Log.d(TAG, "✅ openSubmenu called successfully")
     }
 
     private fun showSettingsSubmenu() {
+        Log.d(TAG, "[DEBUG] showSettingsSubmenu START")
         try {
+            Log.d(TAG, "[DEBUG] showSettingsSubmenu - Calling dimMainMenu and hideMainMenuTexts")
+            // DIMINUIR OPACIDADE DO MENU PRINCIPAL ANTES DE ABRIR SUBMENU
+            viewManager.dimMainMenu()
+
+            // OCULTAR TEXTOS DO MENU PRINCIPAL ANTES DE ABRIR SUBMENU (SOMENTE SE INICIALIZADO)
+            if (viewManager.isViewsInitialized()) {
+                viewManager.hideMainMenuTexts()
+                Log.d(TAG, "[DEBUG] showSettingsSubmenu - hideMainMenuTexts called successfully")
+            } else {
+                Log.d(
+                        TAG,
+                        "[DEBUG] showSettingsSubmenu - MenuViewManager not initialized, skipping hideMainMenuTexts"
+                )
+            }
+
+            Log.e(TAG, "[DEBUG] showSettingsSubmenu - Creating SettingsMenuFragment")
             val settingsFragment = SettingsMenuFragment.newInstance()
             settingsFragment.setSettingsListener(
                     fragment as SettingsMenuFragment.SettingsMenuListener
@@ -54,9 +76,6 @@ class SubmenuCoordinator(
             // Alterar o estado do menu para SETTINGS_MENU
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU)
 
-            // Ocultar textos do menu principal
-            viewManager.hideMainMenuTexts()
-
             Log.d(TAG, "SubmenuCoordinator: Settings submenu opened successfully")
         } catch (e: Exception) {
             Log.e(TAG, "SubmenuCoordinator: Failed to open Settings submenu", e)
@@ -64,7 +83,24 @@ class SubmenuCoordinator(
     }
 
     private fun showProgressSubmenu() {
+        Log.d(TAG, "[DEBUG] showProgressSubmenu - START")
         try {
+            Log.d(TAG, "[DEBUG] showProgressSubmenu - Calling dimMainMenu and hideMainMenuTexts")
+            // DIMINUIR OPACIDADE DO MENU PRINCIPAL ANTES DE ABRIR SUBMENU
+            viewManager.dimMainMenu()
+
+            // OCULTAR TEXTOS DO MENU PRINCIPAL ANTES DE ABRIR SUBMENU (SOMENTE SE INICIALIZADO)
+            if (viewManager.isViewsInitialized()) {
+                viewManager.hideMainMenuTexts()
+                Log.d(TAG, "[DEBUG] showProgressSubmenu - hideMainMenuTexts called successfully")
+            } else {
+                Log.d(
+                        TAG,
+                        "[DEBUG] showProgressSubmenu - MenuViewManager not initialized, skipping hideMainMenuTexts"
+                )
+            }
+
+            Log.e(TAG, "[DEBUG] showProgressSubmenu - Creating ProgressFragment")
             val progressFragment = ProgressFragment.newInstance()
             progressFragment.setProgressListener(fragment as ProgressFragment.ProgressListener)
 
@@ -80,9 +116,6 @@ class SubmenuCoordinator(
             // Alterar o estado do menu para PROGRESS_MENU
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU)
 
-            // Ocultar textos do menu principal
-            viewManager.hideMainMenuTexts()
-
             Log.d(TAG, "SubmenuCoordinator: Progress submenu opened successfully")
         } catch (e: Exception) {
             Log.e(TAG, "SubmenuCoordinator: Failed to open Progress submenu", e)
@@ -90,7 +123,24 @@ class SubmenuCoordinator(
     }
 
     private fun showExitSubmenu() {
+        Log.d(TAG, "[DEBUG] showExitSubmenu - START")
         try {
+            Log.d(TAG, "[DEBUG] showExitSubmenu - Calling dimMainMenu and hideMainMenuTexts")
+            // DIMINUIR OPACIDADE DO MENU PRINCIPAL ANTES DE ABRIR SUBMENU
+            viewManager.dimMainMenu()
+
+            // OCULTAR TEXTOS DO MENU PRINCIPAL ANTES DE ABRIR SUBMENU (SOMENTE SE INICIALIZADO)
+            if (viewManager.isViewsInitialized()) {
+                viewManager.hideMainMenuTexts()
+                Log.d(TAG, "[DEBUG] showExitSubmenu - hideMainMenuTexts called successfully")
+            } else {
+                Log.d(
+                        TAG,
+                        "[DEBUG] showExitSubmenu - MenuViewManager not initialized, skipping hideMainMenuTexts"
+                )
+            }
+
+            Log.e(TAG, "[DEBUG] showExitSubmenu - Creating ExitFragment")
             val exitFragment = ExitFragment.newInstance()
             exitFragment.setExitListener(fragment as ExitFragment.ExitListener)
 
@@ -105,9 +155,6 @@ class SubmenuCoordinator(
 
             // Alterar o estado do menu para EXIT_MENU
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU)
-
-            // Ocultar textos do menu principal
-            viewManager.hideMainMenuTexts()
 
             Log.d(TAG, "SubmenuCoordinator: Exit submenu opened successfully")
         } catch (e: Exception) {

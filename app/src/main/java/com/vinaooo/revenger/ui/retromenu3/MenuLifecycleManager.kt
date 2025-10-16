@@ -30,7 +30,8 @@ class MenuLifecycleManagerImpl(
         private val animationController: MenuAnimationController,
         private val inputHandler: MenuInputHandler,
         private val stateController: MenuStateController,
-        private val callbackManager: MenuCallbackManager
+        private val callbackManager: MenuCallbackManager,
+        private val menuViewManager: MenuViewManager
 ) : MenuLifecycleManager {
     private lateinit var menuViews: MenuViews
 
@@ -43,9 +44,8 @@ class MenuLifecycleManagerImpl(
         MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Iniciando configuração")
 
         try {
-            // Initialize MenuViewManager
-            val menuViewManager = MenuViewManager(fragment)
-            MenuLogger.lifecycle("MenuLifecycleManager: MenuViewManager created")
+            // Use the MenuViewManager instance passed from fragment
+            MenuLogger.lifecycle("MenuLifecycleManager: MenuViewManager instance received")
 
             // Force all views to z=0 to stay below gamepad
             com.vinaooo.revenger.utils.ViewUtils.forceZeroElevationRecursively(view)
@@ -53,6 +53,10 @@ class MenuLifecycleManagerImpl(
 
             // Inicializar views através do viewInitializer
             val menuViews = viewInitializer.initializeViews(view)
+
+            // CHAMAR setupViews DO FRAGMENT PARA CONFIGURAÇÕES ADICIONAIS
+            fragment.setupViewsPublic(view)
+            MenuLogger.lifecycle("MenuLifecycleManager: Fragment setupViews completed")
 
             // Configurar estados iniciais das views
             viewInitializer.configureInitialViewStates(menuViews)

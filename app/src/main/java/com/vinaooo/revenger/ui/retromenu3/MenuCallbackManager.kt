@@ -85,3 +85,52 @@ class MenuCallbackManagerImpl(private val listener: RetroMenu3Fragment.RetroMenu
         return hasState
     }
 }
+
+/** Versão do MenuCallbackManager sem logging para testes */
+class MenuCallbackManagerTestImpl(private val listener: RetroMenu3Fragment.RetroMenu3Listener?) :
+        MenuCallbackManager {
+
+    override fun onContinueGame() {
+        // Continue game is handled directly by fragment, no callback needed
+    }
+
+    override fun onResetGame() {
+        listener?.onResetGame()
+    }
+
+    override fun onSaveState() {
+        listener?.onSaveState()
+    }
+
+    override fun onLoadState() {
+        listener?.onLoadState()
+    }
+
+    override fun onToggleAudio() {
+        listener?.onToggleAudio()
+    }
+
+    override fun onFastForward() {
+        listener?.onFastForward()
+    }
+
+    override fun onToggleShader() {
+        listener?.onToggleShader()
+    }
+
+    override fun getAudioState(): Boolean {
+        return listener?.getAudioState() ?: true
+    }
+
+    override fun getFastForwardState(): Boolean {
+        return listener?.getFastForwardState() ?: false
+    }
+
+    override fun getShaderState(): String {
+        return listener?.getShaderState() ?: "default"
+    }
+
+    override fun hasSaveState(): Boolean {
+        return listener?.hasSaveState() ?: false
+    }
+}

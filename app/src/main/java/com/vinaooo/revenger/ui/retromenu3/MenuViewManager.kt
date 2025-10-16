@@ -67,6 +67,10 @@ class MenuViewManager(private val fragment: Fragment) {
     fun setupDynamicTitle(view: View) {
         val titleTextView = view.findViewById<TextView>(R.id.menu_title)
         menuTitleTextView = titleTextView // Store reference for hiding/showing
+        Log.d(
+                TAG,
+                "[VIEW] setupDynamicTitle - menuTitleTextView initialized: ${menuTitleTextView != null}, id: ${titleTextView?.id}"
+        )
         val titleStyle = fragment.resources.getInteger(R.integer.retro_menu3_title_style)
 
         val titleText =
@@ -247,7 +251,10 @@ class MenuViewManager(private val fragment: Fragment) {
 
     /** Oculta completamente os textos do menu principal (quando submenu está ativo) */
     fun hideMainMenuTexts() {
-        Log.d(TAG, "[VIEW] hideMainMenuTexts called")
+        Log.d(
+                TAG,
+                "[VIEW] hideMainMenuTexts called - menuTitleTextView: ${menuTitleTextView?.hashCode()}, visibility before: ${menuTitleTextView?.visibility}"
+        )
         if (!::menuItemViews.isInitialized) {
             Log.e(TAG, "[VIEW] MenuItemViews not initialized, cannot hide main menu texts")
             return
@@ -261,6 +268,10 @@ class MenuViewManager(private val fragment: Fragment) {
 
         // Ocultar o título principal do menu
         menuTitleTextView?.visibility = View.INVISIBLE
+        Log.d(
+                TAG,
+                "[VIEW] hideMainMenuTexts - menuTitleTextView visibility after: ${menuTitleTextView?.visibility}"
+        )
 
         // Também ocultar o hint de controles se existir
         if (::controlsHint.isInitialized) {
@@ -309,4 +320,7 @@ class MenuViewManager(private val fragment: Fragment) {
     // Getters para acesso às views quando necessário
     fun getMenuItems(): List<RetroCardView> = menuItems
     fun getMenuItemViews(): List<MenuItemView> = menuItemViews
+
+    /** Verifica se as views do menu foram inicializadas */
+    fun isViewsInitialized(): Boolean = ::menuItemViews.isInitialized
 }

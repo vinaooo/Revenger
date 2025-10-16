@@ -90,21 +90,14 @@ class ControllerInput(private val context: Context) {
                 )
                 keyLog.clear()
 
-                // 🔧 FIX: Reset comboAlreadyTriggered only if menu is not open
-                // This prevents false detections when menu is closed, but avoids
-                // resetting the flag if menu is still open (ex: during operations)
-                if (!isRetroMenu3Open?.invoke()!!) {
-                        android.util.Log.d(
-                                "ControllerInput",
-                                "   ✅ Menu is closed, resetting comboAlreadyTriggered to prevent double-press bug"
-                        )
-                        comboAlreadyTriggered = false
-                } else {
-                        android.util.Log.d(
-                                "ControllerInput",
-                                "   ⏳ Menu still open, keeping comboAlreadyTriggered=true to prevent false detections"
-                        )
-                }
+                // 🔧 FIX: Always reset comboAlreadyTriggered when clearing key log
+                // This ensures combo detection works properly after menu dismissal
+                // regardless of timing or menu state during the clear operation
+                android.util.Log.d(
+                        "ControllerInput",
+                        "   ✅ Resetting comboAlreadyTriggered to prevent double-press bug"
+                )
+                comboAlreadyTriggered = false
 
                 lastComboTriggerTime = 0L // Reset cooldown timer to allow immediate combo detection
                 menuCloseDebounceTime = System.currentTimeMillis() // Set debounce timestamp

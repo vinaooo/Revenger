@@ -848,7 +848,7 @@ class GameActivityViewModel(application: Application) :
      * Centralized save state implementation with improved debugging FIX: Removed unnecessary delay
      * that could cause timing issues
      */
-    fun saveStateCentralized(onComplete: (() -> Unit)? = null) {
+    fun saveStateCentralized(onComplete: (() -> Unit)? = null, keepPaused: Boolean = false) {
         val currentRetroView = retroView
         val utils = retroViewUtils
 
@@ -858,7 +858,8 @@ class GameActivityViewModel(application: Application) :
         }
 
         val savedFrameSpeed = currentRetroView.view.frameSpeed
-        if (savedFrameSpeed == 0) {
+        if (savedFrameSpeed == 0 && !keepPaused) {
+            // Only temporarily unpause if not explicitly keeping paused (menu context)
             currentRetroView.view.frameSpeed = 1
             Handler(Looper.getMainLooper())
                     .postDelayed(
@@ -870,6 +871,7 @@ class GameActivityViewModel(application: Application) :
                             200
                     )
         } else {
+            // Keep current frameSpeed (including 0 for paused state in menu)
             utils.saveState(currentRetroView)
             onComplete?.invoke()
         }
@@ -1263,9 +1265,11 @@ class GameActivityViewModel(application: Application) :
                     }
                     com.vinaooo.revenger.ui.retromenu3.MenuAction.SAVE_AND_EXIT -> {
                         // Save and exit - same logic as in ExitFragment
-                        saveStateCentralized {
-                            android.os.Process.killProcess(android.os.Process.myPid())
-                        }
+                        saveStateCentralized(
+                                onComplete = {
+                                    android.os.Process.killProcess(android.os.Process.myPid())
+                                }
+                        )
                     }
                     com.vinaooo.revenger.ui.retromenu3.MenuAction.EXIT -> {
                         // Exit without save
@@ -1372,5 +1376,14 @@ class GameActivityViewModel(application: Application) :
 
         android.util.Log.d("GameActivityViewModel", "onCleared: Cleanup completed")
         super.onCleared()
+    }
+
+    /** Called when RetroMenu3Fragment is destroyed to clean up the reference */
+    fun onRetroMenu3FragmentDestroyed() {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[FRAGMENT_DESTROYED] onRetroMenu3FragmentDestroyed: Clearing retroMenu3Fragment reference"
+        )
+        retroMenu3Fragment = null
     }
 }

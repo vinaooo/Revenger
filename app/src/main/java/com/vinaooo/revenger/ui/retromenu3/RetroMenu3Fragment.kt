@@ -109,6 +109,11 @@ class RetroMenu3Fragment :
                 this.menuListener = listener
         }
 
+        /** Get the animation controller for external access */
+        fun getAnimationController(): MenuAnimationController {
+                return animationController
+        }
+
         /**
          * Inicializa todos os managers especializados. Chamado no onCreateView para garantir que os
          * managers estejam prontos.
@@ -134,7 +139,7 @@ class RetroMenu3Fragment :
                 // NOVOS MANAGERS - Fase 2 e 3
                 viewInitializer = MenuViewInitializerImpl(this)
                 animationController = MenuAnimationControllerImpl()
-                stateController = MenuStateControllerImpl(this)
+                stateController = MenuStateControllerImpl(this, animationController)
                 callbackManager = MenuCallbackManagerImpl(menuListener)
                 inputHandler = MenuInputHandlerImpl(this, stateController, callbackManager)
 
@@ -147,7 +152,8 @@ class RetroMenu3Fragment :
                                 animationController = animationController,
                                 inputHandler = inputHandler,
                                 stateController = stateController,
-                                callbackManager = callbackManager
+                                callbackManager = callbackManager,
+                                menuViewManager = menuViewManager
                         )
 
                 MenuLogger.lifecycle("RetroMenu3Fragment: initializeManagers COMPLETED")
@@ -166,40 +172,25 @@ class RetroMenu3Fragment :
         }
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
                 super.onViewCreated(view, savedInstanceState)
-                android.util.Log.d("RetroMenu3", "[LIFECYCLE] onViewCreated START")
+                android.util.Log.d(
+                        "RetroMenu3",
+                        "[LIFECYCLE] onViewCreated START - delegating to MenuLifecycleManager"
+                )
 
                 try {
-                        // Initialize ViewModel
+                        // Initialize ViewModel (needed for managers)
                         viewModel =
                                 ViewModelProvider(requireActivity())[
                                         GameActivityViewModel::class.java]
                         android.util.Log.d("RetroMenu3", "[LIFECYCLE] ViewModel initialized")
 
-                        // Initialize MenuViewManager
-                        menuViewManager = MenuViewManager(this)
-                        android.util.Log.d("RetroMenu3", "[LIFECYCLE] MenuViewManager CREATED")
-
-                        // CRITICAL: Force all views to z=0 to stay below gamepad
-                        ViewUtils.forceZeroElevationRecursively(view)
-                        android.util.Log.d("RetroMenu3", "[LIFECYCLE] Elevation forced to zero")
-
-                        setupDynamicTitle()
+                        // MenuViewManager is now handled by MenuLifecycleManagerImpl
                         android.util.Log.d(
                                 "RetroMenu3",
-                                "[LIFECYCLE] Dynamic title setup completed"
+                                "[LIFECYCLE] MenuViewManager handled by lifecycle manager"
                         )
 
-                        // Setup MenuViewManager views BEFORE fragment setupViews
-                        menuViewManager.setupViews(view)
-                        android.util.Log.d(
-                                "RetroMenu3",
-                                "[LIFECYCLE] MenuViewManager views setup completed"
-                        )
-
-                        setupViews(view)
-                        android.util.Log.d("RetroMenu3", "[LIFECYCLE] Views setup completed")
-
-                        // Initialize SubmenuCoordinator AFTER views are ready
+                        // Initialize SubmenuCoordinator (still needed for submenu management)
                         submenuCoordinator =
                                 SubmenuCoordinator(
                                         this,
@@ -209,49 +200,29 @@ class RetroMenu3Fragment :
                                 )
                         android.util.Log.d(
                                 "RetroMenu3",
-                                "[LIFECYCLE] SubmenuCoordinator initialized - READY TO COORDINATE!"
+                                "[LIFECYCLE] SubmenuCoordinator initialized"
                         )
 
-                        // Setup back stack listener to detect when submenus are closed
+                        // Setup back stack listener (still needed for submenu coordination)
                         setupBackStackListener()
                         android.util.Log.d(
                                 "RetroMenu3",
                                 "[LIFECYCLE] Back stack listener setup completed"
                         )
 
-                        // CRITICAL: Force all views to z=0 to stay below gamepad
-                        ViewUtils.forceZeroElevationRecursively(view)
-                        android.util.Log.d("RetroMenu3", "[LIFECYCLE] Elevation forced to zero")
+                        // Delegate all lifecycle management to MenuLifecycleManager
+                        lifecycleManager.onViewCreated(view, savedInstanceState)
 
+                        // Setup dynamic title for MenuViewManager (needed for hiding/showing title)
                         setupDynamicTitle()
                         android.util.Log.d(
                                 "RetroMenu3",
                                 "[LIFECYCLE] Dynamic title setup completed"
                         )
 
-                        setupViews(view)
-                        android.util.Log.d("RetroMenu3", "[LIFECYCLE] Views setup completed")
-
-                        setupClickListeners()
                         android.util.Log.d(
                                 "RetroMenu3",
-                                "[LIFECYCLE] Click listeners setup completed"
-                        )
-
-                        updateMenuState()
-                        android.util.Log.d("RetroMenu3", "[LIFECYCLE] Menu state updated")
-
-                        animateMenuIn()
-                        android.util.Log.d("RetroMenu3", "[LIFECYCLE] Menu animation started")
-
-                        // Ensure first item is selected after animation
-                        setSelectedIndex(0) // FORCE reset to first option on initial menu creation
-                        updateSelectionVisual()
-                        android.util.Log.d("RetroMenu3", "[LIFECYCLE] Selection visual updated")
-
-                        android.util.Log.d(
-                                "RetroMenu3",
-                                "[LIFECYCLE] Main menu setup completed - ready for user interaction"
+                                "[LIFECYCLE] onViewCreated COMPLETED - menu ready"
                         )
                 } catch (e: Exception) {
                         android.util.Log.e("RetroMenu3", "[LIFECYCLE] ERROR in onViewCreated", e)
@@ -319,7 +290,7 @@ class RetroMenu3Fragment :
                                 MenuLogger.d(
                                         "[BACK_STACK] Back stack empty - calling updateSelectionVisual()"
                                 )
-                                updateSelectionVisual()
+                                getAnimationController().updateSelectionVisual(currentIndex)
                                 MenuLogger.d(
                                         "[BACK_STACK] Back stack empty - updateSelectionVisual() completed"
                                 )
@@ -327,8 +298,12 @@ class RetroMenu3Fragment :
                 }
         }
 
+        /** Método público para setup das views - usado pelo MenuLifecycleManager */
+        fun setupViewsPublic(view: View) {
+                setupViews(view)
+        }
+
         private fun setupViews(view: View) {
-                android.util.Log.d("RetroMenu3", "[SETUP_VIEWS] Starting setupViews")
 
                 // Main container
                 menuContainer = view.findViewById(R.id.menu_container)
@@ -488,40 +463,10 @@ class RetroMenu3Fragment :
                 // Main menu no longer has dynamic options - everything was moved to submenus
         }
 
-        private fun animateMenuIn() {
-                android.util.Log.d("RetroMenu3", "[ANIMATE_IN] Starting menu animation")
-                // Ensure controlsHint is visible before animation
-                controlsHint.alpha = 1.0f
-                controlsHint.visibility = View.VISIBLE
-                android.util.Log.d(
-                        "RetroMenu3",
-                        "[ANIMATE_IN] controlsHint prepared: visibility=${controlsHint.visibility}, alpha=${controlsHint.alpha}, text='${controlsHint.text}'"
-                )
-
-                // Use optimized batch animation for better performance
-                ViewUtils.animateMenuViewsBatchOptimized(
-                        arrayOf(menuContainer, controlsHint),
-                        toAlpha = 1f,
-                        toScale = 1f,
-                        duration = 200
-                )
-                android.util.Log.d("RetroMenu3", "[ANIMATE_IN] Animation started")
-        }
-
-        private fun animateMenuOut(onEnd: () -> Unit) {
-                // Use optimized batch animation with callback
-                ViewUtils.animateMenuViewsBatchOptimized(
-                        arrayOf(menuContainer, controlsHint),
-                        toAlpha = 0f,
-                        toScale = 0.8f,
-                        duration = 150
-                ) { onEnd() }
-        }
-
         private fun dismissMenu(onAnimationEnd: (() -> Unit)? = null) {
-                // IMPORTANT: Don't call dismissRetroMenu3() here to avoid crashes
-                // Just remove the fragment visually
-                animateMenuOut {
+                // Delegate animation to controller, then remove fragment
+                getAnimationController().dismissMenu {
+                        // Remove fragment from FragmentManager after animation
                         parentFragmentManager.beginTransaction().remove(this).commit()
                         // Execute callback after animation and fragment removal
                         onAnimationEnd?.invoke()
@@ -599,12 +544,41 @@ class RetroMenu3Fragment :
 
         /** Continue game */
         fun performContinueGame() {
-                performContinueGame()
+                android.util.Log.d("RetroMenu3", "[ACTION] 🎮 Continue game - closing menu")
+                // Continue - Close menu, set correct frameSpeed, then continue game
+                // A) Close menu first with callback
+                dismissMenuPublic {
+                        android.util.Log.d(
+                                "RetroMenu3",
+                                "[ACTION] 🎮 Animation completed - restoring game speed"
+                        )
+                        // Clear keyLog and reset comboAlreadyTriggered after closing
+                        viewModel.clearControllerInputState()
+                        // Set frameSpeed to correct value from Game Speed sharedPreference
+                        viewModel.restoreGameSpeedFromPreferences()
+                }
         }
 
         /** Reset game */
         fun performResetGame() {
-                performResetGame()
+                android.util.Log.d(
+                        "RetroMenu3",
+                        "[ACTION] 🔄 Reset game - closing menu and resetting"
+                )
+                // Reset - First close menu, then set correct frameSpeed, then reset game
+                // A) Close menu first with callback
+                dismissMenuPublic {
+                        android.util.Log.d(
+                                "RetroMenu3",
+                                "[ACTION] 🔄 Animation completed - restoring game speed and resetting"
+                        )
+                        // Clear keyLog and reset comboAlreadyTriggered after closing
+                        viewModel.clearControllerInputState()
+                        // Set frameSpeed to correct value from Game Speed sharedPreference
+                        viewModel.restoreGameSpeedFromPreferences()
+                        // Apply reset function
+                        viewModel.resetGameCentralized()
+                }
         }
 
         /** Navigate down (public access for testing) */
@@ -617,8 +591,13 @@ class RetroMenu3Fragment :
                 performNavigateUp()
         }
 
+        /** Confirm selection (public access for testing) */
+        fun performConfirmPublic() {
+                performConfirm()
+        }
+
         override fun updateSelectionVisualInternal() {
-                updateSelectionVisual()
+                getAnimationController().updateSelectionVisual(getCurrentSelectedIndex())
         }
 
         /** Navigate up in the menu */
@@ -722,77 +701,9 @@ class RetroMenu3Fragment :
                 updateMenuState()
 
                 // Ensure visual selection is updated when menu becomes visible again
-                updateSelectionVisual()
+                getAnimationController().updateSelectionVisual(getCurrentSelectedIndex())
 
                 // Layout will be updated automatically when properties change
-        }
-
-        /** Update selection visual */
-        private fun updateSelectionVisual() {
-                // Control text colors based on selection
-                continueTitle.setTextColor(
-                        if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
-                        else android.graphics.Color.WHITE
-                )
-                resetTitle.setTextColor(
-                        if (getCurrentSelectedIndex() == 1) android.graphics.Color.YELLOW
-                        else android.graphics.Color.WHITE
-                )
-                progressTitle.setTextColor(
-                        if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
-                        else android.graphics.Color.WHITE
-                )
-                settingsTitle.setTextColor(
-                        if (getCurrentSelectedIndex() == 3) android.graphics.Color.YELLOW
-                        else android.graphics.Color.WHITE
-                )
-                exitTitle.setTextColor(
-                        if (getCurrentSelectedIndex() == 4) android.graphics.Color.YELLOW
-                        else android.graphics.Color.WHITE
-                )
-
-                // Control selection arrows colors and visibility
-                // Continue
-                if (getCurrentSelectedIndex() == 0) {
-                        selectionArrowContinue.setTextColor(android.graphics.Color.YELLOW)
-                        selectionArrowContinue.visibility = View.VISIBLE
-                } else {
-                        selectionArrowContinue.visibility = View.GONE
-                }
-
-                // Reset
-                if (getCurrentSelectedIndex() == 1) {
-                        selectionArrowReset.setTextColor(android.graphics.Color.YELLOW)
-                        selectionArrowReset.visibility = View.VISIBLE
-                } else {
-                        selectionArrowReset.visibility = View.GONE
-                }
-
-                // Progress
-                if (getCurrentSelectedIndex() == 2) {
-                        selectionArrowProgress.setTextColor(android.graphics.Color.YELLOW)
-                        selectionArrowProgress.visibility = View.VISIBLE
-                } else {
-                        selectionArrowProgress.visibility = View.GONE
-                }
-
-                // Settings
-                if (getCurrentSelectedIndex() == 3) {
-                        selectionArrowSettings.setTextColor(android.graphics.Color.YELLOW)
-                        selectionArrowSettings.visibility = View.VISIBLE
-                } else {
-                        selectionArrowSettings.visibility = View.GONE
-                }
-
-                // Exit Menu
-                if (getCurrentSelectedIndex() == 4) {
-                        selectionArrowExit.setTextColor(android.graphics.Color.YELLOW)
-                        selectionArrowExit.visibility = View.VISIBLE
-                } else {
-                        selectionArrowExit.visibility = View.GONE
-                }
-
-                // Layout will be updated automatically when visibility changes
         }
 
         /** Public method to dismiss the menu from outside */
@@ -834,7 +745,35 @@ class RetroMenu3Fragment :
         }
 
         private fun openProgress() {
-                submenuCoordinator?.openSubmenu(MenuState.PROGRESS_MENU)
+                android.util.Log.d(
+                        "RetroMenu3",
+                        "[SUBMENU] 🚪 Calling SubmenuCoordinator.openSubmenu(PROGRESS_MENU)"
+                )
+                android.util.Log.d(
+                        "RetroMenu3",
+                        "[SUBMENU] 🔍 submenuCoordinator is null: ${submenuCoordinator == null}"
+                )
+                if (submenuCoordinator != null) {
+                        android.util.Log.d(
+                                "RetroMenu3",
+                                "[SUBMENU] 🔍 submenuCoordinator instance: ${submenuCoordinator.hashCode()}"
+                        )
+                        try {
+                                submenuCoordinator.openSubmenu(MenuState.PROGRESS_MENU)
+                                android.util.Log.d(
+                                        "RetroMenu3",
+                                        "[SUBMENU] ✅ openSubmenu called successfully"
+                                )
+                        } catch (e: Exception) {
+                                android.util.Log.e(
+                                        "RetroMenu3",
+                                        "[SUBMENU] ❌ Exception calling openSubmenu",
+                                        e
+                                )
+                        }
+                } else {
+                        android.util.Log.e("RetroMenu3", "[SUBMENU] ❌ submenuCoordinator is NULL!")
+                }
         }
 
         private fun openExitMenu() {
@@ -875,6 +814,10 @@ class RetroMenu3Fragment :
                         "RetroMenu3",
                         "[LIFECYCLE] Main menu destroyed - cleaning up resources"
                 )
+
+                // Notify ViewModel that fragment is being destroyed
+                (menuListener as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)
+                        ?.onRetroMenu3FragmentDestroyed()
 
                 // Clean up back stack change listener to prevent memory leaks
                 backStackChangeListener?.let { listener ->

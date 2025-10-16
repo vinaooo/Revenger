@@ -131,10 +131,12 @@ class ExitFragment : MenuFragmentBase() {
             viewModel.restoreGameSpeedFromPreferences()
 
             // C) Apply existing functionality (save state and exit)
-            viewModel.saveStateCentralized {
-                // After saving, exit the game completely
-                android.os.Process.killProcess(android.os.Process.myPid())
-            }
+            viewModel.saveStateCentralized(
+                    onComplete = {
+                        // After saving, exit the game completely
+                        android.os.Process.killProcess(android.os.Process.myPid())
+                    }
+            )
         }
 
         exitWithoutSave.setOnClickListener {

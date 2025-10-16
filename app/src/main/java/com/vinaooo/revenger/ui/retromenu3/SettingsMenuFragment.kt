@@ -173,9 +173,11 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
         backSettings.setOnClickListener {
             // Return to main menu
-            // Just notify the listener, animation will be done by dismissSettingsMenu()
-            MenuLogger.d("[BACK] backSettings onClick called - calling onBackToMainMenu()")
-            settingsListener?.onBackToMainMenu()
+            // Call ViewModel method directly like other submenus do
+            MenuLogger.d(
+                    "[BACK] backSettings onClick called - calling viewModel.dismissSettingsMenu()"
+            )
+            viewModel.dismissSettingsMenu()
             MenuLogger.d("[BACK] backSettings onClick completed")
         }
     }

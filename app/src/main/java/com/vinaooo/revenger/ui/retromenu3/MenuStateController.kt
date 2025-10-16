@@ -18,7 +18,10 @@ interface MenuStateController {
 }
 
 /** Implementação do MenuStateController. Gerencia o estado de seleção e navegação do menu. */
-class MenuStateControllerImpl(private val fragment: MenuFragmentBase) : MenuStateController {
+class MenuStateControllerImpl(
+        private val fragment: MenuFragmentBase,
+        private val animationController: MenuAnimationController
+) : MenuStateController {
 
     private lateinit var menuViews: MenuViews
     private val menuItems = mutableListOf<MenuItem>()
@@ -122,5 +125,11 @@ class MenuStateControllerImpl(private val fragment: MenuFragmentBase) : MenuStat
             3 -> menuViews.selectionArrowSettings.visibility = android.view.View.VISIBLE
             4 -> menuViews.selectionArrowExit.visibility = android.view.View.VISIBLE
         }
+
+        // DELEGAR PARA MenuAnimationController PARA ATUALIZAR CORES DO TEXTO
+        animationController.updateSelectionVisual(currentSelectionIndex)
+        MenuLogger.state(
+                "MenuStateController: updateSelectionVisuals - Delegated to MenuAnimationController"
+        )
     }
 }
