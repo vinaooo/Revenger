@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.FontUtils
+import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -44,7 +45,12 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         // Menu view manager for UI operations
         private lateinit var menuViewManager: MenuViewManager
 
-        // View hint
+        // NOVOS MANAGERS - Fase 2: MenuLifecycleManager
+        private lateinit var lifecycleManager: MenuLifecycleManager
+        private lateinit var viewInitializer: MenuViewInitializer
+        private lateinit var animationController: MenuAnimationController
+        private lateinit var inputHandler: MenuInputHandler
+        private lateinit var stateController: MenuStateController // View hint
         private lateinit var controlsHint: TextView
 
         // Menu item views
@@ -92,12 +98,52 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 this.menuListener = listener
         }
 
+        /**
+         * Inicializa todos os managers especializados. Chamado no onCreateView para garantir que os
+         * managers estejam prontos.
+         */
+        private fun initializeManagers() {
+                MenuLogger.lifecycle("RetroMenu3Fragment: initializeManagers START")
+
+                // Inicializar ViewModel
+                viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
+
+                // Inicializar MenuViewManager (existente)
+                menuViewManager = MenuViewManager(this)
+
+                // Inicializar SubmenuCoordinator (existente)
+                submenuCoordinator = SubmenuCoordinator(this, viewModel, menuViewManager)
+
+                // NOVOS MANAGERS - Fase 2 e 3
+                viewInitializer = MenuViewInitializerImpl(this)
+                animationController = MenuAnimationControllerImpl()
+                stateController = MenuStateControllerImpl()
+                inputHandler = MenuInputHandlerImpl(this, stateController)
+
+                // Inicializar lifecycle manager por último (depende dos outros)
+                lifecycleManager =
+                        MenuLifecycleManagerImpl(
+                                fragment = this,
+                                viewModel = viewModel,
+                                viewInitializer = viewInitializer,
+                                animationController = animationController,
+                                inputHandler = inputHandler,
+                                stateController = stateController
+                        )
+
+                MenuLogger.lifecycle("RetroMenu3Fragment: initializeManagers COMPLETED")
+        }
+
         override fun onCreateView(
                 inflater: LayoutInflater,
                 container: ViewGroup?,
                 savedInstanceState: Bundle?
         ): View {
-                return inflater.inflate(R.layout.retro_menu3, container, false)
+                // Inicializar managers
+                initializeManagers()
+
+                // Delegar para lifecycle manager
+                return lifecycleManager.onCreateView(inflater, container)
         }
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
                 super.onViewCreated(view, savedInstanceState)
