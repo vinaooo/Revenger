@@ -36,7 +36,7 @@
 
             <TextView
                 android:id="@+id/menu_title"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/retro_menu3_title"
                 android:textSize="@dimen/retro_menu3_title_text_size"
@@ -44,7 +44,6 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="@dimen/retro_menu3_title_margin_bottom"
                 android:letterSpacing="@dimen/retro_menu3_title_letter_spacing"
-                android:gravity="left"
                 android:shadowColor="@color/retro_menu3_shadow_color"
                 android:shadowDx="@dimen/retro_menu3_shadow_dx"
                 android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -53,7 +52,8 @@
 
             <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:fillViewport="false"
                 android:overScrollMode="never"
                 android:scrollbars="none"
@@ -284,26 +284,32 @@
 
         </LinearLayout>
 
-        <!-- Controls Hint - Always visible at bottom -->
-        <TextView
-            android:id="@+id/retro_menu3_controls_hint"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/retro_menu3_controls_hint"
-            android:textSize="@dimen/retro_menu3_menu_item_text_size"
-            android:textColor="@color/retro_menu3_text_color"
-            android:layout_marginEnd="0dp"
-            android:layout_marginBottom="@dimen/retro_menu3_container_padding_vertical"
-            android:layout_marginTop="8dp"
-            android:shadowColor="@color/retro_menu3_shadow_color"
-            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-            android:shadowRadius="@dimen/retro_menu3_shadow_radius"
-            android:gravity="center"
-            android:layout_gravity="bottom|center_horizontal"
-            android:visibility="visible"
-            android:alpha="1.0" />
+        <!-- Right 25% - Empty Space -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="@dimen/retro_menu3_side_space_weight" />
 
     </LinearLayout>
+
+    <!-- Controls Hint - Always visible at bottom -->
+    <TextView
+        android:id="@+id/retro_menu3_controls_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/retro_menu3_controls_hint"
+        android:textSize="@dimen/retro_menu3_menu_item_text_size"
+        android:textColor="@color/retro_menu3_text_color"
+        android:layout_marginEnd="0dp"
+        android:layout_marginBottom="@dimen/retro_menu3_container_padding_vertical"
+        android:layout_marginTop="8dp"
+        android:shadowColor="@color/retro_menu3_shadow_color"
+        android:shadowDx="@dimen/retro_menu3_shadow_dx"
+        android:shadowDy="@dimen/retro_menu3_shadow_dy"
+        android:shadowRadius="@dimen/retro_menu3_shadow_radius"
+        android:gravity="center"
+        android:layout_gravity="bottom|center_horizontal"
+        android:visibility="visible"
+        android:alpha="1.0" />
 
 </FrameLayout>
