@@ -18,11 +18,14 @@ interface MenuStateController {
 }
 
 /** Implementação do MenuStateController. Gerencia o estado de seleção e navegação do menu. */
-class MenuStateControllerImpl : MenuStateController {
+class MenuStateControllerImpl(private val fragment: MenuFragmentBase) : MenuStateController {
 
     private lateinit var menuViews: MenuViews
-    private var currentSelectionIndex = 0
     private val menuItems = mutableListOf<MenuItem>()
+
+    init {
+        initializeMenuItems()
+    }
 
     init {
         initializeMenuItems()
@@ -47,22 +50,24 @@ class MenuStateControllerImpl : MenuStateController {
     override fun initializeState(menuViews: MenuViews) {
         MenuLogger.state("MenuStateController: initializeState")
         this.menuViews = menuViews
-        currentSelectionIndex = 0
+        // Estado inicial já é gerenciado pelo MenuFragmentBase
         updateSelectionVisuals()
     }
 
     override fun getCurrentSelection(): MenuItem {
-        return menuItems.getOrElse(currentSelectionIndex) { menuItems.first() }
+        val currentIndex = fragment.getCurrentSelectedIndex()
+        return menuItems.getOrElse(currentIndex) { menuItems.first() }
     }
 
     override fun selectNextItem(): Boolean {
-        val newIndex = (currentSelectionIndex + 1) % menuItems.size
+        val currentIndex = fragment.getCurrentSelectedIndex()
+        val newIndex = (currentIndex + 1) % menuItems.size
         return selectItemAt(newIndex)
     }
 
     override fun selectPreviousItem(): Boolean {
-        val newIndex =
-                if (currentSelectionIndex - 1 < 0) menuItems.size - 1 else currentSelectionIndex - 1
+        val currentIndex = fragment.getCurrentSelectedIndex()
+        val newIndex = if (currentIndex - 1 < 0) menuItems.size - 1 else currentIndex - 1
         return selectItemAt(newIndex)
     }
 
@@ -72,16 +77,17 @@ class MenuStateControllerImpl : MenuStateController {
             return false
         }
 
+        val currentIndex = fragment.getCurrentSelectedIndex()
         MenuLogger.state(
-                "MenuStateController: selectItemAt - Changing from $currentSelectionIndex to $index"
+                "MenuStateController: selectItemAt - Changing from $currentIndex to $index"
         )
-        currentSelectionIndex = index
+        fragment.setSelectedIndex(index)
         updateSelectionVisuals()
         return true
     }
 
     override fun getSelectedIndex(): Int {
-        return currentSelectionIndex
+        return fragment.getCurrentSelectedIndex()
     }
 
     override fun getTotalItems(): Int {
@@ -96,6 +102,7 @@ class MenuStateControllerImpl : MenuStateController {
             return
         }
 
+        val currentSelectionIndex = fragment.getCurrentSelectedIndex()
         MenuLogger.state(
                 "MenuStateController: updateSelectionVisuals - Updating visuals for index $currentSelectionIndex"
         )

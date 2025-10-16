@@ -29,9 +29,9 @@ class MenuLifecycleManagerImpl(
         private val viewInitializer: MenuViewInitializer,
         private val animationController: MenuAnimationController,
         private val inputHandler: MenuInputHandler,
-        private val stateController: MenuStateController
+        private val stateController: MenuStateController,
+        private val callbackManager: MenuCallbackManager
 ) : MenuLifecycleManager {
-
     private lateinit var menuViews: MenuViews
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?): View {

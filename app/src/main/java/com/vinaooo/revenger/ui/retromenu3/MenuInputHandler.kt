@@ -18,7 +18,8 @@ interface MenuInputHandler {
  */
 class MenuInputHandlerImpl(
         private val fragment: RetroMenu3Fragment,
-        private val stateController: MenuStateController
+        private val stateController: MenuStateController,
+        private val callbackManager: MenuCallbackManager
 ) : MenuInputHandler {
 
     override fun setupInputHandling(menuViews: MenuViews) {
@@ -45,35 +46,44 @@ class MenuInputHandlerImpl(
 
     override fun handleBack(): Boolean {
         MenuLogger.action("MenuInputHandler: handleBack called")
-        // TODO: Implementar back - performBack é protected, precisa de método público no fragment
-        return false
+        // For main menu, back should close the menu
+        // This will be handled by the MenuManager calling the appropriate action
+        return false // Let MenuManager handle this
     }
 
     override fun handleMenuItemSelected(item: MenuItem) {
         MenuLogger.action(
                 "MenuInputHandler: handleMenuItemSelected called with item: ${item.title}"
         )
-        // TODO: Implementar seleção usando MenuCallbackManager
+
         when (item.action) {
             MenuAction.CONTINUE -> {
-                // TODO: Chamar callback
-                MenuLogger.action("MenuInputHandler: CONTINUE selected")
+                MenuLogger.action("MenuInputHandler: CONTINUE selected - delegating to fragment")
+                // Continue game is handled directly by fragment click
+                fragment.performContinueGame()
             }
             MenuAction.RESET -> {
-                // TODO: Chamar callback
-                MenuLogger.action("MenuInputHandler: RESET selected")
+                MenuLogger.action("MenuInputHandler: RESET selected - calling callback")
+                callbackManager.onResetGame()
+                // Also trigger fragment click for UI feedback
+                fragment.performResetGame()
             }
             MenuAction.SAVE_STATE -> {
-                // TODO: Chamar callback
-                MenuLogger.action("MenuInputHandler: SAVE_STATE selected")
+                MenuLogger.action("MenuInputHandler: SAVE_STATE selected - calling callback")
+                callbackManager.onSaveState()
+                // Open progress submenu for save state selection
+                fragment.performOpenProgress()
             }
             MenuAction.TOGGLE_AUDIO -> {
-                // TODO: Chamar callback
-                MenuLogger.action("MenuInputHandler: TOGGLE_AUDIO selected")
+                MenuLogger.action("MenuInputHandler: TOGGLE_AUDIO selected - calling callback")
+                callbackManager.onToggleAudio()
+                // Trigger settings menu click for UI feedback
+                fragment.performOpenSettings()
             }
             MenuAction.EXIT -> {
-                // TODO: Chamar callback
-                MenuLogger.action("MenuInputHandler: EXIT selected")
+                MenuLogger.action("MenuInputHandler: EXIT selected - opening exit menu")
+                // Open exit confirmation submenu
+                fragment.performOpenExitMenu()
             }
             else -> {
                 MenuLogger.action("MenuInputHandler: Unknown action: ${item.action}")
