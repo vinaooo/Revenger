@@ -170,6 +170,9 @@ class GameActivityViewModel(application: Application) :
     // Unified Menu Manager for centralized menu navigation
     private lateinit var menuManager: MenuManager
 
+    /** Get the MenuManager instance */
+    fun getMenuManager(): MenuManager = menuManager
+
     // Centralized Menu State Manager
     private lateinit var menuStateManager: com.vinaooo.revenger.ui.retromenu3.MenuStateManager
 
@@ -574,7 +577,7 @@ class GameActivityViewModel(application: Application) :
                             RetroMenu3Fragment::class.java.simpleName
                     ) as?
                             RetroMenu3Fragment
-            retroMenu3Fragment?.showMainMenu(preserveSelection = true)
+            retroMenu3Fragment?.restoreMainMenu()
         } else {
             android.util.Log.d(
                     "GameActivityViewModel",

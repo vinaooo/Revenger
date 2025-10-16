@@ -31,7 +31,7 @@
 
 ## 🔄 RetroMenu3 Refatoração - EM ANDAMENTO
 
-**Status**: 🔄 EM ANDAMENTO - Fase 4.2 concluída, aguardando próximas fases
+**Status**: 🔄 EM ANDAMENTO - Fase 5 concluída, Fase 6 pendente
 **Data**: Outubro 2025
 **Resultado**: Sistema de menus parcialmente refatorado com arquitetura Command + State Machine
 
@@ -40,8 +40,8 @@
 - [x] **Fase 2**: MenuLifecycleManager
 - [x] **Fase 3**: MenuStateController
 - [x] **Fase 4.1**: MenuInputHandler + MenuCallbackManager
-- [x] **Fase 4.2**: MenuFragmentBase integration
-- [ ] **Fase 5**: MenuViewInitializer (pendente)
+- [x] **Fase 4.3**: Testes de Regressão e Validação
+- [x] **Fase 5**: MenuViewInitializer ✅ CONCLUÍDA
 - [ ] **Fase 6**: MenuAnimationController (pendente)
 - [ ] **Fase 7**: MenuCallbackManager (já implementado na Fase 4.1)
 - [ ] **Fase 8**: Refatoração Final (pendente)
@@ -51,9 +51,9 @@
 - [x] **Documentação**: README e docs atualizados
 
 ### 📊 Métricas Atuais
-- **Fases Concluídas**: 4.2/9 (~48%)
+- **Fases Concluídas**: 5/9 (~55%)
 - **Classes Especializadas Criadas**: 5/6 (MenuLifecycleManager, MenuStateController, MenuInputHandler, MenuCallbackManager, MenuViewInitializer)
-- **Tempo Decorrido**: ~2 semanas
+- **Tempo Decorrido**: ~2.5 semanas
 - **Tempo Restante Estimado**: 3-4 semanas
 - **Build Status**: ✅ Compilação bem-sucedida
 - **Arquitetura**: Padrão de delegação implementado
@@ -62,6 +62,44 @@
 - `docs/checklist-refatoracao-retromenu3.md` - Progresso detalhado das fases
 - `docs/plano-refatoracao-retromenu3.md` - Plano original da refatoração
 - `docs/analise-retromenu3-melhorias.md` - Análise inicial
+
+---
+
+## ✅ Fase 5: MenuViewInitializer - CONCLUÍDA
+
+**Status**: ✅ FINALIZADO - 07/10/2025
+**Resultado**: Extração completa da lógica de inicialização de views para managers especializados
+
+### 🎯 Objetivos Alcançados
+- [x] **MenuViewInitializer**: Classe especializada para configuração inicial de views
+- [x] **configureInitialViewStates()**: Método para configurar estados visuais (cores, margens, hints)
+- [x] **initializeViews()**: Método para criação e configuração do MenuViews data class
+- [x] **MenuLifecycleManager Integration**: Integração completa com ciclo de vida do fragment
+- [x] **View Property Removal**: Remoção completa de todas as propriedades de view do RetroMenu3Fragment
+- [x] **Manager Delegation**: Fragment agora delega completamente para managers
+- [x] **Build Success**: Compilação bem-sucedida após refatoração
+- [x] **Test Updates**: Correção de testes para usar novos métodos públicos
+
+### 📊 Métricas da Fase 5
+- **Propriedades Removidas**: 15+ propriedades lateinit de view (continueMenu, resetMenu, menuContainer, etc.)
+- **Métodos Removidos**: setupViews(), setupClickListeners(), setupDynamicTitle(), animateMenuIn(), animateMenuOut(), dismissMenu(), updateMenuState(), updateSelectionVisual()
+- **Linhas de Código**: ~200 linhas removidas do fragment principal
+- **Separação de Responsabilidades**: Fragment agora é puro coordinator (100% alcançado)
+- **Build Status**: ✅ Compilação bem-sucedida
+- **Arquitetura**: Padrão manager-based completamente implementado
+
+### 🔧 Implementação Técnica
+- **MenuViewInitializerImpl**: Classe concreta que implementa MenuViewInitializer
+- **MenuViews Data Class**: Estrutura de dados para agrupar todas as referências de view
+- **StateController Integration**: Coordenação com MenuStateController para updates visuais
+- **AnimationController Integration**: Coordenação com MenuAnimationController para animações
+- **CallbackManager Integration**: Coordenação com MenuCallbackManager para ações
+- **InputHandler Integration**: Coordenação com MenuInputHandler para entrada
+
+### 📚 Documentação
+- MenuViewInitializer em `app/src/main/java/com/vinaooo/revenger/ui/retromenu3/`
+- MenuViews data class integrado
+- Métodos públicos adicionados para testes: `performNavigateDownPublic()`, `performNavigateUpPublic()`, `performConfirmPublic()`
 
 ---
 

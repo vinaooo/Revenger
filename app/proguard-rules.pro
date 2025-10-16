@@ -22,3 +22,5 @@
 
 # Keep LibretroDroid classes from being stripped by minify
 -keep class com.swordfish.libretrodroid.* { *; }
+
+# Temporarily removed SubmenuCoordinator rules to test if ProGuard is causing the issue

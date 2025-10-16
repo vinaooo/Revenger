@@ -2,392 +2,116 @@ package com.vinaooo.revenger.ui.retromenu3
 
 import android.util.Log
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/**
- * Classe especializada para coordenar abertura e fechamento de submenus. Gerencia o ciclo de vida
- * dos submenus, listeners de back stack e transição entre menu principal e submenus.
- */
 class SubmenuCoordinator(
         private val fragment: Fragment,
         private val viewModel: GameActivityViewModel,
-        private val viewManager: MenuViewManager
+        private val viewManager: MenuViewManager,
+        private val menuManager: com.vinaooo.revenger.ui.retromenu3.MenuManager
 ) {
 
     companion object {
         private const val TAG = "SubmenuCoordinator"
     }
 
-    // Store the selected index before opening a submenu, so we can restore it when returning
-    private var savedMainMenuSelectedIndex: Int = 0
+    fun testMethodExecution(testType: String) {
+        // DIMINUIR OPACIDADE DO MENU PRINCIPAL
+        viewManager.dimMainMenu()
+        Log.d(TAG, "SubmenuCoordinator: testMethodExecution - Main menu dimmed for $testType")
+    }
 
-    // Track which submenu was opened to restore the correct selection
-    private var lastOpenedSubmenuIndex: Int = -1
+    fun openSubmenu(submenuType: MenuState) {
+        // DIMINUIR OPACIDADE DO MENU PRINCIPAL
+        viewManager.dimMainMenu()
+        Log.d(TAG, "SubmenuCoordinator: openSubmenu - Main menu dimmed for $submenuType")
 
-    // Listener para detectar quando submenus são fechados
-    private var backStackChangeListener: FragmentManager.OnBackStackChangedListener? = null
-
-    /** Configura listener global para detectar quando submenus são fechados */
-    private fun setupGlobalBackStackListener() {
-        Log.d(TAG, "[SUBMENU] 🎧 setupGlobalBackStackListener: STARTING setup")
-
-        // Remove any existing back stack listener to avoid duplicates
-        backStackChangeListener?.let {
-            Log.d(TAG, "[SUBMENU] 🗑️ setupGlobalBackStackListener: Removing existing listener")
-            fragment.parentFragmentManager.removeOnBackStackChangedListener(it)
+        // CRIAR E EXIBIR O FRAGMENT DO SUBMENU
+        when (submenuType) {
+            MenuState.SETTINGS_MENU -> showSettingsSubmenu()
+            MenuState.PROGRESS_MENU -> showProgressSubmenu()
+            MenuState.EXIT_MENU -> showExitSubmenu()
+            else -> Log.w(TAG, "SubmenuCoordinator: Unknown submenu type: $submenuType")
         }
-
-        // Create new listener for submenu session
-        backStackChangeListener =
-                FragmentManager.OnBackStackChangedListener {
-                    val backStackCount = fragment.parentFragmentManager.backStackEntryCount
-                    val isDismissing = viewModel.isDismissingAllMenus()
-                    val hasActiveSubmenus =
-                            viewModel.isSettingsMenuOpen() ||
-                                    viewModel.isProgressMenuOpen() ||
-                                    viewModel.isExitMenuOpen()
-
-                    Log.d(TAG, "[SUBMENU] 🔍 BACK STACK LISTENER TRIGGERED:")
-                    Log.d(TAG, "[SUBMENU]   📊 backStackCount=$backStackCount")
-                    Log.d(TAG, "[SUBMENU]   🚫 isDismissing=$isDismissing")
-                    Log.d(TAG, "[SUBMENU]   📂 hasActiveSubmenus=$hasActiveSubmenus")
-                    Log.d(TAG, "[SUBMENU]   🎮 isRetroMenu3Open=${viewModel.isRetroMenu3Open()}")
-                    Log.d(TAG, "[SUBMENU]   📋 currentMenuState=${viewModel.getCurrentMenuState()}")
-                    Log.d(
-                            TAG,
-                            "[SUBMENU]   🔍 currentFragment=${viewModel.getCurrentFragment()?.javaClass?.simpleName}"
-                    )
-
-                    // If the back stack is empty, it means the submenu was removed
-                    if (backStackCount == 0) {
-                        Log.d(TAG, "[SUBMENU] 📭 BACK STACK IS EMPTY - SUBMENU WAS REMOVED")
-                        Log.d(TAG, "[SUBMENU]   🔍 Checking dismissal conditions...")
-
-                        // CRITICAL FIX: During cascade dismissal (START button), never restore main
-                        // menu
-                        // The dismissAllMenus() method will handle everything in the correct order
-                        if (isDismissing || !viewModel.isRetroMenu3Open()) {
-                            Log.d(
-                                    TAG,
-                                    "[SUBMENU] 🚫 BLOCKED: Cascade dismissal in progress or main menu closed"
-                            )
-                            Log.d(
-                                    TAG,
-                                    "[SUBMENU]   📊 isDismissing=$isDismissing, isRetroMenu3Open=${viewModel.isRetroMenu3Open()}"
-                            )
-                            return@OnBackStackChangedListener
-                        }
-
-                        Log.d(
-                                TAG,
-                                "[SUBMENU] ✅ NORMAL NAVIGATION: Checking if should restore main menu..."
-                        )
-                        Log.d(TAG, "[SUBMENU]   📊 hasActiveSubmenus=$hasActiveSubmenus")
-
-                        // Only restore main menu for normal navigation (back button, individual
-                        // submenu close)
-                        // In normal navigation, submenus close one at a time, so hasActiveSubmenus
-                        // should be false
-                        // when the last submenu is closed
-                        if (!hasActiveSubmenus) {
-                            Log.d(TAG, "[SUBMENU] ✅ RESTORING MAIN MENU: No active submenus")
-                            Log.d(TAG, "[SUBMENU] 🔄 Calling restoreMainMenu()")
-                            restoreMainMenu()
-                            Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu() completed")
-                        } else {
-                            Log.d(TAG, "[SUBMENU] ⏳ WAITING: Other submenus still active")
-                            Log.d(
-                                    TAG,
-                                    "[SUBMENU]   📊 Active: settings=${viewModel.isSettingsMenuOpen()}, progress=${viewModel.isProgressMenuOpen()}, exit=${viewModel.isExitMenuOpen()}"
-                            )
-                            // CRITICAL FIX: Even if there are still active submenus, we need to
-                            // update
-                            // the MenuManager state to reflect that we're back to the main menu
-                            // context
-                            // This prevents navigation from trying to use the detached submenu
-                            // fragment
-                            Log.d(TAG, "[SUBMENU] 🔄 Updating MenuManager state to MAIN_MENU")
-                            viewModel.updateMenuState(MenuState.MAIN_MENU)
-                            Log.d(TAG, "[SUBMENU] ✅ MenuManager state updated to MAIN_MENU")
-                        }
-
-                        // Always remove the listener after use
-                        backStackChangeListener?.let { listener ->
-                            Log.d(TAG, "[SUBMENU] 🗑️ REMOVING BACK STACK LISTENER")
-                            fragment.parentFragmentManager.removeOnBackStackChangedListener(
-                                    listener
-                            )
-                            backStackChangeListener = null
-                            Log.d(TAG, "[SUBMENU] ✅ Listener removed successfully")
-                        }
-                    } else {
-                        Log.d(TAG, "[SUBMENU] 📚 BACK STACK NOT EMPTY: Ignoring change")
-                        Log.d(TAG, "[SUBMENU]   📊 backStackCount=$backStackCount")
-                    }
-                }
-
-        Log.d(TAG, "[SUBMENU] 🎧 setupGlobalBackStackListener: Adding listener to FragmentManager")
-        // Add the listener to detect when back stack changes (submenu is removed)
-        fragment.parentFragmentManager.addOnBackStackChangedListener(backStackChangeListener!!)
-        Log.d(TAG, "[SUBMENU] ✅ setupGlobalBackStackListener: COMPLETED")
     }
 
-    /** Abre um submenu específico */
-    fun openSubmenu(menuState: MenuState) {
-        Log.d(TAG, "[SUBMENU] 🚪 openSubmenu: ========== OPENING SUBMENU ==========")
-        Log.d(TAG, "[SUBMENU]   📋 menuState=$menuState")
-        Log.d(TAG, "[SUBMENU]   📊 currentState=${viewModel.getCurrentMenuState()}")
-        Log.d(TAG, "[SUBMENU]   🎮 isRetroMenu3Open=${viewModel.isRetroMenu3Open()}")
+    private fun showSettingsSubmenu() {
+        try {
+            val settingsFragment = SettingsMenuFragment.newInstance()
+            settingsFragment.setSettingsListener(
+                    fragment as SettingsMenuFragment.SettingsMenuListener
+            )
 
-        // Setup global back stack listener if not already set
-        Log.d(TAG, "[SUBMENU] 🎧 openSubmenu: Setting up back stack listener")
-        setupGlobalBackStackListener()
+            fragment.parentFragmentManager
+                    .beginTransaction()
+                    .add(android.R.id.content, settingsFragment, "SettingsMenuFragment")
+                    .addToBackStack("SettingsMenuFragment")
+                    .commitAllowingStateLoss()
 
-        Log.d(TAG, "[SUBMENU] 🔄 openSubmenu: Processing submenu type")
-        when (menuState) {
-            MenuState.PROGRESS_MENU -> {
-                Log.d(TAG, "[SUBMENU] 📊 openSubmenu: Opening PROGRESS submenu")
-                lastOpenedSubmenuIndex = 2 // Progress menu index in main menu
-                Log.d(
-                        TAG,
-                        "[SUBMENU] 🎯 openSubmenu: Set lastOpenedSubmenuIndex to $lastOpenedSubmenuIndex"
-                )
-                openProgressSubmenu()
-            }
-            MenuState.SETTINGS_MENU -> {
-                Log.d(TAG, "[SUBMENU] ⚙️ openSubmenu: Opening SETTINGS submenu")
-                lastOpenedSubmenuIndex = 3 // Settings menu index in main menu
-                Log.d(
-                        TAG,
-                        "[SUBMENU] 🎯 openSubmenu: Set lastOpenedSubmenuIndex to $lastOpenedSubmenuIndex"
-                )
-                openSettingsSubmenu()
-            }
-            MenuState.EXIT_MENU -> {
-                Log.d(TAG, "[SUBMENU] 🚪 openSubmenu: Opening EXIT submenu")
-                lastOpenedSubmenuIndex = 4 // Exit menu index in main menu
-                Log.d(
-                        TAG,
-                        "[SUBMENU] 🎯 openSubmenu: Set lastOpenedSubmenuIndex to $lastOpenedSubmenuIndex"
-                )
-                openExitSubmenu()
-            }
-            else -> {
-                Log.w(TAG, "[SUBMENU] ❓ openSubmenu: Unknown submenu state: $menuState")
-                lastOpenedSubmenuIndex = -1
-            }
+            // Registrar o fragment no ViewModel
+            viewModel.registerSettingsMenuFragment(settingsFragment)
+
+            // Alterar o estado do menu para SETTINGS_MENU
+            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU)
+
+            // Ocultar textos do menu principal
+            viewManager.hideMainMenuTexts()
+
+            Log.d(TAG, "SubmenuCoordinator: Settings submenu opened successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "SubmenuCoordinator: Failed to open Settings submenu", e)
         }
-        Log.d(TAG, "[SUBMENU] ✅ openSubmenu: ========== SUBMENU OPENED ==========")
     }
 
-    /** Substitui o conteúdo do menu principal pelo submenu */
-    private fun replaceMainMenuWithSubmenu(
-            submenuFragment: androidx.fragment.app.Fragment,
-            tag: String,
-            menuState: MenuState
-    ) {
-        Log.d(
-                TAG,
-                "[SUBMENU] 🔄 replaceMainMenuWithSubmenu: ========== REPLACING MAIN MENU =========="
-        )
-        Log.d(TAG, "[SUBMENU]   🏷️ tag=$tag")
-        Log.d(TAG, "[SUBMENU]   📋 menuState=$menuState")
-        Log.d(TAG, "[SUBMENU]   📦 submenuFragment=${submenuFragment.javaClass.simpleName}")
+    private fun showProgressSubmenu() {
+        try {
+            val progressFragment = ProgressFragment.newInstance()
+            progressFragment.setProgressListener(fragment as ProgressFragment.ProgressListener)
 
-        // CRITICAL FIX: Instead of using replace() which causes visibility issues,
-        // let's manage fragments manually to avoid FragmentManager state restoration glitches
+            fragment.parentFragmentManager
+                    .beginTransaction()
+                    .add(android.R.id.content, progressFragment, "ProgressFragment")
+                    .addToBackStack("ProgressFragment")
+                    .commitAllowingStateLoss()
 
-        // Save the current selected index before hiding the main menu
-        savedMainMenuSelectedIndex =
-                (fragment as? RetroMenu3Fragment)?.getCurrentSelectedIndex() ?: 0
-        Log.d(
-                TAG,
-                "[SUBMENU] 💾 replaceMainMenuWithSubmenu: Saved selected index $savedMainMenuSelectedIndex"
-        )
+            // Registrar o fragment no ViewModel
+            viewModel.registerProgressFragment(progressFragment)
 
-        Log.d(TAG, "[SUBMENU] 👁️ replaceMainMenuWithSubmenu: Hiding main menu")
-        // Hide main menu instead of removing it completely
-        (fragment as? RetroMenu3Fragment)?.hideMainMenu()
-        Log.d(TAG, "[SUBMENU] ✅ replaceMainMenuWithSubmenu: Main menu hidden")
+            // Alterar o estado do menu para PROGRESS_MENU
+            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU)
 
-        Log.d(TAG, "[SUBMENU] ➕ replaceMainMenuWithSubmenu: Adding submenu fragment")
-        // Add submenu to the same container as the main menu for consistent positioning
-        val containerId = viewModel.getMenuContainerId()
-        val addTransaction =
-                fragment.parentFragmentManager
-                        .beginTransaction()
-                        .add(containerId, submenuFragment, tag)
-                        .addToBackStack(tag)
+            // Ocultar textos do menu principal
+            viewManager.hideMainMenuTexts()
 
-        Log.d(TAG, "[SUBMENU] 💾 replaceMainMenuWithSubmenu: Committing transaction")
-        addTransaction.commitAllowingStateLoss()
-        Log.d(TAG, "[SUBMENU] ✅ replaceMainMenuWithSubmenu: Transaction committed")
-
-        Log.d(TAG, "[SUBMENU] 🔄 replaceMainMenuWithSubmenu: Updating MenuManager state")
-        // Update MenuManager state
-        viewModel.updateMenuState(menuState)
-        Log.d(
-                TAG,
-                "[SUBMENU] ✅ replaceMainMenuWithSubmenu: MenuManager state updated to $menuState"
-        )
-        Log.d(
-                TAG,
-                "[SUBMENU] ✅ replaceMainMenuWithSubmenu: ========== SUBMENU REPLACEMENT COMPLETED =========="
-        )
-    }
-
-    /** Restaura o menu principal */
-    private fun restoreMainMenu() {
-        Log.d(
-                TAG,
-                "[SUBMENU] 🔄 restoreMainMenu: ========== STARTING MAIN MENU RESTORATION =========="
-        )
-
-        // CRITICAL: Never restore main menu if we're in the middle of dismissing all menus
-        // Check if the main RetroMenu3 is still supposed to be open
-        val isDismissing = viewModel.isDismissingAllMenus()
-        val isRetroMenu3Open = viewModel.isRetroMenu3Open()
-
-        Log.d(TAG, "[SUBMENU] 🔍 restoreMainMenu: Checking dismissal conditions")
-        Log.d(TAG, "[SUBMENU]   🚫 isDismissingAllMenus=$isDismissing")
-        Log.d(TAG, "[SUBMENU]   🎮 isRetroMenu3Open=$isRetroMenu3Open")
-
-        if (isDismissing || !isRetroMenu3Open) {
-            Log.d(
-                    TAG,
-                    "[SUBMENU] 🚫 restoreMainMenu: BLOCKED - Dismissal in progress or main menu closed"
-            )
-            Log.d(
-                    TAG,
-                    "[SUBMENU]   📊 isDismissing=$isDismissing, isRetroMenu3Open=$isRetroMenu3Open"
-            )
-            Log.d(TAG, "[SUBMENU] 🔄 restoreMainMenu: ========== RESTORATION BLOCKED ==========")
-            return
+            Log.d(TAG, "SubmenuCoordinator: Progress submenu opened successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "SubmenuCoordinator: Failed to open Progress submenu", e)
         }
-
-        Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: Proceeding with restoration")
-        Log.d(TAG, "[SUBMENU] 🔄 restoreMainMenu: Updating MenuManager state to MAIN_MENU")
-
-        // CRITICAL: Update MenuManager state BEFORE showing the menu
-        viewModel.updateMenuState(MenuState.MAIN_MENU)
-        Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: MenuManager state updated to MAIN_MENU")
-
-        // With hide/show approach, the main menu is still there, just hidden
-        val fragmentManager = fragment.parentFragmentManager
-        val backStackCount = fragmentManager.backStackEntryCount
-
-        Log.d(TAG, "[SUBMENU] � restoreMainMenu: FragmentManager state")
-        Log.d(TAG, "[SUBMENU]   📊 backStackEntryCount=$backStackCount")
-
-        if (backStackCount > 0) {
-            Log.d(TAG, "[SUBMENU] 🔄 restoreMainMenu: Popping back stack")
-            Log.d(TAG, "[SUBMENU]   📊 backStackCount=$backStackCount")
-
-            val popResult = fragmentManager.popBackStackImmediate()
-            Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: Back stack popped")
-            Log.d(TAG, "[SUBMENU]   📊 popResult=$popResult")
-            Log.d(TAG, "[SUBMENU]   📊 newBackStackCount=${fragmentManager.backStackEntryCount}")
-
-            Log.d(TAG, "[SUBMENU] 🔄 restoreMainMenu: Unregistering submenu fragment")
-            // Unregister the submenu fragment that was just removed
-            val currentSubmenuState = viewModel.getCurrentMenuState()
-            Log.d(TAG, "[SUBMENU]   � currentSubmenuState=$currentSubmenuState")
-
-            viewModel.unregisterFragment(currentSubmenuState)
-            Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: Submenu fragment unregistered")
-
-            Log.d(TAG, "[SUBMENU] 🔄 restoreMainMenu: Showing main menu")
-            // First restore the selection to the submenu that was just opened
-            val restoreIndex =
-                    if (lastOpenedSubmenuIndex >= 0) {
-                        lastOpenedSubmenuIndex
-                    } else {
-                        savedMainMenuSelectedIndex
-                    }
-            (fragment as? RetroMenu3Fragment)?.setSelectedIndex(restoreIndex)
-            Log.d(
-                    TAG,
-                    "[SUBMENU] 🎯 restoreMainMenu: Pre-restored selected index to $restoreIndex (submenu: $lastOpenedSubmenuIndex, fallback: $savedMainMenuSelectedIndex)"
-            )
-
-            // Main menu is still there, just hidden - show it back
-            (fragment as? RetroMenu3Fragment)?.showMainMenu(preserveSelection = true)
-            Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: Main menu shown with preserved selection")
-
-            // Debug: Check current selection after restoration
-            val currentSelectionAfter = (fragment as? RetroMenu3Fragment)?.getCurrentSelectedIndex()
-            Log.d(
-                    TAG,
-                    "[SUBMENU] 🔍 restoreMainMenu: Current selection after restoration: $currentSelectionAfter"
-            )
-
-            // Reset the submenu index after use
-            lastOpenedSubmenuIndex = -1
-        } else {
-            Log.d(
-                    TAG,
-                    "[SUBMENU] ℹ️ restoreMainMenu: No back stack to pop - main menu already visible"
-            )
-        }
-
-        Log.d(TAG, "[SUBMENU] ✅ restoreMainMenu: ========== RESTORATION COMPLETED ==========")
-        Log.d(TAG, "[SUBMENU] 🎉 restoreMainMenu: Main menu should be visible and responsive now")
     }
 
-    /** Abre submenu de progresso */
-    private fun openProgressSubmenu() {
-        Log.d(TAG, "[SUBMENU] Opening progress submenu")
+    private fun showExitSubmenu() {
+        try {
+            val exitFragment = ExitFragment.newInstance()
+            exitFragment.setExitListener(fragment as ExitFragment.ExitListener)
 
-        // Create and show ProgressFragment
-        val progressFragment = ProgressFragment.newInstance()
+            fragment.parentFragmentManager
+                    .beginTransaction()
+                    .add(android.R.id.content, exitFragment, "ExitFragment")
+                    .addToBackStack("ExitFragment")
+                    .commitAllowingStateLoss()
 
-        // Register the fragment in ViewModel so navigation works
-        viewModel.registerProgressFragment(progressFragment)
+            // Registrar o fragment no ViewModel
+            viewModel.registerExitFragment(exitFragment)
 
-        // Replace main menu with submenu
-        replaceMainMenuWithSubmenu(progressFragment, "ProgressFragment", MenuState.PROGRESS_MENU)
-    }
+            // Alterar o estado do menu para EXIT_MENU
+            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU)
 
-    /** Abre submenu de configurações */
-    private fun openSettingsSubmenu() {
-        Log.d(TAG, "[SUBMENU] Opening settings submenu")
+            // Ocultar textos do menu principal
+            viewManager.hideMainMenuTexts()
 
-        // Create and show SettingsMenuFragment with visual identical to RetroMenu3
-        val settingsFragment =
-                SettingsMenuFragment.newInstance().apply { setSettingsListener(viewModel) }
-
-        // Register the fragment in ViewModel so navigation works
-        viewModel.registerSettingsMenuFragment(settingsFragment)
-
-        // Replace main menu with submenu
-        replaceMainMenuWithSubmenu(
-                settingsFragment,
-                "SettingsMenuFragment",
-                MenuState.SETTINGS_MENU
-        )
-    }
-
-    /** Abre submenu de saída */
-    private fun openExitSubmenu() {
-        Log.d(TAG, "[SUBMENU] Opening exit submenu")
-
-        // Create and show ExitFragment
-        val exitFragment = ExitFragment.newInstance()
-
-        // Register the fragment in ViewModel so navigation works
-        viewModel.registerExitFragment(exitFragment)
-
-        // Replace main menu with submenu
-        replaceMainMenuWithSubmenu(exitFragment, "ExitFragment", MenuState.EXIT_MENU)
-    }
-
-    /** Cleanup quando o fragment é destruído */
-    fun onDestroy() {
-        // Clean up back stack change listener to prevent memory leaks
-        backStackChangeListener?.let { listener ->
-            fragment.parentFragmentManager.removeOnBackStackChangedListener(listener)
-            backStackChangeListener = null
+            Log.d(TAG, "SubmenuCoordinator: Exit submenu opened successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "SubmenuCoordinator: Failed to open Exit submenu", e)
         }
     }
 }

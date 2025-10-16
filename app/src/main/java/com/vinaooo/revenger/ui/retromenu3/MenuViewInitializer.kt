@@ -39,6 +39,7 @@ interface MenuViewInitializer {
     fun initializeViews(view: View): MenuViews
     fun setupClickListeners(views: MenuViews, onItemClick: (MenuItem) -> Unit)
     fun setupDynamicTitle(views: MenuViews)
+    fun configureInitialViewStates(views: MenuViews)
 }
 
 /**
@@ -122,5 +123,41 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
         FontUtils.applyArcadeFont(fragment.requireContext(), views.titleTextView)
 
         MenuLogger.lifecycle("MenuViewInitializer: setupDynamicTitle COMPLETED")
+    }
+
+    override fun configureInitialViewStates(views: MenuViews) {
+        MenuLogger.lifecycle("MenuViewInitializer: configureInitialViewStates START")
+
+        // Configure RetroCardViews to not use background colors - selection shown only by text
+        // color and arrows
+        views.continueMenu.setUseBackgroundColor(false)
+        views.resetMenu.setUseBackgroundColor(false)
+        views.progressMenu.setUseBackgroundColor(false)
+        views.settingsMenu.setUseBackgroundColor(false)
+        views.exitMenu.setUseBackgroundColor(false)
+
+        // Force zero marginStart for all arrows to prevent spacing issues
+        listOf(
+                        views.selectionArrowContinue,
+                        views.selectionArrowReset,
+                        views.selectionArrowSettings,
+                        views.selectionArrowProgress,
+                        views.selectionArrowExit
+                )
+                .forEach { arrow ->
+                    (arrow.layoutParams as? android.widget.LinearLayout.LayoutParams)?.apply {
+                        marginStart = 0
+                        marginEnd = 0
+                    }
+                }
+
+        // Configure controls hint
+        views.controlsHint.apply {
+            text = fragment.getString(R.string.retro_menu3_controls_hint)
+            visibility = android.view.View.VISIBLE
+            alpha = 1.0f
+        }
+
+        MenuLogger.lifecycle("MenuViewInitializer: configureInitialViewStates COMPLETED")
     }
 }

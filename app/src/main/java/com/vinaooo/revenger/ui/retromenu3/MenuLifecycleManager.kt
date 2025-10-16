@@ -42,19 +42,56 @@ class MenuLifecycleManagerImpl(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Iniciando configuração")
 
-        // Inicializar views através do viewInitializer
-        val menuViews = viewInitializer.initializeViews(view)
+        try {
+            // Initialize MenuViewManager
+            val menuViewManager = MenuViewManager(fragment)
+            MenuLogger.lifecycle("MenuLifecycleManager: MenuViewManager created")
 
-        // Configurar animationController com as views
-        animationController.setMenuViews(menuViews)
+            // Force all views to z=0 to stay below gamepad
+            com.vinaooo.revenger.utils.ViewUtils.forceZeroElevationRecursively(view)
+            MenuLogger.lifecycle("MenuLifecycleManager: Elevation forced to zero")
 
-        // Inicializar state controller
-        stateController.initializeState(menuViews)
+            // Inicializar views através do viewInitializer
+            val menuViews = viewInitializer.initializeViews(view)
 
-        // Configurar input handler
-        inputHandler.setupInputHandling(menuViews)
+            // Configurar estados iniciais das views
+            viewInitializer.configureInitialViewStates(menuViews)
 
-        MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Configuração concluída")
+            // Configurar título dinâmico
+            viewInitializer.setupDynamicTitle(menuViews)
+
+            // Setup MenuViewManager views
+            menuViewManager.setupViews(view)
+            MenuLogger.lifecycle("MenuLifecycleManager: MenuViewManager views setup completed")
+
+            // Configurar animationController com as views
+            animationController.setMenuViews(menuViews)
+
+            // Inicializar state controller
+            stateController.initializeState(menuViews)
+
+            // Configurar input handler
+            inputHandler.setupInputHandling(menuViews)
+
+            // Configurar click listeners
+            viewInitializer.setupClickListeners(menuViews) { menuItem ->
+                inputHandler.handleMenuItemSelected(menuItem)
+            }
+
+            // Iniciar animação do menu
+            animationController.animateMenuIn()
+            MenuLogger.lifecycle("MenuLifecycleManager: Menu animation started")
+
+            // Ensure first item is selected after animation
+            fragment.setSelectedIndex(0)
+            stateController.updateSelectionVisuals()
+            MenuLogger.lifecycle("MenuLifecycleManager: Selection visual updated")
+
+            MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Configuração concluída")
+        } catch (e: Exception) {
+            MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - ERROR: ${e.message}")
+            throw e
+        }
     }
 
     override fun onResume() {
