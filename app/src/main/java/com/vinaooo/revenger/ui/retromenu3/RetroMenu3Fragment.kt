@@ -50,8 +50,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         private lateinit var viewInitializer: MenuViewInitializer
         private lateinit var animationController: MenuAnimationController
         private lateinit var inputHandler: MenuInputHandler
-        private lateinit var stateController: MenuStateController
-        private lateinit var callbackManager: MenuCallbackManager // View hint
+        private lateinit var stateController: MenuStateController // View hint
         private lateinit var controlsHint: TextView
 
         // Menu item views
@@ -99,27 +98,6 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 this.menuListener = listener
         }
 
-        // Métodos públicos para MenuInputHandler acessar funcionalidades do menu
-        fun performContinueGame() {
-                continueMenu.performClick()
-        }
-
-        fun performResetGame() {
-                resetMenu.performClick()
-        }
-
-        fun performOpenProgress() {
-                openProgress()
-        }
-
-        fun performOpenSettings() {
-                settingsMenu.performClick()
-        }
-
-        fun performOpenExitMenu() {
-                openExitMenu()
-        }
-
         /**
          * Inicializa todos os managers especializados. Chamado no onCreateView para garantir que os
          * managers estejam prontos.
@@ -139,9 +117,8 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 // NOVOS MANAGERS - Fase 2 e 3
                 viewInitializer = MenuViewInitializerImpl(this)
                 animationController = MenuAnimationControllerImpl()
-                stateController = MenuStateControllerImpl(this)
-                callbackManager = MenuCallbackManagerImpl(menuListener)
-                inputHandler = MenuInputHandlerImpl(this, stateController, callbackManager)
+                stateController = MenuStateControllerImpl()
+                inputHandler = MenuInputHandlerImpl(this, stateController)
 
                 // Inicializar lifecycle manager por último (depende dos outros)
                 lifecycleManager =
@@ -151,8 +128,7 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                                 viewInitializer = viewInitializer,
                                 animationController = animationController,
                                 inputHandler = inputHandler,
-                                stateController = stateController,
-                                callbackManager = callbackManager
+                                stateController = stateController
                         )
 
                 MenuLogger.lifecycle("RetroMenu3Fragment: initializeManagers COMPLETED")
@@ -489,19 +465,21 @@ class RetroMenu3Fragment : MenuFragmentBase() {
                 )
 
         override fun performNavigateUp() {
-                inputHandler.handleNavigateUp()
+                navigateUp()
         }
 
         override fun performNavigateDown() {
-                inputHandler.handleNavigateDown()
+                navigateDown()
         }
 
         override fun performConfirm() {
-                inputHandler.handleConfirm()
+                confirmSelection()
         }
 
         override fun performBack(): Boolean {
-                return inputHandler.handleBack()
+                // For main menu, back should close the menu
+                // This will be handled by the MenuManager calling the appropriate action
+                return false // Let MenuManager handle this
         }
 
         override fun updateSelectionVisualInternal() {
@@ -752,7 +730,24 @@ class RetroMenu3Fragment : MenuFragmentBase() {
         }
 
         override fun onMenuItemSelected(item: MenuItem) {
-                inputHandler.handleMenuItemSelected(item)
+                // Use new MenuAction system, but fallback to old click listeners for compatibility
+                when (item.action) {
+                        MenuAction.CONTINUE -> continueMenu.performClick()
+                        MenuAction.RESET -> resetMenu.performClick()
+                        is MenuAction.NAVIGATE -> {
+                                when (item.action.targetMenu) {
+                                        MenuState.PROGRESS_MENU -> progressMenu.performClick()
+                                        MenuState.SETTINGS_MENU -> settingsMenu.performClick()
+                                        MenuState.EXIT_MENU -> exitMenu.performClick()
+                                        else -> {
+                                                /* Ignore */
+                                        }
+                                }
+                        }
+                        else -> {
+                                /* Ignore other actions */
+                        }
+                }
         }
 
         companion object {
