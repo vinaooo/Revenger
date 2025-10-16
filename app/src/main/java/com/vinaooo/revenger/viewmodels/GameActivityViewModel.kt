@@ -569,15 +569,10 @@ class GameActivityViewModel(application: Application) :
         if (isRetroMenu3Open() && !isDismissingAllMenus()) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "dismiss${fragmentName}: Showing main menu after individual submenu dismissal"
+                    "dismiss${fragmentName}: Main menu restoration handled by BackStackChangeListener"
             )
-            // Find the RetroMenu3Fragment and show it
-            val retroMenu3Fragment =
-                    activity?.supportFragmentManager?.findFragmentByTag(
-                            RetroMenu3Fragment::class.java.simpleName
-                    ) as?
-                            RetroMenu3Fragment
-            retroMenu3Fragment?.restoreMainMenu()
+            // REMOVED: retroMenu3Fragment?.restoreMainMenu()
+            // The BackStackChangeListener in RetroMenu3Fragment will handle menu restoration
         } else {
             android.util.Log.d(
                     "GameActivityViewModel",

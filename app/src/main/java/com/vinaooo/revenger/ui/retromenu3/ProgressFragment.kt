@@ -130,32 +130,36 @@ class ProgressFragment : MenuFragmentBase() {
     private fun setupClickListeners() {
 
         saveState.setOnClickListener {
-            // Save State - First close menus, then set correct frameSpeed, then save
-            // Close menus first with callback
-            viewModel.dismissAllMenus {
-                android.util.Log.d(
-                        TAG,
-                        "[ACTION] Progress menu: Animation completed - restoring game speed and saving"
-                )
-                // Set frameSpeed to correct value from Game Speed sharedPreference
-                viewModel.restoreGameSpeedFromPreferences()
-                // Take existing actions to save the state
-                viewModel.saveStateCentralized { /* Menus already closed */}
+            // Save State - Keep menu open and game paused
+            android.util.Log.d(
+                    TAG,
+                    "[ACTION] Progress menu: Saving state (menu stays open, game stays paused)"
+            )
+
+            // NOTE: Don't restore game speed - keep game paused while menu is open
+            // viewModel.restoreGameSpeedFromPreferences() // ← REMOVED
+
+            // Save the game state without closing menus
+            viewModel.saveStateCentralized {
+                android.util.Log.d(TAG, "[ACTION] Progress menu: State saved successfully")
+                // Could add visual feedback here if needed
             }
         }
 
         loadState.setOnClickListener {
-            // Load State - First close menus, then set correct frameSpeed, then load
-            // Close all menus first with callback
-            viewModel.dismissAllMenus {
-                android.util.Log.d(
-                        TAG,
-                        "[ACTION] Progress menu: Animation completed - restoring game speed and loading"
-                )
-                // Set frameSpeed to correct value from Game Speed sharedPreference
-                viewModel.restoreGameSpeedFromPreferences()
-                // Load the saved game state
-                viewModel.loadStateCentralized { /* Menus already closed */}
+            // Load State - Keep menu open and game paused
+            android.util.Log.d(
+                    TAG,
+                    "[ACTION] Progress menu: Loading state (menu stays open, game stays paused)"
+            )
+
+            // NOTE: Don't restore game speed - keep game paused while menu is open
+            // viewModel.restoreGameSpeedFromPreferences() // ← REMOVED
+
+            // Load the saved game state without closing menus
+            viewModel.loadStateCentralized {
+                android.util.Log.d(TAG, "[ACTION] Progress menu: State loaded successfully")
+                // Could add visual feedback here if needed
             }
         }
 

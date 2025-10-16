@@ -277,6 +277,15 @@ class RetroMenu3Fragment :
                                         "[BACK_STACK] 🔥🔥🔥 BACK STACK LISTENER FIRED - EXECUTING RESTORATION LOGIC 🔥🔥🔥"
                                 )
 
+                                // VERIFICAR SE ESTAMOS NO MEIO DE dismissAllMenus (START button)
+                                // Se sim, NÃO mostrar o menu principal para evitar piscada
+                                if (viewModel.isDismissingAllMenus()) {
+                                        MenuLogger.d(
+                                                "[BACK_STACK] ⚠️ isDismissingAllMenus = true, SKIPPING main menu restoration to avoid flicker"
+                                        )
+                                        return@addOnBackStackChangedListener
+                                }
+
                                 // Garantir que os textos do menu principal sejam mostrados
                                 menuViewManager.showMainMenuTexts()
 
