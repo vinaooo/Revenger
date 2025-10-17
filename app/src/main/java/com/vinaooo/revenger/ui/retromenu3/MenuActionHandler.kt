@@ -233,6 +233,13 @@ class MenuActionHandler(
 
         /** Executa ação de navegação para submenu */
         private fun executeNavigate(targetMenu: MenuState) {
+                // SALVAR O ÍNDICE SELECIONADO ATUAL ANTES DE ABRIR SUBMENU
+                val currentSelectedIndex = viewModel.getMenuManager().getCurrentSelectedIndex()
+                submenuCoordinator.setMainMenuSelectedIndexBeforeSubmenu(currentSelectedIndex)
+                MenuLogger.action(
+                        "💾 Saved main menu selected index: $currentSelectedIndex before opening $targetMenu"
+                )
+
                 when (targetMenu) {
                         MenuState.PROGRESS_MENU -> openProgressSubmenu()
                         MenuState.SETTINGS_MENU -> openSettingsSubmenu()
