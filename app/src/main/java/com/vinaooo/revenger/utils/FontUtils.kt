@@ -6,7 +6,7 @@ import android.util.Log
 
 object FontUtils {
     private const val TAG = "FontUtils"
-    private const val ARCADE_FONT_PATH = "fonts/arcadenormal.ttf"
+    private const val ARCADE_FONT_PATH = "fonts/arcade.ttf"
 
     private var arcadeTypeface: Typeface? = null
 

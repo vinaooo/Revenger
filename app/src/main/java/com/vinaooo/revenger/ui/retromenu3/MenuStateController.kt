@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.MenuLogger
 
 /**
@@ -37,15 +38,15 @@ class MenuStateControllerImpl(
     private fun initializeMenuItems() {
         menuItems.addAll(
                 listOf(
-                        MenuItem("continue", "Continue", action = MenuAction.CONTINUE),
-                        MenuItem("reset", "Reset", action = MenuAction.RESET),
-                        MenuItem("save_state", "Save State", action = MenuAction.SAVE_STATE),
+                        MenuItem("continue", fragment.getString(R.string.menu_continue), action = MenuAction.CONTINUE),
+                        MenuItem("reset", fragment.getString(R.string.menu_reset), action = MenuAction.RESET),
+                        MenuItem("save_state", fragment.getString(R.string.menu_save_state), action = MenuAction.SAVE_STATE),
                         MenuItem(
                                 "settings",
-                                "Settings",
+                                fragment.getString(R.string.menu_settings),
                                 action = MenuAction.TOGGLE_AUDIO
                         ), // TODO: Mudar para SETTINGS quando implementado
-                        MenuItem("exit", "Exit", action = MenuAction.EXIT)
+                        MenuItem("exit", fragment.getString(R.string.menu_exit), action = MenuAction.EXIT)
                 )
         )
     }

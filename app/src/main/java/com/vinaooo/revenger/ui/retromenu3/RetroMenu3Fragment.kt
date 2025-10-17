@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
+import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -259,19 +260,19 @@ class RetroMenu3Fragment :
 
         override fun getMenuItems(): List<MenuItem> =
                 listOf(
-                        MenuItem("continue", "Continuar", action = MenuAction.CONTINUE),
-                        MenuItem("reset", "Restart", action = MenuAction.RESET),
+                        MenuItem("continue", getString(R.string.menu_continue), action = MenuAction.CONTINUE),
+                        MenuItem("reset", getString(R.string.menu_reset), action = MenuAction.RESET),
                         MenuItem(
                                 "progress",
-                                "Progress",
+                                getString(R.string.menu_progress),
                                 action = MenuAction.NAVIGATE(MenuState.PROGRESS_MENU)
                         ),
                         MenuItem(
                                 "settings",
-                                "Settings",
+                                getString(R.string.menu_settings),
                                 action = MenuAction.NAVIGATE(MenuState.SETTINGS_MENU)
                         ),
-                        MenuItem("exit", "Exit", action = MenuAction.NAVIGATE(MenuState.EXIT_MENU))
+                        MenuItem("exit", getString(R.string.menu_exit), action = MenuAction.NAVIGATE(MenuState.EXIT_MENU))
                 )
 
         override fun performNavigateUp() {

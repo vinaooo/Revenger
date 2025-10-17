@@ -3,6 +3,7 @@ package com.vinaooo.revenger.ui.retromenu3
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.view.View
+import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.MenuLogger
 
 /** Interface para controle de animações do menu. */
@@ -90,30 +91,75 @@ class MenuAnimationControllerImpl : MenuAnimationController {
 
         // Update title colors based on selection
         menuViews.continueTitle.setTextColor(
-                if (selectedIndex == 0) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (selectedIndex == 0)
+                        androidx.core.content.ContextCompat.getColor(
+                                menuViews.continueTitle.context,
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                menuViews.continueTitle.context,
+                                R.color.retro_menu3_normal_color
+                        )
         )
         menuViews.resetTitle.setTextColor(
-                if (selectedIndex == 1) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (selectedIndex == 1)
+                        androidx.core.content.ContextCompat.getColor(
+                                menuViews.resetTitle.context,
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                menuViews.resetTitle.context,
+                                R.color.retro_menu3_normal_color
+                        )
         )
         menuViews.progressTitle.setTextColor(
-                if (selectedIndex == 2) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (selectedIndex == 2)
+                        androidx.core.content.ContextCompat.getColor(
+                                menuViews.progressTitle.context,
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                menuViews.progressTitle.context,
+                                R.color.retro_menu3_normal_color
+                        )
         )
         menuViews.settingsTitle.setTextColor(
-                if (selectedIndex == 3) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (selectedIndex == 3)
+                        androidx.core.content.ContextCompat.getColor(
+                                menuViews.settingsTitle.context,
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                menuViews.settingsTitle.context,
+                                R.color.retro_menu3_normal_color
+                        )
         )
         menuViews.exitTitle.setTextColor(
-                if (selectedIndex == 4) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (selectedIndex == 4)
+                        androidx.core.content.ContextCompat.getColor(
+                                menuViews.exitTitle.context,
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                menuViews.exitTitle.context,
+                                R.color.retro_menu3_normal_color
+                        )
         )
 
         // Update selection arrow visibility and colors
         // Continue
         if (selectedIndex == 0) {
-            menuViews.selectionArrowContinue.setTextColor(android.graphics.Color.YELLOW)
+            menuViews.selectionArrowContinue.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            menuViews.selectionArrowContinue.context,
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             menuViews.selectionArrowContinue.visibility = View.VISIBLE
         } else {
             menuViews.selectionArrowContinue.visibility = View.GONE
@@ -121,7 +167,12 @@ class MenuAnimationControllerImpl : MenuAnimationController {
 
         // Reset
         if (selectedIndex == 1) {
-            menuViews.selectionArrowReset.setTextColor(android.graphics.Color.YELLOW)
+            menuViews.selectionArrowReset.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            menuViews.selectionArrowReset.context,
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             menuViews.selectionArrowReset.visibility = View.VISIBLE
         } else {
             menuViews.selectionArrowReset.visibility = View.GONE
@@ -129,7 +180,12 @@ class MenuAnimationControllerImpl : MenuAnimationController {
 
         // Progress
         if (selectedIndex == 2) {
-            menuViews.selectionArrowProgress.setTextColor(android.graphics.Color.YELLOW)
+            menuViews.selectionArrowProgress.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            menuViews.selectionArrowProgress.context,
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             menuViews.selectionArrowProgress.visibility = View.VISIBLE
         } else {
             menuViews.selectionArrowProgress.visibility = View.GONE
@@ -137,7 +193,12 @@ class MenuAnimationControllerImpl : MenuAnimationController {
 
         // Settings
         if (selectedIndex == 3) {
-            menuViews.selectionArrowSettings.setTextColor(android.graphics.Color.YELLOW)
+            menuViews.selectionArrowSettings.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            menuViews.selectionArrowSettings.context,
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             menuViews.selectionArrowSettings.visibility = View.VISIBLE
         } else {
             menuViews.selectionArrowSettings.visibility = View.GONE
@@ -145,7 +206,12 @@ class MenuAnimationControllerImpl : MenuAnimationController {
 
         // Exit
         if (selectedIndex == 4) {
-            menuViews.selectionArrowExit.setTextColor(android.graphics.Color.YELLOW)
+            menuViews.selectionArrowExit.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            menuViews.selectionArrowExit.context,
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             menuViews.selectionArrowExit.visibility = View.VISIBLE
         } else {
             menuViews.selectionArrowExit.visibility = View.GONE

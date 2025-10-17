@@ -230,16 +230,40 @@ class ExitFragment : MenuFragmentBase() {
 
         // Control text colors based on selection
         saveAndExitTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (getCurrentSelectedIndex() == 0)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_normal_color
+                        )
         )
         exitWithoutSaveTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 1) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (getCurrentSelectedIndex() == 1)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_normal_color
+                        )
         )
         backTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (getCurrentSelectedIndex() == 2)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_normal_color
+                        )
         )
 
         // Control selection arrows colors and visibility
@@ -249,7 +273,12 @@ class ExitFragment : MenuFragmentBase() {
 
         // Save and Exit
         if (getCurrentSelectedIndex() == 0) {
-            selectionArrowSaveAndExit.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowSaveAndExit.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowSaveAndExit.visibility = View.VISIBLE
             (selectionArrowSaveAndExit.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
@@ -261,7 +290,12 @@ class ExitFragment : MenuFragmentBase() {
 
         // Exit without Save
         if (getCurrentSelectedIndex() == 1) {
-            selectionArrowExitWithoutSave.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowExitWithoutSave.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowExitWithoutSave.visibility = View.VISIBLE
             (selectionArrowExitWithoutSave.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
@@ -273,7 +307,12 @@ class ExitFragment : MenuFragmentBase() {
 
         // Back
         if (getCurrentSelectedIndex() == 2) {
-            selectionArrowBack.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowBack.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow

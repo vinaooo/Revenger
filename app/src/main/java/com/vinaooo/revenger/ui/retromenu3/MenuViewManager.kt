@@ -192,9 +192,19 @@ class MenuViewManager(private val fragment: Fragment) {
 
     /** Define um item de menu como selecionado */
     private fun setItemSelected(menuItemView: MenuItemView) {
-        menuItemView.titleTextView.setTextColor(android.graphics.Color.YELLOW)
+        menuItemView.titleTextView.setTextColor(
+                androidx.core.content.ContextCompat.getColor(
+                        fragment.requireContext(),
+                        R.color.retro_menu3_selected_color
+                )
+        )
         menuItemView.arrowTextView.apply {
-            setTextColor(android.graphics.Color.YELLOW)
+            setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            fragment.requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             visibility = View.VISIBLE
             (layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // Force zero margin - critical fix
@@ -211,7 +221,12 @@ class MenuViewManager(private val fragment: Fragment) {
 
     /** Define um item de menu como não selecionado */
     private fun setItemUnselected(menuItemView: MenuItemView) {
-        menuItemView.titleTextView.setTextColor(android.graphics.Color.WHITE)
+        menuItemView.titleTextView.setTextColor(
+                androidx.core.content.ContextCompat.getColor(
+                        fragment.requireContext(),
+                        R.color.retro_menu3_normal_color
+                )
+        )
         menuItemView.arrowTextView.visibility = View.GONE
         // RetroCardView volta ao estado normal
         menuItemView.cardView.setState(RetroCardView.State.NORMAL)

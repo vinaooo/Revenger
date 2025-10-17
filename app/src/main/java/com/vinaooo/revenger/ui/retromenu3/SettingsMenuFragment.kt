@@ -285,31 +285,79 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
         // Control text colors based on selection (dynamic based on shader visibility)
         soundTitle.setTextColor(
-                if (selectedIndex == 0) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (selectedIndex == 0)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_normal_color
+                        )
         )
 
         if (isShaderEnabled) {
             shaderTitle.setTextColor(
-                    if (selectedIndex == 1) android.graphics.Color.YELLOW
-                    else android.graphics.Color.WHITE
+                    if (selectedIndex == 1)
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_selected_color
+                            )
+                    else
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_normal_color
+                            )
             )
             gameSpeedTitle.setTextColor(
-                    if (selectedIndex == 2) android.graphics.Color.YELLOW
-                    else android.graphics.Color.WHITE
+                    if (selectedIndex == 2)
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_selected_color
+                            )
+                    else
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_normal_color
+                            )
             )
             backTitle.setTextColor(
-                    if (selectedIndex == 3) android.graphics.Color.YELLOW
-                    else android.graphics.Color.WHITE
+                    if (selectedIndex == 3)
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_selected_color
+                            )
+                    else
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_normal_color
+                            )
             )
         } else {
             gameSpeedTitle.setTextColor(
-                    if (selectedIndex == 1) android.graphics.Color.YELLOW
-                    else android.graphics.Color.WHITE
+                    if (selectedIndex == 1)
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_selected_color
+                            )
+                    else
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_normal_color
+                            )
             )
             backTitle.setTextColor(
-                    if (selectedIndex == 2) android.graphics.Color.YELLOW
-                    else android.graphics.Color.WHITE
+                    if (selectedIndex == 2)
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_selected_color
+                            )
+                    else
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_normal_color
+                            )
             )
         }
 
@@ -320,7 +368,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
         // Sound
         if (selectedIndex == 0) {
-            selectionArrowSound.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowSound.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowSound.visibility = View.VISIBLE
             (selectionArrowSound.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
@@ -332,7 +385,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
         // Shader (only if enabled)
         if (isShaderEnabled && selectedIndex == 1) {
-            selectionArrowShader.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowShader.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowShader.visibility = View.VISIBLE
             (selectionArrowShader.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
@@ -345,7 +403,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
         // Game Speed
         val gameSpeedIndex = if (isShaderEnabled) 2 else 1
         if (selectedIndex == gameSpeedIndex) {
-            selectionArrowGameSpeed.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowGameSpeed.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowGameSpeed.visibility = View.VISIBLE
             (selectionArrowGameSpeed.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
@@ -358,7 +421,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
         // Back
         val backIndex = if (isShaderEnabled) 3 else 2
         if (selectedIndex == backIndex) {
-            selectionArrowBack.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowBack.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow

@@ -260,18 +260,45 @@ class ProgressFragment : MenuFragmentBase() {
 
         // Control text colors based on selection and state
         saveStateTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (getCurrentSelectedIndex() == 0)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_normal_color
+                        )
         )
         loadStateTitle.setTextColor(
                 if (getCurrentSelectedIndex() == 1 && loadState.isEnabled)
-                        android.graphics.Color.YELLOW
-                else if (!loadState.isEnabled) android.graphics.Color.GRAY
-                else android.graphics.Color.WHITE
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_selected_color
+                        )
+                else if (!loadState.isEnabled)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_disabled_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_normal_color
+                        )
         )
         backTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (getCurrentSelectedIndex() == 2)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_normal_color
+                        )
         )
 
         // Control selection arrows colors and visibility
@@ -281,7 +308,12 @@ class ProgressFragment : MenuFragmentBase() {
 
         // Save State
         if (getCurrentSelectedIndex() == 0) {
-            selectionArrowSaveState.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowSaveState.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowSaveState.visibility = View.VISIBLE
             (selectionArrowSaveState.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
@@ -293,7 +325,12 @@ class ProgressFragment : MenuFragmentBase() {
 
         // Load State
         if (getCurrentSelectedIndex() == 1) {
-            selectionArrowLoadState.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowLoadState.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowLoadState.visibility = View.VISIBLE
             (selectionArrowLoadState.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
@@ -305,7 +342,12 @@ class ProgressFragment : MenuFragmentBase() {
 
         // Back
         if (getCurrentSelectedIndex() == 2) {
-            selectionArrowBack.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowBack.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
