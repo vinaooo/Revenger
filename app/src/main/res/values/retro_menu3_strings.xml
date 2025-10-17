@@ -55,4 +55,8 @@
     <!-- Menu Control hint -->
     <string name="retro_menu3_controls_hint">[A] Confirm  [B] Back</string>
 
+    <!-- Font Selection -->
+        <!-- Font Selection -->
+    <string name="retro_menu3_font">tiny5</string>
+
 </resources>

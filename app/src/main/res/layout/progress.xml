@@ -40,7 +40,7 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="@dimen/retro_menu3_title_margin_bottom"
                 android:letterSpacing="@dimen/retro_menu3_title_letter_spacing"
-                
+                android:includeFontPadding="false"
                 android:shadowColor="@color/retro_menu3_shadow_color"
                 android:shadowDx="@dimen/retro_menu3_shadow_dx"
                 android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -99,7 +99,7 @@
                                     android:text="@string/menu_save_state"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    
+                                    android:includeFontPadding="false"
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -147,7 +147,7 @@
                                     android:text="@string/menu_load_state"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    
+                                    android:includeFontPadding="false"
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"
@@ -197,7 +197,7 @@
                                     android:text="@string/settings_back"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
                                     android:textColor="@color/retro_menu3_text_color"
-                                    
+                                    android:includeFontPadding="false"
                                     android:shadowColor="@color/retro_menu3_shadow_color"
                                     android:shadowDx="@dimen/retro_menu3_shadow_dx"
                                     android:shadowDy="@dimen/retro_menu3_shadow_dy"

@@ -109,7 +109,7 @@ class ExitFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
-        ViewUtils.applyArcadeFontToViews(
+        ViewUtils.applySelectedFontToViews(
                 requireContext(),
                 exitMenuTitle,
                 saveAndExitTitle,

@@ -25,7 +25,7 @@
     <!-- Text Sizes -->
     <dimen name="retro_menu3_title_text_size">24sp</dimen>
     <dimen name="retro_menu3_arrow_text_size">18sp</dimen>
-    <dimen name="retro_menu3_menu_item_text_size">16sp</dimen>
+    <dimen name="retro_menu3_menu_item_text_size">20sp</dimen>
     
     <!-- Text Shadow - values must be float without unit -->
     <item name="retro_menu3_shadow_dx" format="float" type="dimen">4.0</item>

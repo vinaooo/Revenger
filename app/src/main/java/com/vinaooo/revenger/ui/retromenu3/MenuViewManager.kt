@@ -82,7 +82,7 @@ class MenuViewManager(private val fragment: Fragment) {
         titleTextView?.text = titleText
 
         // Garante fonte Arcade no título
-        titleTextView?.let { FontUtils.applyArcadeFont(fragment.requireContext(), it) }
+        titleTextView?.let { FontUtils.applySelectedFont(fragment.requireContext(), it) }
     }
 
     /** Inicializa todas as views do menu e estruturas de dados relacionadas */
@@ -144,7 +144,7 @@ class MenuViewManager(private val fragment: Fragment) {
                 )
 
         // Apply arcade font to all text views
-        ViewUtils.applyArcadeFontToViews(
+        ViewUtils.applySelectedFontToViews(
                 fragment.requireContext(),
                 controlsHint,
                 continueTitle,

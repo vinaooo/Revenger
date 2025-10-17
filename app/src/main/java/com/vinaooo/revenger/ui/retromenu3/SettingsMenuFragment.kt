@@ -126,7 +126,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
-        ViewUtils.applyArcadeFontToViews(
+        ViewUtils.applySelectedFontToViews(
                 requireContext(),
                 settingsMenuTitle,
                 soundTitle,

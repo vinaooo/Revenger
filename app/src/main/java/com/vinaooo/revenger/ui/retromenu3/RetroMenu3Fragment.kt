@@ -260,8 +260,16 @@ class RetroMenu3Fragment :
 
         override fun getMenuItems(): List<MenuItem> =
                 listOf(
-                        MenuItem("continue", getString(R.string.menu_continue), action = MenuAction.CONTINUE),
-                        MenuItem("reset", getString(R.string.menu_reset), action = MenuAction.RESET),
+                        MenuItem(
+                                "continue",
+                                getString(R.string.menu_continue),
+                                action = MenuAction.CONTINUE
+                        ),
+                        MenuItem(
+                                "reset",
+                                getString(R.string.menu_reset),
+                                action = MenuAction.RESET
+                        ),
                         MenuItem(
                                 "progress",
                                 getString(R.string.menu_progress),
@@ -272,7 +280,11 @@ class RetroMenu3Fragment :
                                 getString(R.string.menu_settings),
                                 action = MenuAction.NAVIGATE(MenuState.SETTINGS_MENU)
                         ),
-                        MenuItem("exit", getString(R.string.menu_exit), action = MenuAction.NAVIGATE(MenuState.EXIT_MENU))
+                        MenuItem(
+                                "exit",
+                                getString(R.string.menu_exit),
+                                action = MenuAction.NAVIGATE(MenuState.EXIT_MENU)
+                        )
                 )
 
         override fun performNavigateUp() {

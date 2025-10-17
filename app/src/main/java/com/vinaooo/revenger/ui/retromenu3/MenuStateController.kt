@@ -38,15 +38,31 @@ class MenuStateControllerImpl(
     private fun initializeMenuItems() {
         menuItems.addAll(
                 listOf(
-                        MenuItem("continue", fragment.getString(R.string.menu_continue), action = MenuAction.CONTINUE),
-                        MenuItem("reset", fragment.getString(R.string.menu_reset), action = MenuAction.RESET),
-                        MenuItem("save_state", fragment.getString(R.string.menu_save_state), action = MenuAction.SAVE_STATE),
+                        MenuItem(
+                                "continue",
+                                fragment.getString(R.string.menu_continue),
+                                action = MenuAction.CONTINUE
+                        ),
+                        MenuItem(
+                                "reset",
+                                fragment.getString(R.string.menu_reset),
+                                action = MenuAction.RESET
+                        ),
+                        MenuItem(
+                                "save_state",
+                                fragment.getString(R.string.menu_save_state),
+                                action = MenuAction.SAVE_STATE
+                        ),
                         MenuItem(
                                 "settings",
                                 fragment.getString(R.string.menu_settings),
                                 action = MenuAction.TOGGLE_AUDIO
                         ), // TODO: Mudar para SETTINGS quando implementado
-                        MenuItem("exit", fragment.getString(R.string.menu_exit), action = MenuAction.EXIT)
+                        MenuItem(
+                                "exit",
+                                fragment.getString(R.string.menu_exit),
+                                action = MenuAction.EXIT
+                        )
                 )
         )
     }

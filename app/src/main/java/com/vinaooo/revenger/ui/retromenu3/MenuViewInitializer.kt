@@ -126,7 +126,7 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
         views.titleTextView.text = titleText
 
         // Garantir fonte Arcade no título
-        FontUtils.applyArcadeFont(fragment.requireContext(), views.titleTextView)
+        FontUtils.applySelectedFont(fragment.requireContext(), views.titleTextView)
 
         MenuLogger.lifecycle("MenuViewInitializer: setupDynamicTitle COMPLETED")
     }

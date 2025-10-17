@@ -30,8 +30,21 @@ object ViewUtils {
     }
 
     /**
-     * Applies arcade font to multiple text views at once. Convenience method to reduce code
-     * duplication.
+     * Aplica a fonte selecionada (baseada na configuração) a múltiplas TextViews. Suporta tanto
+     * fonte arcade quanto pixelify baseada na configuração retro_menu3_font.
+     *
+     * @param context The context to use for font loading
+     * @param views Variable number of TextViews to apply font to
+     */
+    fun applySelectedFontToViews(
+            context: android.content.Context,
+            vararg views: android.widget.TextView
+    ) {
+        views.forEach { view -> FontUtils.applySelectedFont(context, view) }
+    }
+
+    /**
+     * Aplica a fonte arcade a múltiplas TextViews (para compatibilidade).
      *
      * @param context The context to use for font loading
      * @param views Variable number of TextViews to apply font to
@@ -42,7 +55,6 @@ object ViewUtils {
     ) {
         views.forEach { view -> FontUtils.applyArcadeFont(context, view) }
     }
-
     /**
      * Batch update for view visibility to reduce layout passes. Sets multiple views to the same
      * visibility state efficiently.
