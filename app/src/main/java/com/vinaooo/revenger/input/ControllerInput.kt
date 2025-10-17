@@ -142,11 +142,51 @@ class ControllerInput(private val context: Context) {
         var menuConfirmCallback: () -> Unit = {}
         var menuBackCallback: () -> Unit = {}
 
+        // Debouncing timestamps for menu callbacks to prevent rapid successive calls
+        private var lastMenuBackCallbackTime: Long = 0
+        private var lastMenuConfirmCallbackTime: Long = 0
+        private var lastMenuNavigateUpCallbackTime: Long = 0
+        private var lastMenuNavigateDownCallbackTime: Long = 0
+        private var lastStartButtonCallbackTime: Long = 0
+
+        // Minimum time between menu callback calls (in milliseconds)
+        private val MENU_CALLBACK_DEBOUNCE_MS = 150L
+
+        /** Helper function to execute menu callbacks with debouncing protection */
+        private fun executeMenuCallback(
+                callback: () -> Unit,
+                lastExecutionTime: Long,
+                updateTime: (Long) -> Unit
+        ): Boolean {
+                // First check if it's safe to execute menu operations
+                if (!isMenuOperationSafe()) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "Menu operation not safe, ignoring callback"
+                        )
+                        return false
+                }
+
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastExecutionTime >= MENU_CALLBACK_DEBOUNCE_MS) {
+                        callback()
+                        updateTime(currentTime)
+                        return true
+                }
+                return false
+        }
+
         /** Getter for comboAlreadyTriggered (for debugging) */
         fun getComboAlreadyTriggered(): Boolean = comboAlreadyTriggered
 
         /** Function to check if devemos interceptar DPAD para menu */
         var shouldInterceptDpadForMenu: () -> Boolean = { false }
+
+        /**
+         * Function to check if it's safe to execute menu callbacks (no critical operations in
+         * progress)
+         */
+        var isMenuOperationSafe: () -> Boolean = { true }
 
         /**
          * Check for single-trigger directional input (UP/DOWN only) Returns the keycode if there's
@@ -407,7 +447,10 @@ class ControllerInput(private val context: Context) {
                                         "ControllerInput",
                                         "BUTTON_A (GamePad) intercepted for menu confirmation"
                                 )
-                                menuConfirmCallback()
+                                executeMenuCallback(
+                                        menuConfirmCallback,
+                                        lastMenuConfirmCallbackTime
+                                ) { lastMenuConfirmCallbackTime = it }
                         }
                         return // Consume the event, don't process further
                 }
@@ -419,7 +462,9 @@ class ControllerInput(private val context: Context) {
                                         "ControllerInput",
                                         "BUTTON_B (GamePad) intercepted for menu back"
                                 )
-                                menuBackCallback()
+                                executeMenuCallback(menuBackCallback, lastMenuBackCallbackTime) {
+                                        lastMenuBackCallbackTime = it
+                                }
                         }
                         return // Consume the event, don't process further
                 }
@@ -439,7 +484,10 @@ class ControllerInput(private val context: Context) {
                                         "ControllerInput",
                                         "   comboAlreadyTriggered BEFORE: $comboAlreadyTriggered"
                                 )
-                                startButtonCallback()
+                                executeMenuCallback(
+                                        startButtonCallback,
+                                        lastStartButtonCallbackTime
+                                ) { lastStartButtonCallbackTime = it }
                                 // Reset comboAlreadyTriggered when START closes menu
                                 comboAlreadyTriggered = false
                                 android.util.Log.d(
@@ -552,7 +600,10 @@ class ControllerInput(private val context: Context) {
                                         "ControllerInput",
                                         "   comboAlreadyTriggered BEFORE: $comboAlreadyTriggered"
                                 )
-                                startButtonCallback()
+                                executeMenuCallback(
+                                        startButtonCallback,
+                                        lastStartButtonCallbackTime
+                                ) { lastStartButtonCallbackTime = it }
                                 // 🔧 BUGFIX: Reset comboAlreadyTriggered when START closes menu
                                 // At this point we KNOW the user is CLOSING the menu, not trying to
                                 // open it
@@ -577,7 +628,10 @@ class ControllerInput(private val context: Context) {
                                         "ControllerInput",
                                         "BUTTON_A intercepted for menu confirmation"
                                 )
-                                menuConfirmCallback()
+                                executeMenuCallback(
+                                        menuConfirmCallback,
+                                        lastMenuConfirmCallbackTime
+                                ) { lastMenuConfirmCallbackTime = it }
                         }
                         return true // Consume the event, don't send to core
                 }
@@ -589,7 +643,9 @@ class ControllerInput(private val context: Context) {
                                         "ControllerInput",
                                         "BUTTON_B intercepted for menu back"
                                 )
-                                menuBackCallback()
+                                executeMenuCallback(menuBackCallback, lastMenuBackCallbackTime) {
+                                        lastMenuBackCallbackTime = it
+                                }
                         }
                         return true // Consume the event, don't send to core
                 }
@@ -608,7 +664,10 @@ class ControllerInput(private val context: Context) {
                                                         "ControllerInput",
                                                         "DPAD UP (KeyEvent) intercepted for menu navigation - calling callback"
                                                 )
-                                                menuNavigateUpCallback()
+                                                executeMenuCallback(
+                                                        menuNavigateUpCallback,
+                                                        lastMenuNavigateUpCallbackTime
+                                                ) { lastMenuNavigateUpCallbackTime = it }
                                                 android.util.Log.d(
                                                         "ControllerInput",
                                                         "DPAD UP (KeyEvent) callback completed"
@@ -619,7 +678,10 @@ class ControllerInput(private val context: Context) {
                                                         "ControllerInput",
                                                         "DPAD DOWN (KeyEvent) intercepted for menu navigation - calling callback"
                                                 )
-                                                menuNavigateDownCallback()
+                                                executeMenuCallback(
+                                                        menuNavigateDownCallback,
+                                                        lastMenuNavigateDownCallbackTime
+                                                ) { lastMenuNavigateDownCallbackTime = it }
                                                 android.util.Log.d(
                                                         "ControllerInput",
                                                         "DPAD DOWN (KeyEvent) callback completed"
@@ -833,7 +895,10 @@ class ControllerInput(private val context: Context) {
                                                 "ControllerInput",
                                                 "[INTERCEPT] ⬆️ DPAD UP detected - calling menuNavigateUpCallback"
                                         )
-                                        menuNavigateUpCallback()
+                                        executeMenuCallback(
+                                                menuNavigateUpCallback,
+                                                lastMenuNavigateUpCallbackTime
+                                        ) { lastMenuNavigateUpCallbackTime = it }
                                         android.util.Log.d(
                                                 "ControllerInput",
                                                 "[INTERCEPT] ✅ DPAD UP callback completed - returning true"
@@ -849,7 +914,10 @@ class ControllerInput(private val context: Context) {
                                                 "ControllerInput",
                                                 "[INTERCEPT] ⬇️ DPAD DOWN detected - calling menuNavigateDownCallback"
                                         )
-                                        menuNavigateDownCallback()
+                                        executeMenuCallback(
+                                                menuNavigateDownCallback,
+                                                lastMenuNavigateDownCallbackTime
+                                        ) { lastMenuNavigateDownCallbackTime = it }
                                         android.util.Log.d(
                                                 "ControllerInput",
                                                 "[INTERCEPT] ✅ DPAD DOWN callback completed - returning true"

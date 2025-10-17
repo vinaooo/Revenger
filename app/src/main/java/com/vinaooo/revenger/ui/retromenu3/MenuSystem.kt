@@ -244,6 +244,10 @@ class MenuManager(
 
     private val fragments = mutableMapOf<MenuState, MenuFragment>()
 
+    // Protection against simultaneous confirm operations
+    private var isProcessingConfirm = false
+    private var isProcessingBack = false
+
     /** Register a fragment for a specific menu state */
     fun registerFragment(state: MenuState, fragment: MenuFragment) {
         fragments[state] = fragment
@@ -385,45 +389,99 @@ class MenuManager(
 
     /** Confirm current selection */
     fun confirm(): Boolean {
-        val fragment = getCurrentFragment()
-        if (fragment != null &&
-                        (fragment as? androidx.fragment.app.Fragment)?.isAdded == true &&
-                        (fragment as? androidx.fragment.app.Fragment)?.context != null
-        ) {
-            return fragment.onConfirm()
-        } else {
-            android.util.Log.w(
+        android.util.Log.d("MenuManager", "[CONFIRM] ===== CONFIRM OPERATION START =====")
+        android.util.Log.d("MenuManager", "[CONFIRM] isProcessingConfirm=$isProcessingConfirm")
+
+        // Prevent simultaneous confirm operations
+        if (isProcessingConfirm) {
+            android.util.Log.d(
                     "MenuManager",
-                    "[NAV] confirm: Fragment not available or not attached - fragment=$fragment, isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
+                    "[CONFIRM] ⚠️ confirm() already in progress, ignoring"
             )
             return false
+        }
+
+        isProcessingConfirm = true
+        android.util.Log.d("MenuManager", "[CONFIRM] 🔄 Starting confirm operation")
+
+        try {
+            val fragment = getCurrentFragment()
+            if (fragment != null &&
+                            (fragment as? androidx.fragment.app.Fragment)?.isAdded == true &&
+                            (fragment as? androidx.fragment.app.Fragment)?.context != null
+            ) {
+                val result = fragment.onConfirm()
+                android.util.Log.d(
+                        "MenuManager",
+                        "[CONFIRM] ✅ Confirm operation completed, result=$result"
+                )
+                return result
+            } else {
+                android.util.Log.w(
+                        "MenuManager",
+                        "[CONFIRM] ⚠️ Fragment not available or not attached - fragment=$fragment, isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
+                )
+                return false
+            }
+        } finally {
+            isProcessingConfirm = false
+            android.util.Log.d("MenuManager", "[CONFIRM] 🔄 Confirm operation flag reset")
+            android.util.Log.d("MenuManager", "[CONFIRM] ===== CONFIRM OPERATION END =====")
         }
     }
 
     /** Go back */
     fun back(): Boolean {
-        val fragment = getCurrentFragment()
-        val fragmentHandled =
-                if (fragment != null &&
-                                (fragment as? androidx.fragment.app.Fragment)?.isAdded == true &&
-                                (fragment as? androidx.fragment.app.Fragment)?.context != null
-                ) {
-                    fragment.onBack()
-                } else {
-                    android.util.Log.w(
-                            "MenuManager",
-                            "[NAV] back: Fragment not available or not attached - fragment=$fragment, isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
-                    )
-                    false
-                }
-        // If fragment didn't handle it (returned false) and we're in main menu, close the menu
-        if (!fragmentHandled && stateManager.getCurrentState() == MenuState.MAIN_MENU) {
-            listener.onMenuEvent(MenuEvent.MenuClosed)
-            return true
-        }
-        return fragmentHandled
-    }
+        android.util.Log.d("MenuManager", "[BACK] ===== BACK OPERATION START =====")
+        android.util.Log.d("MenuManager", "[BACK] isProcessingBack=$isProcessingBack")
+        android.util.Log.d("MenuManager", "[BACK] isProcessingConfirm=$isProcessingConfirm")
 
+        // Prevent simultaneous back operations
+        if (isProcessingBack) {
+            android.util.Log.d("MenuManager", "[BACK] ⚠️ back() already in progress, ignoring")
+            return false
+        }
+
+        // Prevent back operations while confirm is in progress (critical dismiss operation)
+        if (isProcessingConfirm) {
+            android.util.Log.d(
+                    "MenuManager",
+                    "[BACK] ⚠️ confirm() in progress, ignoring back during dismiss"
+            )
+            android.util.Log.d("MenuManager", "[BACK] ===== BACK OPERATION BLOCKED =====")
+            return false
+        }
+
+        isProcessingBack = true
+        android.util.Log.d("MenuManager", "[BACK] 🔄 Starting back operation")
+
+        try {
+            val fragment = getCurrentFragment()
+            val fragmentHandled =
+                    if (fragment != null &&
+                                    (fragment as? androidx.fragment.app.Fragment)?.isAdded ==
+                                            true &&
+                                    (fragment as? androidx.fragment.app.Fragment)?.context != null
+                    ) {
+                        fragment.onBack()
+                    } else {
+                        android.util.Log.w(
+                                "MenuManager",
+                                "[NAV] back: Fragment not available or not attached - fragment=$fragment, isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
+                        )
+                        false
+                    }
+            // If fragment didn't handle it (returned false) and we're in main menu, close the menu
+            if (!fragmentHandled && stateManager.getCurrentState() == MenuState.MAIN_MENU) {
+                listener.onMenuEvent(MenuEvent.MenuClosed)
+                return true
+            }
+            return fragmentHandled
+        } finally {
+            isProcessingBack = false
+            android.util.Log.d("MenuManager", "[BACK] 🔄 Back operation flag reset")
+        }
+    }
     /** Get current selected index */
     fun getCurrentSelectedIndex(): Int {
         val fragment = getCurrentFragment()

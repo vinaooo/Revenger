@@ -225,11 +225,13 @@ class GameActivityViewModel(application: Application) :
         }
 
         // Control when to intercept DPAD for menu
-        controllerInput.shouldInterceptDpadForMenu = { isAnyMenuActive() }
+        controllerInput.shouldInterceptDpadForMenu = {
+            isAnyMenuActive() && !isDismissingAllMenus()
+        }
 
         // Control when START button alone should work (only when RetroMenu3 or SettingsMenu
         // is REALLY open)
-        controllerInput.shouldHandleStartButton = { isAnyMenuActive() }
+        controllerInput.shouldHandleStartButton = { isAnyMenuActive() && !isDismissingAllMenus() }
 
         // Control when to block ALL gamepad inputs (when RetroMenu3 or SettingsMenu
         // is open)
@@ -237,6 +239,23 @@ class GameActivityViewModel(application: Application) :
 
         // Control if RetroMenu3 or SettingsMenu is open for combo reset
         controllerInput.isRetroMenu3Open = { isAnyMenuActive() }
+
+        // Control if it's safe to execute menu callbacks (no critical operations in progress)
+        controllerInput.isMenuOperationSafe = {
+            val dismissingAll = isDismissingAllMenus()
+            val fragmentDismissing = retroMenu3Fragment?.isDismissingMenu() == true
+            val result = !dismissingAll && !fragmentDismissing
+
+            android.util.Log.d("GameActivityViewModel", "[SAFE] isMenuOperationSafe check:")
+            android.util.Log.d("GameActivityViewModel", "[SAFE]   dismissingAll=$dismissingAll")
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[SAFE]   fragmentDismissing=$fragmentDismissing"
+            )
+            android.util.Log.d("GameActivityViewModel", "[SAFE]   RESULT=$result")
+
+            result
+        }
     }
 
     /** Create an instance of the RetroMenu3 overlay (activated by SELECT+START) */

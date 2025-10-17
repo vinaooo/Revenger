@@ -19,7 +19,8 @@ interface MenuInputHandler {
 class MenuInputHandlerImpl(
         private val fragment: RetroMenu3Fragment,
         private val stateController: MenuStateController,
-        private val callbackManager: MenuCallbackManager
+        private val callbackManager: MenuCallbackManager,
+        private val actionHandler: MenuActionHandler
 ) : MenuInputHandler {
 
     override fun setupInputHandling(menuViews: MenuViews) {
@@ -58,32 +59,29 @@ class MenuInputHandlerImpl(
 
         when (item.action) {
             MenuAction.CONTINUE -> {
-                MenuLogger.action("MenuInputHandler: CONTINUE selected - delegating to fragment")
-                // Continue game is handled directly by fragment click
-                fragment.performContinueGame()
+                MenuLogger.action("MenuInputHandler: CONTINUE selected - executing action")
+                actionHandler.executeAction(MenuAction.CONTINUE)
             }
             MenuAction.RESET -> {
-                MenuLogger.action("MenuInputHandler: RESET selected - calling callback")
-                callbackManager.onResetGame()
-                // Also trigger fragment click for UI feedback
-                fragment.performResetGame()
+                MenuLogger.action("MenuInputHandler: RESET selected - executing action")
+                actionHandler.executeAction(MenuAction.RESET)
             }
             MenuAction.SAVE_STATE -> {
                 MenuLogger.action("MenuInputHandler: SAVE_STATE selected - calling callback")
                 callbackManager.onSaveState()
                 // Open progress submenu for save state selection
-                fragment.performOpenProgress()
+                actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.PROGRESS_MENU))
             }
             MenuAction.TOGGLE_AUDIO -> {
                 MenuLogger.action("MenuInputHandler: TOGGLE_AUDIO selected - calling callback")
                 callbackManager.onToggleAudio()
                 // Trigger settings menu click for UI feedback
-                fragment.performOpenSettings()
+                actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.SETTINGS_MENU))
             }
             MenuAction.EXIT -> {
                 MenuLogger.action("MenuInputHandler: EXIT selected - opening exit menu")
                 // Open exit confirmation submenu
-                fragment.performOpenExitMenu()
+                actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.EXIT_MENU))
             }
             else -> {
                 MenuLogger.action("MenuInputHandler: Unknown action: ${item.action}")

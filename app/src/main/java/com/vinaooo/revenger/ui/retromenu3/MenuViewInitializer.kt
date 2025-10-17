@@ -37,9 +37,10 @@ data class MenuViews(
 /** Interface para inicialização de views do menu. */
 interface MenuViewInitializer {
     fun initializeViews(view: View): MenuViews
-    fun setupClickListeners(views: MenuViews, onItemClick: (MenuItem) -> Unit)
+    fun setupClickListeners(views: MenuViews, actionHandler: MenuActionHandler)
     fun setupDynamicTitle(views: MenuViews)
     fun configureInitialViewStates(views: MenuViews)
+    fun updateControlsHint(views: MenuViews)
 }
 
 /**
@@ -85,23 +86,28 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
         return menuViews
     }
 
-    override fun setupClickListeners(views: MenuViews, onItemClick: (MenuItem) -> Unit) {
+    override fun setupClickListeners(views: MenuViews, actionHandler: MenuActionHandler) {
         MenuLogger.lifecycle("MenuViewInitializer: setupClickListeners START")
 
         views.continueMenu.setOnClickListener {
-            onItemClick(MenuItem("continue", "Continue", action = MenuAction.CONTINUE))
+            MenuLogger.action("🎮 Continue game - closing menu")
+            actionHandler.executeAction(MenuAction.CONTINUE)
         }
         views.resetMenu.setOnClickListener {
-            onItemClick(MenuItem("reset", "Reset", action = MenuAction.RESET))
+            MenuLogger.action("🔄 Reset game - closing menu and resetting")
+            actionHandler.executeAction(MenuAction.RESET)
         }
         views.progressMenu.setOnClickListener {
-            onItemClick(MenuItem("progress", "Progress", action = MenuAction.SAVE_STATE))
+            MenuLogger.action("📊 Open Progress submenu")
+            actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.PROGRESS_MENU))
         }
         views.settingsMenu.setOnClickListener {
-            onItemClick(MenuItem("settings", "Settings", action = MenuAction.TOGGLE_AUDIO))
+            MenuLogger.action("⚙️ Open Settings submenu")
+            actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.SETTINGS_MENU))
         }
         views.exitMenu.setOnClickListener {
-            onItemClick(MenuItem("exit", "Exit", action = MenuAction.EXIT))
+            MenuLogger.action("🚪 Open Exit menu")
+            actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.EXIT_MENU))
         }
 
         MenuLogger.lifecycle("MenuViewInitializer: setupClickListeners COMPLETED")
@@ -159,5 +165,21 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
         }
 
         MenuLogger.lifecycle("MenuViewInitializer: configureInitialViewStates COMPLETED")
+    }
+
+    override fun updateControlsHint(views: MenuViews) {
+        MenuLogger.lifecycle("MenuViewInitializer: updateControlsHint START")
+
+        val hintText = fragment.getString(R.string.retro_menu3_controls_hint)
+        android.util.Log.d("RetroMenu3", "[CONTROLS_HINT] Setting text: '$hintText'")
+        views.controlsHint.text = hintText
+        views.controlsHint.visibility = android.view.View.VISIBLE
+        views.controlsHint.alpha = 1.0f
+        android.util.Log.d(
+                "RetroMenu3",
+                "[CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: ${views.controlsHint.visibility}"
+        )
+
+        MenuLogger.lifecycle("MenuViewInitializer: updateControlsHint COMPLETED")
     }
 }

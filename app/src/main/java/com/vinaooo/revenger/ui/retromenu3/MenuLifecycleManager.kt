@@ -31,7 +31,8 @@ class MenuLifecycleManagerImpl(
         private val inputHandler: MenuInputHandler,
         private val stateController: MenuStateController,
         private val callbackManager: MenuCallbackManager,
-        private val menuViewManager: MenuViewManager
+        private val menuViewManager: MenuViewManager,
+        private val actionHandler: MenuActionHandler
 ) : MenuLifecycleManager {
     private lateinit var menuViews: MenuViews
 
@@ -54,9 +55,9 @@ class MenuLifecycleManagerImpl(
             // Inicializar views através do viewInitializer
             val menuViews = viewInitializer.initializeViews(view)
 
-            // CHAMAR setupViews DO FRAGMENT PARA CONFIGURAÇÕES ADICIONAIS
-            fragment.setupViewsPublic(view)
-            MenuLogger.lifecycle("MenuLifecycleManager: Fragment setupViews completed")
+            // ARMAZENAR menuViews NO FRAGMENT
+            (fragment as? RetroMenu3Fragment)?.menuViews = menuViews
+            MenuLogger.lifecycle("MenuLifecycleManager: menuViews stored in fragment")
 
             // Configurar estados iniciais das views
             viewInitializer.configureInitialViewStates(menuViews)
@@ -78,9 +79,7 @@ class MenuLifecycleManagerImpl(
             inputHandler.setupInputHandling(menuViews)
 
             // Configurar click listeners
-            viewInitializer.setupClickListeners(menuViews) { menuItem ->
-                inputHandler.handleMenuItemSelected(menuItem)
-            }
+            viewInitializer.setupClickListeners(menuViews, actionHandler)
 
             // Iniciar animação do menu
             animationController.animateMenuIn()
@@ -100,13 +99,41 @@ class MenuLifecycleManagerImpl(
 
     override fun onResume() {
         MenuLogger.lifecycle("MenuLifecycleManager: onResume START")
-        // TODO: Implementar updateControlsHint se necessário
+
+        // Ensure controls hint is always visible
+        if (::menuViews.isInitialized) {
+            viewInitializer.updateControlsHint(menuViews)
+            android.util.Log.d("MenuLifecycleManager", "[ON_RESUME] Controls hint ensured visible")
+        }
+
         MenuLogger.lifecycle("MenuLifecycleManager: onResume COMPLETED")
     }
 
     override fun onDestroy() {
         MenuLogger.lifecycle("MenuLifecycleManager: onDestroy START")
-        // TODO: Cleanup de listeners se necessário
+
+        // Notify ViewModel that fragment is being destroyed
+        (fragment.getMenuListener() as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)
+                ?.onRetroMenu3FragmentDestroyed()
+
+        // Clean up back stack change listener to prevent memory leaks
+        // Note: This is handled by SubmenuCoordinator
+
+        // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
+        try {
+            (fragment.getMenuListener() as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)
+                    ?.let { viewModel ->
+                        // Call clearKeyLog through ViewModel to reset combo state
+                        viewModel.clearControllerKeyLog()
+                    }
+        } catch (e: Exception) {
+            android.util.Log.w(
+                    "MenuLifecycleManager",
+                    "Error resetting combo state in onDestroy",
+                    e
+            )
+        }
+
         MenuLogger.lifecycle("MenuLifecycleManager: onDestroy COMPLETED")
     }
 }

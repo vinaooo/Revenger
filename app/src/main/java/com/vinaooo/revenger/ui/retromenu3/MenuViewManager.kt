@@ -317,6 +317,35 @@ class MenuViewManager(private val fragment: Fragment) {
         Log.d(TAG, "[VIEW] restoreMainMenu completed - main menu restored")
     }
 
+    /** Make main menu invisible (when submenu is opened) */
+    fun hideMainMenu() {
+        Log.d(TAG, "[VIEW] hideMainMenu called")
+        if (!::menuContainerView.isInitialized) {
+            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot hide main menu")
+            return
+        }
+        // Hide only the menu content, keeping the background for the submenu
+        menuContainerView.visibility = View.INVISIBLE
+        Log.d(TAG, "[VIEW] hideMainMenu completed - main menu hidden")
+    }
+
+    /** Make main menu visible again (when submenu is closed) */
+    fun showMainMenu(preserveSelection: Boolean = false) {
+        Log.d(TAG, "[VIEW] showMainMenu called with preserveSelection=$preserveSelection")
+        if (!::menuContainerView.isInitialized) {
+            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot show main menu")
+            return
+        }
+
+        // Make visible
+        menuContainerView.visibility = View.VISIBLE
+
+        // Ensure alpha is at 1.0 (fully visible)
+        menuContainerView.alpha = 1.0f
+
+        Log.d(TAG, "[VIEW] showMainMenu completed - main menu shown")
+    }
+
     // Getters para acesso às views quando necessário
     fun getMenuItems(): List<RetroCardView> = menuItems
     fun getMenuItemViews(): List<MenuItemView> = menuItemViews
