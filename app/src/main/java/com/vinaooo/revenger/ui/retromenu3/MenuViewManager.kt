@@ -159,6 +159,17 @@ class MenuViewManager(private val fragment: Fragment) {
                 selectionArrowExit
         )
 
+        // Aplicar capitalização configurada aos textos dos menus (depois da fonte)
+        FontUtils.applyTextCapitalization(
+                fragment.requireContext(),
+                continueTitle,
+                resetTitle,
+                progressTitle,
+                settingsTitle,
+                exitTitle,
+                controlsHint
+        )
+
         // Set first item as selected
         updateSelectionVisual(0)
     }
@@ -288,12 +299,12 @@ class MenuViewManager(private val fragment: Fragment) {
                 "[VIEW] hideMainMenuTexts - menuTitleTextView visibility after: ${menuTitleTextView?.visibility}"
         )
 
-        // Também ocultar o hint de controles se existir
-        if (::controlsHint.isInitialized) {
-            controlsHint.visibility = View.INVISIBLE
-        }
+        // Manter o hint de controles sempre visível
+        // if (::controlsHint.isInitialized) {
+        //     controlsHint.visibility = View.INVISIBLE
+        // }
 
-        Log.d(TAG, "[VIEW] hideMainMenuTexts completed - main menu texts hidden")
+        Log.d(TAG, "[VIEW] hideMainMenuTexts completed - main menu texts hidden (hint preserved)")
     }
 
     /** Mostra novamente os textos do menu principal (quando submenu é fechado) */
@@ -342,6 +353,36 @@ class MenuViewManager(private val fragment: Fragment) {
         // Hide only the menu content, keeping the background for the submenu
         menuContainerView.visibility = View.INVISIBLE
         Log.d(TAG, "[VIEW] hideMainMenu completed - main menu hidden")
+    }
+
+    /** Oculta completamente o menu principal de uma vez (para evitar piscada visual) */
+    fun hideMainMenuCompletely() {
+        Log.d(TAG, "[VIEW] hideMainMenuCompletely called")
+        if (!::menuContainerView.isInitialized) {
+            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot hide main menu completely")
+            return
+        }
+
+        // Ocultar o container do menu
+        menuContainerView.visibility = View.INVISIBLE
+
+        // Ocultar todos os textos dos itens do menu principal em uma única operação
+        if (::menuItemViews.isInitialized) {
+            menuItemViews.forEach { menuItemView ->
+                menuItemView.titleTextView.visibility = View.INVISIBLE
+                menuItemView.arrowTextView.visibility = View.INVISIBLE
+            }
+        }
+
+        // Ocultar o título principal do menu
+        menuTitleTextView?.visibility = View.INVISIBLE
+
+        // Manter o hint de controles sempre visível
+        // if (::controlsHint.isInitialized) {
+        //     controlsHint.visibility = View.INVISIBLE
+        // }
+
+        Log.d(TAG, "[VIEW] hideMainMenuCompletely completed - main menu completely hidden without flicker")
     }
 
     /** Make main menu visible again (when submenu is closed) */

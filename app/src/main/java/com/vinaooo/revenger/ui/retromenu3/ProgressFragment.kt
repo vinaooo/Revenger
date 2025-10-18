@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -124,6 +125,15 @@ class ProgressFragment : MenuFragmentBase() {
                 selectionArrowSaveState,
                 selectionArrowLoadState,
                 selectionArrowBack
+        )
+
+        // Aplicar capitalização configurada aos textos
+        FontUtils.applyTextCapitalization(
+                requireContext(),
+                progressTitle,
+                saveStateTitle,
+                loadStateTitle,
+                backTitle
         )
     }
 

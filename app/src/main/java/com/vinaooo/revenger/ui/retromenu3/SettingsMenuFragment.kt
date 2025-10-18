@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -199,6 +200,16 @@ class SettingsMenuFragment : MenuFragmentBase() {
                         if (isFastForwardEnabled) R.string.fast_forward_active
                         else R.string.fast_forward_inactive
                 )
+
+        // Aplicar capitalização configurada aos textos
+        FontUtils.applyTextCapitalization(
+                requireContext(),
+                settingsMenuTitle,
+                soundTitle,
+                shaderTitle,
+                gameSpeedTitle,
+                backTitle
+        )
     }
 
     /** Navigate up in the menu */

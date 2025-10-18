@@ -20,7 +20,7 @@
     
     <!-- Selection Arrow -->
     <dimen name="retro_menu3_arrow_margin_start">12dp</dimen>
-    <dimen name="retro_menu3_arrow_margin_end">8dp</dimen>
+    <dimen name="retro_menu3_arrow_margin_end">0dp</dimen>
     
     <!-- Text Sizes -->
     <dimen name="retro_menu3_title_text_size">24sp</dimen>

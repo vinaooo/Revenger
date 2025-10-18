@@ -125,6 +125,9 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
 
         views.titleTextView.text = titleText
 
+        // Aplicar capitalização configurada ao título
+        FontUtils.applyTextCapitalization(fragment.requireContext(), views.titleTextView)
+
         // Garantir fonte Arcade no título
         FontUtils.applySelectedFont(fragment.requireContext(), views.titleTextView)
 

@@ -3,6 +3,7 @@ package com.vinaooo.revenger.utils
 import android.content.Context
 import android.graphics.Typeface
 import android.util.Log
+import com.vinaooo.revenger.R
 
 object FontUtils {
     private const val TAG = "FontUtils"
@@ -122,5 +123,33 @@ object FontUtils {
         if (typeface != null) {
             textViews.forEach { it.typeface = typeface }
         }
+    }
+
+    /** Aplica capitalização configurada ao texto de um TextView */
+    fun applyTextCapitalization(context: Context, textView: android.widget.TextView) {
+        val capitalizationStyle =
+                context.resources.getInteger(
+                        com.vinaooo.revenger.R.integer.retro_menu3_text_capitalization
+                )
+        val originalText = textView.text.toString()
+
+        val capitalizedText =
+                when (capitalizationStyle) {
+                    1 -> {
+                        // Primeira letra maiúscula - mais robusto
+                        originalText.lowercase().replaceFirstChar { it.uppercase() }
+                    }
+                    2 -> originalText.uppercase() // Tudo maiúsculo
+                    else -> originalText // Normal (padrão)
+                }
+
+        if (capitalizedText != originalText) {
+            textView.text = capitalizedText
+        }
+    }
+
+    /** Aplica capitalização configurada ao texto de múltiplos TextViews */
+    fun applyTextCapitalization(context: Context, vararg textViews: android.widget.TextView) {
+        textViews.forEach { applyTextCapitalization(context, it) }
     }
 }

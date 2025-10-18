@@ -7,12 +7,12 @@
     <color name="retro_menu3_submenu_background">#00000000</color>
 
     <!-- Text Colors -->
-    <color name="retro_menu3_text_color">#FFFFFF</color>
+    <color name="retro_menu3_text_color">#F5F5F5</color>
     <color name="retro_menu3_shadow_color">#000000</color>
 
     <!-- Selection and State Colors -->
     <color name="retro_menu3_selected_color">#FFFF00</color>
-    <color name="retro_menu3_normal_color">#FFFFFF</color>
+    <color name="retro_menu3_normal_color">#F5F5F5</color>
     <color name="retro_menu3_disabled_color">#808080</color>
     <color name="retro_menu3_transparent_color">#00000000</color>
 </resources>

@@ -73,32 +73,25 @@ class SubmenuCoordinator(
     private fun showSettingsSubmenu() {
         Log.d(TAG, "[DEBUG] showSettingsSubmenu START")
         try {
-            Log.d(TAG, "[DEBUG] showSettingsSubmenu - Calling hideMainMenu and hideMainMenuTexts")
-            // OCULTAR COMPLETAMENTE O MENU PRINCIPAL ANTES DE ABRIR SUBMENU
-            viewManager.hideMainMenu()
-
-            // OCULTAR TEXTOS DO MENU PRINCIPAL ANTES DE ABRIR SUBMENU (SOMENTE SE INICIALIZADO)
-            if (viewManager.isViewsInitialized()) {
-                viewManager.hideMainMenuTexts()
-                Log.d(TAG, "[DEBUG] showSettingsSubmenu - hideMainMenuTexts called successfully")
-            } else {
-                Log.d(
-                        TAG,
-                        "[DEBUG] showSettingsSubmenu - MenuViewManager not initialized, skipping hideMainMenuTexts"
-                )
-            }
-
             Log.e(TAG, "[DEBUG] showSettingsSubmenu - Creating SettingsMenuFragment")
             val settingsFragment = SettingsMenuFragment.newInstance()
             settingsFragment.setSettingsListener(
                     fragment as SettingsMenuFragment.SettingsMenuListener
             )
 
+            // Primeiro adicionar o submenu (mas invisível inicialmente)
             fragment.parentFragmentManager
                     .beginTransaction()
-                    .add(android.R.id.content, settingsFragment, "SettingsMenuFragment")
+                    .replace(android.R.id.content, settingsFragment, "SettingsMenuFragment")
                     .addToBackStack("SettingsMenuFragment")
                     .commitAllowingStateLoss()
+
+            // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
+            fragment.view?.post {
+                Log.d(TAG, "[DEBUG] showSettingsSubmenu - Calling hideMainMenuCompletely after fragment added")
+                // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
+                viewManager.hideMainMenuCompletely()
+            }
 
             // Registrar o fragment no ViewModel
             viewModel.registerSettingsMenuFragment(settingsFragment)
@@ -115,30 +108,23 @@ class SubmenuCoordinator(
     private fun showProgressSubmenu() {
         Log.d(TAG, "[DEBUG] showProgressSubmenu START")
         try {
-            Log.d(TAG, "[DEBUG] showProgressSubmenu - Calling hideMainMenu and hideMainMenuTexts")
-            // OCULTAR COMPLETAMENTE O MENU PRINCIPAL ANTES DE ABRIR SUBMENU
-            viewManager.hideMainMenu()
-
-            // OCULTAR TEXTOS DO MENU PRINCIPAL ANTES DE ABRIR SUBMENU (SOMENTE SE INICIALIZADO)
-            if (viewManager.isViewsInitialized()) {
-                viewManager.hideMainMenuTexts()
-                Log.d(TAG, "[DEBUG] showProgressSubmenu - hideMainMenuTexts called successfully")
-            } else {
-                Log.d(
-                        TAG,
-                        "[DEBUG] showProgressSubmenu - MenuViewManager not initialized, skipping hideMainMenuTexts"
-                )
-            }
-
             Log.e(TAG, "[DEBUG] showProgressSubmenu - Creating ProgressFragment")
             val progressFragment = ProgressFragment.newInstance()
             progressFragment.setProgressListener(fragment as ProgressFragment.ProgressListener)
 
+            // Primeiro adicionar o submenu (mas invisível inicialmente)
             fragment.parentFragmentManager
                     .beginTransaction()
-                    .add(android.R.id.content, progressFragment, "ProgressFragment")
+                    .replace(android.R.id.content, progressFragment, "ProgressFragment")
                     .addToBackStack("ProgressFragment")
                     .commitAllowingStateLoss()
+
+            // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
+            fragment.view?.post {
+                Log.d(TAG, "[DEBUG] showProgressSubmenu - Calling hideMainMenuCompletely after fragment added")
+                // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
+                viewManager.hideMainMenuCompletely()
+            }
 
             // Registrar o fragment no ViewModel
             viewModel.registerProgressFragment(progressFragment)
@@ -155,30 +141,23 @@ class SubmenuCoordinator(
     private fun showExitSubmenu() {
         Log.d(TAG, "[DEBUG] showExitSubmenu START")
         try {
-            Log.d(TAG, "[DEBUG] showExitSubmenu - Calling hideMainMenu and hideMainMenuTexts")
-            // OCULTAR COMPLETAMENTE O MENU PRINCIPAL ANTES DE ABRIR SUBMENU
-            viewManager.hideMainMenu()
-
-            // OCULTAR TEXTOS DO MENU PRINCIPAL ANTES DE ABRIR SUBMENU (SOMENTE SE INICIALIZADO)
-            if (viewManager.isViewsInitialized()) {
-                viewManager.hideMainMenuTexts()
-                Log.d(TAG, "[DEBUG] showExitSubmenu - hideMainMenuTexts called successfully")
-            } else {
-                Log.d(
-                        TAG,
-                        "[DEBUG] showExitSubmenu - MenuViewManager not initialized, skipping hideMainMenuTexts"
-                )
-            }
-
             Log.e(TAG, "[DEBUG] showExitSubmenu - Creating ExitFragment")
             val exitFragment = ExitFragment.newInstance()
             exitFragment.setExitListener(fragment as ExitFragment.ExitListener)
 
+            // Primeiro adicionar o submenu (mas invisível inicialmente)
             fragment.parentFragmentManager
                     .beginTransaction()
-                    .add(android.R.id.content, exitFragment, "ExitFragment")
+                    .replace(android.R.id.content, exitFragment, "ExitFragment")
                     .addToBackStack("ExitFragment")
                     .commitAllowingStateLoss()
+
+            // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
+            fragment.view?.post {
+                Log.d(TAG, "[DEBUG] showExitSubmenu - Calling hideMainMenuCompletely after fragment added")
+                // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
+                viewManager.hideMainMenuCompletely()
+            }
 
             // Registrar o fragment no ViewModel
             viewModel.registerExitFragment(exitFragment)
