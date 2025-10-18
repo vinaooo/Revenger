@@ -16,6 +16,7 @@ object FontUtils {
     private var pixelifyTypeface: Typeface? = null
     private var micro5Typeface: Typeface? = null
     private var tiny5Typeface: Typeface? = null
+    private var dynamicTypefaces: MutableMap<String, Typeface> = mutableMapOf()
 
     /** Carrega e retorna a fonte arcade de assets/fonts/ */
     fun getArcadeTypeface(context: Context): Typeface? {
@@ -77,10 +78,41 @@ object FontUtils {
         return tiny5Typeface
     }
 
+    /** Carrega e retorna uma fonte dinâmica de assets/fonts/ baseada no nome fornecido */
+    fun getDynamicTypeface(context: Context, fontName: String): Typeface? {
+        // Verificar se já temos essa fonte em cache
+        val cacheKey = "dynamic_$fontName"
+        val cachedTypeface = dynamicTypefaces[cacheKey]
+        if (cachedTypeface != null) {
+            return cachedTypeface
+        }
+
+        // Tentar carregar o arquivo .ttf
+        val fontPath = "fonts/$fontName.ttf"
+        return try {
+            val typeface = Typeface.createFromAsset(context.assets, fontPath)
+            Log.d(TAG, "Dynamic font loaded successfully from assets/$fontPath")
+            // Cachear a fonte carregada
+            dynamicTypefaces[cacheKey] = typeface
+            typeface
+        } catch (e: Exception) {
+            Log.d(TAG, "Dynamic font not found at assets/$fontPath, will use fallback")
+            null
+        }
+    }
+
     /** Retorna a fonte selecionada baseada na configuração do XML */
     fun getSelectedTypeface(context: Context): Typeface? {
         val selectedFont =
                 context.resources.getString(com.vinaooo.revenger.R.string.retro_menu3_font)
+
+        // Primeiro tentar carregar dinamicamente como arquivo .ttf
+        val dynamicTypeface = getDynamicTypeface(context, selectedFont)
+        if (dynamicTypeface != null) {
+            return dynamicTypeface
+        }
+
+        // Fallback para opções hardcoded
         return when (selectedFont) {
             "pixelify" -> getPixelifyTypeface(context)
             "micro5" -> getMicro5Typeface(context)
