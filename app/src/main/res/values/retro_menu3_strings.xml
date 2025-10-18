@@ -17,6 +17,20 @@
          1 = capitalize first letter only
          2 = all uppercase -->
     <integer name="retro_menu3_text_capitalization">2</integer>
+    <!-- Font Selection -->
+        <!-- PLUG-AND-PLAY FONT SYSTEM:
+             Para adicionar uma nova fonte:
+             1. Coloque o arquivo .ttf em app/src/main/assets/fonts/
+             2. Defina apenas o nome do arquivo (sem extensão .ttf) abaixo
+             3. A fonte será carregada automaticamente!
+             
+             Exemplos válidos:
+             - "minha_fonte" (carrega minha_fonte.ttf)
+             - "pixelify" (fonte hardcoded existente)
+             - "arcade" (fonte padrão)
+             
+             Fallback automático: se a fonte não existir, usa "arcade" -->
+    <string name="retro_menu3_font">tiny5</string>
 
     <!-- Selection Arrow -->
     <string name="retro_menu3_selection_arrow">&gt;</string>
@@ -60,20 +74,5 @@
 
     <!-- Menu Control hint -->
     <string name="retro_menu3_controls_hint">[A] Confirm  [B] Back</string>
-
-    <!-- Font Selection -->
-        <!-- PLUG-AND-PLAY FONT SYSTEM:
-             Para adicionar uma nova fonte:
-             1. Coloque o arquivo .ttf em app/src/main/assets/fonts/
-             2. Defina apenas o nome do arquivo (sem extensão .ttf) abaixo
-             3. A fonte será carregada automaticamente!
-             
-             Exemplos válidos:
-             - "minha_fonte" (carrega minha_fonte.ttf)
-             - "pixelify" (fonte hardcoded existente)
-             - "arcade" (fonte padrão)
-             
-             Fallback automático: se a fonte não existir, usa "arcade" -->
-    <string name="retro_menu3_font">tiny5</string>
 
 </resources>
