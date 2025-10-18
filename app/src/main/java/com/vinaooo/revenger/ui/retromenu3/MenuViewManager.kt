@@ -382,7 +382,10 @@ class MenuViewManager(private val fragment: Fragment) {
         //     controlsHint.visibility = View.INVISIBLE
         // }
 
-        Log.d(TAG, "[VIEW] hideMainMenuCompletely completed - main menu completely hidden without flicker")
+        Log.d(
+                TAG,
+                "[VIEW] hideMainMenuCompletely completed - main menu completely hidden without flicker"
+        )
     }
 
     /** Make main menu visible again (when submenu is closed) */

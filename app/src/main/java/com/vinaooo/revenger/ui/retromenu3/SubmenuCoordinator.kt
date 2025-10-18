@@ -88,7 +88,10 @@ class SubmenuCoordinator(
 
             // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
             fragment.view?.post {
-                Log.d(TAG, "[DEBUG] showSettingsSubmenu - Calling hideMainMenuCompletely after fragment added")
+                Log.d(
+                        TAG,
+                        "[DEBUG] showSettingsSubmenu - Calling hideMainMenuCompletely after fragment added"
+                )
                 // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
                 viewManager.hideMainMenuCompletely()
             }
@@ -121,7 +124,10 @@ class SubmenuCoordinator(
 
             // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
             fragment.view?.post {
-                Log.d(TAG, "[DEBUG] showProgressSubmenu - Calling hideMainMenuCompletely after fragment added")
+                Log.d(
+                        TAG,
+                        "[DEBUG] showProgressSubmenu - Calling hideMainMenuCompletely after fragment added"
+                )
                 // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
                 viewManager.hideMainMenuCompletely()
             }
@@ -154,7 +160,10 @@ class SubmenuCoordinator(
 
             // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
             fragment.view?.post {
-                Log.d(TAG, "[DEBUG] showExitSubmenu - Calling hideMainMenuCompletely after fragment added")
+                Log.d(
+                        TAG,
+                        "[DEBUG] showExitSubmenu - Calling hideMainMenuCompletely after fragment added"
+                )
                 // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
                 viewManager.hideMainMenuCompletely()
             }
