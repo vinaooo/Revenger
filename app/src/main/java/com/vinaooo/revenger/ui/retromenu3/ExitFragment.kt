@@ -162,8 +162,8 @@ class ExitFragment : MenuFragmentBase() {
         }
 
         backExitMenu.setOnClickListener {
-            // Back - Return to main menu
-            viewModel.dismissExit()
+            // Return to main menu by calling listener method (same as pressing B)
+            exitListener?.onBackToMainMenu()
         }
     }
 

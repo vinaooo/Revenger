@@ -75,6 +75,11 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         if (index in 0 until menuItems.size) {
             _currentSelectedIndex = index
             updateSelectionVisualInternal()
+        } else {
+            android.util.Log.w(
+                    "MenuFragmentBase",
+                    "Invalid index $index, valid range: 0..${menuItems.size-1}"
+            )
         }
     }
 

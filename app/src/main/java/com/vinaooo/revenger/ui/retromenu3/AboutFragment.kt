@@ -8,7 +8,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -245,10 +244,8 @@ class AboutFragment : MenuFragmentBase() {
 
     private fun setupClickListeners() {
         backAbout.setOnClickListener {
-            // Return to main menu
-            MenuLogger.d("[BACK] backAbout onClick called - calling viewModel.dismissAboutMenu()")
-            viewModel.dismissAboutMenu()
-            MenuLogger.d("[BACK] backAbout onClick completed")
+            // Return to main menu by calling listener method (same as pressing B)
+            aboutListener?.onAboutBackToMainMenu()
         }
     }
 

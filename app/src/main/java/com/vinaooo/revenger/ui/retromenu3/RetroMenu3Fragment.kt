@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
@@ -85,8 +84,6 @@ class RetroMenu3Fragment :
          * managers estejam prontos.
          */
         private fun initializeManagers() {
-                MenuLogger.lifecycle("RetroMenu3Fragment: initializeManagers START")
-
                 // Inicializar ViewModel
                 viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
@@ -130,8 +127,6 @@ class RetroMenu3Fragment :
                                 menuViewManager = menuViewManager,
                                 actionHandler = actionHandler
                         )
-
-                MenuLogger.lifecycle("RetroMenu3Fragment: initializeManagers COMPLETED")
         }
 
         override fun onCreateView(
@@ -373,10 +368,6 @@ class RetroMenu3Fragment :
 
         /** Make main menu visible again (when submenu is closed) */
         fun showMainMenu(preserveSelection: Boolean = false) {
-                MenuLogger.d(
-                        "[SHOW_MAIN_MENU] showMainMenu called with preserveSelection=$preserveSelection"
-                )
-
                 // Delegate view visibility to MenuViewManager
                 menuViewManager.showMainMenu(preserveSelection)
 
@@ -385,17 +376,18 @@ class RetroMenu3Fragment :
 
                 // Reset to first option when showing main menu, unless preserving selection
                 if (!preserveSelection) {
-                        MenuLogger.d("[SHOW_MAIN_MENU] Resetting selected index to 0")
                         setSelectedIndex(0)
-                } else {
-                        MenuLogger.d("[SHOW_MAIN_MENU] Preserving selection - NOT resetting to 0")
                 }
 
                 // Update menu state (including audio) when returning from submenu
                 // Main menu no longer has dynamic options - everything was moved to submenus
 
                 // Ensure visual selection is updated when menu becomes visible again
-                getAnimationController().updateSelectionVisual(getCurrentSelectedIndex())
+                // Only update if we're not preserving selection (which means selection was already
+                // set)
+                if (!preserveSelection) {
+                        getAnimationController().updateSelectionVisual(getCurrentSelectedIndex())
+                }
 
                 // Layout will be updated automatically when properties change
         }
@@ -424,20 +416,12 @@ class RetroMenu3Fragment :
         // IMPLEMENTAÇÃO DAS INTERFACES DOS SUBMENUS
         override fun onBackToMainMenu() {
                 // Fechar submenu e voltar ao menu principal
-                MenuLogger.d(
-                        "[BACK] RetroMenu3Fragment onBackToMainMenu() called - calling SubmenuCoordinator.closeCurrentSubmenu()"
-                )
                 submenuCoordinator.closeCurrentSubmenu()
-                MenuLogger.d("[BACK] RetroMenu3Fragment onBackToMainMenu() completed")
         }
 
         override fun onAboutBackToMainMenu() {
                 // Fechar submenu About e voltar ao menu principal
-                MenuLogger.d(
-                        "[BACK] RetroMenu3Fragment onAboutBackToMainMenu() called - calling SubmenuCoordinator.closeCurrentSubmenu()"
-                )
                 submenuCoordinator.closeCurrentSubmenu()
-                MenuLogger.d("[BACK] RetroMenu3Fragment onAboutBackToMainMenu() completed")
         }
 
         companion object {

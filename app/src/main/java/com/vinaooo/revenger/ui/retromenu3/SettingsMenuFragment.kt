@@ -9,7 +9,6 @@ import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.FontUtils
-import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -173,13 +172,8 @@ class SettingsMenuFragment : MenuFragmentBase() {
         }
 
         backSettings.setOnClickListener {
-            // Return to main menu
-            // Call ViewModel method directly like other submenus do
-            MenuLogger.d(
-                    "[BACK] backSettings onClick called - calling viewModel.dismissSettingsMenu()"
-            )
-            viewModel.dismissSettingsMenu()
-            MenuLogger.d("[BACK] backSettings onClick completed")
+            // Return to main menu by calling listener method (same as pressing B)
+            settingsListener?.onBackToMainMenu()
         }
     }
 
@@ -270,11 +264,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
     /** Back action */
     override fun performBack(): Boolean {
         // For settings submenu, back should go to main menu
-        MenuLogger.d(
-                "[BACK] SettingsMenuFragment performBack() called - calling backSettings.performClick()"
-        )
         backSettings.performClick()
-        MenuLogger.d("[BACK] SettingsMenuFragment performBack() completed")
         return true
     }
 

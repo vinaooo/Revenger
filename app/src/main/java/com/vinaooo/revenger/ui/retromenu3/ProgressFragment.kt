@@ -183,8 +183,13 @@ class ProgressFragment : MenuFragmentBase() {
         }
 
         backProgress.setOnClickListener {
-            // Return to main menu by calling ViewModel method
-            viewModel.dismissProgress()
+            // Return to main menu by calling listener method (same as pressing B)
+            android.util.Log.d(
+                    TAG,
+                    "[BACK] backProgress onClick - calling progressListener.onBackToMainMenu()"
+            )
+            progressListener?.onBackToMainMenu()
+            android.util.Log.d(TAG, "[BACK] backProgress onClick completed")
         }
     }
 

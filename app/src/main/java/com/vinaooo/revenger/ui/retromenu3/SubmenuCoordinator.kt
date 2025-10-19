@@ -3,7 +3,6 @@ package com.vinaooo.revenger.ui.retromenu3
 import android.util.Log
 import androidx.fragment.app.Fragment
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 class SubmenuCoordinator(
@@ -27,13 +26,69 @@ class SubmenuCoordinator(
     // Flag to prevent multiple simultaneous close operations
     private var isClosingSubmenu: Boolean = false
 
+    // Flag to indicate when submenu is being closed programmatically (not via back stack)
+    private var isClosingSubmenuProgrammatically: Boolean = false
+
+    // Flag to prevent multiple restoration operations
+    private var isRestoringSelection: Boolean = false
+
+    // NOVO: Flag para indicar se há um submenu aberto (para controlar restauração)
+    private var hasSubmenuOpen: Boolean = false
+
     // Callbacks para métodos do fragment
     private var showMainMenuCallback: ((Boolean) -> Unit)? = null
     private var setSelectedIndexCallback: ((Int) -> Unit)? = null
     private var getCurrentSelectedIndexCallback: (() -> Int)? = null
 
-    fun setMainMenuSelectedIndexBeforeSubmenu(index: Int) {
-        mainMenuSelectedIndexBeforeSubmenu = index
+    private fun restoreMainMenuSelection() {
+        if (!hasSubmenuOpen) {
+            Log.d(TAG, "[RESTORE] No submenu was open - skipping restoration")
+            return
+        }
+
+        if (isRestoringSelection) {
+            Log.d(TAG, "[RESTORE] Already restoring selection - skipping")
+            return
+        }
+
+        isRestoringSelection = true
+        hasSubmenuOpen = false
+
+        Log.d(
+                TAG,
+                "[RESTORE] Restoring main menu selection to index: $mainMenuSelectedIndexBeforeSubmenu"
+        )
+
+        // Garantir que os textos do menu principal sejam mostrados
+        viewManager.showMainMenuTexts()
+
+        // IMPORTANTE: Restaurar o estado do menu para MAIN_MENU
+        menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
+
+        // RESTAURAR O ÍNDICE SELECIONADO PARA O ITEM QUE ABRIU O SUBMENU
+        setSelectedIndexCallback?.invoke(mainMenuSelectedIndexBeforeSubmenu)
+
+        // AGUARDAR UM MOMENTO PARA GARANTIR QUE setSelectedIndex FOI PROCESSADO
+        fragment.view?.postDelayed(
+                {
+                    // MOSTRAR O MENU PRINCIPAL NOVAMENTE COM SELEÇÃO PRESERVADA
+                    showMainMenuCallback?.invoke(true)
+
+                    // AGUARDAR MAIS UM MOMENTO PARA GARANTIR QUE O MENU FOI MOSTRADO
+                    fragment.view?.postDelayed(
+                            {
+                                // ATUALIZAR A VISUALIZAÇÃO DAS SETAS APÓS RESTAURAR O ESTADO
+                                val currentIndex = getCurrentSelectedIndexCallback?.invoke() ?: 0
+                                animationController?.updateSelectionVisual(currentIndex)
+
+                                // MARCAR QUE A RESTAURAÇÃO FOI CONCLUÍDA
+                                isRestoringSelection = false
+                            },
+                            50
+                    )
+                },
+                50
+        )
     }
 
     fun setCallbacks(
@@ -58,6 +113,15 @@ class SubmenuCoordinator(
 
     fun openSubmenu(submenuType: MenuState) {
         Log.d(TAG, "🚪 Calling SubmenuCoordinator.openSubmenu($submenuType)")
+
+        // SALVAR O ÍNDICE ATUAL ANTES DE ABRIR O SUBMENU
+        val currentIndex = getCurrentSelectedIndexCallback?.invoke() ?: 0
+        mainMenuSelectedIndexBeforeSubmenu = currentIndex
+        hasSubmenuOpen = true
+        Log.d(
+                TAG,
+                "[OPEN_SUBMENU] Saved mainMenuSelectedIndexBeforeSubmenu: $mainMenuSelectedIndexBeforeSubmenu"
+        )
 
         when (submenuType) {
             MenuState.PROGRESS_MENU -> showProgressSubmenu()
@@ -218,112 +282,55 @@ class SubmenuCoordinator(
         }
     }
 
-    fun setupBackStackListener() {
-        // Listener para detectar quando submenus são fechados via back stack
-        fragment.parentFragmentManager.addOnBackStackChangedListener {
-            val backStackCount = fragment.parentFragmentManager.backStackEntryCount
-            MenuLogger.d("[BACK_STACK] Back stack changed - count: $backStackCount")
-
-            // Se o back stack ficou vazio, significa que não há mais submenus
-            if (backStackCount == 0) {
-                MenuLogger.d(
-                        "[BACK_STACK] 🔥🔥🔥 BACK STACK LISTENER FIRED - EXECUTING RESTORATION LOGIC 🔥🔥🔥"
-                )
-
-                // VERIFICAR SE ESTAMOS NO MEIO DE dismissAllMenus (START button)
-                // Se sim, NÃO mostrar o menu principal para evitar piscada
-                if (viewModel.isDismissingAllMenus()) {
-                    MenuLogger.d(
-                            "[BACK_STACK] ⚠️ isDismissingAllMenus = true, SKIPPING main menu restoration to avoid flicker"
-                    )
-                    return@addOnBackStackChangedListener
-                }
-
-                // Garantir que os textos do menu principal sejam mostrados
-                viewManager.showMainMenuTexts()
-
-                // MOSTRAR O MENU PRINCIPAL NOVAMENTE COM SELEÇÃO PRESERVADA
-                showMainMenuCallback?.invoke(true)
-
-                // IMPORTANTE: Restaurar o estado do menu para MAIN_MENU
-                menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
-
-                // RESTAURAR O ÍNDICE SELECIONADO PARA O ITEM QUE ABRIU O SUBMENU
-                MenuLogger.d(
-                        "[BACK_STACK] Back stack empty - stored main menu index: $mainMenuSelectedIndexBeforeSubmenu"
-                )
-                MenuLogger.d(
-                        "[BACK_STACK] Back stack empty - restoring selected index to $mainMenuSelectedIndexBeforeSubmenu (submenu entry point)"
-                )
-                setSelectedIndexCallback?.invoke(mainMenuSelectedIndexBeforeSubmenu)
-
-                // LOG PARA DEBUG: Verificar o índice selecionado atual
-                val currentIndex = getCurrentSelectedIndexCallback?.invoke() ?: 0
-                MenuLogger.d(
-                        "[BACK_STACK] Back stack empty - current selected index after restore: $currentIndex"
-                )
-
-                // ATUALIZAR A VISUALIZAÇÃO DAS SETAS APÓS RESTAURAR O ESTADO
-                MenuLogger.d("[BACK_STACK] Back stack empty - calling updateSelectionVisual()")
-                animationController?.updateSelectionVisual(currentIndex)
-                MenuLogger.d("[BACK_STACK] Back stack empty - updateSelectionVisual() completed")
-            }
-        }
-    }
-
     fun closeCurrentSubmenu() {
         // Prevent multiple simultaneous close operations
         if (isClosingSubmenu) {
-            MenuLogger.d(
-                    "[BACK] SubmenuCoordinator.closeCurrentSubmenu() already in progress, ignoring"
-            )
             return
         }
 
         isClosingSubmenu = true
+        isClosingSubmenuProgrammatically = true
 
         try {
-            MenuLogger.d("[BACK] SubmenuCoordinator.closeCurrentSubmenu() started")
-            // Mostrar novamente os textos do menu principal
-            viewManager.showMainMenuTexts()
-
-            // Restaurar menu principal
-            viewManager.restoreMainMenu()
-
-            // IMPORTANTE: Restaurar o estado do menu para MAIN_MENU antes de fechar o submenu
-            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
-
             // Fazer pop do back stack para fechar o submenu atual
-            MenuLogger.d("[BACK] SubmenuCoordinator.closeCurrentSubmenu() calling popBackStack()")
             fragment.parentFragmentManager.popBackStack()
-            MenuLogger.d("[BACK] SubmenuCoordinator.closeCurrentSubmenu() popBackStack() completed")
 
-            // RESTAURAR O ÍNDICE SELECIONADO PARA O ITEM QUE ABRIU O SUBMENU
-            MenuLogger.d(
-                    "[BACK] closeCurrentSubmenu - stored main menu index: $mainMenuSelectedIndexBeforeSubmenu"
-            )
-            MenuLogger.d(
-                    "[BACK] closeCurrentSubmenu - restoring selected index to $mainMenuSelectedIndexBeforeSubmenu (submenu entry point)"
-            )
-            setSelectedIndexCallback?.invoke(mainMenuSelectedIndexBeforeSubmenu)
-
-            // LOG PARA DEBUG: Verificar o índice selecionado atual
-            val currentIndex = getCurrentSelectedIndexCallback?.invoke() ?: 0
-            MenuLogger.d(
-                    "[BACK] closeCurrentSubmenu - current selected index after restore: $currentIndex"
-            )
-
-            // ATUALIZAR A VISUALIZAÇÃO DAS SETAS APÓS RESTAURAR O ESTADO
-            MenuLogger.d("[BACK] closeCurrentSubmenu - calling updateSelectionVisual()")
-            animationController?.updateSelectionVisual(currentIndex)
-            MenuLogger.d("[BACK] closeCurrentSubmenu - updateSelectionVisual() completed")
-
-            MenuLogger.d("[BACK] SubmenuCoordinator.closeCurrentSubmenu() completed successfully")
+            // USAR O NOVO MÉTODO DE RESTAURAÇÃO APÓS O POPBACKSTACK
+            // Isso garante que a restauração aconteça apenas uma vez
+            fragment.view?.postDelayed(
+                    { restoreMainMenuSelection() },
+                    100
+            ) // Dar tempo para o back stack ser processado
         } catch (e: Exception) {
-            MenuLogger.d("[BACK] SubmenuCoordinator.closeCurrentSubmenu() failed: ${e.message}")
             Log.e(TAG, "SubmenuCoordinator: Failed to close submenu", e)
         } finally {
             isClosingSubmenu = false
+            isClosingSubmenuProgrammatically = false
+        }
+    }
+
+    fun setupBackStackListener() {
+        // Listener para detectar quando submenus são fechados via back stack
+        fragment.parentFragmentManager.addOnBackStackChangedListener {
+            val backStackCount = fragment.parentFragmentManager.backStackEntryCount
+
+            // Se o back stack ficou vazio, significa que não há mais submenus
+            if (backStackCount == 0) {
+                // VERIFICAR SE ESTAMOS NO MEIO DE closeCurrentSubmenu() (fechamento programático)
+                // Se sim, NÃO executar a lógica de restauração para evitar duplicação
+                if (isClosingSubmenuProgrammatically) {
+                    return@addOnBackStackChangedListener
+                }
+
+                // VERIFICAR SE ESTAMOS NO MEIO DE dismissAllMenus (START button)
+                // Se sim, NÃO mostrar o menu principal para evitar piscada
+                if (viewModel.isDismissingAllMenus()) {
+                    return@addOnBackStackChangedListener
+                }
+
+                // USAR O NOVO MÉTODO DE RESTAURAÇÃO
+                restoreMainMenuSelection()
+            }
         }
     }
 }
