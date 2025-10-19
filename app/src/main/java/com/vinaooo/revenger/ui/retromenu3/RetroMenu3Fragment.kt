@@ -297,7 +297,10 @@ class RetroMenu3Fragment :
                 val beforeIndex = getCurrentSelectedIndex()
                 navigateUpCircular(getMenuItems().size)
                 val afterIndex = getCurrentSelectedIndex()
-                android.util.Log.d(TAG, "[NAV] RetroMenu3: UP navigation - $beforeIndex -> $afterIndex")
+                android.util.Log.d(
+                        TAG,
+                        "[NAV] RetroMenu3: UP navigation - $beforeIndex -> $afterIndex"
+                )
                 updateSelectionVisualInternal()
         }
 
@@ -305,7 +308,10 @@ class RetroMenu3Fragment :
                 val beforeIndex = getCurrentSelectedIndex()
                 navigateDownCircular(getMenuItems().size)
                 val afterIndex = getCurrentSelectedIndex()
-                android.util.Log.d(TAG, "[NAV] RetroMenu3: DOWN navigation - $beforeIndex -> $afterIndex")
+                android.util.Log.d(
+                        TAG,
+                        "[NAV] RetroMenu3: DOWN navigation - $beforeIndex -> $afterIndex"
+                )
                 updateSelectionVisualInternal()
         }
 
