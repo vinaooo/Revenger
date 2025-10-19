@@ -89,7 +89,7 @@ class ProgressFragment : MenuFragmentBase() {
         backProgress = view.findViewById(R.id.progress_back)
 
         // Initialize ordered list of menu items
-        menuItems = listOf(saveState, loadState, backProgress)
+        menuItems = listOf(loadState, saveState, backProgress)
 
         // Configure ProgressFragment to not use background colors on cards
         // (unlike main menu which uses yellow background for selection)
@@ -114,6 +114,12 @@ class ProgressFragment : MenuFragmentBase() {
 
         // Set first item as selected
         updateSelectionVisualInternal()
+
+        // If Load State is disabled (no save state available), skip to Save State
+        if (getCurrentSelectedIndex() == 0 && !loadState.isEnabled) {
+            setSelectedIndex(1) // Move to Save State
+            updateSelectionVisualInternal()
+        }
 
         // Apply arcade font to all text views
         ViewUtils.applySelectedFontToViews(
@@ -193,7 +199,7 @@ class ProgressFragment : MenuFragmentBase() {
         val beforeIndex = getCurrentSelectedIndex()
         do {
             navigateUpCircular(menuItems.size)
-        } while (getCurrentSelectedIndex() == 1 && !loadState.isEnabled)
+        } while (getCurrentSelectedIndex() == 0 && !loadState.isEnabled)
         val afterIndex = getCurrentSelectedIndex()
         android.util.Log.d(
                 TAG,
@@ -207,7 +213,7 @@ class ProgressFragment : MenuFragmentBase() {
         val beforeIndex = getCurrentSelectedIndex()
         do {
             navigateDownCircular(menuItems.size)
-        } while (getCurrentSelectedIndex() == 1 && !loadState.isEnabled)
+        } while (getCurrentSelectedIndex() == 0 && !loadState.isEnabled)
         val afterIndex = getCurrentSelectedIndex()
         android.util.Log.d(
                 TAG,
@@ -222,10 +228,6 @@ class ProgressFragment : MenuFragmentBase() {
         android.util.Log.d(TAG, "[ACTION] Progress menu: CONFIRM on index $selectedIndex")
         when (selectedIndex) {
             0 -> {
-                android.util.Log.d(TAG, "[ACTION] Progress menu: Save State selected")
-                saveState.performClick() // Save State
-            }
-            1 -> {
                 if (loadState.isEnabled) {
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Load State selected")
                     loadState.performClick() // Load State (only if enabled)
@@ -235,6 +237,10 @@ class ProgressFragment : MenuFragmentBase() {
                             "[ACTION] Progress menu: Load State selected but disabled"
                     )
                 }
+            }
+            1 -> {
+                android.util.Log.d(TAG, "[ACTION] Progress menu: Save State selected")
+                saveState.performClick() // Save State
             }
             2 -> {
                 android.util.Log.d(TAG, "[ACTION] Progress menu: Back to main menu selected")
@@ -269,20 +275,8 @@ class ProgressFragment : MenuFragmentBase() {
         }
 
         // Control text colors based on selection and state
-        saveStateTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 0)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.retro_menu3_selected_color
-                        )
-                else
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.retro_menu3_normal_color
-                        )
-        )
         loadStateTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 1 && loadState.isEnabled)
+                if (getCurrentSelectedIndex() == 0 && loadState.isEnabled)
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
                                 R.color.retro_menu3_selected_color
@@ -291,6 +285,18 @@ class ProgressFragment : MenuFragmentBase() {
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
                                 R.color.retro_menu3_disabled_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_normal_color
+                        )
+        )
+        saveStateTitle.setTextColor(
+                if (getCurrentSelectedIndex() == 1)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_selected_color
                         )
                 else
                         androidx.core.content.ContextCompat.getColor(
@@ -316,25 +322,8 @@ class ProgressFragment : MenuFragmentBase() {
         // val arrowMarginEnd =
         // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
-        // Save State
-        if (getCurrentSelectedIndex() == 0) {
-            selectionArrowSaveState.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.retro_menu3_selected_color
-                    )
-            )
-            selectionArrowSaveState.visibility = View.VISIBLE
-            (selectionArrowSaveState.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
-                marginEnd = 0 // Force zero margin after arrow - attached to text
-            }
-        } else {
-            selectionArrowSaveState.visibility = View.GONE
-        }
-
         // Load State
-        if (getCurrentSelectedIndex() == 1) {
+        if (getCurrentSelectedIndex() == 0) {
             selectionArrowLoadState.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
@@ -348,6 +337,23 @@ class ProgressFragment : MenuFragmentBase() {
             }
         } else {
             selectionArrowLoadState.visibility = View.GONE
+        }
+
+        // Save State
+        if (getCurrentSelectedIndex() == 1) {
+            selectionArrowSaveState.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
+            selectionArrowSaveState.visibility = View.VISIBLE
+            (selectionArrowSaveState.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0 // No space before the arrow
+                marginEnd = 0 // Force zero margin after arrow - attached to text
+            }
+        } else {
+            selectionArrowSaveState.visibility = View.GONE
         }
 
         // Back
