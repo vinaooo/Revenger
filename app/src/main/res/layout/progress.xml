@@ -81,7 +81,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
-                                android:textColor="@android:color/transparent"
+                                android:textColor="@color/retro_menu3_text_color"
                                 
                                 android:padding="0dp"
                                 android:includeFontPadding="false" />
@@ -129,7 +129,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
-                                android:textColor="@android:color/transparent"
+                                android:textColor="@color/retro_menu3_text_color"
                                 
                                 android:padding="0dp"
                                 android:includeFontPadding="false" />

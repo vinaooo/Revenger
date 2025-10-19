@@ -61,6 +61,7 @@ class SubmenuCoordinator(
         when (submenuType) {
             MenuState.PROGRESS_MENU -> showProgressSubmenu()
             MenuState.SETTINGS_MENU -> showSettingsSubmenu()
+            MenuState.ABOUT_MENU -> showAboutSubmenu()
             MenuState.EXIT_MENU -> showExitSubmenu()
             MenuState.MAIN_MENU -> {
                 Log.w(TAG, "openSubmenu called with MAIN_MENU - this should not happen")
@@ -105,6 +106,42 @@ class SubmenuCoordinator(
             Log.d(TAG, "SubmenuCoordinator: Settings submenu opened successfully")
         } catch (e: Exception) {
             Log.e(TAG, "SubmenuCoordinator: Failed to open Settings submenu", e)
+        }
+    }
+
+    private fun showAboutSubmenu() {
+        Log.d(TAG, "[DEBUG] showAboutSubmenu START")
+        try {
+            Log.e(TAG, "[DEBUG] showAboutSubmenu - Creating AboutFragment")
+            val aboutFragment = AboutFragment.newInstance()
+            aboutFragment.setAboutListener(fragment as AboutFragment.AboutListener)
+
+            // Primeiro adicionar o submenu (mas invisível inicialmente)
+            fragment.parentFragmentManager
+                    .beginTransaction()
+                    .replace(android.R.id.content, aboutFragment, "AboutFragment")
+                    .addToBackStack("AboutFragment")
+                    .commitAllowingStateLoss()
+
+            // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
+            fragment.view?.post {
+                Log.d(
+                        TAG,
+                        "[DEBUG] showAboutSubmenu - Calling hideMainMenuCompletely after fragment added"
+                )
+                // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
+                viewManager.hideMainMenuCompletely()
+            }
+
+            // Registrar o fragment no ViewModel
+            viewModel.registerAboutFragment(aboutFragment)
+
+            // Alterar o estado do menu para ABOUT_MENU
+            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU)
+
+            Log.d(TAG, "SubmenuCoordinator: About submenu opened successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "SubmenuCoordinator: Failed to open About submenu", e)
         }
     }
 

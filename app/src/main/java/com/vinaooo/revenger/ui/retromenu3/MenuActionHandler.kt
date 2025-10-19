@@ -243,6 +243,7 @@ class MenuActionHandler(
                 when (targetMenu) {
                         MenuState.PROGRESS_MENU -> openProgressSubmenu()
                         MenuState.SETTINGS_MENU -> openSettingsSubmenu()
+                        MenuState.ABOUT_MENU -> openAboutSubmenu()
                         MenuState.EXIT_MENU -> openExitSubmenu()
                         else -> MenuLogger.w("[ACTION] Unknown menu state: $targetMenu")
                 }
@@ -258,6 +259,12 @@ class MenuActionHandler(
         private fun openSettingsSubmenu() {
                 MenuLogger.action("⚙️ Open Settings submenu")
                 submenuCoordinator.openSubmenu(MenuState.SETTINGS_MENU)
+        }
+
+        /** Abre submenu About */
+        private fun openAboutSubmenu() {
+                MenuLogger.action("📋 Open About submenu")
+                submenuCoordinator.openSubmenu(MenuState.ABOUT_MENU)
         }
 
         /** Abre submenu de saída */

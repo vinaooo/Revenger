@@ -29,7 +29,8 @@ class RetroMenu3Fragment :
         MenuFragmentBase(),
         ProgressFragment.ProgressListener,
         SettingsMenuFragment.SettingsMenuListener,
-        ExitFragment.ExitListener {
+        ExitFragment.ExitListener,
+        AboutFragment.AboutListener {
 
         // Get ViewModel reference for centralized methods
         private lateinit var viewModel: GameActivityViewModel
@@ -281,6 +282,11 @@ class RetroMenu3Fragment :
                                 action = MenuAction.NAVIGATE(MenuState.SETTINGS_MENU)
                         ),
                         MenuItem(
+                                "about",
+                                getString(R.string.menu_about),
+                                action = MenuAction.NAVIGATE(MenuState.ABOUT_MENU)
+                        ),
+                        MenuItem(
                                 "exit",
                                 getString(R.string.menu_exit),
                                 action = MenuAction.NAVIGATE(MenuState.EXIT_MENU)
@@ -288,11 +294,19 @@ class RetroMenu3Fragment :
                 )
 
         override fun performNavigateUp() {
-                inputHandler.handleNavigateUp()
+                val beforeIndex = getCurrentSelectedIndex()
+                navigateUpCircular(getMenuItems().size)
+                val afterIndex = getCurrentSelectedIndex()
+                android.util.Log.d(TAG, "[NAV] RetroMenu3: UP navigation - $beforeIndex -> $afterIndex")
+                updateSelectionVisualInternal()
         }
 
         override fun performNavigateDown() {
-                inputHandler.handleNavigateDown()
+                val beforeIndex = getCurrentSelectedIndex()
+                navigateDownCircular(getMenuItems().size)
+                val afterIndex = getCurrentSelectedIndex()
+                android.util.Log.d(TAG, "[NAV] RetroMenu3: DOWN navigation - $beforeIndex -> $afterIndex")
+                updateSelectionVisualInternal()
         }
 
         override fun performConfirm() {
@@ -411,7 +425,18 @@ class RetroMenu3Fragment :
                 MenuLogger.d("[BACK] RetroMenu3Fragment onBackToMainMenu() completed")
         }
 
+        override fun onAboutBackToMainMenu() {
+                // Fechar submenu About e voltar ao menu principal
+                MenuLogger.d(
+                        "[BACK] RetroMenu3Fragment onAboutBackToMainMenu() called - calling SubmenuCoordinator.closeCurrentSubmenu()"
+                )
+                submenuCoordinator.closeCurrentSubmenu()
+                MenuLogger.d("[BACK] RetroMenu3Fragment onAboutBackToMainMenu() completed")
+        }
+
         companion object {
+                private const val TAG = "RetroMenu3Fragment"
+
                 fun newInstance(): RetroMenu3Fragment {
                         return RetroMenu3Fragment()
                 }

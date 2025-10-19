@@ -83,6 +83,12 @@ class MenuInputHandlerImpl(
                 // Open exit confirmation submenu
                 actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.EXIT_MENU))
             }
+            is MenuAction.NAVIGATE -> {
+                MenuLogger.action(
+                        "MenuInputHandler: NAVIGATE selected - opening submenu ${item.action.targetMenu}"
+                )
+                actionHandler.executeAction(item.action)
+            }
             else -> {
                 MenuLogger.action("MenuInputHandler: Unknown action: ${item.action}")
             }

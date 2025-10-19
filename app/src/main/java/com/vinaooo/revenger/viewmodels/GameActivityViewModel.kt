@@ -30,6 +30,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 class GameActivityViewModel(application: Application) :
         AndroidViewModel(application),
         SettingsMenuFragment.SettingsMenuListener,
+        AboutFragment.AboutListener,
         MenuManager.MenuManagerListener {
 
     private val resources = application.resources
@@ -98,6 +99,7 @@ class GameActivityViewModel(application: Application) :
     // New submenu fragments
     private var progressFragment: ProgressFragment? = null
     private var exitFragment: ExitFragment? = null
+    private var aboutFragment: AboutFragment? = null
 
     // ===== CENTRALIZED STATE MANAGEMENT =====
     // Estado distribuído migrado para MenuStateManager
@@ -118,6 +120,12 @@ class GameActivityViewModel(application: Application) :
     private fun isExitActive(): Boolean =
             menuStateManager.isMenuActive(
                     com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
+            )
+
+    /** Check if about menu is active */
+    private fun isAboutActive(): Boolean =
+            menuStateManager.isMenuActive(
+                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
             )
 
     /** Activate settings menu */
@@ -159,6 +167,20 @@ class GameActivityViewModel(application: Application) :
     private fun deactivateExitMenu() {
         menuStateManager.deactivateMenu(
                 com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
+        )
+    }
+
+    /** Activate about menu */
+    private fun activateAboutMenu() {
+        menuStateManager.activateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
+        )
+    }
+
+    /** Deactivate about menu */
+    private fun deactivateAboutMenu() {
+        menuStateManager.deactivateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
         )
     }
 
@@ -512,13 +534,15 @@ class GameActivityViewModel(application: Application) :
         val retroMenu3Open = isRetroMenu3Open()
         val settingsActive = isSettingsMenuActive()
         val progressActive = isProgressActive()
+        val aboutActive = isAboutActive()
         val exitActive = isExitActive()
-        val result = retroMenu3Open || settingsActive || progressActive || exitActive
+        val result = retroMenu3Open || settingsActive || progressActive || aboutActive || exitActive
 
         android.util.Log.d("GameActivityViewModel", "[ACTIVE] 📊 Menu states:")
         android.util.Log.d("GameActivityViewModel", "[ACTIVE]   🎮 retroMenu3Open=$retroMenu3Open")
         android.util.Log.d("GameActivityViewModel", "[ACTIVE]   ⚙️ settingsActive=$settingsActive")
         android.util.Log.d("GameActivityViewModel", "[ACTIVE]   📊 progressActive=$progressActive")
+        android.util.Log.d("GameActivityViewModel", "[ACTIVE]   📋 aboutActive=$aboutActive")
         android.util.Log.d("GameActivityViewModel", "[ACTIVE]   🚪 exitActive=$exitActive")
         android.util.Log.d("GameActivityViewModel", "[ACTIVE] ✅ RESULT: isAnyMenuActive=$result")
 
@@ -648,6 +672,14 @@ class GameActivityViewModel(application: Application) :
         }
     }
 
+    /** Dismiss the About submenu */
+    fun dismissAboutMenu() {
+        dismissSubmenuFragment(aboutFragment, "About") {
+            aboutFragment = null
+            deactivateAboutMenu()
+        }
+    }
+
     /** Dismiss ALL menus in cascade order (submenus first, then main menu) */
     fun dismissAllMenus(onAnimationEnd: (() -> Unit)? = null) {
         android.util.Log.d(
@@ -672,6 +704,17 @@ class GameActivityViewModel(application: Application) :
             android.util.Log.d(
                     "GameActivityViewModel",
                     "[DISMISS_ALL] dismissAllMenus: Exit submenu dismissed"
+            )
+        }
+        if (isAboutActive()) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Dismissing About submenu"
+            )
+            dismissAboutMenu()
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: About submenu dismissed"
             )
         }
         if (isProgressActive()) {
@@ -805,6 +848,17 @@ class GameActivityViewModel(application: Application) :
         )
     }
 
+    /** Register the AboutFragment when it's created */
+    fun registerAboutFragment(fragment: AboutFragment) {
+        aboutFragment = fragment
+        activateAboutMenu()
+        // Register with MenuManager
+        menuManager.registerFragment(
+                com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU,
+                fragment
+        )
+    }
+
     // Implementation of GameMenuBottomSheet.GameMenuListener interface
     // REMOVED: RetroMenu3Listener implementation - migrated to unified MenuAction/MenuEvent system
     // Implementation of SettingsMenuFragment.SettingsMenuListener interface
@@ -835,6 +889,15 @@ class GameActivityViewModel(application: Application) :
                 "GameActivityViewModel",
                 "onBackToMainMenu: Back stack listener will handle showing main menu"
         )
+    }
+
+    // Implementation of AboutFragment.AboutListener interface
+    override fun onAboutBackToMainMenu() {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onAboutBackToMainMenu: User wants to go back from About menu"
+        )
+        dismissAboutMenu()
     }
 
     /**
@@ -1303,6 +1366,8 @@ class GameActivityViewModel(application: Application) :
                                     dismissSettingsMenu()
                             com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU ->
                                     dismissProgress()
+                            com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU ->
+                                    dismissAboutMenu()
                             com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> dismissExit()
                         }
                     }
@@ -1375,6 +1440,7 @@ class GameActivityViewModel(application: Application) :
         retroMenu3Fragment = null
         settingsMenuFragment = null
         progressFragment = null
+        aboutFragment = null
         exitFragment = null
 
         // Clear container references

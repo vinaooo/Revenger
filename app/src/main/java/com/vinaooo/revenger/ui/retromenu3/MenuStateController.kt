@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.ui.retromenu3
 
-import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.MenuLogger
 
 /**
@@ -36,35 +35,8 @@ class MenuStateControllerImpl(
     }
 
     private fun initializeMenuItems() {
-        menuItems.addAll(
-                listOf(
-                        MenuItem(
-                                "continue",
-                                fragment.getString(R.string.menu_continue),
-                                action = MenuAction.CONTINUE
-                        ),
-                        MenuItem(
-                                "reset",
-                                fragment.getString(R.string.menu_reset),
-                                action = MenuAction.RESET
-                        ),
-                        MenuItem(
-                                "save_state",
-                                fragment.getString(R.string.menu_save_state),
-                                action = MenuAction.SAVE_STATE
-                        ),
-                        MenuItem(
-                                "settings",
-                                fragment.getString(R.string.menu_settings),
-                                action = MenuAction.TOGGLE_AUDIO
-                        ), // TODO: Mudar para SETTINGS quando implementado
-                        MenuItem(
-                                "exit",
-                                fragment.getString(R.string.menu_exit),
-                                action = MenuAction.EXIT
-                        )
-                )
-        )
+        // Use the fragment's menu items instead of hardcoded list
+        menuItems.addAll(fragment.getMenuItems())
     }
 
     override fun initializeState(menuViews: MenuViews) {
@@ -132,6 +104,7 @@ class MenuStateControllerImpl(
         menuViews.selectionArrowReset.visibility = android.view.View.GONE
         menuViews.selectionArrowProgress.visibility = android.view.View.GONE
         menuViews.selectionArrowSettings.visibility = android.view.View.GONE
+        menuViews.selectionArrowAbout.visibility = android.view.View.GONE
         menuViews.selectionArrowExit.visibility = android.view.View.GONE
 
         // Mostrar seta do item selecionado
@@ -140,7 +113,8 @@ class MenuStateControllerImpl(
             1 -> menuViews.selectionArrowReset.visibility = android.view.View.VISIBLE
             2 -> menuViews.selectionArrowProgress.visibility = android.view.View.VISIBLE
             3 -> menuViews.selectionArrowSettings.visibility = android.view.View.VISIBLE
-            4 -> menuViews.selectionArrowExit.visibility = android.view.View.VISIBLE
+            4 -> menuViews.selectionArrowAbout.visibility = android.view.View.VISIBLE
+            5 -> menuViews.selectionArrowExit.visibility = android.view.View.VISIBLE
         }
 
         // DELEGAR PARA MenuAnimationController PARA ATUALIZAR CORES DO TEXTO

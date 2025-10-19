@@ -38,6 +38,7 @@ class MenuViewManager(private val fragment: Fragment) {
     private lateinit var resetMenu: RetroCardView
     private lateinit var progressMenu: RetroCardView
     private lateinit var settingsMenu: RetroCardView
+    private lateinit var aboutMenu: RetroCardView
     private lateinit var exitMenu: RetroCardView
 
     // Ordered list of menu items for navigation
@@ -51,6 +52,7 @@ class MenuViewManager(private val fragment: Fragment) {
     private lateinit var resetTitle: TextView
     private lateinit var progressTitle: TextView
     private lateinit var settingsTitle: TextView
+    private lateinit var aboutTitle: TextView
     private lateinit var exitTitle: TextView
 
     // Selection arrows
@@ -58,6 +60,7 @@ class MenuViewManager(private val fragment: Fragment) {
     private lateinit var selectionArrowReset: TextView
     private lateinit var selectionArrowProgress: TextView
     private lateinit var selectionArrowSettings: TextView
+    private lateinit var selectionArrowAbout: TextView
     private lateinit var selectionArrowExit: TextView
 
     // Main menu title
@@ -98,10 +101,11 @@ class MenuViewManager(private val fragment: Fragment) {
         resetMenu = view.findViewById(R.id.menu_reset)
         progressMenu = view.findViewById(R.id.menu_submenu2)
         settingsMenu = view.findViewById(R.id.menu_submenu1)
+        aboutMenu = view.findViewById(R.id.menu_about)
         exitMenu = view.findViewById(R.id.menu_exit)
 
         // Initialize ordered list of menu items
-        menuItems = listOf(continueMenu, resetMenu, progressMenu, settingsMenu, exitMenu)
+        menuItems = listOf(continueMenu, resetMenu, progressMenu, settingsMenu, aboutMenu, exitMenu)
 
         // Dynamic content views (only views that exist in layout)
         // Initialize menu option titles
@@ -109,6 +113,7 @@ class MenuViewManager(private val fragment: Fragment) {
         resetTitle = view.findViewById(R.id.reset_title)
         settingsTitle = view.findViewById(R.id.submenu1_title)
         progressTitle = view.findViewById(R.id.submenu2_title)
+        aboutTitle = view.findViewById(R.id.about_title)
         exitTitle = view.findViewById(R.id.exit_title)
 
         // Initialize selection arrows
@@ -116,6 +121,7 @@ class MenuViewManager(private val fragment: Fragment) {
         selectionArrowReset = view.findViewById(R.id.selection_arrow_reset)
         selectionArrowSettings = view.findViewById(R.id.selection_arrow_submenu1)
         selectionArrowProgress = view.findViewById(R.id.selection_arrow_submenu2)
+        selectionArrowAbout = view.findViewById(R.id.selection_arrow_about)
         selectionArrowExit = view.findViewById(R.id.selection_arrow_exit)
 
         // Force zero marginStart for all arrows to prevent spacing issues
@@ -124,6 +130,7 @@ class MenuViewManager(private val fragment: Fragment) {
                         selectionArrowReset,
                         selectionArrowSettings,
                         selectionArrowProgress,
+                        selectionArrowAbout,
                         selectionArrowExit
                 )
                 .forEach { arrow ->
@@ -140,6 +147,7 @@ class MenuViewManager(private val fragment: Fragment) {
                         MenuItemView(resetTitle, selectionArrowReset, resetMenu),
                         MenuItemView(progressTitle, selectionArrowProgress, progressMenu),
                         MenuItemView(settingsTitle, selectionArrowSettings, settingsMenu),
+                        MenuItemView(aboutTitle, selectionArrowAbout, aboutMenu),
                         MenuItemView(exitTitle, selectionArrowExit, exitMenu)
                 )
 
@@ -151,11 +159,13 @@ class MenuViewManager(private val fragment: Fragment) {
                 resetTitle,
                 progressTitle,
                 settingsTitle,
+                aboutTitle,
                 exitTitle,
                 selectionArrowContinue,
                 selectionArrowReset,
                 selectionArrowProgress,
                 selectionArrowSettings,
+                selectionArrowAbout,
                 selectionArrowExit
         )
 
@@ -166,6 +176,7 @@ class MenuViewManager(private val fragment: Fragment) {
                 resetTitle,
                 progressTitle,
                 settingsTitle,
+                aboutTitle,
                 exitTitle,
                 controlsHint
         )

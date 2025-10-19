@@ -241,6 +241,49 @@
 
                     </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
+                    <!-- About -->
+                    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+                        android:id="@+id/menu_about"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/retro_menu3_menu_item_height"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="@dimen/retro_menu3_menu_item_padding"
+                        android:elevation="0dp">
+
+                        <TextView
+                            android:id="@+id/selection_arrow_about"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/retro_menu3_selection_arrow"
+                            android:textSize="@dimen/retro_menu3_arrow_text_size"
+                            android:textColor="@color/retro_menu3_text_color"
+                            android:visibility="gone"
+                            android:padding="0dp"
+                            android:includeFontPadding="false"
+                            android:shadowColor="@color/retro_menu3_shadow_color"
+                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
+                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
+                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+
+                        <TextView
+                            android:id="@+id/about_title"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/menu_about"
+                            android:textSize="@dimen/retro_menu3_menu_item_text_size"
+                            android:textColor="@color/retro_menu3_text_color"
+                            android:includeFontPadding="false"
+                            android:shadowColor="@color/retro_menu3_shadow_color"
+                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
+                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
+                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+
+                    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
                     <!-- Exit Game -->
                     <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_exit"
