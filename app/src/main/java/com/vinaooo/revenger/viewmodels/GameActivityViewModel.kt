@@ -1386,7 +1386,45 @@ class GameActivityViewModel(application: Application) :
                         "GameActivityViewModel",
                         "Menu state changed: ${event.from} -> ${event.to}"
                 )
-                // Additional state change handling can be added here if needed
+
+                // Activate/deactivate menus based on state changes
+                when (event.to) {
+                    com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU -> {
+                        // Main menu is always active when RetroMenu3 is open
+                        // No need to activate/deactivate here
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> {
+                        activateSettingsMenu()
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> {
+                        activateProgressMenu()
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> {
+                        activateAboutMenu()
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
+                        activateExitMenu()
+                    }
+                }
+
+                // Deactivate previous menu if it was a submenu
+                when (event.from) {
+                    com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> {
+                        deactivateSettingsMenu()
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> {
+                        deactivateProgressMenu()
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> {
+                        deactivateAboutMenu()
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
+                        deactivateExitMenu()
+                    }
+                    else -> {
+                        // No deactivation needed for MAIN_MENU or other states
+                    }
+                }
             }
             com.vinaooo.revenger.ui.retromenu3.MenuEvent.MenuClosed -> {
                 // Handle complete menu closure

@@ -2,6 +2,7 @@ package com.vinaooo.revenger.ui.retromenu3
 
 import android.util.Log
 import androidx.fragment.app.Fragment
+import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -83,7 +84,7 @@ class SubmenuCoordinator(
             // Primeiro adicionar o submenu (mas invisível inicialmente)
             fragment.parentFragmentManager
                     .beginTransaction()
-                    .replace(android.R.id.content, settingsFragment, "SettingsMenuFragment")
+                    .replace(R.id.menu_container, settingsFragment, "SettingsMenuFragment")
                     .addToBackStack("SettingsMenuFragment")
                     .commitAllowingStateLoss()
 
@@ -119,7 +120,7 @@ class SubmenuCoordinator(
             // Primeiro adicionar o submenu (mas invisível inicialmente)
             fragment.parentFragmentManager
                     .beginTransaction()
-                    .replace(android.R.id.content, aboutFragment, "AboutFragment")
+                    .replace(R.id.menu_container, aboutFragment, "AboutFragment")
                     .addToBackStack("AboutFragment")
                     .commitAllowingStateLoss()
 
@@ -155,7 +156,7 @@ class SubmenuCoordinator(
             // Primeiro adicionar o submenu (mas invisível inicialmente)
             fragment.parentFragmentManager
                     .beginTransaction()
-                    .replace(android.R.id.content, progressFragment, "ProgressFragment")
+                    .replace(R.id.menu_container, progressFragment, "ProgressFragment")
                     .addToBackStack("ProgressFragment")
                     .commitAllowingStateLoss()
 
@@ -191,7 +192,7 @@ class SubmenuCoordinator(
             // Primeiro adicionar o submenu (mas invisível inicialmente)
             fragment.parentFragmentManager
                     .beginTransaction()
-                    .replace(android.R.id.content, exitFragment, "ExitFragment")
+                    .replace(R.id.menu_container, exitFragment, "ExitFragment")
                     .addToBackStack("ExitFragment")
                     .commitAllowingStateLoss()
 
@@ -296,6 +297,26 @@ class SubmenuCoordinator(
             MenuLogger.d("[BACK] SubmenuCoordinator.closeCurrentSubmenu() calling popBackStack()")
             fragment.parentFragmentManager.popBackStack()
             MenuLogger.d("[BACK] SubmenuCoordinator.closeCurrentSubmenu() popBackStack() completed")
+
+            // RESTAURAR O ÍNDICE SELECIONADO PARA O ITEM QUE ABRIU O SUBMENU
+            MenuLogger.d(
+                    "[BACK] closeCurrentSubmenu - stored main menu index: $mainMenuSelectedIndexBeforeSubmenu"
+            )
+            MenuLogger.d(
+                    "[BACK] closeCurrentSubmenu - restoring selected index to $mainMenuSelectedIndexBeforeSubmenu (submenu entry point)"
+            )
+            setSelectedIndexCallback?.invoke(mainMenuSelectedIndexBeforeSubmenu)
+
+            // LOG PARA DEBUG: Verificar o índice selecionado atual
+            val currentIndex = getCurrentSelectedIndexCallback?.invoke() ?: 0
+            MenuLogger.d(
+                    "[BACK] closeCurrentSubmenu - current selected index after restore: $currentIndex"
+            )
+
+            // ATUALIZAR A VISUALIZAÇÃO DAS SETAS APÓS RESTAURAR O ESTADO
+            MenuLogger.d("[BACK] closeCurrentSubmenu - calling updateSelectionVisual()")
+            animationController?.updateSelectionVisual(currentIndex)
+            MenuLogger.d("[BACK] closeCurrentSubmenu - updateSelectionVisual() completed")
 
             MenuLogger.d("[BACK] SubmenuCoordinator.closeCurrentSubmenu() completed successfully")
         } catch (e: Exception) {
