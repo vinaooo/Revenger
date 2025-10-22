@@ -72,6 +72,9 @@
     <string name="about_core_variables">Core Variables: </string>
     <string name="about_back">Back</string>
 
+    <!-- Core Variables Submenu -->
+    <string name="core_variables_menu_title">Core Variables</string>
+
     <!-- Progress Menu -->
     <string name="progress_menu_title">Progress</string>
 

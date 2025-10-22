@@ -100,6 +100,7 @@ class GameActivityViewModel(application: Application) :
     private var progressFragment: ProgressFragment? = null
     private var exitFragment: ExitFragment? = null
     private var aboutFragment: AboutFragment? = null
+    private var coreVariablesFragment: CoreVariablesFragment? = null
 
     // ===== CENTRALIZED STATE MANAGEMENT =====
     // Estado distribuído migrado para MenuStateManager
@@ -177,10 +178,24 @@ class GameActivityViewModel(application: Application) :
         )
     }
 
+    /** Activate core variables menu */
+    private fun activateCoreVariablesMenu() {
+        menuStateManager.activateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.CORE_VARIABLES_MENU
+        )
+    }
+
     /** Deactivate about menu */
     private fun deactivateAboutMenu() {
         menuStateManager.deactivateMenu(
                 com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
+        )
+    }
+
+    /** Deactivate core variables menu */
+    private fun deactivateCoreVariablesMenu() {
+        menuStateManager.deactivateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.CORE_VARIABLES_MENU
         )
     }
 
@@ -680,6 +695,14 @@ class GameActivityViewModel(application: Application) :
         }
     }
 
+    /** Dismiss the Core Variables submenu */
+    fun dismissCoreVariablesMenu() {
+        dismissSubmenuFragment(coreVariablesFragment, "CoreVariables") {
+            coreVariablesFragment = null
+            deactivateCoreVariablesMenu()
+        }
+    }
+
     /** Dismiss ALL menus in cascade order (submenus first, then main menu) */
     fun dismissAllMenus(onAnimationEnd: (() -> Unit)? = null) {
         android.util.Log.d(
@@ -859,6 +882,17 @@ class GameActivityViewModel(application: Application) :
         )
     }
 
+    /** Register the CoreVariablesFragment when it's created */
+    fun registerCoreVariablesFragment(fragment: CoreVariablesFragment) {
+        coreVariablesFragment = fragment
+        activateCoreVariablesMenu()
+        // Register with MenuManager
+        menuManager.registerFragment(
+                com.vinaooo.revenger.ui.retromenu3.MenuState.CORE_VARIABLES_MENU,
+                fragment
+        )
+    }
+
     // Implementation of GameMenuBottomSheet.GameMenuListener interface
     // REMOVED: RetroMenu3Listener implementation - migrated to unified MenuAction/MenuEvent system
     // Implementation of SettingsMenuFragment.SettingsMenuListener interface
@@ -892,12 +926,31 @@ class GameActivityViewModel(application: Application) :
     }
 
     // Implementation of AboutFragment.AboutListener interface
+    override fun onAboutCoreVariablesSelected() {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "onAboutCoreVariablesSelected: User wants to navigate to Core Variables submenu"
+        )
+        showCoreVariablesMenu()
+    }
+
     override fun onAboutBackToMainMenu() {
         android.util.Log.d(
                 "GameActivityViewModel",
                 "onAboutBackToMainMenu: User wants to go back from About menu"
         )
         dismissAboutMenu()
+    }
+
+    /** Show the Core Variables submenu */
+    fun showCoreVariablesMenu() {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "showCoreVariablesMenu: Navigating to Core Variables menu"
+        )
+        menuManager.navigateToState(
+                com.vinaooo.revenger.ui.retromenu3.MenuState.CORE_VARIABLES_MENU
+        )
     }
 
     /**
@@ -1369,6 +1422,8 @@ class GameActivityViewModel(application: Application) :
                             com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU ->
                                     dismissAboutMenu()
                             com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> dismissExit()
+                            com.vinaooo.revenger.ui.retromenu3.MenuState.CORE_VARIABLES_MENU ->
+                                    dismissCoreVariablesMenu()
                         }
                     }
                     is com.vinaooo.revenger.ui.retromenu3.MenuAction.NAVIGATE -> {
@@ -1404,6 +1459,9 @@ class GameActivityViewModel(application: Application) :
                     }
                     com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
                         activateExitMenu()
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuState.CORE_VARIABLES_MENU -> {
+                        activateCoreVariablesMenu()
                     }
                 }
 

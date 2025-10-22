@@ -184,4 +184,20 @@ object FontUtils {
     fun applyTextCapitalization(context: Context, vararg textViews: android.widget.TextView) {
         textViews.forEach { applyTextCapitalization(context, it) }
     }
+
+    /** Retorna a cor do texto selecionado baseada na configuração do RetroMenu3 */
+    fun getSelectedTextColor(context: Context): Int {
+        return androidx.core.content.ContextCompat.getColor(
+                context,
+                com.vinaooo.revenger.R.color.retro_menu3_selected_color
+        )
+    }
+
+    /** Retorna a cor do texto não selecionado baseada na configuração do RetroMenu3 */
+    fun getUnselectedTextColor(context: Context): Int {
+        return androidx.core.content.ContextCompat.getColor(
+                context,
+                com.vinaooo.revenger.R.color.retro_menu3_normal_color
+        )
+    }
 }

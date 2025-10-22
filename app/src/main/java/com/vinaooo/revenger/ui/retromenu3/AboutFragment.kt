@@ -19,6 +19,7 @@ class AboutFragment : MenuFragmentBase() {
 
     // Menu item views
     private lateinit var aboutContainer: LinearLayout
+    private lateinit var coreVariablesAbout: RetroCardView
     private lateinit var backAbout: RetroCardView
 
     // Menu title
@@ -31,13 +32,13 @@ class AboutFragment : MenuFragmentBase() {
     private lateinit var romNameValue: TextView
     private lateinit var coreNameLabel: TextView
     private lateinit var coreNameValue: TextView
-    private lateinit var coreVariablesLabel: TextView
-    private lateinit var coreVariablesValue: TextView
 
     // Menu option titles for color control
+    private lateinit var coreVariablesTitle: TextView
     private lateinit var backTitle: TextView
 
     // Selection arrows
+    private lateinit var selectionArrowCoreVariables: TextView
     private lateinit var selectionArrowBack: TextView
 
     // Ordered list of menu items for navigation
@@ -45,6 +46,7 @@ class AboutFragment : MenuFragmentBase() {
 
     // Callback interface
     interface AboutListener {
+        fun onAboutCoreVariablesSelected()
         fun onAboutBackToMainMenu()
     }
 
@@ -92,22 +94,24 @@ class AboutFragment : MenuFragmentBase() {
         romNameValue = view.findViewById(R.id.rom_name_value)
         coreNameLabel = view.findViewById(R.id.core_name_label)
         coreNameValue = view.findViewById(R.id.core_name_value)
-        coreVariablesLabel = view.findViewById(R.id.core_variables_label)
-        coreVariablesValue = view.findViewById(R.id.core_variables_value)
 
         // Menu items
+        coreVariablesAbout = view.findViewById(R.id.about_core_variables)
         backAbout = view.findViewById(R.id.about_back)
 
         // Initialize ordered list of menu items
-        menuItems = listOf(backAbout)
+        menuItems = listOf(coreVariablesAbout, backAbout)
 
         // Configure RetroCardView to use transparent background for selected state (not yellow)
+        coreVariablesAbout.setUseBackgroundColor(false)
         backAbout.setUseBackgroundColor(false)
 
         // Initialize menu option titles
+        coreVariablesTitle = view.findViewById(R.id.core_variables_title)
         backTitle = view.findViewById(R.id.back_title)
 
         // Initialize selection arrows
+        selectionArrowCoreVariables = view.findViewById(R.id.selection_arrow_core_variables)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
         // Set first item as selected
@@ -123,10 +127,10 @@ class AboutFragment : MenuFragmentBase() {
                 romNameValue,
                 coreNameLabel,
                 coreNameValue,
-                coreVariablesLabel,
-                coreVariablesValue,
                 backTitle,
-                selectionArrowBack
+                selectionArrowBack,
+                coreVariablesTitle,
+                selectionArrowCoreVariables
         )
 
         // Populate information
@@ -137,7 +141,6 @@ class AboutFragment : MenuFragmentBase() {
         projectNameLabel.text = "project:\u00A0"
         romNameLabel.text = "rom:\u00A0"
         coreNameLabel.text = "core:\u00A0"
-        coreVariablesLabel.text = "core variables:\u00A0"
 
         // Aplicar capitalização configurada a TODOS os textos (título e labels)
         val capitalizationStyle =
@@ -163,7 +166,7 @@ class AboutFragment : MenuFragmentBase() {
         }
 
         // Aplicar capitalização aos labels (preservando os espaços não-quebráveis)
-        val labels = arrayOf(projectNameLabel, romNameLabel, coreNameLabel, coreVariablesLabel)
+        val labels = arrayOf(projectNameLabel, romNameLabel, coreNameLabel)
         labels.forEach { label ->
             val labelText = label.text.toString()
             val capitalizedLabel =
@@ -189,13 +192,11 @@ class AboutFragment : MenuFragmentBase() {
         android.util.Log.d(TAG, "[DEBUG] projectNameLabel: '${projectNameLabel.text}'")
         android.util.Log.d(TAG, "[DEBUG] romNameLabel: '${romNameLabel.text}'")
         android.util.Log.d(TAG, "[DEBUG] coreNameLabel: '${coreNameLabel.text}'")
-        android.util.Log.d(TAG, "[DEBUG] coreVariablesLabel: '${coreVariablesLabel.text}'")
 
         // Force layout update to ensure text rendering is correct
         projectNameLabel.invalidate()
         romNameLabel.invalidate()
         coreNameLabel.invalidate()
-        coreVariablesLabel.invalidate()
     }
 
     /** Aplica a capitalização configurada a um TextView */
@@ -235,14 +236,14 @@ class AboutFragment : MenuFragmentBase() {
         val coreName = resources.getString(R.string.config_core)
         coreNameValue.text = coreName
         applyConfiguredCapitalization(coreNameValue)
-
-        // Core variables from config
-        val coreVariables = resources.getString(R.string.config_variables)
-        coreVariablesValue.text = if (coreVariables.isNotEmpty()) coreVariables else "None"
-        applyConfiguredCapitalization(coreVariablesValue)
     }
 
     private fun setupClickListeners() {
+        coreVariablesAbout.setOnClickListener {
+            // Navigate to Core Variables submenu
+            aboutListener?.onAboutCoreVariablesSelected()
+        }
+
         backAbout.setOnClickListener {
             // Return to main menu by calling listener method (same as pressing B)
             aboutListener?.onAboutBackToMainMenu()
@@ -278,6 +279,11 @@ class AboutFragment : MenuFragmentBase() {
 
         when (selectedIndex) {
             0 -> {
+                // Core Variables selected
+                android.util.Log.d(TAG, "[ACTION] About menu: Core Variables selected")
+                aboutListener?.onAboutCoreVariablesSelected()
+            }
+            1 -> {
                 // Back to main menu
                 android.util.Log.d(TAG, "[ACTION] About menu: Back to main menu selected")
                 viewModel.dismissAboutMenu()
@@ -301,43 +307,69 @@ class AboutFragment : MenuFragmentBase() {
     /** Update selection visuals */
     override fun updateSelectionVisualInternal() {
         val selectedIndex = getCurrentSelectedIndex()
-
-        // Update menu item backgrounds and titles
-        menuItems.forEachIndexed { index, item ->
-            val isSelected = index == selectedIndex
-            item.setSelected(isSelected)
-        }
+        val context = requireContext()
 
         // Update title colors
-        val titles = arrayOf(backTitle)
+        val titles = arrayOf(coreVariablesTitle, backTitle)
         titles.forEachIndexed { index, title ->
             val isSelected = index == selectedIndex
             title.setTextColor(
-                    if (isSelected) requireContext().getColor(R.color.retro_menu3_selected_color)
-                    else requireContext().getColor(R.color.retro_menu3_text_color)
+                    if (isSelected)
+                            androidx.core.content.ContextCompat.getColor(
+                                    context,
+                                    R.color.retro_menu3_selected_color
+                            )
+                    else
+                            androidx.core.content.ContextCompat.getColor(
+                                    context,
+                                    R.color.retro_menu3_normal_color
+                            )
             )
         }
 
         // Update arrow visibility and color
-        val arrows = arrayOf(selectionArrowBack)
+        val arrows = arrayOf(selectionArrowCoreVariables, selectionArrowBack)
         arrows.forEachIndexed { index, arrow ->
             val isSelected = index == selectedIndex
-            arrow.visibility = if (isSelected) View.VISIBLE else View.INVISIBLE
+            arrow.visibility = if (isSelected) View.VISIBLE else View.GONE
             arrow.setTextColor(
-                    if (isSelected) requireContext().getColor(R.color.retro_menu3_selected_color)
-                    else requireContext().getColor(R.color.retro_menu3_text_color)
+                    if (isSelected)
+                            androidx.core.content.ContextCompat.getColor(
+                                    context,
+                                    R.color.retro_menu3_selected_color
+                            )
+                    else
+                            androidx.core.content.ContextCompat.getColor(
+                                    context,
+                                    R.color.retro_menu3_normal_color
+                            )
             )
         }
     }
 
     override fun getMenuItems(): List<MenuItem> {
-        return listOf(MenuItem("back", getString(R.string.about_back), action = MenuAction.BACK))
+        return listOf(
+                MenuItem(
+                        "core_variables",
+                        resources.getString(R.string.core_variables_menu_title),
+                        action =
+                                MenuAction.NAVIGATE(
+                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                .CORE_VARIABLES_MENU
+                                )
+                ),
+                MenuItem("back", resources.getString(R.string.about_back), action = MenuAction.BACK)
+        )
     }
 
     override fun onMenuItemSelected(item: MenuItem) {
         when (item.action) {
             MenuAction.BACK -> {
                 aboutListener?.onAboutBackToMainMenu()
+            }
+            is MenuAction.NAVIGATE -> {
+                // Handle navigation to Core Variables submenu
+                viewModel.updateMenuState(item.action.targetMenu)
             }
             else -> {
                 // Handle other actions if needed

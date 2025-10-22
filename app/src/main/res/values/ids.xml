@@ -2,4 +2,7 @@
 <resources>
     <item name="dynamic_selection_arrow" type="id"/>
     <item name="dynamic_title" type="id"/>
+    <item name="about_core_variables" type="id"/>
+    <item name="core_variables_title" type="id"/>
+    <item name="selection_arrow_core_variables" type="id"/>
 </resources>

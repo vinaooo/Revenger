@@ -29,7 +29,8 @@ class RetroMenu3Fragment :
         ProgressFragment.ProgressListener,
         SettingsMenuFragment.SettingsMenuListener,
         ExitFragment.ExitListener,
-        AboutFragment.AboutListener {
+        AboutFragment.AboutListener,
+        CoreVariablesFragment.CoreVariablesListener {
 
         // Get ViewModel reference for centralized methods
         private lateinit var viewModel: GameActivityViewModel
@@ -421,6 +422,16 @@ class RetroMenu3Fragment :
 
         override fun onAboutBackToMainMenu() {
                 // Fechar submenu About e voltar ao menu principal
+                submenuCoordinator.closeCurrentSubmenu()
+        }
+
+        override fun onAboutCoreVariablesSelected() {
+                // Navegar para o submenu Core Variables
+                submenuCoordinator.openSubmenu(MenuState.CORE_VARIABLES_MENU)
+        }
+
+        override fun onBackToSettings() {
+                // Fechar submenu Core Variables e voltar ao menu principal
                 submenuCoordinator.closeCurrentSubmenu()
         }
 
