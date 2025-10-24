@@ -110,6 +110,10 @@ class CoreVariablesFragment : MenuFragmentBase() {
                 backTitle,
                 selectionArrowBack
         )
+
+        // Apply configured capitalization to menu title and back button
+        applyConfiguredCapitalization(coreVariablesMenuTitle)
+        applyConfiguredCapitalization(backTitle)
     }
 
     private fun setupClickListeners() {
@@ -120,15 +124,17 @@ class CoreVariablesFragment : MenuFragmentBase() {
     }
 
     private fun updateCoreVariablesDisplay() {
-        // Set labels
+        // Set labels with configured capitalization
         coreVariablesLabel.text = "core variables:\u00A0"
+        applyConfiguredCapitalization(coreVariablesLabel)
 
         // Get core variables from config
         val coreVariables = resources.getString(R.string.config_variables)
         coreVariablesValue.text = if (coreVariables.isNotEmpty()) coreVariables else "None"
-
-        // Apply configured capitalization
         applyConfiguredCapitalization(coreVariablesValue)
+
+        // Apply capitalization to menu title
+        applyConfiguredCapitalization(coreVariablesMenuTitle)
     }
 
     private fun applyConfiguredCapitalization(textView: TextView) {
@@ -146,7 +152,10 @@ class CoreVariablesFragment : MenuFragmentBase() {
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         when (selectedIndex) {
-            0 -> backVariables.performClick() // Back
+            0 -> {
+                // Return to settings menu by calling listener method
+                coreVariablesListener?.onBackToSettings()
+            }
         }
     }
 
@@ -159,11 +168,18 @@ class CoreVariablesFragment : MenuFragmentBase() {
     override fun updateSelectionVisualInternal() {
         val currentIndex = getCurrentSelectedIndex()
 
-        // Update selection arrows visibility
+        // Update selection arrows visibility and color
+        val context = requireContext()
         selectionArrowBack.visibility = if (currentIndex == 0) View.VISIBLE else View.GONE
+        selectionArrowBack.setTextColor(
+                if (currentIndex == 0) {
+                    FontUtils.getSelectedTextColor(context)
+                } else {
+                    FontUtils.getUnselectedTextColor(context)
+                }
+        )
 
         // Update title colors based on selection
-        val context = requireContext()
         backTitle.setTextColor(
                 if (currentIndex == 0) {
                     FontUtils.getSelectedTextColor(context)
@@ -182,6 +198,21 @@ class CoreVariablesFragment : MenuFragmentBase() {
             MenuAction.BACK -> backVariables.performClick()
             else -> {
                 /* Ignore other actions */
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Ensure fragment is fully resumed before re-registering
+        // This prevents timing issues when returning from back stack navigation
+        view?.post {
+            if (isAdded && isResumed) {
+                android.util.Log.d(
+                        "CoreVariablesFragment",
+                        "[RESUME] 🔧 onResume: Re-registering CoreVariablesFragment after back stack return"
+                )
+                viewModel.registerCoreVariablesFragment(this)
             }
         }
     }

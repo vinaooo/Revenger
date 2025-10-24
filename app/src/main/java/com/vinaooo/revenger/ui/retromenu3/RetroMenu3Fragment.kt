@@ -317,13 +317,22 @@ class RetroMenu3Fragment :
 
         override fun performBack(): Boolean {
                 // Se há um submenu ativo, fechar o submenu primeiro
-                if (parentFragmentManager.backStackEntryCount > 0) {
-                        android.util.Log.d("RetroMenu3Fragment", "Submenu active, closing submenu")
+                val backStackCount = parentFragmentManager.backStackEntryCount
+
+                if (backStackCount > 0) {
+                        android.util.Log.d(
+                                "RetroMenu3Fragment",
+                                "[PERFORM_BACK] 📚 Submenu active, closing submenu"
+                        )
                         try {
                                 submenuCoordinator.closeCurrentSubmenu()
                                 return true // Consumir o evento
                         } catch (e: Exception) {
-                                android.util.Log.e("RetroMenu3Fragment", "Error closing submenu", e)
+                                android.util.Log.e(
+                                        "RetroMenu3Fragment",
+                                        "[PERFORM_BACK] ❌ Error closing submenu",
+                                        e
+                                )
                                 return false // Não conseguiu fechar, deixar MenuManager lidar
                         }
                 }
@@ -369,15 +378,36 @@ class RetroMenu3Fragment :
 
         /** Make main menu visible again (when submenu is closed) */
         fun showMainMenu(preserveSelection: Boolean = false) {
+                android.util.Log.d(
+                        TAG,
+                        "[SHOW_MAIN_MENU] 📺 ========== SHOW MAIN MENU START =========="
+                )
+                android.util.Log.d(TAG, "[SHOW_MAIN_MENU] 📊 preserveSelection=$preserveSelection")
+                android.util.Log.d(
+                        TAG,
+                        "[SHOW_MAIN_MENU] 📊 currentState=${viewModel.getMenuManager().getCurrentState()}"
+                )
+
                 // Delegate view visibility to MenuViewManager
+                android.util.Log.d(
+                        TAG,
+                        "[SHOW_MAIN_MENU] 🎨 Calling menuViewManager.showMainMenu($preserveSelection)"
+                )
                 menuViewManager.showMainMenu(preserveSelection)
 
                 // Update controls hint when showing main menu
+                android.util.Log.d(TAG, "[SHOW_MAIN_MENU] ⌨️ Updating controls hint")
                 viewInitializer.updateControlsHint(menuViews)
 
                 // Reset to first option when showing main menu, unless preserving selection
                 if (!preserveSelection) {
+                        android.util.Log.d(
+                                TAG,
+                                "[SHOW_MAIN_MENU] 🎯 Resetting to first option (index 0)"
+                        )
                         setSelectedIndex(0)
+                } else {
+                        android.util.Log.d(TAG, "[SHOW_MAIN_MENU] 🎯 Preserving current selection")
                 }
 
                 // Update menu state (including audio) when returning from submenu
@@ -387,8 +417,19 @@ class RetroMenu3Fragment :
                 // Only update if we're not preserving selection (which means selection was already
                 // set)
                 if (!preserveSelection) {
-                        getAnimationController().updateSelectionVisual(getCurrentSelectedIndex())
+                        val currentIndex = getCurrentSelectedIndex()
+                        android.util.Log.d(
+                                TAG,
+                                "[SHOW_MAIN_MENU] 🎨 Updating selection visual for index: $currentIndex"
+                        )
+                        getAnimationController().updateSelectionVisual(currentIndex)
                 }
+
+                android.util.Log.d(TAG, "[SHOW_MAIN_MENU] ✅ Show main menu completed")
+                android.util.Log.d(
+                        TAG,
+                        "[SHOW_MAIN_MENU] 📺 ========== SHOW MAIN MENU END =========="
+                )
 
                 // Layout will be updated automatically when properties change
         }

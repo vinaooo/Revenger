@@ -263,7 +263,8 @@ class GameActivityViewModel(application: Application) :
 
         // Control when to intercept DPAD for menu
         controllerInput.shouldInterceptDpadForMenu = {
-            isAnyMenuActive() && !isDismissingAllMenus()
+            val result = isAnyMenuActive() && !isDismissingAllMenus()
+            result
         }
 
         // Control when START button alone should work (only when RetroMenu3 or SettingsMenu
@@ -547,18 +548,76 @@ class GameActivityViewModel(application: Application) :
         )
 
         val retroMenu3Open = isRetroMenu3Open()
-        val settingsActive = isSettingsMenuActive()
-        val progressActive = isProgressActive()
-        val aboutActive = isAboutActive()
-        val exitActive = isExitActive()
-        val result = retroMenu3Open || settingsActive || progressActive || aboutActive || exitActive
+
+        // More robust fragment activity checks - verify fragments are actually active/visible
+        val aboutFragmentActive =
+                aboutFragment != null &&
+                        aboutFragment?.isAdded == true &&
+                        aboutFragment?.isResumed == true
+        val coreVariablesFragmentActive =
+                coreVariablesFragment != null &&
+                        coreVariablesFragment?.isAdded == true &&
+                        coreVariablesFragment?.isResumed == true
+        val settingsFragmentActive =
+                settingsMenuFragment != null &&
+                        settingsMenuFragment?.isAdded == true &&
+                        settingsMenuFragment?.isResumed == true
+        val progressFragmentActive =
+                progressFragment != null &&
+                        progressFragment?.isAdded == true &&
+                        progressFragment?.isResumed == true
+        val exitFragmentActive =
+                exitFragment != null &&
+                        exitFragment?.isAdded == true &&
+                        exitFragment?.isResumed == true
+
+        // CRITICAL: If we're in the middle of dismissing submenus but the main menu should still be
+        // active,
+        // ensure we don't lose gamepad blocking. Check if retroMenu3Fragment exists and was
+        // recently active
+        val dismissingSubmenu = isDismissingAllMenus()
+        val retroMenu3FragmentExists = retroMenu3Fragment != null
+        val retroMenu3FragmentAdded = retroMenu3Fragment?.isAdded == true
+
+        // If we're dismissing a submenu but the main menu fragment still exists, keep blocking
+        val forceMainMenuActive =
+                dismissingSubmenu && retroMenu3FragmentExists && retroMenu3FragmentAdded
+
+        val result =
+                retroMenu3Open ||
+                        aboutFragmentActive ||
+                        coreVariablesFragmentActive ||
+                        settingsFragmentActive ||
+                        progressFragmentActive ||
+                        exitFragmentActive ||
+                        forceMainMenuActive
 
         android.util.Log.d("GameActivityViewModel", "[ACTIVE] 📊 Menu states:")
         android.util.Log.d("GameActivityViewModel", "[ACTIVE]   🎮 retroMenu3Open=$retroMenu3Open")
-        android.util.Log.d("GameActivityViewModel", "[ACTIVE]   ⚙️ settingsActive=$settingsActive")
-        android.util.Log.d("GameActivityViewModel", "[ACTIVE]   📊 progressActive=$progressActive")
-        android.util.Log.d("GameActivityViewModel", "[ACTIVE]   📋 aboutActive=$aboutActive")
-        android.util.Log.d("GameActivityViewModel", "[ACTIVE]   🚪 exitActive=$exitActive")
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   📋 aboutFragmentActive=$aboutFragmentActive (ref=${aboutFragment != null}, added=${aboutFragment?.isAdded}, resumed=${aboutFragment?.isResumed})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   🔧 coreVariablesFragmentActive=$coreVariablesFragmentActive (ref=${coreVariablesFragment != null}, added=${coreVariablesFragment?.isAdded}, resumed=${coreVariablesFragment?.isResumed})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   ⚙️ settingsFragmentActive=$settingsFragmentActive (ref=${settingsMenuFragment != null}, added=${settingsMenuFragment?.isAdded}, resumed=${settingsMenuFragment?.isResumed})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   💾 progressFragmentActive=$progressFragmentActive (ref=${progressFragment != null}, added=${progressFragment?.isAdded}, resumed=${progressFragment?.isResumed})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   🚪 exitFragmentActive=$exitFragmentActive (ref=${exitFragment != null}, added=${exitFragment?.isAdded}, resumed=${exitFragment?.isResumed})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   🔄 dismissingSubmenu=$dismissingSubmenu, forceMainMenuActive=$forceMainMenuActive"
+        )
         android.util.Log.d("GameActivityViewModel", "[ACTIVE] ✅ RESULT: isAnyMenuActive=$result")
 
         android.util.Log.d(
@@ -624,17 +683,18 @@ class GameActivityViewModel(application: Application) :
 
         // CRITICAL FIX: After dismissing submenu, ensure main menu is visible
         // BUT only if we're NOT in the middle of dismissing ALL menus (START button case)
+        val retroMenu3OpenBefore = isRetroMenu3Open()
         if (isRetroMenu3Open() && !isDismissingAllMenus()) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "dismiss${fragmentName}: Main menu restoration handled by BackStackChangeListener"
+                    "dismiss${fragmentName}: Main menu restoration handled by BackStackChangeListener (retroMenu3Open=$retroMenu3OpenBefore)"
             )
             // REMOVED: retroMenu3Fragment?.restoreMainMenu()
             // The BackStackChangeListener in RetroMenu3Fragment will handle menu restoration
         } else {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "dismiss${fragmentName}: NOT showing main menu (dismissingAll=${isDismissingAllMenus()}, retroMenu3Open=${isRetroMenu3Open()})"
+                    "dismiss${fragmentName}: NOT showing main menu (dismissingAll=${isDismissingAllMenus()}, retroMenu3Open=$retroMenu3OpenBefore)"
             )
         }
 
@@ -692,6 +752,8 @@ class GameActivityViewModel(application: Application) :
         dismissSubmenuFragment(aboutFragment, "About") {
             aboutFragment = null
             deactivateAboutMenu()
+            // Navigate back to main menu when dismissing About submenu
+            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
         }
     }
 
@@ -709,6 +771,14 @@ class GameActivityViewModel(application: Application) :
                 "GameActivityViewModel",
                 "[DISMISS_ALL] dismissAllMenus: Starting cascade dismissal"
         )
+
+        // CRITICAL: Reset comboAlreadyTriggered IMMEDIATELY when menu dismissal starts
+        // This prevents the flag from staying true and blocking future combo detection
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[DISMISS_ALL] dismissAllMenus: Resetting comboAlreadyTriggered immediately"
+        )
+        controllerInput.resetComboAlreadyTriggered()
 
         // Set flag to prevent showing main menu when submenus are dismissed
         setDismissingAllMenus(true)
@@ -837,6 +907,10 @@ class GameActivityViewModel(application: Application) :
 
     /** Register the SettingsMenuFragment when it's created */
     fun registerSettingsMenuFragment(fragment: SettingsMenuFragment) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] ⚙️ registerSettingsMenuFragment: Registering SettingsMenuFragment - isAdded=${fragment.isAdded}, isResumed=${fragment.isResumed}"
+        )
         settingsMenuFragment = fragment
         menuViewModel.registerSettingsMenuFragment(fragment)
         activateSettingsMenu()
@@ -845,10 +919,18 @@ class GameActivityViewModel(application: Application) :
                 com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU,
                 fragment
         )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] ⚙️ registerSettingsMenuFragment: Registration completed - isAnyMenuActive=${isAnyMenuActive()}"
+        )
     }
 
     /** Register the ProgressFragment when it's created */
     fun registerProgressFragment(fragment: ProgressFragment) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 💾 registerProgressFragment: Registering ProgressFragment - isAdded=${fragment.isAdded}, isResumed=${fragment.isResumed}"
+        )
         progressFragment = fragment
         menuViewModel.registerProgressFragment(fragment)
         activateProgressMenu()
@@ -857,10 +939,18 @@ class GameActivityViewModel(application: Application) :
                 com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU,
                 fragment
         )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 💾 registerProgressFragment: Registration completed - isAnyMenuActive=${isAnyMenuActive()}"
+        )
     }
 
     /** Register the ExitFragment when it's created */
     fun registerExitFragment(fragment: ExitFragment) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 🚪 registerExitFragment: Registering ExitFragment - isAdded=${fragment.isAdded}, isResumed=${fragment.isResumed}"
+        )
         exitFragment = fragment
         menuViewModel.registerExitFragment(fragment)
         activateExitMenu()
@@ -869,10 +959,18 @@ class GameActivityViewModel(application: Application) :
                 com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU,
                 fragment
         )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 🚪 registerExitFragment: Registration completed - isAnyMenuActive=${isAnyMenuActive()}"
+        )
     }
 
     /** Register the AboutFragment when it's created */
     fun registerAboutFragment(fragment: AboutFragment) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 📋 registerAboutFragment: Registering AboutFragment - isAdded=${fragment.isAdded}, isResumed=${fragment.isResumed}"
+        )
         aboutFragment = fragment
         activateAboutMenu()
         // Register with MenuManager
@@ -880,16 +978,28 @@ class GameActivityViewModel(application: Application) :
                 com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU,
                 fragment
         )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 📋 registerAboutFragment: Registration completed - isAnyMenuActive=${isAnyMenuActive()}"
+        )
     }
 
     /** Register the CoreVariablesFragment when it's created */
     fun registerCoreVariablesFragment(fragment: CoreVariablesFragment) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 🔧 registerCoreVariablesFragment: Registering CoreVariablesFragment - isAdded=${fragment.isAdded}, isResumed=${fragment.isResumed}"
+        )
         coreVariablesFragment = fragment
         activateCoreVariablesMenu()
         // Register with MenuManager
         menuManager.registerFragment(
                 com.vinaooo.revenger.ui.retromenu3.MenuState.CORE_VARIABLES_MENU,
                 fragment
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 🔧 registerCoreVariablesFragment: Registration completed - isAnyMenuActive=${isAnyMenuActive()}"
         )
     }
 
@@ -1439,12 +1549,24 @@ class GameActivityViewModel(application: Application) :
                 // Handle menu state transitions
                 android.util.Log.d(
                         "GameActivityViewModel",
-                        "Menu state changed: ${event.from} -> ${event.to}"
+                        "[STATE_CHANGE] 🔄 ========== MENU STATE CHANGED =========="
+                )
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[STATE_CHANGE] 🔄 From: ${event.from} -> To: ${event.to}"
+                )
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[STATE_CHANGE] 🔄 isAnyMenuActive before=${isAnyMenuActive()}"
                 )
 
                 // Activate/deactivate menus based on state changes
                 when (event.to) {
                     com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU -> {
+                        android.util.Log.d(
+                                "GameActivityViewModel",
+                                "[STATE_CHANGE] 🎮 State changed to MAIN_MENU - retroMenu3Open=${isRetroMenu3Open()}"
+                        )
                         // Main menu is always active when RetroMenu3 is open
                         // No need to activate/deactivate here
                     }
@@ -1479,10 +1601,22 @@ class GameActivityViewModel(application: Application) :
                     com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
                         deactivateExitMenu()
                     }
+                    com.vinaooo.revenger.ui.retromenu3.MenuState.CORE_VARIABLES_MENU -> {
+                        deactivateCoreVariablesMenu()
+                    }
                     else -> {
                         // No deactivation needed for MAIN_MENU or other states
                     }
                 }
+
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[STATE_CHANGE] 🔄 isAnyMenuActive after=${isAnyMenuActive()}"
+                )
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[STATE_CHANGE] 🔄 ========== MENU STATE CHANGED END =========="
+                )
             }
             com.vinaooo.revenger.ui.retromenu3.MenuEvent.MenuClosed -> {
                 // Handle complete menu closure

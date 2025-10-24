@@ -26,12 +26,9 @@ class AboutFragment : MenuFragmentBase() {
     private lateinit var aboutTitle: TextView
 
     // Information display views
-    private lateinit var projectNameLabel: TextView
-    private lateinit var projectNameValue: TextView
-    private lateinit var romNameLabel: TextView
-    private lateinit var romNameValue: TextView
-    private lateinit var coreNameLabel: TextView
-    private lateinit var coreNameValue: TextView
+    private lateinit var projectNameInfo: TextView
+    private lateinit var romNameInfo: TextView
+    private lateinit var coreNameInfo: TextView
 
     // Menu option titles for color control
     private lateinit var coreVariablesTitle: TextView
@@ -88,12 +85,9 @@ class AboutFragment : MenuFragmentBase() {
         aboutTitle = view.findViewById(R.id.about_title)
 
         // Information display views
-        projectNameLabel = view.findViewById(R.id.project_name_label)
-        projectNameValue = view.findViewById(R.id.project_name_value)
-        romNameLabel = view.findViewById(R.id.rom_name_label)
-        romNameValue = view.findViewById(R.id.rom_name_value)
-        coreNameLabel = view.findViewById(R.id.core_name_label)
-        coreNameValue = view.findViewById(R.id.core_name_value)
+        projectNameInfo = view.findViewById(R.id.project_name_info)
+        romNameInfo = view.findViewById(R.id.rom_name_info)
+        coreNameInfo = view.findViewById(R.id.core_name_info)
 
         // Menu items
         coreVariablesAbout = view.findViewById(R.id.about_core_variables)
@@ -121,28 +115,19 @@ class AboutFragment : MenuFragmentBase() {
         ViewUtils.applySelectedFontToViews(
                 requireContext(),
                 aboutTitle,
-                projectNameLabel,
-                projectNameValue,
-                romNameLabel,
-                romNameValue,
-                coreNameLabel,
-                coreNameValue,
+                projectNameInfo,
+                romNameInfo,
+                coreNameInfo,
                 backTitle,
                 selectionArrowBack,
                 coreVariablesTitle,
                 selectionArrowCoreVariables
         )
 
-        // Populate information
+        // Populate information with combined label and value
         populateAboutInfo()
 
-        // Set label texts programmatically AFTER font application to ensure spacing is preserved
-        // Use direct text assignment to avoid any resource loading issues
-        projectNameLabel.text = "project:\u00A0"
-        romNameLabel.text = "rom:\u00A0"
-        coreNameLabel.text = "core:\u00A0"
-
-        // Aplicar capitalização configurada a TODOS os textos (título e labels)
+        // Aplicar capitalização configurada a TODOS os textos (título, labels, títulos dos botões)
         val capitalizationStyle =
                 resources.getInteger(com.vinaooo.revenger.R.integer.retro_menu3_text_capitalization)
 
@@ -165,38 +150,46 @@ class AboutFragment : MenuFragmentBase() {
             aboutTitle.text = capitalizedTitle
         }
 
-        // Aplicar capitalização aos labels (preservando os espaços não-quebráveis)
-        val labels = arrayOf(projectNameLabel, romNameLabel, coreNameLabel)
-        labels.forEach { label ->
-            val labelText = label.text.toString()
-            val capitalizedLabel =
+        // Aplicar capitalização aos textos informativos (já incluem label + value)
+        val infoViews = arrayOf(projectNameInfo, romNameInfo, coreNameInfo)
+        infoViews.forEach { infoView ->
+            val infoText = infoView.text.toString()
+            val capitalizedInfo =
                     when (capitalizationStyle) {
                         1 -> {
                             // Primeira letra maiúscula
-                            if (labelText.isNotEmpty()) {
-                                labelText.substring(0, 1).uppercase() + labelText.substring(1)
+                            if (infoText.isNotEmpty()) {
+                                infoText.substring(0, 1).uppercase() + infoText.substring(1)
                             } else {
-                                labelText
+                                infoText
                             }
                         }
-                        2 -> labelText.uppercase() // Tudo maiúsculo
-                        else -> labelText // Normal (padrão)
+                        2 -> infoText.uppercase() // Tudo maiúsculo
+                        else -> infoText // Normal (padrão)
                     }
-            if (capitalizedLabel != labelText) {
-                label.text = capitalizedLabel
+            if (capitalizedInfo != infoText) {
+                infoView.text = capitalizedInfo
             }
         }
 
-        // DEBUG: Log labels after all processing
+        // Aplicar capitalização aos títulos dos botões do menu
+        applyConfiguredCapitalization(coreVariablesTitle)
+        applyConfiguredCapitalization(backTitle)
+
+        // DEBUG: Log info views after all processing
         android.util.Log.d(TAG, "[DEBUG] After all processing:")
-        android.util.Log.d(TAG, "[DEBUG] projectNameLabel: '${projectNameLabel.text}'")
-        android.util.Log.d(TAG, "[DEBUG] romNameLabel: '${romNameLabel.text}'")
-        android.util.Log.d(TAG, "[DEBUG] coreNameLabel: '${coreNameLabel.text}'")
+        android.util.Log.d(TAG, "[DEBUG] projectNameInfo: '${projectNameInfo.text}'")
+        android.util.Log.d(TAG, "[DEBUG] romNameInfo: '${romNameInfo.text}'")
+        android.util.Log.d(TAG, "[DEBUG] coreNameInfo: '${coreNameInfo.text}'")
+        android.util.Log.d(TAG, "[DEBUG] coreVariablesTitle: '${coreVariablesTitle.text}'")
+        android.util.Log.d(TAG, "[DEBUG] backTitle: '${backTitle.text}'")
 
         // Force layout update to ensure text rendering is correct
-        projectNameLabel.invalidate()
-        romNameLabel.invalidate()
-        coreNameLabel.invalidate()
+        projectNameInfo.invalidate()
+        romNameInfo.invalidate()
+        coreNameInfo.invalidate()
+        coreVariablesTitle.invalidate()
+        backTitle.invalidate()
     }
 
     /** Aplica a capitalização configurada a um TextView */
@@ -223,19 +216,22 @@ class AboutFragment : MenuFragmentBase() {
     }
 
     private fun populateAboutInfo() {
-        // Project name
-        projectNameValue.text = "Revenger"
-        applyConfiguredCapitalization(projectNameValue)
+        // Project name - combine label and value
+        val projectLabel = resources.getString(R.string.about_project_name)
+        projectNameInfo.text = "$projectLabel Revenger"
+        applyConfiguredCapitalization(projectNameInfo)
 
-        // ROM name from config
+        // ROM name from config - combine label and value
+        val romLabel = resources.getString(R.string.about_rom_name)
         val romName = resources.getString(R.string.config_rom)
-        romNameValue.text = romName
-        applyConfiguredCapitalization(romNameValue)
+        romNameInfo.text = "$romLabel $romName"
+        applyConfiguredCapitalization(romNameInfo)
 
-        // Core name from config
+        // Core name from config - combine label and value
+        val coreLabel = resources.getString(R.string.about_core_name)
         val coreName = resources.getString(R.string.config_core)
-        coreNameValue.text = coreName
-        applyConfiguredCapitalization(coreNameValue)
+        coreNameInfo.text = "$coreLabel $coreName"
+        applyConfiguredCapitalization(coreNameInfo)
     }
 
     private fun setupClickListeners() {
@@ -377,6 +373,37 @@ class AboutFragment : MenuFragmentBase() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Ensure fragment is fully resumed before re-registering
+        // This prevents timing issues when returning from back stack navigation
+        view?.post {
+            if (isAdded && isResumed) {
+                android.util.Log.d(
+                        "AboutFragment",
+                        "[RESUME] 📋 ========== ABOUT FRAGMENT ON RESUME =========="
+                )
+                android.util.Log.d(
+                        "AboutFragment",
+                        "[RESUME] 📋 isAdded=$isAdded, isResumed=$isResumed"
+                )
+                android.util.Log.d(
+                        "AboutFragment",
+                        "[RESUME] 📋 Re-registering AboutFragment after back stack return"
+                )
+                viewModel.registerAboutFragment(this)
+                android.util.Log.d(
+                        "AboutFragment",
+                        "[RESUME] 📋 ========== ABOUT FRAGMENT ON RESUME END =========="
+                )
+            } else {
+                android.util.Log.d(
+                        "AboutFragment",
+                        "[RESUME] 📋 Fragment not ready: isAdded=$isAdded, isResumed=$isResumed"
+                )
+            }
+        }
+    }
     companion object {
         private const val TAG = "AboutFragment"
 

@@ -549,6 +549,21 @@ class SettingsMenuFragment : MenuFragmentBase() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Ensure fragment is fully resumed before re-registering
+        // This prevents timing issues when returning from back stack navigation
+        view?.post {
+            if (isAdded && isResumed) {
+                android.util.Log.d(
+                        "SettingsMenuFragment",
+                        "[RESUME] ⚙️ onResume: Re-registering SettingsMenuFragment after back stack return"
+                )
+                viewModel.registerSettingsMenuFragment(this)
+            }
+        }
+    }
+
     companion object {
         private const val TAG = "SettingsMenu"
 

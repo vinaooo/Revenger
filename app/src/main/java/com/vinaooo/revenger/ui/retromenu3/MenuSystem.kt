@@ -280,9 +280,31 @@ class MenuManager(
 
     /** Navigate to a specific menu state */
     fun navigateToState(newState: MenuState) {
+        android.util.Log.d(
+                "MenuManager",
+                "[NAVIGATE_TO_STATE] 🧭 ========== NAVIGATE TO STATE START =========="
+        )
+        android.util.Log.d("MenuManager", "[NAVIGATE_TO_STATE] 📊 newState=$newState")
+
         val oldState = stateManager.getCurrentState()
+        android.util.Log.d("MenuManager", "[NAVIGATE_TO_STATE] 📊 oldState=$oldState")
+
         stateManager.changeState(newState)
+        android.util.Log.d(
+                "MenuManager",
+                "[NAVIGATE_TO_STATE] ✅ State changed: $oldState -> $newState"
+        )
+
+        android.util.Log.d(
+                "MenuManager",
+                "[NAVIGATE_TO_STATE] 📡 Calling listener.onMenuEvent(StateChanged)"
+        )
         listener.onMenuEvent(MenuEvent.StateChanged(oldState, newState))
+
+        android.util.Log.d(
+                "MenuManager",
+                "[NAVIGATE_TO_STATE] 🧭 ========== NAVIGATE TO STATE END =========="
+        )
     }
 
     /** Handle a menu action */
@@ -306,17 +328,14 @@ class MenuManager(
 
     /** Navigate up in current menu */
     fun navigateUp(): Boolean {
-        android.util.Log.d(
-                "MenuManager",
-                "[NAV] ↑ navigateUp: ========== STARTING NAVIGATE UP =========="
-        )
+        android.util.Log.d("MenuManager", "[NAV] ↑ ========== NAVIGATE UP START ==========")
         val fragment = getCurrentFragment()
         val isAdded = (fragment as? androidx.fragment.app.Fragment)?.isAdded == true
         val hasContext = (fragment as? androidx.fragment.app.Fragment)?.context != null
         val isVisible = (fragment as? androidx.fragment.app.Fragment)?.isVisible == true
         val isResumed = (fragment as? androidx.fragment.app.Fragment)?.isResumed == true
 
-        android.util.Log.d("MenuManager", "[NAV] ↑ navigateUp: Fragment status check")
+        android.util.Log.d("MenuManager", "[NAV] ↑ Fragment status check")
         android.util.Log.d("MenuManager", "[NAV]   📋 fragment=${fragment?.javaClass?.simpleName}")
         android.util.Log.d("MenuManager", "[NAV]   ✅ isAdded=$isAdded")
         android.util.Log.d("MenuManager", "[NAV]   🎯 hasContext=$hasContext")
@@ -325,23 +344,17 @@ class MenuManager(
         android.util.Log.d("MenuManager", "[NAV]   📊 currentState=${getCurrentState()}")
 
         if (fragment != null && isAdded && hasContext) {
-            android.util.Log.d("MenuManager", "[NAV] ↑ navigateUp: Calling fragment.onNavigateUp()")
+            android.util.Log.d("MenuManager", "[NAV] ↑ Calling fragment.onNavigateUp()")
             val result = fragment.onNavigateUp()
-            android.util.Log.d("MenuManager", "[NAV] ↑ navigateUp: Result=$result")
-            android.util.Log.d(
-                    "MenuManager",
-                    "[NAV] ↑ navigateUp: ========== NAVIGATE UP COMPLETED =========="
-            )
+            android.util.Log.d("MenuManager", "[NAV] ↑ Result=$result")
+            android.util.Log.d("MenuManager", "[NAV] ↑ ========== NAVIGATE UP COMPLETED ==========")
             return result
         } else {
             android.util.Log.w(
                     "MenuManager",
-                    "[NAV] navigateUp: Fragment not available or not attached - fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, isVisible=$isVisible, isResumed=$isResumed"
+                    "[NAV] Navigate up: Fragment not available or not attached - fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, isVisible=$isVisible, isResumed=$isResumed"
             )
-            android.util.Log.d(
-                    "MenuManager",
-                    "[NAV] ↑ navigateUp: ========== NAVIGATE UP FAILED =========="
-            )
+            android.util.Log.d("MenuManager", "[NAV] ↑ ========== NAVIGATE UP FAILED ==========")
             return false
         }
     }

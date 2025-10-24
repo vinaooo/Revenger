@@ -179,6 +179,15 @@ class ControllerInput(private val context: Context) {
         /** Getter for comboAlreadyTriggered (for debugging) */
         fun getComboAlreadyTriggered(): Boolean = comboAlreadyTriggered
 
+        /** Reset comboAlreadyTriggered flag (used when menu is being dismissed) */
+        fun resetComboAlreadyTriggered() {
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔄 resetComboAlreadyTriggered: Resetting comboAlreadyTriggered to false"
+                )
+                comboAlreadyTriggered = false
+        }
+
         /** Function to check if devemos interceptar DPAD para menu */
         var shouldInterceptDpadForMenu: () -> Boolean = { false }
 
@@ -706,7 +715,12 @@ class ControllerInput(private val context: Context) {
 
                 // BLOCK COMPLETELY all controls when RetroMenu3 is open
                 // EXCEPT those already handled above (START, A, DPAD)
-                if (shouldBlockAllGamepadInput()) {
+                val shouldBlock = shouldBlockAllGamepadInput()
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🎮 processKeyEvent: shouldBlockAllGamepadInput() = $shouldBlock (keyCode: $keyCode, action: ${event.action})"
+                )
+                if (shouldBlock) {
                         android.util.Log.d(
                                 "ControllerInput",
                                 "🛑 BLOCKING GAMEPAD INPUT - RetroMenu3 is open (keyCode: $keyCode)"
@@ -854,7 +868,12 @@ class ControllerInput(private val context: Context) {
 
                 // COMPLETELY BLOCK all controls when RetroMenu3 is open
                 // EXCEPT DPAD (AXIS_HAT) which is used for menu navigation
-                if (shouldBlockAllGamepadInput()) {
+                val shouldBlock = shouldBlockAllGamepadInput()
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🎮 processMotionEvent: shouldBlockAllGamepadInput() = $shouldBlock (DPAD_X: ${event.getAxisValue(MotionEvent.AXIS_HAT_X)}, DPAD_Y: ${event.getAxisValue(MotionEvent.AXIS_HAT_Y)})"
+                )
+                if (shouldBlock) {
                         // Allow only DPAD (hat axes) events when menu is open
                         val isDpadEvent =
                                 event.getAxisValue(MotionEvent.AXIS_HAT_X) != 0f ||

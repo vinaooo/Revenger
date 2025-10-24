@@ -380,6 +380,21 @@ class ExitFragment : MenuFragmentBase() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Ensure fragment is fully resumed before re-registering
+        // This prevents timing issues when returning from back stack navigation
+        view?.post {
+            if (isAdded && isResumed) {
+                android.util.Log.d(
+                        "ExitFragment",
+                        "[RESUME] 🚪 onResume: Re-registering ExitFragment after back stack return"
+                )
+                viewModel.registerExitFragment(this)
+            }
+        }
+    }
+
     companion object {
         private const val TAG = "ExitMenu"
 
