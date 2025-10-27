@@ -242,6 +242,9 @@ class GameActivityViewModel(application: Application) :
 
         // Set the callback to check if SELECT+START combo should work
         controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
+
+        // Set the callback to check if gamepad menu button should work
+        controllerInput.shouldHandleGamepadMenuButton = { shouldHandleGamepadMenuButton() }
     }
 
     /** Configure menu callback with activity reference */
@@ -251,6 +254,15 @@ class GameActivityViewModel(application: Application) :
 
         // Configure START button callback to close ALL menus (submenus first, then main menu)
         controllerInput.startButtonCallback = { dismissAllMenus() }
+
+        // Configure gamepad menu button callback to toggle menu
+        controllerInput.gamepadMenuButtonCallback = {
+            if (isAnyMenuActive()) {
+                dismissAllMenus()
+            } else {
+                showRetroMenu3(activity)
+            }
+        }
 
         // Configure navigation callbacks for RetroMenu3
         controllerInput.menuNavigateUpCallback = { menuManager.sendNavigateUp() }
@@ -1362,22 +1374,26 @@ class GameActivityViewModel(application: Application) :
                 retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
     }
 
-    /** Check if menu is enabled based on config_menu_mode */
+    /** Check if menu is enabled based on menu mode configs */
     private fun isMenuEnabled(): Boolean {
-        val menuMode = resources.getInteger(R.integer.config_menu_mode)
-        return menuMode != 0 // 0 = disabled, 1,2,3 = enabled in different ways
+        return resources.getBoolean(R.bool.config_menu_mode_back) ||
+                resources.getBoolean(R.bool.config_menu_mode_combo) ||
+                resources.getBoolean(R.bool.config_menu_mode_gamepad)
     }
 
-    /** Check if menu should respond to back button based on config_menu_mode */
+    /** Check if menu should respond to back button based on config_menu_mode_back */
     fun shouldHandleBackButton(): Boolean {
-        val menuMode = resources.getInteger(R.integer.config_menu_mode)
-        return menuMode == 1 || menuMode == 3 // 1 = back button only, 3 = both
+        return resources.getBoolean(R.bool.config_menu_mode_back)
     }
 
-    /** Check if menu should respond to SELECT+START combo based on config_menu_mode */
+    /** Check if menu should respond to SELECT+START combo based on config_menu_mode_combo */
     fun shouldHandleSelectStartCombo(): Boolean {
-        val menuMode = resources.getInteger(R.integer.config_menu_mode)
-        return menuMode == 2 || menuMode == 3 // 2 = combo only, 3 = both
+        return resources.getBoolean(R.bool.config_menu_mode_combo)
+    }
+
+    /** Check if menu should respond to gamepad menu button based on config_menu_mode_gamepad */
+    fun shouldHandleGamepadMenuButton(): Boolean {
+        return resources.getBoolean(R.bool.config_menu_mode_gamepad)
     }
 
     /**

@@ -130,6 +130,12 @@ class ControllerInput(private val context: Context) {
         /** Function to check if START button alone should trigger callback */
         var shouldHandleStartButton: () -> Boolean = { false }
 
+        /** Function to check if gamepad menu button should trigger menu */
+        var shouldHandleGamepadMenuButton: () -> Boolean = { false }
+
+        /** The callback for when the user presses the gamepad menu button */
+        var gamepadMenuButtonCallback: () -> Unit = {}
+
         /** Function to check if devemos bloquear TODOS os inputs do gamepad */
         var shouldBlockAllGamepadInput: () -> Boolean = { false }
 
@@ -148,6 +154,7 @@ class ControllerInput(private val context: Context) {
         private var lastMenuNavigateUpCallbackTime: Long = 0
         private var lastMenuNavigateDownCallbackTime: Long = 0
         private var lastStartButtonCallbackTime: Long = 0
+        private var lastGamepadMenuButtonCallbackTime: Long = 0
 
         // Minimum time between menu callback calls (in milliseconds)
         private val MENU_CALLBACK_DEBOUNCE_MS = 150L
@@ -507,6 +514,21 @@ class ControllerInput(private val context: Context) {
                                         "ControllerInput",
                                         "   startButtonCallback() completed"
                                 )
+                        }
+                        return // Consume the event, don't process further
+                }
+
+                // INTERCEPT GAMEPAD MENU BUTTON (☰)
+                if (keyCode == -6 && shouldHandleGamepadMenuButton()) {
+                        if (action == KeyEvent.ACTION_DOWN) {
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "GAMEPAD MENU BUTTON (☰) pressed - toggling menu"
+                                )
+                                executeMenuCallback(
+                                        gamepadMenuButtonCallback,
+                                        lastGamepadMenuButtonCallbackTime
+                                ) { lastGamepadMenuButtonCallbackTime = it }
                         }
                         return // Consume the event, don't process further
                 }
