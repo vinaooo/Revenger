@@ -84,7 +84,4 @@
     <string name="exit_menu_option_b">Exit without Save</string>
     <string name="exit_menu_option_c">Back</string>
 
-    <!-- Menu Control hint -->
-    <string name="retro_menu3_controls_hint">[A] Confirm  [B] Back</string>
-
 </resources>

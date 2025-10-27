@@ -29,9 +29,6 @@ class MenuViewManager(private val fragment: Fragment) {
         private const val TAG = "MenuViewManager"
     }
 
-    // View hint
-    private lateinit var controlsHint: TextView
-
     // Menu item views
     private lateinit var menuContainerView: LinearLayout
     private lateinit var continueMenu: RetroCardView
@@ -93,9 +90,6 @@ class MenuViewManager(private val fragment: Fragment) {
         // Main container
         menuContainerView = view.findViewById(R.id.menu_container)
 
-        // Controls hint
-        controlsHint = view.findViewById(R.id.retro_menu3_controls_hint)
-
         // Menu items
         continueMenu = view.findViewById(R.id.menu_continue)
         resetMenu = view.findViewById(R.id.menu_reset)
@@ -154,7 +148,6 @@ class MenuViewManager(private val fragment: Fragment) {
         // Apply arcade font to all text views
         ViewUtils.applySelectedFontToViews(
                 fragment.requireContext(),
-                controlsHint,
                 continueTitle,
                 resetTitle,
                 progressTitle,
@@ -177,8 +170,7 @@ class MenuViewManager(private val fragment: Fragment) {
                 progressTitle,
                 settingsTitle,
                 aboutTitle,
-                exitTitle,
-                controlsHint
+                exitTitle
         )
 
         // Set first item as selected
@@ -194,7 +186,7 @@ class MenuViewManager(private val fragment: Fragment) {
     fun animateMenuIn() {
         // Use optimized batch animation for better performance
         ViewUtils.animateMenuViewsBatchOptimized(
-                arrayOf(menuContainerView, controlsHint),
+                arrayOf(menuContainerView),
                 toAlpha = 1f,
                 toScale = 1f,
                 duration = 200
@@ -205,7 +197,7 @@ class MenuViewManager(private val fragment: Fragment) {
     fun animateMenuOut(onEnd: () -> Unit) {
         // Use optimized batch animation with callback
         ViewUtils.animateMenuViewsBatchOptimized(
-                arrayOf(menuContainerView, controlsHint),
+                arrayOf(menuContainerView),
                 toAlpha = 0f,
                 toScale = 0.8f,
                 duration = 150
@@ -310,12 +302,7 @@ class MenuViewManager(private val fragment: Fragment) {
                 "[VIEW] hideMainMenuTexts - menuTitleTextView visibility after: ${menuTitleTextView?.visibility}"
         )
 
-        // Manter o hint de controles sempre visível
-        // if (::controlsHint.isInitialized) {
-        //     controlsHint.visibility = View.INVISIBLE
-        // }
-
-        Log.d(TAG, "[VIEW] hideMainMenuTexts completed - main menu texts hidden (hint preserved)")
+        Log.d(TAG, "[VIEW] hideMainMenuTexts completed - main menu texts hidden")
     }
 
     /** Mostra novamente os textos do menu principal (quando submenu é fechado) */
@@ -334,11 +321,6 @@ class MenuViewManager(private val fragment: Fragment) {
 
         // Mostrar o título principal do menu
         menuTitleTextView?.visibility = View.VISIBLE
-
-        // Também mostrar o hint de controles se existir
-        if (::controlsHint.isInitialized) {
-            controlsHint.visibility = View.VISIBLE
-        }
 
         Log.d(TAG, "[VIEW] showMainMenuTexts completed - main menu texts shown")
     }
@@ -387,11 +369,6 @@ class MenuViewManager(private val fragment: Fragment) {
 
         // Ocultar o título principal do menu
         menuTitleTextView?.visibility = View.INVISIBLE
-
-        // Manter o hint de controles sempre visível
-        // if (::controlsHint.isInitialized) {
-        //     controlsHint.visibility = View.INVISIBLE
-        // }
 
         Log.d(
                 TAG,

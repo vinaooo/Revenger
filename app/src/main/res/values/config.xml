@@ -40,7 +40,7 @@
                 as it involves rebuilding the
                 emulator instance!
     -->
-    <integer name="config_orientation">2</integer>
+    <integer name="config_orientation">3</integer>
 
     <!-- Menu display modes
         0: No menu (disabled)

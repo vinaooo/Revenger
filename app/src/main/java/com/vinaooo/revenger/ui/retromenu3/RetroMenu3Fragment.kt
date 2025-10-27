@@ -395,10 +395,6 @@ class RetroMenu3Fragment :
                 )
                 menuViewManager.showMainMenu(preserveSelection)
 
-                // Update controls hint when showing main menu
-                android.util.Log.d(TAG, "[SHOW_MAIN_MENU] ⌨️ Updating controls hint")
-                viewInitializer.updateControlsHint(menuViews)
-
                 // Reset to first option when showing main menu, unless preserving selection
                 if (!preserveSelection) {
                         android.util.Log.d(

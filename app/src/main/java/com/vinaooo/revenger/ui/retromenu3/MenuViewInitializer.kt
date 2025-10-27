@@ -33,7 +33,6 @@ data class MenuViews(
         val selectionArrowSettings: TextView,
         val selectionArrowAbout: TextView,
         val selectionArrowExit: TextView,
-        val controlsHint: TextView,
         val titleTextView: TextView
 )
 
@@ -43,7 +42,6 @@ interface MenuViewInitializer {
     fun setupClickListeners(views: MenuViews, actionHandler: MenuActionHandler)
     fun setupDynamicTitle(views: MenuViews)
     fun configureInitialViewStates(views: MenuViews)
-    fun updateControlsHint(views: MenuViews)
 }
 
 /**
@@ -85,7 +83,6 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
                         selectionArrowSettings = view.findViewById(R.id.selection_arrow_submenu1),
                         selectionArrowAbout = view.findViewById(R.id.selection_arrow_about),
                         selectionArrowExit = view.findViewById(R.id.selection_arrow_exit),
-                        controlsHint = view.findViewById(R.id.retro_menu3_controls_hint),
                         titleTextView = view.findViewById(R.id.menu_title)
                 )
 
@@ -173,29 +170,6 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
                     }
                 }
 
-        // Configure controls hint
-        views.controlsHint.apply {
-            text = fragment.getString(R.string.retro_menu3_controls_hint)
-            visibility = android.view.View.VISIBLE
-            alpha = 1.0f
-        }
-
         MenuLogger.lifecycle("MenuViewInitializer: configureInitialViewStates COMPLETED")
-    }
-
-    override fun updateControlsHint(views: MenuViews) {
-        MenuLogger.lifecycle("MenuViewInitializer: updateControlsHint START")
-
-        val hintText = fragment.getString(R.string.retro_menu3_controls_hint)
-        android.util.Log.d("RetroMenu3", "[CONTROLS_HINT] Setting text: '$hintText'")
-        views.controlsHint.text = hintText
-        views.controlsHint.visibility = android.view.View.VISIBLE
-        views.controlsHint.alpha = 1.0f
-        android.util.Log.d(
-                "RetroMenu3",
-                "[CONTROLS_HINT] Visibility set to VISIBLE, alpha set to 1.0, current visibility: ${views.controlsHint.visibility}"
-        )
-
-        MenuLogger.lifecycle("MenuViewInitializer: updateControlsHint COMPLETED")
     }
 }

@@ -100,12 +100,6 @@ class MenuLifecycleManagerImpl(
     override fun onResume() {
         MenuLogger.lifecycle("MenuLifecycleManager: onResume START")
 
-        // Ensure controls hint is always visible
-        if (::menuViews.isInitialized) {
-            viewInitializer.updateControlsHint(menuViews)
-            android.util.Log.d("MenuLifecycleManager", "[ON_RESUME] Controls hint ensured visible")
-        }
-
         MenuLogger.lifecycle("MenuLifecycleManager: onResume COMPLETED")
     }
 
