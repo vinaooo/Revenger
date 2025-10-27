@@ -238,7 +238,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_show_fake_button_8
+                                                                        R.bool.config_menu_mode_gamepad
                                                                 )
                                                         },
                                                 SecondaryDialConfig.SingleButton(

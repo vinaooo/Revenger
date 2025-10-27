@@ -50,7 +50,7 @@
     -->
     <bool name="config_menu_mode_back">true</bool>
     <bool name="config_menu_mode_combo">true</bool>
-    <bool name="config_menu_mode_gamepad">true</bool>
+    <bool name="config_menu_mode_gamepad">false</bool>
 
     <!-- Should we display a virtual gamepad? -->
     <bool name="config_gamepad">true</bool>
@@ -98,7 +98,6 @@
     <bool name="config_show_fake_button_5">false</bool>    <!-- Socket 5 -->
     <bool name="config_show_fake_button_6">false</bool>    <!-- Socket 6 -->
     <bool name="config_show_fake_button_7">false</bool>    <!-- Socket 7 -->
-    <bool name="config_show_fake_button_8">true</bool>    <!-- Socket 8 -->
     <bool name="config_show_fake_button_9">false</bool>    <!-- Socket 9 -->
     <bool name="config_show_fake_button_10">false</bool>   <!-- Socket 10 -->
     <bool name="config_show_fake_button_11">false</bool>   <!-- Socket 11 -->
