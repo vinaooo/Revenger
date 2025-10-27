@@ -30,6 +30,12 @@ class GamePadConfig(context: Context, private val resources: Resources) {
 
                 val BUTTON_Y = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_Y, label = "Y")
 
+                // PlayStation button symbols
+                val BUTTON_PS_TRIANGLE = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_Y, label = "△")
+                val BUTTON_PS_CIRCLE = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_B, label = "○")
+                val BUTTON_PS_CROSS = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_A, label = "×")
+                val BUTTON_PS_SQUARE = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_X, label = "□")
+
                 // Fake buttons for filling empty sockets
                 val BUTTON_F1 = ButtonConfig(id = -1, label = "0")
                 val BUTTON_F2 = ButtonConfig(id = -2, label = "1")
@@ -53,6 +59,74 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                         pressedColor =
                                 ContextCompat.getColor(context, R.color.gamepad_pressed_color)
                 )
+
+        private fun getActionButtonsInOrder(): List<ButtonConfig> {
+                val actionButtonStyle = resources.getInteger(R.integer.config_action_button)
+
+                return when (actionButtonStyle) {
+                        1 -> // Nintendo: Top=X, Bottom=B, Left=Y, Right=A
+                        listOfNotNull(
+                                        BUTTON_A.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_a)
+                                        }, // Right
+                                        BUTTON_B.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_b)
+                                        }, // Bottom
+                                        BUTTON_Y.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_y)
+                                        }, // Left
+                                        BUTTON_X.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_x)
+                                        } // Top
+                                )
+                        2 -> // Xbox: Top=Y, Bottom=A, Left=X, Right=B
+                        listOfNotNull(
+                                        BUTTON_B.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_b)
+                                        }, // Right
+                                        BUTTON_A.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_a)
+                                        }, // Bottom
+                                        BUTTON_X.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_x)
+                                        }, // Left
+                                        BUTTON_Y.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_y)
+                                        } // Top
+                                )
+                        3 -> // PlayStation: Top=×, Bottom=△, Left=□, Right=○ (Triangle on bottom, X
+                                // on top)
+                                listOfNotNull(
+                                        BUTTON_PS_CIRCLE.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_b)
+                                        }, // Right (○)
+                                        BUTTON_PS_TRIANGLE.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_y)
+                                        }, // Bottom (△)
+                                        BUTTON_PS_SQUARE.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_x)
+                                        }, // Left (□)
+                                        BUTTON_PS_CROSS.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_a)
+                                        } // Top (×)
+                                )
+                        else -> // Default to Nintendo: Top=X, Bottom=B, Left=Y, Right=A
+                        listOfNotNull(
+                                        BUTTON_A.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_a)
+                                        }, // Right
+                                        BUTTON_B.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_b)
+                                        }, // Bottom
+                                        BUTTON_Y.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_y)
+                                        }, // Left
+                                        BUTTON_X.takeIf {
+                                                resources.getBoolean(R.bool.config_gamepad_x)
+                                        } // Top
+                                )
+                }
+        }
 
         val left =
                 RadialGamePadConfig(
@@ -113,28 +187,10 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                         sockets = 12,
                         primaryDial =
                                 PrimaryDialConfig.PrimaryButtons(
-                                        dials =
-                                                listOfNotNull(
-                                                        BUTTON_A.takeIf {
-                                                                resources.getBoolean(
-                                                                        R.bool.config_gamepad_a
-                                                                )
-                                                        },
-                                                        BUTTON_X.takeIf {
-                                                                resources.getBoolean(
-                                                                        R.bool.config_gamepad_x
-                                                                )
-                                                        },
-                                                        BUTTON_Y.takeIf {
-                                                                resources.getBoolean(
-                                                                        R.bool.config_gamepad_y
-                                                                )
-                                                        },
-                                                        BUTTON_B.takeIf {
-                                                                resources.getBoolean(
-                                                                        R.bool.config_gamepad_b
-                                                                )
-                                                        }
+                                        dials = getActionButtonsInOrder(),
+                                        allowMultiplePressesSingleFinger =
+                                                resources.getBoolean(
+                                                        R.bool.config_gamepad_allow_multiple_presses
                                                 )
                                 ),
                         secondaryDials =

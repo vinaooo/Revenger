@@ -50,13 +50,23 @@
     -->
     <bool name="config_menu_mode_back">true</bool>
     <bool name="config_menu_mode_combo">true</bool>
-    <bool name="config_menu_mode_gamepad">false</bool>
+    <bool name="config_menu_mode_gamepad">true</bool>
 
     <!-- Should we display a virtual gamepad? -->
     <bool name="config_gamepad">true</bool>
 
     <!-- Should we vibrate on touch? -->
     <bool name="config_gamepad_haptic">false</bool>
+
+    <!-- Allow pressing multiple action buttons with a single finger (shows intersection dots) -->
+    <bool name="config_gamepad_allow_multiple_presses">true</bool>
+
+    <!-- Action button layout style
+        1: Nintendo (Top=X, Bottom=B, Left=Y, Right=A)
+        2: Xbox (Top=Y, Bottom=A, Left=X, Right=B)
+        3: PlayStation (Top=×, Bottom=△, Left=□, Right=○)
+    -->
+    <integer name="config_action_button">3</integer>
 
     <!-- GamePad buttons to display -->
     <!-- Action Buttons (Right Gamepad - Center) -->
