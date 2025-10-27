@@ -51,7 +51,7 @@
         NOTE: Mode 0 disables all menu functionality,
               use with caution!
     -->
-    <integer name="config_menu_mode">3</integer>
+    <integer name="config_menu_mode">1</integer>
 
     <!-- Should we display a virtual gamepad? -->
     <bool name="config_gamepad">true</bool>

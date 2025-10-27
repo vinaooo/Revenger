@@ -203,14 +203,25 @@ class GameActivity : FragmentActivity() {
                 null
         )
 
-        /* Setup back pressed handling - use default behavior */
+        /* Setup back pressed handling - check menu state and mode */
         onBackPressedDispatcher.addCallback(
                 this,
                 object : OnBackPressedCallback(true) {
                     override fun handleOnBackPressed() {
-                        // Use default back button behavior
-                        isEnabled = false
-                        onBackPressedDispatcher.onBackPressed()
+                        // If menu is currently open, close it
+                        if (viewModel.isAnyMenuActive()) {
+                            viewModel.dismissAllMenus()
+                        }
+                        // If menu is not open, check if back button should open it based on
+                        // config_menu_mode
+                        else if (viewModel.shouldHandleBackButton()) {
+                            // Open RetroMenu3 instead of default back behavior
+                            viewModel.showRetroMenu3(this@GameActivity)
+                        } else {
+                            // Use default back button behavior
+                            isEnabled = false
+                            onBackPressedDispatcher.onBackPressed()
+                        }
                     }
                 }
         )

@@ -541,7 +541,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Check if any menu is currently active */
-    private fun isAnyMenuActive(): Boolean {
+    fun isAnyMenuActive(): Boolean {
         android.util.Log.d(
                 "GameActivityViewModel",
                 "[ACTIVE] 🔍 isAnyMenuActive: ========== CHECKING MENU ACTIVITY =========="
