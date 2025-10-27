@@ -128,9 +128,15 @@ class CoreVariablesFragment : MenuFragmentBase() {
         coreVariablesLabel.text = "core variables:\u00A0"
         applyConfiguredCapitalization(coreVariablesLabel)
 
-        // Get core variables from config
+        // Get core variables from config and replace commas with newlines for better readability
         val coreVariables = resources.getString(R.string.config_variables)
-        coreVariablesValue.text = if (coreVariables.isNotEmpty()) coreVariables else "None"
+        val formattedVariables =
+                if (coreVariables.isNotEmpty()) {
+                    coreVariables.replace(",", "\n")
+                } else {
+                    "None"
+                }
+        coreVariablesValue.text = formattedVariables
         applyConfiguredCapitalization(coreVariablesValue)
 
         // Apply capitalization to menu title
