@@ -60,16 +60,24 @@
     <bool name="config_gamepad_haptic">false</bool>
 
     <!-- GamePad buttons to display -->
-    <bool name="config_gamepad_a">true</bool>
-    <bool name="config_gamepad_b">true</bool>
-    <bool name="config_gamepad_x">false</bool>
-    <bool name="config_gamepad_y">false</bool>
-    <bool name="config_gamepad_start">true</bool>
-    <bool name="config_gamepad_select">true</bool>
-    <bool name="config_gamepad_l1">false</bool>
-    <bool name="config_gamepad_r1">false</bool>
-    <bool name="config_gamepad_l2">false</bool>
-    <bool name="config_gamepad_r2">false</bool>
+    <!-- Action Buttons (Right Gamepad - Center) -->
+    <bool name="config_gamepad_a">true</bool>     <!-- A Button -->
+    <bool name="config_gamepad_b">true</bool>     <!-- B Button -->
+    <bool name="config_gamepad_x">true</bool>     <!-- X Button -->
+    <bool name="config_gamepad_y">true</bool>     <!-- Y Button -->
+
+    <!-- System Buttons -->
+    <bool name="config_gamepad_start">true</bool>   <!-- Start Button -->
+    <bool name="config_gamepad_select">true</bool>  <!-- Select Button -->
+
+    <!-- Shoulder Buttons -->
+    <bool name="config_gamepad_l1">true</bool>    <!-- Left Shoulder 1 -->
+    <bool name="config_gamepad_r1">true</bool>    <!-- Right Shoulder 1 -->
+    <bool name="config_gamepad_l2">true</bool>    <!-- Left Shoulder 2 -->
+    <bool name="config_gamepad_r2">true</bool>    <!-- Right Shoulder 2 -->
+
+
+
 
     <!-- Should the left DPAD be replaced with an analog stick? -->
     <bool name="config_left_analog">false</bool>
@@ -84,4 +92,15 @@
         "lcd" = LCD shader
         "settings" = Allow user to select shader in menu-->
     <string name="config_shader">settings</string>
+
+    <!-- Individual fake button visibility controls -->
+    <bool name="config_show_fake_button_0">false</bool>    <!-- Socket 0 -->
+    <bool name="config_show_fake_button_1">false</bool>    <!-- Socket 1 -->
+    <bool name="config_show_fake_button_5">false</bool>    <!-- Socket 5 -->
+    <bool name="config_show_fake_button_6">false</bool>    <!-- Socket 6 -->
+    <bool name="config_show_fake_button_7">false</bool>    <!-- Socket 7 -->
+    <bool name="config_show_fake_button_8">true</bool>    <!-- Socket 8 -->
+    <bool name="config_show_fake_button_9">false</bool>    <!-- Socket 9 -->
+    <bool name="config_show_fake_button_10">false</bool>   <!-- Socket 10 -->
+    <bool name="config_show_fake_button_11">false</bool>   <!-- Socket 11 -->
 </resources>
