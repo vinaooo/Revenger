@@ -64,66 +64,34 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                 val actionButtonStyle = resources.getInteger(R.integer.config_action_button)
 
                 return when (actionButtonStyle) {
-                        1 -> // Nintendo: Top=X, Bottom=B, Left=Y, Right=A
+                        1 -> // Nintendo: Top=B, Bottom=X, Left=Y, Right=A (bottom/top swapped)
                         listOfNotNull(
-                                        BUTTON_A.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_a)
-                                        }, // Right
-                                        BUTTON_B.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_b)
-                                        }, // Bottom
-                                        BUTTON_Y.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_y)
-                                        }, // Left
-                                        BUTTON_X.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_x)
-                                        } // Top
+                                        BUTTON_A, // Right - always visible
+                                        BUTTON_X, // Bottom - swapped with top
+                                        BUTTON_Y, // Left - always visible
+                                        BUTTON_B // Top - swapped with bottom
                                 )
-                        2 -> // Xbox: Top=Y, Bottom=A, Left=X, Right=B
+                        2 -> // Xbox: Top=A, Bottom=Y, Left=X, Right=B (top/bottom swapped)
                         listOfNotNull(
-                                        BUTTON_B.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_b)
-                                        }, // Right
-                                        BUTTON_A.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_a)
-                                        }, // Bottom
-                                        BUTTON_X.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_x)
-                                        }, // Left
-                                        BUTTON_Y.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_y)
-                                        } // Top
+                                        BUTTON_B, // Right - always visible
+                                        BUTTON_Y, // Bottom - swapped with top
+                                        BUTTON_X, // Left - always visible
+                                        BUTTON_A // Top - swapped with bottom
                                 )
                         3 -> // PlayStation: Top=×, Bottom=△, Left=□, Right=○ (Triangle on bottom, X
                                 // on top)
                                 listOfNotNull(
-                                        BUTTON_PS_CIRCLE.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_b)
-                                        }, // Right (○)
-                                        BUTTON_PS_TRIANGLE.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_y)
-                                        }, // Bottom (△)
-                                        BUTTON_PS_SQUARE.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_x)
-                                        }, // Left (□)
-                                        BUTTON_PS_CROSS.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_a)
-                                        } // Top (×)
+                                        BUTTON_PS_CIRCLE, // Right (○) - always visible
+                                        BUTTON_PS_TRIANGLE, // Bottom (△) - always visible
+                                        BUTTON_PS_SQUARE, // Left (□) - always visible
+                                        BUTTON_PS_CROSS // Top (×) - always visible
                                 )
                         else -> // Default to Nintendo: Top=X, Bottom=B, Left=Y, Right=A
                         listOfNotNull(
-                                        BUTTON_A.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_a)
-                                        }, // Right
-                                        BUTTON_B.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_b)
-                                        }, // Bottom
-                                        BUTTON_Y.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_y)
-                                        }, // Left
-                                        BUTTON_X.takeIf {
-                                                resources.getBoolean(R.bool.config_gamepad_x)
-                                        } // Top
+                                        BUTTON_A, // Right - always visible
+                                        BUTTON_B, // Bottom - always visible
+                                        BUTTON_Y, // Left - always visible
+                                        BUTTON_X // Top - always visible
                                 )
                 }
         }

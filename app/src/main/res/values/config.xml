@@ -62,14 +62,14 @@
     <bool name="config_gamepad_allow_multiple_presses">true</bool>
 
     <!-- Action button layout style
-        1: Nintendo (Top=X, Bottom=B, Left=Y, Right=A)
-        2: Xbox (Top=Y, Bottom=A, Left=X, Right=B)
+        1: Nintendo (Top=B, Bottom=X, Left=Y, Right=A)
+        2: Xbox (Top=A, Bottom=Y, Left=X, Right=B)
         3: PlayStation (Top=×, Bottom=△, Left=□, Right=○)
     -->
     <integer name="config_action_button">3</integer>
 
     <!-- GamePad buttons to display -->
-    <!-- Action Buttons (Right Gamepad - Center) -->
+    <!-- Action Buttons (Right Gamepad - Center) - Always visible for all console layouts -->
     <bool name="config_gamepad_a">true</bool>     <!-- A Button -->
     <bool name="config_gamepad_b">true</bool>     <!-- B Button -->
     <bool name="config_gamepad_x">true</bool>     <!-- X Button -->
