@@ -14,9 +14,9 @@ class GamePadConfig(context: Context, private val resources: Resources) {
 
                 val BUTTON_SELECT = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_SELECT, label = "-")
 
-                val BUTTON_L1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_L1, label = "L")
+                val BUTTON_L1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_L1, label = "L1")
 
-                val BUTTON_R1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_R1, label = "R")
+                val BUTTON_R1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_R1, label = "R1")
 
                 val BUTTON_L2 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_L2, label = "L2")
 
@@ -30,11 +30,27 @@ class GamePadConfig(context: Context, private val resources: Resources) {
 
                 val BUTTON_Y = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_Y, label = "Y")
 
-                // PlayStation button symbols
-                val BUTTON_PS_TRIANGLE = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_Y, label = "△")
-                val BUTTON_PS_CIRCLE = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_B, label = "○")
-                val BUTTON_PS_CROSS = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_A, label = "×")
-                val BUTTON_PS_SQUARE = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_X, label = "□")
+                // PlayStation button symbols with vector icons
+                val BUTTON_PS_TRIANGLE =
+                        ButtonConfig(
+                                id = KeyEvent.KEYCODE_BUTTON_Y,
+                                iconId = R.drawable.ic_ps_triangle
+                        )
+                val BUTTON_PS_CIRCLE =
+                        ButtonConfig(
+                                id = KeyEvent.KEYCODE_BUTTON_B,
+                                iconId = R.drawable.ic_ps_circle
+                        )
+                val BUTTON_PS_CROSS =
+                        ButtonConfig(
+                                id = KeyEvent.KEYCODE_BUTTON_A,
+                                iconId = R.drawable.ic_ps_cross
+                        )
+                val BUTTON_PS_SQUARE =
+                        ButtonConfig(
+                                id = KeyEvent.KEYCODE_BUTTON_X,
+                                iconId = R.drawable.ic_ps_square
+                        )
 
                 // Fake buttons for filling empty sockets
                 val BUTTON_F1 = ButtonConfig(id = -1, label = "0")
@@ -158,7 +174,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                         dials = getActionButtonsInOrder(),
                                         allowMultiplePressesSingleFinger =
                                                 resources.getBoolean(
-                                                        R.bool.config_gamepad_allow_multiple_presses
+                                                        R.bool.config_gamepad_allow_multiple_presses_action
                                                 )
                                 ),
                         secondaryDials =
