@@ -391,6 +391,11 @@ class ExitFragment : MenuFragmentBase() {
                         "[RESUME] 🚪 onResume: Re-registering ExitFragment after back stack return"
                 )
                 viewModel.registerExitFragment(this)
+
+                // Restaurar foco no primeiro item
+                val firstFocusable = view?.findViewById<android.view.View>(R.id.exit_menu_option_a)
+                firstFocusable?.requestFocus()
+                android.util.Log.d("ExitFragment", "[FOCUS] Foco restaurado no primeiro item")
             }
         }
     }

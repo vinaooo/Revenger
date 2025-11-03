@@ -81,6 +81,60 @@ class RetroMenu3Fragment :
         }
 
         /**
+         * Recriar submenu após mudança de orientação. Remove o fragment atual e reabre com o layout
+         * correto.
+         */
+        fun recreateSubmenuAfterOrientationChange(currentState: MenuState) {
+                android.util.Log.d(
+                        "RetroMenu3",
+                        "[ORIENTATION] recreateSubmenuAfterOrientationChange: $currentState"
+                )
+
+                if (currentState == MenuState.MAIN_MENU) {
+                        android.util.Log.d(
+                                "RetroMenu3",
+                                "[ORIENTATION] Estado é MAIN_MENU, nada a fazer"
+                        )
+                        return
+                }
+
+                // Obter o fragment manager e remover o submenu atual
+                val fragmentManager = parentFragmentManager
+                val submenuTag =
+                        when (currentState) {
+                                MenuState.SETTINGS_MENU ->
+                                        SettingsMenuFragment::class.java.simpleName
+                                MenuState.PROGRESS_MENU -> ProgressFragment::class.java.simpleName
+                                MenuState.ABOUT_MENU -> AboutFragment::class.java.simpleName
+                                MenuState.EXIT_MENU -> ExitFragment::class.java.simpleName
+                                MenuState.CORE_VARIABLES_MENU ->
+                                        CoreVariablesFragment::class.java.simpleName
+                                else -> null
+                        }
+
+                if (submenuTag != null) {
+                        val submenuFragment = fragmentManager.findFragmentByTag(submenuTag)
+                        if (submenuFragment != null && submenuFragment.isAdded) {
+                                android.util.Log.d(
+                                        "RetroMenu3",
+                                        "[ORIENTATION] Removendo fragment $submenuTag"
+                                )
+                                fragmentManager
+                                        .beginTransaction()
+                                        .remove(submenuFragment)
+                                        .commitNowAllowingStateLoss()
+
+                                // Reabrir usando o coordinator
+                                android.util.Log.d(
+                                        "RetroMenu3",
+                                        "[ORIENTATION] Reabrindo submenu $currentState"
+                                )
+                                submenuCoordinator.openSubmenu(currentState)
+                        }
+                }
+        }
+
+        /**
          * Inicializa todos os managers especializados. Chamado no onCreateView para garantir que os
          * managers estejam prontos.
          */
@@ -203,6 +257,46 @@ class RetroMenu3Fragment :
                 } catch (e: Exception) {
                         android.util.Log.e("RetroMenu3", "[LIFECYCLE] ERROR in onViewCreated", e)
                         throw e
+                }
+        }
+
+        /** Salvar estado do submenu atual antes de mudança de configuração. */
+        override fun onSaveInstanceState(outState: Bundle) {
+                super.onSaveInstanceState(outState)
+
+                val currentState = viewModel.getMenuManager().getCurrentState()
+                android.util.Log.d("RetroMenu3", "[SAVE_STATE] � Salvando estado: $currentState")
+                outState.putString("SUBMENU_STATE", currentState.name)
+        }
+
+        /** Restaurar submenu após mudança de configuração. */
+        override fun onViewStateRestored(savedInstanceState: Bundle?) {
+                super.onViewStateRestored(savedInstanceState)
+
+                if (savedInstanceState != null) {
+                        val savedStateName = savedInstanceState.getString("SUBMENU_STATE")
+                        android.util.Log.d(
+                                "RetroMenu3",
+                                "[RESTORE_STATE] 📦 Estado salvo encontrado: $savedStateName"
+                        )
+
+                        if (savedStateName != null) {
+                                val savedState = MenuState.valueOf(savedStateName)
+
+                                // Aguardar view estar completamente pronta
+                                view?.postDelayed(
+                                        {
+                                                if (savedState != MenuState.MAIN_MENU && isAdded) {
+                                                        android.util.Log.d(
+                                                                "RetroMenu3",
+                                                                "[RESTORE_STATE] ✅ Reabrindo submenu: $savedState"
+                                                        )
+                                                        submenuCoordinator.openSubmenu(savedState)
+                                                }
+                                        },
+                                        50
+                                )
+                        }
                 }
         }
 
@@ -444,6 +538,43 @@ class RetroMenu3Fragment :
         override fun onResume() {
                 super.onResume()
                 lifecycleManager.onResume()
+
+                // CRITICAL: Only re-register if this Fragment is visible AND MenuManager state is
+                // MAIN_MENU
+                // This handles the case when coming back from a submenu via BACK button
+                // But avoids conflicts during rotation (when state might be SETTINGS_MENU)
+                if (isAdded && isVisible) {
+                        val currentState = viewModel.getMenuManager().getCurrentState()
+                        if (currentState == com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU
+                        ) {
+                                android.util.Log.d(
+                                        "RetroMenu3",
+                                        "[RESUME] Re-registering Fragment (state=MAIN_MENU, visible=true)"
+                                )
+                                viewModel.updateRetroMenu3FragmentReference(this)
+                        } else {
+                                android.util.Log.d(
+                                        "RetroMenu3",
+                                        "[RESUME] NOT re-registering (state=$currentState, visible=true)"
+                                )
+                        }
+
+                        // Restore focus
+                        view?.post {
+                                val firstFocusable =
+                                        view?.findViewById<android.view.View>(R.id.menu_continue)
+                                firstFocusable?.requestFocus()
+                                android.util.Log.d(
+                                        "RetroMenu3",
+                                        "[FOCUS] Focus restored to first item"
+                                )
+                        }
+                } else {
+                        android.util.Log.d(
+                                "RetroMenu3",
+                                "[RESUME] Fragment not visible (isAdded=$isAdded, isVisible=$isVisible)"
+                        )
+                }
         }
 
         override fun onMenuItemSelected(item: MenuItem) {

@@ -79,9 +79,9 @@ class CoreVariablesFragment : MenuFragmentBase() {
         // Menu title
         coreVariablesMenuTitle = view.findViewById(R.id.core_variables_menu_title)
 
-        // Core variables display
-        coreVariablesLabel = view.findViewById(R.id.core_variables_label)
-        coreVariablesValue = view.findViewById(R.id.core_variables_value)
+        // Core variables display - TEMP: Comentado para testes de alinhamento
+        // coreVariablesLabel = view.findViewById(R.id.core_variables_label)
+        // coreVariablesValue = view.findViewById(R.id.core_variables_value)
 
         // Menu items
         backVariables = view.findViewById(R.id.core_variables_back)
@@ -102,11 +102,12 @@ class CoreVariablesFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
+        // TEMP: Core variables display comentado
         ViewUtils.applySelectedFontToViews(
                 requireContext(),
                 coreVariablesMenuTitle,
-                coreVariablesLabel,
-                coreVariablesValue,
+                // coreVariablesLabel,
+                // coreVariablesValue,
                 backTitle,
                 selectionArrowBack
         )
@@ -124,6 +125,8 @@ class CoreVariablesFragment : MenuFragmentBase() {
     }
 
     private fun updateCoreVariablesDisplay() {
+        // TEMP: Core variables display comentado para testes de alinhamento
+        /*
         // Set labels with configured capitalization
         coreVariablesLabel.text = "core variables:\u00A0"
         applyConfiguredCapitalization(coreVariablesLabel)
@@ -138,6 +141,7 @@ class CoreVariablesFragment : MenuFragmentBase() {
                 }
         coreVariablesValue.text = formattedVariables
         applyConfiguredCapitalization(coreVariablesValue)
+        */
 
         // Apply capitalization to menu title
         applyConfiguredCapitalization(coreVariablesMenuTitle)
@@ -219,6 +223,14 @@ class CoreVariablesFragment : MenuFragmentBase() {
                         "[RESUME] 🔧 onResume: Re-registering CoreVariablesFragment after back stack return"
                 )
                 viewModel.registerCoreVariablesFragment(this)
+
+                // Restaurar foco no primeiro item
+                val firstFocusable = view?.findViewById<android.view.View>(R.id.core_variables_back)
+                firstFocusable?.requestFocus()
+                android.util.Log.d(
+                        "CoreVariablesFragment",
+                        "[FOCUS] Foco restaurado no primeiro item"
+                )
             }
         }
     }

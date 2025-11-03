@@ -551,16 +551,28 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     override fun onResume() {
         super.onResume()
-        // Ensure fragment is fully resumed before re-registering
-        // This prevents timing issues when returning from back stack navigation
-        view?.post {
-            if (isAdded && isResumed) {
-                android.util.Log.d(
-                        "SettingsMenuFragment",
-                        "[RESUME] ⚙️ onResume: Re-registering SettingsMenuFragment after back stack return"
-                )
-                viewModel.registerSettingsMenuFragment(this)
+
+        // CRITICAL FIX: Register immediately without delays
+        // isAdded is enough - no need to wait for isResumed or view?.post
+        // This eliminates race condition where user navigates before registration completes
+        if (isAdded && context != null) {
+            android.util.Log.d(
+                    "SettingsMenuFragment",
+                    "[RESUME] ⚙️ Registering immediately (isAdded=$isAdded)"
+            )
+            viewModel.registerSettingsMenuFragment(this)
+
+            // Restore focus (can still be delayed)
+            view?.post {
+                val firstFocusable = view?.findViewById<android.view.View>(R.id.settings_sound)
+                firstFocusable?.requestFocus()
+                android.util.Log.d("SettingsMenuFragment", "[FOCUS] Focus restored")
             }
+        } else {
+            android.util.Log.w(
+                    "SettingsMenuFragment",
+                    "[RESUME] Fragment not ready (isAdded=$isAdded, context=$context)"
+            )
         }
     }
 

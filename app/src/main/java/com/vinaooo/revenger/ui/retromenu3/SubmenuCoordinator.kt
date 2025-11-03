@@ -105,6 +105,9 @@ class SubmenuCoordinator(
                                 TAG,
                                 "[RESTORE] 🎯 Current state SETTINGS_MENU -> Target MAIN_MENU"
                         )
+                        // CRITICAL: Unregister SettingsMenuFragment to prevent re-activation
+                        android.util.Log.d(TAG, "[RESTORE] 🧹 Unregistering SettingsMenuFragment")
+                        viewModel.unregisterSettingsMenuFragment()
                         MenuState.MAIN_MENU // Voltar do Settings para Main
                     }
                     MenuState.ABOUT_MENU -> {
@@ -496,6 +499,15 @@ class SubmenuCoordinator(
     fun setupBackStackListener() {
         // Listener para detectar quando submenus são fechados via back stack
         fragment.parentFragmentManager.addOnBackStackChangedListener {
+            // SAFETY CHECK: Verificar se fragment ainda está associado a um FragmentManager
+            if (!fragment.isAdded || fragment.activity == null) {
+                android.util.Log.d(
+                        TAG,
+                        "[BACK_STACK] ⚠️ Fragment not added or activity null - skipping listener"
+                )
+                return@addOnBackStackChangedListener
+            }
+
             val backStackCount = fragment.parentFragmentManager.backStackEntryCount
             val backStackDecreased = backStackCount < previousBackStackCount
 

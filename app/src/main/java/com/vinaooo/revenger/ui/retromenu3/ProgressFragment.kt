@@ -443,6 +443,11 @@ class ProgressFragment : MenuFragmentBase() {
                         "[RESUME] 💾 onResume: Re-registering ProgressFragment after back stack return"
                 )
                 viewModel.registerProgressFragment(this)
+
+                // Restaurar foco no primeiro item
+                val firstFocusable = view?.findViewById<android.view.View>(R.id.progress_load_state)
+                firstFocusable?.requestFocus()
+                android.util.Log.d("ProgressFragment", "[FOCUS] Foco restaurado no primeiro item")
             }
         }
     }

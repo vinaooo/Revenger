@@ -11,6 +11,11 @@
     <dimen name="retro_menu3_title_margin_bottom">12dp</dimen>
     <dimen name="retro_menu3_extra_space_height">16dp</dimen>
     
+    <!-- Title Alignment Anchors - CRITICAL for pixel-perfect alignment across all menus -->
+    <dimen name="retro_menu3_title_margin_start">0dp</dimen>
+    <dimen name="retro_menu3_title_padding_start">0dp</dimen>
+    <dimen name="retro_menu3_title_padding_end">0dp</dimen>
+    
     <!-- Menu Item -->
     <dimen name="retro_menu3_menu_item_height">40dp</dimen>
     <dimen name="retro_menu3_menu_item_padding">8dp</dimen>

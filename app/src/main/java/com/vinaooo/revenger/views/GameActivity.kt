@@ -115,21 +115,570 @@ class GameActivity : FragmentActivity() {
         Log.d(TAG, "Configuration changed - adjusting gamepad position")
         adjustGamePadPositionForOrientation(gamePadContainer)
 
-        // --- SOLUÇÃO: Reinflar RetroMenu3Fragment se estiver aberto ---
+        // --- SOLUÇÃO: Recriar fragments após mudança de orientação ---
+        Log.d(TAG, "[ORIENTATION] ====== CHECKING FOR MENU AFTER ROTATION ======")
+
+        val menuManager = viewModel.getMenuManager()
+        val currentState = menuManager.getCurrentState()
+
+        // CRÍTICO: Verificar o backstack REAL para detectar se estamos num submenu
+        // O currentState pode estar desatualizado após operações de BACK
         val fragmentManager = supportFragmentManager
-        val retroMenu3Tag =
-                com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment::class.java.simpleName
-        val retroMenu3Fragment = fragmentManager.findFragmentByTag(retroMenu3Tag)
-        if (retroMenu3Fragment != null && retroMenu3Fragment.isAdded) {
-            Log.d(TAG, "RetroMenu3Fragment está aberto, forçando reinflar após rotação")
-            fragmentManager
-                    .beginTransaction()
-                    .remove(retroMenu3Fragment)
-                    .commitNowAllowingStateLoss()
-            // Força recriação completa do fragment usando o novo método
-            viewModel.recreateRetroMenu3(this)
-            viewModel.showRetroMenu3(this)
+        val hasBackStack = fragmentManager.backStackEntryCount > 0
+        val visibleFragment = fragmentManager.findFragmentById(R.id.menu_container)
+
+        Log.d(TAG, "[ORIENTATION] Estado do menu: $currentState")
+        Log.d(TAG, "[ORIENTATION] Backstack count: ${fragmentManager.backStackEntryCount}")
+        Log.d(TAG, "[ORIENTATION] Visible fragment: ${visibleFragment?.javaClass?.simpleName}")
+
+        // CRITICAL: Only recreate fragments if menu is actually open
+        if (visibleFragment == null ||
+                        visibleFragment !is com.vinaooo.revenger.ui.retromenu3.MenuFragment
+        ) {
+            Log.d(TAG, "[ORIENTATION] ⏭️ No menu fragment visible, skipping recreation")
+            Log.d(TAG, "[ORIENTATION] ====== ORIENTATION CHECK COMPLETED ======")
+            return
         }
+
+        Log.d(TAG, "[ORIENTATION] ✅ Menu fragment found, proceeding with recreation")
+
+        // Aguardar sistema completar rotação
+        android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            Log.d(
+                                    TAG,
+                                    "[ORIENTATION] 🔄 Inside postDelayed - starting fragment recreation"
+                            )
+
+                            // CRITICAL FIX: Re-check backstack INSIDE postDelayed
+                            // O backstack pode ter mudado entre a verificação inicial e a execução
+                            // do postDelayed
+                            val currentBackStackCount = fragmentManager.backStackEntryCount
+                            val hasBackStackNow = currentBackStackCount > 0
+
+                            Log.d(
+                                    TAG,
+                                    "[ORIENTATION] ⚠️ RE-CHECKING backstack: initial=$hasBackStack, now=$hasBackStackNow"
+                            )
+
+                            // CRITICAL FIX: Priorizar backstack ao invés do Fragment visível
+                            // Se o backstack está vazio, SEMPRE usar MAIN_MENU
+                            // O Fragment visível pode estar temporariamente desatualizado após BACK
+                            val effectiveState =
+                                    if (hasBackStackNow) {
+                                        // Há backstack: verificar qual submenu está ativo
+                                        // Detectar estado REAL baseado no Fragment visível
+                                        val actualIsSubmenu =
+                                                when (visibleFragment) {
+                                                    is com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment,
+                                                    is com.vinaooo.revenger.ui.retromenu3.ProgressFragment,
+                                                    is com.vinaooo.revenger.ui.retromenu3.AboutFragment,
+                                                    is com.vinaooo.revenger.ui.retromenu3.ExitFragment,
+                                                    is com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment ->
+                                                            true
+                                                    else -> false
+                                                }
+
+                                        Log.d(
+                                                TAG,
+                                                "[ORIENTATION] Backstack presente - detectando submenu: $actualIsSubmenu"
+                                        )
+
+                                        // Usar o estado baseado no Fragment visível se houver
+                                        // submenu
+                                        if (actualIsSubmenu) {
+                                            when (visibleFragment) {
+                                                is com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment ->
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .SETTINGS_MENU
+                                                is com.vinaooo.revenger.ui.retromenu3.ProgressFragment ->
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .PROGRESS_MENU
+                                                is com.vinaooo.revenger.ui.retromenu3.AboutFragment ->
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .ABOUT_MENU
+                                                is com.vinaooo.revenger.ui.retromenu3.ExitFragment ->
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .EXIT_MENU
+                                                is com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment ->
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .CORE_VARIABLES_MENU
+                                                else -> currentState
+                                            }
+                                        } else {
+                                            currentState
+                                        }
+                                    } else {
+                                        // Backstack vazio: SEMPRE usar MAIN_MENU
+                                        Log.d(
+                                                TAG,
+                                                "[ORIENTATION] ⚠️ Backstack vazio - forçando MAIN_MENU (currentState era: $currentState)"
+                                        )
+                                        com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU
+                                    }
+
+                            Log.d(
+                                    TAG,
+                                    "[ORIENTATION] Estado efetivo: $effectiveState (original: $currentState)"
+                            )
+
+                            // Criar instância do Fragment correto baseado no estado efetivo
+                            val newFragment =
+                                    when (effectiveState) {
+                                        com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU -> {
+                                            Log.d(TAG, "[ORIENTATION] 📋 Menu principal ativo")
+                                            com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment()
+                                        }
+                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                .SETTINGS_MENU -> {
+                                            Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: SETTINGS")
+                                            com.vinaooo.revenger.ui.retromenu3
+                                                    .SettingsMenuFragment()
+                                        }
+                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                .PROGRESS_MENU -> {
+                                            Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: PROGRESS")
+                                            com.vinaooo.revenger.ui.retromenu3.ProgressFragment()
+                                        }
+                                        com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> {
+                                            Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: ABOUT")
+                                            com.vinaooo.revenger.ui.retromenu3.AboutFragment()
+                                        }
+                                        com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
+                                            Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: EXIT")
+                                            com.vinaooo.revenger.ui.retromenu3.ExitFragment()
+                                        }
+                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                .CORE_VARIABLES_MENU -> {
+                                            Log.d(
+                                                    TAG,
+                                                    "[ORIENTATION] 📋 Submenu ativo: CORE_VARIABLES"
+                                            )
+                                            com.vinaooo.revenger.ui.retromenu3
+                                                    .CoreVariablesFragment()
+                                        }
+                                        else -> {
+                                            Log.e(
+                                                    TAG,
+                                                    "[ORIENTATION] ❌ Estado desconhecido: $effectiveState"
+                                            )
+                                            null
+                                        }
+                                    }
+
+                            if (newFragment != null) {
+                                val isMainMenu =
+                                        effectiveState ==
+                                                com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                        .MAIN_MENU
+
+                                // Limpar COMPLETAMENTE o backstack antes de recriar
+                                Log.d(
+                                        TAG,
+                                        "[ORIENTATION] 🗑️ Limpando backstack (count=${fragmentManager.backStackEntryCount})"
+                                )
+                                fragmentManager.popBackStack(
+                                        null,
+                                        androidx.fragment.app.FragmentManager
+                                                .POP_BACK_STACK_INCLUSIVE
+                                )
+
+                                // Remover qualquer Fragment que esteja no container
+                                fragmentManager.findFragmentById(R.id.menu_container)?.let {
+                                        existingFragment ->
+                                    Log.d(
+                                            TAG,
+                                            "[ORIENTATION] 🗑️ Removendo fragment existente: ${existingFragment::class.java.simpleName}"
+                                    )
+                                    fragmentManager
+                                            .beginTransaction()
+                                            .remove(existingFragment)
+                                            .commitNowAllowingStateLoss()
+                                }
+
+                                // Aguardar limpeza completa
+                                android.os.Handler(android.os.Looper.getMainLooper())
+                                        .postDelayed(
+                                                {
+                                                    // Use the backstack state from BEFORE cleanup
+                                                    // (hasBackStackNow)
+                                                    // We cleared the backstack above, so checking
+                                                    // it now would always be 0
+                                                    Log.d(
+                                                            TAG,
+                                                            "[ORIENTATION] 📋 Recriando hierarquia: isMainMenu=$isMainMenu"
+                                                    )
+
+                                                    if (isMainMenu) {
+                                                        // MAIN_MENU sozinho: adicionar sem
+                                                        // backstack
+                                                        // Create NEW RetroMenu3Fragment
+                                                        val mainMenuFragment =
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .RetroMenu3Fragment()
+
+                                                        Log.d(
+                                                                TAG,
+                                                                "[ORIENTATION] ➕ Adicionando RetroMenu3Fragment"
+                                                        )
+                                                        val transaction =
+                                                                fragmentManager
+                                                                        .beginTransaction()
+                                                                        .replace(
+                                                                                R.id.menu_container,
+                                                                                mainMenuFragment,
+                                                                                "RetroMenu3Fragment"
+                                                                        )
+
+                                                        transaction.runOnCommit {
+                                                            Log.d(
+                                                                    TAG,
+                                                                    "[ORIENTATION] 🔄 Main menu committed, updating reference"
+                                                            )
+
+                                                            // Atualizar referência do
+                                                            // RetroMenu3Fragment no ViewModel
+                                                            viewModel
+                                                                    .updateRetroMenu3FragmentReference(
+                                                                            mainMenuFragment
+                                                                    )
+                                                            Log.d(
+                                                                    TAG,
+                                                                    "[ORIENTATION] 📋 RetroMenu3Fragment reference updated"
+                                                            )
+
+                                                            // Restaurar foco
+                                                            android.os.Handler(
+                                                                            android.os.Looper
+                                                                                    .getMainLooper()
+                                                                    )
+                                                                    .postDelayed(
+                                                                            {
+                                                                                val firstItem =
+                                                                                        findViewById<
+                                                                                                android.view.View>(
+                                                                                                R.id.menu_continue
+                                                                                        )
+                                                                                if (firstItem !=
+                                                                                                null &&
+                                                                                                firstItem
+                                                                                                        .isFocusable
+                                                                                ) {
+                                                                                    firstItem
+                                                                                            .requestFocus()
+                                                                                    Log.d(
+                                                                                            TAG,
+                                                                                            "[ORIENTATION] 🎮 Foco restaurado no menu principal"
+                                                                                    )
+                                                                                }
+                                                                            },
+                                                                            500
+                                                                    )
+                                                        }
+
+                                                        transaction.commit()
+                                                    } else {
+                                                        // SUBMENU: precisamos recriar TODA a pilha
+                                                        // (base + topo)
+                                                        Log.d(
+                                                                TAG,
+                                                                "[ORIENTATION] ➕ Recriando pilha: RetroMenu3 (base) + Submenu (topo)"
+                                                        )
+
+                                                        // 1. Adicionar RetroMenu3Fragment na base
+                                                        // (sem backstack)
+                                                        val retroMenu3 =
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .RetroMenu3Fragment()
+                                                        fragmentManager
+                                                                .beginTransaction()
+                                                                .replace(
+                                                                        R.id.menu_container,
+                                                                        retroMenu3,
+                                                                        "RetroMenu3Fragment"
+                                                                )
+                                                                .commitNowAllowingStateLoss()
+
+                                                        // Atualizar referência no ViewModel
+                                                        viewModel.updateRetroMenu3FragmentReference(
+                                                                retroMenu3
+                                                        )
+                                                        Log.d(
+                                                                TAG,
+                                                                "[ORIENTATION] 📋 RetroMenu3Fragment base criado e registrado"
+                                                        )
+
+                                                        // CRITICAL: Update MenuStateManager to the
+                                                        // submenu state
+                                                        // This ensures getCurrentFragment() returns
+                                                        // the correct Fragment
+                                                        val menuManager = viewModel.getMenuManager()
+                                                        menuManager.navigateToState(effectiveState)
+                                                        Log.d(
+                                                                TAG,
+                                                                "[ORIENTATION] 🎯 MenuStateManager updated to state: $effectiveState"
+                                                        )
+
+                                                        // 2. CRITICAL: Configure listener BEFORE
+                                                        // adding Fragment
+                                                        // This ensures click listeners work
+                                                        // correctly after rotation
+                                                        when (effectiveState) {
+                                                            com.vinaooo.revenger.ui.retromenu3
+                                                                    .MenuState.SETTINGS_MENU -> {
+                                                                val settingsFragment =
+                                                                        newFragment as
+                                                                                com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+                                                                // Configure listener BEFORE adding
+                                                                // to FragmentManager
+                                                                settingsFragment
+                                                                        .setSettingsListener(
+                                                                                retroMenu3 as
+                                                                                        com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment.SettingsMenuListener
+                                                                        )
+                                                                Log.d(
+                                                                        TAG,
+                                                                        "[ORIENTATION] 🔧 SettingsMenuFragment listener configured BEFORE adding"
+                                                                )
+                                                            }
+                                                            else -> {
+                                                                // Other fragments don't need
+                                                                // pre-configuration
+                                                            }
+                                                        }
+
+                                                        // 3. Aguardar e adicionar submenu no topo
+                                                        // (COM backstack)
+                                                        android.os.Handler(
+                                                                        android.os.Looper
+                                                                                .getMainLooper()
+                                                                )
+                                                                .postDelayed(
+                                                                        {
+                                                                            val submenuTag =
+                                                                                    newFragment::class
+                                                                                            .java
+                                                                                            .simpleName
+                                                                            Log.d(
+                                                                                    TAG,
+                                                                                    "[ORIENTATION] ➕ Adicionando submenu no topo: $submenuTag"
+                                                                            )
+
+                                                                            fragmentManager
+                                                                                    .beginTransaction()
+                                                                                    .replace(
+                                                                                            R.id.menu_container,
+                                                                                            newFragment,
+                                                                                            submenuTag
+                                                                                    )
+                                                                                    .addToBackStack(
+                                                                                            submenuTag
+                                                                                    )
+                                                                                    .commit()
+
+                                                                            // CRÍTICO: Registrar
+                                                                            // submenu no ViewModel
+                                                                            // (listener já foi
+                                                                            // configurado)
+                                                                            android.os.Handler(
+                                                                                            android.os
+                                                                                                    .Looper
+                                                                                                    .getMainLooper()
+                                                                                    )
+                                                                                    .postDelayed(
+                                                                                            {
+                                                                                                when (effectiveState
+                                                                                                ) {
+                                                                                                    com.vinaooo
+                                                                                                            .revenger
+                                                                                                            .ui
+                                                                                                            .retromenu3
+                                                                                                            .MenuState
+                                                                                                            .SETTINGS_MENU -> {
+                                                                                                        val settingsFragment =
+                                                                                                                newFragment as
+                                                                                                                        com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+                                                                                                        // Use lightweight registration for rotation (doesn't activate state)
+                                                                                                        viewModel
+                                                                                                                .registerSettingsMenuFragmentForRotation(
+                                                                                                                        settingsFragment
+                                                                                                                )
+                                                                                                        Log.d(
+                                                                                                                TAG,
+                                                                                                                "[ORIENTATION] 📋 SettingsMenuFragment registrado (rotation)"
+                                                                                                        )
+                                                                                                    }
+                                                                                                    com.vinaooo
+                                                                                                            .revenger
+                                                                                                            .ui
+                                                                                                            .retromenu3
+                                                                                                            .MenuState
+                                                                                                            .PROGRESS_MENU -> {
+                                                                                                        viewModel
+                                                                                                                .registerProgressFragment(
+                                                                                                                        newFragment as
+                                                                                                                                com.vinaooo.revenger.ui.retromenu3.ProgressFragment
+                                                                                                                )
+                                                                                                        Log.d(
+                                                                                                                TAG,
+                                                                                                                "[ORIENTATION] 📋 ProgressFragment registrado"
+                                                                                                        )
+                                                                                                    }
+                                                                                                    com.vinaooo
+                                                                                                            .revenger
+                                                                                                            .ui
+                                                                                                            .retromenu3
+                                                                                                            .MenuState
+                                                                                                            .ABOUT_MENU -> {
+                                                                                                        viewModel
+                                                                                                                .registerAboutFragment(
+                                                                                                                        newFragment as
+                                                                                                                                com.vinaooo.revenger.ui.retromenu3.AboutFragment
+                                                                                                                )
+                                                                                                        Log.d(
+                                                                                                                TAG,
+                                                                                                                "[ORIENTATION] 📋 AboutFragment registrado"
+                                                                                                        )
+                                                                                                    }
+                                                                                                    com.vinaooo
+                                                                                                            .revenger
+                                                                                                            .ui
+                                                                                                            .retromenu3
+                                                                                                            .MenuState
+                                                                                                            .EXIT_MENU -> {
+                                                                                                        viewModel
+                                                                                                                .registerExitFragment(
+                                                                                                                        newFragment as
+                                                                                                                                com.vinaooo.revenger.ui.retromenu3.ExitFragment
+                                                                                                                )
+                                                                                                        Log.d(
+                                                                                                                TAG,
+                                                                                                                "[ORIENTATION] 📋 ExitFragment registrado"
+                                                                                                        )
+                                                                                                    }
+                                                                                                    com.vinaooo
+                                                                                                            .revenger
+                                                                                                            .ui
+                                                                                                            .retromenu3
+                                                                                                            .MenuState
+                                                                                                            .CORE_VARIABLES_MENU -> {
+                                                                                                        viewModel
+                                                                                                                .registerCoreVariablesFragment(
+                                                                                                                        newFragment as
+                                                                                                                                com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment
+                                                                                                                )
+                                                                                                        Log.d(
+                                                                                                                TAG,
+                                                                                                                "[ORIENTATION] 📋 CoreVariablesFragment registrado"
+                                                                                                        )
+                                                                                                    }
+                                                                                                    else -> {
+                                                                                                        Log.w(
+                                                                                                                TAG,
+                                                                                                                "[ORIENTATION] ⚠️ Estado desconhecido, submenu não registrado"
+                                                                                                        )
+                                                                                                    }
+                                                                                                }
+                                                                                            },
+                                                                                            100
+                                                                                    ) // Aguardar
+                                                                            // Fragment
+                                                                            // ser
+                                                                            // adicionado
+                                                                            // antes de
+                                                                            // registrar
+
+                                                                            // Restaurar foco no
+                                                                            // submenu
+                                                                            android.os.Handler(
+                                                                                            android.os
+                                                                                                    .Looper
+                                                                                                    .getMainLooper()
+                                                                                    )
+                                                                                    .postDelayed(
+                                                                                            {
+                                                                                                val firstFocusableId =
+                                                                                                        when (effectiveState
+                                                                                                        ) {
+                                                                                                            com.vinaooo
+                                                                                                                    .revenger
+                                                                                                                    .ui
+                                                                                                                    .retromenu3
+                                                                                                                    .MenuState
+                                                                                                                    .SETTINGS_MENU ->
+                                                                                                                    R.id.settings_sound
+                                                                                                            com.vinaooo
+                                                                                                                    .revenger
+                                                                                                                    .ui
+                                                                                                                    .retromenu3
+                                                                                                                    .MenuState
+                                                                                                                    .PROGRESS_MENU ->
+                                                                                                                    R.id.progress_load_state
+                                                                                                            com.vinaooo
+                                                                                                                    .revenger
+                                                                                                                    .ui
+                                                                                                                    .retromenu3
+                                                                                                                    .MenuState
+                                                                                                                    .ABOUT_MENU ->
+                                                                                                                    R.id.about_back
+                                                                                                            com.vinaooo
+                                                                                                                    .revenger
+                                                                                                                    .ui
+                                                                                                                    .retromenu3
+                                                                                                                    .MenuState
+                                                                                                                    .EXIT_MENU ->
+                                                                                                                    R.id.exit_menu_option_a
+                                                                                                            com.vinaooo
+                                                                                                                    .revenger
+                                                                                                                    .ui
+                                                                                                                    .retromenu3
+                                                                                                                    .MenuState
+                                                                                                                    .CORE_VARIABLES_MENU ->
+                                                                                                                    R.id.core_variables_back
+                                                                                                            else ->
+                                                                                                                    null
+                                                                                                        }
+
+                                                                                                if (firstFocusableId !=
+                                                                                                                null
+                                                                                                ) {
+                                                                                                    val firstItem =
+                                                                                                            findViewById<
+                                                                                                                    android.view.View>(
+                                                                                                                    firstFocusableId
+                                                                                                            )
+                                                                                                    if (firstItem !=
+                                                                                                                    null &&
+                                                                                                                    firstItem
+                                                                                                                            .isFocusable
+                                                                                                    ) {
+                                                                                                        firstItem
+                                                                                                                .requestFocus()
+                                                                                                        Log.d(
+                                                                                                                TAG,
+                                                                                                                "[ORIENTATION] 🎮 Foco restaurado no submenu"
+                                                                                                        )
+                                                                                                    }
+                                                                                                }
+                                                                                            },
+                                                                                            600
+                                                                                    )
+                                                                        },
+                                                                        150
+                                                                ) // Delay para garantir que
+                                                        // RetroMenu3 foi completamente
+                                                        // adicionado
+                                                    }
+                                                },
+                                                100
+                                        )
+                            }
+
+                            Log.d(TAG, "[ORIENTATION] ====== ORIENTATION CHECK COMPLETED ======")
+                        },
+                        250
+                ) // Delay para garantir que sistema terminou de processar rotação
     }
 
     /** Initialize SDK 36 features with backward compatibility Phase 9.4: Target SDK 36 Features */
@@ -208,9 +757,21 @@ class GameActivity : FragmentActivity() {
                 this,
                 object : OnBackPressedCallback(true) {
                     override fun handleOnBackPressed() {
-                        // If menu is currently open, close it
+                        // If menu is currently open
                         if (viewModel.isAnyMenuActive()) {
-                            viewModel.dismissAllMenus()
+                            // Check if we're in a submenu (has backstack)
+                            val backStackCount = supportFragmentManager.backStackEntryCount
+                            Log.d(TAG, "[BACK] Menu active, backstack count: $backStackCount")
+
+                            if (backStackCount > 0) {
+                                // We're in a submenu - pop back to main menu
+                                Log.d(TAG, "[BACK] Popping backstack (submenu -> main menu)")
+                                supportFragmentManager.popBackStack()
+                            } else {
+                                // We're in main menu - close all menus
+                                Log.d(TAG, "[BACK] No backstack, dismissing all menus")
+                                viewModel.dismissAllMenus()
+                            }
                         }
                         // If menu is not open, check if back button should open it based on
                         // config_menu_mode

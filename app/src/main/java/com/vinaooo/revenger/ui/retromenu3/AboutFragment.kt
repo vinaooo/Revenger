@@ -392,6 +392,12 @@ class AboutFragment : MenuFragmentBase() {
                         "[RESUME] 📋 Re-registering AboutFragment after back stack return"
                 )
                 viewModel.registerAboutFragment(this)
+
+                // Restaurar foco no primeiro item
+                val firstFocusable = view?.findViewById<android.view.View>(R.id.about_back)
+                firstFocusable?.requestFocus()
+                android.util.Log.d("AboutFragment", "[FOCUS] Foco restaurado no primeiro item")
+
                 android.util.Log.d(
                         "AboutFragment",
                         "[RESUME] 📋 ========== ABOUT FRAGMENT ON RESUME END =========="
