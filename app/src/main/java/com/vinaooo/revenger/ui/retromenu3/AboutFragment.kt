@@ -375,21 +375,33 @@ class AboutFragment : MenuFragmentBase() {
 
     override fun onResume() {
         super.onResume()
+
+        // Check 1: Don't register if being removed
+        if (isRemoving) {
+            android.util.Log.d(
+                    "AboutFragment",
+                    "[RESUME] ⚠️ Fragment is being removed - skipping registration"
+            )
+            return
+        }
+
+        // Check 2: Don't register if MenuState is not ABOUT_MENU
+        val currentState = viewModel.getMenuManager().getCurrentState()
+        if (currentState != MenuState.ABOUT_MENU) {
+            android.util.Log.d(
+                    "AboutFragment",
+                    "[RESUME] ⚠️ MenuState is $currentState (not ABOUT) - skipping registration"
+            )
+            return
+        }
+
         // Ensure fragment is fully resumed before re-registering
         // This prevents timing issues when returning from back stack navigation
         view?.post {
             if (isAdded && isResumed) {
                 android.util.Log.d(
                         "AboutFragment",
-                        "[RESUME] 📋 ========== ABOUT FRAGMENT ON RESUME =========="
-                )
-                android.util.Log.d(
-                        "AboutFragment",
-                        "[RESUME] 📋 isAdded=$isAdded, isResumed=$isResumed"
-                )
-                android.util.Log.d(
-                        "AboutFragment",
-                        "[RESUME] 📋 Re-registering AboutFragment after back stack return"
+                        "[RESUME] 📋 Registering immediately (isAdded=true, state=ABOUT_MENU)"
                 )
                 viewModel.registerAboutFragment(this)
 

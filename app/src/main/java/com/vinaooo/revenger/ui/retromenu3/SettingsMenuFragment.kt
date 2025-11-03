@@ -560,6 +560,34 @@ class SettingsMenuFragment : MenuFragmentBase() {
                     "SettingsMenuFragment",
                     "[RESUME] ⚙️ Registering immediately (isAdded=$isAdded)"
             )
+
+            // CRITICAL: Re-configure listener after rotation
+            android.util.Log.d(
+                    "SettingsMenuFragment",
+                    "[RESUME] 🔗 Reconfiguring listener after recreation"
+            )
+            try {
+                val parentFragment = parentFragment
+                if (parentFragment is SettingsMenuListener) {
+                    setSettingsListener(parentFragment)
+                    android.util.Log.d(
+                            "SettingsMenuFragment",
+                            "[RESUME] ✅ Listener configured successfully"
+                    )
+                } else {
+                    android.util.Log.e(
+                            "SettingsMenuFragment",
+                            "[RESUME] ❌ Parent fragment is not SettingsMenuListener!"
+                    )
+                }
+            } catch (e: Exception) {
+                android.util.Log.e(
+                        "SettingsMenuFragment",
+                        "[RESUME] ❌ Error configuring listener",
+                        e
+                )
+            }
+
             viewModel.registerSettingsMenuFragment(this)
 
             // Restore focus (can still be delayed)

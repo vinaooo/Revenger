@@ -261,9 +261,43 @@ class ProgressFragment : MenuFragmentBase() {
 
     /** Back action */
     override fun performBack(): Boolean {
-        // For progress submenu, back should go to main menu
-        backProgress.performClick()
-        return true
+        android.util.Log.d(
+                TAG,
+                "[BACK] 🚀 performBack ENTRY POINT - isAdded=$isAdded, hasContext=${context != null}"
+        )
+
+        try {
+            android.util.Log.d(TAG, "[BACK] performBack called - navigating to main menu")
+
+            // CRITICAL: Must notify listener BEFORE any Fragment operations
+            // The listener (RetroMenu3Fragment) will handle the actual Fragment removal
+            android.util.Log.d(
+                    TAG,
+                    "[BACK] Listener status: progressListener=${if (progressListener != null) "NOT NULL" else "NULL"}"
+            )
+
+            if (progressListener == null) {
+                android.util.Log.e(
+                        TAG,
+                        "[BACK] ❌ CRITICAL: progressListener is NULL! Cannot close submenu!"
+                )
+                return false
+            }
+
+            android.util.Log.d(
+                    TAG,
+                    "[BACK] Calling progressListener.onBackToMainMenu() - listener will handle popBackStack"
+            )
+            progressListener?.onBackToMainMenu()
+
+            // DO NOT call popBackStack here - the listener already does it!
+            // Calling it twice causes race conditions and Fragment reference leaks
+            android.util.Log.d(TAG, "[BACK] performBack completed - listener handled the dismissal")
+            return true
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "[BACK] ❌ EXCEPTION in performBack: ${e.message}", e)
+            return false
+        }
     }
 
     /** Update selection visual - specific implementation for ProgressFragment */
@@ -434,14 +468,91 @@ class ProgressFragment : MenuFragmentBase() {
 
     override fun onResume() {
         super.onResume()
+
+        android.util.Log.d(
+                "ProgressFragment",
+                "[RESUME] 🏁 onResume() CALLED - isAdded=$isAdded, isResumed=$isResumed, isRemoving=$isRemoving"
+        )
+
+        // Check 1: Don't register if being removed
+        if (isRemoving) {
+            android.util.Log.d(
+                    "ProgressFragment",
+                    "[RESUME] ⚠️ Fragment is being removed - skipping registration"
+            )
+            return
+        }
+
+        // Check 2: Don't register if MenuState is not PROGRESS_MENU
+        val currentState = viewModel.getMenuManager().getCurrentState()
+        if (currentState != MenuState.PROGRESS_MENU) {
+            android.util.Log.d(
+                    "ProgressFragment",
+                    "[RESUME] ⚠️ MenuState is $currentState (not PROGRESS) - skipping registration"
+            )
+            return
+        }
+
         // Ensure fragment is fully resumed before re-registering
         // This prevents timing issues when returning from back stack navigation
+        android.util.Log.d(
+                "ProgressFragment",
+                "[RESUME] 📝 Posting view runnable - view=${view != null}"
+        )
         view?.post {
+            android.util.Log.d(
+                    "ProgressFragment",
+                    "[RESUME] 🏃 view.post EXECUTED - isAdded=$isAdded, isResumed=$isResumed"
+            )
             if (isAdded && isResumed) {
                 android.util.Log.d(
                         "ProgressFragment",
-                        "[RESUME] 💾 onResume: Re-registering ProgressFragment after back stack return"
+                        "[RESUME] 💾 Registering immediately (isAdded=true, state=PROGRESS_MENU)"
                 )
+
+                // CRITICAL: Re-configure listener after rotation
+                // The listener is lost when Fragment is recreated by Android
+                android.util.Log.d(
+                        "ProgressFragment",
+                        "[RESUME] 🔗 Reconfiguring listener after recreation"
+                )
+                try {
+                    val parentFrag = parentFragment
+                    android.util.Log.d(
+                            "ProgressFragment",
+                            "[RESUME] 🔍 parentFragment = ${parentFrag?.javaClass?.simpleName ?: "NULL"}"
+                    )
+                    android.util.Log.d(
+                            "ProgressFragment",
+                            "[RESUME] 🔍 parentFragment.isAdded = ${parentFrag?.isAdded}"
+                    )
+                    android.util.Log.d(
+                            "ProgressFragment",
+                            "[RESUME] 🔍 parentFragment is ProgressListener? ${parentFrag is ProgressListener}"
+                    )
+
+                    if (parentFrag == null) {
+                        android.util.Log.e("ProgressFragment", "[RESUME] ❌ parentFragment is NULL!")
+                    } else if (parentFrag !is ProgressListener) {
+                        android.util.Log.e(
+                                "ProgressFragment",
+                                "[RESUME] ❌ Parent fragment (${parentFrag.javaClass.simpleName}) is not ProgressListener!"
+                        )
+                    } else {
+                        setProgressListener(parentFrag)
+                        android.util.Log.d(
+                                "ProgressFragment",
+                                "[RESUME] ✅ Listener configured successfully - progressListener=${if (progressListener != null) "NOT NULL" else "NULL"}"
+                        )
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e(
+                            "ProgressFragment",
+                            "[RESUME] ❌ Error configuring listener",
+                            e
+                    )
+                }
+
                 viewModel.registerProgressFragment(this)
 
                 // Restaurar foco no primeiro item

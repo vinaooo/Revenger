@@ -41,6 +41,18 @@ class SubmenuCoordinator(
     init {
         // Inicializar o count do back stack
         previousBackStackCount = fragment.parentFragmentManager.backStackEntryCount
+
+        // CRITICAL: If backstack has entries, a submenu is open
+        if (previousBackStackCount > 0) {
+            hasSubmenuOpen = true
+            Log.d(
+                    TAG,
+                    "[INIT] Detected backstack ($previousBackStackCount entries) - hasSubmenuOpen=true"
+            )
+        } else {
+            hasSubmenuOpen = false
+            Log.d(TAG, "[INIT] No backstack - hasSubmenuOpen=false")
+        }
     }
 
     // Callbacks para métodos do fragment
@@ -225,10 +237,6 @@ class SubmenuCoordinator(
         this.showMainMenuCallback = showMainMenuCallback
         this.setSelectedIndexCallback = setSelectedIndexCallback
         this.getCurrentSelectedIndexCallback = getCurrentSelectedIndexCallback
-    }
-
-    init {
-        Log.d(TAG, "[INIT] SubmenuCoordinator created and ready!")
     }
 
     fun testMethodExecution(testType: String) {

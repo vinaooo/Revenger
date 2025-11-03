@@ -218,8 +218,20 @@ class ExitFragment : MenuFragmentBase() {
 
     /** Back action */
     override fun performBack(): Boolean {
-        // For exit submenu, back should go to main menu
-        backExitMenu.performClick()
+        android.util.Log.d("ExitFragment", "[BACK] performBack called - navigating to main menu")
+
+        // CRITICAL: Must notify listener - the listener will handle popBackStack
+        // DO NOT call popBackStack here to avoid double-pop race conditions
+        android.util.Log.d(
+                "ExitFragment",
+                "[BACK] Calling exitListener.onBackToMainMenu() - listener will handle popBackStack"
+        )
+        exitListener?.onBackToMainMenu()
+
+        android.util.Log.d(
+                "ExitFragment",
+                "[BACK] performBack completed - listener handled the dismissal"
+        )
         return true
     }
 
@@ -382,14 +394,58 @@ class ExitFragment : MenuFragmentBase() {
 
     override fun onResume() {
         super.onResume()
+
+        // Check 1: Don't register if being removed
+        if (isRemoving) {
+            android.util.Log.d(
+                    "ExitFragment",
+                    "[RESUME] ⚠️ Fragment is being removed - skipping registration"
+            )
+            return
+        }
+
+        // Check 2: Don't register if MenuState is not EXIT_MENU
+        val currentState = viewModel.getMenuManager().getCurrentState()
+        if (currentState != MenuState.EXIT_MENU) {
+            android.util.Log.d(
+                    "ExitFragment",
+                    "[RESUME] ⚠️ MenuState is $currentState (not EXIT) - skipping registration"
+            )
+            return
+        }
+
         // Ensure fragment is fully resumed before re-registering
         // This prevents timing issues when returning from back stack navigation
         view?.post {
             if (isAdded && isResumed) {
                 android.util.Log.d(
                         "ExitFragment",
-                        "[RESUME] 🚪 onResume: Re-registering ExitFragment after back stack return"
+                        "[RESUME] 🚪 Registering immediately (isAdded=true, state=EXIT_MENU)"
                 )
+
+                // CRITICAL: Re-configure listener after rotation
+                android.util.Log.d(
+                        "ExitFragment",
+                        "[RESUME] 🔗 Reconfiguring listener after recreation"
+                )
+                try {
+                    val parentFragment = parentFragment
+                    if (parentFragment is ExitListener) {
+                        setExitListener(parentFragment)
+                        android.util.Log.d(
+                                "ExitFragment",
+                                "[RESUME] ✅ Listener configured successfully"
+                        )
+                    } else {
+                        android.util.Log.e(
+                                "ExitFragment",
+                                "[RESUME] ❌ Parent fragment is not ExitListener!"
+                        )
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("ExitFragment", "[RESUME] ❌ Error configuring listener", e)
+                }
+
                 viewModel.registerExitFragment(this)
 
                 // Restaurar foco no primeiro item

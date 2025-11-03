@@ -584,8 +584,10 @@ class RetroMenu3Fragment :
 
         // IMPLEMENTAÇÃO DAS INTERFACES DOS SUBMENUS
         override fun onBackToMainMenu() {
+                android.util.Log.d(TAG, "[LISTENER] 🔔 onBackToMainMenu called - closing submenu")
                 // Fechar submenu e voltar ao menu principal
                 submenuCoordinator.closeCurrentSubmenu()
+                android.util.Log.d(TAG, "[LISTENER] 🔔 onBackToMainMenu completed")
         }
 
         override fun onAboutBackToMainMenu() {

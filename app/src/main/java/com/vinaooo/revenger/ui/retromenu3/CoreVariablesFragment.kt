@@ -170,8 +170,10 @@ class CoreVariablesFragment : MenuFragmentBase() {
     }
 
     override fun performBack(): Boolean {
-        // Return to settings menu
+        android.util.Log.d("CoreVariablesFragment", "[BACK] performBack called - calling listener")
+        // Return to settings menu - listener handles popBackStack
         coreVariablesListener?.onBackToSettings()
+        android.util.Log.d("CoreVariablesFragment", "[BACK] performBack completed")
         return true
     }
 
@@ -222,6 +224,34 @@ class CoreVariablesFragment : MenuFragmentBase() {
                         "CoreVariablesFragment",
                         "[RESUME] 🔧 onResume: Re-registering CoreVariablesFragment after back stack return"
                 )
+
+                // CRITICAL: Re-configure listener after rotation
+                android.util.Log.d(
+                        "CoreVariablesFragment",
+                        "[RESUME] 🔗 Reconfiguring listener after recreation"
+                )
+                try {
+                    val parentFragment = parentFragment
+                    if (parentFragment is CoreVariablesListener) {
+                        setCoreVariablesListener(parentFragment)
+                        android.util.Log.d(
+                                "CoreVariablesFragment",
+                                "[RESUME] ✅ Listener configured successfully"
+                        )
+                    } else {
+                        android.util.Log.e(
+                                "CoreVariablesFragment",
+                                "[RESUME] ❌ Parent fragment is not CoreVariablesListener!"
+                        )
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e(
+                            "CoreVariablesFragment",
+                            "[RESUME] ❌ Error configuring listener",
+                            e
+                    )
+                }
+
                 viewModel.registerCoreVariablesFragment(this)
 
                 // Restaurar foco no primeiro item
