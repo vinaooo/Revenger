@@ -27,12 +27,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="@dimen/retro_menu3_center_content_weight"
             android:orientation="vertical"
-            android:paddingVertical="@dimen/retro_menu3_container_padding_vertical">
+            android:paddingVertical="@dimen/retro_menu3_container_padding_vertical"
+            android:layout_gravity="center_vertical">
 
             <!-- Menu Title -->
             <TextView
                 android:id="@+id/progress_title"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/progress_menu_title"
                 android:textSize="@dimen/retro_menu3_title_text_size"
@@ -81,7 +82,8 @@
                             <!-- Selection Arrow -->
                             <TextView
                                 android:id="@+id/selection_arrow_load_state"
-                                android:layout_width="wrap_content"
+                                    android:layout_width="wrap_content"
+                                
                                 android:layout_height="wrap_content"
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
@@ -99,6 +101,7 @@
                                 <TextView
                                     android:id="@+id/load_state_title"
                                     android:layout_width="wrap_content"
+                                    
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_load_state"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
@@ -129,7 +132,8 @@
                             <!-- Selection Arrow -->
                             <TextView
                                 android:id="@+id/selection_arrow_save_state"
-                                android:layout_width="wrap_content"
+                                    android:layout_width="wrap_content"
+                                
                                 android:layout_height="wrap_content"
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
@@ -147,6 +151,7 @@
                                 <TextView
                                     android:id="@+id/save_state_title"
                                     android:layout_width="wrap_content"
+                                    
                                     android:layout_height="wrap_content"
                                     android:text="@string/menu_save_state"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
@@ -175,7 +180,8 @@
                             android:padding="@dimen/retro_menu3_menu_item_padding">
                             <TextView
                                 android:id="@+id/selection_arrow_back"
-                                android:layout_width="wrap_content"
+                                    android:layout_width="wrap_content"
+                                
                                 android:layout_height="wrap_content"
                                 android:text="@string/retro_menu3_selection_arrow"
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
@@ -197,6 +203,7 @@
                                 <TextView
                                     android:id="@+id/back_title"
                                     android:layout_width="wrap_content"
+                                    
                                     android:layout_height="wrap_content"
                                     android:text="@string/settings_back"
                                     android:textSize="@dimen/retro_menu3_menu_item_text_size"
