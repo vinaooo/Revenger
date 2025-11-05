@@ -997,6 +997,25 @@ class GameActivityViewModel(application: Application) :
         )
     }
 
+    /** Register ProgressFragment for rotation recreation (without activating state) */
+    fun registerProgressFragmentForRotation(fragment: ProgressFragment) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 💾 registerProgressFragmentForRotation: Registering without state activation"
+        )
+        progressFragment = fragment
+        menuViewModel.registerProgressFragment(fragment)
+        // Register with MenuManager only (no activation)
+        menuManager.registerFragment(
+                com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU,
+                fragment
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 💾 registerProgressFragmentForRotation: Completed (state NOT changed)"
+        )
+    }
+
     /** Register the ExitFragment when it's created */
     fun registerExitFragment(fragment: ExitFragment) {
         android.util.Log.d(
@@ -1017,6 +1036,25 @@ class GameActivityViewModel(application: Application) :
         )
     }
 
+    /** Register ExitFragment for rotation recreation (without activating state) */
+    fun registerExitFragmentForRotation(fragment: ExitFragment) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 🚪 registerExitFragmentForRotation: Registering without state activation"
+        )
+        exitFragment = fragment
+        menuViewModel.registerExitFragment(fragment)
+        // Register with MenuManager only (no activation)
+        menuManager.registerFragment(
+                com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU,
+                fragment
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 🚪 registerExitFragmentForRotation: Completed (state NOT changed)"
+        )
+    }
+
     /** Register the AboutFragment when it's created */
     fun registerAboutFragment(fragment: AboutFragment) {
         android.util.Log.d(
@@ -1033,6 +1071,24 @@ class GameActivityViewModel(application: Application) :
         android.util.Log.d(
                 "GameActivityViewModel",
                 "[REGISTER] 📋 registerAboutFragment: Registration completed - isAnyMenuActive=${isAnyMenuActive()}"
+        )
+    }
+
+    /** Register AboutFragment for rotation recreation (without activating state) */
+    fun registerAboutFragmentForRotation(fragment: AboutFragment) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 📋 registerAboutFragmentForRotation: Registering without state activation"
+        )
+        aboutFragment = fragment
+        // Register with MenuManager only (no activation)
+        menuManager.registerFragment(
+                com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU,
+                fragment
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[REGISTER] 📋 registerAboutFragmentForRotation: Completed (state NOT changed)"
         )
     }
 

@@ -600,13 +600,13 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                 .MenuState
                                                                                                                                                 .PROGRESS_MENU -> {
                                                                                                                                                 viewModel
-                                                                                                                                                        .registerProgressFragment(
+                                                                                                                                                        .registerProgressFragmentForRotation(
                                                                                                                                                                 newFragment as
                                                                                                                                                                         com.vinaooo.revenger.ui.retromenu3.ProgressFragment
                                                                                                                                                         )
                                                                                                                                                 Log.d(
                                                                                                                                                         TAG,
-                                                                                                                                                        "[ORIENTATION] 📋 ProgressFragment registrado"
+                                                                                                                                                        "[ORIENTATION] 📋 ProgressFragment registrado (rotation)"
                                                                                                                                                 )
                                                                                                                                         }
                                                                                                                                         com.vinaooo
@@ -616,13 +616,13 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                 .MenuState
                                                                                                                                                 .ABOUT_MENU -> {
                                                                                                                                                 viewModel
-                                                                                                                                                        .registerAboutFragment(
+                                                                                                                                                        .registerAboutFragmentForRotation(
                                                                                                                                                                 newFragment as
                                                                                                                                                                         com.vinaooo.revenger.ui.retromenu3.AboutFragment
                                                                                                                                                         )
                                                                                                                                                 Log.d(
                                                                                                                                                         TAG,
-                                                                                                                                                        "[ORIENTATION] 📋 AboutFragment registrado"
+                                                                                                                                                        "[ORIENTATION] 📋 AboutFragment registrado (rotation)"
                                                                                                                                                 )
                                                                                                                                         }
                                                                                                                                         com.vinaooo
@@ -632,13 +632,13 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                 .MenuState
                                                                                                                                                 .EXIT_MENU -> {
                                                                                                                                                 viewModel
-                                                                                                                                                        .registerExitFragment(
+                                                                                                                                                        .registerExitFragmentForRotation(
                                                                                                                                                                 newFragment as
                                                                                                                                                                         com.vinaooo.revenger.ui.retromenu3.ExitFragment
                                                                                                                                                         )
                                                                                                                                                 Log.d(
                                                                                                                                                         TAG,
-                                                                                                                                                        "[ORIENTATION] 📋 ExitFragment registrado"
+                                                                                                                                                        "[ORIENTATION] 📋 ExitFragment registrado (rotation)"
                                                                                                                                                 )
                                                                                                                                         }
                                                                                                                                         else -> {
