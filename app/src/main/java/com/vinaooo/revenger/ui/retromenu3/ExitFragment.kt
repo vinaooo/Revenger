@@ -162,8 +162,12 @@ class ExitFragment : MenuFragmentBase() {
         }
 
         backExitMenu.setOnClickListener {
-            // Return to main menu by calling listener method (same as pressing B)
-            exitListener?.onBackToMainMenu()
+            // Return to main menu - direct ViewModel call (survives rotation)
+            android.util.Log.d(
+                    "ExitFragment",
+                    "[BACK] backExitMenu onClick - calling viewModel.dismissExit()"
+            )
+            viewModel.dismissExit()
         }
     }
 
@@ -220,17 +224,14 @@ class ExitFragment : MenuFragmentBase() {
     override fun performBack(): Boolean {
         android.util.Log.d("ExitFragment", "[BACK] performBack called - navigating to main menu")
 
-        // CRITICAL: Must notify listener - the listener will handle popBackStack
-        // DO NOT call popBackStack here to avoid double-pop race conditions
-        android.util.Log.d(
-                "ExitFragment",
-                "[BACK] Calling exitListener.onBackToMainMenu() - listener will handle popBackStack"
-        )
-        exitListener?.onBackToMainMenu()
+        // FIXED: Use viewModel directly like AboutFragment does (listeners can be NULL after
+        // rotation)
+        android.util.Log.d("ExitFragment", "[BACK] Calling viewModel.dismissExit()")
+        viewModel.dismissExit()
 
         android.util.Log.d(
                 "ExitFragment",
-                "[BACK] performBack completed - listener handled the dismissal"
+                "[BACK] performBack completed - viewModel handled the dismissal"
         )
         return true
     }

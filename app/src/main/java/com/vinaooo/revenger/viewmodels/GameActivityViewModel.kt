@@ -754,6 +754,8 @@ class GameActivityViewModel(application: Application) :
         dismissSubmenuFragment(settingsMenuFragment, "SettingsMenu") {
             settingsMenuFragment = null
             deactivateSettingsMenu()
+            // Navigate back to main menu when dismissing Settings submenu
+            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
         }
     }
 
@@ -762,6 +764,8 @@ class GameActivityViewModel(application: Application) :
         dismissSubmenuFragment(progressFragment, "Progress") {
             progressFragment = null
             deactivateProgressMenu()
+            // Navigate back to main menu when dismissing Progress submenu
+            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
         }
     }
 
@@ -770,6 +774,8 @@ class GameActivityViewModel(application: Application) :
         dismissSubmenuFragment(exitFragment, "Exit") {
             exitFragment = null
             deactivateExitMenu()
+            // Navigate back to main menu when dismissing Exit submenu
+            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
         }
     }
 

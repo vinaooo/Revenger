@@ -110,21 +110,25 @@ class GameActivity : FragmentActivity() {
                 viewModel.setMenuContainer(menuContainer)
         }
 
-    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
-        super.onConfigurationChanged(newConfig)
-        Log.d(TAG, "Configuration changed - adjusting gamepad position")
-        adjustGamePadPositionForOrientation(gamePadContainer)
+        override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+                super.onConfigurationChanged(newConfig)
+                Log.d(TAG, "Configuration changed - adjusting gamepad position")
+                adjustGamePadPositionForOrientation(gamePadContainer)
 
-        // TODO: Phase 5 - Remove temporary callback re-registration when new navigation system is integrated
-        // CRITICAL FIX: Re-register menu callbacks after rotation to prevent back button issues
-        viewModel.setupMenuCallback(this)
-        Log.d(TAG, "[ROTATION_FIX] Menu callbacks re-registered after rotation")
+                // TODO: Phase 5 - Remove temporary callback re-registration when new navigation
+                // system is integrated
+                // CRITICAL FIX: Re-register menu callbacks after rotation to prevent back button
+                // issues
+                viewModel.setupMenuCallback(this)
+                Log.d(TAG, "[ROTATION_FIX] Menu callbacks re-registered after rotation")
 
-        // --- SOLUÇÃO: Recriar fragments após mudança de orientação ---
-        Log.d(TAG, "[ORIENTATION] ====== CHECKING FOR MENU AFTER ROTATION ======")
+                // --- SOLUÇÃO: Recriar fragments após mudança de orientação ---
+                Log.d(TAG, "[ORIENTATION] ====== CHECKING FOR MENU AFTER ROTATION ======")
 
-        val menuManager = viewModel.getMenuManager()
-        val currentState = menuManager.getCurrentState()                // CRÍTICO: Verificar o backstack REAL para detectar se estamos num submenu
+                val menuManager = viewModel.getMenuManager()
+                val currentState =
+                        menuManager.getCurrentState() // CRÍTICO: Verificar o backstack REAL para
+                // detectar se estamos num submenu
                 // O currentState pode estar desatualizado após operações de BACK
                 val fragmentManager = supportFragmentManager
                 val hasBackStack = fragmentManager.backStackEntryCount > 0

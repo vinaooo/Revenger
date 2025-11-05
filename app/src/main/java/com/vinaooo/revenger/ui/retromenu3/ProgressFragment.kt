@@ -183,12 +183,12 @@ class ProgressFragment : MenuFragmentBase() {
         }
 
         backProgress.setOnClickListener {
-            // Return to main menu by calling listener method (same as pressing B)
+            // Return to main menu - direct ViewModel call (survives rotation)
             android.util.Log.d(
                     TAG,
-                    "[BACK] backProgress onClick - calling progressListener.onBackToMainMenu()"
+                    "[BACK] backProgress onClick - calling viewModel.dismissProgress()"
             )
-            progressListener?.onBackToMainMenu()
+            viewModel.dismissProgress()
             android.util.Log.d(TAG, "[BACK] backProgress onClick completed")
         }
     }
@@ -269,30 +269,15 @@ class ProgressFragment : MenuFragmentBase() {
         try {
             android.util.Log.d(TAG, "[BACK] performBack called - navigating to main menu")
 
-            // CRITICAL: Must notify listener BEFORE any Fragment operations
-            // The listener (RetroMenu3Fragment) will handle the actual Fragment removal
-            android.util.Log.d(
-                    TAG,
-                    "[BACK] Listener status: progressListener=${if (progressListener != null) "NOT NULL" else "NULL"}"
-            )
-
-            if (progressListener == null) {
-                android.util.Log.e(
-                        TAG,
-                        "[BACK] ❌ CRITICAL: progressListener is NULL! Cannot close submenu!"
-                )
-                return false
-            }
+            // FIXED: Use viewModel directly like AboutFragment does (listeners can be NULL after
+            // rotation)
+            android.util.Log.d(TAG, "[BACK] Calling viewModel.dismissProgressMenu()")
+            viewModel.dismissProgress()
 
             android.util.Log.d(
                     TAG,
-                    "[BACK] Calling progressListener.onBackToMainMenu() - listener will handle popBackStack"
+                    "[BACK] performBack completed - viewModel handled the dismissal"
             )
-            progressListener?.onBackToMainMenu()
-
-            // DO NOT call popBackStack here - the listener already does it!
-            // Calling it twice causes race conditions and Fragment reference leaks
-            android.util.Log.d(TAG, "[BACK] performBack completed - listener handled the dismissal")
             return true
         } catch (e: Exception) {
             android.util.Log.e(TAG, "[BACK] ❌ EXCEPTION in performBack: ${e.message}", e)

@@ -1,6 +1,7 @@
 package com.vinaooo.revenger.ui.retromenu3
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -172,8 +173,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
         }
 
         backSettings.setOnClickListener {
-            // Return to main menu by calling listener method (same as pressing B)
-            settingsListener?.onBackToMainMenu()
+            // Return to main menu - direct ViewModel call (survives rotation)
+            Log.d(
+                    "SettingsMenuFragment",
+                    "[BACK] backSettings onClick - calling viewModel.dismissSettingsMenu()"
+            )
+            viewModel.dismissSettingsMenu()
         }
     }
 
@@ -263,8 +268,9 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     /** Back action */
     override fun performBack(): Boolean {
-        // For settings submenu, back should go to main menu
-        backSettings.performClick()
+        // Return to main menu - direct ViewModel call (survives rotation)
+        Log.d("SettingsMenuFragment", "[BACK] Calling viewModel.dismissSettingsMenu()")
+        viewModel.dismissSettingsMenu()
         return true
     }
 
