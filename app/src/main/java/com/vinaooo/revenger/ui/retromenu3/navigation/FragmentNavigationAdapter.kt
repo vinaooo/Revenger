@@ -3,6 +3,11 @@ package com.vinaooo.revenger.ui.retromenu3.navigation
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
+import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
+import com.vinaooo.revenger.ui.retromenu3.AboutFragment
+import com.vinaooo.revenger.ui.retromenu3.ExitFragment
 
 /**
  * Adapter que isola a lógica de transações de Fragments do NavigationController.
@@ -29,7 +34,7 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
      * 
      * Esta operação:
      * 1. Cria o fragment apropriado se necessário
-     * 2. Adiciona ao container (R.id.retro_menu3_container)
+     * 2. Adiciona ao container (R.id.menu_container)
      * 3. Executa a transação com commitAllowingStateLoss()
      * 
      * @param menuType O tipo de menu a ser exibido
@@ -37,17 +42,94 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
     fun showMenu(menuType: MenuType) {
         android.util.Log.d(TAG, "[SHOW] Menu type: $menuType")
         
-        // TODO Phase 3.2a: Implementar lógica de show menu
-        // 1. Mapear MenuType para Fragment class
-        // 2. Verificar se fragment já existe no FragmentManager
-        // 3. Se não existe, criar novo fragment
-        // 4. Adicionar/mostrar fragment no container
-        // 5. Executar transação com commitAllowingStateLoss()
-        
-        android.util.Log.w(TAG, "[SHOW] Not yet implemented - stub only")
+        when (menuType) {
+            MenuType.MAIN -> showMainMenu()
+            MenuType.SETTINGS -> showSettingsMenu()
+            MenuType.PROGRESS -> showProgressMenu()
+            MenuType.ABOUT -> showAboutMenu()
+            MenuType.EXIT -> showExitMenu()
+            MenuType.CORE_VARIABLES -> {
+                android.util.Log.w(TAG, "[SHOW] Core Variables menu not yet implemented")
+            }
+        }
     }
     
-    /**
+    private fun showMainMenu() {
+        android.util.Log.d(TAG, "[SHOW] Main menu")
+        
+        // Verificar se RetroMenu3Fragment já existe
+        val existingFragment = fragmentManager.findFragmentByTag(TAG_MAIN_MENU)
+        if (existingFragment != null && existingFragment.isAdded) {
+            android.util.Log.d(TAG, "[SHOW] Main menu already visible")
+            return
+        }
+        
+        // Criar novo RetroMenu3Fragment
+        val mainFragment = RetroMenu3Fragment.newInstance()
+        
+        fragmentManager
+            .beginTransaction()
+            .add(MENU_CONTAINER_ID, mainFragment, TAG_MAIN_MENU)
+            .commitAllowingStateLoss()
+        
+        android.util.Log.d(TAG, "[SHOW] Main menu added successfully")
+    }
+    
+    private fun showSettingsMenu() {
+        android.util.Log.d(TAG, "[SHOW] Settings menu")
+        
+        val settingsFragment = SettingsMenuFragment.newInstance()
+        
+        fragmentManager
+            .beginTransaction()
+            .replace(MENU_CONTAINER_ID, settingsFragment, TAG_SETTINGS_MENU)
+            .addToBackStack(TAG_SETTINGS_MENU)
+            .commitAllowingStateLoss()
+        
+        android.util.Log.d(TAG, "[SHOW] Settings menu added successfully")
+    }
+    
+    private fun showProgressMenu() {
+        android.util.Log.d(TAG, "[SHOW] Progress menu")
+        
+        val progressFragment = ProgressFragment.newInstance()
+        
+        fragmentManager
+            .beginTransaction()
+            .replace(MENU_CONTAINER_ID, progressFragment, TAG_PROGRESS_MENU)
+            .addToBackStack(TAG_PROGRESS_MENU)
+            .commitAllowingStateLoss()
+        
+        android.util.Log.d(TAG, "[SHOW] Progress menu added successfully")
+    }
+    
+    private fun showAboutMenu() {
+        android.util.Log.d(TAG, "[SHOW] About menu")
+        
+        val aboutFragment = AboutFragment.newInstance()
+        
+        fragmentManager
+            .beginTransaction()
+            .replace(MENU_CONTAINER_ID, aboutFragment, TAG_ABOUT_MENU)
+            .addToBackStack(TAG_ABOUT_MENU)
+            .commitAllowingStateLoss()
+        
+        android.util.Log.d(TAG, "[SHOW] About menu added successfully")
+    }
+    
+    private fun showExitMenu() {
+        android.util.Log.d(TAG, "[SHOW] Exit menu")
+        
+        val exitFragment = ExitFragment.newInstance()
+        
+        fragmentManager
+            .beginTransaction()
+            .replace(MENU_CONTAINER_ID, exitFragment, TAG_EXIT_MENU)
+            .addToBackStack(TAG_EXIT_MENU)
+            .commitAllowingStateLoss()
+        
+        android.util.Log.d(TAG, "[SHOW] Exit menu added successfully")
+    }    /**
      * Esconde o menu atual.
      * 
      * Esta operação:
@@ -60,12 +142,19 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
     fun hideMenu() {
         android.util.Log.d(TAG, "[HIDE] Hiding current menu")
         
-        // TODO Phase 3.2a: Implementar lógica de hide menu
-        // 1. Encontrar fragment atual no container
-        // 2. Remover do container (não destroy)
-        // 3. Executar transação com commitAllowingStateLoss()
+        // Encontrar fragment atual no container
+        val currentFragment = fragmentManager.findFragmentById(MENU_CONTAINER_ID)
         
-        android.util.Log.w(TAG, "[HIDE] Not yet implemented - stub only")
+        if (currentFragment != null && currentFragment.isAdded) {
+            fragmentManager
+                .beginTransaction()
+                .remove(currentFragment)
+                .commitAllowingStateLoss()
+            
+            android.util.Log.d(TAG, "[HIDE] Menu removed successfully")
+        } else {
+            android.util.Log.w(TAG, "[HIDE] No menu to hide")
+        }
     }
     
     /**
@@ -81,18 +170,27 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
     fun navigateBack(): Boolean {
         android.util.Log.d(TAG, "[BACK] Navigating back")
         
-        // TODO Phase 3.2a: Implementar lógica de navigate back
-        // 1. Verificar se há submenu ativo
-        // 2. Se sim, remover submenu e mostrar menu principal
-        // 3. Se não, retornar false (já está no menu raiz)
-        // 4. Executar transação com commitAllowingStateLoss()
-        
-        android.util.Log.w(TAG, "[BACK] Not yet implemented - stub only")
-        return false
+        // Verificar se há submenu ativo (back stack não vazio)
+        if (fragmentManager.backStackEntryCount > 0) {
+            // Fazer pop da back stack (volta ao menu anterior)
+            fragmentManager.popBackStackImmediate()
+            android.util.Log.d(TAG, "[BACK] Popped back stack successfully")
+            return true
+        } else {
+            android.util.Log.d(TAG, "[BACK] Already at root menu")
+            return false
+        }
     }
     
     companion object {
         private const val TAG = "FragmentNavigationAdapter"
+        
+        /** Tags para identificar fragments no FragmentManager */
+        private const val TAG_MAIN_MENU = "RetroMenu3Fragment"
+        private const val TAG_SETTINGS_MENU = "SettingsMenuFragment"
+        private const val TAG_PROGRESS_MENU = "ProgressFragment"
+        private const val TAG_ABOUT_MENU = "AboutFragment"
+        private const val TAG_EXIT_MENU = "ExitFragment"
         
         /**
          * ID do container onde os fragments de menu são exibidos.

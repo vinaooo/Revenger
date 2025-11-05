@@ -19,6 +19,9 @@ import com.vinaooo.revenger.ui.retromenu3.MenuFragment
  * @property activity Referência à activity para gerenciar fragmentos
  */
 class NavigationController(private val activity: FragmentActivity) {
+    /** Adapter para gerenciar transações de fragmentos */
+    private val fragmentAdapter = FragmentNavigationAdapter(activity)
+    
     /** Menu atualmente ativo */
     private var currentMenu: MenuType = MenuType.MAIN
 
@@ -187,8 +190,40 @@ class NavigationController(private val activity: FragmentActivity) {
 
         android.util.Log.d(TAG, "Activate item: index=$selectedItemIndex (menu: $currentMenu)")
 
-        // TODO Phase 3: Implementar ativação via FragmentNavigationAdapter
-        // Por enquanto só loga a ação
+        // PHASE 3.2b: Implementar ativação via FragmentNavigationAdapter
+        // Por enquanto, vamos apenas determinar qual submenu abrir baseado no índice
+        // A lógica completa de mapeamento virá depois
+        
+        if (currentMenu == MenuType.MAIN) {
+            // Mapeamento temporário de índices do menu principal para submenus
+            // TODO: Obter essa informação do fragment ao invés de hardcode
+            val targetMenu = when (selectedItemIndex) {
+                0 -> MenuType.PROGRESS  // Assumindo que Progress é o primeiro item
+                1 -> MenuType.SETTINGS  // Settings é o segundo
+                2 -> MenuType.ABOUT     // About é o terceiro
+                3 -> MenuType.EXIT      // Exit é o quarto
+                else -> {
+                    android.util.Log.w(TAG, "Unknown menu item index: $selectedItemIndex")
+                    return
+                }
+            }
+            
+            // Salvar estado atual na pilha antes de navegar
+            navigationStack.push(MenuState(currentMenu, selectedItemIndex))
+            
+            // Atualizar estado interno
+            currentMenu = targetMenu
+            selectedItemIndex = 0
+            
+            // Exibir novo menu
+            fragmentAdapter.showMenu(targetMenu)
+            
+            android.util.Log.d(TAG, "Navigated to submenu: $targetMenu")
+        } else {
+            // Em submenus, ativar item depende de qual submenu está ativo
+            // TODO: Implementar ativação de itens em submenus
+            android.util.Log.d(TAG, "Activate item in submenu not yet implemented")
+        }
     }
 
     /**
@@ -223,8 +258,10 @@ class NavigationController(private val activity: FragmentActivity) {
                         "Navigate back: restored menu=$currentMenu, index=$selectedItemIndex"
                 )
 
-                // TODO Phase 3: Atualizar UI via FragmentNavigationAdapter
-                return true
+                // PHASE 3.2b: Usar FragmentNavigationAdapter para voltar
+                val success = fragmentAdapter.navigateBack()
+                android.util.Log.d(TAG, "FragmentAdapter.navigateBack() returned: $success")
+                return success
             } else {
                 // Pilha vazia, volta para main menu
                 currentMenu = MenuType.MAIN
@@ -232,8 +269,10 @@ class NavigationController(private val activity: FragmentActivity) {
 
                 android.util.Log.d(TAG, "Navigate back: returned to main menu")
 
-                // TODO Phase 3: Atualizar UI via FragmentNavigationAdapter
-                return true
+                // PHASE 3.2b: Usar FragmentNavigationAdapter para voltar ao main
+                val success = fragmentAdapter.navigateBack()
+                android.util.Log.d(TAG, "FragmentAdapter.navigateBack() returned: $success")
+                return success
             }
         } finally {
             isNavigating = false
@@ -244,7 +283,13 @@ class NavigationController(private val activity: FragmentActivity) {
     private fun openMainMenu() {
         android.util.Log.d(TAG, "Open main menu")
 
-        // TODO Phase 3: Implementar via FragmentNavigationAdapter
+        // PHASE 3.2b: Implementar via FragmentNavigationAdapter
+        currentMenu = MenuType.MAIN
+        selectedItemIndex = 0
+        navigationStack.clear()
+        
+        fragmentAdapter.showMenu(MenuType.MAIN)
+        android.util.Log.d(TAG, "Main menu opened successfully")
     }
 
     /** Atualiza o visual de seleção no fragmento atual. */
