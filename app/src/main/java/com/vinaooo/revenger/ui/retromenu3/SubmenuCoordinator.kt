@@ -105,13 +105,6 @@ class SubmenuCoordinator(
 
         val targetState =
                 when (currentState) {
-                    MenuState.CORE_VARIABLES_MENU -> {
-                        android.util.Log.d(
-                                TAG,
-                                "[RESTORE] 🎯 Current state CORE_VARIABLES_MENU -> Target ABOUT_MENU"
-                        )
-                        MenuState.ABOUT_MENU // Voltar do Core Variables para About
-                    }
                     MenuState.SETTINGS_MENU -> {
                         android.util.Log.d(
                                 TAG,
@@ -260,7 +253,6 @@ class SubmenuCoordinator(
         when (submenuType) {
             MenuState.PROGRESS_MENU -> showProgressSubmenu()
             MenuState.SETTINGS_MENU -> showSettingsSubmenu()
-            MenuState.CORE_VARIABLES_MENU -> showCoreVariablesSubmenu()
             MenuState.ABOUT_MENU -> showAboutSubmenu()
             MenuState.EXIT_MENU -> showExitSubmenu()
             MenuState.MAIN_MENU -> {
@@ -306,46 +298,6 @@ class SubmenuCoordinator(
             Log.d(TAG, "SubmenuCoordinator: Settings submenu opened successfully")
         } catch (e: Exception) {
             Log.e(TAG, "SubmenuCoordinator: Failed to open Settings submenu", e)
-        }
-    }
-
-    private fun showCoreVariablesSubmenu() {
-        Log.d(TAG, "[DEBUG] showCoreVariablesSubmenu START")
-        try {
-            Log.e(TAG, "[DEBUG] showCoreVariablesSubmenu - Creating CoreVariablesFragment")
-            val coreVariablesFragment = CoreVariablesFragment.newInstance()
-            coreVariablesFragment.setCoreVariablesListener(
-                    fragment as CoreVariablesFragment.CoreVariablesListener
-            )
-
-            // Primeiro adicionar o submenu (mas invisível inicialmente)
-            fragment.parentFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.menu_container, coreVariablesFragment, "CoreVariablesFragment")
-                    .addToBackStack("CoreVariablesFragment")
-                    .commitAllowingStateLoss()
-
-            // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
-            fragment.view?.post {
-                Log.d(
-                        TAG,
-                        "[DEBUG] showCoreVariablesSubmenu - Calling hideMainMenuCompletely after fragment added"
-                )
-                // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
-                viewManager.hideMainMenuCompletely()
-            }
-
-            // Registrar o fragment no ViewModel
-            viewModel.registerCoreVariablesFragment(coreVariablesFragment)
-
-            // Alterar o estado do menu para CORE_VARIABLES_MENU
-            menuManager.navigateToState(
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.CORE_VARIABLES_MENU
-            )
-
-            Log.d(TAG, "SubmenuCoordinator: Core Variables submenu opened successfully")
-        } catch (e: Exception) {
-            Log.e(TAG, "SubmenuCoordinator: Failed to open Core Variables submenu", e)
         }
     }
 
