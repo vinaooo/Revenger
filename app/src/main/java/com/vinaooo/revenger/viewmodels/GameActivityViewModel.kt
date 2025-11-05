@@ -23,6 +23,8 @@ import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.retromenu3.*
+import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
+import com.vinaooo.revenger.FeatureFlags
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -55,6 +57,9 @@ class GameActivityViewModel(application: Application) :
 
     /** Speed management ViewModel */
     private lateinit var speedViewModel: SpeedViewModel
+
+    /** Navigation controller for multi-input navigation system (Phase 3+) */
+    private var navigationController: NavigationController? = null
 
     // ===== SHARED REFERENCES =====
     // These are shared between specialized ViewModels
@@ -234,6 +239,12 @@ class GameActivityViewModel(application: Application) :
 
     /** Configure menu callback with activity reference */
     fun setupMenuCallback(activity: FragmentActivity) {
+        // PHASE 3.1a: Initialize NavigationController if new system is enabled
+        if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            navigationController = NavigationController(activity)
+            android.util.Log.d("GameActivityViewModel", "[PHASE3] NavigationController initialized")
+        }
+        
         // Configure RetroMenu3 callback for SELECT+START combo
         controllerInput.selectStartComboCallback = { showRetroMenu3(activity) }
 
@@ -249,13 +260,56 @@ class GameActivityViewModel(application: Application) :
             }
         }
 
-        // Configure navigation callbacks for RetroMenu3
-        controllerInput.menuNavigateUpCallback = { menuManager.sendNavigateUp() }
-        controllerInput.menuNavigateDownCallback = { menuManager.sendNavigateDown() }
-        controllerInput.menuConfirmCallback = { menuManager.sendConfirm() }
+        // PHASE 3.1b: Configure navigation callbacks with feature flag routing
+        controllerInput.menuNavigateUpCallback = {
+            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                        direction = com.vinaooo.revenger.ui.retromenu3.navigation.Direction.UP,
+                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
+                    )
+                )
+            } else {
+                menuManager.sendNavigateUp()
+            }
+        }
+        
+        controllerInput.menuNavigateDownCallback = {
+            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                        direction = com.vinaooo.revenger.ui.retromenu3.navigation.Direction.DOWN,
+                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
+                    )
+                )
+            } else {
+                menuManager.sendNavigateDown()
+            }
+        }
+        
+        controllerInput.menuConfirmCallback = {
+            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.ActivateSelected(
+                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
+                    )
+                )
+            } else {
+                menuManager.sendConfirm()
+            }
+        }
+        
         controllerInput.menuBackCallback = {
-            // Always delegate BACK handling to MenuManager - it will handle submenus properly
-            menuManager.sendBack()
+            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.NavigateBack(
+                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
+                    )
+                )
+            } else {
+                // Always delegate BACK handling to MenuManager - it will handle submenus properly
+                menuManager.sendBack()
+            }
         }
 
         // Control when to intercept DPAD for menu
