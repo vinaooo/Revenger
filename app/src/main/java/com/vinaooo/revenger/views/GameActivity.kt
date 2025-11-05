@@ -186,8 +186,7 @@ class GameActivity : FragmentActivity() {
                                                                         is com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment,
                                                                         is com.vinaooo.revenger.ui.retromenu3.ProgressFragment,
                                                                         is com.vinaooo.revenger.ui.retromenu3.AboutFragment,
-                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitFragment,
-                                                                        is com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment ->
+                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitFragment ->
                                                                                 true
                                                                         else -> false
                                                                 }
@@ -226,12 +225,6 @@ class GameActivity : FragmentActivity() {
                                                                                         .retromenu3
                                                                                         .MenuState
                                                                                         .EXIT_MENU
-                                                                        is com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment ->
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .MenuState
-                                                                                        .CORE_VARIABLES_MENU
                                                                         else -> currentState
                                                                 }
                                                         } else {
@@ -300,15 +293,6 @@ class GameActivity : FragmentActivity() {
                                                                 )
                                                                 com.vinaooo.revenger.ui.retromenu3
                                                                         .ExitFragment()
-                                                        }
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .CORE_VARIABLES_MENU -> {
-                                                                Log.d(
-                                                                        TAG,
-                                                                        "[ORIENTATION] 📋 Submenu ativo: CORE_VARIABLES"
-                                                                )
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .CoreVariablesFragment()
                                                         }
                                                         else -> {
                                                                 Log.e(
@@ -657,22 +641,6 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                         "[ORIENTATION] 📋 ExitFragment registrado"
                                                                                                                                                 )
                                                                                                                                         }
-                                                                                                                                        com.vinaooo
-                                                                                                                                                .revenger
-                                                                                                                                                .ui
-                                                                                                                                                .retromenu3
-                                                                                                                                                .MenuState
-                                                                                                                                                .CORE_VARIABLES_MENU -> {
-                                                                                                                                                viewModel
-                                                                                                                                                        .registerCoreVariablesFragment(
-                                                                                                                                                                newFragment as
-                                                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment
-                                                                                                                                                        )
-                                                                                                                                                Log.d(
-                                                                                                                                                        TAG,
-                                                                                                                                                        "[ORIENTATION] 📋 CoreVariablesFragment registrado"
-                                                                                                                                                )
-                                                                                                                                        }
                                                                                                                                         else -> {
                                                                                                                                                 Log.w(
                                                                                                                                                         TAG,
@@ -730,13 +698,6 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                         .MenuState
                                                                                                                                                         .EXIT_MENU ->
                                                                                                                                                         R.id.exit_menu_option_a
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .MenuState
-                                                                                                                                                        .CORE_VARIABLES_MENU ->
-                                                                                                                                                        R.id.core_variables_back
                                                                                                                                                 else ->
                                                                                                                                                         null
                                                                                                                                         }

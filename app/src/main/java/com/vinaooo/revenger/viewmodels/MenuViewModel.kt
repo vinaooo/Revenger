@@ -29,7 +29,6 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
     private var settingsMenuFragment: SettingsMenuFragment? = null
     private var progressFragment: ProgressFragment? = null
     private var exitFragment: ExitFragment? = null
-    private var coreVariablesFragment: CoreVariablesFragment? = null
 
     // Container do menu
     private var menuContainerView: android.widget.FrameLayout? = null
@@ -61,10 +60,6 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
 
     fun registerExitFragment(fragment: ExitFragment) {
         exitFragment = fragment
-    }
-
-    fun registerCoreVariablesFragment(fragment: CoreVariablesFragment) {
-        coreVariablesFragment = fragment
     }
 
     // ========== MÉTODOS DE CONTROLE DE MENU ==========
