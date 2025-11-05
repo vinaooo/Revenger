@@ -53,7 +53,6 @@ enum class MenuState {
     MAIN_MENU,
     PROGRESS_MENU,
     SETTINGS_MENU,
-    CORE_VARIABLES_MENU,
     ABOUT_MENU,
     EXIT_MENU
 }
@@ -73,7 +72,6 @@ data class MenuSystemState(
     enum class MenuType {
         RETRO_MENU_3,
         SETTINGS_MENU,
-        CORE_VARIABLES_MENU,
         PROGRESS_MENU,
         ABOUT_MENU,
         EXIT_MENU

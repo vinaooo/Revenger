@@ -19,7 +19,6 @@ class AboutFragment : MenuFragmentBase() {
 
     // Menu item views
     private lateinit var aboutContainer: LinearLayout
-    private lateinit var coreVariablesAbout: RetroCardView
     private lateinit var backAbout: RetroCardView
 
     // Menu title
@@ -31,11 +30,9 @@ class AboutFragment : MenuFragmentBase() {
     private lateinit var coreNameInfo: TextView
 
     // Menu option titles for color control
-    private lateinit var coreVariablesTitle: TextView
     private lateinit var backTitle: TextView
 
     // Selection arrows
-    private lateinit var selectionArrowCoreVariables: TextView
     private lateinit var selectionArrowBack: TextView
 
     // Ordered list of menu items for navigation
@@ -43,7 +40,6 @@ class AboutFragment : MenuFragmentBase() {
 
     // Callback interface
     interface AboutListener {
-        fun onAboutCoreVariablesSelected()
         fun onAboutBackToMainMenu()
     }
 
@@ -90,22 +86,18 @@ class AboutFragment : MenuFragmentBase() {
         coreNameInfo = view.findViewById(R.id.core_name_info)
 
         // Menu items
-        coreVariablesAbout = view.findViewById(R.id.about_core_variables)
         backAbout = view.findViewById(R.id.about_back)
 
         // Initialize ordered list of menu items
-        menuItems = listOf(coreVariablesAbout, backAbout)
+        menuItems = listOf(backAbout)
 
         // Configure RetroCardView to use transparent background for selected state (not yellow)
-        coreVariablesAbout.setUseBackgroundColor(false)
         backAbout.setUseBackgroundColor(false)
 
         // Initialize menu option titles
-        coreVariablesTitle = view.findViewById(R.id.core_variables_title)
         backTitle = view.findViewById(R.id.back_title)
 
         // Initialize selection arrows
-        selectionArrowCoreVariables = view.findViewById(R.id.selection_arrow_core_variables)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
         // Set first item as selected
@@ -119,9 +111,7 @@ class AboutFragment : MenuFragmentBase() {
                 romNameInfo,
                 coreNameInfo,
                 backTitle,
-                selectionArrowBack,
-                coreVariablesTitle,
-                selectionArrowCoreVariables
+                selectionArrowBack
         )
 
         // Populate information with combined label and value
@@ -173,7 +163,6 @@ class AboutFragment : MenuFragmentBase() {
         }
 
         // Aplicar capitalização aos títulos dos botões do menu
-        applyConfiguredCapitalization(coreVariablesTitle)
         applyConfiguredCapitalization(backTitle)
 
         // DEBUG: Log info views after all processing
@@ -181,14 +170,12 @@ class AboutFragment : MenuFragmentBase() {
         android.util.Log.d(TAG, "[DEBUG] projectNameInfo: '${projectNameInfo.text}'")
         android.util.Log.d(TAG, "[DEBUG] romNameInfo: '${romNameInfo.text}'")
         android.util.Log.d(TAG, "[DEBUG] coreNameInfo: '${coreNameInfo.text}'")
-        android.util.Log.d(TAG, "[DEBUG] coreVariablesTitle: '${coreVariablesTitle.text}'")
         android.util.Log.d(TAG, "[DEBUG] backTitle: '${backTitle.text}'")
 
         // Force layout update to ensure text rendering is correct
         projectNameInfo.invalidate()
         romNameInfo.invalidate()
         coreNameInfo.invalidate()
-        coreVariablesTitle.invalidate()
         backTitle.invalidate()
     }
 
@@ -235,11 +222,6 @@ class AboutFragment : MenuFragmentBase() {
     }
 
     private fun setupClickListeners() {
-        coreVariablesAbout.setOnClickListener {
-            // Navigate to Core Variables submenu
-            aboutListener?.onAboutCoreVariablesSelected()
-        }
-
         backAbout.setOnClickListener {
             // Return to main menu by calling listener method (same as pressing B)
             aboutListener?.onAboutBackToMainMenu()
@@ -275,11 +257,6 @@ class AboutFragment : MenuFragmentBase() {
 
         when (selectedIndex) {
             0 -> {
-                // Core Variables selected
-                android.util.Log.d(TAG, "[ACTION] About menu: Core Variables selected")
-                aboutListener?.onAboutCoreVariablesSelected()
-            }
-            1 -> {
                 // Back to main menu
                 android.util.Log.d(TAG, "[ACTION] About menu: Back to main menu selected")
                 viewModel.dismissAboutMenu()
@@ -306,7 +283,7 @@ class AboutFragment : MenuFragmentBase() {
         val context = requireContext()
 
         // Update title colors
-        val titles = arrayOf(coreVariablesTitle, backTitle)
+        val titles = arrayOf(backTitle)
         titles.forEachIndexed { index, title ->
             val isSelected = index == selectedIndex
             title.setTextColor(
@@ -324,7 +301,7 @@ class AboutFragment : MenuFragmentBase() {
         }
 
         // Update arrow visibility and color
-        val arrows = arrayOf(selectionArrowCoreVariables, selectionArrowBack)
+        val arrows = arrayOf(selectionArrowBack)
         arrows.forEachIndexed { index, arrow ->
             val isSelected = index == selectedIndex
             arrow.visibility = if (isSelected) View.VISIBLE else View.GONE
@@ -345,15 +322,6 @@ class AboutFragment : MenuFragmentBase() {
 
     override fun getMenuItems(): List<MenuItem> {
         return listOf(
-                MenuItem(
-                        "core_variables",
-                        resources.getString(R.string.core_variables_menu_title),
-                        action =
-                                MenuAction.NAVIGATE(
-                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                .CORE_VARIABLES_MENU
-                                )
-                ),
                 MenuItem("back", resources.getString(R.string.about_back), action = MenuAction.BACK)
         )
     }
@@ -362,10 +330,6 @@ class AboutFragment : MenuFragmentBase() {
         when (item.action) {
             MenuAction.BACK -> {
                 aboutListener?.onAboutBackToMainMenu()
-            }
-            is MenuAction.NAVIGATE -> {
-                // Handle navigation to Core Variables submenu
-                viewModel.updateMenuState(item.action.targetMenu)
             }
             else -> {
                 // Handle other actions if needed
