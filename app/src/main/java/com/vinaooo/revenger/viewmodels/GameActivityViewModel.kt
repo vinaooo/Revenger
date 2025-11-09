@@ -292,16 +292,16 @@ class GameActivityViewModel(application: Application) :
             }
         }
 
-        // Configure START button callback to close ALL menus (submenus first, then main menu)
+        // Configure START button callback to close ALL menus directly (not step by step)
         controllerInput.startButtonCallback = {
             if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                // PHASE 3: Use NavigationController to close menu
+                // PHASE 3.4a: Use CloseAllMenus to exit directly to game
                 android.util.Log.d(
                         "GameActivityViewModel",
-                        "[START_BUTTON] Closing menu with NavigationController"
+                        "[START_BUTTON] Closing ALL menus directly with NavigationController"
                 )
                 navigationController?.handleNavigationEvent(
-                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.NavigateBack(
+                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
                                 inputSource =
                                         com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
                                                 .PHYSICAL_GAMEPAD
@@ -315,15 +315,15 @@ class GameActivityViewModel(application: Application) :
         // Configure gamepad menu button callback to toggle menu
         controllerInput.gamepadMenuButtonCallback = {
             if (isAnyMenuActive()) {
-                // PHASE 3: Use NavigationController to close menu when new system is active
+                // PHASE 3.4a: Use CloseAllMenus to exit directly to game
                 if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
                     android.util.Log.d(
                             "GameActivityViewModel",
-                            "[MENU_BUTTON] Closing menu with NavigationController"
+                            "[MENU_BUTTON] Closing ALL menus directly with NavigationController"
                     )
                     navigationController?.handleNavigationEvent(
                             com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
-                                    .NavigateBack(
+                                    .CloseAllMenus(
                                             inputSource =
                                                     com.vinaooo.revenger.ui.retromenu3.navigation
                                                             .InputSource.PHYSICAL_GAMEPAD

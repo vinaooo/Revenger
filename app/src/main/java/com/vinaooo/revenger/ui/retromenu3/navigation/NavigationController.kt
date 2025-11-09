@@ -103,6 +103,10 @@ class NavigationController(private val activity: FragmentActivity) {
             is NavigationEvent.OpenMenu -> {
                 openMainMenu()
             }
+            is NavigationEvent.CloseAllMenus -> {
+                lastActionButton = event.keyCode // Salvar botão que fechou
+                closeAllMenus()
+            }
         }
     }
 
@@ -361,6 +365,39 @@ class NavigationController(private val activity: FragmentActivity) {
 
         fragmentAdapter.showMenu(MenuType.MAIN)
         android.util.Log.d(TAG, "Main menu opened successfully")
+    }
+
+    /**
+     * Fecha TODOS os menus diretamente (volta direto para o jogo).
+     *
+     * Diferente de navigateBack() que volta um passo de cada vez, este método
+     * fecha tudo imediatamente, independente de estar em um submenu ou no menu principal.
+     *
+     * Usado quando o usuário pressiona START ou botão Menu/Hamburguer com o menu aberto.
+     */
+    private fun closeAllMenus() {
+        android.util.Log.d(TAG, "Close all menus (direct to game)")
+
+        if (isNavigating) {
+            android.util.Log.d(TAG, "Navigation in progress, ignoring close all")
+            return
+        }
+
+        // Limpar estado de navegação
+        currentMenu = MenuType.MAIN
+        selectedItemIndex = 0
+        navigationStack.clear()
+
+        // Fechar menu via adapter
+        fragmentAdapter.hideMenu()
+        currentFragment = null
+        eventQueue.clear()
+
+        // Chamar callback para resumir o jogo
+        onMenuClosedCallback?.invoke(lastActionButton)
+        lastActionButton = null
+
+        android.util.Log.d(TAG, "All menus closed successfully")
     }
 
     /** Atualiza o visual de seleção no fragmento atual. */

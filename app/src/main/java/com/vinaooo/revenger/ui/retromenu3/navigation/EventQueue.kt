@@ -133,7 +133,9 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
                             30L // Ultra-responsivo (30ms = ~33 FPS frame time)
                     is NavigationEvent.ActivateSelected, is NavigationEvent.SelectItem ->
                             debounceWindowMs // Ativação com debounce maior
-                    is NavigationEvent.NavigateBack, is NavigationEvent.OpenMenu -> debounceWindowMs
+                    is NavigationEvent.NavigateBack,
+                    is NavigationEvent.OpenMenu,
+                    is NavigationEvent.CloseAllMenus -> debounceWindowMs
                 }
 
         // Se passou tempo suficiente, não faz debounce

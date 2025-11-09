@@ -84,6 +84,22 @@ sealed class NavigationEvent {
                 override val timestamp: Long = System.currentTimeMillis(),
                 override val inputSource: InputSource
         ) : NavigationEvent()
+
+        /**
+         * Evento de fechamento COMPLETO de todos os menus (direto para o jogo).
+         *
+         * Exemplos:
+         * - Usuário pressiona START (quando menu está aberto) → CloseAllMenus
+         * - Usuário pressiona botão Menu/Hamburguer (quando menu está aberto) → CloseAllMenus
+         *
+         * Este evento difere de NavigateBack, que volta um passo de cada vez (submenu → main → jogo).
+         * CloseAllMenus fecha tudo diretamente (qualquer menu → jogo).
+         */
+        data class CloseAllMenus(
+                val keyCode: Int? = null,
+                override val timestamp: Long = System.currentTimeMillis(),
+                override val inputSource: InputSource
+        ) : NavigationEvent()
 }
 
 /** Direções de navegação possíveis. */
