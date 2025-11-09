@@ -27,10 +27,10 @@ object FeatureFlags {
 
     /**
      * Flag para habilitar logs de debug detalhados do sistema de navegação.
-     * 
-     * Quando `true`: Exibe logs detalhados de navegação, eventos, debounce, etc.
-     * Quando `false`: Apenas logs críticos (erros e warnings)
-     * 
+     *
+     * Quando `true`: Exibe logs detalhados de navegação, eventos, debounce, etc. Quando `false`:
+     * Apenas logs críticos (erros e warnings)
+     *
      * **IMPORTANTE**: Manter `false` em produção para melhor performance.
      */
     const val DEBUG_NAVIGATION = false

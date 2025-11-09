@@ -246,7 +246,10 @@ class GameActivityViewModel(application: Application) :
         if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM && navigationController == null) {
             navigationController = NavigationController(activity)
             if (FeatureFlags.DEBUG_NAVIGATION) {
-                android.util.Log.d("GameActivityViewModel", "[PHASE3] NavigationController initialized")
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[PHASE3] NavigationController initialized"
+                )
             }
 
             // PHASE 3.2b: Configurar callbacks para pausar/resumir o jogo
@@ -436,7 +439,10 @@ class GameActivityViewModel(application: Application) :
             val result = !dismissingAll && !fragmentDismissing
 
             if (FeatureFlags.DEBUG_NAVIGATION) {
-                android.util.Log.d("GameActivityViewModel", "[SAFE] check: dismissingAll=$dismissingAll, fragmentDismissing=$fragmentDismissing, result=$result")
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[SAFE] check: dismissingAll=$dismissingAll, fragmentDismissing=$fragmentDismissing, result=$result"
+                )
             }
 
             result

@@ -118,23 +118,19 @@ class NavigationController(private val activity: FragmentActivity) {
         isNavigating = true
 
         try {
-            val previousIndex = selectedItemIndex
-            selectedItemIndex =
-                    if (selectedItemIndex > 0) {
-                        selectedItemIndex - 1
-                    } else {
-                        // Circular: volta para o último item
-                        currentMenuItemCount - 1
-                    }
+            // PHASE 3.2: Delegate navigation to fragment to support custom logic
+            // (e.g., skipping disabled items in ProgressFragment)
+            currentFragment?.onNavigateUp()
+
+            // Sync selectedItemIndex with fragment's current selection
+            selectedItemIndex = currentFragment?.getCurrentSelectedIndex() ?: 0
 
             if (FeatureFlags.DEBUG_NAVIGATION) {
                 android.util.Log.d(
                         TAG,
-                        "Navigate UP: $previousIndex -> $selectedItemIndex (menu: $currentMenu)"
+                        "Navigate UP: selectedItemIndex now at $selectedItemIndex (menu: $currentMenu)"
                 )
             }
-
-            updateSelectionVisual()
         } finally {
             isNavigating = false
         }
@@ -152,17 +148,19 @@ class NavigationController(private val activity: FragmentActivity) {
         isNavigating = true
 
         try {
-            val previousIndex = selectedItemIndex
-            selectedItemIndex = (selectedItemIndex + 1) % currentMenuItemCount
+            // PHASE 3.2: Delegate navigation to fragment to support custom logic
+            // (e.g., skipping disabled items in ProgressFragment)
+            currentFragment?.onNavigateDown()
+
+            // Sync selectedItemIndex with fragment's current selection
+            selectedItemIndex = currentFragment?.getCurrentSelectedIndex() ?: 0
 
             if (FeatureFlags.DEBUG_NAVIGATION) {
                 android.util.Log.d(
                         TAG,
-                        "Navigate DOWN: $previousIndex -> $selectedItemIndex (menu: $currentMenu)"
+                        "Navigate DOWN: selectedItemIndex now at $selectedItemIndex (menu: $currentMenu)"
                 )
             }
-
-            updateSelectionVisual()
         } finally {
             isNavigating = false
         }

@@ -108,8 +108,22 @@ class ProgressFragment : MenuFragmentBase() {
         loadState = view.findViewById(R.id.progress_load_state)
         backProgress = view.findViewById(R.id.progress_back)
 
-        // Initialize ordered list of menu items
-        menuItems = listOf(loadState, saveState, backProgress)
+        // Check if save state exists
+        val hasSaveState = viewModel.hasSaveState()
+
+        // CRITICAL: Build menuItems list dynamically
+        // Load State sempre VISÍVEL, mas removido da navegação quando desabilitado
+        menuItems = if (hasSaveState) {
+            // Com save: Load State habilitado e navegável
+            loadState.isEnabled = true
+            loadState.alpha = 1.0f
+            listOf(loadState, saveState, backProgress)  // 3 itens navegáveis
+        } else {
+            // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
+            loadState.isEnabled = false
+            loadState.alpha = 0.5f
+            listOf(saveState, backProgress)  // Apenas 2 itens navegáveis
+        }
 
         // Configure ProgressFragment to not use background colors on cards
         // (unlike main menu which uses yellow background for selection)
@@ -127,19 +141,8 @@ class ProgressFragment : MenuFragmentBase() {
         selectionArrowLoadState = view.findViewById(R.id.selection_arrow_load_state)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
-        // Check if save state exists and disable Load State if not available
-        val hasSaveState = viewModel.hasSaveState()
-        loadState.isEnabled = hasSaveState
-        loadState.alpha = if (hasSaveState) 1.0f else 0.5f
-
-        // Set first item as selected
+        // Set first item as selected (always valid - Load State removed from nav if disabled)
         updateSelectionVisualInternal()
-
-        // If Load State is disabled (no save state available), skip to Save State
-        if (getCurrentSelectedIndex() == 0 && !loadState.isEnabled) {
-            setSelectedIndex(1) // Move to Save State
-            updateSelectionVisualInternal()
-        }
 
         // Apply arcade font to all text views
         ViewUtils.applySelectedFontToViews(
@@ -163,6 +166,45 @@ class ProgressFragment : MenuFragmentBase() {
         )
     }
 
+    /**
+     * Refresh menuItems list dynamically based on current save state.
+     * Called after saving to enable Load State immediately.
+     */
+    private fun refreshMenuItems() {
+        val hasSaveState = viewModel.hasSaveState()
+        val previousItemCount = menuItems.size
+
+        // Rebuild menuItems list dynamically
+        menuItems = if (hasSaveState) {
+            // Com save: Load State habilitado e navegável
+            loadState.isEnabled = true
+            loadState.alpha = 1.0f
+            listOf(loadState, saveState, backProgress)  // 3 itens navegáveis
+        } else {
+            // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
+            loadState.isEnabled = false
+            loadState.alpha = 0.5f
+            listOf(saveState, backProgress)  // Apenas 2 itens navegáveis
+        }
+
+        android.util.Log.d(
+                TAG,
+                "[REFRESH] menuItems updated: $previousItemCount -> ${menuItems.size} items (hasSaveState=$hasSaveState)"
+        )
+
+        // CRITICAL: Update NavigationController with new item count
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            viewModel.navigationController?.registerFragment(this, menuItems.size)
+            android.util.Log.d(
+                    TAG,
+                    "[REFRESH] NavigationController re-registered with ${menuItems.size} items"
+            )
+        }
+
+        // Update visual to reflect changes
+        updateSelectionVisualInternal()
+    }
+
     private fun setupClickListeners() {
 
         saveState.setOnClickListener {
@@ -180,7 +222,9 @@ class ProgressFragment : MenuFragmentBase() {
                     keepPaused = true,
                     onComplete = {
                         android.util.Log.d(TAG, "[ACTION] Progress menu: State saved successfully")
-                        // Could add visual feedback here if needed
+                        
+                        // CRITICAL: Update menuItems list to include Load State now that save exists
+                        refreshMenuItems()
                     }
             )
         }
@@ -219,30 +263,22 @@ class ProgressFragment : MenuFragmentBase() {
         parentFragmentManager.beginTransaction().remove(this).commitAllowingStateLoss()
     }
 
-    /** Navigate up in the menu - with special logic to skip disabled Load State */
+    /** Navigate up in the menu */
     override fun performNavigateUp() {
-        val beforeIndex = getCurrentSelectedIndex()
-        do {
-            navigateUpCircular(menuItems.size)
-        } while (getCurrentSelectedIndex() == 0 && !loadState.isEnabled)
-        val afterIndex = getCurrentSelectedIndex()
+        navigateUpCircular(menuItems.size)
         android.util.Log.d(
                 TAG,
-                "[NAV] Progress menu: UP navigation - $beforeIndex -> $afterIndex (skipping disabled Load State)"
+                "[NAV] Progress menu: UP navigation - now at index ${getCurrentSelectedIndex()}"
         )
         updateSelectionVisualInternal()
     }
 
-    /** Navigate down in the menu - with special logic to skip disabled Load State */
+    /** Navigate down in the menu */
     override fun performNavigateDown() {
-        val beforeIndex = getCurrentSelectedIndex()
-        do {
-            navigateDownCircular(menuItems.size)
-        } while (getCurrentSelectedIndex() == 0 && !loadState.isEnabled)
-        val afterIndex = getCurrentSelectedIndex()
+        navigateDownCircular(menuItems.size)
         android.util.Log.d(
                 TAG,
-                "[NAV] Progress menu: DOWN navigation - $beforeIndex -> $afterIndex (skipping disabled Load State)"
+                "[NAV] Progress menu: DOWN navigation - now at index ${getCurrentSelectedIndex()}"
         )
         updateSelectionVisualInternal()
     }
@@ -251,40 +287,50 @@ class ProgressFragment : MenuFragmentBase() {
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[ACTION] Progress menu: CONFIRM on index $selectedIndex")
-        when (selectedIndex) {
-            0 -> {
-                if (loadState.isEnabled) {
+
+        // CRITICAL: Use menuItems list to identify which item is selected
+        // This handles both cases: with Load State (3 items) and without (2 items)
+        if (selectedIndex >= 0 && selectedIndex < menuItems.size) {
+            val selectedItem = menuItems[selectedIndex]
+            android.util.Log.d(
+                    TAG,
+                    "[ACTION] Progress menu: Selected item = ${selectedItem.id}"
+            )
+
+            when (selectedItem) {
+                loadState -> {
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Load State selected")
-                    loadState.performClick() // Load State (only if enabled)
-                } else {
+                    loadState.performClick()
+                }
+                saveState -> {
+                    android.util.Log.d(TAG, "[ACTION] Progress menu: Save State selected")
+                    saveState.performClick()
+                }
+                backProgress -> {
+                    android.util.Log.d(TAG, "[ACTION] Progress menu: Back to main menu selected")
+                    // PHASE 3: Use NavigationController when new system is active
+                    if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                        android.util.Log.d(
+                                TAG,
+                                "[ACTION] Using new navigation system - calling performBack()"
+                        )
+                        performBack()
+                    } else {
+                        backProgress.performClick() // Old system
+                    }
+                }
+                else -> {
                     android.util.Log.w(
                             TAG,
-                            "[ACTION] Progress menu: Load State selected but disabled"
+                            "[ACTION] Progress menu: Unknown item at index $selectedIndex"
                     )
                 }
             }
-            1 -> {
-                android.util.Log.d(TAG, "[ACTION] Progress menu: Save State selected")
-                saveState.performClick() // Save State
-            }
-            2 -> {
-                android.util.Log.d(TAG, "[ACTION] Progress menu: Back to main menu selected")
-                // PHASE 3: Use NavigationController when new system is active
-                if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                    android.util.Log.d(
-                            TAG,
-                            "[ACTION] Using new navigation system - calling performBack()"
-                    )
-                    performBack()
-                } else {
-                    backProgress.performClick() // Old system
-                }
-            }
-            else ->
-                    android.util.Log.w(
-                            TAG,
-                            "[ACTION] Progress menu: Invalid selection index $selectedIndex"
-                    )
+        } else {
+            android.util.Log.w(
+                    TAG,
+                    "[ACTION] Progress menu: Invalid selection index $selectedIndex (menuItems.size=${menuItems.size})"
+            )
         }
     }
 
@@ -328,9 +374,18 @@ class ProgressFragment : MenuFragmentBase() {
 
     /** Update selection visual - specific implementation for ProgressFragment */
     override fun updateSelectionVisualInternal() {
+        val currentIndex = getCurrentSelectedIndex()
+        
+        // CRITICAL: Get the currently selected item from menuItems (dynamic list)
+        val selectedItem = if (currentIndex >= 0 && currentIndex < menuItems.size) {
+            menuItems[currentIndex]
+        } else {
+            null
+        }
+
         // Update each menu item based on selection state
         menuItems.forEachIndexed { index, menuItem ->
-            if (index == getCurrentSelectedIndex()) {
+            if (index == currentIndex) {
                 // Item selecionado - usar estado SELECTED do RetroCardView
                 menuItem.setState(RetroCardView.State.SELECTED)
             } else {
@@ -339,56 +394,15 @@ class ProgressFragment : MenuFragmentBase() {
             }
         }
 
-        // Control text colors based on selection and state
-        loadStateTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 0 && loadState.isEnabled)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.retro_menu3_selected_color
-                        )
-                else if (!loadState.isEnabled)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.retro_menu3_disabled_color
-                        )
-                else
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.retro_menu3_normal_color
-                        )
-        )
-        saveStateTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 1)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.retro_menu3_selected_color
-                        )
-                else
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.retro_menu3_normal_color
-                        )
-        )
-        backTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 2)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.retro_menu3_selected_color
-                        )
-                else
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.retro_menu3_normal_color
-                        )
-        )
-
-        // Control selection arrows colors and visibility
-        // FIX: Selected item shows arrow without margin (attached to text)
-        // val arrowMarginEnd =
-        // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
-
+        // Control text colors and arrows based on which ACTUAL item is selected
         // Load State
-        if (getCurrentSelectedIndex() == 0) {
+        if (selectedItem == loadState) {
+            loadStateTitle.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowLoadState.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
@@ -397,15 +411,33 @@ class ProgressFragment : MenuFragmentBase() {
             )
             selectionArrowLoadState.visibility = View.VISIBLE
             (selectionArrowLoadState.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
-                marginEnd = 0 // Force zero margin after arrow - attached to text
+                marginStart = 0
+                marginEnd = 0
             }
         } else {
+            loadStateTitle.setTextColor(
+                    if (!loadState.isEnabled)
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_disabled_color
+                            )
+                    else
+                            androidx.core.content.ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.retro_menu3_normal_color
+                            )
+            )
             selectionArrowLoadState.visibility = View.GONE
         }
 
         // Save State
-        if (getCurrentSelectedIndex() == 1) {
+        if (selectedItem == saveState) {
+            saveStateTitle.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowSaveState.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
@@ -414,15 +446,27 @@ class ProgressFragment : MenuFragmentBase() {
             )
             selectionArrowSaveState.visibility = View.VISIBLE
             (selectionArrowSaveState.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
-                marginEnd = 0 // Force zero margin after arrow - attached to text
+                marginStart = 0
+                marginEnd = 0
             }
         } else {
+            saveStateTitle.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_normal_color
+                    )
+            )
             selectionArrowSaveState.visibility = View.GONE
         }
 
         // Back
-        if (getCurrentSelectedIndex() == 2) {
+        if (selectedItem == backProgress) {
+            backTitle.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowBack.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
@@ -431,10 +475,16 @@ class ProgressFragment : MenuFragmentBase() {
             )
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
-                marginEnd = 0 // Force zero margin after arrow - attached to text
+                marginStart = 0
+                marginEnd = 0
             }
         } else {
+            backTitle.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_normal_color
+                    )
+            )
             selectionArrowBack.visibility = View.GONE
         }
 
