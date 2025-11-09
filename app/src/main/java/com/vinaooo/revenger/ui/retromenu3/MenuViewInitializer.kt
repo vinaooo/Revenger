@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.MenuLogger
+import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 
 /**
  * Data class que representa todas as views do menu RetroMenu3. Centraliza as referências para
@@ -39,7 +40,11 @@ data class MenuViews(
 /** Interface para inicialização de views do menu. */
 interface MenuViewInitializer {
     fun initializeViews(view: View): MenuViews
-    fun setupClickListeners(views: MenuViews, actionHandler: MenuActionHandler)
+    fun setupClickListeners(
+            views: MenuViews,
+            actionHandler: MenuActionHandler,
+            navigationController: NavigationController? = null
+    )
     fun setupDynamicTitle(views: MenuViews)
     fun configureInitialViewStates(views: MenuViews)
 }
@@ -90,9 +95,64 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
         return menuViews
     }
 
-    override fun setupClickListeners(views: MenuViews, actionHandler: MenuActionHandler) {
+    override fun setupClickListeners(
+            views: MenuViews,
+            actionHandler: MenuActionHandler,
+            navigationController: NavigationController?
+    ) {
         MenuLogger.lifecycle("MenuViewInitializer: setupClickListeners START")
 
+        // PHASE 3.3a: Route touch events through feature flag
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM && navigationController != null) {
+            android.util.Log.d(
+                    TAG,
+                    "[TOUCH] Using new navigation system - touch routed through NavigationController"
+            )
+            setupTouchNavigationSystem(views, navigationController)
+        } else {
+            android.util.Log.d(TAG, "[TOUCH] Using old navigation system - direct onClick")
+            setupLegacyClickListeners(views, actionHandler)
+        }
+
+        MenuLogger.lifecycle("MenuViewInitializer: setupClickListeners COMPLETED")
+    }
+
+    /**
+     * PHASE 3: New touch navigation system using NavigationController.
+     * Touch events create SelectItem + ActivateSelected after 100ms delay.
+     */
+    private fun setupTouchNavigationSystem(
+            views: MenuViews,
+            navigationController: NavigationController
+    ) {
+        // For each menu item, setup touch listener that routes through NavigationController
+        views.menuItems.forEachIndexed { index, menuItem ->
+            menuItem.setOnClickListener {
+                android.util.Log.d(
+                        TAG,
+                        "[TOUCH] Menu item $index clicked - routing through NavigationController"
+                )
+
+                // PHASE 3.3b: Implement focus-then-activate delay
+                // 1. Select item (immediate visual feedback)
+                navigationController.selectItem(index)
+
+                // 2. After 100ms delay, activate item
+                it.postDelayed(
+                        {
+                            android.util.Log.d(TAG, "[TOUCH] Activating item $index after delay")
+                            navigationController.activateItem()
+                        },
+                        100L
+                ) // 100ms = focus-then-activate delay
+            }
+        }
+    }
+
+    /**
+     * Legacy click listeners - direct action execution (old system).
+     */
+    private fun setupLegacyClickListeners(views: MenuViews, actionHandler: MenuActionHandler) {
         views.continueMenu.setOnClickListener {
             MenuLogger.action("🎮 Continue game - closing menu")
             actionHandler.executeAction(MenuAction.CONTINUE)
@@ -117,8 +177,10 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
             MenuLogger.action("🚪 Open Exit menu")
             actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.EXIT_MENU))
         }
+    }
 
-        MenuLogger.lifecycle("MenuViewInitializer: setupClickListeners COMPLETED")
+    companion object {
+        private const val TAG = "MenuViewInitializer"
     }
 
     override fun setupDynamicTitle(views: MenuViews) {

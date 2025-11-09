@@ -241,6 +241,51 @@ class AboutFragment : MenuFragmentBase() {
     }
 
     private fun setupClickListeners() {
+        // PHASE 3.3a: Route touch events through feature flag
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    TAG,
+                    "[TOUCH] Using new navigation system - touch routed through NavigationController"
+            )
+            setupTouchNavigationSystem()
+        } else {
+            android.util.Log.d(TAG, "[TOUCH] Using old navigation system - direct onClick")
+            setupLegacyClickListeners()
+        }
+    }
+
+    /**
+     * PHASE 3.3: New touch navigation system using NavigationController.
+     * Touch events create SelectItem + ActivateSelected after 100ms delay.
+     */
+    private fun setupTouchNavigationSystem() {
+        menuItems.forEachIndexed { index, menuItem ->
+            menuItem.setOnClickListener {
+                android.util.Log.d(
+                        TAG,
+                        "[TOUCH] About item $index clicked - routing through NavigationController"
+                )
+
+                // PHASE 3.3b: Focus-then-activate delay
+                // 1. Select item (immediate visual feedback)
+                viewModel.navigationController?.selectItem(index)
+
+                // 2. After 100ms delay, activate item
+                it.postDelayed(
+                        {
+                            android.util.Log.d(TAG, "[TOUCH] Activating About item $index after delay")
+                            viewModel.navigationController?.activateItem()
+                        },
+                        100L
+                ) // 100ms = focus-then-activate delay
+            }
+        }
+    }
+
+    /**
+     * Legacy click listeners - direct action execution (old system).
+     */
+    private fun setupLegacyClickListeners() {
         backAbout.setOnClickListener {
             // Return to main menu by calling listener method (same as pressing B)
             aboutListener?.onAboutBackToMainMenu()
@@ -269,25 +314,16 @@ class AboutFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /** Confirm selection */
+    /** Confirm selection - Execute actions DIRECTLY (não usar performClick) */
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[ACTION] About menu: CONFIRM on index $selectedIndex")
 
         when (selectedIndex) {
             0 -> {
-                // Back to main menu
+                // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] About menu: Back to main menu selected")
-                // PHASE 3: Use NavigationController when new system is active
-                if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                    android.util.Log.d(
-                            TAG,
-                            "[ACTION] Using new navigation system - calling performBack()"
-                    )
-                    performBack()
-                } else {
-                    viewModel.dismissAboutMenu() // Old system
-                }
+                performBack()
             }
             else -> {
                 android.util.Log.w(

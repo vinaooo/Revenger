@@ -151,6 +151,51 @@ class ExitFragment : MenuFragmentBase() {
     }
 
     private fun setupClickListeners() {
+        // PHASE 3.3a: Route touch events through feature flag
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    TAG,
+                    "[TOUCH] Using new navigation system - touch routed through NavigationController"
+            )
+            setupTouchNavigationSystem()
+        } else {
+            android.util.Log.d(TAG, "[TOUCH] Using old navigation system - direct onClick")
+            setupLegacyClickListeners()
+        }
+    }
+
+    /**
+     * PHASE 3.3: New touch navigation system using NavigationController.
+     * Touch events create SelectItem + ActivateSelected after 100ms delay.
+     */
+    private fun setupTouchNavigationSystem() {
+        menuItems.forEachIndexed { index, menuItem ->
+            menuItem.setOnClickListener {
+                android.util.Log.d(
+                        TAG,
+                        "[TOUCH] Exit item $index clicked - routing through NavigationController"
+                )
+
+                // PHASE 3.3b: Focus-then-activate delay
+                // 1. Select item (immediate visual feedback)
+                viewModel.navigationController?.selectItem(index)
+
+                // 2. After 100ms delay, activate item
+                it.postDelayed(
+                        {
+                            android.util.Log.d(TAG, "[TOUCH] Activating Exit item $index after delay")
+                            viewModel.navigationController?.activateItem()
+                        },
+                        100L
+                ) // 100ms = focus-then-activate delay
+            }
+        }
+    }
+
+    /**
+     * Legacy click listeners - direct action execution (old system).
+     */
+    private fun setupLegacyClickListeners() {
         saveAndExit.setOnClickListener {
             // Save and Exit - Close menu, restore frameSpeed, then save and exit
             // A) Close menu first
@@ -214,31 +259,33 @@ class ExitFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /** Confirm current selection */
+    /** Confirm current selection - Execute actions DIRECTLY (não usar performClick) */
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[ACTION] Exit menu: CONFIRM on index $selectedIndex")
         when (selectedIndex) {
             0 -> {
+                // Save and Exit - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Save and Exit selected")
-                saveAndExit.performClick() // Save and Exit
+                viewModel.dismissAllMenus()
+                viewModel.restoreGameSpeedFromPreferences()
+                viewModel.saveStateCentralized(
+                        onComplete = {
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }
+                )
             }
             1 -> {
+                // Exit without Save - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Exit without Save selected")
-                exitWithoutSave.performClick() // Exit without Save
+                viewModel.dismissAllMenus()
+                viewModel.restoreGameSpeedFromPreferences()
+                android.os.Process.killProcess(android.os.Process.myPid())
             }
             2 -> {
+                // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Back to main menu selected")
-                // PHASE 3: Use NavigationController when new system is active
-                if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                    android.util.Log.d(
-                            TAG,
-                            "[ACTION] Using new navigation system - calling performBack()"
-                    )
-                    performBack()
-                } else {
-                    backExitMenu.performClick() // Old system
-                }
+                performBack()
             }
             else ->
                     android.util.Log.w(

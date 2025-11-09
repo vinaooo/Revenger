@@ -113,17 +113,18 @@ class ProgressFragment : MenuFragmentBase() {
 
         // CRITICAL: Build menuItems list dynamically
         // Load State sempre VISÍVEL, mas removido da navegação quando desabilitado
-        menuItems = if (hasSaveState) {
-            // Com save: Load State habilitado e navegável
-            loadState.isEnabled = true
-            loadState.alpha = 1.0f
-            listOf(loadState, saveState, backProgress)  // 3 itens navegáveis
-        } else {
-            // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
-            loadState.isEnabled = false
-            loadState.alpha = 0.5f
-            listOf(saveState, backProgress)  // Apenas 2 itens navegáveis
-        }
+        menuItems =
+                if (hasSaveState) {
+                    // Com save: Load State habilitado e navegável
+                    loadState.isEnabled = true
+                    loadState.alpha = 1.0f
+                    listOf(loadState, saveState, backProgress) // 3 itens navegáveis
+                } else {
+                    // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
+                    loadState.isEnabled = false
+                    loadState.alpha = 0.5f
+                    listOf(saveState, backProgress) // Apenas 2 itens navegáveis
+                }
 
         // Configure ProgressFragment to not use background colors on cards
         // (unlike main menu which uses yellow background for selection)
@@ -167,25 +168,26 @@ class ProgressFragment : MenuFragmentBase() {
     }
 
     /**
-     * Refresh menuItems list dynamically based on current save state.
-     * Called after saving to enable Load State immediately.
+     * Refresh menuItems list dynamically based on current save state. Called after saving to enable
+     * Load State immediately.
      */
     private fun refreshMenuItems() {
         val hasSaveState = viewModel.hasSaveState()
         val previousItemCount = menuItems.size
 
         // Rebuild menuItems list dynamically
-        menuItems = if (hasSaveState) {
-            // Com save: Load State habilitado e navegável
-            loadState.isEnabled = true
-            loadState.alpha = 1.0f
-            listOf(loadState, saveState, backProgress)  // 3 itens navegáveis
-        } else {
-            // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
-            loadState.isEnabled = false
-            loadState.alpha = 0.5f
-            listOf(saveState, backProgress)  // Apenas 2 itens navegáveis
-        }
+        menuItems =
+                if (hasSaveState) {
+                    // Com save: Load State habilitado e navegável
+                    loadState.isEnabled = true
+                    loadState.alpha = 1.0f
+                    listOf(loadState, saveState, backProgress) // 3 itens navegáveis
+                } else {
+                    // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
+                    loadState.isEnabled = false
+                    loadState.alpha = 0.5f
+                    listOf(saveState, backProgress) // Apenas 2 itens navegáveis
+                }
 
         android.util.Log.d(
                 TAG,
@@ -206,7 +208,52 @@ class ProgressFragment : MenuFragmentBase() {
     }
 
     private fun setupClickListeners() {
+        // PHASE 3.3a: Route touch events through feature flag
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    TAG,
+                    "[TOUCH] Using new navigation system - touch routed through NavigationController"
+            )
+            setupTouchNavigationSystem()
+        } else {
+            android.util.Log.d(TAG, "[TOUCH] Using old navigation system - direct onClick")
+            setupLegacyClickListeners()
+        }
+    }
 
+    /**
+     * PHASE 3.3: New touch navigation system using NavigationController.
+     * Touch events create SelectItem + ActivateSelected after 100ms delay.
+     */
+    private fun setupTouchNavigationSystem() {
+        // menuItems list is dynamic (2 or 3 items depending on save state)
+        menuItems.forEachIndexed { index, menuItem ->
+            menuItem.setOnClickListener {
+                android.util.Log.d(
+                        TAG,
+                        "[TOUCH] Progress item $index clicked - routing through NavigationController"
+                )
+
+                // PHASE 3.3b: Focus-then-activate delay
+                // 1. Select item (immediate visual feedback)
+                viewModel.navigationController?.selectItem(index)
+
+                // 2. After 100ms delay, activate item
+                it.postDelayed(
+                        {
+                            android.util.Log.d(TAG, "[TOUCH] Activating Progress item $index after delay")
+                            viewModel.navigationController?.activateItem()
+                        },
+                        100L
+                ) // 100ms = focus-then-activate delay
+            }
+        }
+    }
+
+    /**
+     * Legacy click listeners - direct action execution (old system).
+     */
+    private fun setupLegacyClickListeners() {
         saveState.setOnClickListener {
             // Save State - Keep menu open and game paused
             android.util.Log.d(
@@ -222,8 +269,9 @@ class ProgressFragment : MenuFragmentBase() {
                     keepPaused = true,
                     onComplete = {
                         android.util.Log.d(TAG, "[ACTION] Progress menu: State saved successfully")
-                        
-                        // CRITICAL: Update menuItems list to include Load State now that save exists
+
+                        // CRITICAL: Update menuItems list to include Load State now that save
+                        // exists
                         refreshMenuItems()
                     }
             )
@@ -283,7 +331,7 @@ class ProgressFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /** Confirm current selection */
+    /** Confirm current selection - Execute actions DIRECTLY (não usar performClick) */
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[ACTION] Progress menu: CONFIRM on index $selectedIndex")
@@ -292,32 +340,34 @@ class ProgressFragment : MenuFragmentBase() {
         // This handles both cases: with Load State (3 items) and without (2 items)
         if (selectedIndex >= 0 && selectedIndex < menuItems.size) {
             val selectedItem = menuItems[selectedIndex]
-            android.util.Log.d(
-                    TAG,
-                    "[ACTION] Progress menu: Selected item = ${selectedItem.id}"
-            )
+            android.util.Log.d(TAG, "[ACTION] Progress menu: Selected item = ${selectedItem.id}")
 
             when (selectedItem) {
                 loadState -> {
+                    // Load State - Execute action directly
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Load State selected")
-                    loadState.performClick()
+                    viewModel.loadStateCentralized {
+                        android.util.Log.d(TAG, "[ACTION] Progress menu: State loaded successfully")
+                    }
                 }
                 saveState -> {
+                    // Save State - Execute action directly with refreshMenuItems callback
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Save State selected")
-                    saveState.performClick()
+                    viewModel.saveStateCentralized(
+                            keepPaused = true,
+                            onComplete = {
+                                android.util.Log.d(
+                                        TAG,
+                                        "[ACTION] Progress menu: State saved successfully"
+                                )
+                                refreshMenuItems()
+                            }
+                    )
                 }
                 backProgress -> {
+                    // Back to main menu - Execute action directly
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Back to main menu selected")
-                    // PHASE 3: Use NavigationController when new system is active
-                    if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                        android.util.Log.d(
-                                TAG,
-                                "[ACTION] Using new navigation system - calling performBack()"
-                        )
-                        performBack()
-                    } else {
-                        backProgress.performClick() // Old system
-                    }
+                    performBack()
                 }
                 else -> {
                     android.util.Log.w(
@@ -375,13 +425,14 @@ class ProgressFragment : MenuFragmentBase() {
     /** Update selection visual - specific implementation for ProgressFragment */
     override fun updateSelectionVisualInternal() {
         val currentIndex = getCurrentSelectedIndex()
-        
+
         // CRITICAL: Get the currently selected item from menuItems (dynamic list)
-        val selectedItem = if (currentIndex >= 0 && currentIndex < menuItems.size) {
-            menuItems[currentIndex]
-        } else {
-            null
-        }
+        val selectedItem =
+                if (currentIndex >= 0 && currentIndex < menuItems.size) {
+                    menuItems[currentIndex]
+                } else {
+                    null
+                }
 
         // Update each menu item based on selection state
         menuItems.forEachIndexed { index, menuItem ->
