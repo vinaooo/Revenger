@@ -165,8 +165,8 @@ class ExitFragment : MenuFragmentBase() {
     }
 
     /**
-     * PHASE 3.3: New touch navigation system using NavigationController.
-     * Touch events create SelectItem + ActivateSelected after 100ms delay.
+     * PHASE 3.3: New touch navigation system using NavigationController. Touch events create
+     * SelectItem + ActivateSelected after 100ms delay.
      */
     private fun setupTouchNavigationSystem() {
         menuItems.forEachIndexed { index, menuItem ->
@@ -183,7 +183,10 @@ class ExitFragment : MenuFragmentBase() {
                 // 2. After 100ms delay, activate item
                 it.postDelayed(
                         {
-                            android.util.Log.d(TAG, "[TOUCH] Activating Exit item $index after delay")
+                            android.util.Log.d(
+                                    TAG,
+                                    "[TOUCH] Activating Exit item $index after delay"
+                            )
                             viewModel.navigationController?.activateItem()
                         },
                         100L
@@ -192,9 +195,7 @@ class ExitFragment : MenuFragmentBase() {
         }
     }
 
-    /**
-     * Legacy click listeners - direct action execution (old system).
-     */
+    /** Legacy click listeners - direct action execution (old system). */
     private fun setupLegacyClickListeners() {
         saveAndExit.setOnClickListener {
             // Save and Exit - Close menu, restore frameSpeed, then save and exit
@@ -270,9 +271,7 @@ class ExitFragment : MenuFragmentBase() {
                 viewModel.dismissAllMenus()
                 viewModel.restoreGameSpeedFromPreferences()
                 viewModel.saveStateCentralized(
-                        onComplete = {
-                            android.os.Process.killProcess(android.os.Process.myPid())
-                        }
+                        onComplete = { android.os.Process.killProcess(android.os.Process.myPid()) }
                 )
             }
             1 -> {

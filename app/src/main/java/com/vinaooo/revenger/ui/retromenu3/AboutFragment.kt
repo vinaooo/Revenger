@@ -255,8 +255,8 @@ class AboutFragment : MenuFragmentBase() {
     }
 
     /**
-     * PHASE 3.3: New touch navigation system using NavigationController.
-     * Touch events create SelectItem + ActivateSelected after 100ms delay.
+     * PHASE 3.3: New touch navigation system using NavigationController. Touch events create
+     * SelectItem + ActivateSelected after 100ms delay.
      */
     private fun setupTouchNavigationSystem() {
         menuItems.forEachIndexed { index, menuItem ->
@@ -273,7 +273,10 @@ class AboutFragment : MenuFragmentBase() {
                 // 2. After 100ms delay, activate item
                 it.postDelayed(
                         {
-                            android.util.Log.d(TAG, "[TOUCH] Activating About item $index after delay")
+                            android.util.Log.d(
+                                    TAG,
+                                    "[TOUCH] Activating About item $index after delay"
+                            )
                             viewModel.navigationController?.activateItem()
                         },
                         100L
@@ -282,9 +285,7 @@ class AboutFragment : MenuFragmentBase() {
         }
     }
 
-    /**
-     * Legacy click listeners - direct action execution (old system).
-     */
+    /** Legacy click listeners - direct action execution (old system). */
     private fun setupLegacyClickListeners() {
         backAbout.setOnClickListener {
             // Return to main menu by calling listener method (same as pressing B)

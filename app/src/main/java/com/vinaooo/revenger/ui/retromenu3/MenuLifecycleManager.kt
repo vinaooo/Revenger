@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -81,11 +80,12 @@ class MenuLifecycleManagerImpl(
 
             // Configurar click listeners
             // PHASE 3.3a: Pass navigationController for touch event routing
-            val navigationController = if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                viewModel.navigationController
-            } else {
-                null
-            }
+            val navigationController =
+                    if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                        viewModel.navigationController
+                    } else {
+                        null
+                    }
             viewInitializer.setupClickListeners(menuViews, actionHandler, navigationController)
 
             // Iniciar animação do menu

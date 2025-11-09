@@ -222,8 +222,8 @@ class ProgressFragment : MenuFragmentBase() {
     }
 
     /**
-     * PHASE 3.3: New touch navigation system using NavigationController.
-     * Touch events create SelectItem + ActivateSelected after 100ms delay.
+     * PHASE 3.3: New touch navigation system using NavigationController. Touch events create
+     * SelectItem + ActivateSelected after 100ms delay.
      */
     private fun setupTouchNavigationSystem() {
         // menuItems list is dynamic (2 or 3 items depending on save state)
@@ -241,7 +241,10 @@ class ProgressFragment : MenuFragmentBase() {
                 // 2. After 100ms delay, activate item
                 it.postDelayed(
                         {
-                            android.util.Log.d(TAG, "[TOUCH] Activating Progress item $index after delay")
+                            android.util.Log.d(
+                                    TAG,
+                                    "[TOUCH] Activating Progress item $index after delay"
+                            )
                             viewModel.navigationController?.activateItem()
                         },
                         100L
@@ -250,9 +253,7 @@ class ProgressFragment : MenuFragmentBase() {
         }
     }
 
-    /**
-     * Legacy click listeners - direct action execution (old system).
-     */
+    /** Legacy click listeners - direct action execution (old system). */
     private fun setupLegacyClickListeners() {
         saveState.setOnClickListener {
             // Save State - Keep menu open and game paused

@@ -182,8 +182,8 @@ class SettingsMenuFragment : MenuFragmentBase() {
     }
 
     /**
-     * PHASE 3.3: New touch navigation system using NavigationController.
-     * Touch events create SelectItem + ActivateSelected after 100ms delay.
+     * PHASE 3.3: New touch navigation system using NavigationController. Touch events create
+     * SelectItem + ActivateSelected after 100ms delay.
      */
     private fun setupTouchNavigationSystem() {
         menuItems.forEachIndexed { index, menuItem ->
@@ -209,9 +209,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
         }
     }
 
-    /**
-     * Legacy click listeners - direct action execution (old system).
-     */
+    /** Legacy click listeners - direct action execution (old system). */
     private fun setupLegacyClickListeners() {
         soundSettings.setOnClickListener {
             // Toggle audio

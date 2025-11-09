@@ -5,9 +5,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.MenuLogger
-import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 
 /**
  * Data class que representa todas as views do menu RetroMenu3. Centraliza as referências para
@@ -103,7 +103,9 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
         MenuLogger.lifecycle("MenuViewInitializer: setupClickListeners START")
 
         // PHASE 3.3a: Route touch events through feature flag
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM && navigationController != null) {
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM &&
+                        navigationController != null
+        ) {
             android.util.Log.d(
                     TAG,
                     "[TOUCH] Using new navigation system - touch routed through NavigationController"
@@ -118,8 +120,8 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
     }
 
     /**
-     * PHASE 3: New touch navigation system using NavigationController.
-     * Touch events create SelectItem + ActivateSelected after 100ms delay.
+     * PHASE 3: New touch navigation system using NavigationController. Touch events create
+     * SelectItem + ActivateSelected after 100ms delay.
      */
     private fun setupTouchNavigationSystem(
             views: MenuViews,
@@ -149,9 +151,7 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
         }
     }
 
-    /**
-     * Legacy click listeners - direct action execution (old system).
-     */
+    /** Legacy click listeners - direct action execution (old system). */
     private fun setupLegacyClickListeners(views: MenuViews, actionHandler: MenuActionHandler) {
         views.continueMenu.setOnClickListener {
             MenuLogger.action("🎮 Continue game - closing menu")
