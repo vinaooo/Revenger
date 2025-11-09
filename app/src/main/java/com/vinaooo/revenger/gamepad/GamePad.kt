@@ -62,25 +62,27 @@ class GamePad(
         when (event) {
             is Event.Button -> {
                 // Log ANTES do callback para ver todos os eventos que chegam da biblioteca
-                val buttonName = when(event.id) {
-                    android.view.KeyEvent.KEYCODE_BUTTON_A -> "A"
-                    android.view.KeyEvent.KEYCODE_BUTTON_B -> "B"
-                    android.view.KeyEvent.KEYCODE_BUTTON_START -> "START"
-                    android.view.KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
-                    else -> event.id.toString()
-                }
-                val actionName = if (event.action == android.view.KeyEvent.ACTION_DOWN) "DOWN" else "UP"
+                val buttonName =
+                        when (event.id) {
+                            android.view.KeyEvent.KEYCODE_BUTTON_A -> "A"
+                            android.view.KeyEvent.KEYCODE_BUTTON_B -> "B"
+                            android.view.KeyEvent.KEYCODE_BUTTON_START -> "START"
+                            android.view.KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
+                            else -> event.id.toString()
+                        }
+                val actionName =
+                        if (event.action == android.view.KeyEvent.ACTION_DOWN) "DOWN" else "UP"
                 android.util.Log.d(
-                    "GamePad",
-                    "🎮 RadialGamePad event received: $buttonName $actionName (BEFORE callback)"
+                        "GamePad",
+                        "🎮 RadialGamePad event received: $buttonName $actionName (BEFORE callback)"
                 )
-                
+
                 // Invoca o callback e verifica se o evento foi interceptado
                 val intercepted = onButtonEvent?.invoke(event) ?: false
 
                 android.util.Log.d(
-                    "GamePad", 
-                    "🎮 Callback returned: intercepted=$intercepted (will ${if (intercepted) "BLOCK" else "SEND"} to core)"
+                        "GamePad",
+                        "🎮 Callback returned: intercepted=$intercepted (will ${if (intercepted) "BLOCK" else "SEND"} to core)"
                 )
 
                 // Só envia para o core se NÃO foi interceptado

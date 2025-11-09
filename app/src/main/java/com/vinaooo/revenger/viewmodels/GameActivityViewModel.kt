@@ -245,25 +245,19 @@ class GameActivityViewModel(application: Application) :
         // PHASE 3.1a: Initialize NavigationController if new system is enabled (only once!)
         if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM && navigationController == null) {
             navigationController = NavigationController(activity)
-            android.util.Log.d("GameActivityViewModel", "[PHASE3] NavigationController initialized")
+            if (FeatureFlags.DEBUG_NAVIGATION) {
+                android.util.Log.d("GameActivityViewModel", "[PHASE3] NavigationController initialized")
+            }
 
             // PHASE 3.2b: Configurar callbacks para pausar/resumir o jogo
             navigationController?.onMenuOpenedCallback = {
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[PHASE3] onMenuOpened callback - pausing game"
-                )
                 // Preservar estado do emulador
                 retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
                 // PAUSAR o jogo quando menu abre
                 retroView?.let { speedController?.pause(it.view) }
             }
 
-            navigationController?.onMenuClosedCallback = {
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[PHASE3] onMenuClosed callback - resuming game"
-                )
+            navigationController?.onMenuClosedCallback = { closingButton: Int? ->
 
                 // Limpar botões de menu do keyLog para evitar "wasAlreadyPressed" bugs
                 controllerInput.clearMenuActionButtons()
@@ -271,8 +265,8 @@ class GameActivityViewModel(application: Application) :
                 // Grace period: Manter interceptação ativa por 200ms após menu fechar
                 // 200ms cobre o delay de ~150ms do hardware entre ACTION_DOWN e ACTION_UP
                 // Identificado via logs: UP chega 150ms depois, 50ms era insuficiente
-                // Bloquear apenas BUTTON_B (que fechou o menu) durante grace period
-                controllerInput.keepInterceptingButtons(200, closingButton = KeyEvent.KEYCODE_BUTTON_B)
+                // Bloquear apenas o botão que REALMENTE fechou o menu
+                controllerInput.keepInterceptingButtons(200, closingButton = closingButton)
 
                 // RESUMIR o jogo quando menu fecha
                 retroView?.let { speedController?.resume(it.view) }
@@ -441,13 +435,9 @@ class GameActivityViewModel(application: Application) :
             val fragmentDismissing = retroMenu3Fragment?.isDismissingMenu() == true
             val result = !dismissingAll && !fragmentDismissing
 
-            android.util.Log.d("GameActivityViewModel", "[SAFE] isMenuOperationSafe check:")
-            android.util.Log.d("GameActivityViewModel", "[SAFE]   dismissingAll=$dismissingAll")
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[SAFE]   fragmentDismissing=$fragmentDismissing"
-            )
-            android.util.Log.d("GameActivityViewModel", "[SAFE]   RESULT=$result")
+            if (FeatureFlags.DEBUG_NAVIGATION) {
+                android.util.Log.d("GameActivityViewModel", "[SAFE] check: dismissingAll=$dismissingAll, fragmentDismissing=$fragmentDismissing, result=$result")
+            }
 
             result
         }
@@ -455,81 +445,37 @@ class GameActivityViewModel(application: Application) :
 
     /** Create an instance of the RetroMenu3 overlay (activated by SELECT+START) */
     fun prepareRetroMenu3(activity: ComponentActivity) {
-        android.util.Log.e(
-                "GAME_ACTIVITY_VIEWMODEL",
-                "🚨🚨🚨 PREPARE_RETRO_MENU3 CALLED - NEW APK VERSION 🚨🚨🚨"
-        )
-        android.util.Log.e("GAME_ACTIVITY_VIEWMODEL", "📅 TIMESTAMP: ${java.util.Date()}")
-        android.util.Log.e(
-                "GAME_ACTIVITY_VIEWMODEL",
-                "🔧 APK VERSION: DEBUG WITH EXTENSIVE LOGGING"
-        )
-
+        // Skip if fragment already exists
         if (retroMenu3Fragment != null) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[PREPARE] ⚠️ prepareRetroMenu3: RetroMenu3Fragment already exists, skipping"
-            )
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[PREPARE] 🎯 prepareRetroMenu3: ========== PREPARATION SKIPPED =========="
-            )
             return
         }
 
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[PREPARE] 🆕 prepareRetroMenu3: Creating new RetroMenu3Fragment"
-        )
         retroMenu3Fragment =
                 RetroMenu3Fragment.newInstance().apply {
                     // REMOVED: setMenuListener - migrated to unified MenuAction/MenuEvent system
                     // setMenuListener(this@GameActivityViewModel)
                 }
 
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[PREPARE] 📝 prepareRetroMenu3: Registering RetroMenu3Fragment with MenuManager"
-        )
         // Register RetroMenu3Fragment with MenuManager
         menuManager.registerFragment(
                 com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU,
                 retroMenu3Fragment!!
         )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[PREPARE] ✅ prepareRetroMenu3: RetroMenu3Fragment registered with MenuManager"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[PREPARE] 🎯 prepareRetroMenu3: ========== PREPARATION COMPLETED =========="
-        )
     }
 
     /** Force recreation of RetroMenu3Fragment (used after configuration changes) */
     fun recreateRetroMenu3(activity: ComponentActivity) {
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[RECREATE] 🔄 recreateRetroMenu3: Forcing recreation of RetroMenu3Fragment"
-        )
-
         // Clean up existing fragment reference
         retroMenu3Fragment = null
 
         // Recreate the fragment
         prepareRetroMenu3(activity)
-
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[RECREATE] ✅ recreateRetroMenu3: RetroMenu3Fragment recreated successfully"
-        )
     }
 
     /** Set menu container reference from activity layout */
     fun setMenuContainer(container: FrameLayout) {
         menuContainerView = container
         menuViewModel.setMenuContainer(container)
-        android.util.Log.d("GameActivityViewModel", "Menu container set: $container")
     }
 
     /** Get menu container ID for consistent fragment placement */
@@ -537,54 +483,28 @@ class GameActivityViewModel(application: Application) :
 
     /** Update RetroMenu3Fragment reference after recreation (e.g., after rotation) */
     fun updateRetroMenu3FragmentReference(fragment: RetroMenu3Fragment) {
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[UPDATE] 🔄 Updating RetroMenu3Fragment reference after recreation"
-        )
         retroMenu3Fragment = fragment
         // Re-register with MenuManager
         menuManager.registerFragment(
                 com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU,
                 fragment
         )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[UPDATE] ✅ RetroMenu3Fragment reference updated and re-registered"
-        )
     }
 
     /** Set GamePad container reference to force it on top when menu opens */
     fun setGamePadContainer(container: android.widget.LinearLayout) {
         gamePadContainerView = container
-        android.util.Log.d("GameActivityViewModel", "GamePad container set: $container")
     }
 
     /** Show the RetroMenu3 (activated by SELECT+START combo) */
     fun showRetroMenu3(activity: FragmentActivity) {
-        android.util.Log.d("GameActivityViewModel", "[SHOW_RETRO_MENU] showRetroMenu3 called!")
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[SHOW_RETRO_MENU] Current back stack count: ${activity.supportFragmentManager.backStackEntryCount}"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[SHOW_RETRO_MENU] isDismissingAllMenus: ${isDismissingAllMenus()}"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[SHOW_RETRO_MENU] isRetroMenu3Open: ${isRetroMenu3Open()}"
-        )
-        android.util.Log.d("GameActivityViewModel", "[SHOW_RETRO_MENU] Stack trace:", Exception())
-
         // CRITICAL: Prevent multiple calls if menu is already open
         if (isRetroMenu3Open()) {
-            android.util.Log.d("GameActivityViewModel", "RetroMenu3 already open, ignoring call")
             return
         }
 
         // Verificar se temos o container do menu
         val containerId = menuContainerView?.id ?: R.id.menu_container
-        android.util.Log.d("GameActivityViewModel", "Using menu container ID: $containerId")
 
         if (retroView?.frameRendered?.value == true) {
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
@@ -594,32 +514,16 @@ class GameActivityViewModel(application: Application) :
 
             // Show RetroMenu3
             retroMenu3Fragment?.let { menu ->
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "RetroMenu3Fragment is available, showing it"
-                )
                 if (!menu.isAdded) {
                     activity.supportFragmentManager
                             .beginTransaction()
                             .add(containerId, menu, RetroMenu3Fragment::class.java.simpleName)
                             .commitAllowingStateLoss()
-                    android.util.Log.d(
-                            "GameActivityViewModel",
-                            "RetroMenu3 fragment added successfully"
-                    )
-                } else {
-                    android.util.Log.d("GameActivityViewModel", "RetroMenu3Fragment already added!")
                 }
 
                 // Set MenuManager to MAIN_MENU state when RetroMenu3 is shown
                 menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
             }
-                    ?: android.util.Log.e("GameActivityViewModel", "RetroMenu3Fragment is NULL!")
-        } else {
-            android.util.Log.e(
-                    "GameActivityViewModel",
-                    "retroView not ready or frameRendered = false"
-            )
         }
     }
 

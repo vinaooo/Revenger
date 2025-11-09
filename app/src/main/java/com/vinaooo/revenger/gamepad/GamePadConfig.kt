@@ -54,13 +54,12 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                 ContextCompat.getColor(context, R.color.gamepad_pressed_color)
                 )
 
-        // Xbox layout only: Top=Y, Bottom=A, Left=X, Right=B
         private fun getActionButtonsInOrder(): List<ButtonConfig> {
-                return listOfNotNull(
-                        BUTTON_B, // Right
-                        BUTTON_A, // Bottom
-                        BUTTON_X, // Left
-                        BUTTON_Y  // Top
+                return listOfNotNull( // ordem antihoraria
+                        BUTTON_B, // Right (3h)
+                        BUTTON_Y, // Top (12h)
+                        BUTTON_X, // Left (9h)
+                        BUTTON_A // Bottom (6h)
                 )
         }
 

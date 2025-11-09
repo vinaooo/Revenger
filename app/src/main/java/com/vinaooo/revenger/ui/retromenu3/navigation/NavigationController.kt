@@ -2,6 +2,7 @@ package com.vinaooo.revenger.ui.retromenu3.navigation
 
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
+import com.vinaooo.revenger.FeatureFlags
 import com.vinaooo.revenger.ui.retromenu3.MenuFragment
 
 /**
@@ -43,11 +44,14 @@ class NavigationController(private val activity: FragmentActivity) {
     /** Número de itens no menu atual (para bounds checking) */
     private var currentMenuItemCount: Int = 0
 
+    /** Rastreia o último botão que causou uma ação (para grace period) */
+    private var lastActionButton: Int? = null
+
     /** Callback chamado quando o menu principal é aberto (para pausar jogo, etc.) */
     var onMenuOpenedCallback: (() -> Unit)? = null
 
     /** Callback chamado quando o menu é completamente fechado (para resumir jogo, etc.) */
-    var onMenuClosedCallback: (() -> Unit)? = null
+    var onMenuClosedCallback: ((closingButton: Int?) -> Unit)? = null
 
     /**
      * Processa um evento de navegação.
@@ -89,9 +93,11 @@ class NavigationController(private val activity: FragmentActivity) {
                 selectItem(event.index)
             }
             is NavigationEvent.ActivateSelected -> {
+                lastActionButton = event.keyCode // Salvar botão que ativou
                 activateItem()
             }
             is NavigationEvent.NavigateBack -> {
+                lastActionButton = event.keyCode // Salvar botão que voltou
                 navigateBack()
             }
             is NavigationEvent.OpenMenu -> {
@@ -103,7 +109,9 @@ class NavigationController(private val activity: FragmentActivity) {
     /** Navega para o item acima (UP). */
     fun navigateUp() {
         if (isNavigating) {
-            android.util.Log.d(TAG, "Navigation in progress, ignoring UP")
+            if (FeatureFlags.DEBUG_NAVIGATION) {
+                android.util.Log.d(TAG, "Navigation in progress, ignoring UP")
+            }
             return
         }
 
@@ -119,10 +127,12 @@ class NavigationController(private val activity: FragmentActivity) {
                         currentMenuItemCount - 1
                     }
 
-            android.util.Log.d(
-                    TAG,
-                    "Navigate UP: $previousIndex -> $selectedItemIndex (menu: $currentMenu)"
-            )
+            if (FeatureFlags.DEBUG_NAVIGATION) {
+                android.util.Log.d(
+                        TAG,
+                        "Navigate UP: $previousIndex -> $selectedItemIndex (menu: $currentMenu)"
+                )
+            }
 
             updateSelectionVisual()
         } finally {
@@ -133,7 +143,9 @@ class NavigationController(private val activity: FragmentActivity) {
     /** Navega para o item abaixo (DOWN). */
     fun navigateDown() {
         if (isNavigating) {
-            android.util.Log.d(TAG, "Navigation in progress, ignoring DOWN")
+            if (FeatureFlags.DEBUG_NAVIGATION) {
+                android.util.Log.d(TAG, "Navigation in progress, ignoring DOWN")
+            }
             return
         }
 
@@ -143,10 +155,12 @@ class NavigationController(private val activity: FragmentActivity) {
             val previousIndex = selectedItemIndex
             selectedItemIndex = (selectedItemIndex + 1) % currentMenuItemCount
 
-            android.util.Log.d(
-                    TAG,
-                    "Navigate DOWN: $previousIndex -> $selectedItemIndex (menu: $currentMenu)"
-            )
+            if (FeatureFlags.DEBUG_NAVIGATION) {
+                android.util.Log.d(
+                        TAG,
+                        "Navigate DOWN: $previousIndex -> $selectedItemIndex (menu: $currentMenu)"
+                )
+            }
 
             updateSelectionVisual()
         } finally {
@@ -211,17 +225,29 @@ class NavigationController(private val activity: FragmentActivity) {
 
             val targetMenu =
                     when (selectedItemIndex) {
-                        0, 1 -> {
-                            // Continue e Reset são ações diretas, delegam para o fragment
-                            android.util.Log.d(
-                                    TAG,
-                                    "Direct action item (Continue/Reset) at index $selectedItemIndex"
-                            )
+                        0 -> {
+                            // Continue: ação direta que fecha o menu
+                            android.util.Log.d(TAG, "Continue selected - closing menu")
+
+                            // Fechar menu diretamente
+                            fragmentAdapter.hideMenu()
+                            currentFragment = null
+                            eventQueue.clear()
+
+                            // Chamar callback com o botão que ativou
+                            onMenuClosedCallback?.invoke(lastActionButton)
+                            lastActionButton = null
+
+                            return
+                        }
+                        1 -> {
+                            // Reset: delega para o fragment
+                            android.util.Log.d(TAG, "Reset selected")
                             val handled = currentFragment?.onConfirm() ?: false
                             if (handled) {
-                                android.util.Log.d(TAG, "Direct action handled by fragment")
+                                android.util.Log.d(TAG, "Reset handled by fragment")
                             } else {
-                                android.util.Log.w(TAG, "Direct action NOT handled by fragment")
+                                android.util.Log.w(TAG, "Reset NOT handled by fragment")
                             }
                             return
                         }
@@ -280,7 +306,9 @@ class NavigationController(private val activity: FragmentActivity) {
             eventQueue.clear() // CRITICAL: Limpar fila de eventos pendentes
 
             // PHASE 3.2b: Chamar callback para resumir o jogo após fechar o menu
-            onMenuClosedCallback?.invoke()
+            // Passar o botão que causou o fechamento para grace period
+            onMenuClosedCallback?.invoke(lastActionButton)
+            lastActionButton = null // Reset após uso
 
             return true // Menu fechado com sucesso
         }

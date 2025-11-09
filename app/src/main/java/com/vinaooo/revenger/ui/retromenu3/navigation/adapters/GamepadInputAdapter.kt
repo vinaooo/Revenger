@@ -72,10 +72,16 @@ class GamepadInputAdapter : InputTranslator {
                     KeyEvent.KEYCODE_BUTTON_A,
                     KeyEvent.KEYCODE_ENTER,
                     KeyEvent.KEYCODE_DPAD_CENTER -> {
-                        NavigationEvent.ActivateSelected(inputSource = inputSource)
+                        NavigationEvent.ActivateSelected(
+                                keyCode = input.keyCode,
+                                inputSource = inputSource
+                        )
                     }
                     KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BACK -> {
-                        NavigationEvent.NavigateBack(inputSource = inputSource)
+                        NavigationEvent.NavigateBack(
+                                keyCode = input.keyCode,
+                                inputSource = inputSource
+                        )
                     }
                     KeyEvent.KEYCODE_BUTTON_START -> {
                         NavigationEvent.OpenMenu(inputSource = inputSource)
