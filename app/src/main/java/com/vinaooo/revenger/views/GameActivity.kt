@@ -880,6 +880,23 @@ class GameActivity : FragmentActivity() {
                 )
         }
 
+        // PHASE 3: Save/restore navigation state during rotation
+        override fun onSaveInstanceState(outState: Bundle) {
+                super.onSaveInstanceState(outState)
+                if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                        viewModel.navigationController?.saveState(outState)
+                        android.util.Log.d("GameActivity", "[ROTATION] Navigation state saved")
+                }
+        }
+
+        override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+                super.onRestoreInstanceState(savedInstanceState)
+                if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                        viewModel.navigationController?.restoreState(savedInstanceState)
+                        android.util.Log.d("GameActivity", "[ROTATION] Navigation state restored")
+                }
+        }
+
         override fun onDestroy() {
                 // Stop performance profiling
                 AdvancedPerformanceProfiler.stopProfiling()

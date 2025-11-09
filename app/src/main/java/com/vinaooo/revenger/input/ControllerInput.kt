@@ -40,12 +40,6 @@ class ControllerInput(private val context: Context) {
         private val keyLog = mutableSetOf<Int>()
 
         /**
-         * Set of keys that were pressed when menu opened (to block their ACTION_UP after menu
-         * closes)
-         */
-        private val keysToBlockAfterMenuClose = mutableSetOf<Int>()
-
-        /**
          * Flag to prevent combo from being detected multiple times while buttons are held Reset
          * only when BOTH combo buttons are released
          */
@@ -113,6 +107,29 @@ class ControllerInput(private val context: Context) {
                         "ControllerInput",
                         "🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥"
                 )
+        }
+        
+        /** 
+         * Limpa apenas os botões de ação do menu (A, B, D-PAD) do keyLog
+         * NÃO limpa START/SELECT para não causar problemas no combo
+         * Deve ser chamado quando o menu fecha para evitar "wasAlreadyPressed" false positives
+         */
+        fun clearMenuActionButtons() {
+                android.util.Log.d("ControllerInput", "🧹 clearMenuActionButtons() CALLED")
+                android.util.Log.d("ControllerInput", "   BEFORE: keyLog=$keyLog")
+                
+                // Remove apenas botões de menu (A, B, D-PAD), mantém START/SELECT
+                keyLog.removeIf { keyCode ->
+                        keyCode == KeyEvent.KEYCODE_BUTTON_A ||
+                        keyCode == KeyEvent.KEYCODE_BUTTON_B ||
+                        keyCode == KeyEvent.KEYCODE_DPAD_UP ||
+                        keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                        keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                        keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
+                }
+                
+                android.util.Log.d("ControllerInput", "   AFTER: keyLog=$keyLog")
+                android.util.Log.d("ControllerInput", "✅ clearMenuActionButtons() COMPLETED")
         }
 
         /** The callback for when the user inputs the menu key-combination */
@@ -197,6 +214,118 @@ class ControllerInput(private val context: Context) {
 
         /** Function to check if devemos interceptar DPAD para menu */
         var shouldInterceptDpadForMenu: () -> Boolean = { false }
+
+        /**
+         * Flag para manter interceptação ativa por um período após menu fechar Isso previne que
+         * ACTION_UP vaze para o jogo
+         */
+        private var keepInterceptingUntil: Long = 0L
+        
+        /** Which button closed the menu (to block only that button during grace period) */
+        private var buttonThatClosedMenu: Int? = null
+
+        /** Ativa interceptação temporária por X ms após menu fechar */
+        fun keepInterceptingButtons(durationMs: Long = 500, closingButton: Int? = null) {
+                keepInterceptingUntil = System.currentTimeMillis() + durationMs
+                buttonThatClosedMenu = closingButton
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🛡️ keepInterceptingButtons: active until ${keepInterceptingUntil}, blocking button: $closingButton"
+                )
+        }
+
+        /** Verifica se devemos continuar interceptando (menu aberto OU período de graça ativo) */
+        private fun shouldInterceptButtons(): Boolean {
+                val menuActive = shouldInterceptDpadForMenu()
+                val gracePeriodActive = System.currentTimeMillis() < keepInterceptingUntil
+                val result = menuActive || gracePeriodActive
+
+                if (gracePeriodActive && !menuActive) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "🛡️ Grace period active - continuing interception"
+                        )
+                }
+
+                return result
+        }
+        
+        /** 
+         * Verifica se um botão ESPECÍFICO deve ser bloqueado durante grace period
+         * Bloqueia apenas o botão que fechou o menu durante o grace period
+         * NÃO bloqueia outros botões mesmo se menu estiver "tecnicamente ativo"
+         */
+        private fun shouldInterceptSpecificButton(keyCode: Int): Boolean {
+                val keyName = when(keyCode) {
+                        KeyEvent.KEYCODE_BUTTON_A -> "A"
+                        KeyEvent.KEYCODE_BUTTON_B -> "B"
+                        else -> keyCode.toString()
+                }
+                
+                // Durante grace period, bloquear APENAS o botão que fechou o menu
+                val now = System.currentTimeMillis()
+                val gracePeriodActive = now < keepInterceptingUntil
+                val timeRemaining = if (gracePeriodActive) keepInterceptingUntil - now else 0
+                
+                android.util.Log.d(
+                        "ControllerInput",
+                        "┌─ shouldInterceptSpecificButton($keyName) ─────────────────"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│  gracePeriod: $gracePeriodActive (${timeRemaining}ms remaining)"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│  buttonThatClosedMenu: $buttonThatClosedMenu (B=${KeyEvent.KEYCODE_BUTTON_B})"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│  keyCode to check: $keyCode"
+                )
+                
+                if (gracePeriodActive && keyCode == buttonThatClosedMenu) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│  ⚠️  DECISION: BLOCK (grace period + matching button)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "└────────────────────────────────────────────────────────"
+                        )
+                        return true
+                }
+                
+                // Se menu está aberto de verdade, verificar através de shouldInterceptDpadForMenu
+                val menuActive = shouldInterceptDpadForMenu()
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│  menuActive (shouldInterceptDpadForMenu): $menuActive"
+                )
+                
+                if (menuActive) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│  ⚠️  DECISION: BLOCK (menu is active)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "└────────────────────────────────────────────────────────"
+                        )
+                        return true
+                }
+                
+                // Botão pode passar
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│  ✅ DECISION: ALLOW (grace period expired or different button)"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "└────────────────────────────────────────────────────────"
+                )
+                return false
+        }
 
         /**
          * Function to check if it's safe to execute menu callbacks (no critical operations in
@@ -455,34 +584,86 @@ class ControllerInput(private val context: Context) {
                 )
         }
 
-        fun processGamePadButtonEvent(keyCode: Int, action: Int) {
+        fun processGamePadButtonEvent(keyCode: Int, action: Int): Boolean {
+                val keyName = when(keyCode) {
+                        KeyEvent.KEYCODE_BUTTON_A -> "A"
+                        KeyEvent.KEYCODE_BUTTON_B -> "B"
+                        KeyEvent.KEYCODE_BUTTON_START -> "START"
+                        KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
+                        else -> keyCode.toString()
+                }
+                val actionName = if (action == KeyEvent.ACTION_DOWN) "DOWN" else "UP"
+                val timestamp = android.text.format.DateFormat.format("HH:mm:ss.SSS", System.currentTimeMillis())
+                
+                android.util.Log.d(
+                        "ControllerInput",
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "📥 [$timestamp] processGamePadButtonEvent: $keyName $actionName"
+                )
+                
                 // INTERCEPT BUTTON A for confirmation when menu is open
-                if (keyCode == KeyEvent.KEYCODE_BUTTON_A && shouldInterceptDpadForMenu()) {
+                // Durante grace period, NÃO bloquear A (só menu aberto bloqueia)
+                val menuActiveForA = shouldInterceptDpadForMenu()
+                val shouldInterceptA = keyCode == KeyEvent.KEYCODE_BUTTON_A && menuActiveForA
+                if (keyCode == KeyEvent.KEYCODE_BUTTON_A) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "🔍 BUTTON_A check: shouldInterceptDpadForMenu()=$menuActiveForA, will intercept=$shouldInterceptA"
+                        )
+                }
+                if (shouldInterceptA) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "🔴 BUTTON_A intercepted - shouldInterceptDpadForMenu()=true"
+                        )
                         if (action == KeyEvent.ACTION_DOWN) {
                                 android.util.Log.d(
                                         "ControllerInput",
-                                        "BUTTON_A (GamePad) intercepted for menu confirmation"
+                                        "   → Executing menuConfirmCallback"
                                 )
+                                // NOTE: NÃO bloqueamos A aqui porque ele nem sempre fecha o menu
+                                // O bloqueio será feito no callback onMenuClosedCallback
                                 executeMenuCallback(
                                         menuConfirmCallback,
                                         lastMenuConfirmCallbackTime
                                 ) { lastMenuConfirmCallbackTime = it }
                         }
-                        return // Consume the event, don't process further
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                        )
+                        // CRITICAL: Consumir TANTO ACTION_DOWN quanto ACTION_UP
+                        return true // Event intercepted - don't send to core
                 }
 
                 // INTERCEPT BUTTON B to go back when menu is open
-                if (keyCode == KeyEvent.KEYCODE_BUTTON_B && shouldInterceptDpadForMenu()) {
+                val shouldInterceptB = keyCode == KeyEvent.KEYCODE_BUTTON_B && shouldInterceptSpecificButton(keyCode)
+                if (shouldInterceptB) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "� BUTTON_B intercepted - shouldInterceptSpecificButton()=true"
+                        )
                         if (action == KeyEvent.ACTION_DOWN) {
                                 android.util.Log.d(
                                         "ControllerInput",
-                                        "BUTTON_B (GamePad) intercepted for menu back"
+                                        "   → Executing menuBackCallback"
                                 )
+                                // NOTE: Bloqueio será feito no callback onMenuClosedCallback
+                                // quando o menu realmente fechar
                                 executeMenuCallback(menuBackCallback, lastMenuBackCallbackTime) {
                                         lastMenuBackCallbackTime = it
                                 }
+                        } else {
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "🚫 BUTTON_B ACTION_UP in processGamePadButtonEvent - blocking"
+                                )
                         }
-                        return // Consume the event, don't process further
+                        // CRITICAL: Consumir TANTO ACTION_DOWN quanto ACTION_UP
+                        return true // Event intercepted - don't send to core
                 }
 
                 // INTERCEPT START button when menu is open (to close menu)
@@ -515,7 +696,7 @@ class ControllerInput(private val context: Context) {
                                         "   startButtonCallback() completed"
                                 )
                         }
-                        return // Consume the event, don't process further
+                        return true // Event intercepted - don't send to core
                 }
 
                 // INTERCEPT GAMEPAD MENU BUTTON (☰)
@@ -530,7 +711,7 @@ class ControllerInput(private val context: Context) {
                                         lastGamepadMenuButtonCallbackTime
                                 ) { lastGamepadMenuButtonCallbackTime = it }
                         }
-                        return // Consume the event, don't process further
+                        return true // Event intercepted - don't send to core
                 }
 
                 /* Keep track of user input events */
@@ -540,23 +721,39 @@ class ControllerInput(private val context: Context) {
                                 keyLog.add(keyCode)
                                 android.util.Log.d(
                                         "ControllerInput",
-                                        "GamePad ACTION_DOWN: $keyCode, wasAlreadyPressed: $wasAlreadyPressed, keyLog: $keyLog"
+                                        "⬇️  ACTION_DOWN: keyCode=$keyCode ($keyName)"
+                                )
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "   wasAlreadyPressed: $wasAlreadyPressed"
+                                )
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "   keyLog BEFORE: $keyLog"
                                 )
 
                                 // If the button was already pressed, don't check combo again
                                 if (wasAlreadyPressed) {
                                         android.util.Log.d(
                                                 "ControllerInput",
-                                                "Ignoring repeated GamePad ACTION_DOWN for $keyCode"
+                                                "   🔴 BLOCKED - Button was already pressed (repeat)"
                                         )
-                                        return // Ignore repeated event
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                                        )
+                                        return true // Event intercepted (repeated press)
                                 }
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "   ✅ Button added to keyLog"
+                                )
                         }
                         KeyEvent.ACTION_UP -> {
                                 keyLog.remove(keyCode)
                                 android.util.Log.d(
                                         "ControllerInput",
-                                        "GamePad ACTION_UP: $keyCode, keyLog: $keyLog"
+                                        "⬆️  ACTION_UP: keyCode=$keyCode ($keyName), keyLog AFTER: $keyLog"
                                 )
 
                                 // Reset combo flag ONLY when BOTH combo buttons are released
@@ -572,44 +769,54 @@ class ControllerInput(private val context: Context) {
                                                         "BOTH combo buttons released (GamePad), resetting comboAlreadyTriggered"
                                                 )
                                         }
-                                        comboAlreadyTriggered = false
-                                }
+                                comboAlreadyTriggered = false
                         }
                 }
-
-                checkMenuKeyCombo()
         }
 
-        /**
-         * Capture currently pressed keys when menu opens These keys will have their ACTION_UP
-         * blocked after menu closes to prevent partial signals
-         */
-        fun captureKeysOnMenuOpen() {
-                android.util.Log.d(
-                        "ControllerInput",
-                        "📸 captureKeysOnMenuOpen() - capturing current keyLog: $keyLog"
-                )
-                keysToBlockAfterMenuClose.clear()
-                keysToBlockAfterMenuClose.addAll(keyLog)
-                android.util.Log.d(
-                        "ControllerInput",
-                        "   keysToBlockAfterMenuClose: $keysToBlockAfterMenuClose"
-                )
+        checkMenuKeyCombo()
+        
+        android.util.Log.d(
+                "ControllerInput",
+                "🔍 After checkMenuKeyCombo - checking final decision..."
+        )
+        
+        // 🔧 BUGFIX: Block SELECT and START events when they're part of the combo
+        // This prevents START from leaking to the core and pausing the game
+        if ((keyCode == KeyEvent.KEYCODE_BUTTON_START || keyCode == KeyEvent.KEYCODE_BUTTON_SELECT)) {
+                // If both buttons are pressed (combo active), intercept the events
+                if (keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) && 
+                    keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "� Blocking $keyName (part of SELECT+START combo) - preventing leak to core"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                        )
+                        return true // Event intercepted - don't send to core
+                }
         }
+        
+        android.util.Log.d(
+                "ControllerInput",
+                "🟢 Event $keyName $actionName → SENDING TO CORE (not intercepted)"
+        )
+        android.util.Log.d(
+                "ControllerInput",
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        )
+        return false // Event not intercepted - send to core
+}        fun processKeyEvent(keyCode: Int, event: KeyEvent, retroView: RetroView): Boolean? {
+                // DEBUG: Log ALL keyCodes to detect button mappings
+                if (event.action == KeyEvent.ACTION_DOWN || event.action == KeyEvent.ACTION_UP) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "🎮 processKeyEvent: keyCode=$keyCode action=${if (event.action == KeyEvent.ACTION_DOWN) "DOWN" else "UP"} (BUTTON_A=96, BUTTON_B=97)"
+                        )
+                }
 
-        /**
-         * Clear blocked keys after a delay (give time for ACTION_UP events to be processed and
-         * blocked)
-         */
-        fun clearBlockedKeysDelayed() {
-                android.os.Handler(android.os.Looper.getMainLooper())
-                        .postDelayed(
-                                { keysToBlockAfterMenuClose.clear() },
-                                500
-                        ) // 500ms delay to ensure all pending ACTION_UP events are blocked
-        }
-
-        fun processKeyEvent(keyCode: Int, event: KeyEvent, retroView: RetroView): Boolean? {
                 /* Block these keys! */
                 if (EXCLUDED_KEYS.contains(keyCode)) return null
 
@@ -653,6 +860,7 @@ class ControllerInput(private val context: Context) {
                 }
 
                 // INTERCEPT BUTTON A for confirmation when menu is open
+                // Durante grace period, NÃO bloquear A (só menu aberto bloqueia)
                 if (keyCode == KeyEvent.KEYCODE_BUTTON_A && shouldInterceptDpadForMenu()) {
                         if (event.action == KeyEvent.ACTION_DOWN) {
                                 android.util.Log.d(
@@ -664,11 +872,17 @@ class ControllerInput(private val context: Context) {
                                         lastMenuConfirmCallbackTime
                                 ) { lastMenuConfirmCallbackTime = it }
                         }
+                        // CRITICAL: Bloquear TANTO ACTION_DOWN quanto ACTION_UP
+                        // Isso impede que o ACTION_UP vaze para o jogo
                         return true // Consume the event, don't send to core
                 }
 
                 // INTERCEPT BUTTON B to go back when menu is open
-                if (keyCode == KeyEvent.KEYCODE_BUTTON_B && shouldInterceptDpadForMenu()) {
+                if (keyCode == KeyEvent.KEYCODE_BUTTON_B && shouldInterceptSpecificButton(keyCode)) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "🔵 BUTTON_B intercepted in processKeyEvent - action=${event.action} (DOWN=0, UP=1), shouldIntercept=true"
+                        )
                         if (event.action == KeyEvent.ACTION_DOWN) {
                                 android.util.Log.d(
                                         "ControllerInput",
@@ -677,7 +891,14 @@ class ControllerInput(private val context: Context) {
                                 executeMenuCallback(menuBackCallback, lastMenuBackCallbackTime) {
                                         lastMenuBackCallbackTime = it
                                 }
+                        } else {
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "🚫 BUTTON_B ACTION_UP intercepted - blocking from reaching game"
+                                )
                         }
+                        // CRITICAL: Bloquear TANTO ACTION_DOWN quanto ACTION_UP
+                        // Isso impede que o ACTION_UP vaze para o jogo
                         return true // Consume the event, don't send to core
                 }
 
@@ -748,60 +969,6 @@ class ControllerInput(private val context: Context) {
                                 "🛑 BLOCKING GAMEPAD INPUT - RetroMenu3 is open (keyCode: $keyCode)"
                         )
                         return true // Block completely, don't send to core
-                }
-
-                // CRITICAL FIX: Block ACTION_UP for keys that were pressed when menu opened
-                // This prevents partial signals (ACTION_UP without ACTION_DOWN) from reaching the
-                // core
-                if (event.action == KeyEvent.ACTION_UP &&
-                                keysToBlockAfterMenuClose.contains(keyCode)
-                ) {
-                        android.util.Log.d(
-                                "ControllerInput",
-                                "🚫 BLOCKING ACTION_UP for keyCode=$keyCode (was in keysToBlockAfterMenuClose)"
-                        )
-                        android.util.Log.d(
-                                "ControllerInput",
-                                "   keysToBlockAfterMenuClose BEFORE: $keysToBlockAfterMenuClose"
-                        )
-                        keysToBlockAfterMenuClose.remove(keyCode) // Remove after blocking once
-                        keyLog.remove(keyCode)
-                        android.util.Log.d(
-                                "ControllerInput",
-                                "   keysToBlockAfterMenuClose AFTER: $keysToBlockAfterMenuClose"
-                        )
-                        android.util.Log.d("ControllerInput", "   keyLog AFTER: $keyLog")
-
-                        // BUGFIX: Reset combo flag if BOTH combo buttons are released (even when
-                        // blocked)
-                        // This fixes the issue where user needs to press SELECT+START twice after
-                        // closing menu
-                        val isComboButton =
-                                (keyCode == KeyEvent.KEYCODE_BUTTON_START ||
-                                        keyCode == KeyEvent.KEYCODE_BUTTON_SELECT)
-                        val startNotPressed = !keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)
-                        val selectNotPressed = !keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)
-                        val bothReleased = startNotPressed && selectNotPressed
-
-                        android.util.Log.d(
-                                "ControllerInput",
-                                "   Checking combo reset: isComboButton=$isComboButton, bothReleased=$bothReleased"
-                        )
-
-                        if (isComboButton && bothReleased) {
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "   ✅ BOTH combo buttons released! comboAlreadyTriggered: $comboAlreadyTriggered -> false"
-                                )
-                                comboAlreadyTriggered = false
-                        } else {
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "   ⏳ Waiting for other button (START pressed: ${!startNotPressed}, SELECT pressed: ${!selectNotPressed})"
-                                )
-                        }
-
-                        return true // Block this ACTION_UP
                 }
 
                 val port = getPort(event)

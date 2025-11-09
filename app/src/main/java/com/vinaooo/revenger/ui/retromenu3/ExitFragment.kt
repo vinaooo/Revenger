@@ -74,6 +74,25 @@ class ExitFragment : MenuFragmentBase() {
 
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when selecting Back
+
+        // PHASE 3: Register with NavigationController for new navigation system
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            viewModel.navigationController?.registerFragment(this, getMenuItems().size)
+            android.util.Log.d(
+                    TAG,
+                    "[NAVIGATION] ExitFragment registered with ${getMenuItems().size} items"
+            )
+        }
+    }
+
+    override fun onDestroyView() {
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    TAG,
+                    "[NAVIGATION] ExitFragment onDestroyView - keeping registration"
+            )
+        }
+        super.onDestroyView()
     }
 
     private fun setupViews(view: View) {
@@ -210,7 +229,16 @@ class ExitFragment : MenuFragmentBase() {
             }
             2 -> {
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Back to main menu selected")
-                backExitMenu.performClick() // Back
+                // PHASE 3: Use NavigationController when new system is active
+                if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                    android.util.Log.d(
+                            TAG,
+                            "[ACTION] Using new navigation system - calling performBack()"
+                    )
+                    performBack()
+                } else {
+                    backExitMenu.performClick() // Old system
+                }
             }
             else ->
                     android.util.Log.w(
@@ -224,16 +252,29 @@ class ExitFragment : MenuFragmentBase() {
     override fun performBack(): Boolean {
         android.util.Log.d("ExitFragment", "[BACK] performBack called - navigating to main menu")
 
-        // FIXED: Use viewModel directly like AboutFragment does (listeners can be NULL after
-        // rotation)
-        android.util.Log.d("ExitFragment", "[BACK] Calling viewModel.dismissExit()")
-        viewModel.dismissExit()
-
-        android.util.Log.d(
-                "ExitFragment",
-                "[BACK] performBack completed - viewModel handled the dismissal"
-        )
-        return true
+        // PHASE 3: Use NavigationController when new system is active
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    "ExitFragment",
+                    "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
+            )
+            val success = viewModel.navigationController?.navigateBack() ?: false
+            android.util.Log.d(
+                    "ExitFragment",
+                    "[BACK] NavigationController.navigateBack() returned: $success"
+            )
+            return success
+        } else {
+            // Old system: Use viewModel directly like AboutFragment does (listeners can be NULL
+            // after rotation)
+            android.util.Log.d("ExitFragment", "[BACK] Calling viewModel.dismissExit()")
+            viewModel.dismissExit()
+            android.util.Log.d(
+                    "ExitFragment",
+                    "[BACK] performBack completed - viewModel handled the dismissal"
+            )
+            return true
+        }
     }
 
     /** Update selection visual - specific implementation for ExitFragment */
@@ -395,6 +436,15 @@ class ExitFragment : MenuFragmentBase() {
 
     override fun onResume() {
         super.onResume()
+
+        // PHASE 3: Skip old navigation system logic when new system is active
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    "ExitFragment",
+                    "[RESUME] ✅ New navigation system active - skipping old MenuState checks"
+            )
+            return
+        }
 
         // Check 1: Don't register if being removed
         if (isRemoving) {

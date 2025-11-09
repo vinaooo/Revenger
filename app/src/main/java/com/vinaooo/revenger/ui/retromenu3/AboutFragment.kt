@@ -71,6 +71,25 @@ class AboutFragment : MenuFragmentBase() {
         setupClickListeners()
         updateMenuState()
         // REMOVED: animateMenuIn() - submenu now appears instantly without animation
+
+        // PHASE 3: Register with NavigationController for new navigation system
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            viewModel.navigationController?.registerFragment(this, getMenuItems().size)
+            android.util.Log.d(
+                    TAG,
+                    "[NAVIGATION] AboutFragment registered with ${getMenuItems().size} items"
+            )
+        }
+    }
+
+    override fun onDestroyView() {
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    TAG,
+                    "[NAVIGATION] AboutFragment onDestroyView - keeping registration"
+            )
+        }
+        super.onDestroyView()
     }
 
     private fun setupViews(view: View) {
@@ -259,7 +278,16 @@ class AboutFragment : MenuFragmentBase() {
             0 -> {
                 // Back to main menu
                 android.util.Log.d(TAG, "[ACTION] About menu: Back to main menu selected")
-                viewModel.dismissAboutMenu()
+                // PHASE 3: Use NavigationController when new system is active
+                if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                    android.util.Log.d(
+                            TAG,
+                            "[ACTION] Using new navigation system - calling performBack()"
+                    )
+                    performBack()
+                } else {
+                    viewModel.dismissAboutMenu() // Old system
+                }
             }
             else -> {
                 android.util.Log.w(
@@ -272,9 +300,23 @@ class AboutFragment : MenuFragmentBase() {
 
     /** Handle back action */
     override fun performBack(): Boolean {
-        // Return to main menu
-        viewModel.dismissAboutMenu()
-        return true
+        // PHASE 3: Use NavigationController when new system is active
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    "AboutFragment",
+                    "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
+            )
+            val success = viewModel.navigationController?.navigateBack() ?: false
+            android.util.Log.d(
+                    "AboutFragment",
+                    "[BACK] NavigationController.navigateBack() returned: $success"
+            )
+            return success
+        } else {
+            // Old system: Return to main menu
+            viewModel.dismissAboutMenu()
+            return true
+        }
     }
 
     /** Update selection visuals */
@@ -339,6 +381,15 @@ class AboutFragment : MenuFragmentBase() {
 
     override fun onResume() {
         super.onResume()
+
+        // PHASE 3: Skip old navigation system logic when new system is active
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    "AboutFragment",
+                    "[RESUME] ✅ New navigation system active - skipping old MenuState checks"
+            )
+            return
+        }
 
         // Check 1: Don't register if being removed
         if (isRemoving) {

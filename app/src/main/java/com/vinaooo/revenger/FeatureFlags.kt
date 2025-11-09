@@ -23,5 +23,5 @@ object FeatureFlags {
      * **ROLLBACK**: Se algo quebrar após definir como `true`, basta mudar de volta para `false` e o
      * sistema antigo volta a funcionar imediatamente.
      */
-    const val USE_NEW_NAVIGATION_SYSTEM = false
+    const val USE_NEW_NAVIGATION_SYSTEM = true
 }

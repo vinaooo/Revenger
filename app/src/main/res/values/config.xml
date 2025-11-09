@@ -8,13 +8,14 @@
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
     <string name="config_core">picodrive</string>
+    <!-- <string name="config_core">picodrive</string> -->
 
     <!-- Snes = snes9x -->
     <!-- megadrive = genesis_plus_gx -->
     <!-- gb = gambatte -->
     <!-- master = gearsystem (best performance for Master System) -->
     <!-- Master e Mega = picodrive (the best) -->
-
+    
     <!-- rom name, the same name the rom file in res/raw without extension -->
     <string name="config_rom">sth</string>
 
@@ -43,14 +44,15 @@
     <integer name="config_orientation">3</integer>
 
     <!-- Menu display modes
-        config_menu_mode_back: Enable back button to open/close menu
-        config_menu_mode_combo: Enable SELECT + START combo to open menu
-        config_menu_mode_gamepad: Enable gamepad menu button (☰) to open/close menu
-        All options can be combined
+        0: No menu (disabled)
+        1: Menu only via back button
+        2: Menu only via SELECT + START combo (virtual and physical)
+        3: Menu via both back button and SELECT + START combo
+
+        NOTE: Mode 0 disables all menu functionality,
+              use with caution!
     -->
-    <bool name="config_menu_mode_back">true</bool>
-    <bool name="config_menu_mode_combo">true</bool>
-    <bool name="config_menu_mode_gamepad">true</bool>
+    <integer name="config_menu_mode">3</integer>
 
     <!-- Should we display a virtual gamepad? -->
     <bool name="config_gamepad">true</bool>
@@ -58,57 +60,50 @@
     <!-- Should we vibrate on touch? -->
     <bool name="config_gamepad_haptic">false</bool>
 
-    <!-- Allow pressing multiple action buttons with a single finger (shows intersection dots) -->
+    <!-- Allow multiple presses on action buttons (for combos) -->
     <bool name="config_gamepad_allow_multiple_presses_action">false</bool>
 
-    <!-- Action button layout style
-        1: Nintendo (Top=B, Bottom=X, Left=Y, Right=A)
-        2: Xbox (Top=A, Bottom=Y, Left=X, Right=B)
-        3: PlayStation (Top=×, Bottom=△, Left=□, Right=○) - Vector icons
-    -->
-    <integer name="config_action_button">3</integer>
-
     <!-- GamePad buttons to display -->
-    <!-- Action Buttons (Right Gamepad - Center) - Always visible for all console layouts -->
-    <bool name="config_gamepad_a">true</bool>     <!-- A Button -->
-    <bool name="config_gamepad_b">true</bool>     <!-- B Button -->
-    <bool name="config_gamepad_x">true</bool>     <!-- X Button -->
-    <bool name="config_gamepad_y">true</bool>     <!-- Y Button -->
+    <bool name="config_gamepad_a">true</bool>
+    <bool name="config_gamepad_b">true</bool>
+    <bool name="config_gamepad_x">false</bool>
+    <bool name="config_gamepad_y">false</bool>
+    <bool name="config_gamepad_start">true</bool>
+    <bool name="config_gamepad_select">true</bool>
+    <bool name="config_gamepad_l1">false</bool>
+    <bool name="config_gamepad_r1">false</bool>
+    <bool name="config_gamepad_l2">false</bool>
+    <bool name="config_gamepad_r2">false</bool>
 
-    <!-- System Buttons -->
-    <bool name="config_gamepad_start">true</bool>   <!-- Start Button -->
-    <bool name="config_gamepad_select">true</bool>  <!-- Select Button -->
+    <!-- Fake buttons (custom mapped buttons) -->
+    <bool name="config_show_fake_button_0">false</bool>
+    <bool name="config_show_fake_button_1">false</bool>
+    <bool name="config_show_fake_button_5">false</bool>
+    <bool name="config_show_fake_button_6">false</bool>
+    <bool name="config_show_fake_button_7">false</bool>
+    <bool name="config_show_fake_button_9">false</bool>
+    <bool name="config_show_fake_button_10">false</bool>
+    <bool name="config_show_fake_button_11">false</bool>
 
-    <!-- Shoulder Buttons -->
-    <bool name="config_gamepad_l1">true</bool>    <!-- Left Shoulder 1 -->
-    <bool name="config_gamepad_r1">true</bool>    <!-- Right Shoulder 1 -->
-    <bool name="config_gamepad_l2">true</bool>    <!-- Left Shoulder 2 -->
-    <bool name="config_gamepad_r2">true</bool>    <!-- Right Shoulder 2 -->
+    <!-- Menu mode for gamepad menu button (☰) -->
+    <bool name="config_menu_mode_gamepad">true</bool>
 
-
-
+    <!-- Alternative menu modes (deprecated, use config_menu_mode instead) -->
+    <bool name="config_menu_mode_back">true</bool>
+    <bool name="config_menu_mode_combo">true</bool>
 
     <!-- Should the left DPAD be replaced with an analog stick? -->
     <bool name="config_left_analog">false</bool>
 
     <!-- Show performance overlay (FPS, memory, CPU) -->
-    <bool name="config_performance_overlay">true</bool>
-    
+    <bool name="config_performance_overlay">false</bool>
+
     <!-- Shader configuration
         "disabled" = No shader applied
         "sharp" = Sharp bilinear filtering
         "crt" = CRT shader
         "lcd" = LCD shader
-        "settings" = Allow user to select shader in menu-->
+        "settings" = Allow user to select shader in menu
+    -->
     <string name="config_shader">settings</string>
-
-    <!-- Individual fake button visibility controls -->
-    <bool name="config_show_fake_button_0">false</bool>    <!-- Socket 0 -->
-    <bool name="config_show_fake_button_1">false</bool>    <!-- Socket 1 -->
-    <bool name="config_show_fake_button_5">false</bool>    <!-- Socket 5 -->
-    <bool name="config_show_fake_button_6">false</bool>    <!-- Socket 6 -->
-    <bool name="config_show_fake_button_7">false</bool>    <!-- Socket 7 -->
-    <bool name="config_show_fake_button_9">false</bool>    <!-- Socket 9 -->
-    <bool name="config_show_fake_button_10">false</bool>   <!-- Socket 10 -->
-    <bool name="config_show_fake_button_11">false</bool>   <!-- Socket 11 -->
 </resources>

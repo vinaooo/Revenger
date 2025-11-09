@@ -74,6 +74,26 @@ class ProgressFragment : MenuFragmentBase() {
 
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when selecting Back
+
+        // PHASE 3: Register with NavigationController for new navigation system
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            viewModel.navigationController?.registerFragment(this, getMenuItems().size)
+            android.util.Log.d(
+                    TAG,
+                    "[NAVIGATION] ProgressFragment registered with ${getMenuItems().size} items"
+            )
+        }
+    }
+
+    override fun onDestroyView() {
+        // PHASE 3: DON'T unregister - let next fragment override registration
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    TAG,
+                    "[NAVIGATION] ProgressFragment onDestroyView - keeping registration for next fragment"
+            )
+        }
+        super.onDestroyView()
     }
 
     private fun setupViews(view: View) {
@@ -249,7 +269,16 @@ class ProgressFragment : MenuFragmentBase() {
             }
             2 -> {
                 android.util.Log.d(TAG, "[ACTION] Progress menu: Back to main menu selected")
-                backProgress.performClick() // Back
+                // PHASE 3: Use NavigationController when new system is active
+                if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                    android.util.Log.d(
+                            TAG,
+                            "[ACTION] Using new navigation system - calling performBack()"
+                    )
+                    performBack()
+                } else {
+                    backProgress.performClick() // Old system
+                }
             }
             else ->
                     android.util.Log.w(
@@ -269,16 +298,28 @@ class ProgressFragment : MenuFragmentBase() {
         try {
             android.util.Log.d(TAG, "[BACK] performBack called - navigating to main menu")
 
-            // FIXED: Use viewModel directly like AboutFragment does (listeners can be NULL after
-            // rotation)
-            android.util.Log.d(TAG, "[BACK] Calling viewModel.dismissProgressMenu()")
-            viewModel.dismissProgress()
-
-            android.util.Log.d(
-                    TAG,
-                    "[BACK] performBack completed - viewModel handled the dismissal"
-            )
-            return true
+            // PHASE 3: Use NavigationController when new system is active
+            if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                android.util.Log.d(
+                        TAG,
+                        "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
+                )
+                val success = viewModel.navigationController?.navigateBack() ?: false
+                android.util.Log.d(
+                        TAG,
+                        "[BACK] NavigationController.navigateBack() returned: $success"
+                )
+                return success
+            } else {
+                // Old system: Use viewModel directly like AboutFragment does
+                android.util.Log.d(TAG, "[BACK] Calling viewModel.dismissProgressMenu()")
+                viewModel.dismissProgress()
+                android.util.Log.d(
+                        TAG,
+                        "[BACK] performBack completed - viewModel handled the dismissal"
+                )
+                return true
+            }
         } catch (e: Exception) {
             android.util.Log.e(TAG, "[BACK] ❌ EXCEPTION in performBack: ${e.message}", e)
             return false
@@ -458,6 +499,15 @@ class ProgressFragment : MenuFragmentBase() {
                 "ProgressFragment",
                 "[RESUME] 🏁 onResume() CALLED - isAdded=$isAdded, isResumed=$isResumed, isRemoving=$isRemoving"
         )
+
+        // PHASE 3: Skip old navigation system logic when new system is active
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    "ProgressFragment",
+                    "[RESUME] ✅ New navigation system active - skipping old MenuState checks"
+            )
+            return
+        }
 
         // Check 1: Don't register if being removed
         if (isRemoving) {

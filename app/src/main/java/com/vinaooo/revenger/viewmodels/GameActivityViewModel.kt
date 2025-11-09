@@ -14,6 +14,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.swordfish.radialgamepad.library.event.Event
+import com.vinaooo.revenger.FeatureFlags
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.controllers.AudioController
 import com.vinaooo.revenger.controllers.ShaderController
@@ -24,7 +25,6 @@ import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.retromenu3.*
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
-import com.vinaooo.revenger.FeatureFlags
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -58,8 +58,11 @@ class GameActivityViewModel(application: Application) :
     /** Speed management ViewModel */
     private lateinit var speedViewModel: SpeedViewModel
 
-    /** Navigation controller for multi-input navigation system (Phase 3+) */
-    private var navigationController: NavigationController? = null
+    /**
+     * Navigation controller for multi-input navigation system (Phase 3+). Internal visibility
+     * allows fragments to register/unregister themselves.
+     */
+    internal var navigationController: NavigationController? = null
 
     // ===== SHARED REFERENCES =====
     // These are shared between specialized ViewModels
@@ -239,24 +242,112 @@ class GameActivityViewModel(application: Application) :
 
     /** Configure menu callback with activity reference */
     fun setupMenuCallback(activity: FragmentActivity) {
-        // PHASE 3.1a: Initialize NavigationController if new system is enabled
-        if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+        // PHASE 3.1a: Initialize NavigationController if new system is enabled (only once!)
+        if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM && navigationController == null) {
             navigationController = NavigationController(activity)
             android.util.Log.d("GameActivityViewModel", "[PHASE3] NavigationController initialized")
+
+            // PHASE 3.2b: Configurar callbacks para pausar/resumir o jogo
+            navigationController?.onMenuOpenedCallback = {
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[PHASE3] onMenuOpened callback - pausing game"
+                )
+                // Preservar estado do emulador
+                retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
+                // PAUSAR o jogo quando menu abre
+                retroView?.let { speedController?.pause(it.view) }
+            }
+
+            navigationController?.onMenuClosedCallback = {
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[PHASE3] onMenuClosed callback - resuming game"
+                )
+
+                // Limpar botões de menu do keyLog para evitar "wasAlreadyPressed" bugs
+                controllerInput.clearMenuActionButtons()
+
+                // Grace period: Manter interceptação ativa por 200ms após menu fechar
+                // 200ms cobre o delay de ~150ms do hardware entre ACTION_DOWN e ACTION_UP
+                // Identificado via logs: UP chega 150ms depois, 50ms era insuficiente
+                // Bloquear apenas BUTTON_B (que fechou o menu) durante grace period
+                controllerInput.keepInterceptingButtons(200, closingButton = KeyEvent.KEYCODE_BUTTON_B)
+
+                // RESUMIR o jogo quando menu fecha
+                retroView?.let { speedController?.resume(it.view) }
+            }
         }
-        
+
         // Configure RetroMenu3 callback for SELECT+START combo
-        controllerInput.selectStartComboCallback = { showRetroMenu3(activity) }
+        controllerInput.selectStartComboCallback = {
+            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                // PHASE 3: Use NavigationController to open menu
+                navigationController?.handleNavigationEvent(
+                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
+                                inputSource =
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                                .PHYSICAL_GAMEPAD
+                        )
+                )
+            } else {
+                showRetroMenu3(activity)
+            }
+        }
 
         // Configure START button callback to close ALL menus (submenus first, then main menu)
-        controllerInput.startButtonCallback = { dismissAllMenus() }
+        controllerInput.startButtonCallback = {
+            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                // PHASE 3: Use NavigationController to close menu
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[START_BUTTON] Closing menu with NavigationController"
+                )
+                navigationController?.handleNavigationEvent(
+                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.NavigateBack(
+                                inputSource =
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                                .PHYSICAL_GAMEPAD
+                        )
+                )
+            } else {
+                dismissAllMenus()
+            }
+        }
 
         // Configure gamepad menu button callback to toggle menu
         controllerInput.gamepadMenuButtonCallback = {
             if (isAnyMenuActive()) {
-                dismissAllMenus()
+                // PHASE 3: Use NavigationController to close menu when new system is active
+                if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                    android.util.Log.d(
+                            "GameActivityViewModel",
+                            "[MENU_BUTTON] Closing menu with NavigationController"
+                    )
+                    navigationController?.handleNavigationEvent(
+                            com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
+                                    .NavigateBack(
+                                            inputSource =
+                                                    com.vinaooo.revenger.ui.retromenu3.navigation
+                                                            .InputSource.PHYSICAL_GAMEPAD
+                                    )
+                    )
+                } else {
+                    dismissAllMenus()
+                }
             } else {
-                showRetroMenu3(activity)
+                if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                    // PHASE 3: Use NavigationController to open menu
+                    navigationController?.handleNavigationEvent(
+                            com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
+                                    inputSource =
+                                            com.vinaooo.revenger.ui.retromenu3.navigation
+                                                    .InputSource.PHYSICAL_GAMEPAD
+                            )
+                    )
+                } else {
+                    showRetroMenu3(activity)
+                }
             }
         }
 
@@ -264,47 +355,59 @@ class GameActivityViewModel(application: Application) :
         controllerInput.menuNavigateUpCallback = {
             if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
                 navigationController?.handleNavigationEvent(
-                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
-                        direction = com.vinaooo.revenger.ui.retromenu3.navigation.Direction.UP,
-                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
-                    )
+                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                                direction =
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.Direction.UP,
+                                inputSource =
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                                .PHYSICAL_GAMEPAD
+                        )
                 )
             } else {
                 menuManager.sendNavigateUp()
             }
         }
-        
+
         controllerInput.menuNavigateDownCallback = {
             if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
                 navigationController?.handleNavigationEvent(
-                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
-                        direction = com.vinaooo.revenger.ui.retromenu3.navigation.Direction.DOWN,
-                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
-                    )
+                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                                direction =
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.Direction
+                                                .DOWN,
+                                inputSource =
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                                .PHYSICAL_GAMEPAD
+                        )
                 )
             } else {
                 menuManager.sendNavigateDown()
             }
         }
-        
+
         controllerInput.menuConfirmCallback = {
             if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
                 navigationController?.handleNavigationEvent(
-                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.ActivateSelected(
-                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
-                    )
+                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
+                                .ActivateSelected(
+                                        inputSource =
+                                                com.vinaooo.revenger.ui.retromenu3.navigation
+                                                        .InputSource.PHYSICAL_GAMEPAD
+                                )
                 )
             } else {
                 menuManager.sendConfirm()
             }
         }
-        
+
         controllerInput.menuBackCallback = {
             if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
                 navigationController?.handleNavigationEvent(
-                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.NavigateBack(
-                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
-                    )
+                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.NavigateBack(
+                                inputSource =
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                                .PHYSICAL_GAMEPAD
+                        )
                 )
             } else {
                 // Always delegate BACK handling to MenuManager - it will handle submenus properly
@@ -313,8 +416,11 @@ class GameActivityViewModel(application: Application) :
         }
 
         // Control when to intercept DPAD for menu
+        // CRITICAL: NÃO verificar isDismissingAllMenus() aqui!
+        // Precisamos continuar interceptando botões mesmo durante o fechamento
+        // para evitar que ACTION_UP vaze para o jogo
         controllerInput.shouldInterceptDpadForMenu = {
-            val result = isAnyMenuActive() && !isDismissingAllMenus()
+            val result = isAnyMenuActive() // Removido: && !isDismissingAllMenus()
             result
         }
 
@@ -481,9 +587,6 @@ class GameActivityViewModel(application: Application) :
         android.util.Log.d("GameActivityViewModel", "Using menu container ID: $containerId")
 
         if (retroView?.frameRendered?.value == true) {
-            // CRITICAL: Capture currently pressed keys BEFORE showing menu
-            controllerInput.captureKeysOnMenuOpen()
-
             retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
 
             // PAUSE the game when menu opens
@@ -544,13 +647,9 @@ class GameActivityViewModel(application: Application) :
                                     "[DISMISS_MAIN] dismissRetroMenu3: DELAYED - clearing keyLog now"
                             )
 
-                            // CRITICAL: Clear keyLog to prevent phantom key presses
-                            controllerInput.clearKeyLog()
-                            // CRITICAL: Clear blocked keys after menu dismissal
-                            controllerInput.clearBlockedKeysDelayed()
                             android.util.Log.d(
                                     "GameActivityViewModel",
-                                    "[DISMISS_MAIN] dismissRetroMenu3: KeyLog cleared after delay"
+                                    "[DISMISS_MAIN] dismissRetroMenu3: Menu dismissed"
                             )
                         },
                         200
@@ -615,6 +714,16 @@ class GameActivityViewModel(application: Application) :
                 "GameActivityViewModel",
                 "[ACTIVE] 🔍 isAnyMenuActive: ========== CHECKING MENU ACTIVITY =========="
         )
+
+        // PHASE 3: Use NavigationController for menu detection when new system is active
+        if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM && navigationController != null) {
+            val navControllerActive = navigationController!!.isMenuActive()
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[ACTIVE] ✅ Using NavigationController: isMenuActive=$navControllerActive"
+            )
+            return navControllerActive
+        }
 
         val retroMenu3Open = isRetroMenu3Open()
 
@@ -754,10 +863,6 @@ class GameActivityViewModel(application: Application) :
             }
         }
 
-        // Clear keyLog to prevent phantom key presses
-        controllerInput.clearKeyLog()
-        // Clear blocked keys after menu dismissal
-        controllerInput.clearBlockedKeysDelayed()
         // Clear the fragment reference and flag
         activeFlagSetter()
 
@@ -1340,84 +1445,102 @@ class GameActivityViewModel(application: Application) :
 
         val gamePadConfig = GamePadConfig(context, resources)
         leftGamePad =
-                GamePad(context, gamePadConfig.left) { event ->
-                    when (event) {
-                        is Event.Button ->
-                                controllerInput.processGamePadButtonEvent(event.id, event.action)
-                        is Event.Direction -> {
-                            // Create synthetic MotionEvent for DPAD using PointerCoords
-                            val pointerCoords = MotionEvent.PointerCoords()
-                            pointerCoords.x = 0f
-                            pointerCoords.y = 0f
-                            pointerCoords.pressure = 1f
-                            pointerCoords.size = 1f
-                            pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_X, event.xAxis)
-                            pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_Y, event.yAxis)
+                GamePad(context, gamePadConfig.left) { event: Event ->
+                    val intercepted =
+                            when (event) {
+                                is Event.Button ->
+                                        controllerInput.processGamePadButtonEvent(
+                                                event.id,
+                                                event.action
+                                        )
+                                is Event.Direction -> {
+                                    // Create synthetic MotionEvent for DPAD using PointerCoords
+                                    val pointerCoords = MotionEvent.PointerCoords()
+                                    pointerCoords.x = 0f
+                                    pointerCoords.y = 0f
+                                    pointerCoords.pressure = 1f
+                                    pointerCoords.size = 1f
+                                    pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_X, event.xAxis)
+                                    pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_Y, event.yAxis)
 
-                            val pointerProperties = MotionEvent.PointerProperties()
-                            pointerProperties.id = 0
-                            pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
+                                    val pointerProperties = MotionEvent.PointerProperties()
+                                    pointerProperties.id = 0
+                                    pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
 
-                            val motionEvent =
-                                    MotionEvent.obtain(
-                                            android.os.SystemClock.uptimeMillis(),
-                                            android.os.SystemClock.uptimeMillis(),
-                                            MotionEvent.ACTION_MOVE,
-                                            1,
-                                            arrayOf(pointerProperties),
-                                            arrayOf(pointerCoords),
-                                            0,
-                                            0,
-                                            1f,
-                                            1f,
-                                            0,
-                                            0,
-                                            InputDevice.SOURCE_JOYSTICK,
-                                            0
-                                    )
-                            controllerInput.processMotionEvent(motionEvent, retroView!!)
-                        }
-                    }
+                                    val motionEvent =
+                                            MotionEvent.obtain(
+                                                    android.os.SystemClock.uptimeMillis(),
+                                                    android.os.SystemClock.uptimeMillis(),
+                                                    MotionEvent.ACTION_MOVE,
+                                                    1,
+                                                    arrayOf(pointerProperties),
+                                                    arrayOf(pointerCoords),
+                                                    0,
+                                                    0,
+                                                    1f,
+                                                    1f,
+                                                    0,
+                                                    0,
+                                                    InputDevice.SOURCE_JOYSTICK,
+                                                    0
+                                            )
+                                    // Process motion and return false (directions are never
+                                    // intercepted)
+                                    controllerInput.processMotionEvent(motionEvent, retroView!!)
+                                    false
+                                }
+                                else -> false // Other event types are not intercepted
+                            }
+                    intercepted // Return the boolean
                 }
         rightGamePad =
-                GamePad(context, gamePadConfig.right) { event ->
-                    when (event) {
-                        is Event.Button ->
-                                controllerInput.processGamePadButtonEvent(event.id, event.action)
-                        is Event.Direction -> {
-                            // Create synthetic MotionEvent for DPAD using PointerCoords
-                            val pointerCoords = MotionEvent.PointerCoords()
-                            pointerCoords.x = 0f
-                            pointerCoords.y = 0f
-                            pointerCoords.pressure = 1f
-                            pointerCoords.size = 1f
-                            pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_X, event.xAxis)
-                            pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_Y, event.yAxis)
+                GamePad(context, gamePadConfig.right) { event: Event ->
+                    val intercepted =
+                            when (event) {
+                                is Event.Button ->
+                                        controllerInput.processGamePadButtonEvent(
+                                                event.id,
+                                                event.action
+                                        )
+                                is Event.Direction -> {
+                                    // Create synthetic MotionEvent for DPAD using PointerCoords
+                                    val pointerCoords = MotionEvent.PointerCoords()
+                                    pointerCoords.x = 0f
+                                    pointerCoords.y = 0f
+                                    pointerCoords.pressure = 1f
+                                    pointerCoords.size = 1f
+                                    pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_X, event.xAxis)
+                                    pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_Y, event.yAxis)
 
-                            val pointerProperties = MotionEvent.PointerProperties()
-                            pointerProperties.id = 0
-                            pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
+                                    val pointerProperties = MotionEvent.PointerProperties()
+                                    pointerProperties.id = 0
+                                    pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
 
-                            val motionEvent =
-                                    MotionEvent.obtain(
-                                            android.os.SystemClock.uptimeMillis(),
-                                            android.os.SystemClock.uptimeMillis(),
-                                            MotionEvent.ACTION_MOVE,
-                                            1,
-                                            arrayOf(pointerProperties),
-                                            arrayOf(pointerCoords),
-                                            0,
-                                            0,
-                                            1f,
-                                            1f,
-                                            0,
-                                            0,
-                                            InputDevice.SOURCE_JOYSTICK,
-                                            0
-                                    )
-                            controllerInput.processMotionEvent(motionEvent, retroView!!)
-                        }
-                    }
+                                    val motionEvent =
+                                            MotionEvent.obtain(
+                                                    android.os.SystemClock.uptimeMillis(),
+                                                    android.os.SystemClock.uptimeMillis(),
+                                                    MotionEvent.ACTION_MOVE,
+                                                    1,
+                                                    arrayOf(pointerProperties),
+                                                    arrayOf(pointerCoords),
+                                                    0,
+                                                    0,
+                                                    1f,
+                                                    1f,
+                                                    0,
+                                                    0,
+                                                    InputDevice.SOURCE_JOYSTICK,
+                                                    0
+                                            )
+                                    // Process motion and return false (directions are never
+                                    // intercepted)
+                                    controllerInput.processMotionEvent(motionEvent, retroView!!)
+                                    false
+                                }
+                                else -> false // Other event types are not intercepted
+                            }
+                    intercepted // Return the boolean
                 }
 
         leftGamePad?.let {

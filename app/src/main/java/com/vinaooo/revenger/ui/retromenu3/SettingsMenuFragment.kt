@@ -76,6 +76,26 @@ class SettingsMenuFragment : MenuFragmentBase() {
         setupClickListeners()
         updateMenuState()
         // REMOVED: animateMenuIn() - submenu now appears instantly without animation
+
+        // PHASE 3: Register with NavigationController for new navigation system
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            viewModel.navigationController?.registerFragment(this, getMenuItems().size)
+            android.util.Log.d(
+                    TAG,
+                    "[NAVIGATION] SettingsMenuFragment registered with ${getMenuItems().size} items"
+            )
+        }
+    }
+
+    override fun onDestroyView() {
+        // PHASE 3: DON'T unregister - let next fragment override registration
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    TAG,
+                    "[NAVIGATION] SettingsMenuFragment onDestroyView - keeping registration"
+            )
+        }
+        super.onDestroyView()
     }
 
     private fun setupViews(view: View) {
@@ -256,7 +276,16 @@ class SettingsMenuFragment : MenuFragmentBase() {
             }
             (selectedIndex == 2 && !isShaderEnabled) || (selectedIndex == 3 && isShaderEnabled) -> {
                 android.util.Log.d(TAG, "[ACTION] Settings menu: Back to main menu selected")
-                backSettings.performClick() // Back
+                // PHASE 3: Use NavigationController when new system is active
+                if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                    android.util.Log.d(
+                            TAG,
+                            "[ACTION] Using new navigation system - calling performBack()"
+                    )
+                    performBack()
+                } else {
+                    backSettings.performClick() // Old system
+                }
             }
             else ->
                     android.util.Log.w(
@@ -268,10 +297,24 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     /** Back action */
     override fun performBack(): Boolean {
-        // Return to main menu - direct ViewModel call (survives rotation)
-        Log.d("SettingsMenuFragment", "[BACK] Calling viewModel.dismissSettingsMenu()")
-        viewModel.dismissSettingsMenu()
-        return true
+        // PHASE 3: Use NavigationController when new system is active
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            Log.d(
+                    "SettingsMenuFragment",
+                    "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
+            )
+            val success = viewModel.navigationController?.navigateBack() ?: false
+            Log.d(
+                    "SettingsMenuFragment",
+                    "[BACK] NavigationController.navigateBack() returned: $success"
+            )
+            return success
+        } else {
+            // Old system: Return to main menu - direct ViewModel call (survives rotation)
+            Log.d("SettingsMenuFragment", "[BACK] Calling viewModel.dismissSettingsMenu()")
+            viewModel.dismissSettingsMenu()
+            return true
+        }
     }
 
     /** Update selection visual - specific implementation for SettingsMenuFragment */
@@ -557,6 +600,15 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     override fun onResume() {
         super.onResume()
+
+        // PHASE 3: Skip old navigation system logic when new system is active
+        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+            android.util.Log.d(
+                    "SettingsMenuFragment",
+                    "[RESUME] ✅ New navigation system active - skipping old registration logic"
+            )
+            return
+        }
 
         // CRITICAL FIX: Register immediately without delays
         // isAdded is enough - no need to wait for isResumed or view?.post

@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 class GamePad(
         context: Context,
         private val padConfig: RadialGamePadConfig,
-        private val onButtonEvent: ((event: Event) -> Unit)? = null
+        private val onButtonEvent: ((event: Event) -> Boolean)? = null
 ) {
     val pad = RadialGamePad(padConfig, 0f, context)
 
@@ -61,36 +61,59 @@ class GamePad(
     private fun eventHandler(event: Event, retroView: GLRetroView) {
         when (event) {
             is Event.Button -> {
-                // Always send to ControllerInput for processing (it will decide if
-                // menu is open)
-                onButtonEvent?.invoke(event)
-                // Also send to core if not handled by menu
-                retroView.sendKeyEvent(event.action, event.id)
+                // Log ANTES do callback para ver todos os eventos que chegam da biblioteca
+                val buttonName = when(event.id) {
+                    android.view.KeyEvent.KEYCODE_BUTTON_A -> "A"
+                    android.view.KeyEvent.KEYCODE_BUTTON_B -> "B"
+                    android.view.KeyEvent.KEYCODE_BUTTON_START -> "START"
+                    android.view.KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
+                    else -> event.id.toString()
+                }
+                val actionName = if (event.action == android.view.KeyEvent.ACTION_DOWN) "DOWN" else "UP"
+                android.util.Log.d(
+                    "GamePad",
+                    "🎮 RadialGamePad event received: $buttonName $actionName (BEFORE callback)"
+                )
+                
+                // Invoca o callback e verifica se o evento foi interceptado
+                val intercepted = onButtonEvent?.invoke(event) ?: false
+
+                android.util.Log.d(
+                    "GamePad", 
+                    "🎮 Callback returned: intercepted=$intercepted (will ${if (intercepted) "BLOCK" else "SEND"} to core)"
+                )
+
+                // Só envia para o core se NÃO foi interceptado
+                if (!intercepted) {
+                    retroView.sendKeyEvent(event.action, event.id)
+                }
             }
             is Event.Direction -> {
-                // Always send to ControllerInput for processing (it will decide if
-                // menu is open)
-                onButtonEvent?.invoke(event)
-                // Also send to core if not handled by menu
-                when (event.id) {
-                    GLRetroView.MOTION_SOURCE_DPAD ->
-                            retroView.sendMotionEvent(
-                                    GLRetroView.MOTION_SOURCE_DPAD,
-                                    event.xAxis,
-                                    event.yAxis
-                            )
-                    GLRetroView.MOTION_SOURCE_ANALOG_LEFT ->
-                            retroView.sendMotionEvent(
-                                    GLRetroView.MOTION_SOURCE_ANALOG_LEFT,
-                                    event.xAxis,
-                                    event.yAxis
-                            )
-                    GLRetroView.MOTION_SOURCE_ANALOG_RIGHT ->
-                            retroView.sendMotionEvent(
-                                    GLRetroView.MOTION_SOURCE_ANALOG_RIGHT,
-                                    event.xAxis,
-                                    event.yAxis
-                            )
+                // Invoca o callback e verifica se o evento foi interceptado
+                val intercepted = onButtonEvent?.invoke(event) ?: false
+
+                // Só envia para o core se NÃO foi interceptado
+                if (!intercepted) {
+                    when (event.id) {
+                        GLRetroView.MOTION_SOURCE_DPAD ->
+                                retroView.sendMotionEvent(
+                                        GLRetroView.MOTION_SOURCE_DPAD,
+                                        event.xAxis,
+                                        event.yAxis
+                                )
+                        GLRetroView.MOTION_SOURCE_ANALOG_LEFT ->
+                                retroView.sendMotionEvent(
+                                        GLRetroView.MOTION_SOURCE_ANALOG_LEFT,
+                                        event.xAxis,
+                                        event.yAxis
+                                )
+                        GLRetroView.MOTION_SOURCE_ANALOG_RIGHT ->
+                                retroView.sendMotionEvent(
+                                        GLRetroView.MOTION_SOURCE_ANALOG_RIGHT,
+                                        event.xAxis,
+                                        event.yAxis
+                                )
+                    }
                 }
             }
         }

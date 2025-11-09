@@ -21,7 +21,7 @@ import com.vinaooo.revenger.ui.retromenu3.MenuFragment
 class NavigationController(private val activity: FragmentActivity) {
     /** Adapter para gerenciar transações de fragmentos */
     private val fragmentAdapter = FragmentNavigationAdapter(activity)
-    
+
     /** Menu atualmente ativo */
     private var currentMenu: MenuType = MenuType.MAIN
 
@@ -42,6 +42,12 @@ class NavigationController(private val activity: FragmentActivity) {
 
     /** Número de itens no menu atual (para bounds checking) */
     private var currentMenuItemCount: Int = 0
+
+    /** Callback chamado quando o menu principal é aberto (para pausar jogo, etc.) */
+    var onMenuOpenedCallback: (() -> Unit)? = null
+
+    /** Callback chamado quando o menu é completamente fechado (para resumir jogo, etc.) */
+    var onMenuClosedCallback: (() -> Unit)? = null
 
     /**
      * Processa um evento de navegação.
@@ -193,36 +199,65 @@ class NavigationController(private val activity: FragmentActivity) {
         // PHASE 3.2b: Implementar ativação via FragmentNavigationAdapter
         // Por enquanto, vamos apenas determinar qual submenu abrir baseado no índice
         // A lógica completa de mapeamento virá depois
-        
+
         if (currentMenu == MenuType.MAIN) {
-            // Mapeamento temporário de índices do menu principal para submenus
-            // TODO: Obter essa informação do fragment ao invés de hardcode
-            val targetMenu = when (selectedItemIndex) {
-                0 -> MenuType.PROGRESS  // Assumindo que Progress é o primeiro item
-                1 -> MenuType.SETTINGS  // Settings é o segundo
-                2 -> MenuType.ABOUT     // About é o terceiro
-                3 -> MenuType.EXIT      // Exit é o quarto
-                else -> {
-                    android.util.Log.w(TAG, "Unknown menu item index: $selectedItemIndex")
-                    return
-                }
-            }
-            
+            // Mapeamento correto dos índices do menu principal:
+            // 0: Continue (ação direta, não abre submenu)
+            // 1: Reset (ação direta, não abre submenu)
+            // 2: Progress (abre submenu)
+            // 3: Settings (abre submenu)
+            // 4: About (abre submenu)
+            // 5: Exit (abre submenu)
+
+            val targetMenu =
+                    when (selectedItemIndex) {
+                        0, 1 -> {
+                            // Continue e Reset são ações diretas, delegam para o fragment
+                            android.util.Log.d(
+                                    TAG,
+                                    "Direct action item (Continue/Reset) at index $selectedItemIndex"
+                            )
+                            val handled = currentFragment?.onConfirm() ?: false
+                            if (handled) {
+                                android.util.Log.d(TAG, "Direct action handled by fragment")
+                            } else {
+                                android.util.Log.w(TAG, "Direct action NOT handled by fragment")
+                            }
+                            return
+                        }
+                        2 -> MenuType.PROGRESS
+                        3 -> MenuType.SETTINGS
+                        4 -> MenuType.ABOUT
+                        5 -> MenuType.EXIT
+                        else -> {
+                            android.util.Log.w(TAG, "Unknown menu item index: $selectedItemIndex")
+                            return
+                        }
+                    }
+
             // Salvar estado atual na pilha antes de navegar
             navigationStack.push(MenuState(currentMenu, selectedItemIndex))
-            
+
             // Atualizar estado interno
             currentMenu = targetMenu
             selectedItemIndex = 0
-            
+
             // Exibir novo menu
             fragmentAdapter.showMenu(targetMenu)
-            
+
             android.util.Log.d(TAG, "Navigated to submenu: $targetMenu")
         } else {
-            // Em submenus, ativar item depende de qual submenu está ativo
-            // TODO: Implementar ativação de itens em submenus
-            android.util.Log.d(TAG, "Activate item in submenu not yet implemented")
+            // Em submenus, delegar a ativação para o fragment atual
+            android.util.Log.d(
+                    TAG,
+                    "Activating item in submenu $currentMenu at index $selectedItemIndex"
+            )
+            val handled = currentFragment?.onConfirm() ?: false
+            if (handled) {
+                android.util.Log.d(TAG, "Item activation handled by fragment")
+            } else {
+                android.util.Log.w(TAG, "Item activation NOT handled by fragment")
+            }
         }
     }
 
@@ -237,10 +272,17 @@ class NavigationController(private val activity: FragmentActivity) {
             return false
         }
 
-        // Se já está no menu principal, não navega (fecha o menu)
+        // Se já está no menu principal, fechar o menu completamente
         if (currentMenu == MenuType.MAIN && navigationStack.isEmpty()) {
-            android.util.Log.d(TAG, "Navigate back: already at main menu, closing")
-            return false
+            android.util.Log.d(TAG, "Navigate back: at main menu, closing menu completely")
+            fragmentAdapter.hideMenu()
+            currentFragment = null // Limpar referência
+            eventQueue.clear() // CRITICAL: Limpar fila de eventos pendentes
+
+            // PHASE 3.2b: Chamar callback para resumir o jogo após fechar o menu
+            onMenuClosedCallback?.invoke()
+
+            return true // Menu fechado com sucesso
         }
 
         isNavigating = true
@@ -283,18 +325,37 @@ class NavigationController(private val activity: FragmentActivity) {
     private fun openMainMenu() {
         android.util.Log.d(TAG, "Open main menu")
 
+        // PHASE 3.2b: Chamar callback para pausar o jogo antes de mostrar o menu
+        onMenuOpenedCallback?.invoke()
+
         // PHASE 3.2b: Implementar via FragmentNavigationAdapter
         currentMenu = MenuType.MAIN
         selectedItemIndex = 0
         navigationStack.clear()
-        
+
         fragmentAdapter.showMenu(MenuType.MAIN)
         android.util.Log.d(TAG, "Main menu opened successfully")
     }
 
     /** Atualiza o visual de seleção no fragmento atual. */
     private fun updateSelectionVisual() {
-        currentFragment?.setSelectedIndex(selectedItemIndex)
+        // SAFETY: Verificar se fragment ainda está disponível antes de atualizar
+        if (currentFragment == null) {
+            android.util.Log.w(TAG, "updateSelectionVisual: currentFragment is null")
+            return
+        }
+
+        try {
+            currentFragment?.setSelectedIndex(selectedItemIndex)
+        } catch (e: IllegalStateException) {
+            // Fragment was detached - clear reference
+            android.util.Log.w(
+                    TAG,
+                    "updateSelectionVisual: fragment detached, clearing reference",
+                    e
+            )
+            currentFragment = null
+        }
     }
 
     /**
@@ -307,13 +368,43 @@ class NavigationController(private val activity: FragmentActivity) {
         currentFragment = fragment
         currentMenuItemCount = itemCount
 
-        android.util.Log.d(TAG, "Registered fragment for menu=$currentMenu with $itemCount items")
+        // Inferir qual menu está ativo baseado no back stack
+        // Se back stack está vazio, estamos no MAIN
+        val backStackCount = fragmentAdapter.getBackStackCount()
+        if (backStackCount == 0) {
+            currentMenu = MenuType.MAIN
+            android.util.Log.d(
+                    TAG,
+                    "Registered MAIN menu fragment with $itemCount items, currentIndex=$selectedItemIndex"
+            )
+        } else {
+            android.util.Log.d(
+                    TAG,
+                    "Registered submenu fragment (backStack=$backStackCount) with $itemCount items"
+            )
+        }
+
+        // IMPORTANTE: Sincronizar UI do fragment com o estado atual do NavigationController
+        // Isso garante que após rotação, a seleção correta seja exibida
+        updateSelectionVisual()
     }
 
     /** Desregistra o fragmento atual. */
     fun unregisterFragment() {
         currentFragment = null
         currentMenuItemCount = 0
+    }
+
+    /**
+     * Verifica se algum menu está ativo (principal ou submenu). Usado para determinar se eventos
+     * DPAD devem ser interceptados.
+     *
+     * @return true se há um fragmento registrado, false caso contrário
+     */
+    fun isMenuActive(): Boolean {
+        val hasFragment = currentFragment != null
+        android.util.Log.d(TAG, "isMenuActive: hasFragment=$hasFragment")
+        return hasFragment
     }
 
     /**

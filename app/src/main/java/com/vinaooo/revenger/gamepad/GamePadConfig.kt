@@ -30,28 +30,6 @@ class GamePadConfig(context: Context, private val resources: Resources) {
 
                 val BUTTON_Y = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_Y, label = "Y")
 
-                // PlayStation button symbols with vector icons
-                val BUTTON_PS_TRIANGLE =
-                        ButtonConfig(
-                                id = KeyEvent.KEYCODE_BUTTON_Y,
-                                iconId = R.drawable.ic_ps_triangle
-                        )
-                val BUTTON_PS_CIRCLE =
-                        ButtonConfig(
-                                id = KeyEvent.KEYCODE_BUTTON_B,
-                                iconId = R.drawable.ic_ps_circle
-                        )
-                val BUTTON_PS_CROSS =
-                        ButtonConfig(
-                                id = KeyEvent.KEYCODE_BUTTON_A,
-                                iconId = R.drawable.ic_ps_cross
-                        )
-                val BUTTON_PS_SQUARE =
-                        ButtonConfig(
-                                id = KeyEvent.KEYCODE_BUTTON_X,
-                                iconId = R.drawable.ic_ps_square
-                        )
-
                 // Fake buttons for filling empty sockets
                 val BUTTON_F1 = ButtonConfig(id = -1, label = "0")
                 val BUTTON_F2 = ButtonConfig(id = -2, label = "1")
@@ -76,40 +54,14 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                 ContextCompat.getColor(context, R.color.gamepad_pressed_color)
                 )
 
+        // Xbox layout only: Top=Y, Bottom=A, Left=X, Right=B
         private fun getActionButtonsInOrder(): List<ButtonConfig> {
-                val actionButtonStyle = resources.getInteger(R.integer.config_action_button)
-
-                return when (actionButtonStyle) {
-                        1 -> // Nintendo: Top=B, Bottom=X, Left=Y, Right=A (bottom/top swapped)
-                        listOfNotNull(
-                                        BUTTON_A, // Right - always visible
-                                        BUTTON_X, // Bottom - swapped with top
-                                        BUTTON_Y, // Left - always visible
-                                        BUTTON_B // Top - swapped with bottom
-                                )
-                        2 -> // Xbox: Top=A, Bottom=Y, Left=X, Right=B (top/bottom swapped)
-                        listOfNotNull(
-                                        BUTTON_B, // Right - always visible
-                                        BUTTON_Y, // Bottom - swapped with top
-                                        BUTTON_X, // Left - always visible
-                                        BUTTON_A // Top - swapped with bottom
-                                )
-                        3 -> // PlayStation: Top=×, Bottom=△, Left=□, Right=○ (Triangle on bottom, X
-                                // on top)
-                                listOfNotNull(
-                                        BUTTON_PS_CIRCLE, // Right (○) - always visible
-                                        BUTTON_PS_TRIANGLE, // Bottom (△) - always visible
-                                        BUTTON_PS_SQUARE, // Left (□) - always visible
-                                        BUTTON_PS_CROSS // Top (×) - always visible
-                                )
-                        else -> // Default to Nintendo: Top=X, Bottom=B, Left=Y, Right=A
-                        listOfNotNull(
-                                        BUTTON_A, // Right - always visible
-                                        BUTTON_B, // Bottom - always visible
-                                        BUTTON_Y, // Left - always visible
-                                        BUTTON_X // Top - always visible
-                                )
-                }
+                return listOfNotNull(
+                        BUTTON_B, // Right
+                        BUTTON_A, // Bottom
+                        BUTTON_X, // Left
+                        BUTTON_Y  // Top
+                )
         }
 
         val left =
