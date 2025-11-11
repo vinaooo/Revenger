@@ -202,7 +202,8 @@ class ExitFragment : MenuFragmentBase() {
             // A) Close menu first - REMOVED: NavigationController handles menu dismissal
             // viewModel.dismissAllMenus()
 
-            // B) Restore frameSpeed to correct value from sharedPreferences - REMOVED: NavigationController handles speed restoration
+            // B) Restore frameSpeed to correct value from sharedPreferences - REMOVED:
+            // NavigationController handles speed restoration
             // viewModel.restoreGameSpeedFromPreferences()
 
             // C) Apply existing functionality (save state and exit)
@@ -219,7 +220,8 @@ class ExitFragment : MenuFragmentBase() {
             // A) Close menu first - REMOVED: NavigationController handles menu dismissal
             // viewModel.dismissAllMenus()
 
-            // B) Restore frameSpeed to correct value from sharedPreferences - REMOVED: NavigationController handles speed restoration
+            // B) Restore frameSpeed to correct value from sharedPreferences - REMOVED:
+            // NavigationController handles speed restoration
             // viewModel.restoreGameSpeedFromPreferences()
 
             // C) Apply existing functionality (exit without saving)

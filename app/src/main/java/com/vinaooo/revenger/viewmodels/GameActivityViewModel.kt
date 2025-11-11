@@ -243,6 +243,15 @@ class GameActivityViewModel(application: Application) :
         // Set the callback to check if SELECT+START combo should work
         controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
 
+        // Set the callback for SELECT+START combo to open menu via NavigationController
+        controllerInput.selectStartComboCallback = {
+            navigationController?.handleNavigationEvent(
+                com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
+                    inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
+                )
+            )
+        }
+
         // Set the callback to check if gamepad menu button should work
         controllerInput.shouldHandleGamepadMenuButton = { shouldHandleGamepadMenuButton() }
     }
@@ -1592,9 +1601,11 @@ class GameActivityViewModel(application: Application) :
             com.vinaooo.revenger.ui.retromenu3.MenuEvent.MenuClosed -> {
                 // Handle complete menu closure - delegate to NavigationController
                 navigationController?.handleNavigationEvent(
-                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
-                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
-                    )
+                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
+                                inputSource =
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                                .PHYSICAL_GAMEPAD
+                        )
                 )
             }
             // Navigation events are handled by the fragments themselves, not by the ViewModel
