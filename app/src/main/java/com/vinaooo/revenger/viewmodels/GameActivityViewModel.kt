@@ -293,6 +293,9 @@ class GameActivityViewModel(application: Application) :
                 // Limpar botões de menu do keyLog para evitar "wasAlreadyPressed" bugs
                 controllerInput.clearMenuActionButtons()
 
+                // Reset combo state to allow SELECT+START to work again after menu closes
+                controllerInput.resetComboAlreadyTriggered()
+
                 // Grace period: Manter interceptação ativa por 200ms após menu fechar
                 // 200ms cobre o delay de ~150ms do hardware entre ACTION_DOWN e ACTION_UP
                 // Identificado via logs: UP chega 150ms depois, 50ms era insuficiente
