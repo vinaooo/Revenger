@@ -836,7 +836,7 @@ class GameActivity : FragmentActivity() {
                         object : OnBackPressedCallback(true) {
                                 override fun handleOnBackPressed() {
                                         // PHASE 3.4a: Route Android system back through
-                                        // NavigationController
+                                        // NavigationController (permanently enabled)
                                         Log.d(
                                                 TAG,
                                                 "[BACK] PHASE 3: Routing Android back through NavigationController"
@@ -891,13 +891,63 @@ class GameActivity : FragmentActivity() {
                                                         isEnabled = false
                                                         onBackPressedDispatcher.onBackPressed()
                                                 }
+=======
+                                        // If menu is open, navigate back through controller
+                                        if (viewModel.isAnyMenuActive()) {
+                                                viewModel.navigationController
+                                                        ?.handleNavigationEvent(
+                                                                com.vinaooo.revenger.ui
+                                                                        .retromenu3
+                                                                        .navigation
+                                                                        .NavigationEvent
+                                                                        .NavigateBack(
+                                                                                inputSource =
+                                                                                        com.vinaooo
+                                                                                                .revenger
+                                                                                                .ui
+                                                                                                .retromenu3
+                                                                                                .navigation
+                                                                                                .InputSource
+                                                                                                .SYSTEM_BACK,
+                                                                                keyCode =
+                                                                                        android.view
+                                                                                                .KeyEvent
+                                                                                                .KEYCODE_BACK
+                                                                        )
+                                                        )
+                                        }
+                                        // If menu is not open, check if back should open
+                                        // menu
+                                        else if (viewModel.shouldHandleBackButton()) {
+                                                viewModel.navigationController
+                                                        ?.handleNavigationEvent(
+                                                                com.vinaooo.revenger.ui
+                                                                        .retromenu3
+                                                                        .navigation
+                                                                        .NavigationEvent
+                                                                        .OpenMenu(
+                                                                                inputSource =
+                                                                                        com.vinaooo
+                                                                                                .revenger
+                                                                                                .ui
+                                                                                                .retromenu3
+                                                                                                .navigation
+                                                                                                .InputSource
+                                                                                                .SYSTEM_BACK
+                                                                        )
+                                                        )
+                                        } else {
+                                                // Use default back button behavior
+                                                isEnabled = false
+                                                onBackPressedDispatcher.onBackPressed()
+>>>>>>> 858bd3f (Phase 5.1c: Remove USE_NEW_NAVIGATION_SYSTEM conditionals from GameActivity.kt)
                                         }
                                 }
                         }
                 )
         }
 
-        // PHASE 3: Save/restore navigation state during rotation
+        // PHASE 3: Save/restore navigation state during rotation (permanently enabled)
         override fun onSaveInstanceState(outState: Bundle) {
                 super.onSaveInstanceState(outState)
                 viewModel.navigationController?.saveState(outState)

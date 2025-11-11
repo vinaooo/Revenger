@@ -18,8 +18,8 @@ object FeatureFlags {
      * - Teclado físico
      * - Navegação mista sem conflitos
      *
-     * **VALIDADO**: Phase 4 completa - todos os testes passaram.
-     * **CLEANUP**: Phase 5 irá remover todas as condicionais desta flag.
+     * **VALIDADO**: Phase 4 completa - todos os testes passaram. **CLEANUP**: Phase 5 irá remover
+     * todas as condicionais desta flag.
      */
     const val USE_NEW_NAVIGATION_SYSTEM = true
 

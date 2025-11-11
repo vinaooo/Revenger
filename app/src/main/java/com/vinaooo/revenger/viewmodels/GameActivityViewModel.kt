@@ -249,7 +249,8 @@ class GameActivityViewModel(application: Application) :
 
     /** Configure menu callback with activity reference */
     fun setupMenuCallback(activity: FragmentActivity) {
-        // PHASE 3.1a: Initialize NavigationController (permanently enabled after Phase 4 validation)
+        // PHASE 3.1a: Initialize NavigationController (permanently enabled after Phase 4
+        // validation)
         if (navigationController == null) {
             navigationController = NavigationController(activity)
 
@@ -321,20 +322,19 @@ class GameActivityViewModel(application: Application) :
                         "[MENU_BUTTON] Closing ALL menus directly with NavigationController"
                 )
                 navigationController?.handleNavigationEvent(
-                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
-                                .CloseAllMenus(
-                                        inputSource =
-                                                com.vinaooo.revenger.ui.retromenu3.navigation
-                                                        .InputSource.PHYSICAL_GAMEPAD
-                                )
+                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
+                                inputSource =
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                                .PHYSICAL_GAMEPAD
+                        )
                 )
             } else {
                 // PHASE 3: Use NavigationController to open menu (permanently enabled)
                 navigationController?.handleNavigationEvent(
                         com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
                                 inputSource =
-                                        com.vinaooo.revenger.ui.retromenu3.navigation
-                                                .InputSource.PHYSICAL_GAMEPAD
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                                .PHYSICAL_GAMEPAD
                         )
                 )
             }
@@ -344,8 +344,7 @@ class GameActivityViewModel(application: Application) :
         controllerInput.menuNavigateUpCallback = {
             navigationController?.handleNavigationEvent(
                     com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
-                            direction =
-                                    com.vinaooo.revenger.ui.retromenu3.navigation.Direction.UP,
+                            direction = com.vinaooo.revenger.ui.retromenu3.navigation.Direction.UP,
                             inputSource =
                                     com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
                                             .PHYSICAL_GAMEPAD
@@ -357,8 +356,7 @@ class GameActivityViewModel(application: Application) :
             navigationController?.handleNavigationEvent(
                     com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
                             direction =
-                                    com.vinaooo.revenger.ui.retromenu3.navigation.Direction
-                                            .DOWN,
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.Direction.DOWN,
                             inputSource =
                                     com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
                                             .PHYSICAL_GAMEPAD
@@ -368,12 +366,11 @@ class GameActivityViewModel(application: Application) :
 
         controllerInput.menuConfirmCallback = {
             navigationController?.handleNavigationEvent(
-                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
-                            .ActivateSelected(
-                                    inputSource =
-                                            com.vinaooo.revenger.ui.retromenu3.navigation
-                                                    .InputSource.PHYSICAL_GAMEPAD
-                            )
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.ActivateSelected(
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
             )
         }
 
