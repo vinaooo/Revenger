@@ -113,9 +113,6 @@ class NavigationController(private val activity: FragmentActivity) {
     /** Navega para o item acima (UP). */
     fun navigateUp() {
         if (isNavigating) {
-            if (FeatureFlags.DEBUG_NAVIGATION) {
-                android.util.Log.d(TAG, "Navigation in progress, ignoring UP")
-            }
             return
         }
 
@@ -128,13 +125,6 @@ class NavigationController(private val activity: FragmentActivity) {
 
             // Sync selectedItemIndex with fragment's current selection
             selectedItemIndex = currentFragment?.getCurrentSelectedIndex() ?: 0
-
-            if (FeatureFlags.DEBUG_NAVIGATION) {
-                android.util.Log.d(
-                        TAG,
-                        "Navigate UP: selectedItemIndex now at $selectedItemIndex (menu: $currentMenu)"
-                )
-            }
         } finally {
             isNavigating = false
         }
@@ -143,9 +133,6 @@ class NavigationController(private val activity: FragmentActivity) {
     /** Navega para o item abaixo (DOWN). */
     fun navigateDown() {
         if (isNavigating) {
-            if (FeatureFlags.DEBUG_NAVIGATION) {
-                android.util.Log.d(TAG, "Navigation in progress, ignoring DOWN")
-            }
             return
         }
 
@@ -158,13 +145,6 @@ class NavigationController(private val activity: FragmentActivity) {
 
             // Sync selectedItemIndex with fragment's current selection
             selectedItemIndex = currentFragment?.getCurrentSelectedIndex() ?: 0
-
-            if (FeatureFlags.DEBUG_NAVIGATION) {
-                android.util.Log.d(
-                        TAG,
-                        "Navigate DOWN: selectedItemIndex now at $selectedItemIndex (menu: $currentMenu)"
-                )
-            }
         } finally {
             isNavigating = false
         }
@@ -177,7 +157,6 @@ class NavigationController(private val activity: FragmentActivity) {
      */
     fun selectItem(index: Int) {
         if (isNavigating) {
-            android.util.Log.d(TAG, "Navigation in progress, ignoring select $index")
             return
         }
 
@@ -189,13 +168,7 @@ class NavigationController(private val activity: FragmentActivity) {
         isNavigating = true
 
         try {
-            val previousIndex = selectedItemIndex
             selectedItemIndex = index
-
-            android.util.Log.d(
-                    TAG,
-                    "Select item: $previousIndex -> $selectedItemIndex (menu: $currentMenu)"
-            )
 
             updateSelectionVisual()
         } finally {

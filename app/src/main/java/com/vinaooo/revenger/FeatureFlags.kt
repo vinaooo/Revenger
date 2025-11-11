@@ -33,5 +33,5 @@ object FeatureFlags {
      *
      * **IMPORTANTE**: Manter `false` em produção para melhor performance.
      */
-    const val DEBUG_NAVIGATION = true // TEMP: Enabled for Phase 4 keyboard debugging
+    const val DEBUG_NAVIGATION = false
 }

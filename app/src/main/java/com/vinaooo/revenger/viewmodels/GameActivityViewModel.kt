@@ -14,7 +14,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.swordfish.radialgamepad.library.event.Event
-import com.vinaooo.revenger.FeatureFlags
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.controllers.AudioController
 import com.vinaooo.revenger.controllers.ShaderController
@@ -251,14 +250,8 @@ class GameActivityViewModel(application: Application) :
     /** Configure menu callback with activity reference */
     fun setupMenuCallback(activity: FragmentActivity) {
         // PHASE 3.1a: Initialize NavigationController if new system is enabled (only once!)
-        if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM && navigationController == null) {
+        if (navigationController == null) {
             navigationController = NavigationController(activity)
-            if (FeatureFlags.DEBUG_NAVIGATION) {
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[PHASE3] NavigationController initialized"
-                )
-            }
 
             // PHASE 4.1c: Initialize KeyboardInputAdapter
             keyboardInputAdapter =
@@ -266,12 +259,6 @@ class GameActivityViewModel(application: Application) :
                             navigationController!!,
                             { isAnyMenuActive() }
                     )
-            if (FeatureFlags.DEBUG_NAVIGATION) {
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[PHASE4] KeyboardInputAdapter initialized with menu state callback"
-                )
-            }
 
             // PHASE 3.2b: Configurar callbacks para pausar/resumir o jogo
             navigationController?.onMenuOpenedCallback = {
@@ -299,37 +286,31 @@ class GameActivityViewModel(application: Application) :
 
         // Configure RetroMenu3 callback for SELECT+START combo
         controllerInput.selectStartComboCallback = {
-            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                // PHASE 3: Use NavigationController to open menu
-                navigationController?.handleNavigationEvent(
-                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
-                                inputSource =
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
-                                                .PHYSICAL_GAMEPAD
-                        )
-                )
-            } else {
-                showRetroMenu3(activity)
-            }
+            // PHASE 3: Use NavigationController to open menu
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
         }
 
         // Configure START button callback to close ALL menus directly (not step by step)
         controllerInput.startButtonCallback = {
-            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                // PHASE 3.4a: Use CloseAllMenus to exit directly to game
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[START_BUTTON] Closing ALL menus directly with NavigationController"
-                )
-                navigationController?.handleNavigationEvent(
-                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
-                                inputSource =
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
-                                                .PHYSICAL_GAMEPAD
-                        )
-                )
-            } else {
-                dismissAllMenus()
+            // PHASE 3.4a: Use CloseAllMenus to exit directly to game
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[START_BUTTON] Closing ALL menus directly with NavigationController"
+            )
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
+        }
             }
         }
 
@@ -337,100 +318,76 @@ class GameActivityViewModel(application: Application) :
         controllerInput.gamepadMenuButtonCallback = {
             if (isAnyMenuActive()) {
                 // PHASE 3.4a: Use CloseAllMenus to exit directly to game
-                if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                    android.util.Log.d(
-                            "GameActivityViewModel",
-                            "[MENU_BUTTON] Closing ALL menus directly with NavigationController"
-                    )
-                    navigationController?.handleNavigationEvent(
-                            com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
-                                    .CloseAllMenus(
-                                            inputSource =
-                                                    com.vinaooo.revenger.ui.retromenu3.navigation
-                                                            .InputSource.PHYSICAL_GAMEPAD
-                                    )
-                    )
-                } else {
-                    dismissAllMenus()
-                }
-            } else {
-                if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                    // PHASE 3: Use NavigationController to open menu
-                    navigationController?.handleNavigationEvent(
-                            com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
-                                    inputSource =
-                                            com.vinaooo.revenger.ui.retromenu3.navigation
-                                                    .InputSource.PHYSICAL_GAMEPAD
-                            )
-                    )
-                } else {
-                    showRetroMenu3(activity)
-                }
-            }
-        }
-
-        // PHASE 3.1b: Configure navigation callbacks with feature flag routing
-        controllerInput.menuNavigateUpCallback = {
-            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                navigationController?.handleNavigationEvent(
-                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
-                                direction =
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.Direction.UP,
-                                inputSource =
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
-                                                .PHYSICAL_GAMEPAD
-                        )
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[MENU_BUTTON] Closing ALL menus directly with NavigationController"
                 )
-            } else {
-                menuManager.sendNavigateUp()
-            }
-        }
-
-        controllerInput.menuNavigateDownCallback = {
-            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                navigationController?.handleNavigationEvent(
-                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
-                                direction =
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.Direction
-                                                .DOWN,
-                                inputSource =
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
-                                                .PHYSICAL_GAMEPAD
-                        )
-                )
-            } else {
-                menuManager.sendNavigateDown()
-            }
-        }
-
-        controllerInput.menuConfirmCallback = {
-            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
                 navigationController?.handleNavigationEvent(
                         com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
-                                .ActivateSelected(
+                                .CloseAllMenus(
                                         inputSource =
                                                 com.vinaooo.revenger.ui.retromenu3.navigation
                                                         .InputSource.PHYSICAL_GAMEPAD
                                 )
                 )
             } else {
-                menuManager.sendConfirm()
+                // PHASE 3: Use NavigationController to open menu
+                navigationController?.handleNavigationEvent(
+                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
+                                inputSource =
+                                        com.vinaooo.revenger.ui.retromenu3.navigation
+                                                .InputSource.PHYSICAL_GAMEPAD
+                        )
+                )
+            }
             }
         }
 
+        // PHASE 3.1b: Configure navigation callbacks with feature flag routing
+        controllerInput.menuNavigateUpCallback = {
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                            direction =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.Direction.UP,
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
+        }
+
+        controllerInput.menuNavigateDownCallback = {
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                            direction =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.Direction
+                                            .DOWN,
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
+        }
+
+        controllerInput.menuConfirmCallback = {
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
+                            .ActivateSelected(
+                                    inputSource =
+                                            com.vinaooo.revenger.ui.retromenu3.navigation
+                                                    .InputSource.PHYSICAL_GAMEPAD
+                            )
+            )
+        }
+
         controllerInput.menuBackCallback = {
-            if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                navigationController?.handleNavigationEvent(
-                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.NavigateBack(
-                                inputSource =
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
-                                                .PHYSICAL_GAMEPAD
-                        )
-                )
-            } else {
-                // Always delegate BACK handling to MenuManager - it will handle submenus properly
-                menuManager.sendBack()
-            }
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.NavigateBack(
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
         }
 
         // Control when to intercept DPAD for menu
@@ -458,13 +415,6 @@ class GameActivityViewModel(application: Application) :
             val dismissingAll = isDismissingAllMenus()
             val fragmentDismissing = retroMenu3Fragment?.isDismissingMenu() == true
             val result = !dismissingAll && !fragmentDismissing
-
-            if (FeatureFlags.DEBUG_NAVIGATION) {
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[SAFE] check: dismissingAll=$dismissingAll, fragmentDismissing=$fragmentDismissing, result=$result"
-                )
-            }
 
             result
         }
@@ -647,7 +597,7 @@ class GameActivityViewModel(application: Application) :
         )
 
         // PHASE 3: Use NavigationController for menu detection when new system is active
-        if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM && navigationController != null) {
+        if (navigationController != null) {
             val navControllerActive = navigationController!!.isMenuActive()
             android.util.Log.d(
                     "GameActivityViewModel",
@@ -1502,11 +1452,11 @@ class GameActivityViewModel(application: Application) :
         // DEBUG: Log ALL key events to diagnose Backspace issue
         android.util.Log.d(
                 "GameActivityViewModel",
-                "[KEY-EVENT] keyCode=$keyCode, action=${event.action}, isNavigationSystem=${FeatureFlags.USE_NEW_NAVIGATION_SYSTEM}"
+                "[KEY-EVENT] keyCode=$keyCode, action=${event.action}, isNavigationSystem=true"
         )
 
         // PHASE 4.1c: If keyboard navigation is enabled, check for keyboard input
-        if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM && keyboardInputAdapter != null) {
+        if (keyboardInputAdapter != null) {
             // Check if this is a navigation key
             if (keyboardInputAdapter!!.isNavigationKey(keyCode)) {
                 // PHASE 4.2c: Allow F12 even when menu is closed (to open menu)
