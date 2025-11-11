@@ -199,11 +199,11 @@ class ExitFragment : MenuFragmentBase() {
     private fun setupLegacyClickListeners() {
         saveAndExit.setOnClickListener {
             // Save and Exit - Close menu, restore frameSpeed, then save and exit
-            // A) Close menu first
-            viewModel.dismissAllMenus()
+            // A) Close menu first - REMOVED: NavigationController handles menu dismissal
+            // viewModel.dismissAllMenus()
 
-            // B) Restore frameSpeed to correct value from sharedPreferences
-            viewModel.restoreGameSpeedFromPreferences()
+            // B) Restore frameSpeed to correct value from sharedPreferences - REMOVED: NavigationController handles speed restoration
+            // viewModel.restoreGameSpeedFromPreferences()
 
             // C) Apply existing functionality (save state and exit)
             viewModel.saveStateCentralized(
@@ -216,11 +216,11 @@ class ExitFragment : MenuFragmentBase() {
 
         exitWithoutSave.setOnClickListener {
             // Exit without Save - Close menu, restore frameSpeed, then exit without saving
-            // A) Close menu first
-            viewModel.dismissAllMenus()
+            // A) Close menu first - REMOVED: NavigationController handles menu dismissal
+            // viewModel.dismissAllMenus()
 
-            // B) Restore frameSpeed to correct value from sharedPreferences
-            viewModel.restoreGameSpeedFromPreferences()
+            // B) Restore frameSpeed to correct value from sharedPreferences - REMOVED: NavigationController handles speed restoration
+            // viewModel.restoreGameSpeedFromPreferences()
 
             // C) Apply existing functionality (exit without saving)
             android.os.Process.killProcess(android.os.Process.myPid())
@@ -268,8 +268,9 @@ class ExitFragment : MenuFragmentBase() {
             0 -> {
                 // Save and Exit - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Save and Exit selected")
-                viewModel.dismissAllMenus()
-                viewModel.restoreGameSpeedFromPreferences()
+                // REMOVED: NavigationController handles menu dismissal and speed restoration
+                // viewModel.dismissAllMenus()
+                // viewModel.restoreGameSpeedFromPreferences()
                 viewModel.saveStateCentralized(
                         onComplete = { android.os.Process.killProcess(android.os.Process.myPid()) }
                 )
@@ -277,8 +278,9 @@ class ExitFragment : MenuFragmentBase() {
             1 -> {
                 // Exit without Save - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Exit without Save selected")
-                viewModel.dismissAllMenus()
-                viewModel.restoreGameSpeedFromPreferences()
+                // REMOVED: NavigationController handles menu dismissal and speed restoration
+                // viewModel.dismissAllMenus()
+                // viewModel.restoreGameSpeedFromPreferences()
                 android.os.Process.killProcess(android.os.Process.myPid())
             }
             2 -> {

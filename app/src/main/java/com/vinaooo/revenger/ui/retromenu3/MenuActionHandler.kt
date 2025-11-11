@@ -81,13 +81,13 @@ class MenuActionHandler(
 
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] Calling restoreGameSpeedFromPreferences()"
+                                "🔥 [EXECUTE_CONTINUE] REMOVED: restoreGameSpeedFromPreferences() - NavigationController handles speed restoration"
                         )
-                        // Set frameSpeed to correct value from Game Speed sharedPreference
-                        viewModel.restoreGameSpeedFromPreferences()
+                        // REMOVED: NavigationController handles speed restoration
+                        // viewModel.restoreGameSpeedFromPreferences()
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] restoreGameSpeedFromPreferences() completed"
+                                "🔥 [EXECUTE_CONTINUE] Speed restoration handled by NavigationController"
                         )
 
                         android.util.Log.d(
@@ -146,13 +146,13 @@ class MenuActionHandler(
 
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] Calling restoreGameSpeedFromPreferences()"
+                                "🔥 [EXECUTE_RESET] REMOVED: restoreGameSpeedFromPreferences() - NavigationController handles speed restoration"
                         )
-                        // Set frameSpeed to correct value from Game Speed sharedPreference
-                        viewModel.restoreGameSpeedFromPreferences()
+                        // REMOVED: NavigationController handles speed restoration
+                        // viewModel.restoreGameSpeedFromPreferences()
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] restoreGameSpeedFromPreferences() completed"
+                                "🔥 [EXECUTE_RESET] Speed restoration handled by NavigationController"
                         )
 
                         android.util.Log.d(

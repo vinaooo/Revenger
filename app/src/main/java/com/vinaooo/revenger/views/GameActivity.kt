@@ -896,10 +896,8 @@ class GameActivity : FragmentActivity() {
                                         if (viewModel.isAnyMenuActive()) {
                                                 viewModel.navigationController
                                                         ?.handleNavigationEvent(
-                                                                com.vinaooo.revenger.ui
-                                                                        .retromenu3
-                                                                        .navigation
-                                                                        .NavigationEvent
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .navigation.NavigationEvent
                                                                         .NavigateBack(
                                                                                 inputSource =
                                                                                         com.vinaooo
@@ -921,10 +919,8 @@ class GameActivity : FragmentActivity() {
                                         else if (viewModel.shouldHandleBackButton()) {
                                                 viewModel.navigationController
                                                         ?.handleNavigationEvent(
-                                                                com.vinaooo.revenger.ui
-                                                                        .retromenu3
-                                                                        .navigation
-                                                                        .NavigationEvent
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .navigation.NavigationEvent
                                                                         .OpenMenu(
                                                                                 inputSource =
                                                                                         com.vinaooo

@@ -285,33 +285,7 @@ class GameActivityViewModel(application: Application) :
             }
         }
 
-        // Configure RetroMenu3 callback for SELECT+START combo
-        controllerInput.selectStartComboCallback = {
-            // PHASE 3: Use NavigationController to open menu (permanently enabled)
-            navigationController?.handleNavigationEvent(
-                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
-                            inputSource =
-                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
-                                            .PHYSICAL_GAMEPAD
-                    )
-            )
-        }
-
-        // Configure START button callback to close ALL menus directly (not step by step)
-        controllerInput.startButtonCallback = {
-            // PHASE 3.4a: Use CloseAllMenus to exit directly to game (permanently enabled)
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[START_BUTTON] Closing ALL menus directly with NavigationController"
-            )
-            navigationController?.handleNavigationEvent(
-                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
-                            inputSource =
-                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
-                                            .PHYSICAL_GAMEPAD
-                    )
-            )
-        }
+        // REMOVED: Legacy callback configurations - NavigationController handles all navigation now
 
         // Configure gamepad menu button callback to toggle menu
         controllerInput.gamepadMenuButtonCallback = {
@@ -467,36 +441,7 @@ class GameActivityViewModel(application: Application) :
         gamePadContainerView = container
     }
 
-    /** Show the RetroMenu3 (activated by SELECT+START combo) */
-    fun showRetroMenu3(activity: FragmentActivity) {
-        // CRITICAL: Prevent multiple calls if menu is already open
-        if (isRetroMenu3Open()) {
-            return
-        }
-
-        // Verificar se temos o container do menu
-        val containerId = menuContainerView?.id ?: R.id.menu_container
-
-        if (retroView?.frameRendered?.value == true) {
-            retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
-
-            // PAUSE the game when menu opens
-            retroView?.let { speedController?.pause(it.view) }
-
-            // Show RetroMenu3
-            retroMenu3Fragment?.let { menu ->
-                if (!menu.isAdded) {
-                    activity.supportFragmentManager
-                            .beginTransaction()
-                            .add(containerId, menu, RetroMenu3Fragment::class.java.simpleName)
-                            .commitAllowingStateLoss()
-                }
-
-                // Set MenuManager to MAIN_MENU state when RetroMenu3 is shown
-                menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
-            }
-        }
-    }
+    // REMOVED: showRetroMenu3() - NavigationController handles menu opening now
 
     /** Dismiss the RetroMenu3 */
     fun dismissRetroMenu3(onAnimationEnd: (() -> Unit)? = null) {
@@ -824,144 +769,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Dismiss ALL menus in cascade order (submenus first, then main menu) */
-    fun dismissAllMenus(onAnimationEnd: (() -> Unit)? = null) {
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[DISMISS_ALL] dismissAllMenus: Starting cascade dismissal"
-        )
-
-        // CRITICAL: Reset comboAlreadyTriggered IMMEDIATELY when menu dismissal starts
-        // This prevents the flag from staying true and blocking future combo detection
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[DISMISS_ALL] dismissAllMenus: Resetting comboAlreadyTriggered immediately"
-        )
-        controllerInput.resetComboAlreadyTriggered()
-
-        // Set flag to prevent showing main menu when submenus are dismissed
-        setDismissingAllMenus(true)
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[DISMISS_ALL] dismissAllMenus: Set isDismissingAllMenus = true"
-        )
-
-        // Dismiss submenus first (in reverse order of opening)
-        if (isExitActive()) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Dismissing Exit submenu"
-            )
-            dismissExit()
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Exit submenu dismissed"
-            )
-        }
-        if (isAboutActive()) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Dismissing About submenu"
-            )
-            dismissAboutMenu()
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: About submenu dismissed"
-            )
-        }
-        if (isProgressActive()) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Dismissing Progress submenu"
-            )
-            dismissProgress()
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Progress submenu dismissed"
-            )
-        }
-        if (isSettingsMenuActive()) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Dismissing Settings submenu"
-            )
-            dismissSettingsMenu()
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Settings submenu dismissed"
-            )
-        }
-
-        // Finally dismiss the main RetroMenu3 with callback
-        if (isRetroMenu3Open()) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Dismissing main RetroMenu3 with callback"
-            )
-            dismissRetroMenu3 {
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[DISMISS_ALL] Animation completed - restoring game speed"
-                )
-                // Restore game speed from sharedpreferences when exiting menu with Start
-                restoreGameSpeedFromPreferences()
-
-                // Reset flag after all menus are dismissed
-                setDismissingAllMenus(false)
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[DISMISS_ALL] dismissAllMenus: Reset isDismissingAllMenus = false"
-                )
-
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[DISMISS_ALL] dismissAllMenus: Cascade dismissal completed"
-                )
-
-                // Execute callback after animation and speed restoration
-                onAnimationEnd?.invoke()
-            }
-        } else {
-            // If no main menu is open, just restore speed and reset flag immediately
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] No main menu open - restoring game speed immediately"
-            )
-            // Restore game speed from sharedpreferences when exiting menu with Start
-            restoreGameSpeedFromPreferences()
-
-            // Reset flag after all menus are dismissed
-            setDismissingAllMenus(false)
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Reset isDismissingAllMenus = false"
-            )
-
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[DISMISS_ALL] dismissAllMenus: Cascade dismissal completed"
-            )
-
-            // Execute callback
-            onAnimationEnd?.invoke()
-        }
-    }
-
-    /** Restore game speed from sharedpreferences when exiting menu with Start */
-    fun restoreGameSpeedFromPreferences() {
-        retroView?.let { retroView ->
-            // Get saved game speed from sharedpreferences
-            val savedSpeed =
-                    sharedPreferences?.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) ?: 1
-
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "restoreGameSpeedFromPreferences: Setting frameSpeed to $savedSpeed"
-            )
-
-            // Apply the saved speed (1 for Normal, 2+ for Fast)
-            retroView.view.frameSpeed = savedSpeed
-        }
-    }
+    // REMOVED: dismissAllMenus() - NavigationController handles menu dismissal now
 
     /** Register the SettingsMenuFragment when it's created */
     fun registerSettingsMenuFragment(fragment: SettingsMenuFragment) {
@@ -1782,8 +1590,12 @@ class GameActivityViewModel(application: Application) :
                 )
             }
             com.vinaooo.revenger.ui.retromenu3.MenuEvent.MenuClosed -> {
-                // Handle complete menu closure
-                dismissAllMenus()
+                // Handle complete menu closure - delegate to NavigationController
+                navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
+                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
+                    )
+                )
             }
             // Navigation events are handled by the fragments themselves, not by the ViewModel
             com.vinaooo.revenger.ui.retromenu3.MenuEvent.NavigateUp -> {
