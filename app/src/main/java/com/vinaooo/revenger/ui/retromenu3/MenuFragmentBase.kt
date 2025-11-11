@@ -74,6 +74,14 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         val menuItems = getMenuItems()
         if (index in 0 until menuItems.size) {
             _currentSelectedIndex = index
+
+            // PHASE 4: Log quando item do menu é selecionado (amarelo)
+            val itemTitle = if (index < menuItems.size) menuItems[index].title else "UNKNOWN"
+            android.util.Log.d(
+                    "MenuBase",
+                    "[MENU-SELECTION] ✅ Item selected (YELLOW): index=$index, title='$itemTitle'"
+            )
+
             updateSelectionVisualInternal()
         } else {
             android.util.Log.w(

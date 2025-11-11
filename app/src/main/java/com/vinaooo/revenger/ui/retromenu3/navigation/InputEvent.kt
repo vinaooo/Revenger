@@ -92,8 +92,8 @@ sealed class NavigationEvent {
          * - Usuário pressiona START (quando menu está aberto) → CloseAllMenus
          * - Usuário pressiona botão Menu/Hamburguer (quando menu está aberto) → CloseAllMenus
          *
-         * Este evento difere de NavigateBack, que volta um passo de cada vez (submenu → main → jogo).
-         * CloseAllMenus fecha tudo diretamente (qualquer menu → jogo).
+         * Este evento difere de NavigateBack, que volta um passo de cada vez (submenu → main →
+         * jogo). CloseAllMenus fecha tudo diretamente (qualquer menu → jogo).
          */
         data class CloseAllMenus(
                 val keyCode: Int? = null,

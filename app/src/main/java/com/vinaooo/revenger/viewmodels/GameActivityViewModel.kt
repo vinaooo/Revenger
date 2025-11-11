@@ -64,6 +64,14 @@ class GameActivityViewModel(application: Application) :
      */
     internal var navigationController: NavigationController? = null
 
+    /**
+     * Keyboard input adapter for physical keyboard navigation (Phase 4). Translates KeyEvents into
+     * NavigationEvents for unified input handling.
+     */
+    internal var keyboardInputAdapter:
+            com.vinaooo.revenger.ui.retromenu3.navigation.KeyboardInputAdapter? =
+            null
+
     // ===== SHARED REFERENCES =====
     // These are shared between specialized ViewModels
 
@@ -249,6 +257,19 @@ class GameActivityViewModel(application: Application) :
                 android.util.Log.d(
                         "GameActivityViewModel",
                         "[PHASE3] NavigationController initialized"
+                )
+            }
+
+            // PHASE 4.1c: Initialize KeyboardInputAdapter
+            keyboardInputAdapter =
+                    com.vinaooo.revenger.ui.retromenu3.navigation.KeyboardInputAdapter(
+                            navigationController!!,
+                            { isAnyMenuActive() }
+                    )
+            if (FeatureFlags.DEBUG_NAVIGATION) {
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[PHASE4] KeyboardInputAdapter initialized with menu state callback"
                 )
             }
 
@@ -1478,7 +1499,47 @@ class GameActivityViewModel(application: Application) :
 
     /** Process a key event and return the result */
     fun processKeyEvent(keyCode: Int, event: KeyEvent): Boolean? {
-        // Process normally via ControllerInput
+        // DEBUG: Log ALL key events to diagnose Backspace issue
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[KEY-EVENT] keyCode=$keyCode, action=${event.action}, isNavigationSystem=${FeatureFlags.USE_NEW_NAVIGATION_SYSTEM}"
+        )
+
+        // PHASE 4.1c: If keyboard navigation is enabled, check for keyboard input
+        if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM && keyboardInputAdapter != null) {
+            // Check if this is a navigation key
+            if (keyboardInputAdapter!!.isNavigationKey(keyCode)) {
+                // PHASE 4.2c: Allow F12 even when menu is closed (to open menu)
+                // But Backspace (DEL) only works when menu is OPEN (to navigate back)
+                val isMenuActive = isAnyMenuActive()
+                val shouldProcessKeyboard = isMenuActive || keyCode == KeyEvent.KEYCODE_F12
+
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[PHASE4] Navigation key check: keyCode=$keyCode, action=${event.action}, isMenuActive=$isMenuActive, shouldProcess=$shouldProcessKeyboard"
+                )
+
+                if (shouldProcessKeyboard) {
+                    android.util.Log.d(
+                            "GameActivityViewModel",
+                            "[PHASE4] Routing key event to KeyboardInputAdapter: keyCode=$keyCode, action=${event.action}"
+                    )
+                    // Route to keyboard adapter based on action type
+                    val consumed =
+                            when (event.action) {
+                                KeyEvent.ACTION_DOWN ->
+                                        keyboardInputAdapter!!.onKeyDown(keyCode, event)
+                                KeyEvent.ACTION_UP -> keyboardInputAdapter!!.onKeyUp(keyCode, event)
+                                else -> false
+                            }
+                    if (consumed) {
+                        return true // Event was consumed by menu navigation
+                    }
+                }
+            }
+        }
+
+        // Process normally via ControllerInput (for game inputs)
         retroView?.let {
             return controllerInput.processKeyEvent(keyCode, event, it)
         }

@@ -67,12 +67,16 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
         // Criar novo RetroMenu3Fragment
         val mainFragment = RetroMenu3Fragment.newInstance()
 
+        // BUGFIX: Usar commitNow() para garantir que fragment seja adicionado IMEDIATAMENTE
+        // Isso previne multiple F12 presses antes do fragment estar ativo
+        // commitAllowingStateLoss() é ASYNC - permite que isMenuActive() retorne false
+        // mesmo depois de "added successfully", causando pause/resume imbalance
         fragmentManager
                 .beginTransaction()
                 .add(MENU_CONTAINER_ID, mainFragment, TAG_MAIN_MENU)
-                .commitAllowingStateLoss()
+                .commitNow()
 
-        android.util.Log.d(TAG, "[SHOW] Main menu added successfully")
+        android.util.Log.d(TAG, "[SHOW] Main menu added successfully (synchronous)")
     }
 
     private fun showSettingsMenu() {

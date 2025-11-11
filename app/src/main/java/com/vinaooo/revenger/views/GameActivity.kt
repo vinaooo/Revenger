@@ -835,29 +835,60 @@ class GameActivity : FragmentActivity() {
                         this,
                         object : OnBackPressedCallback(true) {
                                 override fun handleOnBackPressed() {
-                                        // PHASE 3.4a: Route Android system back through NavigationController
-                                        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
+                                        // PHASE 3.4a: Route Android system back through
+                                        // NavigationController
+                                        if (com.vinaooo.revenger.FeatureFlags
+                                                        .USE_NEW_NAVIGATION_SYSTEM
+                                        ) {
                                                 Log.d(
                                                         TAG,
                                                         "[BACK] PHASE 3: Routing Android back through NavigationController"
                                                 )
-                                                
+
                                                 // If menu is open, navigate back through controller
                                                 if (viewModel.isAnyMenuActive()) {
-                                                        viewModel.navigationController?.handleNavigationEvent(
-                                                                com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.NavigateBack(
-                                                                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.SYSTEM_BACK,
-                                                                        keyCode = android.view.KeyEvent.KEYCODE_BACK
+                                                        viewModel.navigationController
+                                                                ?.handleNavigationEvent(
+                                                                        com.vinaooo.revenger.ui
+                                                                                .retromenu3
+                                                                                .navigation
+                                                                                .NavigationEvent
+                                                                                .NavigateBack(
+                                                                                        inputSource =
+                                                                                                com.vinaooo
+                                                                                                        .revenger
+                                                                                                        .ui
+                                                                                                        .retromenu3
+                                                                                                        .navigation
+                                                                                                        .InputSource
+                                                                                                        .SYSTEM_BACK,
+                                                                                        keyCode =
+                                                                                                android.view
+                                                                                                        .KeyEvent
+                                                                                                        .KEYCODE_BACK
+                                                                                )
                                                                 )
-                                                        )
                                                 }
-                                                // If menu is not open, check if back should open menu
+                                                // If menu is not open, check if back should open
+                                                // menu
                                                 else if (viewModel.shouldHandleBackButton()) {
-                                                        viewModel.navigationController?.handleNavigationEvent(
-                                                                com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
-                                                                        inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.SYSTEM_BACK
+                                                        viewModel.navigationController
+                                                                ?.handleNavigationEvent(
+                                                                        com.vinaooo.revenger.ui
+                                                                                .retromenu3
+                                                                                .navigation
+                                                                                .NavigationEvent
+                                                                                .OpenMenu(
+                                                                                        inputSource =
+                                                                                                com.vinaooo
+                                                                                                        .revenger
+                                                                                                        .ui
+                                                                                                        .retromenu3
+                                                                                                        .navigation
+                                                                                                        .InputSource
+                                                                                                        .SYSTEM_BACK
+                                                                                )
                                                                 )
-                                                        )
                                                 } else {
                                                         // Use default back button behavior
                                                         isEnabled = false
@@ -867,25 +898,31 @@ class GameActivity : FragmentActivity() {
                                                 // Old system: Original logic
                                                 // If menu is currently open
                                                 if (viewModel.isAnyMenuActive()) {
-                                                        // Check if we're in a submenu (has backstack)
+                                                        // Check if we're in a submenu (has
+                                                        // backstack)
                                                         val backStackCount =
-                                                                supportFragmentManager.backStackEntryCount
+                                                                supportFragmentManager
+                                                                        .backStackEntryCount
                                                         Log.d(
                                                                 TAG,
                                                                 "[BACK] Menu active, backstack count: $backStackCount"
                                                         )
 
                                                         if (backStackCount > 0) {
-                                                                // We're in a submenu - pop back to main menu
+                                                                // We're in a submenu - pop back to
+                                                                // main menu
                                                                 Log.d(
                                                                         TAG,
                                                                         "[BACK] Popping backstack (submenu -> main menu)"
                                                                 )
-                                                                supportFragmentManager.popBackStack()
-                                                                // The restoration will be triggered by
+                                                                supportFragmentManager
+                                                                        .popBackStack()
+                                                                // The restoration will be triggered
+                                                                // by
                                                                 // onResume() of RetroMenu3Fragment
                                                         } else {
-                                                                // We're in main menu - close all menus
+                                                                // We're in main menu - close all
+                                                                // menus
                                                                 Log.d(
                                                                         TAG,
                                                                         "[BACK] No backstack, dismissing all menus"
@@ -893,9 +930,11 @@ class GameActivity : FragmentActivity() {
                                                                 viewModel.dismissAllMenus()
                                                         }
                                                 }
-                                                // If menu is not open, check if back button should open it
+                                                // If menu is not open, check if back button should
+                                                // open it
                                                 else if (viewModel.shouldHandleBackButton()) {
-                                                        // Open RetroMenu3 instead of default back behavior
+                                                        // Open RetroMenu3 instead of default back
+                                                        // behavior
                                                         viewModel.showRetroMenu3(this@GameActivity)
                                                 } else {
                                                         // Use default back button behavior
