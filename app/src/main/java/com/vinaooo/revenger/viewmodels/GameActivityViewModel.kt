@@ -252,6 +252,16 @@ class GameActivityViewModel(application: Application) :
             )
         }
 
+        // Set the callback for START button to close all menus via NavigationController
+        controllerInput.startButtonCallback = {
+            navigationController?.handleNavigationEvent(
+                com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
+                    keyCode = KeyEvent.KEYCODE_BUTTON_START,
+                    inputSource = com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.PHYSICAL_GAMEPAD
+                )
+            )
+        }
+
         // Set the callback to check if gamepad menu button should work
         controllerInput.shouldHandleGamepadMenuButton = { shouldHandleGamepadMenuButton() }
     }
