@@ -249,7 +249,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Configure menu callback with activity reference */
     fun setupMenuCallback(activity: FragmentActivity) {
-        // PHASE 3.1a: Initialize NavigationController if new system is enabled (only once!)
+        // PHASE 3.1a: Initialize NavigationController (permanently enabled after Phase 4 validation)
         if (navigationController == null) {
             navigationController = NavigationController(activity)
 
@@ -286,7 +286,7 @@ class GameActivityViewModel(application: Application) :
 
         // Configure RetroMenu3 callback for SELECT+START combo
         controllerInput.selectStartComboCallback = {
-            // PHASE 3: Use NavigationController to open menu
+            // PHASE 3: Use NavigationController to open menu (permanently enabled)
             navigationController?.handleNavigationEvent(
                     com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
                             inputSource =
@@ -298,7 +298,7 @@ class GameActivityViewModel(application: Application) :
 
         // Configure START button callback to close ALL menus directly (not step by step)
         controllerInput.startButtonCallback = {
-            // PHASE 3.4a: Use CloseAllMenus to exit directly to game
+            // PHASE 3.4a: Use CloseAllMenus to exit directly to game (permanently enabled)
             android.util.Log.d(
                     "GameActivityViewModel",
                     "[START_BUTTON] Closing ALL menus directly with NavigationController"
@@ -311,13 +311,11 @@ class GameActivityViewModel(application: Application) :
                     )
             )
         }
-            }
-        }
 
         // Configure gamepad menu button callback to toggle menu
         controllerInput.gamepadMenuButtonCallback = {
             if (isAnyMenuActive()) {
-                // PHASE 3.4a: Use CloseAllMenus to exit directly to game
+                // PHASE 3.4a: Use CloseAllMenus to exit directly to game (permanently enabled)
                 android.util.Log.d(
                         "GameActivityViewModel",
                         "[MENU_BUTTON] Closing ALL menus directly with NavigationController"
@@ -331,7 +329,7 @@ class GameActivityViewModel(application: Application) :
                                 )
                 )
             } else {
-                // PHASE 3: Use NavigationController to open menu
+                // PHASE 3: Use NavigationController to open menu (permanently enabled)
                 navigationController?.handleNavigationEvent(
                         com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
                                 inputSource =
@@ -340,10 +338,9 @@ class GameActivityViewModel(application: Application) :
                         )
                 )
             }
-            }
         }
 
-        // PHASE 3.1b: Configure navigation callbacks with feature flag routing
+        // PHASE 3.1b: Configure navigation callbacks (permanently enabled)
         controllerInput.menuNavigateUpCallback = {
             navigationController?.handleNavigationEvent(
                     com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
@@ -596,7 +593,7 @@ class GameActivityViewModel(application: Application) :
                 "[ACTIVE] 🔍 isAnyMenuActive: ========== CHECKING MENU ACTIVITY =========="
         )
 
-        // PHASE 3: Use NavigationController for menu detection when new system is active
+        // PHASE 3: Use NavigationController for menu detection (permanently enabled)
         if (navigationController != null) {
             val navControllerActive = navigationController!!.isMenuActive()
             android.util.Log.d(
@@ -1452,10 +1449,10 @@ class GameActivityViewModel(application: Application) :
         // DEBUG: Log ALL key events to diagnose Backspace issue
         android.util.Log.d(
                 "GameActivityViewModel",
-                "[KEY-EVENT] keyCode=$keyCode, action=${event.action}, isNavigationSystem=true"
+                "[KEY-EVENT] keyCode=$keyCode, action=${event.action}, navigationSystemActive=true"
         )
 
-        // PHASE 4.1c: If keyboard navigation is enabled, check for keyboard input
+        // PHASE 4.1c: Check for keyboard input (permanently enabled)
         if (keyboardInputAdapter != null) {
             // Check if this is a navigation key
             if (keyboardInputAdapter!!.isNavigationKey(keyCode)) {
