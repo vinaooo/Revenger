@@ -31,5 +31,5 @@ object FeatureFlags {
      *
      * **IMPORTANTE**: Manter `false` em produção para melhor performance.
      */
-    const val DEBUG_NAVIGATION = false
+    const val DEBUG_NAVIGATION = false // DISABLED: Phase 5.1f - Performance optimization
 }
