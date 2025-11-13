@@ -293,6 +293,18 @@ class GameActivityViewModel(application: Application) :
             }
 
             navigationController?.onMenuClosedCallback = { closingButton: Int? ->
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "🔥 [ON_MENU_CLOSED_CALLBACK] ===== MENU CLOSED ====="
+                )
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "🔥 [ON_MENU_CLOSED_CALLBACK] Timestamp: ${System.currentTimeMillis()}"
+                )
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "🔥 [ON_MENU_CLOSED_CALLBACK] closingButton: $closingButton"
+                )
 
                 // Limpar botões de menu do keyLog para evitar "wasAlreadyPressed" bugs
                 controllerInput.clearMenuActionButtons()
@@ -300,14 +312,31 @@ class GameActivityViewModel(application: Application) :
                 // Reset combo state to allow SELECT+START to work again after menu closes
                 controllerInput.resetComboAlreadyTriggered()
 
+                // Clear keyLog immediately to prevent residual button states from causing combo
+                // detection issues
+                controllerInput.clearKeyLog()
+
+                // Update menu close debounce time to prevent immediate combo detection
+                controllerInput.updateMenuCloseDebounceTime()
+
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "🔥 [ON_MENU_CLOSED_CALLBACK] comboAlreadyTriggered reset, keyLog cleared, debounce updated"
+                )
+
                 // Grace period: Manter interceptação ativa por 200ms após menu fechar
                 // 200ms cobre o delay de ~150ms do hardware entre ACTION_DOWN e ACTION_UP
                 // Identificado via logs: UP chega 150ms depois, 50ms era insuficiente
                 // Bloquear apenas o botão que REALMENTE fechou o menu
                 controllerInput.keepInterceptingButtons(200, closingButton = closingButton)
 
-                // RESUMIR o jogo quando menu fecha
-                retroView?.let { speedController?.resume(it.view) }
+                // RESUMIR o jogo quando menu fecha - aplicar velocidade salva nas preferences
+                retroView?.let { speedController?.restoreSpeedFromPreferences(it.view) }
+
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "🔥 [ON_MENU_CLOSED_CALLBACK] ===== MENU CLOSED COMPLETED ====="
+                )
             }
         }
 
@@ -535,7 +564,6 @@ class GameActivityViewModel(application: Application) :
                                     "[CLEAR_STATE] clearControllerInputState: isRetroMenu3Open after delay: ${isRetroMenu3Open()}"
                             )
                             inputViewModel.clearControllerInputState()
-                            controllerInput.clearKeyLog()
                             android.util.Log.d(
                                     "GameActivityViewModel",
                                     "[CLEAR_STATE] clearControllerInputState: comboAlreadyTriggered after: ${controllerInput.getComboAlreadyTriggered()}"

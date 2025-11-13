@@ -2,7 +2,6 @@ package com.vinaooo.revenger.ui.retromenu3.navigation
 
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
-import com.vinaooo.revenger.FeatureFlags
 import com.vinaooo.revenger.ui.retromenu3.MenuFragment
 
 /**
@@ -93,17 +92,30 @@ class NavigationController(private val activity: FragmentActivity) {
                 selectItem(event.index)
             }
             is NavigationEvent.ActivateSelected -> {
+                android.util.Log.d(
+                        TAG,
+                        "[MENU_EVENT] ActivateSelected: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
+                )
                 lastActionButton = event.keyCode // Salvar botão que ativou
                 activateItem()
             }
             is NavigationEvent.NavigateBack -> {
+                android.util.Log.d(
+                        TAG,
+                        "[MENU_EVENT] NavigateBack: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
+                )
                 lastActionButton = event.keyCode // Salvar botão que voltou
                 navigateBack()
             }
             is NavigationEvent.OpenMenu -> {
+                android.util.Log.d(TAG, "[MENU_EVENT] OpenMenu: inputSource=${event.inputSource}")
                 openMainMenu()
             }
             is NavigationEvent.CloseAllMenus -> {
+                android.util.Log.d(
+                        TAG,
+                        "[MENU_EVENT] CloseAllMenus: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
+                )
                 lastActionButton = event.keyCode // Salvar botão que fechou
                 closeAllMenus()
             }
@@ -268,33 +280,30 @@ class NavigationController(private val activity: FragmentActivity) {
      * @return true se navegou para trás, false se já estava no menu principal
      */
     fun navigateBack(): Boolean {
+        android.util.Log.d(TAG, "[NAVIGATE_BACK] Navigate back called")
         android.util.Log.d(
                 TAG,
-                "[DEBUG] navigateBack() called - currentMenu=$currentMenu, stack size=${navigationStack.size()}"
+                "[NAVIGATE_BACK] currentMenu: $currentMenu, stack size: ${navigationStack.size()}"
         )
 
         if (isNavigating) {
-            android.util.Log.d(TAG, "Navigation in progress, ignoring back")
+            android.util.Log.d(TAG, "[NAVIGATE_BACK] Navigation in progress, ignoring back")
             return false
         }
 
         // Se já está no menu principal, fechar o menu completamente
         if (currentMenu == MenuType.MAIN && navigationStack.isEmpty()) {
-            android.util.Log.d(TAG, "Navigate back: at main menu, closing menu completely")
+            android.util.Log.d(TAG, "[NAVIGATE_BACK] At main menu, closing menu completely")
+
+            // CRITICAL FIX: Reset combo state BEFORE closing menu to prevent race condition
+            android.util.Log.d(TAG, "[NAVIGATE_BACK] Resetting combo state before menu close")
+            onMenuClosedCallback?.invoke(lastActionButton)
+
             fragmentAdapter.hideMenu()
             currentFragment = null // Limpar referência
             eventQueue.clear() // CRITICAL: Limpar fila de eventos pendentes
 
-            // PHASE 3.2b: Chamar callback para resumir o jogo após fechar o menu
-            // Passar o botão que causou o fechamento para grace period
-            android.util.Log.d(
-                    TAG,
-                    "[PREVENTIVE] Calling onMenuClosedCallback to resume game (from navigateBack)"
-            )
-            onMenuClosedCallback?.invoke(lastActionButton)
-            android.util.Log.d(TAG, "[PREVENTIVE] onMenuClosedCallback completed")
-            lastActionButton = null // Reset após uso
-
+            android.util.Log.d(TAG, "[NAVIGATE_BACK] Menu closed successfully")
             return true // Menu fechado com sucesso
         }
 
@@ -310,23 +319,43 @@ class NavigationController(private val activity: FragmentActivity) {
 
                 android.util.Log.d(
                         TAG,
-                        "Navigate back: restored menu=$currentMenu, index=$selectedItemIndex"
+                        "[NAVIGATE_BACK] Restored state: menu=$currentMenu, index=$selectedItemIndex"
                 )
+
+                // Se voltou para o menu principal (navigationStack vazia), resetar combo
+                // mesmo que o menu não tenha sido fechado completamente
+                if (currentMenu == MenuType.MAIN && navigationStack.isEmpty()) {
+                    android.util.Log.d(
+                            TAG,
+                            "[NAVIGATE_BACK] Returned to main menu, resetting combo state"
+                    )
+                    // PHASE 5.1g: Reset combo state when returning to main menu
+                    // This prevents combo detection issues when navigating back to main menu
+                    // REMOVED: onMenuClosedCallback?.invoke(lastActionButton) - should only be
+                    // called when menu closes completely
+                    lastActionButton = null // Reset após uso
+                }
 
                 // PHASE 3.2b: Usar FragmentNavigationAdapter para voltar
                 val success = fragmentAdapter.navigateBack()
-                android.util.Log.d(TAG, "FragmentAdapter.navigateBack() returned: $success")
+                android.util.Log.d(
+                        TAG,
+                        "[NAVIGATE_BACK] fragmentAdapter.navigateBack() returned: $success"
+                )
                 return success
             } else {
                 // Pilha vazia, volta para main menu
                 currentMenu = MenuType.MAIN
                 selectedItemIndex = 0
 
-                android.util.Log.d(TAG, "Navigate back: returned to main menu")
+                android.util.Log.d(TAG, "[NAVIGATE_BACK] Stack empty, setting to main menu")
 
                 // PHASE 3.2b: Usar FragmentNavigationAdapter para voltar ao main
                 val success = fragmentAdapter.navigateBack()
-                android.util.Log.d(TAG, "FragmentAdapter.navigateBack() returned: $success")
+                android.util.Log.d(
+                        TAG,
+                        "[NAVIGATE_BACK] fragmentAdapter.navigateBack() returned: $success"
+                )
                 return success
             }
         } finally {
@@ -336,21 +365,22 @@ class NavigationController(private val activity: FragmentActivity) {
 
     /** Abre o menu principal (chamado quando SELECT+START ou START pressionado). */
     private fun openMainMenu() {
-        android.util.Log.d(TAG, "Open main menu")
+        android.util.Log.d(TAG, "[MENU_OPEN] Opening main menu")
+        android.util.Log.d(TAG, "[MENU_OPEN] Timestamp: ${System.currentTimeMillis()}")
 
         // PHASE 3.2b: Chamar callback para pausar o jogo antes de mostrar o menu
-        android.util.Log.d(TAG, "[PREVENTIVE] Calling onMenuOpenedCallback to pause game")
+        android.util.Log.d(TAG, "[MENU_OPEN] Calling onMenuOpenedCallback to pause game")
         onMenuOpenedCallback?.invoke()
-        android.util.Log.d(TAG, "[PREVENTIVE] onMenuOpenedCallback completed")
+        android.util.Log.d(TAG, "[MENU_OPEN] onMenuOpenedCallback completed")
 
         // PHASE 3.2b: Implementar via FragmentNavigationAdapter
         currentMenu = MenuType.MAIN
         selectedItemIndex = 0
         navigationStack.clear()
 
-        android.util.Log.d(TAG, "[PREVENTIVE] Calling fragmentAdapter.showMenu(MAIN)")
+        android.util.Log.d(TAG, "[MENU_OPEN] Calling fragmentAdapter.showMenu(MAIN)")
         fragmentAdapter.showMenu(MenuType.MAIN)
-        android.util.Log.d(TAG, "Main menu opened successfully")
+        android.util.Log.d(TAG, "[MENU_OPEN] Main menu opened successfully")
     }
 
     /**
@@ -362,12 +392,13 @@ class NavigationController(private val activity: FragmentActivity) {
      * Usado quando o usuário pressiona START ou botão Menu/Hamburguer com o menu aberto.
      */
     private fun closeAllMenus() {
-        android.util.Log.d(TAG, "[DEBUG] closeAllMenus() called")
+        android.util.Log.d(TAG, "[MENU_CLOSE] Closing all menus")
+        android.util.Log.d(TAG, "[MENU_CLOSE] Timestamp: ${System.currentTimeMillis()}")
+        android.util.Log.d(TAG, "[MENU_CLOSE] lastActionButton: $lastActionButton")
 
-        if (isNavigating) {
-            android.util.Log.d(TAG, "Navigation in progress, ignoring close all")
-            return
-        }
+        // CRITICAL FIX: Reset combo state BEFORE closing menu to prevent race condition
+        android.util.Log.d(TAG, "[MENU_CLOSE] Resetting combo state before menu close")
+        onMenuClosedCallback?.invoke(lastActionButton)
 
         // Limpar estado de navegação
         currentMenu = MenuType.MAIN
@@ -375,17 +406,12 @@ class NavigationController(private val activity: FragmentActivity) {
         navigationStack.clear()
 
         // Fechar menu via adapter
+        android.util.Log.d(TAG, "[MENU_CLOSE] Calling fragmentAdapter.hideMenu()")
         fragmentAdapter.hideMenu()
         currentFragment = null
         eventQueue.clear()
 
-        // Chamar callback para resumir o jogo
-        android.util.Log.d(
-                TAG,
-                "[PREVENTIVE] Calling onMenuClosedCallback to resume game (from closeAllMenus)"
-        )
-        onMenuClosedCallback?.invoke(lastActionButton)
-        android.util.Log.d(TAG, "[PREVENTIVE] onMenuClosedCallback completed")
+        android.util.Log.d(TAG, "[MENU_CLOSE] All menus closed successfully")
         lastActionButton = null
 
         android.util.Log.d(TAG, "All menus closed successfully")
@@ -456,7 +482,9 @@ class NavigationController(private val activity: FragmentActivity) {
      * @return true se há um fragmento registrado, false caso contrário
      */
     fun isMenuActive(): Boolean {
-        val hasFragment = currentFragment != null
+        val hasFragment =
+                currentFragment != null &&
+                        (currentFragment as? androidx.fragment.app.Fragment)?.isAdded == true
         android.util.Log.d(TAG, "isMenuActive: hasFragment=$hasFragment")
         return hasFragment
     }
@@ -516,6 +544,22 @@ class NavigationController(private val activity: FragmentActivity) {
      */
     fun clearPendingEvents() {
         eventQueue.clear()
+    }
+
+    /**
+     * Fecha o menu externamente (não via navegação interna). Chamado quando o menu é fechado por
+     * ações como Reset ou Continue.
+     */
+    fun closeMenuExternal(closingButton: Int? = null) {
+        android.util.Log.d(TAG, "[CLOSE_EXTERNAL] Closing menu externally, button: $closingButton")
+
+        // Limpar estado
+        fragmentAdapter.hideMenu()
+        currentFragment = null
+        eventQueue.clear()
+
+        // Chamar callback
+        onMenuClosedCallback?.invoke(closingButton)
     }
 
     companion object {

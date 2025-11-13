@@ -80,12 +80,7 @@ class MenuLifecycleManagerImpl(
 
             // Configurar click listeners
             // PHASE 3.3a: Pass navigationController for touch event routing
-            val navigationController =
-                    if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                        viewModel.navigationController
-                    } else {
-                        null
-                    }
+            val navigationController = viewModel.navigationController
             viewInitializer.setupClickListeners(menuViews, actionHandler, navigationController)
 
             // Iniciar animação do menu

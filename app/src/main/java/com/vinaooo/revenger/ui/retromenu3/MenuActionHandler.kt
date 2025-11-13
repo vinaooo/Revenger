@@ -70,13 +70,14 @@ class MenuActionHandler(
 
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] Calling clearControllerInputState()"
+                                "🔥 [EXECUTE_CONTINUE] Calling closeMenuExternal() to properly close menu and reset state"
                         )
-                        // Clear keyLog and reset comboAlreadyTriggered after closing
-                        viewModel.clearControllerInputState()
+                        // Properly close menu through NavigationController to trigger
+                        // onMenuClosedCallback
+                        viewModel.navigationController?.closeMenuExternal()
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] clearControllerInputState() completed - comboAlreadyTriggered should be reset now"
+                                "🔥 [EXECUTE_CONTINUE] closeMenuExternal() completed - comboAlreadyTriggered should be reset now"
                         )
 
                         android.util.Log.d(
@@ -126,22 +127,30 @@ class MenuActionHandler(
                         "MenuActionHandler",
                         "🔥 [EXECUTE_RESET] Calling dismissMenuPublic() with callback"
                 )
+                // FIX: Set game speed to normal (1) before closing menu, since reset should start
+                // fresh
+                android.util.Log.d(
+                        "MenuActionHandler",
+                        "🔥 [EXECUTE_RESET] Setting speed to normal (1) for fresh game start"
+                )
+                viewModel.setGameSpeed(1)
                 // Close menu first using the public method with callback
                 (fragment as? RetroMenu3Fragment)?.dismissMenuPublic {
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] Animation completed - now restoring game speed"
+                                "🔥 [EXECUTE_RESET] Animation completed - now resetting game"
                         )
 
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] Calling clearControllerInputState()"
+                                "🔥 [EXECUTE_RESET] Calling closeMenuExternal() to properly close menu and reset state"
                         )
-                        // Clear keyLog and reset comboAlreadyTriggered after closing
-                        viewModel.clearControllerInputState()
+                        // Properly close menu through NavigationController to trigger
+                        // onMenuClosedCallback
+                        viewModel.navigationController?.closeMenuExternal()
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] clearControllerInputState() completed"
+                                "🔥 [EXECUTE_RESET] closeMenuExternal() completed"
                         )
 
                         android.util.Log.d(

@@ -220,6 +220,10 @@ class ControllerInput(private val context: Context) {
                 comboAlreadyTriggered = false
         }
 
+        fun updateMenuCloseDebounceTime() {
+                menuCloseDebounceTime = System.currentTimeMillis()
+        }
+
         /** Function to check if devemos interceptar DPAD para menu */
         var shouldInterceptDpadForMenu: () -> Boolean = { false }
 
@@ -405,41 +409,39 @@ class ControllerInput(private val context: Context) {
                 val currentTime = System.currentTimeMillis()
                 val timeSinceLastTrigger = currentTime - lastComboTriggerTime
 
-                // DISABLED: Phase 5.1f - Performance optimization - Detailed combo debug logs
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "┌─────────────────────────────────────────────────────────"
-                // )
-                // android.util.Log.d("ControllerInput", "│ checkMenuKeyCombo CALLED")
-                // android.util.Log.d("ControllerInput", "│ keyLog: $keyLog")
-                // android.util.Log.d("ControllerInput", "│ hasSelectAndStart: $hasSelectAndStart")
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "│ comboAlreadyTriggered: $comboAlreadyTriggered"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "│ timeSinceLastTrigger: ${timeSinceLastTrigger}ms (cooldown:
-                // ${COMBO_COOLDOWN_MS}ms)"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "│ shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()}"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "│ SELECT pressed: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)}"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "│ START pressed: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)}"
-                // )
+                // ENABLED FOR DEBUG: Combo detection logs
+                android.util.Log.d(
+                        "ControllerInput",
+                        "┌─────────────────────────────────────────────────────────"
+                )
+                android.util.Log.d("ControllerInput", "│ checkMenuKeyCombo CALLED")
+                android.util.Log.d("ControllerInput", "│ keyLog: $keyLog")
+                android.util.Log.d("ControllerInput", "│ hasSelectAndStart: $hasSelectAndStart")
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│ comboAlreadyTriggered: $comboAlreadyTriggered"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│ timeSinceLastTrigger: ${timeSinceLastTrigger}ms (cooldown: ${COMBO_COOLDOWN_MS}ms)"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│ shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()}"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│ SELECT pressed: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)}"
+                )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│ START pressed: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)}"
+                )
                 val timeSinceMenuClose = currentTime - menuCloseDebounceTime
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "│ timeSinceMenuClose: ${timeSinceMenuClose}ms (debounce:
-                // ${MENU_CLOSE_DEBOUNCE_MS}ms)"
-                // )
+                android.util.Log.d(
+                        "ControllerInput",
+                        "│ timeSinceMenuClose: ${timeSinceMenuClose}ms (debounce: ${MENU_CLOSE_DEBOUNCE_MS}ms)"
+                )
 
                 if (hasSelectAndStart &&
                                 !comboAlreadyTriggered &&
@@ -448,77 +450,68 @@ class ControllerInput(private val context: Context) {
                                 timeSinceMenuClose > MENU_CLOSE_DEBOUNCE_MS
                 ) {
 
-                        // DISABLED: Phase 5.1f - Performance optimization
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "│ ✅ ALL CONDITIONS MET - COMBO DETECTED!"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "│    - hasSelectAndStart: $hasSelectAndStart"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "│    - comboAlreadyTriggered: $comboAlreadyTriggered"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "│    - shouldHandleSelectStartCombo():
-                        // ${shouldHandleSelectStartCombo()}"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "│    - timeSinceLastTrigger: ${timeSinceLastTrigger}ms >
-                        // ${COMBO_COOLDOWN_MS}ms"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "│    - timeSinceMenuClose: ${timeSinceMenuClose}ms >
-                        // ${MENU_CLOSE_DEBOUNCE_MS}ms"
-                        // )
+                        // ENABLED FOR DEBUG: Combo detection success logs
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│ ✅ ALL CONDITIONS MET - COMBO DETECTED!"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│    - hasSelectAndStart: $hasSelectAndStart"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│    - comboAlreadyTriggered: $comboAlreadyTriggered"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│    - shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()}"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│    - timeSinceLastTrigger: ${timeSinceLastTrigger}ms > ${COMBO_COOLDOWN_MS}ms"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│    - timeSinceMenuClose: ${timeSinceMenuClose}ms > ${MENU_CLOSE_DEBOUNCE_MS}ms"
+                        )
                         comboAlreadyTriggered = true // Mark combo as triggered
                         lastComboTriggerTime = currentTime
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "│ 🔵 comboAlreadyTriggered SET TO TRUE at timestamp:
-                        // $lastComboTriggerTime"
-                        // )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│ 🔵 comboAlreadyTriggered SET TO TRUE at timestamp: $lastComboTriggerTime"
+                        )
                         selectStartComboCallback()
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "│ comboAlreadyTriggered NOW: true, timestamp:
-                        // $lastComboTriggerTime"
-                        // )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "│ comboAlreadyTriggered NOW: true, timestamp: $lastComboTriggerTime"
+                        )
                 } else {
-                        // DISABLED: Phase 5.1f - Performance optimization
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "❌ COMBO REJEITADO - Verificando condições faltantes:"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "   hasSelectAndStart: $hasSelectAndStart (precisa ser true)"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "   comboAlreadyTriggered: $comboAlreadyTriggered (precisa ser
-                        // false)"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "   shouldHandleSelectStartCombo():
-                        // ${shouldHandleSelectStartCombo()} (precisa ser true)"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "   timeSinceLastTrigger: ${timeSinceLastTrigger}ms (precisa ser
-                        // > ${COMBO_COOLDOWN_MS}ms)"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "   timeSinceMenuClose: ${timeSinceMenuClose}ms (precisa ser >
-                        // ${MENU_CLOSE_DEBOUNCE_MS}ms)"
-                        // )
+                        // ENABLED FOR DEBUG: Combo rejection logs
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "❌ COMBO REJEITADO - Verificando condições faltantes:"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   hasSelectAndStart: $hasSelectAndStart (precisa ser true)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   comboAlreadyTriggered: $comboAlreadyTriggered (precisa ser false)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()} (precisa ser true)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   timeSinceLastTrigger: ${timeSinceLastTrigger}ms (precisa ser > ${COMBO_COOLDOWN_MS}ms)"
+                        )
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "   timeSinceMenuClose: ${timeSinceMenuClose}ms (precisa ser > ${MENU_CLOSE_DEBOUNCE_MS}ms)"
+                        )
 
                         if (!hasSelectAndStart) {
                                 // DISABLED: Phase 5.1f - Performance optimization
@@ -553,19 +546,21 @@ class ControllerInput(private val context: Context) {
                                 // If shouldHandleSelectStartCombo() = false, menu is open (expected
                                 // behavior)
                                 if (shouldHandleSelectStartCombo()) {
-                                        // Menu is CLOSED but flag is still true - this is the real
-                                        // bug!
-                                        android.util.Log.w(
+                                        // Menu is CLOSED but flag is still true - this may happen
+                                        // due to timing
+                                        // The flag will be reset by onMenuClosedCallback, but this
+                                        // check happens first
+                                        android.util.Log.d(
                                                 "ControllerInput",
-                                                "│    ⚠️ REAL BUG: Menu closed but comboAlreadyTriggered still true!"
+                                                "│    ℹ️  Menu closed, comboAlreadyTriggered=true (will be reset by callback)"
                                         )
-                                        android.util.Log.w(
+                                        android.util.Log.d(
                                                 "ControllerInput",
                                                 "│       lastComboTriggerTime: $lastComboTriggerTime (${timeSinceLastTrigger}ms ago)"
                                         )
-                                        android.util.Log.w(
+                                        android.util.Log.d(
                                                 "ControllerInput",
-                                                "│       Flag should have been reset when menu closed"
+                                                "│       This is expected timing - callback will reset flag"
                                         )
                                 } else {
                                         // Menu is OPEN - this is expected, not a bug
@@ -740,12 +735,6 @@ class ControllerInput(private val context: Context) {
                                         startButtonCallback,
                                         lastStartButtonCallbackTime
                                 ) { lastStartButtonCallbackTime = it }
-                                // Reset comboAlreadyTriggered when START closes menu
-                                comboAlreadyTriggered = false
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "   ✅ comboAlreadyTriggered reset to false (START closed menu)"
-                                )
                                 android.util.Log.d(
                                         "ControllerInput",
                                         "   startButtonCallback() completed"

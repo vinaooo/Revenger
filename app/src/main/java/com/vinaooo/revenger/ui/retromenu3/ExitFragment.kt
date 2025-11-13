@@ -76,22 +76,15 @@ class ExitFragment : MenuFragmentBase() {
         // Menu only closes when selecting Back
 
         // PHASE 3: Register with NavigationController for new navigation system
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-            viewModel.navigationController?.registerFragment(this, getMenuItems().size)
-            android.util.Log.d(
-                    TAG,
-                    "[NAVIGATION] ExitFragment registered with ${getMenuItems().size} items"
-            )
-        }
+        viewModel.navigationController?.registerFragment(this, getMenuItems().size)
+        android.util.Log.d(
+                TAG,
+                "[NAVIGATION] ExitFragment registered with ${getMenuItems().size} items"
+        )
     }
 
     override fun onDestroyView() {
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-            android.util.Log.d(
-                    TAG,
-                    "[NAVIGATION] ExitFragment onDestroyView - keeping registration"
-            )
-        }
+        android.util.Log.d(TAG, "[NAVIGATION] ExitFragment onDestroyView - keeping registration")
         super.onDestroyView()
     }
 
@@ -151,17 +144,12 @@ class ExitFragment : MenuFragmentBase() {
     }
 
     private fun setupClickListeners() {
-        // PHASE 3.3a: Route touch events through feature flag
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-            android.util.Log.d(
-                    TAG,
-                    "[TOUCH] Using new navigation system - touch routed through NavigationController"
-            )
-            setupTouchNavigationSystem()
-        } else {
-            android.util.Log.d(TAG, "[TOUCH] Using old navigation system - direct onClick")
-            setupLegacyClickListeners()
-        }
+        // PHASE 3.3a: Route touch events through NavigationController
+        android.util.Log.d(
+                TAG,
+                "[TOUCH] Using new navigation system - touch routed through NavigationController"
+        )
+        setupTouchNavigationSystem()
     }
 
     /**
@@ -302,29 +290,17 @@ class ExitFragment : MenuFragmentBase() {
     override fun performBack(): Boolean {
         android.util.Log.d("ExitFragment", "[BACK] performBack called - navigating to main menu")
 
-        // PHASE 3: Use NavigationController when new system is active
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-            android.util.Log.d(
-                    "ExitFragment",
-                    "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
-            )
-            val success = viewModel.navigationController?.navigateBack() ?: false
-            android.util.Log.d(
-                    "ExitFragment",
-                    "[BACK] NavigationController.navigateBack() returned: $success"
-            )
-            return success
-        } else {
-            // Old system: Use viewModel directly like AboutFragment does (listeners can be NULL
-            // after rotation)
-            android.util.Log.d("ExitFragment", "[BACK] Calling viewModel.dismissExit()")
-            viewModel.dismissExit()
-            android.util.Log.d(
-                    "ExitFragment",
-                    "[BACK] performBack completed - viewModel handled the dismissal"
-            )
-            return true
-        }
+        // PHASE 3: Use NavigationController for back navigation
+        android.util.Log.d(
+                "ExitFragment",
+                "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
+        )
+        val success = viewModel.navigationController?.navigateBack() ?: false
+        android.util.Log.d(
+                "ExitFragment",
+                "[BACK] NavigationController.navigateBack() returned: $success"
+        )
+        return success
     }
 
     /** Update selection visual - specific implementation for ExitFragment */
@@ -487,74 +463,12 @@ class ExitFragment : MenuFragmentBase() {
     override fun onResume() {
         super.onResume()
 
-        // PHASE 3: Skip old navigation system logic when new system is active
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-            android.util.Log.d(
-                    "ExitFragment",
-                    "[RESUME] ✅ New navigation system active - skipping old MenuState checks"
-            )
-            return
-        }
-
-        // Check 1: Don't register if being removed
-        if (isRemoving) {
-            android.util.Log.d(
-                    "ExitFragment",
-                    "[RESUME] ⚠️ Fragment is being removed - skipping registration"
-            )
-            return
-        }
-
-        // Check 2: Don't register if MenuState is not EXIT_MENU
-        val currentState = viewModel.getMenuManager().getCurrentState()
-        if (currentState != MenuState.EXIT_MENU) {
-            android.util.Log.d(
-                    "ExitFragment",
-                    "[RESUME] ⚠️ MenuState is $currentState (not EXIT) - skipping registration"
-            )
-            return
-        }
-
-        // Ensure fragment is fully resumed before re-registering
-        // This prevents timing issues when returning from back stack navigation
-        view?.post {
-            if (isAdded && isResumed) {
-                android.util.Log.d(
-                        "ExitFragment",
-                        "[RESUME] 🚪 Registering immediately (isAdded=true, state=EXIT_MENU)"
-                )
-
-                // CRITICAL: Re-configure listener after rotation
-                android.util.Log.d(
-                        "ExitFragment",
-                        "[RESUME] 🔗 Reconfiguring listener after recreation"
-                )
-                try {
-                    val parentFragment = parentFragment
-                    if (parentFragment is ExitListener) {
-                        setExitListener(parentFragment)
-                        android.util.Log.d(
-                                "ExitFragment",
-                                "[RESUME] ✅ Listener configured successfully"
-                        )
-                    } else {
-                        android.util.Log.e(
-                                "ExitFragment",
-                                "[RESUME] ❌ Parent fragment is not ExitListener!"
-                        )
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("ExitFragment", "[RESUME] ❌ Error configuring listener", e)
-                }
-
-                viewModel.registerExitFragment(this)
-
-                // Restaurar foco no primeiro item
-                val firstFocusable = view?.findViewById<android.view.View>(R.id.exit_menu_option_a)
-                firstFocusable?.requestFocus()
-                android.util.Log.d("ExitFragment", "[FOCUS] Foco restaurado no primeiro item")
-            }
-        }
+        // PHASE 3: New navigation system active - skipping old MenuState checks
+        android.util.Log.d(
+                "ExitFragment",
+                "[RESUME] ✅ New navigation system active - skipping old MenuState checks"
+        )
+        return
     }
 
     companion object {

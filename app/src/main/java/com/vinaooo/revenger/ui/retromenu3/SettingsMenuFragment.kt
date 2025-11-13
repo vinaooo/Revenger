@@ -78,23 +78,19 @@ class SettingsMenuFragment : MenuFragmentBase() {
         // REMOVED: animateMenuIn() - submenu now appears instantly without animation
 
         // PHASE 3: Register with NavigationController for new navigation system
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-            viewModel.navigationController?.registerFragment(this, getMenuItems().size)
-            android.util.Log.d(
-                    TAG,
-                    "[NAVIGATION] SettingsMenuFragment registered with ${getMenuItems().size} items"
-            )
-        }
+        viewModel.navigationController?.registerFragment(this, getMenuItems().size)
+        android.util.Log.d(
+                TAG,
+                "[NAVIGATION] SettingsMenuFragment registered with ${getMenuItems().size} items"
+        )
     }
 
     override fun onDestroyView() {
         // PHASE 3: DON'T unregister - let next fragment override registration
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-            android.util.Log.d(
-                    TAG,
-                    "[NAVIGATION] SettingsMenuFragment onDestroyView - keeping registration"
-            )
-        }
+        android.util.Log.d(
+                TAG,
+                "[NAVIGATION] SettingsMenuFragment onDestroyView - keeping registration"
+        )
         super.onDestroyView()
     }
 
@@ -168,17 +164,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
     }
 
     private fun setupClickListeners() {
-        // PHASE 3.3a: Route touch events through feature flag
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-            Log.d(
-                    TAG,
-                    "[TOUCH] Using new navigation system - touch routed through NavigationController"
-            )
-            setupTouchNavigationSystem()
-        } else {
-            Log.d(TAG, "[TOUCH] Using old navigation system - direct onClick")
-            setupLegacyClickListeners()
-        }
+        // PHASE 3.3a: Route touch events through NavigationController
+        Log.d(
+                TAG,
+                "[TOUCH] Using new navigation system - touch routed through NavigationController"
+        )
+        setupTouchNavigationSystem()
     }
 
     /**
@@ -340,24 +331,17 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     /** Back action */
     override fun performBack(): Boolean {
-        // PHASE 3: Use NavigationController when new system is active
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-            Log.d(
-                    "SettingsMenuFragment",
-                    "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
-            )
-            val success = viewModel.navigationController?.navigateBack() ?: false
-            Log.d(
-                    "SettingsMenuFragment",
-                    "[BACK] NavigationController.navigateBack() returned: $success"
-            )
-            return success
-        } else {
-            // Old system: Return to main menu - direct ViewModel call (survives rotation)
-            Log.d("SettingsMenuFragment", "[BACK] Calling viewModel.dismissSettingsMenu()")
-            viewModel.dismissSettingsMenu()
-            return true
-        }
+        // PHASE 3: Use NavigationController for back navigation
+        Log.d(
+                "SettingsMenuFragment",
+                "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
+        )
+        val success = viewModel.navigationController?.navigateBack() ?: false
+        Log.d(
+                "SettingsMenuFragment",
+                "[BACK] NavigationController.navigateBack() returned: $success"
+        )
+        return success
     }
 
     /** Update selection visual - specific implementation for SettingsMenuFragment */
@@ -644,65 +628,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
     override fun onResume() {
         super.onResume()
 
-        // PHASE 3: Skip old navigation system logic when new system is active
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-            android.util.Log.d(
-                    "SettingsMenuFragment",
-                    "[RESUME] ✅ New navigation system active - skipping old registration logic"
-            )
-            return
-        }
-
-        // CRITICAL FIX: Register immediately without delays
-        // isAdded is enough - no need to wait for isResumed or view?.post
-        // This eliminates race condition where user navigates before registration completes
-        if (isAdded && context != null) {
-            android.util.Log.d(
-                    "SettingsMenuFragment",
-                    "[RESUME] ⚙️ Registering immediately (isAdded=$isAdded)"
-            )
-
-            // CRITICAL: Re-configure listener after rotation
-            android.util.Log.d(
-                    "SettingsMenuFragment",
-                    "[RESUME] 🔗 Reconfiguring listener after recreation"
-            )
-            try {
-                val parentFragment = parentFragment
-                if (parentFragment is SettingsMenuListener) {
-                    setSettingsListener(parentFragment)
-                    android.util.Log.d(
-                            "SettingsMenuFragment",
-                            "[RESUME] ✅ Listener configured successfully"
-                    )
-                } else {
-                    android.util.Log.e(
-                            "SettingsMenuFragment",
-                            "[RESUME] ❌ Parent fragment is not SettingsMenuListener!"
-                    )
-                }
-            } catch (e: Exception) {
-                android.util.Log.e(
-                        "SettingsMenuFragment",
-                        "[RESUME] ❌ Error configuring listener",
-                        e
-                )
-            }
-
-            viewModel.registerSettingsMenuFragment(this)
-
-            // Restore focus (can still be delayed)
-            view?.post {
-                val firstFocusable = view?.findViewById<android.view.View>(R.id.settings_sound)
-                firstFocusable?.requestFocus()
-                android.util.Log.d("SettingsMenuFragment", "[FOCUS] Focus restored")
-            }
-        } else {
-            android.util.Log.w(
-                    "SettingsMenuFragment",
-                    "[RESUME] Fragment not ready (isAdded=$isAdded, context=$context)"
-            )
-        }
+        // PHASE 3: New navigation system active - skipping old registration logic
+        android.util.Log.d(
+                "SettingsMenuFragment",
+                "[RESUME] ✅ New navigation system active - skipping old registration logic"
+        )
+        return
     }
 
     companion object {

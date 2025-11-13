@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
-import com.vinaooo.revenger.FeatureFlags
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -249,16 +248,11 @@ class RetroMenu3Fragment :
                         )
 
                         // PHASE 3: Registrar fragment com NavigationController
-                        if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                                viewModel.navigationController?.registerFragment(
-                                        this,
-                                        getMenuItems().size
-                                )
-                                android.util.Log.d(
-                                        "RetroMenu3",
-                                        "[NAVIGATION] Fragment registered with ${getMenuItems().size} items"
-                                )
-                        }
+                        viewModel.navigationController?.registerFragment(this, getMenuItems().size)
+                        android.util.Log.d(
+                                "RetroMenu3",
+                                "[NAVIGATION] Fragment registered with ${getMenuItems().size} items"
+                        )
 
                         android.util.Log.d(
                                 "RetroMenu3",
@@ -276,12 +270,10 @@ class RetroMenu3Fragment :
 
                 // PHASE 3: DON'T unregister here - let the next fragment override the registration
                 // This prevents a gap where currentFragment=null between fragments
-                if (FeatureFlags.USE_NEW_NAVIGATION_SYSTEM) {
-                        android.util.Log.d(
-                                "RetroMenu3",
-                                "[NAVIGATION] Fragment will be unregistered by next fragment"
-                        )
-                }
+                android.util.Log.d(
+                        "RetroMenu3",
+                        "[NAVIGATION] Fragment will be unregistered by next fragment"
+                )
 
                 super.onDestroyView()
                 android.util.Log.d("RetroMenu3", "[LIFECYCLE] onDestroyView COMPLETED")

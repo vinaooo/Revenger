@@ -102,10 +102,8 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
     ) {
         MenuLogger.lifecycle("MenuViewInitializer: setupClickListeners START")
 
-        // PHASE 3.3a: Route touch events through feature flag
-        if (com.vinaooo.revenger.FeatureFlags.USE_NEW_NAVIGATION_SYSTEM &&
-                        navigationController != null
-        ) {
+        // PHASE 3.3a: Route touch events through NavigationController
+        if (navigationController != null) {
             android.util.Log.d(
                     TAG,
                     "[TOUCH] Using new navigation system - touch routed through NavigationController"

@@ -115,8 +115,6 @@ class GameActivity : FragmentActivity() {
                 Log.d(TAG, "Configuration changed - adjusting gamepad position")
                 adjustGamePadPositionForOrientation(gamePadContainer)
 
-                // TODO: Phase 5 - Remove temporary callback re-registration when new navigation
-                // system is integrated
                 // CRITICAL FIX: Re-register menu callbacks after rotation to prevent back button
                 // issues
                 viewModel.setupMenuCallback(this)
