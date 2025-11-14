@@ -30,10 +30,6 @@ class MenuStateControllerImpl(
         initializeMenuItems()
     }
 
-    init {
-        initializeMenuItems()
-    }
-
     private fun initializeMenuItems() {
         // Use the fragment's menu items instead of hardcoded list
         menuItems.addAll(fragment.getMenuItems())
