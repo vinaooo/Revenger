@@ -114,6 +114,10 @@ Notas: {qualquer observação extra}
 - Passos: 1) Remover 2º bloco `init` 2) Adicionar unit test validate menu items 3) Validar `tests/test_menu_state_bug.sh`
 - Testes: `tests/test_menu_state_bug.sh`, `tests/test_rotation_complete.sh`
 
+Status: ✅ Implementado
+Branch: `fix/remove-dup-init-menu-state-controller`
+Commit: Fix(MenuStateController): remove duplicate init and add unit tests to prevent duplication
+
 ### 5) TODO: Implementar lógica completa de mostrar menu (MenuViewModel)
 - Arquivos: `app/src/main/java/com/vinaooo/revenger/viewmodels/MenuViewModel.kt`
 - Prioridade: Alta

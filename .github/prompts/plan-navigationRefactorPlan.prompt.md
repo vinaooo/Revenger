@@ -40,6 +40,10 @@
 - ✅ Verificar que `initializeMenuItems()` só é chamado UMA vez
 - ✅ Confirmar que menuItems não está duplicado com logs
 
+**Status**: ✅ Concluída
+
+**Branch/PR**: `fix/remove-dup-init-menu-state-controller` (PR pendente)
+
 ### Subfase 1.2: Resolver TODOs Críticos (PLANO DEDICADO)
 **Complexidade: MÉDIA**
 **Descrição**: Avaliar e priorizar os TODOs identificados no sistema. A implementação técnica detalhada desses TODOs foi removida deste plano de alto nível e está documentada em um plano dedicado: `.github/prompts/plan-navigationRefactorTodosImplementation.prompt.md`.
