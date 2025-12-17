@@ -143,7 +143,7 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
                             android.util.Log.d(TAG, "[TOUCH] Activating item $index after delay")
                             navigationController.activateItem()
                         },
-                        100L
+                        MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS
                 ) // 100ms = focus-then-activate delay
             }
         }
