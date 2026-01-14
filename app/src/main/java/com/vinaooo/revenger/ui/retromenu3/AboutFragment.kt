@@ -273,14 +273,6 @@ class AboutFragment : MenuFragmentBase() {
         }
     }
 
-    /** Legacy click listeners - direct action execution (old system). */
-    private fun setupLegacyClickListeners() {
-        backAbout.setOnClickListener {
-            // Return to main menu by calling listener method (same as pressing B)
-            aboutListener?.onAboutBackToMainMenu()
-        }
-    }
-
     private fun updateMenuState() {
         // No dynamic state to update for About menu
     }

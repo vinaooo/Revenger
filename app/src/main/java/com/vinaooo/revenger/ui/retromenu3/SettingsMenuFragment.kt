@@ -200,42 +200,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
         }
     }
 
-    /** Legacy click listeners - direct action execution (old system). */
-    private fun setupLegacyClickListeners() {
-        soundSettings.setOnClickListener {
-            // Toggle audio
-            val currentAudioState = viewModel.getAudioState()
-            viewModel.setAudioEnabled(!currentAudioState)
-            updateMenuState()
-        }
-
-        shaderSettings.setOnClickListener {
-            // Toggle shader
-            viewModel.onToggleShader()
-            updateMenuState()
-        }
-
-        gameSpeedSettings.setOnClickListener {
-            // Game Speed - Toggle fast forward without closing the menu and without applying
-            // immediately
-            val currentFastForwardState = viewModel.getFastForwardState()
-            viewModel.setFastForwardEnabled(
-                    !currentFastForwardState
-            ) // Toggle state without immediate application
-            // Update menu state to reflect the change
-            updateMenuState()
-        }
-
-        backSettings.setOnClickListener {
-            // Return to main menu - direct ViewModel call (survives rotation)
-            Log.d(
-                    "SettingsMenuFragment",
-                    "[BACK] backSettings onClick - calling viewModel.dismissSettingsMenu()"
-            )
-            viewModel.dismissSettingsMenu()
-        }
-    }
-
     private fun updateMenuState() {
         val isAudioEnabled = viewModel.getAudioState()
         val isFastForwardEnabled = viewModel.getFastForwardState()

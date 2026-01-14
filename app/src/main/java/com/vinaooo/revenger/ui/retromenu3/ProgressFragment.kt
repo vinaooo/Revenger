@@ -242,59 +242,6 @@ class ProgressFragment : MenuFragmentBase() {
         }
     }
 
-    /** Legacy click listeners - direct action execution (old system). */
-    private fun setupLegacyClickListeners() {
-        saveState.setOnClickListener {
-            // Save State - Keep menu open and game paused
-            android.util.Log.d(
-                    TAG,
-                    "[ACTION] Progress menu: Saving state (menu stays open, game stays paused)"
-            )
-
-            // NOTE: Don't restore game speed - keep game paused while menu is open
-            // viewModel.restoreGameSpeedFromPreferences() // ← REMOVED
-
-            // Save the game state without closing menus and without unpausing
-            viewModel.saveStateCentralized(
-                    keepPaused = true,
-                    onComplete = {
-                        android.util.Log.d(TAG, "[ACTION] Progress menu: State saved successfully")
-
-                        // CRITICAL: Update menuItems list to include Load State now that save
-                        // exists
-                        refreshMenuItems()
-                    }
-            )
-        }
-
-        loadState.setOnClickListener {
-            // Load State - Keep menu open and game paused
-            android.util.Log.d(
-                    TAG,
-                    "[ACTION] Progress menu: Loading state (menu stays open, game stays paused)"
-            )
-
-            // NOTE: Don't restore game speed - keep game paused while menu is open
-            // viewModel.restoreGameSpeedFromPreferences() // ← REMOVED
-
-            // Load the saved game state without closing menus
-            viewModel.loadStateCentralized {
-                android.util.Log.d(TAG, "[ACTION] Progress menu: State loaded successfully")
-                // Could add visual feedback here if needed
-            }
-        }
-
-        backProgress.setOnClickListener {
-            // Return to main menu - direct ViewModel call (survives rotation)
-            android.util.Log.d(
-                    TAG,
-                    "[BACK] backProgress onClick - calling viewModel.dismissProgress()"
-            )
-            viewModel.dismissProgress()
-            android.util.Log.d(TAG, "[BACK] backProgress onClick completed")
-        }
-    }
-
     private fun dismissMenu() {
         // IMPORTANT: Do not call dismissRetroMenu3() here to avoid crashes
         // Just remove the fragment visually - WITHOUT animation

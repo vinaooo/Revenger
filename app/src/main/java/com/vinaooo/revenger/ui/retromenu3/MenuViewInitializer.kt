@@ -102,17 +102,12 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
     ) {
         MenuLogger.lifecycle("MenuViewInitializer: setupClickListeners START")
 
-        // PHASE 3.3a: Route touch events through NavigationController
-        if (navigationController != null) {
-            android.util.Log.d(
-                    TAG,
-                    "[TOUCH] Using new navigation system - touch routed through NavigationController"
-            )
-            setupTouchNavigationSystem(views, navigationController)
-        } else {
-            android.util.Log.d(TAG, "[TOUCH] Using old navigation system - direct onClick")
-            setupLegacyClickListeners(views, actionHandler)
-        }
+        // PHASE 3.3a: Touch events routed through NavigationController (permanently enabled)
+        android.util.Log.d(
+                TAG,
+                "[TOUCH] Using new navigation system - touch routed through NavigationController"
+        )
+        setupTouchNavigationSystem(views, navigationController!!)
 
         MenuLogger.lifecycle("MenuViewInitializer: setupClickListeners COMPLETED")
     }
@@ -146,34 +141,6 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
                         MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS
                 ) // MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS = focus-then-activate delay
             }
-        }
-    }
-
-    /** Legacy click listeners - direct action execution (old system). */
-    private fun setupLegacyClickListeners(views: MenuViews, actionHandler: MenuActionHandler) {
-        views.continueMenu.setOnClickListener {
-            MenuLogger.action("🎮 Continue game - closing menu")
-            actionHandler.executeAction(MenuAction.CONTINUE)
-        }
-        views.resetMenu.setOnClickListener {
-            MenuLogger.action("🔄 Reset game - closing menu and resetting")
-            actionHandler.executeAction(MenuAction.RESET)
-        }
-        views.progressMenu.setOnClickListener {
-            MenuLogger.action("📊 Open Progress submenu")
-            actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.PROGRESS_MENU))
-        }
-        views.settingsMenu.setOnClickListener {
-            MenuLogger.action("⚙️ Open Settings submenu")
-            actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.SETTINGS_MENU))
-        }
-        views.aboutMenu.setOnClickListener {
-            MenuLogger.action("ℹ️ Open About submenu")
-            actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.ABOUT_MENU))
-        }
-        views.exitMenu.setOnClickListener {
-            MenuLogger.action("🚪 Open Exit menu")
-            actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.EXIT_MENU))
         }
     }
 

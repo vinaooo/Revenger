@@ -60,57 +60,15 @@ class ControllerInput(private val context: Context) {
          * is still open, keeps the flag to avoid false detections.
          */
         fun clearKeyLog() {
-                // DISABLED: Phase 5.1f - Performance optimization - Key log clearing logs
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "🔥 [CLEAR_KEYLOG] ===== clearKeyLog() CALLED ====="
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "🔥 [CLEAR_KEYLOG] Timestamp: ${System.currentTimeMillis()}"
-                // )
-                // android.util.Log.d("ControllerInput", "")
-                // android.util.Log.d("ControllerInput", "🧹 clearKeyLog() CALLED")
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "   BEFORE: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "   BEFORE: isRetroMenu3Open=${isRetroMenu3Open?.invoke() ?: false}"
-                // )
                 keyLog.clear()
 
                 // 🔧 FIX: Always reset comboAlreadyTriggered when clearing key log
                 // This ensures combo detection works properly after menu dismissal
                 // regardless of timing or menu state during the clear operation
-                // DISABLED: Phase 5.1f - Performance optimization
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "   ✅ Resetting comboAlreadyTriggered to prevent double-press bug"
-                // )
                 comboAlreadyTriggered = false
 
                 lastComboTriggerTime = 0L // Reset cooldown timer to allow immediate combo detection
                 menuCloseDebounceTime = System.currentTimeMillis() // Set debounce timestamp
-                // DISABLED: Phase 5.1f - Performance optimization
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "   AFTER: keyLog=$keyLog, comboAlreadyTriggered=$comboAlreadyTriggered,
-                // menuCloseDebounceTime=$menuCloseDebounceTime"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "🔥 [CLEAR_KEYLOG] ===== clearKeyLog() COMPLETED ====="
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥"
-                // )
         }
 
         /**
@@ -119,10 +77,6 @@ class ControllerInput(private val context: Context) {
          * "wasAlreadyPressed" false positives
          */
         fun clearMenuActionButtons() {
-                // DISABLED: Phase 5.1f - Performance optimization
-                // android.util.Log.d("ControllerInput", "🧹 clearMenuActionButtons() CALLED")
-                // android.util.Log.d("ControllerInput", "   BEFORE: keyLog=$keyLog")
-
                 // Remove apenas botões de menu (A, B, D-PAD), mantém START/SELECT
                 keyLog.removeIf { keyCode ->
                         keyCode == KeyEvent.KEYCODE_BUTTON_A ||
@@ -132,10 +86,6 @@ class ControllerInput(private val context: Context) {
                                 keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
                                 keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
                 }
-
-                // DISABLED: Phase 5.1f - Performance optimization
-                // android.util.Log.d("ControllerInput", "   AFTER: keyLog=$keyLog")
-                // android.util.Log.d("ControllerInput", "✅ clearMenuActionButtons() COMPLETED")
         }
 
         /** The callback for when the user inputs the menu key-combination */
@@ -190,11 +140,6 @@ class ControllerInput(private val context: Context) {
         ): Boolean {
                 // First check if it's safe to execute menu operations
                 if (!isMenuOperationSafe()) {
-                        // DISABLED: Phase 5.1f - Performance optimization
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "Menu operation not safe, ignoring callback"
-                        // )
                         return false
                 }
 
@@ -212,11 +157,6 @@ class ControllerInput(private val context: Context) {
 
         /** Reset comboAlreadyTriggered flag (used when menu is being dismissed) */
         fun resetComboAlreadyTriggered() {
-                // DISABLED: Phase 5.1f - Performance optimization
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "🔄 resetComboAlreadyTriggered: Resetting comboAlreadyTriggered to false"
-                // )
                 comboAlreadyTriggered = false
         }
 
@@ -240,12 +180,6 @@ class ControllerInput(private val context: Context) {
         fun keepInterceptingButtons(durationMs: Long = 500, closingButton: Int? = null) {
                 keepInterceptingUntil = System.currentTimeMillis() + durationMs
                 buttonThatClosedMenu = closingButton
-                // DISABLED: Phase 5.1f - Performance optimization
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "🛡️ keepInterceptingButtons: active until ${keepInterceptingUntil},
-                // blocking button: $closingButton"
-                // )
         }
 
         /** Verifica se devemos continuar interceptando (menu aberto OU período de graça ativo) */
@@ -253,14 +187,6 @@ class ControllerInput(private val context: Context) {
                 val menuActive = shouldInterceptDpadForMenu()
                 val gracePeriodActive = System.currentTimeMillis() < keepInterceptingUntil
                 val result = menuActive || gracePeriodActive
-
-                // DISABLED: Phase 5.1f - Performance optimization
-                // if (gracePeriodActive && !menuActive) {
-                //         android.util.Log.d(
-                //         "ControllerInput",
-                //         "🛡️ Grace period active - continuing interception"
-                //         )
-                // }
 
                 return result
         }
@@ -283,66 +209,18 @@ class ControllerInput(private val context: Context) {
                 val gracePeriodActive = now < keepInterceptingUntil
                 val timeRemaining = if (gracePeriodActive) keepInterceptingUntil - now else 0
 
-                // DISABLED: Phase 5.1f - Performance optimization - Button interception debug logs
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "┌─ shouldInterceptSpecificButton($keyName) ─────────────────"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "│  gracePeriod: $gracePeriodActive (${timeRemaining}ms remaining)"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "│  buttonThatClosedMenu: $buttonThatClosedMenu
-                // (B=${KeyEvent.KEYCODE_BUTTON_B})"
-                // )
-                // android.util.Log.d("ControllerInput", "│  keyCode to check: $keyCode")
-
                 if (gracePeriodActive && keyCode == buttonThatClosedMenu) {
-                        // DISABLED: Phase 5.1f - Performance optimization
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "│  ⚠️  DECISION: BLOCK (grace period + matching button)"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "└────────────────────────────────────────────────────────"
-                        // )
                         return true
                 }
 
                 // Se menu está aberto de verdade, verificar através de shouldInterceptDpadForMenu
                 val menuActive = shouldInterceptDpadForMenu()
-                // DISABLED: Phase 5.1f - Performance optimization
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "│  menuActive (shouldInterceptDpadForMenu): $menuActive"
-                // )
 
                 if (menuActive) {
-                        // DISABLED: Phase 5.1f - Performance optimization
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "│  ⚠️  DECISION: BLOCK (menu is active)"
-                        // )
-                        // android.util.Log.d(
-                        //         "ControllerInput",
-                        //         "└────────────────────────────────────────────────────────"
-                        // )
                         return true
                 }
 
                 // Botão pode passar
-                // DISABLED: Phase 5.1f - Performance optimization
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "│  ✅ DECISION: ALLOW (grace period expired or different button)"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "└────────────────────────────────────────────────────────"
-                // )
                 return false
         }
 
@@ -387,21 +265,6 @@ class ControllerInput(private val context: Context) {
 
         /** Check if we should be showing the user the menu */
         private fun checkMenuKeyCombo() {
-                // DISABLED: Phase 5.1f - Performance optimization
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "🔍 checkMenuKeyCombo() - INÍCIO DA VERIFICAÇÃO"
-                // )
-                // android.util.Log.d("ControllerInput", "   keyLog atual: $keyLog")
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "   comboAlreadyTriggered: $comboAlreadyTriggered"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "   shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()}"
-                // )
-
                 // Check if we have exactly the two buttons pressed
                 val hasSelectAndStart = keyLog.containsAll(KEYCOMBO_MENU) && keyLog.size == 2
 
@@ -513,27 +376,7 @@ class ControllerInput(private val context: Context) {
                                 "   timeSinceMenuClose: ${timeSinceMenuClose}ms (precisa ser > ${MENU_CLOSE_DEBOUNCE_MS}ms)"
                         )
 
-                        if (!hasSelectAndStart) {
-                                // DISABLED: Phase 5.1f - Performance optimization
-                                // android.util.Log.d(
-                                //         "ControllerInput",
-                                //         "│    - hasSelectAndStart = false"
-                                // )
-                                // android.util.Log.d(
-                                //         "ControllerInput",
-                                //         "│    - SELECT in keyLog:
-                                // ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)}"
-                                // )
-                                // android.util.Log.d(
-                                //         "ControllerInput",
-                                //         "│    - START in keyLog:
-                                // ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)}"
-                                // )
-                                // android.util.Log.d(
-                                //         "ControllerInput",
-                                //         "│    - keyLog contents: $keyLog"
-                                // )
-                        }
+                        if (!hasSelectAndStart) {}
                         if (comboAlreadyTriggered) {
                                 // DISABLED: Phase 5.1f - Performance optimization
                                 // android.util.Log.d(
@@ -564,64 +407,12 @@ class ControllerInput(private val context: Context) {
                                         )
                                 } else {
                                         // Menu is OPEN - this is expected, not a bug
-                                        // DISABLED: Phase 5.1f - Performance optimization
-                                        // android.util.Log.d(
-                                        //         "ControllerInput",
-                                        //         "│    ℹ️  Menu is open, flag=true is correct (not
-                                        // a bug)"
-                                        // )
                                 }
                         }
-                        if (!shouldHandleSelectStartCombo()) {
-                                // DISABLED: Phase 5.1f - Performance optimization
-                                // android.util.Log.d(
-                                //         "ControllerInput",
-                                //         "│    - shouldHandleSelectStartCombo() = false (menu
-                                // already open?)"
-                                // )
-                                // android.util.Log.w(
-                                //         "ControllerInput",
-                                //         "│    ⚠️ Menu is already open? This is expected
-                                // behavior."
-                                // )
-                        }
-                        if (timeSinceLastTrigger <= COMBO_COOLDOWN_MS) {
-                                // DISABLED: Phase 5.1f - Performance optimization
-                                // android.util.Log.d(
-                                //         "ControllerInput",
-                                //         "│    - cooldown active (${timeSinceLastTrigger}ms <
-                                // ${COMBO_COOLDOWN_MS}ms)"
-                                // )
-                                // android.util.Log.w(
-                                //         "ControllerInput",
-                                //         "│    ⚠️ User pressing too fast! Wait ${COMBO_COOLDOWN_MS
-                                // - timeSinceLastTrigger}ms more"
-                                // )
-                        }
-                        if (timeSinceMenuClose <= MENU_CLOSE_DEBOUNCE_MS) {
-                                // DISABLED: Phase 5.1f - Performance optimization
-                                // android.util.Log.d(
-                                //         "ControllerInput",
-                                //         "│    - menu close debounce active
-                                // (${timeSinceMenuClose}ms < ${MENU_CLOSE_DEBOUNCE_MS}ms)"
-                                // )
-                                // android.util.Log.d(
-                                //         "ControllerInput",
-                                //         "│    ℹ️ Menu just closed, preventing immediate re-open"
-                                // )
-                        }
+                        if (!shouldHandleSelectStartCombo()) {}
+                        if (timeSinceLastTrigger <= COMBO_COOLDOWN_MS) {}
+                        if (timeSinceMenuClose <= MENU_CLOSE_DEBOUNCE_MS) {}
                 }
-                // DISABLED: Phase 5.1f - Performance optimization
-                // android.util.Log.d("ControllerInput", "🔚 checkMenuKeyCombo() - FIM DA
-                // VERIFICAÇÃO")
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "   Estado final - comboAlreadyTriggered: $comboAlreadyTriggered"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "└─────────────────────────────────────────────────────────"
-                // )
         }
 
         fun processGamePadButtonEvent(keyCode: Int, action: Int): Boolean {
@@ -640,28 +431,10 @@ class ControllerInput(private val context: Context) {
                                 System.currentTimeMillis()
                         )
 
-                // DISABLED: Phase 5.1f - Performance optimization - Button event logging
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                // )
-                // android.util.Log.d(
-                //         "ControllerInput",
-                //         "📥 [$timestamp] processGamePadButtonEvent: $keyName $actionName"
-                // )
-
                 // INTERCEPT BUTTON A for confirmation when menu is open
                 // Durante grace period, NÃO bloquear A (só menu aberto bloqueia)
                 val menuActiveForA = shouldInterceptDpadForMenu()
                 val shouldInterceptA = keyCode == KeyEvent.KEYCODE_BUTTON_A && menuActiveForA
-                // DISABLED: Phase 5.1f - Performance optimization
-                // if (keyCode == KeyEvent.KEYCODE_BUTTON_A) {
-                //         android.util.Log.d(
-                //                 "ControllerInput",
-                //                 "🔍 BUTTON_A check: shouldInterceptDpadForMenu()=$menuActiveForA,
-                // will intercept=$shouldInterceptA"
-                //         )
-                // }
                 if (shouldInterceptA) {
                         android.util.Log.d(
                                 "ControllerInput",

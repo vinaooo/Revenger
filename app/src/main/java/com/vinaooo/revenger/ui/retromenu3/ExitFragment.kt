@@ -183,49 +183,6 @@ class ExitFragment : MenuFragmentBase() {
         }
     }
 
-    /** Legacy click listeners - direct action execution (old system). */
-    private fun setupLegacyClickListeners() {
-        saveAndExit.setOnClickListener {
-            // Save and Exit - Close menu, restore frameSpeed, then save and exit
-            // A) Close menu first - REMOVED: NavigationController handles menu dismissal
-            // viewModel.dismissAllMenus()
-
-            // B) Restore frameSpeed to correct value from sharedPreferences - REMOVED:
-            // NavigationController handles speed restoration
-            // viewModel.restoreGameSpeedFromPreferences()
-
-            // C) Apply existing functionality (save state and exit)
-            viewModel.saveStateCentralized(
-                    onComplete = {
-                        // After saving, exit the game completely
-                        android.os.Process.killProcess(android.os.Process.myPid())
-                    }
-            )
-        }
-
-        exitWithoutSave.setOnClickListener {
-            // Exit without Save - Close menu, restore frameSpeed, then exit without saving
-            // A) Close menu first - REMOVED: NavigationController handles menu dismissal
-            // viewModel.dismissAllMenus()
-
-            // B) Restore frameSpeed to correct value from sharedPreferences - REMOVED:
-            // NavigationController handles speed restoration
-            // viewModel.restoreGameSpeedFromPreferences()
-
-            // C) Apply existing functionality (exit without saving)
-            android.os.Process.killProcess(android.os.Process.myPid())
-        }
-
-        backExitMenu.setOnClickListener {
-            // Return to main menu - direct ViewModel call (survives rotation)
-            android.util.Log.d(
-                    "ExitFragment",
-                    "[BACK] backExitMenu onClick - calling viewModel.dismissExit()"
-            )
-            viewModel.dismissExit()
-        }
-    }
-
     private fun dismissMenu() {
         // IMPORTANT: Do not call dismissRetroMenu3() here to avoid crashes
         // Just remove the fragment visually - WITHOUT animation
