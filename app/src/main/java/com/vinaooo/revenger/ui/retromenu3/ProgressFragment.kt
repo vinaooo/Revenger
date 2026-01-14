@@ -227,7 +227,7 @@ class ProgressFragment : MenuFragmentBase() {
                 // 1. Select item (immediate visual feedback)
                 viewModel.navigationController?.selectItem(index)
 
-                // 2. After 100ms delay, activate item
+                // 2. After TOUCH_ACTIVATION_DELAY_MS delay, activate item
                 it.postDelayed(
                         {
                             android.util.Log.d(
@@ -237,7 +237,7 @@ class ProgressFragment : MenuFragmentBase() {
                             viewModel.navigationController?.activateItem()
                         },
                         MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS
-                ) // 100ms = focus-then-activate delay
+                ) // MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS = focus-then-activate delay
             }
         }
     }

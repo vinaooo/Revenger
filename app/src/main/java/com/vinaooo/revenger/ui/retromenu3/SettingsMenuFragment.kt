@@ -188,14 +188,14 @@ class SettingsMenuFragment : MenuFragmentBase() {
                 // 1. Select item (immediate visual feedback)
                 viewModel.navigationController?.selectItem(index)
 
-                // 2. After 100ms delay, activate item
+                // 2. After TOUCH_ACTIVATION_DELAY_MS delay, activate item
                 it.postDelayed(
                         {
                             Log.d(TAG, "[TOUCH] Activating Settings item $index after delay")
                             viewModel.navigationController?.activateItem()
                         },
                         MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS
-                ) // 100ms = focus-then-activate delay
+                ) // MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS = focus-then-activate delay
             }
         }
     }

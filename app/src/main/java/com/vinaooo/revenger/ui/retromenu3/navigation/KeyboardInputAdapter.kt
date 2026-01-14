@@ -38,6 +38,9 @@ class KeyboardInputAdapter(
         // Isso previne que o primeiro repeat seja considerado "novo ciclo"
         private const val PRESS_CYCLE_TIMEOUT_MS = 500L
 
+        /** Timestamp inicial antes de qualquer evento ser processado (PHASE 3.1) */
+        private const val NO_EVENT_TIME = 0L
+
         // V4.5: GLOBAL STATIC LOCK - Compartilhado por TODAS as instâncias/threads
         // CRÍTICO: Lock DEVE ser companion object (static) para proteger contra
         // múltiplas instâncias ou chamadas paralelas de GameActivityViewModel
@@ -94,11 +97,11 @@ class KeyboardInputAdapter(
     // t=666ms  DOWN → ALLOW (hasNavigatedInCycle=true) - novo toque
     //
     private data class PressCycleState(
-            var lastDownTime: Long = 0L, // Timestamp do último KEY_DOWN (para timeout)
-            var lastUpTime: Long = 0L, // Timestamp do último KEY_UP (não usado para timeout)
+            var lastDownTime: Long = NO_EVENT_TIME, // Timestamp do último KEY_DOWN (para timeout)
+            var lastUpTime: Long = NO_EVENT_TIME, // Timestamp do último KEY_UP (não usado para timeout)
             var hasNavigatedInCycle: Boolean = false, // Já navegou neste ciclo?
             var lastProcessedEventTime: Long =
-                    0L // V4.2: eventTime do último evento processado (deduplicação)
+                    NO_EVENT_TIME // V4.2: eventTime do último evento processado (deduplicação)
     )
 
     /**

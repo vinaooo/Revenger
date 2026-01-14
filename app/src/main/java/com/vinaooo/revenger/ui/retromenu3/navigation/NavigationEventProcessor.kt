@@ -1,5 +1,7 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+import com.vinaooo.revenger.ui.retromenu3.MenuIndices
+
 /**
  * Processador de eventos de navegação.
  *
@@ -116,7 +118,7 @@ class NavigationEventProcessor(
         if (stateManager.currentMenu == MenuType.MAIN) {
             val targetMenu =
                     when (stateManager.selectedItemIndex) {
-                        0 -> {
+                        MenuIndices.CONTINUE -> {
                             // Continue
                             android.util.Log.d(TAG, "Continue selected - closing menu")
                             fragmentAdapter.hideMenu()
@@ -126,7 +128,7 @@ class NavigationEventProcessor(
                             lastActionButton = null
                             return
                         }
-                        1 -> {
+                        MenuIndices.RESET -> {
                             // Reset
                             android.util.Log.d(TAG, "Reset selected")
                             val handled = stateManager.currentFragment?.onConfirm() ?: false
@@ -137,10 +139,10 @@ class NavigationEventProcessor(
                             }
                             return
                         }
-                        2 -> MenuType.PROGRESS
-                        3 -> MenuType.SETTINGS
-                        4 -> MenuType.ABOUT
-                        5 -> MenuType.EXIT
+                        MenuIndices.PROGRESS -> MenuType.PROGRESS
+                        MenuIndices.SETTINGS -> MenuType.SETTINGS
+                        MenuIndices.ABOUT -> MenuType.ABOUT
+                        MenuIndices.EXIT -> MenuType.EXIT
                         else -> {
                             android.util.Log.w(
                                     TAG,
