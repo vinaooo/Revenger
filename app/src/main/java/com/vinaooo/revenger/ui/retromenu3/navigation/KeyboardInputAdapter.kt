@@ -98,7 +98,8 @@ class KeyboardInputAdapter(
     //
     private data class PressCycleState(
             var lastDownTime: Long = NO_EVENT_TIME, // Timestamp do último KEY_DOWN (para timeout)
-            var lastUpTime: Long = NO_EVENT_TIME, // Timestamp do último KEY_UP (não usado para timeout)
+            var lastUpTime: Long =
+                    NO_EVENT_TIME, // Timestamp do último KEY_UP (não usado para timeout)
             var hasNavigatedInCycle: Boolean = false, // Já navegou neste ciclo?
             var lastProcessedEventTime: Long =
                     NO_EVENT_TIME // V4.2: eventTime do último evento processado (deduplicação)

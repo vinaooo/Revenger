@@ -3,11 +3,11 @@ package com.vinaooo.revenger.ui.retromenu3
 /**
  * Constantes para índices de itens do menu principal.
  *
- * Centraliza os valores mágicos (0-5) para facilitar manutenção.
- * Se a ordem dos menus mudar, alterar apenas aqui.
+ * Centraliza os valores mágicos (0-5) para facilitar manutenção. Se a ordem dos menus mudar,
+ * alterar apenas aqui.
  *
- * Padrão SOLID: Evita duplicação de valores magic numbers
- * Manutenibilidade: Mudança centralizada = uma fonte da verdade
+ * Padrão SOLID: Evita duplicação de valores magic numbers Manutenibilidade: Mudança centralizada =
+ * uma fonte da verdade
  */
 object MenuIndices {
     /** Item 0: Continue (retomar jogo) */

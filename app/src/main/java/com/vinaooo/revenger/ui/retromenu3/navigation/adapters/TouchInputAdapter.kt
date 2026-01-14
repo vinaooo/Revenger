@@ -32,8 +32,8 @@ class TouchInputAdapter(private val viewIndexMapper: (View) -> Int) : InputTrans
     /**
      * Delay entre SelectItem e ActivateSelected.
      *
-     * MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS é imperceptível para o usuário mas fornece tempo suficiente para o highlight aparecer
-     * antes da ação.
+     * MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS é imperceptível para o usuário mas fornece tempo
+     * suficiente para o highlight aparecer antes da ação.
      */
     private val focusThenActivateDelayMs = MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS
 
