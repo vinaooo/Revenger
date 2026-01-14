@@ -105,12 +105,15 @@ class MenuStateControllerImpl(
 
         // Mostrar seta do item selecionado
         when (currentSelectionIndex) {
-            0 -> menuViews.selectionArrowContinue.visibility = android.view.View.VISIBLE
-            1 -> menuViews.selectionArrowReset.visibility = android.view.View.VISIBLE
-            2 -> menuViews.selectionArrowProgress.visibility = android.view.View.VISIBLE
-            3 -> menuViews.selectionArrowSettings.visibility = android.view.View.VISIBLE
-            4 -> menuViews.selectionArrowAbout.visibility = android.view.View.VISIBLE
-            5 -> menuViews.selectionArrowExit.visibility = android.view.View.VISIBLE
+            MENU_ITEM_CONTINUE ->
+                    menuViews.selectionArrowContinue.visibility = android.view.View.VISIBLE
+            MENU_ITEM_RESET -> menuViews.selectionArrowReset.visibility = android.view.View.VISIBLE
+            MENU_ITEM_PROGRESS ->
+                    menuViews.selectionArrowProgress.visibility = android.view.View.VISIBLE
+            MENU_ITEM_SETTINGS ->
+                    menuViews.selectionArrowSettings.visibility = android.view.View.VISIBLE
+            MENU_ITEM_ABOUT -> menuViews.selectionArrowAbout.visibility = android.view.View.VISIBLE
+            MENU_ITEM_EXIT -> menuViews.selectionArrowExit.visibility = android.view.View.VISIBLE
         }
 
         // DELEGAR PARA MenuAnimationController PARA ATUALIZAR CORES DO TEXTO
@@ -118,5 +121,25 @@ class MenuStateControllerImpl(
         MenuLogger.state(
                 "MenuStateController: updateSelectionVisuals - Delegated to MenuAnimationController"
         )
+    }
+
+    companion object {
+        /** Índice do item Continue no menu */
+        const val MENU_ITEM_CONTINUE = 0
+
+        /** Índice do item Reset no menu */
+        const val MENU_ITEM_RESET = 1
+
+        /** Índice do item Progress no menu */
+        const val MENU_ITEM_PROGRESS = 2
+
+        /** Índice do item Settings no menu */
+        const val MENU_ITEM_SETTINGS = 3
+
+        /** Índice do item About no menu */
+        const val MENU_ITEM_ABOUT = 4
+
+        /** Índice do item Exit no menu */
+        const val MENU_ITEM_EXIT = 5
     }
 }

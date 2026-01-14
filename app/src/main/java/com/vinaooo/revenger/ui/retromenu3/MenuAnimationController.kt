@@ -39,7 +39,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                         .menuContainer
                         .animate()
                         .alpha(1f)
-                        .setDuration(300)
+                        .setDuration(ANIMATION_DURATION_IN)
                         .setListener(
                                 object : AnimatorListenerAdapter() {
                                         override fun onAnimationEnd(animation: Animator) {
@@ -60,7 +60,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                         .menuContainer
                         .animate()
                         .alpha(0f)
-                        .setDuration(200)
+                        .setDuration(ANIMATION_DURATION_OUT)
                         .setListener(
                                 object : AnimatorListenerAdapter() {
                                         override fun onAnimationEnd(animation: Animator) {
@@ -91,7 +91,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
 
                 // Update title colors based on selection
                 menuViews.continueTitle.setTextColor(
-                        if (selectedIndex == 0)
+                        if (selectedIndex == MENU_ITEM_CONTINUE)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.continueTitle.context,
                                         R.color.retro_menu3_selected_color
@@ -103,7 +103,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                                 )
                 )
                 menuViews.resetTitle.setTextColor(
-                        if (selectedIndex == 1)
+                        if (selectedIndex == MENU_ITEM_RESET)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.resetTitle.context,
                                         R.color.retro_menu3_selected_color
@@ -115,7 +115,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                                 )
                 )
                 menuViews.progressTitle.setTextColor(
-                        if (selectedIndex == 2)
+                        if (selectedIndex == MENU_ITEM_PROGRESS)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.progressTitle.context,
                                         R.color.retro_menu3_selected_color
@@ -127,7 +127,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                                 )
                 )
                 menuViews.settingsTitle.setTextColor(
-                        if (selectedIndex == 3)
+                        if (selectedIndex == MENU_ITEM_SETTINGS)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.settingsTitle.context,
                                         R.color.retro_menu3_selected_color
@@ -139,7 +139,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                                 )
                 )
                 menuViews.aboutTitle.setTextColor(
-                        if (selectedIndex == 4)
+                        if (selectedIndex == MENU_ITEM_ABOUT)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.aboutTitle.context,
                                         R.color.retro_menu3_selected_color
@@ -151,7 +151,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                                 )
                 )
                 menuViews.exitTitle.setTextColor(
-                        if (selectedIndex == 5)
+                        if (selectedIndex == MENU_ITEM_EXIT)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.exitTitle.context,
                                         R.color.retro_menu3_selected_color
@@ -165,7 +165,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
 
                 // Update selection arrow visibility and colors
                 // Continue
-                if (selectedIndex == 0) {
+                if (selectedIndex == MENU_ITEM_CONTINUE) {
                         menuViews.selectionArrowContinue.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowContinue.context,
@@ -178,7 +178,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                 }
 
                 // Reset
-                if (selectedIndex == 1) {
+                if (selectedIndex == MENU_ITEM_RESET) {
                         menuViews.selectionArrowReset.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowReset.context,
@@ -191,7 +191,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                 }
 
                 // Progress
-                if (selectedIndex == 2) {
+                if (selectedIndex == MENU_ITEM_PROGRESS) {
                         menuViews.selectionArrowProgress.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowProgress.context,
@@ -204,7 +204,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                 }
 
                 // Settings
-                if (selectedIndex == 3) {
+                if (selectedIndex == MENU_ITEM_SETTINGS) {
                         menuViews.selectionArrowSettings.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowSettings.context,
@@ -217,7 +217,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                 }
 
                 // About
-                if (selectedIndex == 4) {
+                if (selectedIndex == MENU_ITEM_ABOUT) {
                         menuViews.selectionArrowAbout.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowAbout.context,
@@ -230,7 +230,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                 }
 
                 // Exit
-                if (selectedIndex == 5) {
+                if (selectedIndex == MENU_ITEM_EXIT) {
                         menuViews.selectionArrowExit.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowExit.context,
@@ -251,5 +251,31 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                         MenuLogger.lifecycle("MenuAnimationController: dismissMenu COMPLETED")
                         onAnimationEnd?.invoke()
                 }
+        }
+
+        companion object {
+                /** Duração da animação de entrada do menu em milissegundos */
+                const val ANIMATION_DURATION_IN = 300L
+
+                /** Duração da animação de saída do menu em milissegundos */
+                const val ANIMATION_DURATION_OUT = 200L
+
+                /** Índice do item Continue no menu */
+                const val MENU_ITEM_CONTINUE = 0
+
+                /** Índice do item Reset no menu */
+                const val MENU_ITEM_RESET = 1
+
+                /** Índice do item Progress no menu */
+                const val MENU_ITEM_PROGRESS = 2
+
+                /** Índice do item Settings no menu */
+                const val MENU_ITEM_SETTINGS = 3
+
+                /** Índice do item About no menu */
+                const val MENU_ITEM_ABOUT = 4
+
+                /** Índice do item Exit no menu */
+                const val MENU_ITEM_EXIT = 5
         }
 }

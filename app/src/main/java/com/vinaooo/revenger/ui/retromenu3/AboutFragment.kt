@@ -267,7 +267,7 @@ class AboutFragment : MenuFragmentBase() {
                             )
                             viewModel.navigationController?.activateItem()
                         },
-                        100L
+                        MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS
                 ) // 100ms = focus-then-activate delay
             }
         }

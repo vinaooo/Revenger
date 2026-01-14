@@ -194,7 +194,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
                             Log.d(TAG, "[TOUCH] Activating Settings item $index after delay")
                             viewModel.navigationController?.activateItem()
                         },
-                        100L
+                        MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS
                 ) // 100ms = focus-then-activate delay
             }
         }

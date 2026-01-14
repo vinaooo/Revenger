@@ -125,4 +125,9 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         _currentSelectedIndex = 0
         updateSelectionVisualInternal()
     }
+
+    companion object {
+        /** Delay para ativação de item via touch em milissegundos */
+        const val TOUCH_ACTIVATION_DELAY_MS = 100L
+    }
 }
