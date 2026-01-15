@@ -7,6 +7,22 @@ import android.view.MotionEvent
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.retroview.RetroView
 
+/**
+ * Gerenciador centralizado de entradas de controle (gamepad, teclado).
+ *
+ * Responsabilidades:
+ * - Detectar combo SELECT+START para abrir RetroMenu3
+ * - Interceptar entradas quando menu está ativo
+ * - Rotear navegação de menu (UP/DOWN/CONFIRM/BACK)
+ * - Prevenir vazamento de inputs para o core durante operações de menu
+ *
+ * Arquitetura Phase 4+:
+ * - Sistema single-trigger para navegação responsiva
+ * - Debouncing adaptativo (30ms navegação, 200ms ações)
+ * - Grace period de 500ms para evitar ações duplicadas após fechar menu
+ *
+ * @param context Contexto da aplicação para operações do sistema
+ */
 class ControllerInput(private val context: Context) {
         companion object {
                 /** Combination to open the menu */
@@ -39,9 +55,6 @@ class ControllerInput(private val context: Context) {
         /** Set of keys currently being held by the user */
         private val keyLog = mutableSetOf<Int>()
 
-        /** Keys que já dispararam ação e devem ficar bloqueados até receber ACTION_UP */
-        private val blockedUntilKeyUp = mutableSetOf<Int>()
-
         /**
          * Flag to prevent combo from being detected multiple times while buttons are held Reset
          * only when BOTH combo buttons are released
@@ -55,11 +68,6 @@ class ControllerInput(private val context: Context) {
         /** Timestamp to prevent combo detection immediately after menu closes */
         private var menuCloseDebounceTime = 0L
         private val MENU_CLOSE_DEBOUNCE_MS = 200L // 200ms debounce after menu closes
-
-        // FIX ERRO 1: Tracking de contexto para KEY_DOWN/KEY_UP (B/BackSpace)
-        // Guarda timestamp do último KEY_DOWN por tecla para validar KEY_UP correspondente
-        private val keyDownTimestamps = mutableMapOf<Int, Long>()
-        private val KEY_UP_TIMEOUT_MS = 500L // Timeout para considerar KEY_UP órfão
 
         /**
          * Clears the keyLog to avoid combo detection after closing the menu.
@@ -83,6 +91,11 @@ class ControllerInput(private val context: Context) {
          * Limpa apenas os botões de ação do menu (A, B, D-PAD) do keyLog NÃO limpa START/SELECT
          * para não causar problemas no combo Deve ser chamado quando o menu fecha para evitar
          * "wasAlreadyPressed" false positives
+                // Tracking de contexto para eventos KEY_DOWN/KEY_UP (FIX ERRO 1)
+                // Guarda timestamp do último KEY_DOWN de cada botão para validar KEY_UP correspondente
+                private val keyDownTimestamps = mutableMapOf<Int, Long>()
+                private val KEY_UP_TIMEOUT_MS = 500L // Timeout para considerar KEY_UP órfão
+
          */
         fun clearMenuActionButtons() {
                 // Remove apenas botões de menu (A, B, D-PAD), mantém START/SELECT
@@ -94,6 +107,43 @@ class ControllerInput(private val context: Context) {
                                 keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
                                 keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
                 }
+        }
+
+        /**
+         * Limpa todos os estados pendentes de input para prevenir vazamento de eventos durante
+         * transições de fragmento.
+         *
+         * FIX ERRO 1: Ao transitar de submenu → menu principal, evento KEY_UP residual de B/BackSpace
+         * estava sendo processado no novo contexto, causando fechamento inesperado do menu.
+         *
+         * Este método deve ser chamado em onPause() dos fragments para garantir estado limpo.
+         */
+        fun clearPendingInputs() {
+                // Limpar timestamps de debounce de todos os callbacks de menu
+                lastMenuBackCallbackTime = 0L
+                lastMenuConfirmCallbackTime = 0L
+                lastMenuNavigateUpCallbackTime = 0L
+                lastMenuNavigateDownCallbackTime = 0L
+                lastStartButtonCallbackTime = 0L
+                lastGamepadMenuButtonCallbackTime = 0L
+
+                // Limpar keyLog para evitar detecção de teclas "ainda pressionadas"
+                keyLog.clear()
+
+                // Resetar flag de combo para permitir nova detecção
+                comboAlreadyTriggered = false
+
+                // Resetar grace period para evitar bloqueio de próximo fragmento
+                keepInterceptingUntil = 0L
+                buttonThatClosedMenu = null
+
+                // Limpar tracking de KEY_DOWN/KEY_UP (FIX ERRO 1)
+                keyDownTimestamps.clear()
+
+                android.util.Log.d(
+                        "ControllerInput",
+                        "[CLEAR_STATE] ✅ clearPendingInputs() - all input state cleared for fragment transition"
+                )
         }
 
         /** The callback for when the user inputs the menu key-combination */
@@ -172,58 +222,6 @@ class ControllerInput(private val context: Context) {
                 menuCloseDebounceTime = System.currentTimeMillis()
         }
 
-        /**
-         * Limpa estado de input para evitar vazamento de eventos durante transições. Reseta
-         * debounces, keyLog, combo e tracking de KEY_DOWN/UP.
-         */
-        fun clearPendingInputs() {
-                lastMenuBackCallbackTime = 0L
-                lastMenuConfirmCallbackTime = 0L
-                lastMenuNavigateUpCallbackTime = 0L
-                lastMenuNavigateDownCallbackTime = 0L
-                lastStartButtonCallbackTime = 0L
-                lastGamepadMenuButtonCallbackTime = 0L
-
-                keyLog.clear()
-                comboAlreadyTriggered = false
-
-                keepInterceptingUntil = 0L
-                buttonThatClosedMenu = null
-
-                keyDownTimestamps.clear()
-                blockedUntilKeyUp.clear()
-
-                android.util.Log.d(
-                        "ControllerInput",
-                        "[CLEAR_STATE] clearPendingInputs() applied: debounces+keyLog+combo+tracking reset"
-                )
-        }
-
-        /**
-         * Versão que preserva teclas atualmente pressionadas (ex.: B segurado ao voltar de
-         * submenu). Reseta apenas debounces e flags de combo/grace, mantendo keyLog +
-         * blockedUntilKeyUp para que o ACTION_UP correspondente seja consumido no próximo fragmento
-         * sem reprocessar DOWN.
-         */
-        fun clearPendingInputsPreserveHeld() {
-                lastMenuBackCallbackTime = 0L
-                lastMenuConfirmCallbackTime = 0L
-                lastMenuNavigateUpCallbackTime = 0L
-                lastMenuNavigateDownCallbackTime = 0L
-                lastStartButtonCallbackTime = 0L
-                lastGamepadMenuButtonCallbackTime = 0L
-
-                comboAlreadyTriggered = false
-
-                keepInterceptingUntil = 0L
-                buttonThatClosedMenu = null
-
-                android.util.Log.d(
-                        "ControllerInput",
-                        "[CLEAR_STATE] partial clear preserving held keys (debounces+combo reset)"
-                )
-        }
-
         /** Function to check if devemos interceptar DPAD para menu */
         var shouldInterceptDpadForMenu: () -> Boolean = { false }
 
@@ -270,11 +268,6 @@ class ControllerInput(private val context: Context) {
                 val timeRemaining = if (gracePeriodActive) keepInterceptingUntil - now else 0
 
                 if (gracePeriodActive && keyCode == buttonThatClosedMenu) {
-                        return true
-                }
-
-                // Se um botão está marcado como bloqueado até ACTION_UP, mantenha o bloqueio
-                if (blockedUntilKeyUp.contains(keyCode)) {
                         return true
                 }
 
@@ -530,69 +523,19 @@ class ControllerInput(private val context: Context) {
                         keyCode == KeyEvent.KEYCODE_BUTTON_B &&
                                 shouldInterceptSpecificButton(keyCode)
                 if (shouldInterceptB) {
-                        val now = System.currentTimeMillis()
                         android.util.Log.d(
                                 "ControllerInput",
-                                "🔵 BUTTON_B intercepted - shouldInterceptSpecificButton()=true"
+                                "� BUTTON_B intercepted - shouldInterceptSpecificButton()=true"
                         )
-                        // Se já foi processado e estamos aguardando ACTION_UP, consumir
-                        if (blockedUntilKeyUp.contains(KeyEvent.KEYCODE_BUTTON_B)) {
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "   ↪️ B locked until ACTION_UP - consuming DOWN"
-                                )
-                                return true
-                        }
                         if (action == KeyEvent.ACTION_DOWN) {
-                                // Checar estado de menu e grace period
-                                val menuActive = shouldInterceptDpadForMenu()
-                                val gracePeriodActive =
-                                        System.currentTimeMillis() < keepInterceptingUntil
+                                        val currentTime = System.currentTimeMillis()
 
-                                // Se estamos no grace period, menu não está ativo e o botão que
-                                // fechou foi B,
-                                // apenas consumir o evento sem acionar callback de volta.
-                                if (gracePeriodActive &&
-                                                !menuActive &&
-                                                buttonThatClosedMenu == KeyEvent.KEYCODE_BUTTON_B
-                                ) {
-                                        val alreadyPressedGrace =
-                                                keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
-                                        if (alreadyPressedGrace) {
-                                                android.util.Log.d(
-                                                        "ControllerInput",
-                                                        "   ↪️ Repeated ACTION_DOWN for B during grace - IGNORED"
-                                                )
-                                                return true
-                                        }
-                                        // Registrar para casar com ACTION_UP e evitar órfãos
-                                        keyLog.add(KeyEvent.KEYCODE_BUTTON_B)
-                                        keyDownTimestamps[KeyEvent.KEYCODE_BUTTON_B] = now
-                                        android.util.Log.d(
-                                                "ControllerInput",
-                                                "   → Grace period active, menu inactive; consuming B without callback"
-                                        )
-                                        return true
-                                }
+                                        // Registrar timestamp deste KEY_DOWN para validar KEY_UP futuro
+                                        keyDownTimestamps[keyCode] = currentTime
 
-                                // Ignorar key-repeat enquanto B estiver pressionado
-                                val alreadyPressed = keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
-                                if (alreadyPressed) {
-                                        android.util.Log.d(
-                                                "ControllerInput",
-                                                "   ↪️ Repeated ACTION_DOWN for B while held - IGNORED"
-                                        )
-                                        return true
-                                }
-
-                                // Marcar como pressionado para bloquear repeats
-                                keyLog.add(KeyEvent.KEYCODE_BUTTON_B)
-                                // Registrar timestamp para validar KEY_UP correspondente
-                                keyDownTimestamps[KeyEvent.KEYCODE_BUTTON_B] = now
-                                blockedUntilKeyUp.add(KeyEvent.KEYCODE_BUTTON_B)
                                 android.util.Log.d(
                                         "ControllerInput",
-                                        "   → KEY_DOWN registered at $now - executing menuBackCallback"
+                                               "   → KEY_DOWN registered at $currentTime - executing menuBackCallback"
                                 )
                                 // NOTE: Bloqueio será feito no callback onMenuClosedCallback
                                 // quando o menu realmente fechar
@@ -600,24 +543,27 @@ class ControllerInput(private val context: Context) {
                                         lastMenuBackCallbackTime = it
                                 }
                         } else {
-                                // Validar se este KEY_UP corresponde a um KEY_DOWN recente
-                                val downTime = keyDownTimestamps[KeyEvent.KEYCODE_BUTTON_B]
-                                if (downTime == null || (now - downTime) > KEY_UP_TIMEOUT_MS) {
-                                        android.util.Log.w(
-                                                "ControllerInput",
-                                                "🚨 ORPHAN KEY_UP detected for BUTTON_B - discarding (downTime=$downTime, elapsed=${now - (downTime ?: 0)}ms)"
-                                        )
-                                        keyDownTimestamps.remove(KeyEvent.KEYCODE_BUTTON_B)
-                                        return true // Discard orphan KEY_UP
-                                }
-                                // KEY_UP válido - limpar timestamp e bloquear
-                                keyDownTimestamps.remove(KeyEvent.KEYCODE_BUTTON_B)
-                                // Remover do keyLog para permitir próximo ciclo
-                                keyLog.remove(KeyEvent.KEYCODE_BUTTON_B)
-                                blockedUntilKeyUp.remove(KeyEvent.KEYCODE_BUTTON_B)
+                                        // FIX ERRO 1: Validar se este KEY_UP corresponde a um KEY_DOWN recente
+                                        val keyDownTime = keyDownTimestamps[keyCode]
+                                        if (keyDownTime == null || (currentTime - keyDownTime) > KEY_UP_TIMEOUT_MS) {
+                                                android.util.Log.w(
+                                                        "ControllerInput",
+                                                        "🚨 ORPHAN KEY_UP detected for B - no matching KEY_DOWN or timeout exceeded"
+                                                )
+                                                android.util.Log.d(
+                                                        "ControllerInput",
+                                                        "   Likely residual event from fragment transition - DISCARDING"
+                                                )
+                                                keyDownTimestamps.remove(keyCode)
+                                                return true // Discard orphan KEY_UP
+                                        }
+
+                                        // KEY_UP válido - limpar timestamp
+                                        keyDownTimestamps.remove(keyCode)
+
                                 android.util.Log.d(
                                         "ControllerInput",
-                                        "🚫 BUTTON_B ACTION_UP valid (matched KEY_DOWN) - blocking"
+                                               "🚫 BUTTON_B ACTION_UP valid (matched KEY_DOWN) - blocking"
                                 )
                         }
                         // CRITICAL: Consumir TANTO ACTION_DOWN quanto ACTION_UP
@@ -834,17 +780,7 @@ class ControllerInput(private val context: Context) {
                                 "ControllerInput",
                                 "🔵 BUTTON_B intercepted in processKeyEvent - action=${event.action} (DOWN=0, UP=1), shouldIntercept=true"
                         )
-                        val alreadyPressed = keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
                         if (event.action == KeyEvent.ACTION_DOWN) {
-                                if (alreadyPressed) {
-                                        android.util.Log.d(
-                                                "ControllerInput",
-                                                "   ↪️ B already pressed (hold) - consuming without callback"
-                                        )
-                                        return true
-                                }
-                                // Track hold so submenu→main transitions keep state
-                                keyLog.add(KeyEvent.KEYCODE_BUTTON_B)
                                 android.util.Log.d(
                                         "ControllerInput",
                                         "BUTTON_B intercepted for menu back"
@@ -857,7 +793,6 @@ class ControllerInput(private val context: Context) {
                                         "ControllerInput",
                                         "🚫 BUTTON_B ACTION_UP intercepted - blocking from reaching game"
                                 )
-                                keyLog.remove(KeyEvent.KEYCODE_BUTTON_B)
                         }
                         // CRITICAL: Bloquear TANTO ACTION_DOWN quanto ACTION_UP
                         // Isso impede que o ACTION_UP vaze para o jogo

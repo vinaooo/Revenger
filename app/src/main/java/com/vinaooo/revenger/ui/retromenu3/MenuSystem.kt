@@ -1,8 +1,21 @@
 package com.vinaooo.revenger.ui.retromenu3
 
 /**
- * Sealed class for menu actions to ensure type safety and provide a unified command pattern for all
- * menu interactions in the RetroMenu3 system.
+ * Sealed class para ações de menu garantindo type safety e fornecendo um padrão Command unificado
+ * para todas as interações de menu no sistema RetroMenu3.
+ *
+ * **Command Pattern**: Cada ação é um objeto imutável que representa uma intenção de usuário.
+ * **Type Safety**: O compilador garante que apenas ações válidas sejam processadas.
+ *
+ * **Tipos de Ações**:
+ * - **Main Menu**: CONTINUE, RESET, SAVE_STATE, LOAD_STATE
+ * - **Toggles**: TOGGLE_AUDIO, TOGGLE_SPEED, TOGGLE_SHADER
+ * - **Exit**: SAVE_AND_EXIT, EXIT
+ * - **Navegação**: NAVIGATE(targetMenu), BACK
+ * - **Utility**: SAVE_LOG, NONE (itens desabilitados)
+ *
+ * @see MenuManager Processa e roteia as ações
+ * @see MenuFragment Produz ações via navegação do usuário
  */
 sealed class MenuAction {
     // Main menu actions
@@ -26,9 +39,21 @@ sealed class MenuAction {
 }
 
 /**
- * Unified event system for menu interactions. Replaces the hybrid architecture of direct method
- * calls and callbacks with a single, consistent event-driven approach. This enables better
- * decoupling, testability, and maintainability of the menu system.
+ * Sistema de eventos unificado para interações de menu.
+ *
+ * **Arquitetura Event-Driven (Phase 4+)**: Substitui arquitetura híbrida de chamadas diretas +
+ * callbacks por abordagem consistente event-driven. Benefícios:
+ * - **Desacoplamento**: Componentes comunicam via eventos, não referências diretas
+ * - **Testabilidade**: Fácil mockar e verificar fluxo de eventos
+ * - **Manutenibilidade**: Adicionar novos eventos não quebra código existente
+ *
+ * **Tipos de Eventos**:
+ * - **Navigation**: NavigateUp, NavigateDown, Confirm, Back
+ * - **Action**: Action(menuAction) - wrapper para MenuAction
+ * - **State**: StateChanged(from, to), MenuClosed
+ *
+ * @see MenuManager Processa eventos e atualiza estado
+ * @see MenuAction Ações concretas executadas pelos eventos
  */
 sealed class MenuEvent {
     // Navigation events
@@ -46,8 +71,25 @@ sealed class MenuEvent {
 }
 
 /**
- * Enum representing different menu states in the RetroMenu3 system. This provides a clear state
- * machine for menu navigation.
+ * Enum representando diferentes estados de menu no sistema RetroMenu3.
+ *
+ * **State Machine**: Fornece máquina de estados clara para navegação de menu.
+ *
+ * **Estados Disponíveis**:
+ * - `MAIN_MENU`: Menu principal (6 opções: Continue, Reset, Progress, Settings, About, Exit)
+ * - `PROGRESS_MENU`: Submenu de save/load states
+ * - `SETTINGS_MENU`: Submenu de configurações (Audio, Shader, Speed)
+ * - `ABOUT_MENU`: Submenu de informações sobre ROM/Core
+ * - `EXIT_MENU`: Submenu de confirmação de saída (Save & Exit, Exit, Back)
+ *
+ * **Transições**:
+ * ```
+ * MAIN_MENU → PROGRESS_MENU (seleção "Progress")
+ * PROGRESS_MENU → MAIN_MENU (ação "Back")
+ * ```
+ *
+ * @see MenuManager Gerencia transições entre estados
+ * @see MenuAction.NAVIGATE Ação para navegar entre estados
  */
 enum class MenuState {
     MAIN_MENU,
@@ -110,9 +152,24 @@ data class MenuSystemState(
 }
 
 /**
- * Centralized state manager for the menu system. Provides a single source of truth for all menu
- * state, replacing the distributed boolean flags. Uses immutable state updates for thread safety
- * and predictability.
+ * Gerenciador de estado centralizado para o sistema de menu.
+ *
+ * **Single Source of Truth (Phase 4+)**: Substitui flags booleanas distribuídas por estado imutável
+ * centralizado.
+ *
+ * **Arquitetura**:
+ * - **Thread-Safe**: Atualizações atômicas via funções de transformação
+ * - **Predictable**: Estado imutável = mudanças rastreáveis e testáveis
+ * - **Observable**: Callback onStateChanged notifica observers sobre mudanças
+ *
+ * **Uso**:
+ * ```kotlin
+ * menuStateManager.updateState { it.withMenuActivated(MenuType.PROGRESS_MENU) }
+ * menuStateManager.activateMenu(MenuType.SETTINGS_MENU) // convenience method
+ * ```
+ *
+ * @param onStateChanged Callback opcional invocado após cada mudança de estado
+ * @see MenuSystemState Estado imutável gerenciado por esta classe
  */
 class MenuStateManager(private val onStateChanged: ((MenuSystemState) -> Unit)? = null) {
 

@@ -10,8 +10,23 @@ import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.MenuLogger
 
 /**
- * Data class que representa todas as views do menu RetroMenu3. Centraliza as referências para
- * evitar múltiplas findViewById.
+ * Data class que representa todas as views do menu RetroMenu3.
+ *
+ * **Padrão Value Object**: Centraliza todas as referências de views para evitar múltiplos
+ * findViewById.
+ *
+ * **Benefícios**:
+ * - Performance: findViewById apenas uma vez
+ * - Type-safety: Referências garantidas em tempo de compilação
+ * - Manutenibilidade: Mudanças em layout refletidas em um só lugar
+ *
+ * @property menuContainer Container principal do menu
+ * @property continueMenu, resetMenu, progressMenu, settingsMenu, aboutMenu, exitMenu Cards de cada
+ * opção
+ * @property menuItems Lista ordenada de todos os cards para navegação
+ * @property continueTitle, resetTitle, etc TextViews dos títulos de cada opção
+ * @property selectionArrowContinue, selectionArrowReset, etc TextViews das setas de seleção (→)
+ * @property titleTextView TextView do título principal do menu
  */
 data class MenuViews(
         val menuContainer: LinearLayout,
@@ -37,7 +52,23 @@ data class MenuViews(
         val titleTextView: TextView
 )
 
-/** Interface para inicialização de views do menu. */
+/**
+ * Interface para inicialização de views do menu.
+ *
+ * **Padrão Strategy**: Define contrato para diferentes estratégias de inicialização de UI.
+ *
+ * **Responsabilidades**:
+ * - `initializeViews()`: Realiza findViewById de todas as views do menu
+ * - `setupClickListeners()`: Configura sistema de navegação touch (Phase 3.3)
+ * - `setupDynamicTitle()`: Configura título dinâmico do menu
+ * - `configureInitialViewStates()`: Define estados iniciais das views
+ *
+ * **Phase 3.3**: setupClickListeners integrado com NavigationController para touch navigation
+ * unificada. **Phase 3.3 Cleanup**: Sistema legacy removido, apenas NavigationController route.
+ *
+ * @see MenuViewInitializerImpl Implementação concreta
+ * @see NavigationController Sistema de navegação unificado
+ */
 interface MenuViewInitializer {
     fun initializeViews(view: View): MenuViews
     fun setupClickListeners(

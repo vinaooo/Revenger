@@ -11,7 +11,29 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/** AboutFragment - About submenu showing project information */
+/**
+ * Fragment do submenu About (Informações).
+ *
+ * **Funcionalidades**:
+ * - Exibe informações sobre o projeto (nome, versão)
+ * - Mostra nome da ROM atual
+ * - Mostra core LibRetro em uso
+ * - Back: Volta ao menu principal
+ *
+ * **Arquitetura Multi-Input (Phase 3+)**:
+ * - Gamepad/Teclado: Navegação simplificada (só tem 1 botão Back)
+ * - Touch: Highlight + 100ms delay para ativação
+ *
+ * **Visual**:
+ * - Design informativo com Material Design 3
+ * - Leitura de config.xml para dados dinâmicos
+ * - Tipografia otimizada para legibilidade
+ *
+ * **Phase 3.3**: Limpeza de 8 linhas de código legacy.
+ *
+ * @see MenuFragmentBase Classe base com navegação unificada
+ * @see GameActivityViewModel ViewModel para dados da ROM/Core
+ */
 class AboutFragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods

@@ -12,7 +12,33 @@ import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/** ExitFragment - Exit options menu with visual identical to RetroMenu3 */
+/**
+ * Fragment do submenu Exit (Confirmação de Saída).
+ *
+ * **Funcionalidades**:
+ * - Save & Exit: Salva estado do jogo e sai do emulador
+ * - Exit: Sai sem salvar
+ * - Back: Cancela e volta ao menu principal
+ *
+ * **Arquitetura Multi-Input (Phase 3+)**:
+ * - Gamepad: DPAD UP/DOWN navegação, A confirma ação, B cancela
+ * - Teclado: Arrow keys navegação, Enter confirma, Backspace cancela
+ * - Touch: Toque com highlight + 100ms delay
+ *
+ * **Segurança**:
+ * - Confirmação explícita antes de sair
+ * - Opção de salvar estado antes de encerrar
+ * - Cancelamento fácil com botão Back ou B
+ *
+ * **Visual**:
+ * - Design crítico com cores de atenção (vermelho para Exit)
+ * - Material Design 3 consistente
+ *
+ * **Phase 3.3**: Limpeza de 43 linhas de código legacy.
+ *
+ * @see MenuFragmentBase Classe base com navegação unificada
+ * @see GameActivityViewModel ViewModel para save/exit operations
+ */
 class ExitFragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods
@@ -375,16 +401,6 @@ class ExitFragment : MenuFragmentBase() {
     /** Public method to dismiss the menu from outside */
     fun dismissMenuPublic() {
         dismissMenu()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
-        try {
-            viewModel.clearControllerKeyLog()
-        } catch (e: Exception) {
-            android.util.Log.w("ExitFragment", "Error resetting combo state in onDestroy", e)
-        }
     }
 
     // ===== MenuFragmentBase Abstract Methods Implementation =====

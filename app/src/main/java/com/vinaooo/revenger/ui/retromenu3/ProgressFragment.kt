@@ -12,7 +12,33 @@ import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/** ProgressFragment - Progress submenu with visual identical to RetroMenu3 */
+/**
+ * Fragment do submenu Progress (Save/Load States).
+ *
+ * **Funcionalidades**:
+ * - Save State: Salva estado atual do jogo
+ * - Load State: Carrega último estado salvo (desabilitado se não houver save)
+ * - Back: Volta ao menu principal
+ *
+ * **Navegação Inteligente (Phase 3+)**:
+ * - Pula automaticamente item "Load State" se desabilitado durante navegação UP/DOWN
+ * - Validação de estado de save antes de habilitar Load
+ *
+ * **Arquitetura Multi-Input**:
+ * - Gamepad: DPAD UP/DOWN para navegar, A para confirmar, B para voltar
+ * - Teclado: Arrow keys para navegar, Enter para confirmar, Backspace para voltar
+ * - Touch: Toque com highlight imediato + delay de 100ms para ativação
+ *
+ * **Visual**:
+ * - Design idêntico ao RetroMenu3 para consistência
+ * - Material Design 3 com cores dinâmicas
+ * - RetroCardView customizados com animações de seleção
+ *
+ * **Phase 3.3**: Limpeza de 53 linhas de código legacy (setupLegacyClickListeners removido).
+ *
+ * @see MenuFragmentBase Classe base com navegação unificada
+ * @see GameActivityViewModel ViewModel centralizado para save/load operations
+ */
 class ProgressFragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods

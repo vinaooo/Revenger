@@ -50,6 +50,11 @@ class KeyboardInputAdapter(
         // Necessário porque GameActivityViewModel pode ter múltiplas instâncias
         // ou chamar onKeyDown() de threads paralelas
         private val pressCycleStates = mutableMapOf<Int, PressCycleState>()
+
+        // FIX ERRO 1: Tracking de KEY_DOWN/KEY_UP para ações (Back/Backspace)
+        // Previne vazamento de KEY_UP residual após transições de fragmento
+        private val actionKeyDownTimestamps = mutableMapOf<Int, Long>()
+        private const val KEY_UP_TIMEOUT_MS = 500L // Timeout para considerar KEY_UP órfão
     }
 
     // PHASE 4.6: Press Cycle Tracking (V4.6 - Global Static Thread-Safe Single-Trigger with KEY_UP
@@ -316,6 +321,9 @@ class KeyboardInputAdapter(
                         )
                     }
                     KeyEvent.KEYCODE_DEL -> {
+                        // FIX ERRO 1: Registrar timestamp do KEY_DOWN para validar KEY_UP futuro
+                        actionKeyDownTimestamps[keyCode] = System.currentTimeMillis()
+
                         android.util.Log.d(TAG, "[KEY_DOWN] Backspace pressed - navigating back")
                         NavigationEvent.NavigateBack(
                                 keyCode = keyCode,
@@ -425,6 +433,27 @@ class KeyboardInputAdapter(
         // V4.7: FALLBACK para teclas de ação quando KEY_DOWN não foi recebido
         // Alguns teclados/sistemas enviam apenas KEY_UP para certas teclas (ex: Backspace)
         // Processamos as ações aqui como fallback
+        val currentTimeForActions = System.currentTimeMillis()
+
+        // FIX ERRO 1: Validar se este KEY_UP corresponde a um KEY_DOWN recente
+        val keyDownTime = actionKeyDownTimestamps[keyCode]
+        if (keyDownTime != null && (currentTimeForActions - keyDownTime) <= KEY_UP_TIMEOUT_MS) {
+            // KEY_UP válido - limpar timestamp
+            actionKeyDownTimestamps.remove(keyCode)
+            android.util.Log.d(TAG, "[KEY_UP] Backspace released (matched KEY_DOWN) - processing")
+            // Não processar - já foi processado no KEY_DOWN
+            return true
+        } else if (keyDownTime != null) {
+            // KEY_UP órfão (timeout excedido)
+            android.util.Log.w(
+                    TAG,
+                    "🚨 ORPHAN KEY_UP detected for Backspace - timeout exceeded (${currentTimeForActions - keyDownTime}ms)"
+            )
+            actionKeyDownTimestamps.remove(keyCode)
+            return true // Discard orphan
+        }
+
+        // Fallback: KEY_UP sem KEY_DOWN registrado (modo legacy)
         val actionEvent =
                 when (keyCode) {
                     KeyEvent.KEYCODE_DEL -> {

@@ -406,6 +406,7 @@ class GameActivityViewModel(application: Application) :
         controllerInput.menuBackCallback = {
             navigationController?.handleNavigationEvent(
                     com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.NavigateBack(
+                            keyCode = KeyEvent.KEYCODE_BUTTON_B,
                             inputSource =
                                     com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
                                             .PHYSICAL_GAMEPAD

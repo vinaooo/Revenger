@@ -9,7 +9,15 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 
-/** Representa um item de menu composto por título, seta de seleção e card view */
+/**
+ * Representa um item de menu composto por título, seta de seleção e card view.
+ *
+ * **Padrão Value Object**: Encapsula os 3 componentes visuais de cada item de menu.
+ *
+ * @property titleTextView TextView do título do item
+ * @property arrowTextView TextView da seta de seleção (→)
+ * @property cardView RetroCardView que contém o item completo
+ */
 data class MenuItemView(
         val titleTextView: TextView,
         val arrowTextView: TextView,
@@ -17,11 +25,28 @@ data class MenuItemView(
 )
 
 /**
- * Gerencia a configuração e atualização visual das views do menu RetroMenu3. Responsável por:
- * - Configuração inicial das views
- * - Atualização visual da seleção
- * - Animações de entrada/saída
- * - Estado visual dinâmico
+ * Gerenciador de views do menu RetroMenu3.
+ *
+ * **Responsabilidades**:
+ * - Configuração inicial de todas as views do menu
+ * - Atualização visual da seleção (cores, setas, highlight)
+ * - Gerenciamento de animações de entrada/saída
+ * - Estado visual dinâmico (enabled/disabled items)
+ *
+ * **Padrão Manager**: Centraliza toda lógica de UI do menu em uma classe dedicada.
+ *
+ * **Integração**:
+ * - Trabalha com MenuViewInitializer para setup inicial
+ * - Usa FontUtils e ViewUtils para estilização
+ * - Coordena com MenuAnimationController para transições
+ *
+ * **Phase 3**: Suporta multi-input (gamepad, keyboard, touch) com feedback visual unificado.
+ *
+ * @param fragment Fragment que contém as views (RetroMenu3Fragment)
+ *
+ * @see MenuViewInitializer Inicializa sistema de navegação touch
+ * @see MenuAnimationController Controla animações do menu
+ * @see RetroCardView Componente customizado de card
  */
 class MenuViewManager(private val fragment: Fragment) {
 

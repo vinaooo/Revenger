@@ -9,20 +9,33 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * RetroMenu3 Fragment - Copy of ModernMenu Activated by combo // Add listener to detect when the
- * back stack changes (submenu is removed) parentFragmentManager.addOnBackStackChangedListener {
- * android.util.Log.d( "RetroMenu3Fragment", "BackStack changed - backStackCount =
- * ${parentFragmentManager.backStackEntryCount}" )
+ * Fragment principal do sistema RetroMenu3.
  *
- * // If the back stack is empty, it means the submenu was removed if
- * (parentFragmentManager.backStackEntryCount == 0) { // Only show main menu if we're not dismissing
- * all menus at once if (viewModel.isDismissingAllMenus()) {
- * android.util.Log.d("RetroMenu3Fragment", "BackStack empty - NOT showing main menu (dismissing all
- * menus)") } else { android.util.Log.d("RetroMenu3Fragment", "BackStack empty - showing main menu")
- * // Show main menu again showMainMenu() } } }
+ * **Menu Principal** ativado por combo SELECT+START no gamepad.
  *
- * parentFragmentManager .beginTransaction() .add(android.R.id.content, exitFragment,
- * "ExitFragment")fullscreen overlay with Material Design 3
+ * **Arquitetura Multi-Input (Phase 3+)**:
+ * - Suporta navegação via gamepad, teclado e touch
+ * - Debouncing adaptativo: 30ms navegação, 200ms ações
+ * - Sistema single-trigger para responsividade
+ *
+ * **Responsabilidades**:
+ * - Gerenciar menu principal com 6 opções (Continue, Reset, Progress, Settings, About, Exit)
+ * - Coordenar navegação entre submenus via SubmenuCoordinator
+ * - Integrar com GameActivityViewModel para ações centralizadas
+ * - Implementar listeners de todos os submenus para back navigation
+ *
+ * **Managers Modulares (Phase 2+)**:
+ * - `lifecycleManager`: Gerencia ciclo de vida do fragment
+ * - `viewInitializer`: Inicializa views e sistema de navegação touch
+ * - `animationController`: Controla animações de entrada/saída
+ * - `inputHandler`: Processa inputs de gamepad/teclado (delegado para navegação unificada)
+ *
+ * **Phase 3.3**: Touch integrado com highlight imediato + delay de 100ms para ativação. **Phase
+ * 4**: Documentação completa e validação de compatibilidade.
+ *
+ * @see MenuFragmentBase Classe base com navegação unificada
+ * @see SubmenuCoordinator Coordenador de navegação entre menus
+ * @see GameActivityViewModel ViewModel centralizado para ações
  */
 class RetroMenu3Fragment :
         MenuFragmentBase(),

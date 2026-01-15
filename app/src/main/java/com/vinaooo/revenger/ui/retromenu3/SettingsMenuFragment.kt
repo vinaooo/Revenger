@@ -13,7 +13,30 @@ import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/** SettingsMenuFragment - Settings submenu with visual identical to RetroMenu3 */
+/**
+ * Fragment do submenu Settings (Configurações).
+ *
+ * **Funcionalidades**:
+ * - Sound: Toggle áudio ON/OFF
+ * - Shader: Toggle shader visual ON/OFF
+ * - Speed: Toggle fast-forward (velocidade aumentada)
+ * - Back: Volta ao menu principal
+ *
+ * **Arquitetura Multi-Input (Phase 3+)**:
+ * - Gamepad: DPAD UP/DOWN, A confirma, B volta
+ * - Teclado: Arrow keys, Enter confirma, Backspace volta
+ * - Touch: Highlight imediato + 100ms delay para ativação
+ *
+ * **Visual**:
+ * - Design idêntico ao RetroMenu3 com Material Design 3
+ * - RetroCardView com animações de seleção
+ * - Indicadores visuais de estado (ON/OFF)
+ *
+ * **Phase 3.3**: Limpeza de 36 linhas de código legacy removidas.
+ *
+ * @see MenuFragmentBase Classe base com navegação unificada
+ * @see GameActivityViewModel ViewModel para toggle de configurações
+ */
 class SettingsMenuFragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods

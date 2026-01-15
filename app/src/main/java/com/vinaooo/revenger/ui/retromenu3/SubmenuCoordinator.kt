@@ -5,6 +5,40 @@ import androidx.fragment.app.Fragment
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
+/**
+ * Coordenador de navegação entre menu principal e submenus.
+ *
+ * **Responsabilidades**:
+ * - Gerenciar transições entre RetroMenu3 (main) e submenus (Progress, Settings, About, Exit)
+ * - Preservar e restaurar seleção do menu principal ao voltar de submenus
+ * - Prevenir race conditions durante navegação rápida
+ * - Integrar com FragmentManager para back stack management
+ *
+ * **Arquitetura**:
+ * - **State Tracking**: Monitora back stack para detectar submenus abertos
+ * - **Selection Preservation**: Salva índice selecionado antes de abrir submenu
+ * - **Flags de Proteção**: Previne múltiplas operações simultâneas de close/restore
+ *
+ * **Flags de Controle**:
+ * - `hasSubmenuOpen`: Indica se há submenu ativo
+ * - `isClosingSubmenu`: Proteção contra múltiplos closes simultâneos
+ * - `isRestoringSelection`: Proteção contra múltiplas restaurações
+ * - `shouldPreserveSelectionOnShowMainMenu`: Controla se deve restaurar seleção
+ *
+ * **Integração**:
+ * - Trabalha com MenuManager para registro de fragments
+ * - Usa MenuViewManager para operações de UI
+ * - Coordena com MenuAnimationController para transições suaves
+ *
+ * @param fragment Fragment principal (RetroMenu3Fragment)
+ * @param viewModel ViewModel centralizado para ações
+ * @param viewManager Gerenciador de views do menu
+ * @param menuManager Manager centralizado de navegação
+ * @param animationController Controlador de animações (opcional)
+ *
+ * @see RetroMenu3Fragment Fragment principal que usa este coordinator
+ * @see MenuManager Gerenciador centralizado de menu states
+ */
 class SubmenuCoordinator(
         private val fragment: Fragment,
         private val viewModel: GameActivityViewModel,
