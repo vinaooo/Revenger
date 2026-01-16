@@ -85,15 +85,15 @@ object MenuPerformanceBenchmark {
 
                 // Warmup
                 repeat(WARMUP_ITERATIONS) {
-                        fragment.navigateDown()
-                        fragment.navigateUp()
+                        fragment.performNavigateDownPublic()
+                        fragment.performNavigateUpPublic()
                 }
 
                 // Measurement
                 repeat(MEASUREMENT_ITERATIONS) {
                         val startTime = SystemClock.elapsedRealtime()
-                        fragment.navigateDown()
-                        fragment.navigateUp()
+                        fragment.performNavigateDownPublic()
+                        fragment.performNavigateUpPublic()
                         val endTime = SystemClock.elapsedRealtime()
                         times.add(endTime - startTime)
                 }

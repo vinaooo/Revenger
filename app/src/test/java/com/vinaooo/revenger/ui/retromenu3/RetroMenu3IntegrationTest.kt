@@ -60,15 +60,15 @@ class RetroMenu3IntegrationTest {
         assertEquals(6, menuItems.size)
 
         // Testar navegação para baixo
-        fragment.navigateDown()
+        fragment.performNavigateDownPublic()
         assertEquals(1, fragment.getCurrentSelectedIndex())
 
         // Testar navegação circular (voltar ao início)
-        repeat(6) { fragment.navigateDown() }
+        repeat(6) { fragment.performNavigateDownPublic() }
         assertEquals(0, fragment.getCurrentSelectedIndex())
 
         // Testar navegação para cima
-        fragment.navigateUp()
+        fragment.performNavigateUpPublic()
         assertEquals(5, fragment.getCurrentSelectedIndex())
     }
 
@@ -83,11 +83,11 @@ class RetroMenu3IntegrationTest {
         fragment.showMainMenu()
 
         // Navegar para item de progresso (índice 2)
-        repeat(2) { fragment.navigateDown() }
+        repeat(2) { fragment.performNavigateDownPublic() }
         assertEquals(2, fragment.getCurrentSelectedIndex())
 
         // Confirmar seleção (deve abrir submenu de progresso)
-        fragment.confirmSelection()
+        fragment.performConfirmPublic()
 
         // Verificar que submenu foi aberto (através do ViewModel)
         // Nota: Esta parte pode precisar de mock do ViewModel para teste completo
@@ -107,7 +107,7 @@ class RetroMenu3IntegrationTest {
         assertEquals(0, fragment.getCurrentSelectedIndex())
 
         // Confirmar seleção (deve executar ação CONTINUE)
-        fragment.confirmSelection()
+        fragment.performConfirmPublic()
 
         // Verificar que ação foi executada (menu deve fechar)
         // Nota: Esta parte pode precisar de verificação do estado do ViewModel
@@ -124,11 +124,11 @@ class RetroMenu3IntegrationTest {
         fragment.showMainMenu()
 
         // Navegar para item "Reset" (índice 1)
-        fragment.navigateDown()
+        fragment.performNavigateDownPublic()
         assertEquals(1, fragment.getCurrentSelectedIndex())
 
         // Confirmar seleção (deve executar ação RESET)
-        fragment.confirmSelection()
+        fragment.performConfirmPublic()
 
         // Verificar que ação foi executada
     }
@@ -144,11 +144,11 @@ class RetroMenu3IntegrationTest {
         fragment.showMainMenu()
 
         // Navegar para último item "Save Log" (índice 5)
-        repeat(5) { fragment.navigateDown() }
+        repeat(5) { fragment.performNavigateDownPublic() }
         assertEquals(5, fragment.getCurrentSelectedIndex())
 
         // Confirmar seleção (deve executar ação SAVE_LOG)
-        fragment.confirmSelection()
+        fragment.performConfirmPublic()
 
         // Verificar que ação foi executada
     }
@@ -204,8 +204,8 @@ class RetroMenu3IntegrationTest {
         fragment.showMainMenu()
 
         // Navegar para um item específico
-        fragment.navigateDown()
-        fragment.navigateDown()
+        fragment.performNavigateDownPublic()
+        fragment.performNavigateDownPublic()
         assertEquals(2, fragment.getCurrentSelectedIndex())
 
         // Esconder e mostrar menu novamente

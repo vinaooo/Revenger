@@ -8,10 +8,37 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
-/** ExitFragment - Exit options menu with visual identical to RetroMenu3 */
+/**
+ * Fragment do submenu Exit (Confirmação de Saída).
+ *
+ * **Funcionalidades**:
+ * - Save & Exit: Salva estado do jogo e sai do emulador
+ * - Exit: Sai sem salvar
+ * - Back: Cancela e volta ao menu principal
+ *
+ * **Arquitetura Multi-Input (Phase 3+)**:
+ * - Gamepad: DPAD UP/DOWN navegação, A confirma ação, B cancela
+ * - Teclado: Arrow keys navegação, Enter confirma, Backspace cancela
+ * - Touch: Toque com highlight + 100ms delay
+ *
+ * **Segurança**:
+ * - Confirmação explícita antes de sair
+ * - Opção de salvar estado antes de encerrar
+ * - Cancelamento fácil com botão Back ou B
+ *
+ * **Visual**:
+ * - Design crítico com cores de atenção (vermelho para Exit)
+ * - Material Design 3 consistente
+ *
+ * **Phase 3.3**: Limpeza de 43 linhas de código legacy.
+ *
+ * @see MenuFragmentBase Classe base com navegação unificada
+ * @see GameActivityViewModel ViewModel para save/exit operations
+ */
 class ExitFragment : MenuFragmentBase() {
 
     // Get ViewModel reference for centralized methods
@@ -73,6 +100,18 @@ class ExitFragment : MenuFragmentBase() {
 
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when selecting Back
+
+        // PHASE 3: Register with NavigationController for new navigation system
+        viewModel.navigationController?.registerFragment(this, getMenuItems().size)
+        android.util.Log.d(
+                TAG,
+                "[NAVIGATION] ExitFragment registered with ${getMenuItems().size} items"
+        )
+    }
+
+    override fun onDestroyView() {
+        android.util.Log.d(TAG, "[NAVIGATION] ExitFragment onDestroyView - keeping registration")
+        super.onDestroyView()
     }
 
     private fun setupViews(view: View) {
@@ -109,7 +148,7 @@ class ExitFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
-        ViewUtils.applyArcadeFontToViews(
+        ViewUtils.applySelectedFontToViews(
                 requireContext(),
                 exitMenuTitle,
                 saveAndExitTitle,
@@ -119,39 +158,54 @@ class ExitFragment : MenuFragmentBase() {
                 selectionArrowExitWithoutSave,
                 selectionArrowBack
         )
+
+        // Aplicar capitalização configurada aos textos
+        FontUtils.applyTextCapitalization(
+                requireContext(),
+                exitMenuTitle,
+                saveAndExitTitle,
+                exitWithoutSaveTitle,
+                backTitle
+        )
     }
 
     private fun setupClickListeners() {
-        saveAndExit.setOnClickListener {
-            // Save and Exit - Close menu, restore frameSpeed, then save and exit
-            // A) Close menu first
-            viewModel.dismissAllMenus()
+        // PHASE 3.3a: Route touch events through NavigationController
+        android.util.Log.d(
+                TAG,
+                "[TOUCH] Using new navigation system - touch routed through NavigationController"
+        )
+        setupTouchNavigationSystem()
+    }
 
-            // B) Restore frameSpeed to correct value from sharedPreferences
-            viewModel.restoreGameSpeedFromPreferences()
+    /**
+     * PHASE 3.3: New touch navigation system using NavigationController. Touch events create
+     * SelectItem + ActivateSelected after 100ms delay.
+     */
+    private fun setupTouchNavigationSystem() {
+        menuItems.forEachIndexed { index, menuItem ->
+            menuItem.setOnClickListener {
+                android.util.Log.d(
+                        TAG,
+                        "[TOUCH] Exit item $index clicked - routing through NavigationController"
+                )
 
-            // C) Apply existing functionality (save state and exit)
-            viewModel.saveStateCentralized {
-                // After saving, exit the game completely
-                android.os.Process.killProcess(android.os.Process.myPid())
+                // PHASE 3.3b: Focus-then-activate delay
+                // 1. Select item (immediate visual feedback)
+                viewModel.navigationController?.selectItem(index)
+
+                // 2. After TOUCH_ACTIVATION_DELAY_MS delay, activate item
+                it.postDelayed(
+                        {
+                            android.util.Log.d(
+                                    TAG,
+                                    "[TOUCH] Activating Exit item $index after delay"
+                            )
+                            viewModel.navigationController?.activateItem()
+                        },
+                        MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS
+                ) // MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS = focus-then-activate delay
             }
-        }
-
-        exitWithoutSave.setOnClickListener {
-            // Exit without Save - Close menu, restore frameSpeed, then exit without saving
-            // A) Close menu first
-            viewModel.dismissAllMenus()
-
-            // B) Restore frameSpeed to correct value from sharedPreferences
-            viewModel.restoreGameSpeedFromPreferences()
-
-            // C) Apply existing functionality (exit without saving)
-            android.os.Process.killProcess(android.os.Process.myPid())
-        }
-
-        backExitMenu.setOnClickListener {
-            // Back - Return to main menu
-            viewModel.dismissExit()
         }
     }
 
@@ -179,22 +233,33 @@ class ExitFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /** Confirm current selection */
+    /** Confirm current selection - Execute actions DIRECTLY (não usar performClick) */
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[ACTION] Exit menu: CONFIRM on index $selectedIndex")
         when (selectedIndex) {
             0 -> {
+                // Save and Exit - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Save and Exit selected")
-                saveAndExit.performClick() // Save and Exit
+                // REMOVED: NavigationController handles menu dismissal and speed restoration
+                // viewModel.dismissAllMenus()
+                // viewModel.restoreGameSpeedFromPreferences()
+                viewModel.saveStateCentralized(
+                        onComplete = { android.os.Process.killProcess(android.os.Process.myPid()) }
+                )
             }
             1 -> {
+                // Exit without Save - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Exit without Save selected")
-                exitWithoutSave.performClick() // Exit without Save
+                // REMOVED: NavigationController handles menu dismissal and speed restoration
+                // viewModel.dismissAllMenus()
+                // viewModel.restoreGameSpeedFromPreferences()
+                android.os.Process.killProcess(android.os.Process.myPid())
             }
             2 -> {
+                // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Back to main menu selected")
-                backExitMenu.performClick() // Back
+                performBack()
             }
             else ->
                     android.util.Log.w(
@@ -206,9 +271,19 @@ class ExitFragment : MenuFragmentBase() {
 
     /** Back action */
     override fun performBack(): Boolean {
-        // For exit submenu, back should go to main menu
-        backExitMenu.performClick()
-        return true
+        android.util.Log.d("ExitFragment", "[BACK] performBack called - navigating to main menu")
+
+        // PHASE 3: Use NavigationController for back navigation
+        android.util.Log.d(
+                "ExitFragment",
+                "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
+        )
+        val success = viewModel.navigationController?.navigateBack() ?: false
+        android.util.Log.d(
+                "ExitFragment",
+                "[BACK] NavigationController.navigateBack() returned: $success"
+        )
+        return success
     }
 
     /** Update selection visual - specific implementation for ExitFragment */
@@ -228,16 +303,40 @@ class ExitFragment : MenuFragmentBase() {
 
         // Control text colors based on selection
         saveAndExitTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 0) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (getCurrentSelectedIndex() == 0)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_normal_color
+                        )
         )
         exitWithoutSaveTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 1) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (getCurrentSelectedIndex() == 1)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_normal_color
+                        )
         )
         backTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 2) android.graphics.Color.YELLOW
-                else android.graphics.Color.WHITE
+                if (getCurrentSelectedIndex() == 2)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.retro_menu3_normal_color
+                        )
         )
 
         // Control selection arrows colors and visibility
@@ -247,7 +346,12 @@ class ExitFragment : MenuFragmentBase() {
 
         // Save and Exit
         if (getCurrentSelectedIndex() == 0) {
-            selectionArrowSaveAndExit.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowSaveAndExit.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowSaveAndExit.visibility = View.VISIBLE
             (selectionArrowSaveAndExit.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
@@ -259,7 +363,12 @@ class ExitFragment : MenuFragmentBase() {
 
         // Exit without Save
         if (getCurrentSelectedIndex() == 1) {
-            selectionArrowExitWithoutSave.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowExitWithoutSave.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowExitWithoutSave.visibility = View.VISIBLE
             (selectionArrowExitWithoutSave.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
@@ -271,7 +380,12 @@ class ExitFragment : MenuFragmentBase() {
 
         // Back
         if (getCurrentSelectedIndex() == 2) {
-            selectionArrowBack.setTextColor(android.graphics.Color.YELLOW)
+            selectionArrowBack.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
@@ -287,16 +401,6 @@ class ExitFragment : MenuFragmentBase() {
     /** Public method to dismiss the menu from outside */
     fun dismissMenuPublic() {
         dismissMenu()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
-        try {
-            viewModel.clearControllerKeyLog()
-        } catch (e: Exception) {
-            android.util.Log.w("ExitFragment", "Error resetting combo state in onDestroy", e)
-        }
     }
 
     // ===== MenuFragmentBase Abstract Methods Implementation =====
@@ -327,6 +431,17 @@ class ExitFragment : MenuFragmentBase() {
                 /* Ignore other actions */
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // PHASE 3: New navigation system active - skipping old MenuState checks
+        android.util.Log.d(
+                "ExitFragment",
+                "[RESUME] ✅ New navigation system active - skipping old MenuState checks"
+        )
+        return
     }
 
     companion object {

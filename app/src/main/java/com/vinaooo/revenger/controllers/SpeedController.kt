@@ -118,6 +118,20 @@ class SpeedController(
     }
 
     /**
+     * Restores the speed from preferences to the RetroView Used after game reset to ensure
+     * framespeed is properly restored
+     * @param retroView RetroView to configure
+     */
+    fun restoreSpeedFromPreferences(retroView: GLRetroView?) {
+        retroView?.let {
+            val savedSpeed = getCurrentSpeed()
+            // CRITICAL: Ensure it's never 0 (paused) - treat as normal speed
+            val safeSpeed = if (savedSpeed == 0) 1 else savedSpeed
+            it.frameSpeed = safeSpeed
+        }
+    }
+
+    /**
      * Saves the current speed state to preferences
      * @param speed speed to be saved
      */

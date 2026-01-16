@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -8,7 +9,15 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 
-/** Representa um item de menu composto por título, seta de seleção e card view */
+/**
+ * Representa um item de menu composto por título, seta de seleção e card view.
+ *
+ * **Padrão Value Object**: Encapsula os 3 componentes visuais de cada item de menu.
+ *
+ * @property titleTextView TextView do título do item
+ * @property arrowTextView TextView da seta de seleção (→)
+ * @property cardView RetroCardView que contém o item completo
+ */
 data class MenuItemView(
         val titleTextView: TextView,
         val arrowTextView: TextView,
@@ -16,16 +25,34 @@ data class MenuItemView(
 )
 
 /**
- * Gerencia a configuração e atualização visual das views do menu RetroMenu3. Responsável por:
- * - Configuração inicial das views
- * - Atualização visual da seleção
- * - Animações de entrada/saída
- * - Estado visual dinâmico
+ * Gerenciador de views do menu RetroMenu3.
+ *
+ * **Responsabilidades**:
+ * - Configuração inicial de todas as views do menu
+ * - Atualização visual da seleção (cores, setas, highlight)
+ * - Gerenciamento de animações de entrada/saída
+ * - Estado visual dinâmico (enabled/disabled items)
+ *
+ * **Padrão Manager**: Centraliza toda lógica de UI do menu em uma classe dedicada.
+ *
+ * **Integração**:
+ * - Trabalha com MenuViewInitializer para setup inicial
+ * - Usa FontUtils e ViewUtils para estilização
+ * - Coordena com MenuAnimationController para transições
+ *
+ * **Phase 3**: Suporta multi-input (gamepad, keyboard, touch) com feedback visual unificado.
+ *
+ * @param fragment Fragment que contém as views (RetroMenu3Fragment)
+ *
+ * @see MenuViewInitializer Inicializa sistema de navegação touch
+ * @see MenuAnimationController Controla animações do menu
+ * @see RetroCardView Componente customizado de card
  */
 class MenuViewManager(private val fragment: Fragment) {
 
-    // View hint
-    private lateinit var controlsHint: TextView
+    companion object {
+        private const val TAG = "MenuViewManager"
+    }
 
     // Menu item views
     private lateinit var menuContainerView: LinearLayout
@@ -33,6 +60,7 @@ class MenuViewManager(private val fragment: Fragment) {
     private lateinit var resetMenu: RetroCardView
     private lateinit var progressMenu: RetroCardView
     private lateinit var settingsMenu: RetroCardView
+    private lateinit var aboutMenu: RetroCardView
     private lateinit var exitMenu: RetroCardView
 
     // Ordered list of menu items for navigation
@@ -46,6 +74,7 @@ class MenuViewManager(private val fragment: Fragment) {
     private lateinit var resetTitle: TextView
     private lateinit var progressTitle: TextView
     private lateinit var settingsTitle: TextView
+    private lateinit var aboutTitle: TextView
     private lateinit var exitTitle: TextView
 
     // Selection arrows
@@ -53,11 +82,20 @@ class MenuViewManager(private val fragment: Fragment) {
     private lateinit var selectionArrowReset: TextView
     private lateinit var selectionArrowProgress: TextView
     private lateinit var selectionArrowSettings: TextView
+    private lateinit var selectionArrowAbout: TextView
     private lateinit var selectionArrowExit: TextView
+
+    // Main menu title
+    private var menuTitleTextView: TextView? = null
 
     /** Configura o título dinâmico do menu baseado no estilo configurado */
     fun setupDynamicTitle(view: View) {
         val titleTextView = view.findViewById<TextView>(R.id.menu_title)
+        menuTitleTextView = titleTextView // Store reference for hiding/showing
+        Log.d(
+                TAG,
+                "[VIEW] setupDynamicTitle - menuTitleTextView initialized: ${menuTitleTextView != null}, id: ${titleTextView?.id}"
+        )
         val titleStyle = fragment.resources.getInteger(R.integer.retro_menu3_title_style)
 
         val titleText =
@@ -69,7 +107,7 @@ class MenuViewManager(private val fragment: Fragment) {
         titleTextView?.text = titleText
 
         // Garante fonte Arcade no título
-        titleTextView?.let { FontUtils.applyArcadeFont(fragment.requireContext(), it) }
+        titleTextView?.let { FontUtils.applySelectedFont(fragment.requireContext(), it) }
     }
 
     /** Inicializa todas as views do menu e estruturas de dados relacionadas */
@@ -77,18 +115,16 @@ class MenuViewManager(private val fragment: Fragment) {
         // Main container
         menuContainerView = view.findViewById(R.id.menu_container)
 
-        // Controls hint
-        controlsHint = view.findViewById(R.id.retro_menu3_controls_hint)
-
         // Menu items
         continueMenu = view.findViewById(R.id.menu_continue)
         resetMenu = view.findViewById(R.id.menu_reset)
         progressMenu = view.findViewById(R.id.menu_submenu2)
         settingsMenu = view.findViewById(R.id.menu_submenu1)
+        aboutMenu = view.findViewById(R.id.menu_about)
         exitMenu = view.findViewById(R.id.menu_exit)
 
         // Initialize ordered list of menu items
-        menuItems = listOf(continueMenu, resetMenu, progressMenu, settingsMenu, exitMenu)
+        menuItems = listOf(continueMenu, resetMenu, progressMenu, settingsMenu, aboutMenu, exitMenu)
 
         // Dynamic content views (only views that exist in layout)
         // Initialize menu option titles
@@ -96,6 +132,7 @@ class MenuViewManager(private val fragment: Fragment) {
         resetTitle = view.findViewById(R.id.reset_title)
         settingsTitle = view.findViewById(R.id.submenu1_title)
         progressTitle = view.findViewById(R.id.submenu2_title)
+        aboutTitle = view.findViewById(R.id.about_title)
         exitTitle = view.findViewById(R.id.exit_title)
 
         // Initialize selection arrows
@@ -103,6 +140,7 @@ class MenuViewManager(private val fragment: Fragment) {
         selectionArrowReset = view.findViewById(R.id.selection_arrow_reset)
         selectionArrowSettings = view.findViewById(R.id.selection_arrow_submenu1)
         selectionArrowProgress = view.findViewById(R.id.selection_arrow_submenu2)
+        selectionArrowAbout = view.findViewById(R.id.selection_arrow_about)
         selectionArrowExit = view.findViewById(R.id.selection_arrow_exit)
 
         // Force zero marginStart for all arrows to prevent spacing issues
@@ -111,6 +149,7 @@ class MenuViewManager(private val fragment: Fragment) {
                         selectionArrowReset,
                         selectionArrowSettings,
                         selectionArrowProgress,
+                        selectionArrowAbout,
                         selectionArrowExit
                 )
                 .forEach { arrow ->
@@ -127,23 +166,36 @@ class MenuViewManager(private val fragment: Fragment) {
                         MenuItemView(resetTitle, selectionArrowReset, resetMenu),
                         MenuItemView(progressTitle, selectionArrowProgress, progressMenu),
                         MenuItemView(settingsTitle, selectionArrowSettings, settingsMenu),
+                        MenuItemView(aboutTitle, selectionArrowAbout, aboutMenu),
                         MenuItemView(exitTitle, selectionArrowExit, exitMenu)
                 )
 
         // Apply arcade font to all text views
-        ViewUtils.applyArcadeFontToViews(
+        ViewUtils.applySelectedFontToViews(
                 fragment.requireContext(),
-                controlsHint,
                 continueTitle,
                 resetTitle,
                 progressTitle,
                 settingsTitle,
+                aboutTitle,
                 exitTitle,
                 selectionArrowContinue,
                 selectionArrowReset,
                 selectionArrowProgress,
                 selectionArrowSettings,
+                selectionArrowAbout,
                 selectionArrowExit
+        )
+
+        // Aplicar capitalização configurada aos textos dos menus (depois da fonte)
+        FontUtils.applyTextCapitalization(
+                fragment.requireContext(),
+                continueTitle,
+                resetTitle,
+                progressTitle,
+                settingsTitle,
+                aboutTitle,
+                exitTitle
         )
 
         // Set first item as selected
@@ -159,7 +211,7 @@ class MenuViewManager(private val fragment: Fragment) {
     fun animateMenuIn() {
         // Use optimized batch animation for better performance
         ViewUtils.animateMenuViewsBatchOptimized(
-                arrayOf(menuContainerView, controlsHint),
+                arrayOf(menuContainerView),
                 toAlpha = 1f,
                 toScale = 1f,
                 duration = 200
@@ -170,7 +222,7 @@ class MenuViewManager(private val fragment: Fragment) {
     fun animateMenuOut(onEnd: () -> Unit) {
         // Use optimized batch animation with callback
         ViewUtils.animateMenuViewsBatchOptimized(
-                arrayOf(menuContainerView, controlsHint),
+                arrayOf(menuContainerView),
                 toAlpha = 0f,
                 toScale = 0.8f,
                 duration = 150
@@ -179,9 +231,19 @@ class MenuViewManager(private val fragment: Fragment) {
 
     /** Define um item de menu como selecionado */
     private fun setItemSelected(menuItemView: MenuItemView) {
-        menuItemView.titleTextView.setTextColor(android.graphics.Color.YELLOW)
+        menuItemView.titleTextView.setTextColor(
+                androidx.core.content.ContextCompat.getColor(
+                        fragment.requireContext(),
+                        R.color.retro_menu3_selected_color
+                )
+        )
         menuItemView.arrowTextView.apply {
-            setTextColor(android.graphics.Color.YELLOW)
+            setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            fragment.requireContext(),
+                            R.color.retro_menu3_selected_color
+                    )
+            )
             visibility = View.VISIBLE
             (layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // Force zero margin - critical fix
@@ -198,7 +260,12 @@ class MenuViewManager(private val fragment: Fragment) {
 
     /** Define um item de menu como não selecionado */
     private fun setItemUnselected(menuItemView: MenuItemView) {
-        menuItemView.titleTextView.setTextColor(android.graphics.Color.WHITE)
+        menuItemView.titleTextView.setTextColor(
+                androidx.core.content.ContextCompat.getColor(
+                        fragment.requireContext(),
+                        R.color.retro_menu3_normal_color
+                )
+        )
         menuItemView.arrowTextView.visibility = View.GONE
         // RetroCardView volta ao estado normal
         menuItemView.cardView.setState(RetroCardView.State.NORMAL)
@@ -218,29 +285,127 @@ class MenuViewManager(private val fragment: Fragment) {
         // Layout will be updated automatically when visibility changes
     }
 
-    /** Faz o menu principal invisível (quando submenu é aberto) */
-    fun hideMainMenu() {
-        // Check if menuContainer is initialized
+    /** Faz o menu principal ficar em segundo plano (quando submenu é aberto) */
+    fun dimMainMenu() {
+        Log.d(TAG, "[VIEW] dimMainMenu called - checking menuContainerView initialization")
         if (!::menuContainerView.isInitialized) {
-            android.util.Log.e(
-                    "MenuViewManager",
-                    "[HIDE] MenuContainer not initialized, cannot hide main menu"
-            )
+            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot dim main menu")
+            return
+        }
+        Log.d(
+                TAG,
+                "[VIEW] dimMainMenu: menuContainerView is initialized, current alpha: ${menuContainerView.alpha}"
+        )
+        menuContainerView.alpha = 0.3f // Opacidade reduzida para segundo plano
+        Log.d(
+                TAG,
+                "[VIEW] dimMainMenu completed - main menu dimmed to alpha: ${menuContainerView.alpha}"
+        )
+    }
+
+    /** Oculta completamente os textos do menu principal (quando submenu está ativo) */
+    fun hideMainMenuTexts() {
+        Log.d(
+                TAG,
+                "[VIEW] hideMainMenuTexts called - menuTitleTextView: ${menuTitleTextView?.hashCode()}, visibility before: ${menuTitleTextView?.visibility}"
+        )
+        if (!::menuItemViews.isInitialized) {
+            Log.e(TAG, "[VIEW] MenuItemViews not initialized, cannot hide main menu texts")
             return
         }
 
-        // Hide only the menu content, keeping the background for the submenu
-        menuContainerView.visibility = View.INVISIBLE
+        // Ocultar todos os textos dos itens do menu principal
+        menuItemViews.forEach { menuItemView ->
+            menuItemView.titleTextView.visibility = View.INVISIBLE
+            menuItemView.arrowTextView.visibility = View.INVISIBLE
+        }
+
+        // Ocultar o título principal do menu
+        menuTitleTextView?.visibility = View.INVISIBLE
+        Log.d(
+                TAG,
+                "[VIEW] hideMainMenuTexts - menuTitleTextView visibility after: ${menuTitleTextView?.visibility}"
+        )
+
+        Log.d(TAG, "[VIEW] hideMainMenuTexts completed - main menu texts hidden")
     }
 
-    /** Faz o menu principal visível novamente (quando submenu é fechado) */
-    fun showMainMenu(currentSelectedIndex: Int = 0) {
-        // Check if menuContainer is initialized
+    /** Mostra novamente os textos do menu principal (quando submenu é fechado) */
+    fun showMainMenuTexts() {
+        Log.d(TAG, "[VIEW] showMainMenuTexts called")
+        if (!::menuItemViews.isInitialized) {
+            Log.e(TAG, "[VIEW] MenuItemViews not initialized, cannot show main menu texts")
+            return
+        }
+
+        // Mostrar todos os textos dos itens do menu principal
+        menuItemViews.forEach { menuItemView ->
+            menuItemView.titleTextView.visibility = View.VISIBLE
+            menuItemView.arrowTextView.visibility = View.VISIBLE
+        }
+
+        // Mostrar o título principal do menu
+        menuTitleTextView?.visibility = View.VISIBLE
+
+        Log.d(TAG, "[VIEW] showMainMenuTexts completed - main menu texts shown")
+    }
+
+    /** Faz o menu principal voltar ao normal (quando submenu é fechado) */
+    fun restoreMainMenu() {
+        Log.d(TAG, "[VIEW] restoreMainMenu called")
         if (!::menuContainerView.isInitialized) {
-            android.util.Log.e(
-                    "MenuViewManager",
-                    "[SHOW] MenuContainer not initialized, cannot show main menu"
-            )
+            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot restore main menu")
+            return
+        }
+        menuContainerView.alpha = 1.0f // Opacidade normal
+        Log.d(TAG, "[VIEW] restoreMainMenu completed - main menu restored")
+    }
+
+    /** Make main menu invisible (when submenu is opened) */
+    fun hideMainMenu() {
+        Log.d(TAG, "[VIEW] hideMainMenu called")
+        if (!::menuContainerView.isInitialized) {
+            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot hide main menu")
+            return
+        }
+        // Hide only the menu content, keeping the background for the submenu
+        menuContainerView.visibility = View.INVISIBLE
+        Log.d(TAG, "[VIEW] hideMainMenu completed - main menu hidden")
+    }
+
+    /** Oculta completamente o menu principal de uma vez (para evitar piscada visual) */
+    fun hideMainMenuCompletely() {
+        Log.d(TAG, "[VIEW] hideMainMenuCompletely called")
+        if (!::menuContainerView.isInitialized) {
+            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot hide main menu completely")
+            return
+        }
+
+        // Ocultar o container do menu
+        menuContainerView.visibility = View.INVISIBLE
+
+        // Ocultar todos os textos dos itens do menu principal em uma única operação
+        if (::menuItemViews.isInitialized) {
+            menuItemViews.forEach { menuItemView ->
+                menuItemView.titleTextView.visibility = View.INVISIBLE
+                menuItemView.arrowTextView.visibility = View.INVISIBLE
+            }
+        }
+
+        // Ocultar o título principal do menu
+        menuTitleTextView?.visibility = View.INVISIBLE
+
+        Log.d(
+                TAG,
+                "[VIEW] hideMainMenuCompletely completed - main menu completely hidden without flicker"
+        )
+    }
+
+    /** Make main menu visible again (when submenu is closed) */
+    fun showMainMenu(preserveSelection: Boolean = false) {
+        Log.d(TAG, "[VIEW] showMainMenu called with preserveSelection=$preserveSelection")
+        if (!::menuContainerView.isInitialized) {
+            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot show main menu")
             return
         }
 
@@ -250,32 +415,13 @@ class MenuViewManager(private val fragment: Fragment) {
         // Ensure alpha is at 1.0 (fully visible)
         menuContainerView.alpha = 1.0f
 
-        // Update menu state (including audio) when returning from submenu
-        updateMenuState()
-
-        // Ensure visual selection is updated when menu becomes visible again
-        updateSelectionVisual(currentSelectedIndex)
-
-        // Layout will be updated automatically when properties change
+        Log.d(TAG, "[VIEW] showMainMenu completed - main menu shown")
     }
 
     // Getters para acesso às views quando necessário
     fun getMenuItems(): List<RetroCardView> = menuItems
     fun getMenuItemViews(): List<MenuItemView> = menuItemViews
 
-    // Getters para itens específicos do menu
-    val continueMenuItem: RetroCardView
-        get() = continueMenu
-    val resetMenuItem: RetroCardView
-        get() = resetMenu
-    val progressMenuItem: RetroCardView
-        get() = progressMenu
-    val settingsMenuItem: RetroCardView
-        get() = settingsMenu
-    val exitMenuItem: RetroCardView
-        get() = exitMenu
-
-    // Getter para o container do menu
-    val menuContainer: LinearLayout
-        get() = menuContainerView
+    /** Verifica se as views do menu foram inicializadas */
+    fun isViewsInitialized(): Boolean = ::menuItemViews.isInitialized
 }

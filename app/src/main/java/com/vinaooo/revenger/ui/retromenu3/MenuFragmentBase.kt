@@ -1,18 +1,34 @@
 package com.vinaooo.revenger.ui.retromenu3
 
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import com.vinaooo.revenger.viewmodels.InputViewModel
 
 /**
- * Abstract base class for all menu fragments in the RetroMenu3 system. Eliminates duplicate code by
- * providing default implementations for navigation and selection state management.
+ * Classe base abstrata para todos os fragments de menu no sistema RetroMenu3. Elimina código
+ * duplicado fornecendo implementações padrão para navegação e gerenciamento de estado de seleção.
  *
- * Fragments that extend this class need to implement:
- * - getMenuItems(): List<MenuItem> - return standardized list of items
- * - performNavigateUp() - specific navigation logic for up
- * - performNavigateDown() - specific navigation logic for down
- * - performConfirm() - specific confirmation logic
- * - performBack(): Boolean - specific back logic
- * - updateSelectionVisual() - update selection visual
+ * **Arquitetura Multi-Input (Phase 3+)**:
+ * - Suporta gamepad, teclado e touch simultaneamente
+ * - Navegação via interface MenuFragment unificada
+ * - Touch com delay de 100ms para evitar ativação acidental (TOUCH_ACTIVATION_DELAY_MS)
+ *
+ * **Fragments que estendem esta classe precisam implementar**:
+ * - `getMenuItems()`: Retorna lista padronizada de itens
+ * - `performNavigateUp()`: Lógica específica de navegação para cima
+ * - `performNavigateDown()`: Lógica específica de navegação para baixo
+ * - `performConfirm()`: Lógica específica de confirmação
+ * - `performBack()`: Lógica específica de voltar
+ * - `updateSelectionVisualInternal()`: Atualiza visual de seleção
+ *
+ * **Phase 3.3**: Sistema de touch integrado com highlight imediato + delay de ativação.
+ *
+ * **FIX ERRO 1 - Phase 4.2**: onPause() limpa estado de input para evitar vazamento de eventos
+ * durante transições de fragmento (B/BackSpace residual após popBackStack).
+ *
+ * @see MenuFragment Interface unificada de navegação
+ * @see MenuItem Modelo de dados para items de menu
+ * @see MenuAction Ações padronizadas de menu
  */
 abstract class MenuFragmentBase : Fragment(), MenuFragment {
 
@@ -39,6 +55,38 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
 
     /** Método abstrato para atualizar visual da seleção */
     protected abstract fun updateSelectionVisualInternal()
+
+    // ========== LIFECYCLE HOOKS ==========
+
+    /**
+     * FIX ERRO 1: Limpa estado de input ao pausar fragment para evitar vazamento de eventos.
+     *
+     * Problema: Ao manter B/BackSpace em submenu, o evento KEY_DOWN fecha o submenu via
+     * popBackStack(), mas o KEY_UP correspondente era processado no menu principal, causando
+     * fechamento indesejado.
+     *
+     * Solução: Limpar todos os timestamps de debounce, keyLog e flags ao pausar fragmento,
+     * garantindo que próximo fragmento comece com estado limpo.
+     */
+    override fun onPause() {
+        super.onPause()
+        try {
+            // Acessar InputViewModel e limpar estado de input de forma segura
+            val inputViewModel = ViewModelProvider(requireActivity())[InputViewModel::class.java]
+            inputViewModel.getControllerInput().clearPendingInputsPreserveHeld()
+
+            android.util.Log.d(
+                    "MenuFragmentBase",
+                    "[LIFECYCLE] onPause() - clearPendingInputsPreserveHeld() for ${this::class.simpleName}"
+            )
+        } catch (e: Exception) {
+            android.util.Log.e(
+                    "MenuFragmentBase",
+                    "[LIFECYCLE] Failed to clear pending inputs in onPause()",
+                    e
+            )
+        }
+    }
 
     // ========== IMPLEMENTAÇÃO DA INTERFACE MenuFragment ==========
 
@@ -74,7 +122,20 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         val menuItems = getMenuItems()
         if (index in 0 until menuItems.size) {
             _currentSelectedIndex = index
+
+            // PHASE 4: Log quando item do menu é selecionado (amarelo)
+            val itemTitle = if (index < menuItems.size) menuItems[index].title else "UNKNOWN"
+            android.util.Log.d(
+                    "MenuBase",
+                    "[MENU-SELECTION] ✅ Item selected (YELLOW): index=$index, title='$itemTitle'"
+            )
+
             updateSelectionVisualInternal()
+        } else {
+            android.util.Log.w(
+                    "MenuFragmentBase",
+                    "Invalid index $index, valid range: 0..${menuItems.size-1}"
+            )
         }
     }
 
@@ -111,5 +172,10 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     protected fun resetSelection() {
         _currentSelectedIndex = 0
         updateSelectionVisualInternal()
+    }
+
+    companion object {
+        /** Delay para ativação de item via touch em milissegundos */
+        const val TOUCH_ACTIVATION_DELAY_MS = 100L
     }
 }

@@ -20,10 +20,11 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         LinearLayout(context, attrs, defStyleAttr) {
 
     companion object {
-        // Constantes de cores para consistência visual
-        const val COLOR_SELECTED = Color.YELLOW // Item selecionado na navegação
-        const val COLOR_PRESSED = Color.WHITE // Item pressionado/toque
-        const val COLOR_NORMAL = Color.TRANSPARENT // Estado normal
+        // Constantes de cores para consistência visual - agora usando recursos XML
+        val COLOR_SELECTED =
+                android.graphics.Color.parseColor("#FFFF00") // Item selecionado na navegação
+        val COLOR_PRESSED = android.graphics.Color.parseColor("#FFFFFF") // Item pressionado/toque
+        val COLOR_NORMAL = android.graphics.Color.parseColor("#00000000") // Estado normal
     }
 
     // Estados da view

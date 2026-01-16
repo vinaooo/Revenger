@@ -11,6 +11,11 @@
     <dimen name="retro_menu3_title_margin_bottom">12dp</dimen>
     <dimen name="retro_menu3_extra_space_height">16dp</dimen>
     
+    <!-- Title Alignment Anchors - CRITICAL for pixel-perfect alignment across all menus -->
+    <dimen name="retro_menu3_title_margin_start">0dp</dimen>
+    <dimen name="retro_menu3_title_padding_start">0dp</dimen>
+    <dimen name="retro_menu3_title_padding_end">0dp</dimen>
+    
     <!-- Menu Item -->
     <dimen name="retro_menu3_menu_item_height">40dp</dimen>
     <dimen name="retro_menu3_menu_item_padding">8dp</dimen>
@@ -20,12 +25,19 @@
     
     <!-- Selection Arrow -->
     <dimen name="retro_menu3_arrow_margin_start">12dp</dimen>
-    <dimen name="retro_menu3_arrow_margin_end">8dp</dimen>
+    <dimen name="retro_menu3_arrow_margin_end">0dp</dimen>
     
     <!-- Text Sizes -->
-    <dimen name="retro_menu3_title_text_size">24sp</dimen>
-    <dimen name="retro_menu3_arrow_text_size">18sp</dimen>
-    <dimen name="retro_menu3_menu_item_text_size">16sp</dimen>
+    <dimen name="retro_menu3_title_text_size">36sp</dimen>
+    <dimen name="retro_menu3_arrow_text_size">22sp</dimen>
+    <dimen name="retro_menu3_menu_item_text_size">22sp</dimen>
+    <dimen name="retro_menu3_info_label_text_size">18sp</dimen>
+    <dimen name="retro_menu3_info_value_text_size">18sp</dimen>
+    
+    <!-- Info Margins -->
+    <dimen name="retro_menu3_info_margin_bottom">8dp</dimen>
+    <dimen name="retro_menu3_info_text_margin_bottom">0dp</dimen>
+    <dimen name="retro_menu3_menu_item_margin_bottom">16dp</dimen>
     
     <!-- Text Shadow - values must be float without unit -->
     <item name="retro_menu3_shadow_dx" format="float" type="dimen">4.0</item>

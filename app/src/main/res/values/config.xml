@@ -4,17 +4,18 @@
     <string name="config_id">sth</string>
 
     <!-- The pretty name for the app -->
-    <string name="config_name">Nao jogar</string>
+    <string name="config_name">Não jogar</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
     <string name="config_core">picodrive</string>
+    <!-- <string name="config_core">picodrive</string> -->
 
     <!-- Snes = snes9x -->
     <!-- megadrive = genesis_plus_gx -->
     <!-- gb = gambatte -->
     <!-- master = gearsystem (best performance for Master System) -->
     <!-- Master e Mega = picodrive (the best) -->
-
+    
     <!-- rom name, the same name the rom file in res/raw without extension -->
     <string name="config_rom">sth</string>
 
@@ -31,16 +32,16 @@
     <bool name="config_fullscreen">true</bool>
 
     <!-- Orientation modes
-        0: Default
-        1: Portrait only
-        2: Landscape only
-        3: Any orientation (including upside-down)
+        1: Portrait only (ignores system auto-rotate)
+        2: Landscape only (ignores system auto-rotate)
+        3: Any orientation (respects system auto-rotate setting)
 
-        NOTE: Landscape <-> Portrait can be slow,
-                as it involves rebuilding the
-                emulator instance!
+        NOTE: Mode 3 will only rotate if system auto-rotate is enabled.
+              If auto-rotate is disabled, the app stays in current orientation.
+              Modes 1 and 2 always enforce their orientation regardless of system settings.
+              Landscape <-> Portrait transitions can be slow as they rebuild the emulator.
     -->
-    <integer name="config_orientation">2</integer>
+    <integer name="config_orientation">3</integer>
 
     <!-- Menu display modes
         0: No menu (disabled)
@@ -59,6 +60,9 @@
     <!-- Should we vibrate on touch? -->
     <bool name="config_gamepad_haptic">false</bool>
 
+    <!-- Allow multiple presses on action buttons (for combos) -->
+    <bool name="config_gamepad_allow_multiple_presses_action">false</bool>
+
     <!-- GamePad buttons to display -->
     <bool name="config_gamepad_a">true</bool>
     <bool name="config_gamepad_b">true</bool>
@@ -71,17 +75,35 @@
     <bool name="config_gamepad_l2">false</bool>
     <bool name="config_gamepad_r2">false</bool>
 
+    <!-- Fake buttons (custom mapped buttons) -->
+    <bool name="config_show_fake_button_0">false</bool>
+    <bool name="config_show_fake_button_1">false</bool>
+    <bool name="config_show_fake_button_5">false</bool>
+    <bool name="config_show_fake_button_6">false</bool>
+    <bool name="config_show_fake_button_7">false</bool>
+    <bool name="config_show_fake_button_9">false</bool>
+    <bool name="config_show_fake_button_10">false</bool>
+    <bool name="config_show_fake_button_11">false</bool>
+
+    <!-- Menu mode for gamepad menu button (☰) -->
+    <bool name="config_menu_mode_gamepad">true</bool>
+
+    <!-- Alternative menu modes (deprecated, use config_menu_mode instead) -->
+    <bool name="config_menu_mode_back">true</bool>
+    <bool name="config_menu_mode_combo">true</bool>
+
     <!-- Should the left DPAD be replaced with an analog stick? -->
     <bool name="config_left_analog">false</bool>
 
     <!-- Show performance overlay (FPS, memory, CPU) -->
-    <bool name="config_performance_overlay">true</bool>
-    
+    <bool name="config_performance_overlay">false</bool>
+
     <!-- Shader configuration
         "disabled" = No shader applied
         "sharp" = Sharp bilinear filtering
         "crt" = CRT shader
         "lcd" = LCD shader
-        "settings" = Allow user to select shader in menu-->
+        "settings" = Allow user to select shader in menu
+    -->
     <string name="config_shader">settings</string>
 </resources>

@@ -70,24 +70,25 @@ class MenuActionHandler(
 
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] Calling clearControllerInputState()"
+                                "🔥 [EXECUTE_CONTINUE] Calling closeMenuExternal() to properly close menu and reset state"
                         )
-                        // Clear keyLog and reset comboAlreadyTriggered after closing
-                        viewModel.clearControllerInputState()
+                        // Properly close menu through NavigationController to trigger
+                        // onMenuClosedCallback
+                        viewModel.navigationController?.closeMenuExternal()
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] clearControllerInputState() completed - comboAlreadyTriggered should be reset now"
+                                "🔥 [EXECUTE_CONTINUE] closeMenuExternal() completed - comboAlreadyTriggered should be reset now"
                         )
 
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] Calling restoreGameSpeedFromPreferences()"
+                                "🔥 [EXECUTE_CONTINUE] REMOVED: restoreGameSpeedFromPreferences() - NavigationController handles speed restoration"
                         )
-                        // Set frameSpeed to correct value from Game Speed sharedPreference
-                        viewModel.restoreGameSpeedFromPreferences()
+                        // REMOVED: NavigationController handles speed restoration
+                        // viewModel.restoreGameSpeedFromPreferences()
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] restoreGameSpeedFromPreferences() completed"
+                                "🔥 [EXECUTE_CONTINUE] Speed restoration handled by NavigationController"
                         )
 
                         android.util.Log.d(
@@ -126,33 +127,41 @@ class MenuActionHandler(
                         "MenuActionHandler",
                         "🔥 [EXECUTE_RESET] Calling dismissMenuPublic() with callback"
                 )
+                // FIX: Set game speed to normal (1) before closing menu, since reset should start
+                // fresh
+                android.util.Log.d(
+                        "MenuActionHandler",
+                        "🔥 [EXECUTE_RESET] Setting speed to normal (1) for fresh game start"
+                )
+                viewModel.setGameSpeed(1)
                 // Close menu first using the public method with callback
                 (fragment as? RetroMenu3Fragment)?.dismissMenuPublic {
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] Animation completed - now restoring game speed"
+                                "🔥 [EXECUTE_RESET] Animation completed - now resetting game"
                         )
 
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] Calling clearControllerInputState()"
+                                "🔥 [EXECUTE_RESET] Calling closeMenuExternal() to properly close menu and reset state"
                         )
-                        // Clear keyLog and reset comboAlreadyTriggered after closing
-                        viewModel.clearControllerInputState()
+                        // Properly close menu through NavigationController to trigger
+                        // onMenuClosedCallback
+                        viewModel.navigationController?.closeMenuExternal()
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] clearControllerInputState() completed"
+                                "🔥 [EXECUTE_RESET] closeMenuExternal() completed"
                         )
 
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] Calling restoreGameSpeedFromPreferences()"
+                                "🔥 [EXECUTE_RESET] REMOVED: restoreGameSpeedFromPreferences() - NavigationController handles speed restoration"
                         )
-                        // Set frameSpeed to correct value from Game Speed sharedPreference
-                        viewModel.restoreGameSpeedFromPreferences()
+                        // REMOVED: NavigationController handles speed restoration
+                        // viewModel.restoreGameSpeedFromPreferences()
                         android.util.Log.d(
                                 "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] restoreGameSpeedFromPreferences() completed"
+                                "🔥 [EXECUTE_RESET] Speed restoration handled by NavigationController"
                         )
 
                         android.util.Log.d(
@@ -233,9 +242,14 @@ class MenuActionHandler(
 
         /** Executa ação de navegação para submenu */
         private fun executeNavigate(targetMenu: MenuState) {
+                // O ÍNDICE SELECIONADO ATUAL SERÁ SALVO DIRETAMENTE NO openSubmenu DO
+                // SubmenuCoordinator
+                MenuLogger.action("� Opening submenu: $targetMenu")
+
                 when (targetMenu) {
                         MenuState.PROGRESS_MENU -> openProgressSubmenu()
                         MenuState.SETTINGS_MENU -> openSettingsSubmenu()
+                        MenuState.ABOUT_MENU -> openAboutSubmenu()
                         MenuState.EXIT_MENU -> openExitSubmenu()
                         else -> MenuLogger.w("[ACTION] Unknown menu state: $targetMenu")
                 }
@@ -251,6 +265,12 @@ class MenuActionHandler(
         private fun openSettingsSubmenu() {
                 MenuLogger.action("⚙️ Open Settings submenu")
                 submenuCoordinator.openSubmenu(MenuState.SETTINGS_MENU)
+        }
+
+        /** Abre submenu About */
+        private fun openAboutSubmenu() {
+                MenuLogger.action("📋 Open About submenu")
+                submenuCoordinator.openSubmenu(MenuState.ABOUT_MENU)
         }
 
         /** Abre submenu de saída */

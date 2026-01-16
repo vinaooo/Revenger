@@ -144,7 +144,6 @@ A partir da versão atual, o Revenger conta com um sistema de menus completament
 
 ### 📱 Controles de Menu
 - **RetroMenu3**: Ativado com `SELECT + START`
-- **Pause Overlay**: `START` sozinho (planejado para futura versão)
 - **Navegação**: DPAD para navegar, A/B para confirmar/cancelar
 
 ### 🧪 Status de Testes

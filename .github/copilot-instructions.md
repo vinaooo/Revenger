@@ -14,7 +14,6 @@ Revenger is a LibRetro-powered ROM packager for portable Android emulation. It p
 - `RetroView`: LibretroDroid-powered emulator display surface
 - `RadialGamePad`: Virtual touchscreen controls with customizable layouts
 - `GameMenuFullscreenFragment`: Fullscreen overlay menu system
-- `PauseOverlayFragment`: Simple pause overlay triggered by START button
 - `config.xml`: Central configuration file controlling ROM, core, UI, and behavior
 
 ## Critical Workflows
@@ -40,13 +39,6 @@ Revenger is a LibRetro-powered ROM packager for portable Android emulation. It p
 2. Place ROM file in `app/src/main/res/raw/` matching `config_rom` value
 
 3. Build - cores download automatically via `prepareCore` task
-
-### Pause Overlay System
-- **Trigger**: Press START button alone (not in combination with SELECT)
-- **Function**: Shows fullscreen "PAUSE" overlay covering the game screen
-- **Dismiss**: Touch anywhere on the overlay to resume
-- **Configuration**: Controlled by `config_pause_overlay` boolean in config.xml
-- **Implementation**: `PauseOverlayFragment` with semi-transparent background
 
 ### Batch Packaging (Autogen)
 ```bash
@@ -113,7 +105,7 @@ val romName = resources.getString(R.string.config_rom)
 - Fullscreen Fragment overlay (not DialogFragment)
 - Touch-to-dismiss on screen edges
 - Material 3 theming with dynamic colors
-- START button alone triggers pause overlay (not menu)
+- START button closes menu when menu is open, passes to core when menu is closed
 
 ## Development Notes
 - **16KB Alignment Issue**: Monitor LibretroDroid for updates (currently using workaround)
@@ -129,8 +121,7 @@ app/src/main/
 │   ├── retroview/                 # Emulator display
 │   ├── gamepad/                   # Virtual controls
 │   ├── ui/                        # UI components
-│   │   ├── menu/                   # Menu fragments
-│   │   └── overlay/                # Overlay fragments (pause)
+│   │   └── menu/                   # Menu fragments (RetroMenu3)
 │   └── views/                      # Activity classes
 ├── res/
 │   ├── raw/                       # ROM files

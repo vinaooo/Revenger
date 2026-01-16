@@ -81,19 +81,19 @@ object MenuPerformanceBenchmark {
                 val times = mutableListOf<Long>()
 
                 // Preparar fragment
-                fragment.showMainMenu()
+                fragment.restoreMainMenu()
 
                 // Warmup
                 repeat(WARMUP_ITERATIONS) {
-                        fragment.navigateDown()
-                        fragment.navigateUp()
+                        fragment.performNavigateDownPublic()
+                        fragment.performNavigateUpPublic()
                 }
 
                 // Measurement
                 repeat(MEASUREMENT_ITERATIONS) {
                         val startTime = SystemClock.elapsedRealtime()
-                        fragment.navigateDown()
-                        fragment.navigateUp()
+                        fragment.performNavigateDownPublic()
+                        fragment.performNavigateUpPublic()
                         val endTime = SystemClock.elapsedRealtime()
                         times.add(endTime - startTime)
                 }
@@ -106,13 +106,13 @@ object MenuPerformanceBenchmark {
                 val times = mutableListOf<Long>()
 
                 // Preparar fragment
-                fragment.showMainMenu()
+                fragment.restoreMainMenu()
 
                 // Warmup
                 repeat(WARMUP_ITERATIONS) {
-                        fragment.hideMainMenu()
+                        fragment.dimMainMenu()
                         Thread.sleep(250) // Esperar animação
-                        fragment.showMainMenu()
+                        fragment.restoreMainMenu()
                         Thread.sleep(250) // Esperar animação
                 }
 
@@ -121,13 +121,13 @@ object MenuPerformanceBenchmark {
                         MEASUREMENT_ITERATIONS / 2
                 ) { // Menos iterações pois animações são mais lentas
                         val startTime = SystemClock.elapsedRealtime()
-                        fragment.hideMainMenu()
+                        fragment.dimMainMenu()
                         Thread.sleep(250) // Esperar animação completar
                         val endTime = SystemClock.elapsedRealtime()
                         times.add(endTime - startTime)
 
                         val startTime2 = SystemClock.elapsedRealtime()
-                        fragment.showMainMenu()
+                        fragment.restoreMainMenu()
                         Thread.sleep(250) // Esperar animação completar
                         val endTime2 = SystemClock.elapsedRealtime()
                         times.add(endTime2 - startTime2)

@@ -18,95 +18,113 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class GamePad(
-  context: Context,
-  private val padConfig: RadialGamePadConfig,
-  private val onButtonEvent: ((event: Event) -> Unit)? = null
+        context: Context,
+        private val padConfig: RadialGamePadConfig,
+        private val onButtonEvent: ((event: Event) -> Boolean)? = null
 ) {
-  val pad = RadialGamePad(padConfig, 0f, context)
+    val pad = RadialGamePad(padConfig, 0f, context)
 
-        companion object {
-                /** Should the user see the on-screen controls? */
-                @Suppress("DEPRECATION")
-                fun shouldShowGamePads(activity: Activity): Boolean {
-                        /* Config says we shouldn't use virtual controls */
-                        if (!activity.resources.getBoolean(R.bool.config_gamepad)) return false
+    companion object {
+        /** Should the user see the on-screen controls? */
+        @Suppress("DEPRECATION")
+        fun shouldShowGamePads(activity: Activity): Boolean {
+            /* Config says we shouldn't use virtual controls */
+            if (!activity.resources.getBoolean(R.bool.config_gamepad)) return false
 
-                        /* Devices without a touchscreen don't need a GamePad */
-                        val hasTouchScreen =
-                                activity.packageManager?.hasSystemFeature(
-                                        PackageManager.FEATURE_TOUCHSCREEN
+            /* Devices without a touchscreen don't need a GamePad */
+            val hasTouchScreen =
+                    activity.packageManager?.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)
+            if (hasTouchScreen == null || !hasTouchScreen) return false
+
+            /* Fetch the current display that the game is running on */
+            val currentDisplayId = activity.display!!.displayId
+
+            /* Are we presenting this screen on a TV or display? */
+            val dm = activity.getSystemService(Service.DISPLAY_SERVICE) as DisplayManager
+            if (dm.getDisplay(currentDisplayId).flags and Display.FLAG_PRESENTATION ==
+                            Display.FLAG_PRESENTATION
+            )
+                    return false
+
+            /* If a GamePad is connected, we definitely don't need touch controls */
+            for (id in InputDevice.getDeviceIds()) {
+                InputDevice.getDevice(id)?.apply {
+                    if (sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD)
+                            return false
+                }
+            }
+
+            return true
+        }
+    }
+
+    private fun eventHandler(event: Event, retroView: GLRetroView) {
+        when (event) {
+            is Event.Button -> {
+                // Log ANTES do callback para ver todos os eventos que chegam da biblioteca
+                val buttonName =
+                        when (event.id) {
+                            android.view.KeyEvent.KEYCODE_BUTTON_A -> "A"
+                            android.view.KeyEvent.KEYCODE_BUTTON_B -> "B"
+                            android.view.KeyEvent.KEYCODE_BUTTON_START -> "START"
+                            android.view.KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
+                            else -> event.id.toString()
+                        }
+                val actionName =
+                        if (event.action == android.view.KeyEvent.ACTION_DOWN) "DOWN" else "UP"
+                android.util.Log.d(
+                        "GamePad",
+                        "🎮 RadialGamePad event received: $buttonName $actionName (BEFORE callback)"
+                )
+
+                // Invoca o callback e verifica se o evento foi interceptado
+                val intercepted = onButtonEvent?.invoke(event) ?: false
+
+                android.util.Log.d(
+                        "GamePad",
+                        "🎮 Callback returned: intercepted=$intercepted (will ${if (intercepted) "BLOCK" else "SEND"} to core)"
+                )
+
+                // Só envia para o core se NÃO foi interceptado
+                if (!intercepted) {
+                    retroView.sendKeyEvent(event.action, event.id)
+                }
+            }
+            is Event.Direction -> {
+                // Invoca o callback e verifica se o evento foi interceptado
+                val intercepted = onButtonEvent?.invoke(event) ?: false
+
+                // Só envia para o core se NÃO foi interceptado
+                if (!intercepted) {
+                    when (event.id) {
+                        GLRetroView.MOTION_SOURCE_DPAD ->
+                                retroView.sendMotionEvent(
+                                        GLRetroView.MOTION_SOURCE_DPAD,
+                                        event.xAxis,
+                                        event.yAxis
                                 )
-                        if (hasTouchScreen == null || !hasTouchScreen) return false
-
-                        /* Fetch the current display that the game is running on */
-                        val currentDisplayId = activity.display!!.displayId
-
-                        /* Are we presenting this screen on a TV or display? */
-                        val dm =
-                                activity.getSystemService(Service.DISPLAY_SERVICE) as DisplayManager
-                        if (dm.getDisplay(currentDisplayId).flags and Display.FLAG_PRESENTATION ==
-                                        Display.FLAG_PRESENTATION
-                        )
-                                return false
-
-                        /* If a GamePad is connected, we definitely don't need touch controls */
-                        for (id in InputDevice.getDeviceIds()) {
-                                InputDevice.getDevice(id)?.apply {
-                                        if (sources and InputDevice.SOURCE_GAMEPAD ==
-                                                        InputDevice.SOURCE_GAMEPAD
-                                        )
-                                                return false
-                                }
-                        }
-
-                        return true
+                        GLRetroView.MOTION_SOURCE_ANALOG_LEFT ->
+                                retroView.sendMotionEvent(
+                                        GLRetroView.MOTION_SOURCE_ANALOG_LEFT,
+                                        event.xAxis,
+                                        event.yAxis
+                                )
+                        GLRetroView.MOTION_SOURCE_ANALOG_RIGHT ->
+                                retroView.sendMotionEvent(
+                                        GLRetroView.MOTION_SOURCE_ANALOG_RIGHT,
+                                        event.xAxis,
+                                        event.yAxis
+                                )
+                    }
                 }
+            }
         }
+    }
 
-        private fun eventHandler(event: Event, retroView: GLRetroView) {
-                when (event) {
-                        is Event.Button -> {
-                                // Always send to ControllerInput for processing (it will decide if
-                                // menu is open)
-                                onButtonEvent?.invoke(event)
-                                // Also send to core if not handled by menu
-                                retroView.sendKeyEvent(event.action, event.id)
-                        }
-                        is Event.Direction -> {
-                                // Always send to ControllerInput for processing (it will decide if
-                                // menu is open)
-                                onButtonEvent?.invoke(event)
-                                // Also send to core if not handled by menu
-                                when (event.id) {
-                                        GLRetroView.MOTION_SOURCE_DPAD ->
-                                                retroView.sendMotionEvent(
-                                                        GLRetroView.MOTION_SOURCE_DPAD,
-                                                        event.xAxis,
-                                                        event.yAxis
-                                                )
-                                        GLRetroView.MOTION_SOURCE_ANALOG_LEFT ->
-                                                retroView.sendMotionEvent(
-                                                        GLRetroView.MOTION_SOURCE_ANALOG_LEFT,
-                                                        event.xAxis,
-                                                        event.yAxis
-                                                )
-                                        GLRetroView.MOTION_SOURCE_ANALOG_RIGHT ->
-                                                retroView.sendMotionEvent(
-                                                        GLRetroView.MOTION_SOURCE_ANALOG_RIGHT,
-                                                        event.xAxis,
-                                                        event.yAxis
-                                                )
-                                }
-                        }
-                }
+    /** Register input events to the RetroView using Flow */
+    fun subscribe(lifecycleScope: LifecycleCoroutineScope, retroView: GLRetroView): Job {
+        return lifecycleScope.launch {
+            pad.events().collectLatest { event: Event -> eventHandler(event, retroView) }
         }
-
-        /** Register input events to the RetroView using Flow */
-        fun subscribe(lifecycleScope: LifecycleCoroutineScope, retroView: GLRetroView): Job {
-                return lifecycleScope.launch {
-                        pad.events().collectLatest { event: Event ->
-                                eventHandler(event, retroView)
-                        }
-                }
-        }
+    }
 }
