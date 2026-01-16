@@ -7,9 +7,8 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.card.MaterialCardView
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.utils.FontUtils
+import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** ExitFragment - Exit options menu with visual identical to RetroMenu3 */
@@ -20,15 +19,15 @@ class ExitFragment : MenuFragmentBase() {
 
     // Menu item views
     private lateinit var exitMenuContainer: LinearLayout
-    private lateinit var saveAndExit: MaterialCardView
-    private lateinit var exitWithoutSave: MaterialCardView
-    private lateinit var backExitMenu: MaterialCardView
+    private lateinit var saveAndExit: RetroCardView
+    private lateinit var exitWithoutSave: RetroCardView
+    private lateinit var backExitMenu: RetroCardView
 
     // Menu title
     private lateinit var exitMenuTitle: TextView
 
     // Ordered list of menu items for navigation
-    private lateinit var menuItems: List<MaterialCardView>
+    private lateinit var menuItems: List<RetroCardView>
 
     // Menu option titles for color control
     private lateinit var saveAndExitTitle: TextView
@@ -66,7 +65,7 @@ class ExitFragment : MenuFragmentBase() {
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 
         // CRITICAL: Force all views to z=0 to stay below gamepad
-        forceZeroElevationRecursively(view)
+        ViewUtils.forceZeroElevationRecursively(view)
 
         setupViews(view)
         setupClickListeners()
@@ -74,19 +73,6 @@ class ExitFragment : MenuFragmentBase() {
 
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when selecting Back
-    }
-
-    /** Recursively set z=0 and elevation=0 on all views to ensure menu stays below gamepad. */
-    private fun forceZeroElevationRecursively(view: View) {
-        view.z = 0f
-        view.elevation = 0f
-        view.translationZ = 0f
-
-        if (view is android.view.ViewGroup) {
-            for (i in 0 until view.childCount) {
-                forceZeroElevationRecursively(view.getChildAt(i))
-            }
-        }
     }
 
     private fun setupViews(view: View) {
@@ -104,6 +90,11 @@ class ExitFragment : MenuFragmentBase() {
         // Initialize ordered list of menu items
         menuItems = listOf(saveAndExit, exitWithoutSave, backExitMenu)
 
+        // Configure RetroCardView to use transparent background for selected state (not yellow)
+        saveAndExit.setUseBackgroundColor(false)
+        exitWithoutSave.setUseBackgroundColor(false)
+        backExitMenu.setUseBackgroundColor(false)
+
         // Initialize menu option titles
         saveAndExitTitle = view.findViewById(R.id.option_a_title)
         exitWithoutSaveTitle = view.findViewById(R.id.option_b_title)
@@ -118,15 +109,8 @@ class ExitFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
-        applyArcadeFontToViews()
-    }
-
-    private fun applyArcadeFontToViews() {
-        val context = requireContext()
-
-        // Apply font to all text views in the exit menu
-        FontUtils.applyArcadeFont(
-                context,
+        ViewUtils.applyArcadeFontToViews(
+                requireContext(),
                 exitMenuTitle,
                 saveAndExitTitle,
                 exitWithoutSaveTitle,
@@ -174,7 +158,7 @@ class ExitFragment : MenuFragmentBase() {
     private fun dismissMenu() {
         // IMPORTANT: Do not call dismissRetroMenu3() here to avoid crashes
         // Just remove the fragment visually - WITHOUT animation
-        parentFragmentManager.beginTransaction().remove(this).commit()
+        parentFragmentManager.beginTransaction().remove(this).commitAllowingStateLoss()
     }
 
     /** Navigate up in the menu */
@@ -229,12 +213,17 @@ class ExitFragment : MenuFragmentBase() {
 
     /** Update selection visual - specific implementation for ExitFragment */
     override fun updateSelectionVisualInternal() {
-        menuItems.forEach { item ->
-            // Removed: background color of individual cards
-            // Selection now indicated only by yellow text and arrows
-            item.strokeWidth = 0
-            item.strokeColor = android.graphics.Color.TRANSPARENT
-            item.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+        val selectedIndex = getCurrentSelectedIndex()
+
+        // Update each menu item state based on selection
+        menuItems.forEachIndexed { index, item ->
+            if (index == selectedIndex) {
+                // Item selecionado - usar estado SELECTED do RetroCardView
+                item.setState(RetroCardView.State.SELECTED)
+            } else {
+                // Item não selecionado - usar estado NORMAL do RetroCardView
+                item.setState(RetroCardView.State.NORMAL)
+            }
         }
 
         // Control text colors based on selection
@@ -253,7 +242,8 @@ class ExitFragment : MenuFragmentBase() {
 
         // Control selection arrows colors and visibility
         // FIX: Selected item shows arrow without margin (attached to text)
-        val arrowMarginEnd = resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
+        // val arrowMarginEnd =
+        // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
 
         // Save and Exit
         if (getCurrentSelectedIndex() == 0) {
@@ -261,7 +251,7 @@ class ExitFragment : MenuFragmentBase() {
             selectionArrowSaveAndExit.visibility = View.VISIBLE
             (selectionArrowSaveAndExit.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowSaveAndExit.visibility = View.GONE
@@ -273,7 +263,7 @@ class ExitFragment : MenuFragmentBase() {
             selectionArrowExitWithoutSave.visibility = View.VISIBLE
             (selectionArrowExitWithoutSave.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowExitWithoutSave.visibility = View.GONE
@@ -285,7 +275,7 @@ class ExitFragment : MenuFragmentBase() {
             selectionArrowBack.visibility = View.VISIBLE
             (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
                 marginStart = 0 // No space before the arrow
-                marginEnd = arrowMarginEnd
+                marginEnd = 0 // Force zero margin after arrow - attached to text
             }
         } else {
             selectionArrowBack.visibility = View.GONE

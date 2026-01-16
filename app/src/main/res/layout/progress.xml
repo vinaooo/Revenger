@@ -11,7 +11,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:padding="@dimen/retro_menu3_menu_item_padding">
 
         <!-- Left 25% - Empty Space -->
         <Space
@@ -23,7 +24,7 @@
         <LinearLayout
             android:id="@+id/progress_container"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="@dimen/retro_menu3_center_content_weight"
             android:orientation="vertical"
             android:paddingVertical="@dimen/retro_menu3_container_padding_vertical">
@@ -60,17 +61,12 @@
                     android:orientation="vertical">
 
                     <!-- Save State -->
-                    <com.google.android.material.card.MaterialCardView
+                    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/progress_save_state"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
-                        android:focusable="true"
-                        app:cardCornerRadius="@dimen/retro_menu3_menu_item_corner_radius"
-                        app:cardElevation="@dimen/retro_menu3_menu_item_elevation"
-                        app:strokeWidth="@dimen/retro_menu3_menu_item_stroke_width"
-                        app:strokeColor="@color/retro_menu3_card_stroke"
-                        app:cardBackgroundColor="@color/retro_menu3_card_background">
+                        android:focusable="true">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -87,7 +83,8 @@
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@android:color/transparent"
                                 
-                                android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end" />
+                                android:padding="0dp"
+                                android:includeFontPadding="false" />
 
                             <!-- Content -->
                             <LinearLayout
@@ -109,20 +106,15 @@
                                     android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
                             </LinearLayout>
                         </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
                     <!-- Load State -->
-                    <com.google.android.material.card.MaterialCardView
+                    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/progress_load_state"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
-                        android:focusable="true"
-                        app:cardCornerRadius="@dimen/retro_menu3_menu_item_corner_radius"
-                        app:cardElevation="@dimen/retro_menu3_menu_item_elevation"
-                        app:strokeWidth="@dimen/retro_menu3_menu_item_stroke_width"
-                        app:strokeColor="@color/retro_menu3_card_stroke"
-                        app:cardBackgroundColor="@color/retro_menu3_card_background">
+                        android:focusable="true">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -139,7 +131,8 @@
                                 android:textSize="@dimen/retro_menu3_arrow_text_size"
                                 android:textColor="@android:color/transparent"
                                 
-                                android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end" />
+                                android:padding="0dp"
+                                android:includeFontPadding="false" />
 
                             <!-- Content -->
                             <LinearLayout
@@ -161,20 +154,15 @@
                                     android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
                             </LinearLayout>
                         </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
                     <!-- Back -->
-                    <com.google.android.material.card.MaterialCardView
+                    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/progress_back"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/retro_menu3_menu_item_height"
                         android:clickable="true"
-                        android:focusable="true"
-                        app:cardCornerRadius="@dimen/retro_menu3_menu_item_corner_radius"
-                        app:cardElevation="@dimen/retro_menu3_menu_item_elevation"
-                        app:strokeWidth="@dimen/retro_menu3_menu_item_stroke_width"
-                        app:strokeColor="@color/retro_menu3_card_stroke"
-                        app:cardBackgroundColor="@color/retro_menu3_card_background">
+                        android:focusable="true">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
@@ -190,7 +178,8 @@
                                 android:textColor="@color/retro_menu3_text_color"
                                 
                                 android:layout_marginStart="0dp"
-                                android:layout_marginEnd="@dimen/retro_menu3_arrow_margin_end"
+                                android:padding="0dp"
+                                android:includeFontPadding="false"
                                 android:visibility="gone"
                                 android:shadowColor="@color/retro_menu3_shadow_color"
                                 android:shadowDx="@dimen/retro_menu3_shadow_dx"
@@ -215,7 +204,7 @@
                                     android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
                             </LinearLayout>
                         </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
                     <!-- Extra space for last item -->
                     <Space

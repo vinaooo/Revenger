@@ -22,31 +22,69 @@ import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
-import com.vinaooo.revenger.ui.retromenu3.ExitFragment
-import com.vinaooo.revenger.ui.retromenu3.MenuManager
-import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
-import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
-import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+import com.vinaooo.revenger.ui.retromenu3.*
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
         AndroidViewModel(application),
-        RetroMenu3Fragment.RetroMenu3Listener,
         SettingsMenuFragment.SettingsMenuListener,
         MenuManager.MenuManagerListener {
 
     private val resources = application.resources
 
+    // ===== SPECIALIZED VIEWMODELS =====
+    // Using composition pattern to separate concerns
+
+    /** Menu management ViewModel */
+    private lateinit var menuViewModel: MenuViewModel
+
+    /** Game state management ViewModel */
+    private lateinit var gameStateViewModel: GameStateViewModel
+
+    /** Input management ViewModel */
+    private lateinit var inputViewModel: InputViewModel
+
+    /** Audio management ViewModel */
+    private lateinit var audioViewModel: AudioViewModel
+
+    /** Shader management ViewModel */
+    private lateinit var shaderViewModel: ShaderViewModel
+
+    /** Speed management ViewModel */
+    private lateinit var speedViewModel: SpeedViewModel
+
+    // ===== SHARED REFERENCES =====
+    // These are shared between specialized ViewModels
+
     var retroView: RetroView? = null
+        set(value) {
+            field = value
+            // FUTURE: gameStateViewModel.setRetroView(value)
+        }
+
     private var retroViewUtils: RetroViewUtils? = null
+        set(value) {
+            field = value
+            // FUTURE: gameStateViewModel.setRetroViewUtils(value)
+        }
 
+    // Legacy references for backward compatibility
     private var leftGamePad: GamePad? = null
-    private var rightGamePad: GamePad? = null
+    // FUTURE: get() = inputViewModel.getLeftGamePad()
+    // FUTURE: set(value) { value?.let { inputViewModel.setLeftGamePad(it) } }
 
-    // Menu container reference (from activity layout)
+    private var rightGamePad: GamePad? = null
+    // FUTURE: get() = inputViewModel.getRightGamePad()
+    // FUTURE: set(value) { value?.let { inputViewModel.setRightGamePad(it) } }
+
+    // Menu container reference (from activity layout) - delegated to MenuViewModel
     private var menuContainerView: FrameLayout? = null
+        set(value) {
+            field = value
+            // FUTURE: value?.let { menuViewModel.setMenuContainer(container = it) }
+        }
 
     // GamePad container reference (needed to force it on top of menu)
     private var gamePadContainerView: android.widget.LinearLayout? = null
@@ -56,19 +94,84 @@ class GameActivityViewModel(application: Application) :
 
     // Settings submenu fragment
     private var settingsMenuFragment: SettingsMenuFragment? = null
-    private var isSettingsMenuActive = false
 
     // New submenu fragments
     private var progressFragment: ProgressFragment? = null
-    private var isProgressActive = false
     private var exitFragment: ExitFragment? = null
-    private var isExitActive = false
 
-    // Flag to prevent showing main menu when dismissing all menus at once
-    private var isDismissingAllMenus = false
+    // ===== CENTRALIZED STATE MANAGEMENT =====
+    // Estado distribuído migrado para MenuStateManager
+
+    /** Check if settings menu is active */
+    private fun isSettingsMenuActive(): Boolean =
+            menuStateManager.isMenuActive(
+                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
+            )
+
+    /** Check if progress menu is active */
+    private fun isProgressActive(): Boolean =
+            menuStateManager.isMenuActive(
+                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU
+            )
+
+    /** Check if exit menu is active */
+    private fun isExitActive(): Boolean =
+            menuStateManager.isMenuActive(
+                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
+            )
+
+    /** Activate settings menu */
+    private fun activateSettingsMenu() {
+        menuStateManager.activateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
+        )
+    }
+
+    /** Deactivate settings menu */
+    private fun deactivateSettingsMenu() {
+        menuStateManager.deactivateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
+        )
+    }
+
+    /** Activate progress menu */
+    private fun activateProgressMenu() {
+        menuStateManager.activateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU
+        )
+    }
+
+    /** Deactivate progress menu */
+    private fun deactivateProgressMenu() {
+        menuStateManager.deactivateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU
+        )
+    }
+
+    /** Activate exit menu */
+    private fun activateExitMenu() {
+        menuStateManager.activateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
+        )
+    }
+
+    /** Deactivate exit menu */
+    private fun deactivateExitMenu() {
+        menuStateManager.deactivateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
+        )
+    }
+
+    /** Set dismissing all menus flag */
+    private fun setDismissingAllMenus(dismissing: Boolean) {
+        menuStateManager.setDismissingAllMenus(dismissing)
+    }
 
     // Unified Menu Manager for centralized menu navigation
     private lateinit var menuManager: MenuManager
+
+    // Centralized Menu State Manager
+    private lateinit var menuStateManager: com.vinaooo.revenger.ui.retromenu3.MenuStateManager
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput(application.applicationContext)
@@ -83,8 +186,19 @@ class GameActivityViewModel(application: Application) :
     private var skipNextTempStateLoad = false
 
     init {
+        // Initialize centralized Menu State Manager
+        menuStateManager = com.vinaooo.revenger.ui.retromenu3.MenuStateManager()
+
         // Initialize unified Menu Manager
-        menuManager = MenuManager(this)
+        menuManager = MenuManager(this, menuStateManager)
+
+        // Initialize specialized ViewModels using composition pattern
+        menuViewModel = MenuViewModel(application)
+        gameStateViewModel = GameStateViewModel(application)
+        inputViewModel = InputViewModel(application)
+        audioViewModel = AudioViewModel(application)
+        shaderViewModel = ShaderViewModel(application)
+        speedViewModel = SpeedViewModel(application)
 
         // Set the callback to check if SELECT+START combo should work
         controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
@@ -99,21 +213,12 @@ class GameActivityViewModel(application: Application) :
         controllerInput.startButtonCallback = { dismissAllMenus() }
 
         // Configure navigation callbacks for RetroMenu3
-        controllerInput.menuNavigateUpCallback = { menuManager.navigateUp() }
-        controllerInput.menuNavigateDownCallback = { menuManager.navigateDown() }
-        controllerInput.menuConfirmCallback = { menuManager.confirm() }
+        controllerInput.menuNavigateUpCallback = { menuManager.sendNavigateUp() }
+        controllerInput.menuNavigateDownCallback = { menuManager.sendNavigateDown() }
+        controllerInput.menuConfirmCallback = { menuManager.sendConfirm() }
         controllerInput.menuBackCallback = {
-            when {
-                isProgressActive -> dismissProgress()
-                isExitActive -> dismissExit()
-                isSettingsMenuActive -> dismissSettingsMenu()
-                isRetroMenu3Open() -> {
-                    dismissRetroMenu3()
-                    // Only restore game speed when closing the main menu (RetroMenu3), not when
-                    // going back from submenus
-                    restoreGameSpeedFromPreferences()
-                }
-            }
+            // Always delegate BACK handling to MenuManager - it will handle submenus properly
+            menuManager.sendBack()
         }
 
         // Control when to intercept DPAD for menu
@@ -133,25 +238,85 @@ class GameActivityViewModel(application: Application) :
 
     /** Create an instance of the RetroMenu3 overlay (activated by SELECT+START) */
     fun prepareRetroMenu3(activity: ComponentActivity) {
-        if (retroMenu3Fragment != null) return
+        android.util.Log.e(
+                "GAME_ACTIVITY_VIEWMODEL",
+                "🚨🚨🚨 PREPARE_RETRO_MENU3 CALLED - NEW APK VERSION 🚨🚨🚨"
+        )
+        android.util.Log.e("GAME_ACTIVITY_VIEWMODEL", "📅 TIMESTAMP: ${java.util.Date()}")
+        android.util.Log.e(
+                "GAME_ACTIVITY_VIEWMODEL",
+                "🔧 APK VERSION: DEBUG WITH EXTENSIVE LOGGING"
+        )
 
+        if (retroMenu3Fragment != null) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[PREPARE] ⚠️ prepareRetroMenu3: RetroMenu3Fragment already exists, skipping"
+            )
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[PREPARE] 🎯 prepareRetroMenu3: ========== PREPARATION SKIPPED =========="
+            )
+            return
+        }
+
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[PREPARE] 🆕 prepareRetroMenu3: Creating new RetroMenu3Fragment"
+        )
         retroMenu3Fragment =
                 RetroMenu3Fragment.newInstance().apply {
-                    setMenuListener(this@GameActivityViewModel)
+                    // REMOVED: setMenuListener - migrated to unified MenuAction/MenuEvent system
+                    // setMenuListener(this@GameActivityViewModel)
                 }
 
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[PREPARE] 📝 prepareRetroMenu3: Registering RetroMenu3Fragment with MenuManager"
+        )
         // Register RetroMenu3Fragment with MenuManager
         menuManager.registerFragment(
                 com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU,
                 retroMenu3Fragment!!
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[PREPARE] ✅ prepareRetroMenu3: RetroMenu3Fragment registered with MenuManager"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[PREPARE] 🎯 prepareRetroMenu3: ========== PREPARATION COMPLETED =========="
+        )
+    }
+
+    /** Force recreation of RetroMenu3Fragment (used after configuration changes) */
+    fun recreateRetroMenu3(activity: ComponentActivity) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[RECREATE] 🔄 recreateRetroMenu3: Forcing recreation of RetroMenu3Fragment"
+        )
+
+        // Clean up existing fragment reference
+        retroMenu3Fragment = null
+
+        // Recreate the fragment
+        prepareRetroMenu3(activity)
+
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[RECREATE] ✅ recreateRetroMenu3: RetroMenu3Fragment recreated successfully"
         )
     }
 
     /** Set menu container reference from activity layout */
     fun setMenuContainer(container: FrameLayout) {
         menuContainerView = container
+        menuViewModel.setMenuContainer(container)
         android.util.Log.d("GameActivityViewModel", "Menu container set: $container")
     }
+
+    /** Get menu container ID for consistent fragment placement */
+    fun getMenuContainerId(): Int = menuContainerView?.id ?: R.id.menu_container
 
     /** Set GamePad container reference to force it on top when menu opens */
     fun setGamePadContainer(container: android.widget.LinearLayout) {
@@ -161,7 +326,20 @@ class GameActivityViewModel(application: Application) :
 
     /** Show the RetroMenu3 (activated by SELECT+START combo) */
     fun showRetroMenu3(activity: FragmentActivity) {
-        android.util.Log.d("GameActivityViewModel", "showRetroMenu3 called!")
+        android.util.Log.d("GameActivityViewModel", "[SHOW_RETRO_MENU] showRetroMenu3 called!")
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[SHOW_RETRO_MENU] Current back stack count: ${activity.supportFragmentManager.backStackEntryCount}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[SHOW_RETRO_MENU] isDismissingAllMenus: ${isDismissingAllMenus()}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[SHOW_RETRO_MENU] isRetroMenu3Open: ${isRetroMenu3Open()}"
+        )
+        android.util.Log.d("GameActivityViewModel", "[SHOW_RETRO_MENU] Stack trace:", Exception())
 
         // CRITICAL: Prevent multiple calls if menu is already open
         if (isRetroMenu3Open()) {
@@ -192,7 +370,7 @@ class GameActivityViewModel(application: Application) :
                     activity.supportFragmentManager
                             .beginTransaction()
                             .add(containerId, menu, RetroMenu3Fragment::class.java.simpleName)
-                            .commit()
+                            .commitAllowingStateLoss()
                     android.util.Log.d(
                             "GameActivityViewModel",
                             "RetroMenu3 fragment added successfully"
@@ -214,12 +392,42 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Dismiss the RetroMenu3 */
-    fun dismissRetroMenu3() {
-        retroMenu3Fragment?.dismissMenuPublic()
-        // CRITICAL: Clear keyLog to prevent phantom key presses
-        controllerInput.clearKeyLog()
-        // CRITICAL: Clear blocked keys after menu dismissal
-        controllerInput.clearBlockedKeysDelayed()
+    fun dismissRetroMenu3(onAnimationEnd: (() -> Unit)? = null) {
+        android.util.Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Starting")
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[DISMISS_MAIN] dismissRetroMenu3: isRetroMenu3Open before dismiss: ${isRetroMenu3Open()}"
+        )
+
+        retroMenu3Fragment?.dismissMenuPublic(onAnimationEnd)
+
+        // CRITICAL: Add small delay before clearing keyLog to ensure fragment is fully removed
+        // This prevents comboAlreadyTriggered from staying true when menu closes
+        android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[DISMISS_MAIN] dismissRetroMenu3: DELAYED - isRetroMenu3Open after delay: ${isRetroMenu3Open()}"
+                            )
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[DISMISS_MAIN] dismissRetroMenu3: DELAYED - clearing keyLog now"
+                            )
+
+                            // CRITICAL: Clear keyLog to prevent phantom key presses
+                            controllerInput.clearKeyLog()
+                            // CRITICAL: Clear blocked keys after menu dismissal
+                            controllerInput.clearBlockedKeysDelayed()
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[DISMISS_MAIN] dismissRetroMenu3: KeyLog cleared after delay"
+                            )
+                        },
+                        200
+                ) // 200ms delay to ensure fragment removal is complete
+
+        android.util.Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Completed")
     }
 
     /**
@@ -227,8 +435,44 @@ class GameActivityViewModel(application: Application) :
      * its own (e.g.: Continue button)
      */
     fun clearControllerInputState() {
-        controllerInput.clearKeyLog()
-        controllerInput.clearBlockedKeysDelayed()
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[CLEAR_STATE] clearControllerInputState: STARTING"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[CLEAR_STATE] clearControllerInputState: comboAlreadyTriggered before: ${controllerInput.getComboAlreadyTriggered()}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[CLEAR_STATE] clearControllerInputState: isRetroMenu3Open: ${isRetroMenu3Open()}"
+        )
+
+        // Add small delay to ensure fragment is fully destroyed before clearing combo state
+        android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(
+                        {
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[CLEAR_STATE] clearControllerInputState: DELAYED - clearing now"
+                            )
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[CLEAR_STATE] clearControllerInputState: isRetroMenu3Open after delay: ${isRetroMenu3Open()}"
+                            )
+                            inputViewModel.clearControllerInputState()
+                            controllerInput.clearKeyLog()
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[CLEAR_STATE] clearControllerInputState: comboAlreadyTriggered after: ${controllerInput.getComboAlreadyTriggered()}"
+                            )
+                            android.util.Log.d(
+                                    "GameActivityViewModel",
+                                    "[CLEAR_STATE] clearControllerInputState: COMPLETED"
+                            )
+                        },
+                        200
+                ) // 200ms delay to ensure fragment destruction is complete
     }
 
     /** Check if the RetroMenu3 is currently open */
@@ -238,7 +482,29 @@ class GameActivityViewModel(application: Application) :
 
     /** Check if any menu is currently active */
     private fun isAnyMenuActive(): Boolean {
-        return isRetroMenu3Open() || isSettingsMenuActive || isProgressActive || isExitActive
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE] 🔍 isAnyMenuActive: ========== CHECKING MENU ACTIVITY =========="
+        )
+
+        val retroMenu3Open = isRetroMenu3Open()
+        val settingsActive = isSettingsMenuActive()
+        val progressActive = isProgressActive()
+        val exitActive = isExitActive()
+        val result = retroMenu3Open || settingsActive || progressActive || exitActive
+
+        android.util.Log.d("GameActivityViewModel", "[ACTIVE] 📊 Menu states:")
+        android.util.Log.d("GameActivityViewModel", "[ACTIVE]   🎮 retroMenu3Open=$retroMenu3Open")
+        android.util.Log.d("GameActivityViewModel", "[ACTIVE]   ⚙️ settingsActive=$settingsActive")
+        android.util.Log.d("GameActivityViewModel", "[ACTIVE]   📊 progressActive=$progressActive")
+        android.util.Log.d("GameActivityViewModel", "[ACTIVE]   🚪 exitActive=$exitActive")
+        android.util.Log.d("GameActivityViewModel", "[ACTIVE] ✅ RESULT: isAnyMenuActive=$result")
+
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE] 🔍 isAnyMenuActive: ========== CHECK COMPLETED =========="
+        )
+        return result
     }
 
     /** Helper method to dismiss submenu fragments with common cleanup logic */
@@ -248,6 +514,15 @@ class GameActivityViewModel(application: Application) :
             activeFlagSetter: () -> Unit
     ) {
         android.util.Log.d("GameActivityViewModel", "dismiss${fragmentName}: Starting")
+
+        // Check if fragment is still valid and added
+        if (fragment == null || !fragment.isAdded) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "dismiss${fragmentName}: Fragment is null or not added, skipping dismiss"
+            )
+            return
+        }
 
         // IMPORTANT: Since submenu fragments were added to the back stack,
         // we must use popBackStack() instead of manual remove()
@@ -286,6 +561,27 @@ class GameActivityViewModel(application: Application) :
         // Clear the fragment reference and flag
         activeFlagSetter()
 
+        // CRITICAL FIX: After dismissing submenu, ensure main menu is visible
+        // BUT only if we're NOT in the middle of dismissing ALL menus (START button case)
+        if (isRetroMenu3Open() && !isDismissingAllMenus()) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "dismiss${fragmentName}: Showing main menu after individual submenu dismissal"
+            )
+            // Find the RetroMenu3Fragment and show it
+            val retroMenu3Fragment =
+                    activity?.supportFragmentManager?.findFragmentByTag(
+                            RetroMenu3Fragment::class.java.simpleName
+                    ) as?
+                            RetroMenu3Fragment
+            retroMenu3Fragment?.showMainMenu(preserveSelection = true)
+        } else {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "dismiss${fragmentName}: NOT showing main menu (dismissingAll=${isDismissingAllMenus()}, retroMenu3Open=${isRetroMenu3Open()})"
+            )
+        }
+
         android.util.Log.d("GameActivityViewModel", "dismiss${fragmentName}: Completed")
     }
 
@@ -301,11 +597,21 @@ class GameActivityViewModel(application: Application) :
         return isOpen
     }
 
+    /** Check if the Progress submenu is currently open */
+    fun isProgressMenuOpen(): Boolean {
+        return progressFragment != null
+    }
+
+    /** Check if the Exit submenu is currently open */
+    fun isExitMenuOpen(): Boolean {
+        return exitFragment != null
+    }
+
     /** Dismiss the Settings submenu */
     fun dismissSettingsMenu() {
         dismissSubmenuFragment(settingsMenuFragment, "SettingsMenu") {
             settingsMenuFragment = null
-            isSettingsMenuActive = false
+            deactivateSettingsMenu()
         }
     }
 
@@ -313,7 +619,7 @@ class GameActivityViewModel(application: Application) :
     fun dismissProgress() {
         dismissSubmenuFragment(progressFragment, "Progress") {
             progressFragment = null
-            isProgressActive = false
+            deactivateProgressMenu()
         }
     }
 
@@ -321,53 +627,112 @@ class GameActivityViewModel(application: Application) :
     fun dismissExit() {
         dismissSubmenuFragment(exitFragment, "Exit") {
             exitFragment = null
-            isExitActive = false
+            deactivateExitMenu()
         }
     }
 
     /** Dismiss ALL menus in cascade order (submenus first, then main menu) */
-    fun dismissAllMenus() {
-        android.util.Log.d("GameActivityViewModel", "dismissAllMenus: Starting cascade dismissal")
+    fun dismissAllMenus(onAnimationEnd: (() -> Unit)? = null) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[DISMISS_ALL] dismissAllMenus: Starting cascade dismissal"
+        )
 
         // Set flag to prevent showing main menu when submenus are dismissed
-        isDismissingAllMenus = true
+        setDismissingAllMenus(true)
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[DISMISS_ALL] dismissAllMenus: Set isDismissingAllMenus = true"
+        )
 
         // Dismiss submenus first (in reverse order of opening)
-        if (isExitActive) {
-            android.util.Log.d("GameActivityViewModel", "dismissAllMenus: Dismissing Exit submenu")
-            dismissExit()
-        }
-        if (isProgressActive) {
+        if (isExitActive()) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "dismissAllMenus: Dismissing Progress submenu"
+                    "[DISMISS_ALL] dismissAllMenus: Dismissing Exit submenu"
+            )
+            dismissExit()
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Exit submenu dismissed"
+            )
+        }
+        if (isProgressActive()) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Dismissing Progress submenu"
             )
             dismissProgress()
-        }
-        if (isSettingsMenuActive) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "dismissAllMenus: Dismissing Settings submenu"
+                    "[DISMISS_ALL] dismissAllMenus: Progress submenu dismissed"
+            )
+        }
+        if (isSettingsMenuActive()) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Dismissing Settings submenu"
             )
             dismissSettingsMenu()
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Settings submenu dismissed"
+            )
         }
 
-        // Finally dismiss the main RetroMenu3
+        // Finally dismiss the main RetroMenu3 with callback
         if (isRetroMenu3Open()) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "dismissAllMenus: Dismissing main RetroMenu3"
+                    "[DISMISS_ALL] dismissAllMenus: Dismissing main RetroMenu3 with callback"
             )
-            dismissRetroMenu3()
+            dismissRetroMenu3 {
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[DISMISS_ALL] Animation completed - restoring game speed"
+                )
+                // Restore game speed from sharedpreferences when exiting menu with Start
+                restoreGameSpeedFromPreferences()
+
+                // Reset flag after all menus are dismissed
+                setDismissingAllMenus(false)
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[DISMISS_ALL] dismissAllMenus: Reset isDismissingAllMenus = false"
+                )
+
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[DISMISS_ALL] dismissAllMenus: Cascade dismissal completed"
+                )
+
+                // Execute callback after animation and speed restoration
+                onAnimationEnd?.invoke()
+            }
+        } else {
+            // If no main menu is open, just restore speed and reset flag immediately
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] No main menu open - restoring game speed immediately"
+            )
+            // Restore game speed from sharedpreferences when exiting menu with Start
+            restoreGameSpeedFromPreferences()
+
+            // Reset flag after all menus are dismissed
+            setDismissingAllMenus(false)
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Reset isDismissingAllMenus = false"
+            )
+
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[DISMISS_ALL] dismissAllMenus: Cascade dismissal completed"
+            )
+
+            // Execute callback
+            onAnimationEnd?.invoke()
         }
-
-        // Restore game speed from sharedpreferences when exiting menu with Start
-        restoreGameSpeedFromPreferences()
-
-        // Reset flag after all menus are dismissed
-        isDismissingAllMenus = false
-
-        android.util.Log.d("GameActivityViewModel", "dismissAllMenus: Cascade dismissal completed")
     }
 
     /** Restore game speed from sharedpreferences when exiting menu with Start */
@@ -390,7 +755,8 @@ class GameActivityViewModel(application: Application) :
     /** Register the SettingsMenuFragment when it's created */
     fun registerSettingsMenuFragment(fragment: SettingsMenuFragment) {
         settingsMenuFragment = fragment
-        isSettingsMenuActive = true
+        menuViewModel.registerSettingsMenuFragment(fragment)
+        activateSettingsMenu()
         // Register with MenuManager
         menuManager.registerFragment(
                 com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU,
@@ -401,7 +767,8 @@ class GameActivityViewModel(application: Application) :
     /** Register the ProgressFragment when it's created */
     fun registerProgressFragment(fragment: ProgressFragment) {
         progressFragment = fragment
-        isProgressActive = true
+        menuViewModel.registerProgressFragment(fragment)
+        activateProgressMenu()
         // Register with MenuManager
         menuManager.registerFragment(
                 com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU,
@@ -412,7 +779,8 @@ class GameActivityViewModel(application: Application) :
     /** Register the ExitFragment when it's created */
     fun registerExitFragment(fragment: ExitFragment) {
         exitFragment = fragment
-        isExitActive = true
+        menuViewModel.registerExitFragment(fragment)
+        activateExitMenu()
         // Register with MenuManager
         menuManager.registerFragment(
                 com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU,
@@ -421,75 +789,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     // Implementation of GameMenuBottomSheet.GameMenuListener interface
-    override fun onResetGame() {
-        // Legacy method - now using resetGameCentralized() instead
-        // Kept for interface compatibility but should not be called
-    }
-
-    override fun onSaveState() {
-        // Legacy method - now using saveStateCentralized() instead
-        // Kept for interface compatibility but should not be called
-    }
-
-    override fun onLoadState() {
-        // Legacy method - now using loadStateCentralized() instead
-        // Kept for interface compatibility but should not be called
-    }
-
-    override fun onToggleAudio() {
-        retroView?.let { audioController?.toggleAudio(it.view) }
-    }
-
-    override fun onFastForward() {
-        retroView?.let { speedController?.toggleFastForward(it.view) }
-    }
-
-    override fun onToggleShader() {
-        shaderController?.cycleShader()
-    }
-
-    override fun getAudioState(): Boolean {
-        // If the controller has already been initialized, use it
-        audioController?.let {
-            return it.getAudioState()
-        }
-
-        // If the controller has not been initialized yet, read directly from SharedPreferences
-        // This happens when the menu is created before RetroView
-        return sharedPreferences?.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true) ?: true
-    }
-
-    override fun getFastForwardState(): Boolean {
-        // If the controller has already been initialized, use it
-        speedController?.let {
-            return it.getFastForwardState()
-        }
-
-        // If the controller has not been initialized yet, read directly from SharedPreferences
-        // This happens when the menu is created before RetroView
-        return (sharedPreferences?.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) ?: 1) > 1
-    }
-
-    override fun getShaderState(): String {
-        // If the controller has already been initialized, use it
-        shaderController?.let {
-            return it.getCurrentShaderDisplayName()
-        }
-
-        // If the controller has not been initialized yet, read directly from SharedPreferences
-        // This happens when the menu is created before RetroView
-        val currentShader = sharedPreferences?.getString("current_shader", "sharp") ?: "sharp"
-        return when (currentShader) {
-            "disabled" -> "Disabled"
-            "sharp" -> "Sharp"
-            "crt" -> "CRT"
-            "lcd" -> "LCD"
-            else -> "Unknown"
-        }
-    }
-
-    override fun hasSaveState(): Boolean = retroViewUtils?.hasSaveState() == true
-
+    // REMOVED: RetroMenu3Listener implementation - migrated to unified MenuAction/MenuEvent system
     // Implementation of SettingsMenuFragment.SettingsMenuListener interface
     override fun onBackToMainMenu() {
         android.util.Log.d("GameActivityViewModel", "onBackToMainMenu: User wants to go back")
@@ -584,6 +884,31 @@ class GameActivityViewModel(application: Application) :
     fun resetGameCentralized(onComplete: (() -> Unit)? = null) {
         retroView?.view?.reset()
         onComplete?.invoke()
+    }
+
+    /** Check if save state exists for UI state management */
+    fun hasSaveState(): Boolean {
+        return retroViewUtils?.hasSaveState() ?: false
+    }
+
+    /** Get current audio state for UI management */
+    fun getAudioState(): Boolean {
+        return audioViewModel.getAudioState()
+    }
+
+    /** Get current fast forward state for UI management */
+    fun getFastForwardState(): Boolean {
+        return speedViewModel.getFastForwardState()
+    }
+
+    /** Toggle shader for visual effects */
+    fun onToggleShader(): String {
+        return shaderViewModel.toggleShader()
+    }
+
+    /** Get current shader state for UI management */
+    fun getShaderState(): String {
+        return shaderViewModel.getShaderState()
     }
 
     /** Hide the system bars */
@@ -820,6 +1145,11 @@ class GameActivityViewModel(application: Application) :
         audioController = AudioController(activity.applicationContext, sharedPrefs)
         speedController = SpeedController(activity.applicationContext, sharedPrefs)
         shaderController = ShaderController(activity.applicationContext, sharedPrefs)
+
+        // Set controllers in ViewModels
+        audioController?.let { audioViewModel.setAudioController(it) }
+        speedController?.let { speedViewModel.setSpeedController(it) }
+        shaderController?.let { shaderViewModel.setShaderController(it) }
     }
 
     // PUBLIC METHODS FOR ACCESS TO MODULAR CONTROLLERS
@@ -853,7 +1183,7 @@ class GameActivityViewModel(application: Application) :
      * @param enabled true to turn on, false to turn off
      */
     fun setAudioEnabled(enabled: Boolean) {
-        retroView?.let { audioController?.setAudioEnabled(it.view, enabled) }
+        audioViewModel.setAudioEnabled(retroView?.view, enabled)
     }
 
     /**
@@ -866,7 +1196,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Ativa fast forward usando controller modular */
     fun enableFastForward() {
-        retroView?.let { speedController?.enableFastForward(it.view) }
+        speedViewModel.enableFastForward(retroView?.view)
     }
 
     /** Clear controller key log (used by RetroMenu3Fragment on destroy) */
@@ -876,68 +1206,173 @@ class GameActivityViewModel(application: Application) :
 
     /** Check if we are currently dismissing all menus (used by RetroMenu3Fragment) */
     fun isDismissingAllMenus(): Boolean {
-        return isDismissingAllMenus
+        return menuStateManager.isDismissingAllMenus()
     }
 
     /** Update the current menu state in MenuManager */
     fun updateMenuState(newState: com.vinaooo.revenger.ui.retromenu3.MenuState) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[STATE] 🔄 updateMenuState: Changing to $newState"
+        )
         menuManager.navigateToState(newState)
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[STATE] ✅ updateMenuState: State changed to $newState"
+        )
+    }
+
+    fun unregisterFragment(state: com.vinaooo.revenger.ui.retromenu3.MenuState) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[FRAGMENT] unregisterFragment: Unregistering fragment for state $state"
+        )
+        menuManager.unregisterFragment(state)
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[FRAGMENT] unregisterFragment: Fragment unregistered"
+        )
+    }
+
+    fun getCurrentMenuState(): com.vinaooo.revenger.ui.retromenu3.MenuState {
+        return menuManager.getCurrentState()
+    }
+
+    fun getCurrentFragment(): com.vinaooo.revenger.ui.retromenu3.MenuFragment? {
+        return menuManager.getCurrentFragment()
     }
 
     // ===== MenuManagerListener Implementation =====
 
-    override fun onMenuAction(action: com.vinaooo.revenger.ui.retromenu3.MenuAction) {
-        when (action) {
-            com.vinaooo.revenger.ui.retromenu3.MenuAction.SAVE_STATE -> saveStateCentralized()
-            com.vinaooo.revenger.ui.retromenu3.MenuAction.LOAD_STATE -> loadStateCentralized()
-            com.vinaooo.revenger.ui.retromenu3.MenuAction.RESET -> resetGameCentralized()
-            com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_AUDIO -> onToggleAudio()
-            com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SPEED -> onFastForward()
-            com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SHADER -> onToggleShader()
-            com.vinaooo.revenger.ui.retromenu3.MenuAction.SAVE_AND_EXIT -> {
-                // Save and exit - same logic as in ExitFragment
-                saveStateCentralized { android.os.Process.killProcess(android.os.Process.myPid()) }
-            }
-            com.vinaooo.revenger.ui.retromenu3.MenuAction.EXIT -> {
-                // Exit without save
-                android.os.Process.killProcess(android.os.Process.myPid())
-            }
-            com.vinaooo.revenger.ui.retromenu3.MenuAction.BACK -> {
-                // Handle back navigation based on current state
-                when (menuManager.getCurrentState()) {
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU -> dismissRetroMenu3()
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU ->
-                            dismissSettingsMenu()
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> dismissProgress()
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> dismissExit()
+    override fun onMenuEvent(event: com.vinaooo.revenger.ui.retromenu3.MenuEvent) {
+        when (event) {
+            is com.vinaooo.revenger.ui.retromenu3.MenuEvent.Action -> {
+                // Handle menu actions
+                when (event.action) {
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.SAVE_STATE ->
+                            saveStateCentralized()
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.LOAD_STATE ->
+                            loadStateCentralized()
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.RESET -> resetGameCentralized()
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_AUDIO -> {
+                        retroView?.let { audioViewModel.toggleAudio(it.view) }
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SPEED -> {
+                        retroView?.let { speedController?.toggleFastForward(it.view) }
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SHADER -> {
+                        shaderViewModel.toggleShader()
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.SAVE_AND_EXIT -> {
+                        // Save and exit - same logic as in ExitFragment
+                        saveStateCentralized {
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.EXIT -> {
+                        // Exit without save
+                        android.os.Process.killProcess(android.os.Process.myPid())
+                    }
+                    com.vinaooo.revenger.ui.retromenu3.MenuAction.BACK -> {
+                        // Handle back navigation based on current state
+                        when (menuManager.getCurrentState()) {
+                            com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU ->
+                                    dismissRetroMenu3()
+                            com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU ->
+                                    dismissSettingsMenu()
+                            com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU ->
+                                    dismissProgress()
+                            com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> dismissExit()
+                        }
+                    }
+                    is com.vinaooo.revenger.ui.retromenu3.MenuAction.NAVIGATE -> {
+                        // Navigate to different menu state
+                        menuManager.navigateToState(event.action.targetMenu)
+                    }
+                    else -> {
+                        // Ignore other actions
+                    }
                 }
             }
-            is com.vinaooo.revenger.ui.retromenu3.MenuAction.NAVIGATE -> {
-                // Navigate to different menu state
-                menuManager.navigateToState(action.targetMenu)
+            is com.vinaooo.revenger.ui.retromenu3.MenuEvent.StateChanged -> {
+                // Handle menu state transitions
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "Menu state changed: ${event.from} -> ${event.to}"
+                )
+                // Additional state change handling can be added here if needed
             }
-            else -> {
-                // Ignore other actions
+            com.vinaooo.revenger.ui.retromenu3.MenuEvent.MenuClosed -> {
+                // Handle complete menu closure
+                dismissAllMenus()
+            }
+            // Navigation events are handled by the fragments themselves, not by the ViewModel
+            com.vinaooo.revenger.ui.retromenu3.MenuEvent.NavigateUp -> {
+                menuManager.navigateUp()
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuEvent.NavigateDown -> {
+                menuManager.navigateDown()
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuEvent.Confirm -> {
+                menuManager.confirm()
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuEvent.Back -> {
+                menuManager.back()
             }
         }
     }
 
-    override fun onMenuStateChanged(
-            oldState: com.vinaooo.revenger.ui.retromenu3.MenuState,
-            newState: com.vinaooo.revenger.ui.retromenu3.MenuState
-    ) {
-        // Handle menu state transitions
-        android.util.Log.d("GameActivityViewModel", "Menu state changed: $oldState -> $newState")
-        // Additional state change handling can be added here if needed
-    }
-
-    override fun onMenuClosed() {
-        // Handle complete menu closure
-        dismissAllMenus()
-    }
-
     /** Desativa fast forward usando controller modular */
     fun disableFastForward() {
-        retroView?.let { speedController?.setSpeed(it.view, 1) }
+        speedViewModel.disableFastForward(retroView?.view)
+    }
+
+    /** Define fast forward enabled/disabled sem aplicar imediatamente (usado pelo menu Settings) */
+    fun setFastForwardEnabled(enabled: Boolean) {
+        if (enabled) {
+            speedViewModel.enableFastForward(null) // Pass null to avoid immediate application
+            // Also save the speed value to preferences for menu closure restoration
+            sharedPreferences?.edit()?.putInt(PreferencesConstants.PREF_FRAME_SPEED, 2)?.apply()
+        } else {
+            speedViewModel.disableFastForward(null) // Pass null to avoid immediate application
+            // Also save the speed value to preferences for menu closure restoration
+            sharedPreferences?.edit()?.putInt(PreferencesConstants.PREF_FRAME_SPEED, 1)?.apply()
+        }
+    }
+
+    /**
+     * Cleanup method called when ViewModel is being destroyed. Prevents memory leaks by clearing
+     * references and disposing resources.
+     */
+    override fun onCleared() {
+        android.util.Log.d("GameActivityViewModel", "onCleared: Starting cleanup")
+
+        // Dispose RxJava subscriptions to prevent memory leaks
+        compositeDisposable.dispose()
+
+        // Clear fragment references to prevent memory leaks
+        retroMenu3Fragment = null
+        settingsMenuFragment = null
+        progressFragment = null
+        exitFragment = null
+
+        // Clear container references
+        menuContainerView = null
+        gamePadContainerView = null
+
+        // Clear other references
+        retroView = null
+        retroViewUtils = null
+        leftGamePad = null
+        rightGamePad = null
+
+        // Clear controllers
+        audioController = null
+        speedController = null
+        shaderController = null
+        sharedPreferences = null
+
+        android.util.Log.d("GameActivityViewModel", "onCleared: Cleanup completed")
+        super.onCleared()
     }
 }

@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.PreferencesConstants
+import androidx.core.content.edit
 
 /**
  * Modular controller to manage emulator audio functionalities. Allows centralized sound control
@@ -70,9 +71,9 @@ class AudioController(
      * @param enabled state to be saved
      */
     private fun saveAudioState(enabled: Boolean) {
-        with(sharedPreferences.edit()) {
-            putBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, enabled)
-            commit() // Use commit() instead of apply() to ensure synchronization
+      sharedPreferences.edit(commit = true) {
+        putBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, enabled)
+        // Use commit() instead of apply() to ensure synchronization
         }
     }
 
