@@ -202,21 +202,26 @@ class GameActivity : FragmentActivity() {
                 // Verificar se devemos reprocessar orientação
                 // NÃO reprocessar quando config=3 e auto-rotate=OFF (para permitir botão manual)
                 val configOrientation = resources.getInteger(R.integer.config_orientation)
-                val autoRotateEnabled = try {
-                        android.provider.Settings.System.getInt(
-                                contentResolver,
-                                android.provider.Settings.System.ACCELEROMETER_ROTATION,
-                                0
-                        ) == 1
-                } catch (e: Exception) {
-                        false
-                }
-                
-                // Só reaplica orientação se config=1 ou 2 (forçadas) ou se config=3 com auto-rotate ON
+                val autoRotateEnabled =
+                        try {
+                                android.provider.Settings.System.getInt(
+                                        contentResolver,
+                                        android.provider.Settings.System.ACCELEROMETER_ROTATION,
+                                        0
+                                ) == 1
+                        } catch (e: Exception) {
+                                false
+                        }
+
+                // Só reaplica orientação se config=1 ou 2 (forçadas) ou se config=3 com auto-rotate
+                // ON
                 if (configOrientation != 3 || autoRotateEnabled) {
                         reapplyOrientation()
                 } else {
-                        Log.d(TAG, "[ROTATION] config=3 + auto-rotate OFF - não reaplica (permite botão manual)")
+                        Log.d(
+                                TAG,
+                                "[ROTATION] config=3 + auto-rotate OFF - não reaplica (permite botão manual)"
+                        )
                 }
 
                 adjustGamePadPositionForOrientation(gamePadContainer)
