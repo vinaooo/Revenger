@@ -257,31 +257,16 @@ class ControllerInput(private val context: Context) {
          * estiver "tecnicamente ativo"
          */
         private fun shouldInterceptSpecificButton(keyCode: Int): Boolean {
-                val keyName =
-                        when (keyCode) {
-                                KeyEvent.KEYCODE_BUTTON_A -> "A"
-                                KeyEvent.KEYCODE_BUTTON_B -> "B"
-                                else -> keyCode.toString()
-                        }
+                // Verificação 1: Menu aberto? Sim, interceptar
+                val menuActive = shouldInterceptDpadForMenu()
+                if (menuActive) {
+                        return true
+                }
 
-                // Durante grace period, bloquear APENAS o botão que fechou o menu
+                // Verificação 2: Grace period ativo E é o botão que fechou? Sim, interceptar
                 val now = System.currentTimeMillis()
                 val gracePeriodActive = now < keepInterceptingUntil
-                val timeRemaining = if (gracePeriodActive) keepInterceptingUntil - now else 0
-
                 if (gracePeriodActive && keyCode == buttonThatClosedMenu) {
-                        return true
-                }
-
-                // Se um botão está marcado como bloqueado até ACTION_UP, mantenha o bloqueio
-                if (blockedUntilKeyUp.contains(keyCode)) {
-                        return true
-                }
-
-                // Se menu está aberto de verdade, verificar através de shouldInterceptDpadForMenu
-                val menuActive = shouldInterceptDpadForMenu()
-
-                if (menuActive) {
                         return true
                 }
 
@@ -533,95 +518,51 @@ class ControllerInput(private val context: Context) {
                         val now = System.currentTimeMillis()
                         android.util.Log.d(
                                 "ControllerInput",
-                                "🔵 BUTTON_B intercepted - shouldInterceptSpecificButton()=true"
+                                "🔵 BUTTON_B intercepted - action=${if (action == KeyEvent.ACTION_DOWN) "DOWN" else "UP"}"
                         )
-                        // Se já foi processado e estamos aguardando ACTION_UP, consumir
-                        if (blockedUntilKeyUp.contains(KeyEvent.KEYCODE_BUTTON_B)) {
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "   ↪️ B locked until ACTION_UP - consuming DOWN"
-                                )
-                                return true
-                        }
+
                         if (action == KeyEvent.ACTION_DOWN) {
-                                // Checar estado de menu e grace period
-                                val menuActive = shouldInterceptDpadForMenu()
-                                val gracePeriodActive =
-                                        System.currentTimeMillis() < keepInterceptingUntil
-
-                                // Se estamos no grace period, menu não está ativo e o botão que
-                                // fechou foi B,
-                                // apenas consumir o evento sem acionar callback de volta.
-                                if (gracePeriodActive &&
-                                                !menuActive &&
-                                                buttonThatClosedMenu == KeyEvent.KEYCODE_BUTTON_B
-                                ) {
-                                        val alreadyPressedGrace =
-                                                keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
-                                        if (alreadyPressedGrace) {
-                                                android.util.Log.d(
-                                                        "ControllerInput",
-                                                        "   ↪️ Repeated ACTION_DOWN for B during grace - IGNORED"
-                                                )
-                                                return true
-                                        }
-                                        // Registrar para casar com ACTION_UP e evitar órfãos
-                                        keyLog.add(KeyEvent.KEYCODE_BUTTON_B)
-                                        keyDownTimestamps[KeyEvent.KEYCODE_BUTTON_B] = now
-                                        android.util.Log.d(
-                                                "ControllerInput",
-                                                "   → Grace period active, menu inactive; consuming B without callback"
-                                        )
-                                        return true
-                                }
-
-                                // Ignorar key-repeat enquanto B estiver pressionado
+                                // Verificar se já foi adicionado ao keyLog (hold/repeat)
                                 val alreadyPressed = keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
                                 if (alreadyPressed) {
                                         android.util.Log.d(
                                                 "ControllerInput",
-                                                "   ↪️ Repeated ACTION_DOWN for B while held - IGNORED"
+                                                "   ↪️ B already in keyLog (hold) - consuming DOWN without callback"
                                         )
                                         return true
                                 }
 
-                                // Marcar como pressionado para bloquear repeats
+                                // Primeira vez pressionando: adicionar ao keyLog e executar
+                                // callback
                                 keyLog.add(KeyEvent.KEYCODE_BUTTON_B)
-                                // Registrar timestamp para validar KEY_UP correspondente
                                 keyDownTimestamps[KeyEvent.KEYCODE_BUTTON_B] = now
-                                blockedUntilKeyUp.add(KeyEvent.KEYCODE_BUTTON_B)
                                 android.util.Log.d(
                                         "ControllerInput",
-                                        "   → KEY_DOWN registered at $now - executing menuBackCallback"
+                                        "   → First B DOWN - executing menuBackCallback"
                                 )
-                                // NOTE: Bloqueio será feito no callback onMenuClosedCallback
-                                // quando o menu realmente fechar
                                 executeMenuCallback(menuBackCallback, lastMenuBackCallbackTime) {
                                         lastMenuBackCallbackTime = it
                                 }
-                        } else {
-                                // Validar se este KEY_UP corresponde a um KEY_DOWN recente
-                                val downTime = keyDownTimestamps[KeyEvent.KEYCODE_BUTTON_B]
-                                if (downTime == null || (now - downTime) > KEY_UP_TIMEOUT_MS) {
+                        } else if (action == KeyEvent.ACTION_UP) {
+                                // ACTION_UP: remover do keyLog para permitir nova interação
+                                val wasPressed = keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
+                                keyLog.remove(KeyEvent.KEYCODE_BUTTON_B)
+                                keyDownTimestamps.remove(KeyEvent.KEYCODE_BUTTON_B)
+
+                                if (wasPressed) {
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "   → B ACTION_UP - cleared from keyLog"
+                                        )
+                                } else {
                                         android.util.Log.w(
                                                 "ControllerInput",
-                                                "🚨 ORPHAN KEY_UP detected for BUTTON_B - discarding (downTime=$downTime, elapsed=${now - (downTime ?: 0)}ms)"
+                                                "   ⚠️ B ACTION_UP without prior DOWN (orphan)"
                                         )
-                                        keyDownTimestamps.remove(KeyEvent.KEYCODE_BUTTON_B)
-                                        return true // Discard orphan KEY_UP
                                 }
-                                // KEY_UP válido - limpar timestamp e bloquear
-                                keyDownTimestamps.remove(KeyEvent.KEYCODE_BUTTON_B)
-                                // Remover do keyLog para permitir próximo ciclo
-                                keyLog.remove(KeyEvent.KEYCODE_BUTTON_B)
-                                blockedUntilKeyUp.remove(KeyEvent.KEYCODE_BUTTON_B)
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "🚫 BUTTON_B ACTION_UP valid (matched KEY_DOWN) - blocking"
-                                )
                         }
-                        // CRITICAL: Consumir TANTO ACTION_DOWN quanto ACTION_UP
-                        return true // Event intercepted - don't send to core
+                        // Consumir evento
+                        return true
                 }
 
                 // INTERCEPT START button when menu is open (to close menu)

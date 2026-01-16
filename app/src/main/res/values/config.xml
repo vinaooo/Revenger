@@ -32,14 +32,14 @@
     <bool name="config_fullscreen">true</bool>
 
     <!-- Orientation modes
-        0: Default
-        1: Portrait only
-        2: Landscape only
-        3: Any orientation (including upside-down)
+        1: Portrait only (ignores system auto-rotate)
+        2: Landscape only (ignores system auto-rotate)
+        3: Any orientation (respects system auto-rotate setting)
 
-        NOTE: Landscape <-> Portrait can be slow,
-                as it involves rebuilding the
-                emulator instance!
+        NOTE: Mode 3 will only rotate if system auto-rotate is enabled.
+              If auto-rotate is disabled, the app stays in current orientation.
+              Modes 1 and 2 always enforce their orientation regardless of system settings.
+              Landscape <-> Portrait transitions can be slow as they rebuild the emulator.
     -->
     <integer name="config_orientation">3</integer>
 

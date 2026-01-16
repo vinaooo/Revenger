@@ -35,6 +35,9 @@ class GameActivity : FragmentActivity() {
         // GamePad container reference for orientation changes
         private lateinit var gamePadContainer: android.widget.LinearLayout
 
+        // BroadcastReceiver para monitorar mudanças de auto-rotate
+        private var rotationSettingsReceiver: android.content.BroadcastReceiver? = null
+
         // Modern permission launcher (replaces deprecated onRequestPermissionsResult)
         private val permissionLauncher =
                 registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -98,6 +101,8 @@ class GameActivity : FragmentActivity() {
 
                 registerInputListener()
                 viewModel.setConfigOrientation(this)
+                registerRotationSettingsListener() // Adicionar listener para mudanças de
+                // auto-rotate
                 viewModel.updateGamePadVisibility(this, leftContainer, rightContainer)
                 viewModel.setupRetroView(this, retroviewContainer)
                 viewModel.setupGamePads(this, leftContainer, rightContainer)
@@ -110,9 +115,110 @@ class GameActivity : FragmentActivity() {
                 viewModel.setMenuContainer(menuContainer)
         }
 
+        /**
+         * Registra um listener para monitorar mudanças na configuração de auto-rotate do sistema.
+         * Quando o usuário muda a preferência de auto-rotate nas configurações do sistema, a
+         * orientação da app é reajustada automaticamente.
+         */
+        private fun registerRotationSettingsListener() {
+                rotationSettingsReceiver =
+                        object : android.content.BroadcastReceiver() {
+                                override fun onReceive(
+                                        context: android.content.Context?,
+                                        intent: android.content.Intent?
+                                ) {
+                                        if (intent?.action ==
+                                                        android.content.Intent
+                                                                .ACTION_CONFIGURATION_CHANGED
+                                        ) {
+                                                // Configuração mudou (pode ser auto-rotate)
+                                                Log.d(
+                                                        TAG,
+                                                        "[ROTATION_LISTENER] Configuração do sistema mudou - verificando auto-rotate"
+                                                )
+                                                reapplyOrientation()
+                                        }
+                                }
+                        }
+
+                // Criar IntentFilter para detectar mudanças de configuração
+                val intentFilter = android.content.IntentFilter()
+                intentFilter.addAction(android.content.Intent.ACTION_CONFIGURATION_CHANGED)
+
+                // Registrar receiver com permissão apropriada
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        registerReceiver(
+                                rotationSettingsReceiver,
+                                intentFilter,
+                                android.content.Context.RECEIVER_EXPORTED
+                        )
+                } else {
+                        registerReceiver(rotationSettingsReceiver, intentFilter)
+                }
+
+                Log.d(
+                        TAG,
+                        "[ROTATION_LISTENER] BroadcastReceiver registrado para monitorar mudanças"
+                )
+        }
+
+        /**
+         * Reaplica a configuração de orientação quando a preferência de auto-rotate muda. Isso
+         * permite que a app responda dinamicamente às mudanças do sistema.
+         */
+        private fun reapplyOrientation() {
+                try {
+                        val wasAutoRotate =
+                                try {
+                                        android.provider.Settings.System.getInt(
+                                                contentResolver,
+                                                android.provider.Settings.System
+                                                        .ACCELEROMETER_ROTATION,
+                                                0
+                                        ) == 1
+                                } catch (e: Exception) {
+                                        false
+                                }
+
+                        Log.d(TAG, "[ROTATION_REAPPLY] Auto-rotate do sistema: $wasAutoRotate")
+
+                        // Reaplica a configuração de orientação baseado no novo estado
+                        viewModel.setConfigOrientation(this)
+
+                        Log.d(TAG, "[ROTATION_REAPPLY] Orientação reajustada com sucesso")
+                } catch (e: Exception) {
+                        Log.e(
+                                TAG,
+                                "[ROTATION_REAPPLY] Erro ao reajustar orientação: ${e.message}",
+                                e
+                        )
+                }
+        }
+
         override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
                 super.onConfigurationChanged(newConfig)
-                Log.d(TAG, "Configuration changed - adjusting gamepad position")
+                Log.d(TAG, "Configuration changed - orientation=${newConfig.orientation}")
+
+                // Verificar se devemos reprocessar orientação
+                // NÃO reprocessar quando config=3 e auto-rotate=OFF (para permitir botão manual)
+                val configOrientation = resources.getInteger(R.integer.config_orientation)
+                val autoRotateEnabled = try {
+                        android.provider.Settings.System.getInt(
+                                contentResolver,
+                                android.provider.Settings.System.ACCELEROMETER_ROTATION,
+                                0
+                        ) == 1
+                } catch (e: Exception) {
+                        false
+                }
+                
+                // Só reaplica orientação se config=1 ou 2 (forçadas) ou se config=3 com auto-rotate ON
+                if (configOrientation != 3 || autoRotateEnabled) {
+                        reapplyOrientation()
+                } else {
+                        Log.d(TAG, "[ROTATION] config=3 + auto-rotate OFF - não reaplica (permite botão manual)")
+                }
+
                 adjustGamePadPositionForOrientation(gamePadContainer)
 
                 // CRITICAL FIX: Re-register menu callbacks after rotation to prevent back button
@@ -904,6 +1010,19 @@ class GameActivity : FragmentActivity() {
         }
 
         override fun onDestroy() {
+                // Remover listener de mudanças de auto-rotate
+                rotationSettingsReceiver?.let {
+                        try {
+                                unregisterReceiver(it)
+                                Log.d(TAG, "[ROTATION_LISTENER] BroadcastReceiver desregistrado")
+                        } catch (e: Exception) {
+                                Log.e(
+                                        TAG,
+                                        "[ROTATION_LISTENER] Erro ao desregistrar receiver: ${e.message}"
+                                )
+                        }
+                }
+
                 // Stop performance profiling
                 AdvancedPerformanceProfiler.stopProfiling()
 
