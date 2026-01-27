@@ -417,6 +417,52 @@ class GameActivity : FragmentActivity() {
                                                 }
 
                                         if (newFragment != null) {
+                                                // Sincronizar estado do NavigationController com o
+                                                // submenu atual
+                                                val navMenuType =
+                                                        when (effectiveState) {
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .MenuState.MAIN_MENU ->
+                                                                        com.vinaooo.revenger.ui
+                                                                                .retromenu3
+                                                                                .navigation.MenuType
+                                                                                .MAIN
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .MenuState.SETTINGS_MENU ->
+                                                                        com.vinaooo.revenger.ui
+                                                                                .retromenu3
+                                                                                .navigation.MenuType
+                                                                                .SETTINGS
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .MenuState.PROGRESS_MENU ->
+                                                                        com.vinaooo.revenger.ui
+                                                                                .retromenu3
+                                                                                .navigation.MenuType
+                                                                                .PROGRESS
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .MenuState.ABOUT_MENU ->
+                                                                        com.vinaooo.revenger.ui
+                                                                                .retromenu3
+                                                                                .navigation.MenuType
+                                                                                .ABOUT
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .MenuState.EXIT_MENU ->
+                                                                        com.vinaooo.revenger.ui
+                                                                                .retromenu3
+                                                                                .navigation.MenuType
+                                                                                .EXIT
+                                                                else ->
+                                                                        com.vinaooo.revenger.ui
+                                                                                .retromenu3
+                                                                                .navigation.MenuType
+                                                                                .MAIN
+                                                        }
+                                                viewModel.navigationController?.syncState(
+                                                        menuType = navMenuType,
+                                                        selectedIndex = 0,
+                                                        clearStack = true
+                                                )
+
                                                 val isMainMenu =
                                                         effectiveState ==
                                                                 com.vinaooo.revenger.ui.retromenu3

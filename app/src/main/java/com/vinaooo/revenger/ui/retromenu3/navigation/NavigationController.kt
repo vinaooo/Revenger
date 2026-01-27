@@ -70,6 +70,15 @@ class NavigationController(private val activity: FragmentActivity) {
         processor.processEvent(event)
     }
 
+    /** Sincroniza manualmente o estado de navegação (usado após rotação). */
+    fun syncState(menuType: MenuType, selectedIndex: Int = 0, clearStack: Boolean = true) {
+        if (clearStack) {
+            stateManager.clearStack()
+        }
+        stateManager.updateCurrentMenu(menuType)
+        stateManager.updateSelectedIndex(selectedIndex)
+    }
+
     /** Navega para o item acima (UP). */
     fun navigateUp() {
         processor.navigateUp()
