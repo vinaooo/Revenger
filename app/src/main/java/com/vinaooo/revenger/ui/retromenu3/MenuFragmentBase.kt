@@ -174,6 +174,18 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         updateSelectionVisualInternal()
     }
 
+    /**
+     * Aplica as proporções de layout configuráveis ao menu (horizontal e vertical). Deve ser
+     * chamado no onViewCreated dos submenus.
+     *
+     * @param view A view raiz do menu inflado
+     */
+    protected fun applyLayoutProportions(view: android.view.View) {
+        com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyAllProportionsToMenuLayout(
+                view
+        )
+    }
+
     companion object {
         /** Delay para ativação de item via touch em milissegundos */
         const val TOUCH_ACTIVATION_DELAY_MS = 100L
