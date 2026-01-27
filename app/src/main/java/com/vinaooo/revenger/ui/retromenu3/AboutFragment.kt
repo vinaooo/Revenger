@@ -156,7 +156,7 @@ class AboutFragment : MenuFragmentBase() {
 
         // Aplicar capitalização configurada a TODOS os textos (título, labels, títulos dos botões)
         val capitalizationStyle =
-                resources.getInteger(com.vinaooo.revenger.R.integer.retro_menu3_text_capitalization)
+                resources.getInteger(com.vinaooo.revenger.R.integer.rm_text_capitalization)
 
         // Aplicar capitalização ao título
         val titleText = aboutTitle.text.toString()
@@ -219,7 +219,7 @@ class AboutFragment : MenuFragmentBase() {
     /** Aplica a capitalização configurada a um TextView */
     private fun applyConfiguredCapitalization(textView: android.widget.TextView) {
         val capitalizationStyle =
-                resources.getInteger(com.vinaooo.revenger.R.integer.retro_menu3_text_capitalization)
+                resources.getInteger(com.vinaooo.revenger.R.integer.rm_text_capitalization)
         val originalText = textView.text.toString()
         val capitalizedText =
                 when (capitalizationStyle) {
@@ -247,13 +247,13 @@ class AboutFragment : MenuFragmentBase() {
 
         // ROM name from config - combine label and value
         val romLabel = resources.getString(R.string.about_rom_name)
-        val romName = resources.getString(R.string.config_rom)
+        val romName = resources.getString(R.string.conf_rom)
         romNameInfo.text = "$romLabel $romName"
         applyConfiguredCapitalization(romNameInfo)
 
         // Core name from config - combine label and value
         val coreLabel = resources.getString(R.string.about_core_name)
-        val coreName = resources.getString(R.string.config_core)
+        val coreName = resources.getString(R.string.conf_core)
         coreNameInfo.text = "$coreLabel $coreName"
         applyConfiguredCapitalization(coreNameInfo)
     }
@@ -368,12 +368,12 @@ class AboutFragment : MenuFragmentBase() {
                     if (isSelected)
                             androidx.core.content.ContextCompat.getColor(
                                     context,
-                                    R.color.retro_menu3_selected_color
+                                    R.color.rm_selected_color
                             )
                     else
                             androidx.core.content.ContextCompat.getColor(
                                     context,
-                                    R.color.retro_menu3_normal_color
+                                    R.color.rm_normal_color
                             )
             )
         }
@@ -387,12 +387,12 @@ class AboutFragment : MenuFragmentBase() {
                     if (isSelected)
                             androidx.core.content.ContextCompat.getColor(
                                     context,
-                                    R.color.retro_menu3_selected_color
+                                    R.color.rm_selected_color
                             )
                     else
                             androidx.core.content.ContextCompat.getColor(
                                     context,
-                                    R.color.retro_menu3_normal_color
+                                    R.color.rm_normal_color
                             )
             )
         }

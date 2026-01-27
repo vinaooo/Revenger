@@ -49,9 +49,9 @@ class GamePadConfig(context: Context, private val resources: Resources) {
         private val radialGamePadTheme =
                 RadialGamePadTheme(
                         textColor = ContextCompat.getColor(context, android.R.color.white),
-                        normalColor = ContextCompat.getColor(context, R.color.gamepad_button_color),
+                        normalColor = ContextCompat.getColor(context, R.color.gp_button_color),
                         pressedColor =
-                                ContextCompat.getColor(context, R.color.gamepad_pressed_color)
+                                ContextCompat.getColor(context, R.color.gp_pressed_color)
                 )
 
         private fun getActionButtonsInOrder(): List<ButtonConfig> {
@@ -66,13 +66,13 @@ class GamePadConfig(context: Context, private val resources: Resources) {
         val left =
                 RadialGamePadConfig(
                         haptic =
-                                if (resources.getBoolean(R.bool.config_gamepad_haptic))
+                                if (resources.getBoolean(R.bool.conf_gp_haptic))
                                         HapticConfig.PRESS
                                 else HapticConfig.OFF,
                         theme = radialGamePadTheme,
                         sockets = 12,
                         primaryDial =
-                                if (resources.getBoolean(R.bool.config_left_analog)) LEFT_ANALOG
+                                if (resources.getBoolean(R.bool.conf_left_analog)) LEFT_ANALOG
                                 else LEFT_DPAD,
                         secondaryDials =
                                 listOfNotNull(
@@ -84,7 +84,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                 )
                                                 .takeIf {
                                                         resources.getBoolean(
-                                                                R.bool.config_gamepad_l1
+                                                                R.bool.conf_gp_l1
                                                         )
                                                 },
                                         SecondaryDialConfig.SingleButton(
@@ -95,7 +95,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                 )
                                                 .takeIf {
                                                         resources.getBoolean(
-                                                                R.bool.config_gamepad_l2
+                                                                R.bool.conf_gp_l2
                                                         )
                                                 },
                                         SecondaryDialConfig.SingleButton(
@@ -106,7 +106,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                 )
                                                 .takeIf {
                                                         resources.getBoolean(
-                                                                R.bool.config_gamepad_select
+                                                                R.bool.conf_gp_select
                                                         )
                                                 },
                                 )
@@ -115,7 +115,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
         val right =
                 RadialGamePadConfig(
                         haptic =
-                                if (resources.getBoolean(R.bool.config_gamepad_haptic))
+                                if (resources.getBoolean(R.bool.conf_gp_haptic))
                                         HapticConfig.PRESS
                                 else HapticConfig.OFF,
                         theme = radialGamePadTheme,
@@ -125,7 +125,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                         dials = getActionButtonsInOrder(),
                                         allowMultiplePressesSingleFinger =
                                                 resources.getBoolean(
-                                                        R.bool.config_gamepad_allow_multiple_presses_action
+                                                        R.bool.conf_gp_allow_multiple_presses_action
                                                 )
                                 ),
                         secondaryDials =
@@ -139,7 +139,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_gamepad_r1
+                                                                        R.bool.conf_gp_r1
                                                                 )
                                                         },
                                                 SecondaryDialConfig.SingleButton(
@@ -150,7 +150,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_gamepad_r2
+                                                                        R.bool.conf_gp_r2
                                                                 )
                                                         },
                                                 SecondaryDialConfig.SingleButton(
@@ -161,7 +161,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_gamepad_start
+                                                                        R.bool.conf_gp_start
                                                                 )
                                                         },
 
@@ -174,7 +174,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_show_fake_button_0
+                                                                        R.bool.conf_show_fake_button_0
                                                                 )
                                                         },
                                                 SecondaryDialConfig.SingleButton(
@@ -185,7 +185,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_show_fake_button_1
+                                                                        R.bool.conf_show_fake_button_1
                                                                 )
                                                         },
                                                 SecondaryDialConfig.SingleButton(
@@ -196,7 +196,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_show_fake_button_5
+                                                                        R.bool.conf_show_fake_button_5
                                                                 )
                                                         },
                                                 SecondaryDialConfig.SingleButton(
@@ -207,7 +207,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_show_fake_button_6
+                                                                        R.bool.conf_show_fake_button_6
                                                                 )
                                                         },
                                                 SecondaryDialConfig.SingleButton(
@@ -218,7 +218,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_show_fake_button_7
+                                                                        R.bool.conf_show_fake_button_7
                                                                 )
                                                         },
                                                 SecondaryDialConfig.SingleButton(
@@ -229,7 +229,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_menu_mode_gamepad
+                                                                        R.bool.conf_menu_mode_gamepad
                                                                 )
                                                         },
                                                 SecondaryDialConfig.SingleButton(
@@ -240,7 +240,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_show_fake_button_9
+                                                                        R.bool.conf_show_fake_button_9
                                                                 )
                                                         },
                                                 SecondaryDialConfig.SingleButton(
@@ -251,7 +251,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_show_fake_button_10
+                                                                        R.bool.conf_show_fake_button_10
                                                                 )
                                                         },
                                                 SecondaryDialConfig.SingleButton(
@@ -262,7 +262,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         )
                                                         .takeIf {
                                                                 resources.getBoolean(
-                                                                        R.bool.config_show_fake_button_11
+                                                                        R.bool.conf_show_fake_button_11
                                                                 )
                                                         }
                                         )

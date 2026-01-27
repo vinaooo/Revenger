@@ -201,7 +201,7 @@ class GameActivity : FragmentActivity() {
 
                 // Verificar se devemos reprocessar orientação
                 // NÃO reprocessar quando config=3 e auto-rotate=OFF (para permitir botão manual)
-                val configOrientation = resources.getInteger(R.integer.config_orientation)
+                val configOrientation = resources.getInteger(R.integer.conf_orientation)
                 val autoRotateEnabled =
                         try {
                                 android.provider.Settings.System.getInt(

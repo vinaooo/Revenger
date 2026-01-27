@@ -40,7 +40,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
         }
 
     private fun isSettingsMode(): Boolean {
-        return context.getString(R.string.config_shader).lowercase() == "settings"
+        return context.getString(R.string.conf_shader).lowercase() == "settings"
     }
 
     /** Public method to check if shader selection is enabled */
@@ -72,7 +72,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
      * @return ShaderConfig enum value for video rendering
      */
     private fun getShaderConfig(): ShaderConfig {
-        val shaderString = context.getString(R.string.config_shader).lowercase()
+        val shaderString = context.getString(R.string.conf_shader).lowercase()
 
         return when (shaderString) {
             "disabled" -> {
@@ -123,7 +123,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 coreFilePath = "libcore.so"
 
                 /* Prepare the ROM bytes */
-                val romName = context.getString(R.string.config_rom)
+                val romName = context.getString(R.string.conf_rom)
                 @SuppressLint(
                         "DiscouragedApi"
                 ) // Reflection necessary to maintain genericity - allows any ROM without
@@ -137,7 +137,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 }
 
                 val romInputStream = context.resources.openRawResource(romResourceId)
-                if (resources.getBoolean(R.bool.config_load_bytes)) {
+                if (resources.getBoolean(R.bool.conf_load_bytes)) {
                     if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
                     gameFileBytes = romBytes
                 } else {
@@ -201,7 +201,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
     /** Parse core variables from config */
     private fun getCoreVariables(): Array<Variable> {
         val variables = arrayListOf<Variable>()
-        val rawVariablesString = context.getString(R.string.config_variables)
+        val rawVariablesString = context.getString(R.string.conf_variables)
         val rawVariables = rawVariablesString.split(",")
 
         Log.d("RetroView", "Configurando variáveis do core: '$rawVariablesString'")

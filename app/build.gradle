@@ -55,7 +55,7 @@ android {
     // buildToolsVersion removido - AGP 8.13.0 usa automaticamente 36.0.0
 
     defaultConfig {
-        applicationId "com.vinaooo.revenger.${getConfigValue('config_id')}"
+        applicationId "com.vinaooo.revenger.${getConfigValue('conf_id')}"
         minSdk = 30                // Android 11 - API Level 30
         targetSdk = 36             // Android 16 - API Level 36
         versionCode 1
@@ -137,8 +137,8 @@ task prepareCore {
 
             jniAbiFolder.mkdirs()
             
-            def coreUrl = "https://buildbot.libretro.com/nightly/android/latest/$abi/${getConfigValue('config_core')}_libretro_android.so.zip"
-            def coreName = getConfigValue('config_core')
+            def coreUrl = "https://buildbot.libretro.com/nightly/android/latest/$abi/${getConfigValue('conf_core')}_libretro_android.so.zip"
+            def coreName = getConfigValue('conf_core')
             def zipFile = new File(jniAbiFolder, "${coreName}_libretro_android.so.zip")
             
             println "Baixando LibRetro core: $coreName para $abi"

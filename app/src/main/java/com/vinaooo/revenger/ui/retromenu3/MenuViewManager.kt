@@ -96,12 +96,12 @@ class MenuViewManager(private val fragment: Fragment) {
                 TAG,
                 "[VIEW] setupDynamicTitle - menuTitleTextView initialized: ${menuTitleTextView != null}, id: ${titleTextView?.id}"
         )
-        val titleStyle = fragment.resources.getInteger(R.integer.retro_menu3_title_style)
+        val titleStyle = fragment.resources.getInteger(R.integer.rm_title_style)
 
         val titleText =
                 when (titleStyle) {
-                    1 -> fragment.resources.getString(R.string.config_name)
-                    else -> fragment.resources.getString(R.string.retro_menu3_title)
+                    1 -> fragment.resources.getString(R.string.conf_name)
+                    else -> fragment.resources.getString(R.string.rm_title)
                 }
 
         titleTextView?.text = titleText
@@ -234,14 +234,14 @@ class MenuViewManager(private val fragment: Fragment) {
         menuItemView.titleTextView.setTextColor(
                 androidx.core.content.ContextCompat.getColor(
                         fragment.requireContext(),
-                        R.color.retro_menu3_selected_color
+                        R.color.rm_selected_color
                 )
         )
         menuItemView.arrowTextView.apply {
             setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             fragment.requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             visibility = View.VISIBLE
@@ -249,7 +249,7 @@ class MenuViewManager(private val fragment: Fragment) {
                 marginStart = 0 // Force zero margin - critical fix
                 marginEnd =
                         fragment.resources.getDimensionPixelSize(
-                                R.dimen.retro_menu3_arrow_margin_end
+                                R.dimen.rm_arrow_margin_end
                         )
                 leftMargin = 0 // Additional force for left margin
             }
@@ -263,7 +263,7 @@ class MenuViewManager(private val fragment: Fragment) {
         menuItemView.titleTextView.setTextColor(
                 androidx.core.content.ContextCompat.getColor(
                         fragment.requireContext(),
-                        R.color.retro_menu3_normal_color
+                        R.color.rm_normal_color
                 )
         )
         menuItemView.arrowTextView.visibility = View.GONE

@@ -150,9 +150,9 @@ object MenuLayoutConfig {
 
             val proportionsString =
                     if (isPortrait) {
-                        resources.getString(R.string.retro_menu3_portrait_layout_proportions)
+                        resources.getString(R.string.rm_portrait_horizontal_proportions)
                     } else {
-                        resources.getString(R.string.retro_menu3_landscape_layout_proportions)
+                        resources.getString(R.string.rm_landscape_horizontal_proportions)
                     }
 
             val proportions = parseLayoutProportions(proportionsString)
@@ -274,9 +274,9 @@ object MenuLayoutConfig {
 
             val proportionsString =
                     if (isPortrait) {
-                        resources.getString(R.string.retro_menu3_portrait_vertical_proportions)
+                        resources.getString(R.string.rm_portrait_vertical_proportions)
                     } else {
-                        resources.getString(R.string.retro_menu3_landscape_vertical_proportions)
+                        resources.getString(R.string.rm_landscape_vertical_proportions)
                     }
 
             val proportions = parseVerticalProportions(proportionsString)

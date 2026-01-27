@@ -37,7 +37,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.25"
-            android:layout_marginTop="@dimen/gamepad_padding_vertical" />
+            android:layout_marginTop="@dimen/gp_padding_vertical" />
 
         <View
             android:layout_width="0dp"
@@ -49,6 +49,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.25"
-            android:layout_marginTop="@dimen/gamepad_padding_vertical" />
+            android:layout_marginTop="@dimen/gp_padding_vertical" />
     </LinearLayout>
 </FrameLayout>

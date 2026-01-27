@@ -1132,7 +1132,7 @@ class GameActivityViewModel(application: Application) :
     @Suppress("DEPRECATION")
     fun immersive(window: Window) {
         /* Check if the config permits it */
-        if (!resources.getBoolean(R.bool.config_fullscreen)) return
+        if (!resources.getBoolean(R.bool.conf_fullscreen)) return
 
         with(window.insetsController!!) {
             hide(WindowInsets.Type.systemBars())
@@ -1372,7 +1372,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Set the screen orientation based on the config */
     fun setConfigOrientation(activity: Activity) {
-        val configOrientation = resources.getInteger(R.integer.config_orientation)
+        val configOrientation = resources.getInteger(R.integer.conf_orientation)
 
         // Verificar preferência de auto-rotate do sistema
         val accelerometerRotationEnabled =
@@ -1430,24 +1430,24 @@ class GameActivityViewModel(application: Application) :
 
     /** Check if menu is enabled based on menu mode configs */
     private fun isMenuEnabled(): Boolean {
-        return resources.getBoolean(R.bool.config_menu_mode_back) ||
-                resources.getBoolean(R.bool.config_menu_mode_combo) ||
-                resources.getBoolean(R.bool.config_menu_mode_gamepad)
+        return resources.getBoolean(R.bool.conf_menu_mode_back) ||
+                resources.getBoolean(R.bool.conf_menu_mode_combo) ||
+                resources.getBoolean(R.bool.conf_menu_mode_gamepad)
     }
 
-    /** Check if menu should respond to back button based on config_menu_mode_back */
+    /** Check if menu should respond to back button based on conf_menu_mode_back */
     fun shouldHandleBackButton(): Boolean {
-        return resources.getBoolean(R.bool.config_menu_mode_back)
+        return resources.getBoolean(R.bool.conf_menu_mode_back)
     }
 
-    /** Check if menu should respond to SELECT+START combo based on config_menu_mode_combo */
+    /** Check if menu should respond to SELECT+START combo based on conf_menu_mode_combo */
     fun shouldHandleSelectStartCombo(): Boolean {
-        return resources.getBoolean(R.bool.config_menu_mode_combo)
+        return resources.getBoolean(R.bool.conf_menu_mode_combo)
     }
 
-    /** Check if menu should respond to gamepad menu button based on config_menu_mode_gamepad */
+    /** Check if menu should respond to gamepad menu button based on conf_menu_mode_gamepad */
     fun shouldHandleGamepadMenuButton(): Boolean {
-        return resources.getBoolean(R.bool.config_menu_mode_gamepad)
+        return resources.getBoolean(R.bool.conf_menu_mode_gamepad)
     }
 
     /**

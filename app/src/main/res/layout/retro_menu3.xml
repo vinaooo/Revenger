@@ -7,7 +7,7 @@
     android:id="@+id/menu_content_container"
     android:clickable="true"
     android:focusable="true"
-    android:background="@color/retro_menu3_background"
+    android:background="@color/rm_background"
     android:fitsSystemWindows="false"
     android:elevation="0dp">
 
@@ -15,44 +15,44 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        android:padding="@dimen/retro_menu3_menu_item_padding"
+        android:padding="@dimen/rm_menu_item_padding"
         android:elevation="0dp">
 
         <!-- Left 25% - Empty Space -->
         <Space
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="@dimen/retro_menu3_side_space_weight" />
+            android:layout_weight="@dimen/rm_side_space_weight" />
 
         <!-- Center 50% - Menu Content -->
         <LinearLayout
             android:id="@+id/menu_container"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="@dimen/retro_menu3_center_content_weight"
+            android:layout_weight="@dimen/rm_center_content_weight"
             android:orientation="vertical"
-            android:paddingVertical="@dimen/retro_menu3_container_padding_vertical"
+            android:paddingVertical="@dimen/rm_container_padding_vertical"
             android:elevation="0dp">
 
             <TextView
                 android:id="@+id/menu_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/retro_menu3_title"
-                android:textSize="@dimen/retro_menu3_title_text_size"
-                android:textColor="@color/retro_menu3_text_color"
+                android:text="@string/rm_title"
+                android:textSize="@dimen/rm_title_text_size"
+                android:textColor="@color/rm_text_color"
                 android:textStyle="bold"
-                android:layout_marginStart="@dimen/retro_menu3_title_margin_start"
-                android:layout_marginBottom="@dimen/retro_menu3_title_margin_bottom"
-                android:paddingStart="@dimen/retro_menu3_title_padding_start"
-                android:paddingEnd="@dimen/retro_menu3_title_padding_end"
+                android:layout_marginStart="@dimen/rm_title_margin_start"
+                android:layout_marginBottom="@dimen/rm_title_margin_bottom"
+                android:paddingStart="@dimen/rm_title_padding_start"
+                android:paddingEnd="@dimen/rm_title_padding_end"
                 android:gravity="start"
-                android:letterSpacing="@dimen/retro_menu3_title_letter_spacing"
+                android:letterSpacing="@dimen/rm_title_letter_spacing"
                 android:includeFontPadding="false"
-                android:shadowColor="@color/retro_menu3_shadow_color"
-                android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                android:shadowRadius="@dimen/retro_menu3_shadow_radius"
+                android:shadowColor="@color/rm_shadow_color"
+                android:shadowDx="@dimen/rm_shadow_dx"
+                android:shadowDy="@dimen/rm_shadow_dy"
+                android:shadowRadius="@dimen/rm_shadow_radius"
                 android:elevation="0dp" />
 
             <ScrollView
@@ -77,28 +77,28 @@
                     <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_continue"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/retro_menu3_menu_item_height"
+                        android:layout_height="@dimen/rm_menu_item_height"
                         android:clickable="true"
                         android:focusable="true"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:padding="@dimen/retro_menu3_menu_item_padding"
+                        android:padding="@dimen/rm_menu_item_padding"
                         android:elevation="0dp">
 
                         <TextView
                             android:id="@+id/selection_arrow_continue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/retro_menu3_selection_arrow"
-                            android:textSize="@dimen/retro_menu3_arrow_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:text="@string/rm_selection_arrow"
+                            android:textSize="@dimen/rm_arrow_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:visibility="gone"
                             android:padding="0dp"
                             android:includeFontPadding="false"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
 
                         <TextView
                             android:id="@+id/continue_title"
@@ -106,13 +106,13 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/menu_continue"
-                            android:textSize="@dimen/retro_menu3_menu_item_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:textSize="@dimen/rm_menu_item_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:includeFontPadding="false"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
 
                     </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
@@ -120,28 +120,28 @@
                     <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_reset"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/retro_menu3_menu_item_height"
+                        android:layout_height="@dimen/rm_menu_item_height"
                         android:clickable="true"
                         android:focusable="true"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:padding="@dimen/retro_menu3_menu_item_padding"
+                        android:padding="@dimen/rm_menu_item_padding"
                         android:elevation="0dp">
 
                         <TextView
                             android:id="@+id/selection_arrow_reset"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/retro_menu3_selection_arrow"
-                            android:textSize="@dimen/retro_menu3_arrow_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:text="@string/rm_selection_arrow"
+                            android:textSize="@dimen/rm_arrow_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:visibility="gone"
                             android:padding="0dp"
                             android:includeFontPadding="false"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
 
                         <TextView
                             android:id="@+id/reset_title"
@@ -149,13 +149,13 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/menu_reset"
-                            android:textSize="@dimen/retro_menu3_menu_item_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:textSize="@dimen/rm_menu_item_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:includeFontPadding="false"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
 
                     </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
@@ -163,28 +163,28 @@
                     <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_submenu2"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/retro_menu3_menu_item_height"
+                        android:layout_height="@dimen/rm_menu_item_height"
                         android:clickable="true"
                         android:focusable="true"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:padding="@dimen/retro_menu3_menu_item_padding"
+                        android:padding="@dimen/rm_menu_item_padding"
                         android:elevation="0dp">
 
                         <TextView
                             android:id="@+id/selection_arrow_submenu2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/retro_menu3_selection_arrow"
-                            android:textSize="@dimen/retro_menu3_arrow_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:text="@string/rm_selection_arrow"
+                            android:textSize="@dimen/rm_arrow_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:visibility="gone"
                             android:padding="0dp"
                             android:includeFontPadding="false"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
 
                         <TextView
                             android:id="@+id/submenu2_title"
@@ -192,13 +192,13 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/progress_menu_title"
-                            android:textSize="@dimen/retro_menu3_menu_item_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:textSize="@dimen/rm_menu_item_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:includeFontPadding="false"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
 
                     </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
@@ -206,28 +206,28 @@
                     <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_submenu1"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/retro_menu3_menu_item_height"
+                        android:layout_height="@dimen/rm_menu_item_height"
                         android:clickable="true"
                         android:focusable="true"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:padding="@dimen/retro_menu3_menu_item_padding"
+                        android:padding="@dimen/rm_menu_item_padding"
                         android:elevation="0dp">
 
                         <TextView
                             android:id="@+id/selection_arrow_submenu1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/retro_menu3_selection_arrow"
-                            android:textSize="@dimen/retro_menu3_arrow_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:text="@string/rm_selection_arrow"
+                            android:textSize="@dimen/rm_arrow_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:visibility="gone"
                             android:padding="0dp"
                             android:includeFontPadding="false"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
 
                         <TextView
                             android:id="@+id/submenu1_title"
@@ -235,13 +235,13 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/menu_settings"
-                            android:textSize="@dimen/retro_menu3_menu_item_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:textSize="@dimen/rm_menu_item_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:includeFontPadding="false"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
 
                     </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
@@ -249,28 +249,28 @@
                     <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_about"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/retro_menu3_menu_item_height"
+                        android:layout_height="@dimen/rm_menu_item_height"
                         android:clickable="true"
                         android:focusable="true"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:padding="@dimen/retro_menu3_menu_item_padding"
+                        android:padding="@dimen/rm_menu_item_padding"
                         android:elevation="0dp">
 
                         <TextView
                             android:id="@+id/selection_arrow_about"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/retro_menu3_selection_arrow"
-                            android:textSize="@dimen/retro_menu3_arrow_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:text="@string/rm_selection_arrow"
+                            android:textSize="@dimen/rm_arrow_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:visibility="gone"
                             android:padding="0dp"
                             android:includeFontPadding="false"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
 
                         <TextView
                             android:id="@+id/about_title"
@@ -278,13 +278,13 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/menu_about"
-                            android:textSize="@dimen/retro_menu3_menu_item_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:textSize="@dimen/rm_menu_item_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:includeFontPadding="false"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
 
                     </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
@@ -292,26 +292,26 @@
                     <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/menu_exit"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/retro_menu3_menu_item_height"
+                        android:layout_height="@dimen/rm_menu_item_height"
                         android:clickable="true"
                         android:focusable="true"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:padding="@dimen/retro_menu3_menu_item_padding"
+                        android:padding="@dimen/rm_menu_item_padding"
                         android:elevation="0dp">
 
                         <TextView
                             android:id="@+id/selection_arrow_exit"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/retro_menu3_selection_arrow"
-                            android:textSize="@dimen/retro_menu3_arrow_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:text="@string/rm_selection_arrow"
+                            android:textSize="@dimen/rm_arrow_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:visibility="gone"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius"
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius"
                             android:padding="0dp"
                             android:includeFontPadding="false" />
 
@@ -321,13 +321,13 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/menu_exit"
-                            android:textSize="@dimen/retro_menu3_menu_item_text_size"
-                            android:textColor="@color/retro_menu3_text_color"
+                            android:textSize="@dimen/rm_menu_item_text_size"
+                            android:textColor="@color/rm_text_color"
                             android:includeFontPadding="false"
-                            android:shadowColor="@color/retro_menu3_shadow_color"
-                            android:shadowDx="@dimen/retro_menu3_shadow_dx"
-                            android:shadowDy="@dimen/retro_menu3_shadow_dy"
-                            android:shadowRadius="@dimen/retro_menu3_shadow_radius" />
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
 
                     </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
@@ -341,7 +341,7 @@
         <Space
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="@dimen/retro_menu3_side_space_weight" />
+            android:layout_weight="@dimen/rm_side_space_weight" />
 
     </LinearLayout>
 

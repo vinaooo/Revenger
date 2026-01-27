@@ -3,16 +3,16 @@
     <!-- RetroMenu3 - Colors -->
 
     <!-- Background -->
-    <color name="retro_menu3_background">#CC333333</color>
-    <color name="retro_menu3_submenu_background">#00000000</color>
+    <color name="rm_background">#CC333333</color>
+    <color name="rm_submenu_background">#00000000</color>
 
     <!-- Text Colors -->
-    <color name="retro_menu3_text_color">#F5F5F5</color>
-    <color name="retro_menu3_shadow_color">#000000</color>
+    <color name="rm_text_color">#F5F5F5</color>
+    <color name="rm_shadow_color">#000000</color>
 
     <!-- Selection and State Colors -->
-    <color name="retro_menu3_selected_color">#FFFF00</color>
-    <color name="retro_menu3_normal_color">#F5F5F5</color>
-    <color name="retro_menu3_disabled_color">#808080</color>
-    <color name="retro_menu3_transparent_color">#00000000</color>
+    <color name="rm_selected_color">#FFFF00</color>
+    <color name="rm_normal_color">#F5F5F5</color>
+    <color name="rm_disabled_color">#808080</color>
+    <color name="rm_transparent_color">#00000000</color>
 </resources>

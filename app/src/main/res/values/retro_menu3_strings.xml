@@ -6,17 +6,17 @@
     <!-- ============================================ -->
     
     <!-- Menu Title -->
-    <string name="retro_menu3_title">GaMe MeNu</string>
+    <string name="rm_title">GaMe MeNu</string>
     <!-- Title style: 
-            0 = use retro_menu3_title
-            1 = use config_name from config.xml -->
-    <integer name="retro_menu3_title_style">0</integer>
+            0 = use rm_title
+            1 = use conf_name from config.xml -->
+    <integer name="rm_title_style">0</integer>
 
     <!-- Text Capitalization Style -->
     <!-- 0 = normal (as defined in strings)
          1 = capitalize first letter only
          2 = all uppercase -->
-    <integer name="retro_menu3_text_capitalization">2</integer>
+    <integer name="rm_text_capitalization">2</integer>
     <!-- Font Selection -->
         <!-- PLUG-AND-PLAY FONT SYSTEM:
              Para adicionar uma nova fonte:
@@ -30,10 +30,10 @@
              - "arcade" (fonte padrão)
              
              Fallback automático: se a fonte não existir, usa "arcade" -->
-    <string name="retro_menu3_font">tiny5</string>
+    <string name="rm_font">tiny5</string>
 
     <!-- Selection Arrow -->
-    <string name="retro_menu3_selection_arrow">&gt;</string>
+    <string name="rm_selection_arrow">&gt;</string>
     
     <!-- Menu Options -->
     <string name="menu_continue">Resume</string>

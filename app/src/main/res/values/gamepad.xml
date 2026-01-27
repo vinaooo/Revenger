@@ -5,13 +5,13 @@
     <!-- ============================================ -->
 
     <!-- Gamepad button colors for virtual controller -->
-    <color name="gamepad_button_color">#88ffffff</color>
-    <color name="gamepad_pressed_color">#66ffffff</color>
+    <color name="gp_button_color">#88ffffff</color>
+    <color name="gp_pressed_color">#66ffffff</color>
 
     <!-- ============================================ -->
     <!-- Gamepad Dimensions - Layout and Spacing    -->
     <!-- ============================================ -->
 
     <!-- Vertical padding for gamepad positioning -->
-    <dimen name="gamepad_padding_vertical">20dp</dimen>
+    <dimen name="gp_padding_vertical">20dp</dimen>
 </resources>

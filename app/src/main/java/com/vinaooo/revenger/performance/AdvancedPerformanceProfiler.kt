@@ -421,7 +421,7 @@ object AdvancedPerformanceProfiler {
     private fun shouldShowPerformanceOverlay(context: Context): Boolean {
         // Check config setting first (even in debug builds)
         return try {
-            val configValue = getConfigBoolean(context, "config_performance_overlay")
+            val configValue = getConfigBoolean(context, "conf_performance_overlay")
             android.util.Log.d(
                     "PerformanceProfiler",
                     "Config value for performance_overlay: $configValue"

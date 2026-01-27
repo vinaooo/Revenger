@@ -309,50 +309,50 @@ class ExitFragment : MenuFragmentBase() {
                 if (getCurrentSelectedIndex() == 0)
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_selected_color
+                                R.color.rm_selected_color
                         )
                 else
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_normal_color
+                                R.color.rm_normal_color
                         )
         )
         exitWithoutSaveTitle.setTextColor(
                 if (getCurrentSelectedIndex() == 1)
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_selected_color
+                                R.color.rm_selected_color
                         )
                 else
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_normal_color
+                                R.color.rm_normal_color
                         )
         )
         backTitle.setTextColor(
                 if (getCurrentSelectedIndex() == 2)
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_selected_color
+                                R.color.rm_selected_color
                         )
                 else
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_normal_color
+                                R.color.rm_normal_color
                         )
         )
 
         // Control selection arrows colors and visibility
         // FIX: Selected item shows arrow without margin (attached to text)
         // val arrowMarginEnd =
-        // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
+        // resources.getDimensionPixelSize(R.dimen.rm_arrow_margin_end)
 
         // Save and Exit
         if (getCurrentSelectedIndex() == 0) {
             selectionArrowSaveAndExit.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowSaveAndExit.visibility = View.VISIBLE
@@ -369,7 +369,7 @@ class ExitFragment : MenuFragmentBase() {
             selectionArrowExitWithoutSave.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowExitWithoutSave.visibility = View.VISIBLE
@@ -386,7 +386,7 @@ class ExitFragment : MenuFragmentBase() {
             selectionArrowBack.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowBack.visibility = View.VISIBLE

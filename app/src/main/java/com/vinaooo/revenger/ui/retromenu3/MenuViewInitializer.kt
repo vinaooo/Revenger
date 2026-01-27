@@ -182,11 +182,11 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
     override fun setupDynamicTitle(views: MenuViews) {
         MenuLogger.lifecycle("MenuViewInitializer: setupDynamicTitle START")
 
-        val titleStyle = fragment.resources.getInteger(R.integer.retro_menu3_title_style)
+        val titleStyle = fragment.resources.getInteger(R.integer.rm_title_style)
         val titleText =
                 when (titleStyle) {
-                    1 -> fragment.resources.getString(R.string.config_name)
-                    else -> fragment.resources.getString(R.string.retro_menu3_title)
+                    1 -> fragment.resources.getString(R.string.conf_name)
+                    else -> fragment.resources.getString(R.string.rm_title)
                 }
 
         views.titleTextView.text = titleText

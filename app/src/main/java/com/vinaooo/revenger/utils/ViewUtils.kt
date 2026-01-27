@@ -31,7 +31,7 @@ object ViewUtils {
 
     /**
      * Aplica a fonte selecionada (baseada na configuração) a múltiplas TextViews. Suporta tanto
-     * fonte arcade quanto pixelify baseada na configuração retro_menu3_font.
+     * fonte arcade quanto pixelify baseada na configuração rm_font.
      *
      * @param context The context to use for font loading
      * @param views Variable number of TextViews to apply font to

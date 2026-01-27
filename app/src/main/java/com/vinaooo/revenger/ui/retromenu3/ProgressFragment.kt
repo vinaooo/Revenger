@@ -403,13 +403,13 @@ class ProgressFragment : MenuFragmentBase() {
             loadStateTitle.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowLoadState.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowLoadState.visibility = View.VISIBLE
@@ -422,12 +422,12 @@ class ProgressFragment : MenuFragmentBase() {
                     if (!loadState.isEnabled)
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_disabled_color
+                                    R.color.rm_disabled_color
                             )
                     else
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_normal_color
+                                    R.color.rm_normal_color
                             )
             )
             selectionArrowLoadState.visibility = View.GONE
@@ -438,13 +438,13 @@ class ProgressFragment : MenuFragmentBase() {
             saveStateTitle.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowSaveState.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowSaveState.visibility = View.VISIBLE
@@ -456,7 +456,7 @@ class ProgressFragment : MenuFragmentBase() {
             saveStateTitle.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_normal_color
+                            R.color.rm_normal_color
                     )
             )
             selectionArrowSaveState.visibility = View.GONE
@@ -467,13 +467,13 @@ class ProgressFragment : MenuFragmentBase() {
             backTitle.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowBack.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowBack.visibility = View.VISIBLE
@@ -485,7 +485,7 @@ class ProgressFragment : MenuFragmentBase() {
             backTitle.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_normal_color
+                            R.color.rm_normal_color
                     )
             )
             selectionArrowBack.visibility = View.GONE

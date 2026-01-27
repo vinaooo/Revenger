@@ -104,7 +104,7 @@ object FontUtils {
     /** Retorna a fonte selecionada baseada na configuração do XML */
     fun getSelectedTypeface(context: Context): Typeface? {
         val selectedFont =
-                context.resources.getString(com.vinaooo.revenger.R.string.retro_menu3_font)
+                context.resources.getString(com.vinaooo.revenger.R.string.rm_font)
 
         // Primeiro tentar carregar dinamicamente como arquivo .ttf
         val dynamicTypeface = getDynamicTypeface(context, selectedFont)
@@ -161,7 +161,7 @@ object FontUtils {
     fun applyTextCapitalization(context: Context, textView: android.widget.TextView) {
         val capitalizationStyle =
                 context.resources.getInteger(
-                        com.vinaooo.revenger.R.integer.retro_menu3_text_capitalization
+                        com.vinaooo.revenger.R.integer.rm_text_capitalization
                 )
         val originalText = textView.text.toString()
 
@@ -189,7 +189,7 @@ object FontUtils {
     fun getSelectedTextColor(context: Context): Int {
         return androidx.core.content.ContextCompat.getColor(
                 context,
-                com.vinaooo.revenger.R.color.retro_menu3_selected_color
+                com.vinaooo.revenger.R.color.rm_selected_color
         )
     }
 
@@ -197,7 +197,7 @@ object FontUtils {
     fun getUnselectedTextColor(context: Context): Int {
         return androidx.core.content.ContextCompat.getColor(
                 context,
-                com.vinaooo.revenger.R.color.retro_menu3_normal_color
+                com.vinaooo.revenger.R.color.rm_normal_color
         )
     }
 }

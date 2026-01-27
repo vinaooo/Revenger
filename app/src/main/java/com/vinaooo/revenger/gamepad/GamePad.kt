@@ -29,7 +29,7 @@ class GamePad(
         @Suppress("DEPRECATION")
         fun shouldShowGamePads(activity: Activity): Boolean {
             /* Config says we shouldn't use virtual controls */
-            if (!activity.resources.getBoolean(R.bool.config_gamepad)) return false
+            if (!activity.resources.getBoolean(R.bool.conf_gamepad)) return false
 
             /* Devices without a touchscreen don't need a GamePad */
             val hasTouchScreen =
