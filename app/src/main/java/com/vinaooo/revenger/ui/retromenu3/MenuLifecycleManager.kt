@@ -45,6 +45,10 @@ class MenuLifecycleManagerImpl(
         MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Iniciando configuração")
 
         try {
+            // NOVO: Aplicar proporções de layout configuráveis (10-80-10, 10-70-20, etc)
+            applyConfigurableLayoutProportions(view)
+            MenuLogger.lifecycle("MenuLifecycleManager: Layout proportions applied")
+
             // Use the MenuViewManager instance passed from fragment
             MenuLogger.lifecycle("MenuLifecycleManager: MenuViewManager instance received")
 
@@ -129,7 +133,75 @@ class MenuLifecycleManagerImpl(
                     e
             )
         }
+    }
 
+    /**
+     * Aplica as proporções de layout configuráveis ao menu. Detecta automaticamente se é portrait
+     * ou landscape e aplica a configuração correta.
+     */
+    private fun applyConfigurableLayoutProportions(view: View) {
+        try {
+            // Obter as proporções com base na orientação
+            val proportions =
+                    com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig
+                            .getConfiguredProportions(view)
+                            ?: run {
+                                android.util.Log.w(
+                                        "MenuLifecycleManager",
+                                        "Failed to get layout proportions, using defaults"
+                                )
+                                return
+                            }
+
+            // Encontrar o LinearLayout principal (horizontal container)
+            // Tenta vários IDs possíveis para suportar diferentes menus
+            val mainLayout =
+                    findMainHorizontalLayout(view)
+                            ?: run {
+                                android.util.Log.w(
+                                        "MenuLifecycleManager",
+                                        "Could not find main horizontal layout"
+                                )
+                                return
+                            }
+
+            // Aplicar as proporções
+            com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyLayoutProportions(
+                    mainLayout,
+                    proportions
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("MenuLifecycleManager", "Error applying layout proportions", e)
+        }
+    }
+
+    /**
+     * Encontra o LinearLayout principal que contém a estrutura 3-colunas. Funciona para RetroMenu3,
+     * SettingsMenu, ProgressMenu, AboutMenu e ExitMenu.
+     */
+    private fun findMainHorizontalLayout(view: View): android.widget.LinearLayout? {
+        // IDs possíveis de containers principais (Filhos diretos da FrameLayout raiz)
+        // O LinearLayout horizontal está normalmente como first child de FrameLayout ou
+        // já é um container do menu (settings_menu_container, etc)
+
+        // Primeiro tenta encontrar o LinearLayout que seja filho direto da FrameLayout raiz
+        if (view is android.widget.FrameLayout) {
+            for (i in 0 until view.childCount) {
+                val child = view.getChildAt(i)
+                if (child is android.widget.LinearLayout) {
+                    val orientation = child.orientation
+                    // Se for LinearLayout horizontal com 3+ filhos, provavelmente é o container
+                    // correto
+                    if (orientation == android.widget.LinearLayout.HORIZONTAL &&
+                                    child.childCount >= 3
+                    ) {
+                        return child
+                    }
+                }
+            }
+        }
+
+        return null
         MenuLogger.lifecycle("MenuLifecycleManager: onDestroy COMPLETED")
     }
 }

@@ -2,7 +2,19 @@
 <resources>
     <!-- RetroMenu3 - Dimensions and Sizes -->
     
-    <!-- Layout Weights -->
+    <!-- Layout Proportions Configuration (NUEVO SISTEMA)
+         Formato: XXYYZZ onde:
+         - XX = espaço esquerdo (em %)
+         - YY = conteúdo central (em %)
+         - ZZ = espaço direito (em %)
+         Exemplo: "108010" = 10% esq, 80% centro, 10% dir
+                  "107020" = 10% esq, 70% centro, 20% dir
+         Total DEVE ser 100%
+    -->
+    <string name="retro_menu3_portrait_layout_proportions">108010</string>
+    <string name="retro_menu3_landscape_layout_proportions">257525</string>
+    
+    <!-- Legacy Layout Weights (mantidos para compatibilidade) -->
     <item name="retro_menu3_side_space_weight" format="float" type="dimen">0.25</item>
     <item name="retro_menu3_center_content_weight" format="float" type="dimen">0.50</item>
     
