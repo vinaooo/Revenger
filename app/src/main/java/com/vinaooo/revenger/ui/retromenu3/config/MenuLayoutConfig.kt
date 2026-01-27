@@ -158,4 +158,46 @@ object MenuLayoutConfig {
             null
         }
     }
+
+    /**
+     * Aplica automaticamente as proporções a um layout de menu.
+     * Funciona com qualquer menu que tenha a estrutura [Space, Conteúdo, Space] horizontalmente.
+     *
+     * @param view A view raiz do menu (FrameLayout ou similar)
+     */
+    fun applyProportionsToMenuLayout(view: View) {
+        try {
+            // Obter proporções baseado na orientação
+            val proportions = getConfiguredProportions(view) ?: return
+
+            // Encontrar o LinearLayout horizontal
+            val mainLayout = findMainHorizontalLayout(view) ?: return
+
+            // Aplicar as proporções
+            applyLayoutProportions(mainLayout, proportions)
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao aplicar proporções ao menu layout", e)
+        }
+    }
+
+    /**
+     * Encontra o LinearLayout principal que contém a estrutura 3-colunas.
+     */
+    private fun findMainHorizontalLayout(view: View): android.widget.LinearLayout? {
+        // Se for FrameLayout, procura um LinearLayout filho horizontal
+        if (view is android.widget.FrameLayout) {
+            for (i in 0 until view.childCount) {
+                val child = view.getChildAt(i)
+                if (child is android.widget.LinearLayout) {
+                    val orientation = child.orientation
+                    // Se for LinearLayout horizontal com 3+ filhos, é o container correto
+                    if (orientation == android.widget.LinearLayout.HORIZONTAL && child.childCount >= 3) {
+                        return child
+                    }
+                }
+            }
+        }
+
+        return null
+    }
 }

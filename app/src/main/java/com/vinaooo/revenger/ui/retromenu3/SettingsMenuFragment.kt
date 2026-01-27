@@ -89,6 +89,9 @@ class SettingsMenuFragment : MenuFragmentBase() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Aplicar proporções de layout configuráveis
+        applyLayoutProportions(view)
+
         // Initialize ViewModel
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
 

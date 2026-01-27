@@ -12,7 +12,7 @@
          Total DEVE ser 100%
     -->
     <string name="retro_menu3_portrait_layout_proportions">108010</string>
-    <string name="retro_menu3_landscape_layout_proportions">257525</string>
+    <string name="retro_menu3_landscape_layout_proportions">105040</string>
     
     <!-- Legacy Layout Weights (mantidos para compatibilidade) -->
     <item name="retro_menu3_side_space_weight" format="float" type="dimen">0.25</item>
