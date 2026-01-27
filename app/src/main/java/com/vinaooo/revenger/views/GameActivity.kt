@@ -417,51 +417,12 @@ class GameActivity : FragmentActivity() {
                                                 }
 
                                         if (newFragment != null) {
-                                                // Sincronizar estado do NavigationController com o
-                                                // submenu atual
-                                                val navMenuType =
-                                                        when (effectiveState) {
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .MenuState.MAIN_MENU ->
-                                                                        com.vinaooo.revenger.ui
-                                                                                .retromenu3
-                                                                                .navigation.MenuType
-                                                                                .MAIN
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .MenuState.SETTINGS_MENU ->
-                                                                        com.vinaooo.revenger.ui
-                                                                                .retromenu3
-                                                                                .navigation.MenuType
-                                                                                .SETTINGS
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .MenuState.PROGRESS_MENU ->
-                                                                        com.vinaooo.revenger.ui
-                                                                                .retromenu3
-                                                                                .navigation.MenuType
-                                                                                .PROGRESS
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .MenuState.ABOUT_MENU ->
-                                                                        com.vinaooo.revenger.ui
-                                                                                .retromenu3
-                                                                                .navigation.MenuType
-                                                                                .ABOUT
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .MenuState.EXIT_MENU ->
-                                                                        com.vinaooo.revenger.ui
-                                                                                .retromenu3
-                                                                                .navigation.MenuType
-                                                                                .EXIT
-                                                                else ->
-                                                                        com.vinaooo.revenger.ui
-                                                                                .retromenu3
-                                                                                .navigation.MenuType
-                                                                                .MAIN
-                                                        }
-                                                viewModel.navigationController?.syncState(
-                                                        menuType = navMenuType,
-                                                        selectedIndex = 0,
-                                                        clearStack = true
-                                                )
+                                                // NOTA: syncState do NavigationController será
+                                                // chamado APÓS todos os fragments
+                                                // serem criados e registrados (no postDelayed após
+                                                // registrar submenu).
+                                                // Isso evita que registerFragment() sobrescreva o
+                                                // estado.
 
                                                 val isMainMenu =
                                                         effectiveState ==
@@ -807,6 +768,100 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                 )
                                                                                                                                         }
                                                                                                                                 }
+
+                                                                                                                                // CRITICAL: Sincronizar estado do NavigationController APÓS todos os fragments
+                                                                                                                                // serem criados e registrados. Isso previne que registerFragment() sobrescreva o estado.
+                                                                                                                                val navMenuTypeForSync =
+                                                                                                                                        when (effectiveState
+                                                                                                                                        ) {
+                                                                                                                                                com.vinaooo
+                                                                                                                                                        .revenger
+                                                                                                                                                        .ui
+                                                                                                                                                        .retromenu3
+                                                                                                                                                        .MenuState
+                                                                                                                                                        .MAIN_MENU ->
+                                                                                                                                                        com.vinaooo
+                                                                                                                                                                .revenger
+                                                                                                                                                                .ui
+                                                                                                                                                                .retromenu3
+                                                                                                                                                                .navigation
+                                                                                                                                                                .MenuType
+                                                                                                                                                                .MAIN
+                                                                                                                                                com.vinaooo
+                                                                                                                                                        .revenger
+                                                                                                                                                        .ui
+                                                                                                                                                        .retromenu3
+                                                                                                                                                        .MenuState
+                                                                                                                                                        .SETTINGS_MENU ->
+                                                                                                                                                        com.vinaooo
+                                                                                                                                                                .revenger
+                                                                                                                                                                .ui
+                                                                                                                                                                .retromenu3
+                                                                                                                                                                .navigation
+                                                                                                                                                                .MenuType
+                                                                                                                                                                .SETTINGS
+                                                                                                                                                com.vinaooo
+                                                                                                                                                        .revenger
+                                                                                                                                                        .ui
+                                                                                                                                                        .retromenu3
+                                                                                                                                                        .MenuState
+                                                                                                                                                        .PROGRESS_MENU ->
+                                                                                                                                                        com.vinaooo
+                                                                                                                                                                .revenger
+                                                                                                                                                                .ui
+                                                                                                                                                                .retromenu3
+                                                                                                                                                                .navigation
+                                                                                                                                                                .MenuType
+                                                                                                                                                                .PROGRESS
+                                                                                                                                                com.vinaooo
+                                                                                                                                                        .revenger
+                                                                                                                                                        .ui
+                                                                                                                                                        .retromenu3
+                                                                                                                                                        .MenuState
+                                                                                                                                                        .ABOUT_MENU ->
+                                                                                                                                                        com.vinaooo
+                                                                                                                                                                .revenger
+                                                                                                                                                                .ui
+                                                                                                                                                                .retromenu3
+                                                                                                                                                                .navigation
+                                                                                                                                                                .MenuType
+                                                                                                                                                                .ABOUT
+                                                                                                                                                com.vinaooo
+                                                                                                                                                        .revenger
+                                                                                                                                                        .ui
+                                                                                                                                                        .retromenu3
+                                                                                                                                                        .MenuState
+                                                                                                                                                        .EXIT_MENU ->
+                                                                                                                                                        com.vinaooo
+                                                                                                                                                                .revenger
+                                                                                                                                                                .ui
+                                                                                                                                                                .retromenu3
+                                                                                                                                                                .navigation
+                                                                                                                                                                .MenuType
+                                                                                                                                                                .EXIT
+                                                                                                                                                else ->
+                                                                                                                                                        com.vinaooo
+                                                                                                                                                                .revenger
+                                                                                                                                                                .ui
+                                                                                                                                                                .retromenu3
+                                                                                                                                                                .navigation
+                                                                                                                                                                .MenuType
+                                                                                                                                                                .MAIN
+                                                                                                                                        }
+                                                                                                                                viewModel
+                                                                                                                                        .navigationController
+                                                                                                                                        ?.syncState(
+                                                                                                                                                menuType =
+                                                                                                                                                        navMenuTypeForSync,
+                                                                                                                                                selectedIndex =
+                                                                                                                                                        0,
+                                                                                                                                                clearStack =
+                                                                                                                                                        false // Não limpar stack pois backstack já foi reconstruído
+                                                                                                                                        )
+                                                                                                                                Log.d(
+                                                                                                                                        TAG,
+                                                                                                                                        "[ORIENTATION] 🔄 NavigationController syncState chamado: $navMenuTypeForSync"
+                                                                                                                                )
                                                                                                                         },
                                                                                                                         100
                                                                                                                 ) // Aguardar
