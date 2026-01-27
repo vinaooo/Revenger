@@ -32,7 +32,6 @@
             android:layout_weight="@dimen/retro_menu3_center_content_weight"
             android:orientation="vertical"
             android:paddingVertical="@dimen/retro_menu3_container_padding_vertical"
-            android:layout_gravity="center_vertical"
             android:elevation="0dp">
         <!-- Menu Title -->
             <TextView

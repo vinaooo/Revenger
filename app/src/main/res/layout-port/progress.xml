@@ -27,8 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="@dimen/retro_menu3_center_content_weight"
             android:orientation="vertical"
-            android:paddingVertical="@dimen/retro_menu3_container_padding_vertical"
-            android:layout_gravity="center_vertical">
+            android:paddingVertical="@dimen/retro_menu3_container_padding_vertical">
 
             <!-- Menu Title -->
             <TextView

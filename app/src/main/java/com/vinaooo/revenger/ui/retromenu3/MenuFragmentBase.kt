@@ -175,8 +175,8 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     }
 
     /**
-     * Aplica as proporções de layout configuráveis ao menu.
-     * Deve ser chamado no onViewCreated dos submenus.
+     * Aplica as proporções de layout configuráveis ao menu. Deve ser chamado no onViewCreated dos
+     * submenus.
      *
      * @param view A view raiz do menu inflado
      */
