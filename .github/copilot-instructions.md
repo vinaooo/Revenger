@@ -60,6 +60,8 @@ mkdir -p autogen/input/{game1,game2}
 - **SOLID Principles**: Clean architecture with single responsibility
 - **Logging Over Print**: Use `Log.d(TAG, message)` instead of `println()` or `print()`
 - **Backup System**: Store config templates in `config_backup/` with `_backup` suffix
+- **Language**: Always write comments and commit messages in English
+
 
 ### Build System
 - **Dynamic Dependencies**: LibRetro cores downloaded during `prepareCore` task
