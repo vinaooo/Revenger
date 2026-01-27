@@ -10,7 +10,7 @@
                   "107020" = 10% esq, 70% centro, 20% dir
          Total DEVE ser 100%
     -->
-    <string name="rm_portrait_horizontal_proportions">108010</string>
+    <string name="rm_portrait_horizontal_proportions">008010</string>
     <string name="rm_landscape_horizontal_proportions">255025</string>
 
     <!-- Layout Proportions Configuration - VERTICAL (XXYYZZ)
