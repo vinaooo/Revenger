@@ -24,8 +24,8 @@
          Portrait: Alinhado ao topo com pequeno espaço abaixo (10-70-20)
          Landscape: Centralizado (30-40-30)
     -->
-    <string name="retro_menu3_portrait_vertical_proportions">107020</string>
-    <string name="retro_menu3_landscape_vertical_proportions">304030</string>
+    <string name="retro_menu3_portrait_vertical_proportions">336601</string>
+    <string name="retro_menu3_landscape_vertical_proportions">009901</string>
     
     <!-- Legacy Layout Weights (mantidos para compatibilidade) -->
     <item name="retro_menu3_side_space_weight" format="float" type="dimen">0.25</item>
