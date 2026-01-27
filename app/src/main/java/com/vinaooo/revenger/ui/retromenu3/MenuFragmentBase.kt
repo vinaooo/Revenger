@@ -175,13 +175,13 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     }
 
     /**
-     * Aplica as proporções de layout configuráveis ao menu. Deve ser chamado no onViewCreated dos
-     * submenus.
+     * Aplica as proporções de layout configuráveis ao menu (horizontal e vertical).
+     * Deve ser chamado no onViewCreated dos submenus.
      *
      * @param view A view raiz do menu inflado
      */
     protected fun applyLayoutProportions(view: android.view.View) {
-        com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyProportionsToMenuLayout(
+        com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyAllProportionsToMenuLayout(
                 view
         )
     }
