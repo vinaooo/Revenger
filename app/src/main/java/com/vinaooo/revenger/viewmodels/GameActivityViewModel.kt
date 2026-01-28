@@ -1156,7 +1156,9 @@ class GameActivityViewModel(application: Application) :
             retroView.registerFrameCallback()
 
             // Apply game screen viewport configuration based on current orientation
-            val isPortrait = activity.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+            val isPortrait =
+                    activity.resources.configuration.orientation ==
+                            Configuration.ORIENTATION_PORTRAIT
             retroView.applyViewportFromConfig(isPortrait)
 
             /* FIX: DO NOT restore state automatically on first frame

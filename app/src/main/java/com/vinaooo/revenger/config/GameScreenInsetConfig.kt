@@ -194,12 +194,12 @@ object GameScreenInsetConfig {
     /**
      * Applies configured viewport to GLRetroView.
      *
-     * Reads inset configuration from XML (gs_inset_portrait/gs_inset_landscape), parses the
-     * inset values, converts to normalized viewport coordinates, and applies to the RetroView
-     * via LibretroDroid's setViewport() API.
+     * Reads inset configuration from XML (gs_inset_portrait/gs_inset_landscape), parses the inset
+     * values, converts to normalized viewport coordinates, and applies to the RetroView via
+     * LibretroDroid's setViewport() API.
      *
-     * The viewport defines the rendering area. LibretroDroid automatically centers the game
-     * within this area while maintaining its native aspect ratio.
+     * The viewport defines the rendering area. LibretroDroid automatically centers the game within
+     * this area while maintaining its native aspect ratio.
      *
      * @param retroView GLRetroView instance to configure
      * @param resources Android resources to read configuration

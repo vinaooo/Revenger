@@ -228,7 +228,8 @@ class GameActivity : FragmentActivity() {
 
                 // Re-apply game screen viewport configuration for new orientation
                 val isPortrait =
-                        newConfig.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
+                        newConfig.orientation ==
+                                android.content.res.Configuration.ORIENTATION_PORTRAIT
                 viewModel.retroView?.applyViewportFromConfig(isPortrait)
                 Log.d(TAG, "Game viewport reapplied for new orientation (portrait=$isPortrait)")
 

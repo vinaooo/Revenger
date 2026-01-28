@@ -232,6 +232,9 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
      */
     fun applyViewportFromConfig(isPortrait: Boolean) {
         GameScreenInsetConfig.applyToRetroView(view, resources, isPortrait)
-        Log.d("RetroView", "Viewport configuration applied for ${if (isPortrait) "portrait" else "landscape"} orientation")
+        Log.d(
+                "RetroView",
+                "Viewport configuration applied for ${if (isPortrait) "portrait" else "landscape"} orientation"
+        )
     }
 }
