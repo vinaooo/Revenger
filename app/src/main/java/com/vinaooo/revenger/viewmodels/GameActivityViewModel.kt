@@ -206,7 +206,8 @@ class GameActivityViewModel(application: Application) :
     }
 
     // Centralized Menu State Manager (must be initialized first for MenuManager)
-    private val menuStateManager: com.vinaooo.revenger.ui.retromenu3.MenuStateManager = com.vinaooo.revenger.ui.retromenu3.MenuStateManager()
+    private val menuStateManager: com.vinaooo.revenger.ui.retromenu3.MenuStateManager =
+            com.vinaooo.revenger.ui.retromenu3.MenuStateManager()
 
     // Unified Menu Manager for centralized menu navigation
     private val menuManager: MenuManager = MenuManager(this, menuStateManager)
