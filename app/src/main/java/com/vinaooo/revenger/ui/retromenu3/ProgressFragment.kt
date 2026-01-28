@@ -504,11 +504,10 @@ class ProgressFragment : MenuFragmentBase() {
         super.onDestroy()
         // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
         try {
-            (progressListener as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)?.let {
-                    viewModel ->
-                // Call clearKeyLog through ViewModel to reset combo state
-                viewModel.clearControllerKeyLog()
-            }
+            val activity = requireActivity()
+            val viewModel = ViewModelProvider(activity)[GameActivityViewModel::class.java]
+            // Call clearKeyLog through ViewModel to reset combo state
+            viewModel.clearControllerKeyLog()
         } catch (e: Exception) {
             android.util.Log.w("ProgressFragment", "Error resetting combo state in onDestroy", e)
         }
