@@ -435,7 +435,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Create an instance of the RetroMenu3 overlay (activated by SELECT+START) */
-    fun prepareRetroMenu3(activity: ComponentActivity) {
+    fun prepareRetroMenu3() {
         // Skip if fragment already exists
         if (retroMenu3Fragment != null) {
             return
@@ -460,7 +460,7 @@ class GameActivityViewModel(application: Application) :
         retroMenu3Fragment = null
 
         // Recreate the fragment
-        prepareRetroMenu3(activity)
+        prepareRetroMenu3()
     }
 
     /** Set menu container reference from activity layout */
@@ -703,7 +703,7 @@ class GameActivityViewModel(application: Application) :
         // This ensures FragmentManager properly manages the hierarchy
 
         // Check if there's anything in the back stack before trying to remove
-        val activity = fragment?.activity as? androidx.fragment.app.FragmentActivity
+        val activity = fragment?.activity
         if (activity != null) {
             val fragmentManager = activity.supportFragmentManager
             val backStackCount = fragmentManager.backStackEntryCount

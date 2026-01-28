@@ -110,7 +110,7 @@ class GameActivity : FragmentActivity() {
                 // Force gamepad positioning based on orientation
                 adjustGamePadPositionForOrientation(gamepadContainers)
 
-                viewModel.prepareRetroMenu3(this)
+                viewModel.prepareRetroMenu3()
                 viewModel.setupMenuCallback(this)
                 viewModel.setMenuContainer(menuContainer)
         }
