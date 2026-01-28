@@ -41,22 +41,22 @@ class GameActivityViewModel(application: Application) :
     // Using composition pattern to separate concerns
 
     /** Menu management ViewModel */
-    private lateinit var menuViewModel: MenuViewModel
+    private val menuViewModel: MenuViewModel = MenuViewModel(application)
 
     /** Game state management ViewModel */
-    private lateinit var gameStateViewModel: GameStateViewModel
+    private val gameStateViewModel: GameStateViewModel = GameStateViewModel(application)
 
     /** Input management ViewModel */
-    private lateinit var inputViewModel: InputViewModel
+    private val inputViewModel: InputViewModel = InputViewModel(application)
 
     /** Audio management ViewModel */
-    private lateinit var audioViewModel: AudioViewModel
+    private val audioViewModel: AudioViewModel = AudioViewModel(application)
 
     /** Shader management ViewModel */
-    private lateinit var shaderViewModel: ShaderViewModel
+    private val shaderViewModel: ShaderViewModel = ShaderViewModel(application)
 
     /** Speed management ViewModel */
-    private lateinit var speedViewModel: SpeedViewModel
+    private val speedViewModel: SpeedViewModel = SpeedViewModel(application)
 
     /**
      * Navigation controller for multi-input navigation system (Phase 3+). Internal visibility
@@ -205,14 +205,14 @@ class GameActivityViewModel(application: Application) :
         menuStateManager.setDismissingAllMenus(dismissing)
     }
 
+    // Centralized Menu State Manager (must be initialized first for MenuManager)
+    private val menuStateManager: com.vinaooo.revenger.ui.retromenu3.MenuStateManager = com.vinaooo.revenger.ui.retromenu3.MenuStateManager()
+
     // Unified Menu Manager for centralized menu navigation
-    private lateinit var menuManager: MenuManager
+    private val menuManager: MenuManager = MenuManager(this, menuStateManager)
 
     /** Get the MenuManager instance */
     fun getMenuManager(): MenuManager = menuManager
-
-    // Centralized Menu State Manager
-    private lateinit var menuStateManager: com.vinaooo.revenger.ui.retromenu3.MenuStateManager
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput(application.applicationContext)
@@ -227,19 +227,7 @@ class GameActivityViewModel(application: Application) :
     private var skipNextTempStateLoad = false
 
     init {
-        // Initialize centralized Menu State Manager
-        menuStateManager = com.vinaooo.revenger.ui.retromenu3.MenuStateManager()
-
-        // Initialize unified Menu Manager
-        menuManager = MenuManager(this, menuStateManager)
-
-        // Initialize specialized ViewModels using composition pattern
-        menuViewModel = MenuViewModel(application)
-        gameStateViewModel = GameStateViewModel(application)
-        inputViewModel = InputViewModel(application)
-        audioViewModel = AudioViewModel(application)
-        shaderViewModel = ShaderViewModel(application)
-        speedViewModel = SpeedViewModel(application)
+        // All ViewModels and managers are now initialized as val at declaration
 
         // Set the callback to check if SELECT+START combo should work
         controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
