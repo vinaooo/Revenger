@@ -414,117 +414,273 @@ class GameActivity : FragmentActivity() {
                                                                 com.vinaooo.revenger.ui.retromenu3
                                                                         .ExitFragment()
                                                         }
-                                                        else -> {
-                                                                Log.e(
-                                                                        TAG,
-                                                                        "[ORIENTATION] ❌ Estado desconhecido: $effectiveState"
-                                                                )
-                                                                null
-                                                        }
                                                 }
 
-                                        if (newFragment != null) {
-                                                // NOTA: syncState do NavigationController será
-                                                // chamado APÓS todos os fragments
-                                                // serem criados e registrados (no postDelayed após
-                                                // registrar submenu).
-                                                // Isso evita que registerFragment() sobrescreva o
-                                                // estado.
+                                        // NOTA: syncState do NavigationController será
+                                        // chamado APÓS todos os fragments
+                                        // serem criados e registrados (no postDelayed após
+                                        // registrar submenu).
+                                        // Isso evita que registerFragment() sobrescreva o
+                                        // estado.
 
-                                                val isMainMenu =
-                                                        effectiveState ==
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .MenuState.MAIN_MENU
+                                        val isMainMenu =
+                                                effectiveState ==
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .MAIN_MENU
 
-                                                // Limpar COMPLETAMENTE o backstack antes de recriar
-                                                Log.d(
-                                                        TAG,
-                                                        "[ORIENTATION] 🗑️ Limpando backstack (count=${fragmentManager.backStackEntryCount})"
-                                                )
-                                                fragmentManager.popBackStack(
-                                                        null,
-                                                        androidx.fragment.app.FragmentManager
-                                                                .POP_BACK_STACK_INCLUSIVE
-                                                )
+                                        // Limpar COMPLETAMENTE o backstack antes de recriar
+                                        Log.d(
+                                                TAG,
+                                                "[ORIENTATION] 🗑️ Limpando backstack (count=${fragmentManager.backStackEntryCount})"
+                                        )
+                                        fragmentManager.popBackStack(
+                                                null,
+                                                androidx.fragment.app.FragmentManager
+                                                        .POP_BACK_STACK_INCLUSIVE
+                                        )
 
-                                                // Remover qualquer Fragment que esteja no container
-                                                fragmentManager.findFragmentById(
-                                                                R.id.menu_container
+                                        // Remover qualquer Fragment que esteja no container
+                                        fragmentManager.findFragmentById(R.id.menu_container)
+                                                ?.let { existingFragment ->
+                                                        Log.d(
+                                                                TAG,
+                                                                "[ORIENTATION] 🗑️ Removendo fragment existente: ${existingFragment::class.java.simpleName}"
                                                         )
-                                                        ?.let { existingFragment ->
+                                                        fragmentManager
+                                                                .beginTransaction()
+                                                                .remove(existingFragment)
+                                                                .commitNowAllowingStateLoss()
+                                                }
+
+                                        // Aguardar limpeza completa
+                                        android.os.Handler(android.os.Looper.getMainLooper())
+                                                .postDelayed(
+                                                        {
+                                                                // Use the backstack state
+                                                                // from BEFORE cleanup
+                                                                // (hasBackStackNow)
+                                                                // We cleared the backstack
+                                                                // above, so checking
+                                                                // it now would always be 0
                                                                 Log.d(
                                                                         TAG,
-                                                                        "[ORIENTATION] 🗑️ Removendo fragment existente: ${existingFragment::class.java.simpleName}"
+                                                                        "[ORIENTATION] 📋 Recriando hierarquia: isMainMenu=$isMainMenu"
                                                                 )
-                                                                fragmentManager
-                                                                        .beginTransaction()
-                                                                        .remove(existingFragment)
-                                                                        .commitNowAllowingStateLoss()
-                                                        }
 
-                                                // Aguardar limpeza completa
-                                                android.os.Handler(
-                                                                android.os.Looper.getMainLooper()
-                                                        )
-                                                        .postDelayed(
-                                                                {
-                                                                        // Use the backstack state
-                                                                        // from BEFORE cleanup
-                                                                        // (hasBackStackNow)
-                                                                        // We cleared the backstack
-                                                                        // above, so checking
-                                                                        // it now would always be 0
+                                                                if (isMainMenu) {
+                                                                        // MAIN_MENU
+                                                                        // sozinho:
+                                                                        // adicionar sem
+                                                                        // backstack
+                                                                        // Create NEW
+                                                                        // RetroMenu3Fragment
+                                                                        val mainMenuFragment =
+                                                                                com.vinaooo.revenger
+                                                                                        .ui
+                                                                                        .retromenu3
+                                                                                        .RetroMenu3Fragment()
+
                                                                         Log.d(
                                                                                 TAG,
-                                                                                "[ORIENTATION] 📋 Recriando hierarquia: isMainMenu=$isMainMenu"
+                                                                                "[ORIENTATION] ➕ Adicionando RetroMenu3Fragment"
                                                                         )
+                                                                        val transaction =
+                                                                                fragmentManager
+                                                                                        .beginTransaction()
+                                                                                        .replace(
+                                                                                                R.id.menu_container,
+                                                                                                mainMenuFragment,
+                                                                                                "RetroMenu3Fragment"
+                                                                                        )
 
-                                                                        if (isMainMenu) {
-                                                                                // MAIN_MENU
-                                                                                // sozinho:
-                                                                                // adicionar sem
-                                                                                // backstack
-                                                                                // Create NEW
-                                                                                // RetroMenu3Fragment
-                                                                                val mainMenuFragment =
-                                                                                        com.vinaooo
-                                                                                                .revenger
-                                                                                                .ui
-                                                                                                .retromenu3
-                                                                                                .RetroMenu3Fragment()
-
+                                                                        transaction.runOnCommit {
                                                                                 Log.d(
                                                                                         TAG,
-                                                                                        "[ORIENTATION] ➕ Adicionando RetroMenu3Fragment"
+                                                                                        "[ORIENTATION] 🔄 Main menu committed, updating reference"
                                                                                 )
-                                                                                val transaction =
-                                                                                        fragmentManager
-                                                                                                .beginTransaction()
-                                                                                                .replace(
-                                                                                                        R.id.menu_container,
-                                                                                                        mainMenuFragment,
-                                                                                                        "RetroMenu3Fragment"
-                                                                                                )
 
-                                                                                transaction
-                                                                                        .runOnCommit {
+                                                                                // Atualizar
+                                                                                // referência do
+                                                                                // RetroMenu3Fragment no ViewModel
+                                                                                viewModel
+                                                                                        .updateRetroMenu3FragmentReference(
+                                                                                                mainMenuFragment
+                                                                                        )
+                                                                                Log.d(
+                                                                                        TAG,
+                                                                                        "[ORIENTATION] 📋 RetroMenu3Fragment reference updated"
+                                                                                )
+
+                                                                                // Restaurar foco
+                                                                                android.os.Handler(
+                                                                                                android.os
+                                                                                                        .Looper
+                                                                                                        .getMainLooper()
+                                                                                        )
+                                                                                        .postDelayed(
+                                                                                                {
+                                                                                                        val firstItem =
+                                                                                                                findViewById<
+                                                                                                                        android.view.View>(
+                                                                                                                        R.id.menu_continue
+                                                                                                                )
+                                                                                                        if (firstItem !=
+                                                                                                                        null &&
+                                                                                                                        firstItem
+                                                                                                                                .isFocusable
+                                                                                                        ) {
+                                                                                                                firstItem
+                                                                                                                        .requestFocus()
+                                                                                                                Log.d(
+                                                                                                                        TAG,
+                                                                                                                        "[ORIENTATION] 🎮 Foco restaurado no menu principal"
+                                                                                                                )
+                                                                                                        }
+                                                                                                },
+                                                                                                500
+                                                                                        )
+                                                                        }
+
+                                                                        transaction.commit()
+                                                                } else {
+                                                                        // SUBMENU:
+                                                                        // precisamos
+                                                                        // recriar TODA a
+                                                                        // pilha
+                                                                        // (base + topo)
+                                                                        Log.d(
+                                                                                TAG,
+                                                                                "[ORIENTATION] ➕ Recriando pilha: RetroMenu3 (base) + Submenu (topo)"
+                                                                        )
+
+                                                                        // 1. Adicionar
+                                                                        // RetroMenu3Fragment na
+                                                                        // base
+                                                                        // (sem backstack)
+                                                                        val retroMenu3 =
+                                                                                com.vinaooo.revenger
+                                                                                        .ui
+                                                                                        .retromenu3
+                                                                                        .RetroMenu3Fragment()
+                                                                        fragmentManager
+                                                                                .beginTransaction()
+                                                                                .replace(
+                                                                                        R.id.menu_container,
+                                                                                        retroMenu3,
+                                                                                        "RetroMenu3Fragment"
+                                                                                )
+                                                                                .commitNowAllowingStateLoss()
+
+                                                                        // Atualizar
+                                                                        // referência no
+                                                                        // ViewModel
+                                                                        viewModel
+                                                                                .updateRetroMenu3FragmentReference(
+                                                                                        retroMenu3
+                                                                                )
+                                                                        Log.d(
+                                                                                TAG,
+                                                                                "[ORIENTATION] 📋 RetroMenu3Fragment base criado e registrado"
+                                                                        )
+
+                                                                        // CRITICAL: Update
+                                                                        // MenuStateManager
+                                                                        // to the
+                                                                        // submenu state
+                                                                        // This ensures
+                                                                        // getCurrentFragment()
+                                                                        // returns
+                                                                        // the correct
+                                                                        // Fragment
+                                                                        viewModel
+                                                                                .getMenuManager()
+                                                                                .navigateToState(
+                                                                                        effectiveState
+                                                                                )
+                                                                        Log.d(
+                                                                                TAG,
+                                                                                "[ORIENTATION] 🎯 MenuStateManager updated to state: $effectiveState"
+                                                                        )
+
+                                                                        // 2. CRITICAL:
+                                                                        // Configure
+                                                                        // listener BEFORE
+                                                                        // adding Fragment
+                                                                        // This ensures
+                                                                        // click listeners
+                                                                        // work
+                                                                        // correctly after
+                                                                        // rotation
+                                                                        when (effectiveState) {
+                                                                                com.vinaooo.revenger
+                                                                                        .ui
+                                                                                        .retromenu3
+                                                                                        .MenuState
+                                                                                        .SETTINGS_MENU -> {
+                                                                                        val settingsFragment =
+                                                                                                newFragment as
+                                                                                                        com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+                                                                                        // Configure
+                                                                                        // listener
+                                                                                        // BEFORE
+                                                                                        // adding
+                                                                                        // to
+                                                                                        // FragmentManager
+                                                                                        settingsFragment
+                                                                                                .setSettingsListener(
+                                                                                                        retroMenu3 as
+                                                                                                                com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment.SettingsMenuListener
+                                                                                                )
+                                                                                        Log.d(
+                                                                                                TAG,
+                                                                                                "[ORIENTATION] 🔧 SettingsMenuFragment listener configured BEFORE adding"
+                                                                                        )
+                                                                                }
+                                                                                else -> {
+                                                                                        // Other
+                                                                                        // fragments
+                                                                                        // don't
+                                                                                        // need
+                                                                                        // pre-configuration
+                                                                                }
+                                                                        }
+
+                                                                        // 3. Aguardar e
+                                                                        // adicionar submenu
+                                                                        // no topo
+                                                                        // (COM backstack)
+                                                                        android.os.Handler(
+                                                                                        android.os
+                                                                                                .Looper
+                                                                                                .getMainLooper()
+                                                                                )
+                                                                                .postDelayed(
+                                                                                        {
+                                                                                                val submenuTag =
+                                                                                                        newFragment::class
+                                                                                                                .java
+                                                                                                                .simpleName
                                                                                                 Log.d(
                                                                                                         TAG,
-                                                                                                        "[ORIENTATION] 🔄 Main menu committed, updating reference"
+                                                                                                        "[ORIENTATION] ➕ Adicionando submenu no topo: $submenuTag"
                                                                                                 )
 
-                                                                                                // Atualizar referência do
-                                                                                                // RetroMenu3Fragment no ViewModel
-                                                                                                viewModel
-                                                                                                        .updateRetroMenu3FragmentReference(
-                                                                                                                mainMenuFragment
+                                                                                                fragmentManager
+                                                                                                        .beginTransaction()
+                                                                                                        .replace(
+                                                                                                                R.id.menu_container,
+                                                                                                                newFragment,
+                                                                                                                submenuTag
                                                                                                         )
-                                                                                                Log.d(
-                                                                                                        TAG,
-                                                                                                        "[ORIENTATION] 📋 RetroMenu3Fragment reference updated"
-                                                                                                )
+                                                                                                        .addToBackStack(
+                                                                                                                submenuTag
+                                                                                                        )
+                                                                                                        .commit()
 
-                                                                                                // Restaurar foco
+                                                                                                // CRÍTICO: Registrar
+                                                                                                // submenu no ViewModel
+                                                                                                // (listener já foi
+                                                                                                // configurado)
                                                                                                 android.os
                                                                                                         .Handler(
                                                                                                                 android.os
@@ -533,172 +689,86 @@ class GameActivity : FragmentActivity() {
                                                                                                         )
                                                                                                         .postDelayed(
                                                                                                                 {
-                                                                                                                        val firstItem =
-                                                                                                                                findViewById<
-                                                                                                                                        android.view.View>(
-                                                                                                                                        R.id.menu_continue
-                                                                                                                                )
-                                                                                                                        if (firstItem !=
-                                                                                                                                        null &&
-                                                                                                                                        firstItem
-                                                                                                                                                .isFocusable
+                                                                                                                        when (effectiveState
                                                                                                                         ) {
-                                                                                                                                firstItem
-                                                                                                                                        .requestFocus()
-                                                                                                                                Log.d(
-                                                                                                                                        TAG,
-                                                                                                                                        "[ORIENTATION] 🎮 Foco restaurado no menu principal"
-                                                                                                                                )
+                                                                                                                                com.vinaooo
+                                                                                                                                        .revenger
+                                                                                                                                        .ui
+                                                                                                                                        .retromenu3
+                                                                                                                                        .MenuState
+                                                                                                                                        .SETTINGS_MENU -> {
+                                                                                                                                        val settingsFragment =
+                                                                                                                                                newFragment as
+                                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+                                                                                                                                        // Use lightweight registration for rotation (doesn't activate state)
+                                                                                                                                        viewModel
+                                                                                                                                                .registerSettingsMenuFragmentForRotation(
+                                                                                                                                                        settingsFragment
+                                                                                                                                                )
+                                                                                                                                        Log.d(
+                                                                                                                                                TAG,
+                                                                                                                                                "[ORIENTATION] 📋 SettingsMenuFragment registrado (rotation)"
+                                                                                                                                        )
+                                                                                                                                }
+                                                                                                                                com.vinaooo
+                                                                                                                                        .revenger
+                                                                                                                                        .ui
+                                                                                                                                        .retromenu3
+                                                                                                                                        .MenuState
+                                                                                                                                        .PROGRESS_MENU -> {
+                                                                                                                                        viewModel
+                                                                                                                                                .registerProgressFragmentForRotation(
+                                                                                                                                                        newFragment as
+                                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.ProgressFragment
+                                                                                                                                                )
+                                                                                                                                        Log.d(
+                                                                                                                                                TAG,
+                                                                                                                                                "[ORIENTATION] 📋 ProgressFragment registrado (rotation)"
+                                                                                                                                        )
+                                                                                                                                }
+                                                                                                                                com.vinaooo
+                                                                                                                                        .revenger
+                                                                                                                                        .ui
+                                                                                                                                        .retromenu3
+                                                                                                                                        .MenuState
+                                                                                                                                        .ABOUT_MENU -> {
+                                                                                                                                        viewModel
+                                                                                                                                                .registerAboutFragmentForRotation(
+                                                                                                                                                        newFragment as
+                                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.AboutFragment
+                                                                                                                                                )
+                                                                                                                                        Log.d(
+                                                                                                                                                TAG,
+                                                                                                                                                "[ORIENTATION] 📋 AboutFragment registrado (rotation)"
+                                                                                                                                        )
+                                                                                                                                }
+                                                                                                                                com.vinaooo
+                                                                                                                                        .revenger
+                                                                                                                                        .ui
+                                                                                                                                        .retromenu3
+                                                                                                                                        .MenuState
+                                                                                                                                        .EXIT_MENU -> {
+                                                                                                                                        viewModel
+                                                                                                                                                .registerExitFragmentForRotation(
+                                                                                                                                                        newFragment as
+                                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.ExitFragment
+                                                                                                                                                )
+                                                                                                                                        Log.d(
+                                                                                                                                                TAG,
+                                                                                                                                                "[ORIENTATION] 📋 ExitFragment registrado (rotation)"
+                                                                                                                                        )
+                                                                                                                                }
+                                                                                                                                else -> {
+                                                                                                                                        Log.w(
+                                                                                                                                                TAG,
+                                                                                                                                                "[ORIENTATION] ⚠️ Estado desconhecido, submenu não registrado"
+                                                                                                                                        )
+                                                                                                                                }
                                                                                                                         }
-                                                                                                                },
-                                                                                                                500
-                                                                                                        )
-                                                                                        }
 
-                                                                                transaction.commit()
-                                                                        } else {
-                                                                                // SUBMENU:
-                                                                                // precisamos
-                                                                                // recriar TODA a
-                                                                                // pilha
-                                                                                // (base + topo)
-                                                                                Log.d(
-                                                                                        TAG,
-                                                                                        "[ORIENTATION] ➕ Recriando pilha: RetroMenu3 (base) + Submenu (topo)"
-                                                                                )
-
-                                                                                // 1. Adicionar
-                                                                                // RetroMenu3Fragment na base
-                                                                                // (sem backstack)
-                                                                                val retroMenu3 =
-                                                                                        com.vinaooo
-                                                                                                .revenger
-                                                                                                .ui
-                                                                                                .retromenu3
-                                                                                                .RetroMenu3Fragment()
-                                                                                fragmentManager
-                                                                                        .beginTransaction()
-                                                                                        .replace(
-                                                                                                R.id.menu_container,
-                                                                                                retroMenu3,
-                                                                                                "RetroMenu3Fragment"
-                                                                                        )
-                                                                                        .commitNowAllowingStateLoss()
-
-                                                                                // Atualizar
-                                                                                // referência no
-                                                                                // ViewModel
-                                                                                viewModel
-                                                                                        .updateRetroMenu3FragmentReference(
-                                                                                                retroMenu3
-                                                                                        )
-                                                                                Log.d(
-                                                                                        TAG,
-                                                                                        "[ORIENTATION] 📋 RetroMenu3Fragment base criado e registrado"
-                                                                                )
-
-                                                                                // CRITICAL: Update
-                                                                                // MenuStateManager
-                                                                                // to the
-                                                                                // submenu state
-                                                                                // This ensures
-                                                                                // getCurrentFragment() returns
-                                                                                // the correct
-                                                                                // Fragment
-                                                                                val menuManager =
-                                                                                        viewModel
-                                                                                                .getMenuManager()
-                                                                                menuManager
-                                                                                        .navigateToState(
-                                                                                                effectiveState
-                                                                                        )
-                                                                                Log.d(
-                                                                                        TAG,
-                                                                                        "[ORIENTATION] 🎯 MenuStateManager updated to state: $effectiveState"
-                                                                                )
-
-                                                                                // 2. CRITICAL:
-                                                                                // Configure
-                                                                                // listener BEFORE
-                                                                                // adding Fragment
-                                                                                // This ensures
-                                                                                // click listeners
-                                                                                // work
-                                                                                // correctly after
-                                                                                // rotation
-                                                                                when (effectiveState
-                                                                                ) {
-                                                                                        com.vinaooo
-                                                                                                .revenger
-                                                                                                .ui
-                                                                                                .retromenu3
-                                                                                                .MenuState
-                                                                                                .SETTINGS_MENU -> {
-                                                                                                val settingsFragment =
-                                                                                                        newFragment as
-                                                                                                                com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
-                                                                                                // Configure listener BEFORE adding
-                                                                                                // to FragmentManager
-                                                                                                settingsFragment
-                                                                                                        .setSettingsListener(
-                                                                                                                retroMenu3 as
-                                                                                                                        com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment.SettingsMenuListener
-                                                                                                        )
-                                                                                                Log.d(
-                                                                                                        TAG,
-                                                                                                        "[ORIENTATION] 🔧 SettingsMenuFragment listener configured BEFORE adding"
-                                                                                                )
-                                                                                        }
-                                                                                        else -> {
-                                                                                                // Other fragments don't need
-                                                                                                // pre-configuration
-                                                                                        }
-                                                                                }
-
-                                                                                // 3. Aguardar e
-                                                                                // adicionar submenu
-                                                                                // no topo
-                                                                                // (COM backstack)
-                                                                                android.os.Handler(
-                                                                                                android.os
-                                                                                                        .Looper
-                                                                                                        .getMainLooper()
-                                                                                        )
-                                                                                        .postDelayed(
-                                                                                                {
-                                                                                                        val submenuTag =
-                                                                                                                newFragment::class
-                                                                                                                        .java
-                                                                                                                        .simpleName
-                                                                                                        Log.d(
-                                                                                                                TAG,
-                                                                                                                "[ORIENTATION] ➕ Adicionando submenu no topo: $submenuTag"
-                                                                                                        )
-
-                                                                                                        fragmentManager
-                                                                                                                .beginTransaction()
-                                                                                                                .replace(
-                                                                                                                        R.id.menu_container,
-                                                                                                                        newFragment,
-                                                                                                                        submenuTag
-                                                                                                                )
-                                                                                                                .addToBackStack(
-                                                                                                                        submenuTag
-                                                                                                                )
-                                                                                                                .commit()
-
-                                                                                                        // CRÍTICO: Registrar
-                                                                                                        // submenu no ViewModel
-                                                                                                        // (listener já foi
-                                                                                                        // configurado)
-                                                                                                        android.os
-                                                                                                                .Handler(
-                                                                                                                        android.os
-                                                                                                                                .Looper
-                                                                                                                                .getMainLooper()
-                                                                                                                )
-                                                                                                                .postDelayed(
-                                                                                                                        {
+                                                                                                                        // CRITICAL: Sincronizar estado do NavigationController APÓS todos os fragments
+                                                                                                                        // serem criados e registrados. Isso previne que registerFragment() sobrescreva o estado.
+                                                                                                                        val navMenuTypeForSync =
                                                                                                                                 when (effectiveState
                                                                                                                                 ) {
                                                                                                                                         com.vinaooo
@@ -706,260 +776,171 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                 .ui
                                                                                                                                                 .retromenu3
                                                                                                                                                 .MenuState
-                                                                                                                                                .SETTINGS_MENU -> {
-                                                                                                                                                val settingsFragment =
-                                                                                                                                                        newFragment as
-                                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
-                                                                                                                                                // Use lightweight registration for rotation (doesn't activate state)
-                                                                                                                                                viewModel
-                                                                                                                                                        .registerSettingsMenuFragmentForRotation(
-                                                                                                                                                                settingsFragment
-                                                                                                                                                        )
-                                                                                                                                                Log.d(
-                                                                                                                                                        TAG,
-                                                                                                                                                        "[ORIENTATION] 📋 SettingsMenuFragment registrado (rotation)"
-                                                                                                                                                )
-                                                                                                                                        }
+                                                                                                                                                .MAIN_MENU ->
+                                                                                                                                                com.vinaooo
+                                                                                                                                                        .revenger
+                                                                                                                                                        .ui
+                                                                                                                                                        .retromenu3
+                                                                                                                                                        .navigation
+                                                                                                                                                        .MenuType
+                                                                                                                                                        .MAIN
                                                                                                                                         com.vinaooo
                                                                                                                                                 .revenger
                                                                                                                                                 .ui
                                                                                                                                                 .retromenu3
                                                                                                                                                 .MenuState
-                                                                                                                                                .PROGRESS_MENU -> {
-                                                                                                                                                viewModel
-                                                                                                                                                        .registerProgressFragmentForRotation(
-                                                                                                                                                                newFragment as
-                                                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.ProgressFragment
-                                                                                                                                                        )
-                                                                                                                                                Log.d(
-                                                                                                                                                        TAG,
-                                                                                                                                                        "[ORIENTATION] 📋 ProgressFragment registrado (rotation)"
-                                                                                                                                                )
-                                                                                                                                        }
+                                                                                                                                                .SETTINGS_MENU ->
+                                                                                                                                                com.vinaooo
+                                                                                                                                                        .revenger
+                                                                                                                                                        .ui
+                                                                                                                                                        .retromenu3
+                                                                                                                                                        .navigation
+                                                                                                                                                        .MenuType
+                                                                                                                                                        .SETTINGS
                                                                                                                                         com.vinaooo
                                                                                                                                                 .revenger
                                                                                                                                                 .ui
                                                                                                                                                 .retromenu3
                                                                                                                                                 .MenuState
-                                                                                                                                                .ABOUT_MENU -> {
-                                                                                                                                                viewModel
-                                                                                                                                                        .registerAboutFragmentForRotation(
-                                                                                                                                                                newFragment as
-                                                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.AboutFragment
-                                                                                                                                                        )
-                                                                                                                                                Log.d(
-                                                                                                                                                        TAG,
-                                                                                                                                                        "[ORIENTATION] 📋 AboutFragment registrado (rotation)"
-                                                                                                                                                )
-                                                                                                                                        }
+                                                                                                                                                .PROGRESS_MENU ->
+                                                                                                                                                com.vinaooo
+                                                                                                                                                        .revenger
+                                                                                                                                                        .ui
+                                                                                                                                                        .retromenu3
+                                                                                                                                                        .navigation
+                                                                                                                                                        .MenuType
+                                                                                                                                                        .PROGRESS
                                                                                                                                         com.vinaooo
                                                                                                                                                 .revenger
                                                                                                                                                 .ui
                                                                                                                                                 .retromenu3
                                                                                                                                                 .MenuState
-                                                                                                                                                .EXIT_MENU -> {
-                                                                                                                                                viewModel
-                                                                                                                                                        .registerExitFragmentForRotation(
-                                                                                                                                                                newFragment as
-                                                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.ExitFragment
-                                                                                                                                                        )
-                                                                                                                                                Log.d(
-                                                                                                                                                        TAG,
-                                                                                                                                                        "[ORIENTATION] 📋 ExitFragment registrado (rotation)"
-                                                                                                                                                )
-                                                                                                                                        }
-                                                                                                                                        else -> {
-                                                                                                                                                Log.w(
-                                                                                                                                                        TAG,
-                                                                                                                                                        "[ORIENTATION] ⚠️ Estado desconhecido, submenu não registrado"
-                                                                                                                                                )
-                                                                                                                                        }
+                                                                                                                                                .ABOUT_MENU ->
+                                                                                                                                                com.vinaooo
+                                                                                                                                                        .revenger
+                                                                                                                                                        .ui
+                                                                                                                                                        .retromenu3
+                                                                                                                                                        .navigation
+                                                                                                                                                        .MenuType
+                                                                                                                                                        .ABOUT
+                                                                                                                                        com.vinaooo
+                                                                                                                                                .revenger
+                                                                                                                                                .ui
+                                                                                                                                                .retromenu3
+                                                                                                                                                .MenuState
+                                                                                                                                                .EXIT_MENU ->
+                                                                                                                                                com.vinaooo
+                                                                                                                                                        .revenger
+                                                                                                                                                        .ui
+                                                                                                                                                        .retromenu3
+                                                                                                                                                        .navigation
+                                                                                                                                                        .MenuType
+                                                                                                                                                        .EXIT
                                                                                                                                 }
-
-                                                                                                                                // CRITICAL: Sincronizar estado do NavigationController APÓS todos os fragments
-                                                                                                                                // serem criados e registrados. Isso previne que registerFragment() sobrescreva o estado.
-                                                                                                                                val navMenuTypeForSync =
-                                                                                                                                        when (effectiveState
-                                                                                                                                        ) {
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .MenuState
-                                                                                                                                                        .MAIN_MENU ->
-                                                                                                                                                        com.vinaooo
-                                                                                                                                                                .revenger
-                                                                                                                                                                .ui
-                                                                                                                                                                .retromenu3
-                                                                                                                                                                .navigation
-                                                                                                                                                                .MenuType
-                                                                                                                                                                .MAIN
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .MenuState
-                                                                                                                                                        .SETTINGS_MENU ->
-                                                                                                                                                        com.vinaooo
-                                                                                                                                                                .revenger
-                                                                                                                                                                .ui
-                                                                                                                                                                .retromenu3
-                                                                                                                                                                .navigation
-                                                                                                                                                                .MenuType
-                                                                                                                                                                .SETTINGS
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .MenuState
-                                                                                                                                                        .PROGRESS_MENU ->
-                                                                                                                                                        com.vinaooo
-                                                                                                                                                                .revenger
-                                                                                                                                                                .ui
-                                                                                                                                                                .retromenu3
-                                                                                                                                                                .navigation
-                                                                                                                                                                .MenuType
-                                                                                                                                                                .PROGRESS
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .MenuState
-                                                                                                                                                        .ABOUT_MENU ->
-                                                                                                                                                        com.vinaooo
-                                                                                                                                                                .revenger
-                                                                                                                                                                .ui
-                                                                                                                                                                .retromenu3
-                                                                                                                                                                .navigation
-                                                                                                                                                                .MenuType
-                                                                                                                                                                .ABOUT
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .MenuState
-                                                                                                                                                        .EXIT_MENU ->
-                                                                                                                                                        com.vinaooo
-                                                                                                                                                                .revenger
-                                                                                                                                                                .ui
-                                                                                                                                                                .retromenu3
-                                                                                                                                                                .navigation
-                                                                                                                                                                .MenuType
-                                                                                                                                                                .EXIT
-                                                                                                                                                else ->
-                                                                                                                                                        com.vinaooo
-                                                                                                                                                                .revenger
-                                                                                                                                                                .ui
-                                                                                                                                                                .retromenu3
-                                                                                                                                                                .navigation
-                                                                                                                                                                .MenuType
-                                                                                                                                                                .MAIN
-                                                                                                                                        }
-                                                                                                                                viewModel
-                                                                                                                                        .navigationController
-                                                                                                                                        ?.syncState(
-                                                                                                                                                menuType =
-                                                                                                                                                        navMenuTypeForSync,
-                                                                                                                                                selectedIndex =
-                                                                                                                                                        0,
-                                                                                                                                                clearStack =
-                                                                                                                                                        false // Não limpar stack pois backstack já foi reconstruído
-                                                                                                                                        )
-                                                                                                                                Log.d(
-                                                                                                                                        TAG,
-                                                                                                                                        "[ORIENTATION] 🔄 NavigationController syncState chamado: $navMenuTypeForSync"
+                                                                                                                        viewModel
+                                                                                                                                .navigationController
+                                                                                                                                ?.syncState(
+                                                                                                                                        menuType =
+                                                                                                                                                navMenuTypeForSync,
+                                                                                                                                        selectedIndex =
+                                                                                                                                                0,
+                                                                                                                                        clearStack =
+                                                                                                                                                false // Não limpar stack pois backstack já foi reconstruído
                                                                                                                                 )
-                                                                                                                        },
-                                                                                                                        100
-                                                                                                                ) // Aguardar
-                                                                                                        // Fragment
-                                                                                                        // ser
-                                                                                                        // adicionado
-                                                                                                        // antes de
-                                                                                                        // registrar
+                                                                                                                        Log.d(
+                                                                                                                                TAG,
+                                                                                                                                "[ORIENTATION] 🔄 NavigationController syncState chamado: $navMenuTypeForSync"
+                                                                                                                        )
+                                                                                                                },
+                                                                                                                100
+                                                                                                        ) // Aguardar
+                                                                                                // Fragment
+                                                                                                // ser
+                                                                                                // adicionado
+                                                                                                // antes de
+                                                                                                // registrar
 
-                                                                                                        // Restaurar foco no
-                                                                                                        // submenu
-                                                                                                        android.os
-                                                                                                                .Handler(
-                                                                                                                        android.os
-                                                                                                                                .Looper
-                                                                                                                                .getMainLooper()
-                                                                                                                )
-                                                                                                                .postDelayed(
-                                                                                                                        {
-                                                                                                                                val firstFocusableId =
-                                                                                                                                        when (effectiveState
-                                                                                                                                        ) {
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .MenuState
-                                                                                                                                                        .SETTINGS_MENU ->
-                                                                                                                                                        R.id.settings_sound
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .MenuState
-                                                                                                                                                        .PROGRESS_MENU ->
-                                                                                                                                                        R.id.progress_load_state
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .MenuState
-                                                                                                                                                        .ABOUT_MENU ->
-                                                                                                                                                        R.id.about_back
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .MenuState
-                                                                                                                                                        .EXIT_MENU ->
-                                                                                                                                                        R.id.exit_menu_option_a
-                                                                                                                                                else ->
-                                                                                                                                                        null
-                                                                                                                                        }
-
-                                                                                                                                if (firstFocusableId !=
-                                                                                                                                                null
+                                                                                                // Restaurar foco no
+                                                                                                // submenu
+                                                                                                android.os
+                                                                                                        .Handler(
+                                                                                                                android.os
+                                                                                                                        .Looper
+                                                                                                                        .getMainLooper()
+                                                                                                        )
+                                                                                                        .postDelayed(
+                                                                                                                {
+                                                                                                                        val firstFocusableId =
+                                                                                                                                when (effectiveState
                                                                                                                                 ) {
-                                                                                                                                        val firstItem =
-                                                                                                                                                findViewById<
-                                                                                                                                                        android.view.View>(
-                                                                                                                                                        firstFocusableId
-                                                                                                                                                )
-                                                                                                                                        if (firstItem !=
-                                                                                                                                                        null &&
-                                                                                                                                                        firstItem
-                                                                                                                                                                .isFocusable
-                                                                                                                                        ) {
-                                                                                                                                                firstItem
-                                                                                                                                                        .requestFocus()
-                                                                                                                                                Log.d(
-                                                                                                                                                        TAG,
-                                                                                                                                                        "[ORIENTATION] 🎮 Foco restaurado no submenu"
-                                                                                                                                                )
-                                                                                                                                        }
+                                                                                                                                        com.vinaooo
+                                                                                                                                                .revenger
+                                                                                                                                                .ui
+                                                                                                                                                .retromenu3
+                                                                                                                                                .MenuState
+                                                                                                                                                .SETTINGS_MENU ->
+                                                                                                                                                R.id.settings_sound
+                                                                                                                                        com.vinaooo
+                                                                                                                                                .revenger
+                                                                                                                                                .ui
+                                                                                                                                                .retromenu3
+                                                                                                                                                .MenuState
+                                                                                                                                                .PROGRESS_MENU ->
+                                                                                                                                                R.id.progress_load_state
+                                                                                                                                        com.vinaooo
+                                                                                                                                                .revenger
+                                                                                                                                                .ui
+                                                                                                                                                .retromenu3
+                                                                                                                                                .MenuState
+                                                                                                                                                .ABOUT_MENU ->
+                                                                                                                                                R.id.about_back
+                                                                                                                                        com.vinaooo
+                                                                                                                                                .revenger
+                                                                                                                                                .ui
+                                                                                                                                                .retromenu3
+                                                                                                                                                .MenuState
+                                                                                                                                                .EXIT_MENU ->
+                                                                                                                                                R.id.exit_menu_option_a
+                                                                                                                                        else ->
+                                                                                                                                                null
                                                                                                                                 }
-                                                                                                                        },
-                                                                                                                        600
-                                                                                                                )
-                                                                                                },
-                                                                                                150
-                                                                                        ) // Delay
-                                                                                // para
-                                                                                // garantir que
-                                                                                // RetroMenu3 foi
-                                                                                // completamente
-                                                                                // adicionado
-                                                                        }
-                                                                },
-                                                                100
-                                                        )
-                                        }
+
+                                                                                                                        if (firstFocusableId !=
+                                                                                                                                        null
+                                                                                                                        ) {
+                                                                                                                                val firstItem =
+                                                                                                                                        findViewById<
+                                                                                                                                                android.view.View>(
+                                                                                                                                                firstFocusableId
+                                                                                                                                        )
+                                                                                                                                if (firstItem !=
+                                                                                                                                                null &&
+                                                                                                                                                firstItem
+                                                                                                                                                        .isFocusable
+                                                                                                                                ) {
+                                                                                                                                        firstItem
+                                                                                                                                                .requestFocus()
+                                                                                                                                        Log.d(
+                                                                                                                                                TAG,
+                                                                                                                                                "[ORIENTATION] 🎮 Foco restaurado no submenu"
+                                                                                                                                        )
+                                                                                                                                }
+                                                                                                                        }
+                                                                                                                },
+                                                                                                                600
+                                                                                                        )
+                                                                                        },
+                                                                                        150
+                                                                                ) // Delay
+                                                                        // para
+                                                                        // garantir que
+                                                                        // RetroMenu3 foi
+                                                                        // completamente
+                                                                        // adicionado
+                                                                }
+                                                        },
+                                                        100
+                                                )
 
                                         Log.d(
                                                 TAG,

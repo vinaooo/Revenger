@@ -97,16 +97,38 @@ object LogSaver {
         builder.append("Device Manufacturer: ${Build.MANUFACTURER}\n")
         builder.append("Product Name: ${Build.PRODUCT}\n")
         builder.append("Hardware: ${Build.HARDWARE}\n")
-        builder.append("Serial: ${Build.SERIAL}\n")
+        val serial = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                Build.getSerial()
+            } catch (e: SecurityException) {
+                "Unavailable (Permission Required)"
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            Build.SERIAL
+        }
+        builder.append("Serial: $serial\n")
         builder.append("Board: ${Build.BOARD}\n")
         builder.append("Bootloader: ${Build.BOOTLOADER}\n")
-        builder.append("CPU ABI: ${Build.CPU_ABI}\n")
-        builder.append("CPU ABI2: ${Build.CPU_ABI2}\n")
+        val supportedAbis = Build.SUPPORTED_ABIS.joinToString(", ")
+        builder.append("Supported ABIs: $supportedAbis\n")
 
         // Screen information
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val displayMetrics = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val displayMetrics = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val windowMetrics = windowManager.currentWindowMetrics
+            DisplayMetrics().apply {
+                widthPixels = windowMetrics.bounds.width()
+                heightPixels = windowMetrics.bounds.height()
+                density = context.resources.displayMetrics.density
+                densityDpi = context.resources.displayMetrics.densityDpi
+            }
+        } else {
+            DisplayMetrics().apply {
+                @Suppress("DEPRECATION")
+                windowManager.defaultDisplay.getMetrics(this)
+            }
+        }
 
         val width = displayMetrics.widthPixels
         val height = displayMetrics.heightPixels
@@ -145,7 +167,13 @@ object LogSaver {
 
         try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            builder.append("App Version: ${packageInfo.versionName} (${packageInfo.versionCode})\n")
+            val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageInfo.longVersionCode
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.versionCode.toLong()
+            }
+            builder.append("App Version: ${packageInfo.versionName} ($versionCode)\n")
             builder.append("Package Name: ${context.packageName}\n")
             builder.append(
                     "Build Type: ${if (context.packageName.contains("debug", ignoreCase = true)) "Debug" else "Release"}\n"

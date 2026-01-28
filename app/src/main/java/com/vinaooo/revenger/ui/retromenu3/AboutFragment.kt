@@ -423,53 +423,6 @@ class AboutFragment : MenuFragmentBase() {
                 "AboutFragment",
                 "[RESUME] ✅ New navigation system active - skipping old MenuState checks"
         )
-        return
-
-        // Check 1: Don't register if being removed
-        if (isRemoving) {
-            android.util.Log.d(
-                    "AboutFragment",
-                    "[RESUME] ⚠️ Fragment is being removed - skipping registration"
-            )
-            return
-        }
-
-        // Check 2: Don't register if MenuState is not ABOUT_MENU
-        val currentState = viewModel.getMenuManager().getCurrentState()
-        if (currentState != MenuState.ABOUT_MENU) {
-            android.util.Log.d(
-                    "AboutFragment",
-                    "[RESUME] ⚠️ MenuState is $currentState (not ABOUT) - skipping registration"
-            )
-            return
-        }
-
-        // Ensure fragment is fully resumed before re-registering
-        // This prevents timing issues when returning from back stack navigation
-        view?.post {
-            if (isAdded && isResumed) {
-                android.util.Log.d(
-                        "AboutFragment",
-                        "[RESUME] 📋 Registering immediately (isAdded=true, state=ABOUT_MENU)"
-                )
-                viewModel.registerAboutFragment(this)
-
-                // Restaurar foco no primeiro item
-                val firstFocusable = view?.findViewById<android.view.View>(R.id.about_back)
-                firstFocusable?.requestFocus()
-                android.util.Log.d("AboutFragment", "[FOCUS] Foco restaurado no primeiro item")
-
-                android.util.Log.d(
-                        "AboutFragment",
-                        "[RESUME] 📋 ========== ABOUT FRAGMENT ON RESUME END =========="
-                )
-            } else {
-                android.util.Log.d(
-                        "AboutFragment",
-                        "[RESUME] 📋 Fragment not ready: isAdded=$isAdded, isResumed=$isResumed"
-                )
-            }
-        }
     }
     companion object {
         private const val TAG = "AboutFragment"
