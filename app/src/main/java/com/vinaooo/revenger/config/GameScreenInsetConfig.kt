@@ -221,13 +221,12 @@ object GameScreenInsetConfig {
             // Apply viewport via LibretroDroid 0.13.1+ API
             retroView.queueEvent {
                 com.swordfish.libretrodroid.LibretroDroid.setViewport(
-                    viewportRect.left,
-                    viewportRect.top,
-                    viewportRect.width(),
-                    viewportRect.height()
+                        viewportRect.left,
+                        viewportRect.top,
+                        viewportRect.width(),
+                        viewportRect.height()
                 )
             }
-
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to process viewport configuration", e)
         }
