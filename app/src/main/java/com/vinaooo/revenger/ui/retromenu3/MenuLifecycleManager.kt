@@ -115,7 +115,9 @@ class MenuLifecycleManagerImpl(
         // Notify ViewModel that fragment is being destroyed
         try {
             val activity = fragment.requireActivity()
-            val viewModel = androidx.lifecycle.ViewModelProvider(activity)[com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java]
+            val viewModel =
+                    androidx.lifecycle.ViewModelProvider(activity)[
+                            com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java]
             viewModel.onRetroMenu3FragmentDestroyed()
         } catch (e: Exception) {
             MenuLogger.e("Error notifying ViewModel of fragment destruction")
@@ -128,7 +130,9 @@ class MenuLifecycleManagerImpl(
         // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
         try {
             val activity = fragment.requireActivity()
-            val viewModel = androidx.lifecycle.ViewModelProvider(activity)[com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java]
+            val viewModel =
+                    androidx.lifecycle.ViewModelProvider(activity)[
+                            com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java]
             // Call clearKeyLog through ViewModel to reset combo state
             viewModel.clearControllerKeyLog()
         } catch (e: Exception) {
