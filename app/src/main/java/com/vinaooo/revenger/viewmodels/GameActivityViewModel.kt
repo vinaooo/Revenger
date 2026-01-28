@@ -3,6 +3,7 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Activity
 import android.app.Application
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
 import android.view.*
@@ -1153,6 +1154,10 @@ class GameActivityViewModel(application: Application) :
             activity.lifecycle.addObserver(retroView.view)
             retroView.registerFrameRenderedListener()
             retroView.registerFrameCallback()
+
+            // Apply game screen viewport configuration based on current orientation
+            val isPortrait = activity.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+            retroView.applyViewportFromConfig(isPortrait)
 
             /* FIX: DO NOT restore state automatically on first frame
              * The game should start from zero and the user decides when to load the save
