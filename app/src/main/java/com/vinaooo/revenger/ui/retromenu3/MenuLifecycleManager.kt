@@ -175,7 +175,7 @@ class MenuLifecycleManagerImpl(
             }
         }
 
-        return null
         MenuLogger.lifecycle("MenuLifecycleManager: onDestroy COMPLETED")
+        return null
     }
 }
