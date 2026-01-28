@@ -455,7 +455,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Force recreation of RetroMenu3Fragment (used after configuration changes) */
-    fun recreateRetroMenu3(activity: ComponentActivity) {
+    fun recreateRetroMenu3() {
         // Clean up existing fragment reference
         retroMenu3Fragment = null
 
@@ -703,7 +703,7 @@ class GameActivityViewModel(application: Application) :
         // This ensures FragmentManager properly manages the hierarchy
 
         // Check if there's anything in the back stack before trying to remove
-        val activity = fragment?.activity
+        val activity = fragment.activity
         if (activity != null) {
             val fragmentManager = activity.supportFragmentManager
             val backStackCount = fragmentManager.backStackEntryCount
