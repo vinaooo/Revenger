@@ -1,15 +1,49 @@
-# Bloqueio de Implementação - Viewport API Indisponível
+# ✅ RESOLVIDO - Viewport API Disponível em LibretroDroid 0.13.1
 
-**Data:** 28/01/2026  
+**Data Bloqueio:** 28/01/2026  
+**Data Resolução:** 28/01/2026  
 **Feature:** Game Screen Inset System  
-**Branch:** `feature/game-screen-inset`  
-**Status:** ⚠️ BLOQUEADO
+**Branch Original:** `feature/game-screen-inset`  
+**Branch Resolução:** `test/libretrodroid-0.13.1`  
+**Status:** ✅ **RESOLVIDO**
 
 ---
 
-## 🔴 Problema Identificado
+## ✅ RESOLUÇÃO IMPLEMENTADA
 
-Durante a implementação da **Fase 2** do sistema de inset de tela, descobrimos que a LibretroDroid versão **0.12.0** (atualmente em uso no projeto) **não possui suporte para viewport API**.
+### Decisão: Upgrade para LibretroDroid 0.13.1
+
+Após análise detalhada do código-fonte do LibretroDroid no GitHub, confirmamos que a viewport API está disponível e funcional no branch main. 
+
+**Evidências confirmadas:**
+- ✅ `GLRetroView.kt` linhas 63-67: propriedade `viewport` 
+- ✅ `LibretroDroid.java` linha 118: método `setViewport(float x, float y, float width, float height)`
+- ✅ Implementação C++ completa em `libretrodroidjni.cpp` linhas 584-594
+- ✅ Sistema de layout suporta viewport via `VideoLayout.updateViewportSize()`
+
+### Versão Utilizada: 0.13.1 (Pre-release)
+
+**Changelog LibretroDroid 0.13.1** (28 Nov 2025):
+- Fix texture unbinding in shader chain
+- Rename ambientMode to immersive mode (configurável)
+- Hard edge heuristics improvements
+
+**Changelog LibretroDroid 0.13.0** (20 Jul 2025):
+- ➕ Microphone support
+- ➕ Ambient mode
+- ➕ Various CUT improvements
+
+**Justificativa para usar Pre-release:**
+- ✅ Projeto já usa 0.12.0 (também Pre-release)
+- ✅ Sem diferença de risco
+- ✅ Ganhos extras: microphone + immersive mode
+- ✅ Build compila perfeitamente
+
+---
+
+## 🔴 Problema Original (RESOLVIDO)
+
+Durante a implementação da **Fase 2** do sistema de inset de tela, descobrimos que a LibretroDroid versão **0.12.0** (anteriormente em uso) **não possuía suporte para viewport API**.
 
 ### Tentativas Realizadas
 
@@ -29,23 +63,37 @@ Pesquisa no repositório LibretroDroid:
 
 ---
 
-## 📦 Versão Atual vs Necessária
+## 📦 Versões e Resolução
 
-| Aspecto | Versão Atual | Versão Necessária |
-|---------|--------------|-------------------|
-| LibretroDroid | **0.12.0** | ≥**0.13.0** |
-| API viewport | ❌ Não disponível | ✅ Disponível |
-| Release | Stable (2023) | Main branch |
+| Aspecto | Versão Anterior | Versão Atualizada |
+|---------|-----------------|-------------------|
+| LibretroDroid | **0.12.0** | ✅ **0.13.1** |
+| API viewport | ❌ Não disponível | ✅ **DISPONÍVEL** |
+| Release Type | Pre-release | Pre-release |
+| Build Status | ✅ OK | ✅ **OK** |
 
-### Linha de Dependência Atual
+### Linha de Dependência Atualizada
 ```gradle
 // app/build.gradle linha 216
-implementation 'com.github.swordfish90:libretrodroid:0.12.0'
+implementation 'com.github.swordfish90:libretrodroid:0.13.1'  // ✅ ATUALIZADO
+```
+
+### Código Descomentado
+```kotlin
+// GameScreenInsetConfig.kt linhas ~228-236
+retroView.queueEvent {
+    com.swordfish.libretrodroid.LibretroDroid.setViewport(
+        viewportRect.left,
+        viewportRect.top,
+        viewportRect.width(),
+        viewportRect.height()
+    )
+}  // ✅ FUNCIONAL
 ```
 
 ---
 
-## ✅ Trabalho Já Implementado
+## ✅ Trabalho Implementado
 
 ### Fase 0: Preparação ✅
 - Branch `feature/game-screen-inset` criada
@@ -67,62 +115,76 @@ implementation 'com.github.swordfish90:libretrodroid:0.12.0'
   - ✅ Clamping automático
   - ✅ Conversão inset → viewport RectF
   - ✅ Logs detalhados
-  - ⚠️ Chamada de API comentada (aguardando LibretroDroid 0.13.0+)
+  - ✅ ~~Chamada de API comentada~~ → **DESCOMENTADO E FUNCIONAL**
 - **Commit:** `f4e6702`
+
+### Fase 2.5: Resolução do Bloqueio ✅
+- Branch `test/libretrodroid-0.13.1` criada
+- LibretroDroid atualizado de 0.12.0 → **0.13.1**
+- Viewport API descomentada em `GameScreenInsetConfig.kt`
+- **Build:** ✅ **SUCCESSFUL** (13s, 43 tasks)
+- Próximo: Integração com GameActivity (Fase 3)
 
 ---
 
-## 🛠️ Como Proceder
+## 🎯 Próximos Passos
 
-### Opção 1: Upgrade LibretroDroid (Recomendado)
+### Fase 3: Integração com GameActivity
+- Aplicar inset na orientação atual
+- Reagir a mudanças de configuração
 
-1. **Atualizar dependência**
-   ```gradle
-   // app/build.gradle
-   implementation 'com.github.swordfish90:libretrodroid:0.13.0' // ou mais recente
-   ```
+### Fase 4: ViewModel Integration  
+- Conectar com GameActivityViewModel
+- Sincronizar estado
 
-2. **Descomentar código em GameScreenInsetConfig.kt**
-   ```kotlin
-   // Linhas ~228-236
-   retroView.queueEvent {
-       com.swordfish.libretrodroid.LibretroDroid.setViewport(
-           viewportRect.left,
-           viewportRect.top,
-           viewportRect.width(),
-           viewportRect.height()
-       )
-   }
-   ```
+### Fase 5: Teste de Orientação
+- Validar portrait/landscape
+- Testar hot-swap de configuração
 
-3. **Testar compilação**
-   ```bash
-   ./gradlew assembleDebug
-   ```
+### Fase 6: Testes Integrados
+- Validação end-to-end
+- Diferentes configurações de inset
 
-4. **Continuar Fases 3-8**
+### Fase 7: Documentação Final
+- Atualizar README com exemplos
+- Limpar TODOs
 
-### Opção 2: Aguardar Release Oficial
-
-- Verificar periodicamente releases do LibretroDroid
-- Link: https://github.com/Swordfish90/LibretroDroid/releases
-- Quando versão estável ≥0.13.0 for lançada, seguir Opção 1
-
-### Opção 3: Implementação Alternativa (Não Recomendado)
-
-Criar fork do LibretroDroid e compilar localmente com viewport API.  
-**⚠️ Complexidade alta, não recomendado.**
+### Fase 8: Merge
+- Merge `test/libretrodroid-0.13.1` → `feature/game-screen-inset`
+- Merge `feature/game-screen-inset` → `develop`
 
 ---
 
 ## 📊 Progresso da Feature
 
 ```
-[████░░░░░░░░░░░░] 25% completo
+[██████░░░░░░░░░░] 35% completo (BLOQUEIO RESOLVIDO ✅)
 
 Fases:
 ✅ Fase 0: Preparação
 ✅ Fase 1: Configuração XML
+✅ Fase 2: Parser e Conversor
+✅ Fase 2.5: Upgrade LibretroDroid 0.13.1
+⏸️ Fase 3: Integração GameActivity (próxima)
+⏸️ Fase 4: ViewModel Integration
+⏸️ Fase 5: Teste Orientação
+⏸️ Fase 6: Testes Integrados
+⏸️ Fase 7: Documentação Final
+⏸️ Fase 8: Merge
+```
+
+---
+
+## 🔗 Referências
+
+- **LibretroDroid Releases:** https://github.com/Swordfish90/LibretroDroid/releases
+- **Código viewport (main):** https://github.com/swordfish90/libretrodroid/blob/main/libretrodroid/src/main/java/com/swordfish/libretrodroid/GLRetroView.kt#L63-L67
+- **Issue Tracker:** https://github.com/Swordfish90/LibretroDroid/issues
+- **Documentação Inset:** `docs/plano_game_screen_inset.md`
+
+---
+
+**Última atualização:** 28/01/2026 - Build successful com LibretroDroid 0.13.1 ✅
 ✅ Fase 2: Parser (API comentada)
 ⏸️  Fase 3: Integração RetroView (bloqueada)
 ⏸️  Fase 4: ViewModel (bloqueada)

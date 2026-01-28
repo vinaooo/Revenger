@@ -218,15 +218,15 @@ object GameScreenInsetConfig {
             Log.i(TAG, "   Calculated $orientation viewport: $viewportRect (from inset: $inset)")
             Log.i(TAG, "   Configuration will be applied when LibretroDroid is upgraded to 0.13.0+")
 
-            // TODO: Uncomment when LibretroDroid is upgraded to 0.13.0+
-            //  retroView.queueEvent {
-            //      com.swordfish.libretrodroid.LibretroDroid.setViewport(
-            //          viewportRect.left,
-            //          viewportRect.top,
-            //          viewportRect.width(),
-            //          viewportRect.height()
-            //      )
-            //  }
+            // Apply viewport via LibretroDroid 0.13.1+ API
+            retroView.queueEvent {
+                com.swordfish.libretrodroid.LibretroDroid.setViewport(
+                    viewportRect.left,
+                    viewportRect.top,
+                    viewportRect.width(),
+                    viewportRect.height()
+                )
+            }
 
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to process viewport configuration", e)
