@@ -98,14 +98,10 @@ object LogSaver {
         builder.append("Product Name: ${Build.PRODUCT}\n")
         builder.append("Hardware: ${Build.HARDWARE}\n")
         val serial =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    try {
-                        Build.getSerial()
-                    } catch (e: SecurityException) {
-                        "Unavailable (Permission Required)"
-                    }
-                } else {
-                    Build.SERIAL
+                try {
+                    Build.getSerial()
+                } catch (e: SecurityException) {
+                    "Unavailable (Permission Required)"
                 }
         builder.append("Serial: $serial\n")
         builder.append("Board: ${Build.BOARD}\n")
@@ -115,17 +111,13 @@ object LogSaver {
 
         // Screen information
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val windowMetrics = windowManager.currentWindowMetrics
         val displayMetrics =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    val windowMetrics = windowManager.currentWindowMetrics
-                    DisplayMetrics().apply {
-                        widthPixels = windowMetrics.bounds.width()
-                        heightPixels = windowMetrics.bounds.height()
-                        density = context.resources.displayMetrics.density
-                        densityDpi = context.resources.displayMetrics.densityDpi
-                    }
-                } else {
-                    DisplayMetrics().apply { windowManager.defaultDisplay.getMetrics(this) }
+                DisplayMetrics().apply {
+                    widthPixels = windowMetrics.bounds.width()
+                    heightPixels = windowMetrics.bounds.height()
+                    density = context.resources.displayMetrics.density
+                    densityDpi = context.resources.displayMetrics.densityDpi
                 }
 
         val width = displayMetrics.widthPixels
@@ -165,12 +157,7 @@ object LogSaver {
 
         try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            val versionCode =
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        packageInfo.longVersionCode
-                    } else {
-                        packageInfo.versionCode.toLong()
-                    }
+            val versionCode = packageInfo.longVersionCode
             builder.append("App Version: ${packageInfo.versionName} ($versionCode)\n")
             builder.append("Package Name: ${context.packageName}\n")
             builder.append(
