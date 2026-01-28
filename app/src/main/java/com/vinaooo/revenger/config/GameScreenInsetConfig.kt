@@ -194,15 +194,12 @@ object GameScreenInsetConfig {
     /**
      * Applies configured viewport to GLRetroView.
      *
-     * NOTE: CURRENTLY DISABLED - LibretroDroid 0.12.0 does not support viewport API.
+     * Reads inset configuration from XML (gs_inset_portrait/gs_inset_landscape), parses the
+     * inset values, converts to normalized viewport coordinates, and applies to the RetroView
+     * via LibretroDroid's setViewport() API.
      *
-     * The viewport API (setViewport/viewport property) was added in a later version. This
-     * functionality will be enabled when LibretroDroid is upgraded.
-     *
-     * Required LibretroDroid version: 0.13.0+ (estimated) Current version: 0.12.0
-     *
-     * Reads configuration from XML, parses inset, converts to viewport, and applies to the
-     * RetroView instance.
+     * The viewport defines the rendering area. LibretroDroid automatically centers the game
+     * within this area while maintaining its native aspect ratio.
      *
      * @param retroView GLRetroView instance to configure
      * @param resources Android resources to read configuration
@@ -214,9 +211,7 @@ object GameScreenInsetConfig {
             val viewportRect = insetToViewport(inset)
 
             val orientation = if (isPortrait) "Portrait" else "Landscape"
-            Log.w(TAG, "⚠️  Viewport API not available in LibretroDroid 0.12.0")
-            Log.i(TAG, "   Calculated $orientation viewport: $viewportRect (from inset: $inset)")
-            Log.i(TAG, "   Configuration will be applied when LibretroDroid is upgraded to 0.13.0+")
+            Log.i(TAG, "✅ Applying $orientation viewport: $viewportRect (inset: $inset)")
 
             // Apply viewport via LibretroDroid 0.13.1+ API
             retroView.queueEvent {
