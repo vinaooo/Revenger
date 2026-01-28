@@ -24,7 +24,9 @@
     -->
     
     <!-- Portrait: Configuração para orientação vertical -->
-    <string name="gs_inset_portrait">0</string>
+    <!-- Formato: top_right_bottom_left (CSS style) -->
+    <!-- Atual: 0_0_50_0 = Jogo no topo, 50% altura, largura total -->
+    <string name="gs_inset_portrait">0_0_65_0</string>
     
     <!-- Landscape: Configuração para orientação horizontal -->
     <string name="gs_inset_landscape">0</string>
