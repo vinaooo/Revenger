@@ -12,6 +12,7 @@ import com.swordfish.libretrodroid.GLRetroViewData
 import com.swordfish.libretrodroid.ShaderConfig
 import com.swordfish.libretrodroid.Variable
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.config.GameScreenInsetConfig
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.repositories.Storage
 import kotlinx.coroutines.CoroutineScope
@@ -218,5 +219,19 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
         Log.d("RetroView", "Total de variáveis do core configuradas: ${variables.size}")
         return variables.toTypedArray()
+    }
+
+    /**
+     * Apply viewport configuration from XML resources.
+     *
+     * Reads inset configuration (gs_inset_portrait/gs_inset_landscape) and applies it to the
+     * RetroView. The viewport defines the rendering area, and LibretroDroid automatically centers
+     * the game within this area while maintaining native aspect ratio.
+     *
+     * @param isPortrait True if current orientation is portrait, false if landscape
+     */
+    fun applyViewportFromConfig(isPortrait: Boolean) {
+        GameScreenInsetConfig.applyToRetroView(view, resources, isPortrait)
+        Log.d("RetroView", "Viewport configuration applied for ${if (isPortrait) "portrait" else "landscape"} orientation")
     }
 }
