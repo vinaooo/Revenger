@@ -115,3 +115,108 @@ RetroMenu3Fragment (UI)
 - **Incremental, tested changes** with code review
 
 For implementation details and the step-by-step refactor plan, see: `docs/NAVIGATION_REFACTORING_PLAN.md`.
+
+---
+
+## Dependencies and Libraries
+
+### Core Emulation
+| Library | Version | Purpose | Notes |
+|---------|---------|---------|-------|
+| **LibretroDroid** | 0.13.1 | LibRetro frontend & emulation engine | Provides GLRetroView, core loading, and viewport API |
+| **LibRetro Cores** | Latest (buildbot) | Emulation cores (gambatte, bsnes, genesis_plus_gx, smsplus, picodrive) | Downloaded dynamically during build from buildbot.libretro.com |
+
+### Game Controls & Input
+| Library | Version | Purpose | Notes |
+|---------|---------|---------|-------|
+| **RadialGamePad** | 2.0.0 | Virtual touchscreen controls | Custom gamepad with radial layout, Kotlin Flow-based |
+| **AndroidX GameController** | Latest | Physical gamepad support | Standard Android gamepad API integration |
+
+### UI & Graphics
+| Library | Version | Purpose | Notes |
+|---------|---------|---------|-------|
+| **AndroidX AppCompat** | Latest | UI compatibility layer | Minimal Material Design (being phased out) |
+| **Material Design 3** | Latest | Dynamic color theming | Theme customization only; no Material components used |
+| **Custom RetroCardView** | In-house | Retro-styled card component | Custom implementation for arcade/retro UI |
+| **Kotlin Coroutines** | Latest | Asynchronous operations | Used for ROM loading, core initialization |
+
+### Android Framework
+| Library | Version | Purpose | Notes |
+|---------|---------|---------|-------|
+| **AndroidX Core** | Latest | Core functionality (Activities, Fragments) | Fragment lifecycle, permissions handling |
+| **AndroidX Lifecycle** | Latest | LiveData & ViewModel | Reactive state management |
+| **AndroidX Navigation** | Latest | Fragment navigation | Menu navigation within the app |
+| **AndroidX ConstraintLayout** | Latest | Layout system | Efficient UI layout management |
+
+### Configuration & Data Binding
+| Library | Version | Purpose | Notes |
+|---------|---------|---------|-------|
+| **Data Binding** | Built-in | XML-based data binding | Used for config reading (game_scale.xml, config.xml) |
+| **Kotlin Serialization** | Latest | Configuration serialization | ROM metadata and core settings |
+
+### Testing
+| Library | Version | Purpose | Notes |
+|---------|---------|---------|-------|
+| **JUnit 4** | Latest | Unit testing framework | Core testing for managers and state |
+| **JUnit 5** | Latest | Advanced unit testing | Parameterized tests support |
+| **Robolectric** | 4.11.1 | Android framework testing | Fragment lifecycle, UI component testing |
+| **MockK** | Latest | Kotlin mocking library | Mock GameController, LibRetro APIs |
+| **AndroidX Test** | Latest | Android instrumented tests | Device-specific emulation testing |
+
+### Build System
+| Tool | Version | Purpose | Notes |
+|------|---------|---------|-------|
+| **Gradle** | 8.x+ | Build automation | Dependency resolution, APK packaging |
+| **Android Gradle Plugin** | Latest | Android-specific build tasks | APK signing, resource compilation |
+| **Kotlin Gradle Plugin** | Latest | Kotlin compilation | Source compilation, test compilation |
+
+### Signing & Release
+| Tool | Version | Purpose | Notes |
+|------|---------|---------|-------|
+| **jarsigner** | JDK built-in | APK signing | Release APK signing with revenger.jks |
+| **zipalign** | Android SDK | APK optimization | Memory alignment optimization |
+
+### Logging & Debugging
+| Library | Version | Purpose | Notes |
+|---------|---------|---------|-------|
+| **Android Logging (Log)** | Built-in | Debug logging | Used for gameplay debug info, viewport application logs |
+| **Logcat** | Built-in | Runtime log capture | ADB logging for debugging |
+
+### Build Configuration
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| **SDK Target** | 36 (Android 15) | Latest Android features |
+| **Min SDK** | 30 (Android 11) | Backward compatibility |
+| **Java Version** | 17 | Modern Java features |
+| **Kotlin Version** | Latest (2.x) | Latest Kotlin features |
+
+### Architecture-Specific Builds
+| ABI | Status | Notes |
+|-----|--------|-------|
+| **armeabi-v7a** | Supported | 32-bit ARM processors |
+| **arm64-v8a** | Supported | 64-bit ARM processors |
+| **x86** | Supported | Intel x86 emulators |
+| **x86_64** | Supported | Intel x86_64 emulators |
+| **universal** | Supported | All ABIs in single APK |
+
+### Dependency Management
+- **Centralized versioning**: Use `gradle.properties` for version definitions
+- **Dynamic core downloads**: LibRetro cores fetched from buildbot during build
+- **Minimal external dependencies**: Prefer Android Framework APIs when available
+- **Kotlin-first**: Leverage Kotlin stdlib and coroutines for concurrency
+
+### Notable Version Changes
+- **LibretroDroid 0.12.0 → 0.13.1** (January 2026): Added viewport API support for game screen inset feature
+- **Kotlin 1.x → 2.x** (Latest): Improved performance and language features
+- **Target SDK 34 → 36**: Compliance with latest Android requirements
+
+### Dependency Security
+- Regular updates via Dependabot (when available)
+- Security patches applied immediately
+- Verification of library sources (official repositories only)
+
+### Performance Considerations
+- **LibRetro cores**: JNI overhead minimized with optimized native bindings
+- **RadialGamePad**: Kotlin Flow-based reactive updates reduce garbage collection
+- **Memory pooling**: Animation object pools prevent GC pauses
+- **Viewport calculations**: Normalized coordinates (0.0-1.0) avoid floating-point precision issues
