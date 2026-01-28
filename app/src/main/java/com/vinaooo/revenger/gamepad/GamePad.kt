@@ -26,7 +26,6 @@ class GamePad(
 
     companion object {
         /** Should the user see the on-screen controls? */
-        @Suppress("DEPRECATION")
         fun shouldShowGamePads(activity: Activity): Boolean {
             /* Config says we shouldn't use virtual controls */
             if (!activity.resources.getBoolean(R.bool.conf_gamepad)) return false
