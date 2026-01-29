@@ -1409,4 +1409,26 @@ class GameActivity : FragmentActivity() {
         fun requestPermissionsModern(permissions: Array<String>) {
                 permissionLauncher.launch(permissions)
         }
+
+        /** Inicia animação CRT reversa (shutdown) e executa callback ao terminar */
+        fun startShutdownAnimation(onComplete: () -> Unit) {
+                Log.d(TAG, "Starting shutdown animation")
+
+                val crtShutdownView =
+                        findViewById<com.vinaooo.revenger.ui.splash.CRTBootView>(
+                                R.id.crt_shutdown_view
+                        )
+
+                // Tornar overlay visível
+                crtShutdownView.visibility = android.view.View.VISIBLE
+
+                // Configurar callback para quando animação terminar
+                crtShutdownView.onAnimationEndListener = {
+                        Log.d(TAG, "Shutdown animation completed")
+                        onComplete()
+                }
+
+                // Iniciar animação reversa
+                crtShutdownView.startReverseAnimation()
+        }
 }

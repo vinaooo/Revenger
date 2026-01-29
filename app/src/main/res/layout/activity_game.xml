@@ -49,4 +49,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.25" />
     </LinearLayout>
+
+    <!-- Layer 4: Shutdown Animation Overlay (Topmost - Only visible during shutdown) -->
+    <com.vinaooo.revenger.ui.splash.CRTBootView
+        android:id="@+id/crt_shutdown_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:elevation="200dp"
+        android:translationZ="200dp"
+        android:background="@android:color/black" />
 </FrameLayout>

@@ -242,22 +242,37 @@ class ExitFragment : MenuFragmentBase() {
         android.util.Log.d(TAG, "[ACTION] Exit menu: CONFIRM on index $selectedIndex")
         when (selectedIndex) {
             0 -> {
-                // Save and Exit - Execute action directly
+                // Save and Exit - Execute action with shutdown animation
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Save and Exit selected")
-                // REMOVED: NavigationController handles menu dismissal and speed restoration
-                // viewModel.dismissAllMenus()
-                // viewModel.restoreGameSpeedFromPreferences()
+
+                // Fechar menu primeiro
+                viewModel.dismissRetroMenu3()
+
+                // Salvar estado e depois iniciar animação
                 viewModel.saveStateCentralized(
-                        onComplete = { android.os.Process.killProcess(android.os.Process.myPid()) }
+                        onComplete = {
+                            // Quando save terminar, iniciar animação de shutdown
+                            (requireActivity() as? com.vinaooo.revenger.views.GameActivity)
+                                    ?.startShutdownAnimation {
+                                        // Quando animação terminar, encerrar processo
+                                        android.os.Process.killProcess(android.os.Process.myPid())
+                                    }
+                        }
                 )
             }
             1 -> {
-                // Exit without Save - Execute action directly
+                // Exit without Save - Execute action with shutdown animation
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Exit without Save selected")
-                // REMOVED: NavigationController handles menu dismissal and speed restoration
-                // viewModel.dismissAllMenus()
-                // viewModel.restoreGameSpeedFromPreferences()
-                android.os.Process.killProcess(android.os.Process.myPid())
+
+                // Fechar menu primeiro
+                viewModel.dismissRetroMenu3()
+
+                // Iniciar animação de shutdown
+                (requireActivity() as? com.vinaooo.revenger.views.GameActivity)
+                        ?.startShutdownAnimation {
+                            // Quando animação terminar, encerrar processo
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }
             }
             2 -> {
                 // Back to main menu - Execute action directly
