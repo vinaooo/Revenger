@@ -22,8 +22,9 @@ backup_files/themes.xml_backup.xml
 /config_backup
 
 # Testes
-/tests
+/tests/*.md
 *_test
+test*/*.md
 
 # Documentation (Phase 9.4)
 docs
@@ -50,5 +51,4 @@ revenger_debug*
 *log*
 *debug*
 submenu_nav*
-*test*
 temp_apk/DEPRECATED_CODE_ANALYSIS.md
