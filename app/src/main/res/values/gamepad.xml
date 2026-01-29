@@ -14,4 +14,20 @@
 
     <!-- Vertical padding for gamepad positioning -->
     <dimen name="gp_padding_vertical">20dp</dimen>
+
+    <!-- ============================================ -->
+    <!-- Gamepad Offset - Vertical Positioning      -->
+    <!-- ============================================ -->
+
+    <!-- Offset vertical do gamepad para modo portrait (0-100%) -->
+    <!-- 100 = gamepad na borda inferior da tela -->
+    <!-- 50 = gamepad centralizado verticalmente -->
+    <!-- 0 = gamepad na borda superior -->
+    <integer name="gp_offset_portrait">100</integer>
+
+    <!-- Offset vertical do gamepad para modo landscape (0-100%) -->
+    <!-- 100 = gamepad na borda inferior da tela -->
+    <!-- 50 = gamepad centralizado verticalmente -->
+    <!-- 0 = gamepad na borda superior -->
+    <integer name="gp_offset_landscape">50</integer>
 </resources>

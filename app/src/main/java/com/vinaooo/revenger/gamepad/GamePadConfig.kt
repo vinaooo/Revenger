@@ -10,6 +10,12 @@ import com.vinaooo.revenger.R
 
 class GamePadConfig(context: Context, private val resources: Resources) {
         companion object {
+                // ===================================================
+                // Índices para Empty Dials (simetria dos gamepads)
+                // Usado para alinhar centros entre LEFT e RIGHT
+                // ===================================================
+                private const val EMPTY_DIAL_INDEX_8 = 8 // Para espelhar MENU do RIGHT
+
                 val BUTTON_START = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_START, label = "+")
 
                 val BUTTON_SELECT = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_SELECT, label = "-")
@@ -50,8 +56,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                 RadialGamePadTheme(
                         textColor = ContextCompat.getColor(context, android.R.color.white),
                         normalColor = ContextCompat.getColor(context, R.color.gp_button_color),
-                        pressedColor =
-                                ContextCompat.getColor(context, R.color.gp_pressed_color)
+                        pressedColor = ContextCompat.getColor(context, R.color.gp_pressed_color)
                 )
 
         private fun getActionButtonsInOrder(): List<ButtonConfig> {
@@ -66,8 +71,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
         val left =
                 RadialGamePadConfig(
                         haptic =
-                                if (resources.getBoolean(R.bool.conf_gp_haptic))
-                                        HapticConfig.PRESS
+                                if (resources.getBoolean(R.bool.conf_gp_haptic)) HapticConfig.PRESS
                                 else HapticConfig.OFF,
                         theme = radialGamePadTheme,
                         sockets = 12,
@@ -82,22 +86,14 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         distance = 0f,
                                                         buttonConfig = BUTTON_L1
                                                 )
-                                                .takeIf {
-                                                        resources.getBoolean(
-                                                                R.bool.conf_gp_l1
-                                                        )
-                                                },
+                                                .takeIf { resources.getBoolean(R.bool.conf_gp_l1) },
                                         SecondaryDialConfig.SingleButton(
                                                         index = 3,
                                                         scale = 1f,
                                                         distance = 0f,
                                                         buttonConfig = BUTTON_L2
                                                 )
-                                                .takeIf {
-                                                        resources.getBoolean(
-                                                                R.bool.conf_gp_l2
-                                                        )
-                                                },
+                                                .takeIf { resources.getBoolean(R.bool.conf_gp_l2) },
                                         SecondaryDialConfig.SingleButton(
                                                         index = 2,
                                                         scale = 1f,
@@ -105,8 +101,21 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         buttonConfig = BUTTON_SELECT
                                                 )
                                                 .takeIf {
+                                                        resources.getBoolean(R.bool.conf_gp_select)
+                                                },
+                                        // Empty Dial para simetria com o RIGHT
+                                        // Necessário para alinhar o centro dos gamepads
+                                        // RIGHT tem MENU no index 8, então LEFT precisa de Empty
+                                        // aqui
+                                        SecondaryDialConfig.Empty(
+                                                        index = EMPTY_DIAL_INDEX_8,
+                                                        spread = 1,
+                                                        scale = 1f,
+                                                        distance = 0f
+                                                )
+                                                .takeIf {
                                                         resources.getBoolean(
-                                                                R.bool.conf_gp_select
+                                                                R.bool.conf_menu_mode_gamepad
                                                         )
                                                 },
                                 )
@@ -115,8 +124,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
         val right =
                 RadialGamePadConfig(
                         haptic =
-                                if (resources.getBoolean(R.bool.conf_gp_haptic))
-                                        HapticConfig.PRESS
+                                if (resources.getBoolean(R.bool.conf_gp_haptic)) HapticConfig.PRESS
                                 else HapticConfig.OFF,
                         theme = radialGamePadTheme,
                         sockets = 12,

@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.gamepad.GamePadAlignmentManager
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.privacy.EnhancedPrivacyManager
 import com.vinaooo.revenger.utils.AndroidCompatibility
@@ -28,6 +29,9 @@ class GameActivity : FragmentActivity() {
         private lateinit var retroviewContainer: FrameLayout
         private lateinit var menuContainer: FrameLayout
         private val viewModel: GameActivityViewModel by viewModels()
+
+        // GamePad alignment manager para offset vertical
+        private lateinit var alignmentManager: GamePadAlignmentManager
 
         // Performance monitoring
         private var frameStartTime = 0L
@@ -89,6 +93,15 @@ class GameActivity : FragmentActivity() {
                 // Get gamepad container reference
                 val gamepadContainers = findViewById<android.widget.LinearLayout>(R.id.containers)
                 gamePadContainer = gamepadContainers
+
+                // Initialize GamePad alignment manager
+                alignmentManager = GamePadAlignmentManager(resources)
+                val (offsetsValid, errorMsg) = alignmentManager.validateOffsets()
+                if (!offsetsValid) {
+                        Log.w(TAG, "GamePad offset validation error: $errorMsg")
+                } else {
+                        Log.d(TAG, "GamePad offsets validated successfully")
+                }
 
                 // Pass gamepad container reference to ViewModel
                 viewModel.setGamePadContainer(gamepadContainers)
@@ -1152,6 +1165,18 @@ class GameActivity : FragmentActivity() {
         ) {
                 val layoutParams = gamepadContainer.layoutParams as FrameLayout.LayoutParams
 
+                // Reset margins and minimumHeight from previous orientation
+                layoutParams.topMargin = 0
+                layoutParams.bottomMargin = 0
+                
+                // Reset minimumHeight of child containers
+                val leftContainer = gamepadContainer.findViewById<android.widget.FrameLayout>(R.id.left_container)
+                val rightContainer = gamepadContainer.findViewById<android.widget.FrameLayout>(R.id.right_container)
+                leftContainer?.minimumHeight = 0
+                rightContainer?.minimumHeight = 0
+                
+                Log.d(TAG, "Reset margins and minimumHeight for orientation change")
+
                 // Check current orientation
                 val isPortrait =
                         resources.configuration.orientation ==
@@ -1167,6 +1192,12 @@ class GameActivity : FragmentActivity() {
 
                         // Increase gamepad sizes for portrait (40% each instead of 25%)
                         adjustGamePadSizes(gamepadContainer, 0.40f, 0.2f)
+
+                        // Equalize heights and apply portrait offset
+                        gamepadContainer.post {
+                                equalizeGamePadHeights(gamepadContainer)
+                                applyPortraitOffset(gamepadContainer)
+                        }
                 } else {
                         // Keep top positioning in landscape
                         layoutParams.gravity = android.view.Gravity.TOP
@@ -1174,11 +1205,137 @@ class GameActivity : FragmentActivity() {
 
                         // Keep original sizes for landscape (25% each)
                         adjustGamePadSizes(gamepadContainer, 0.25f, 0.5f)
+
+                        // Equalize heights in landscape to fix alignment issues
+                        gamepadContainer.post {
+                                equalizeGamePadHeights(gamepadContainer)
+                                applyLandscapeOffset(gamepadContainer)
+                        }
                 }
 
                 Log.d(TAG, "Final layout gravity: ${layoutParams.gravity}")
                 gamepadContainer.layoutParams = layoutParams
                 gamepadContainer.requestLayout()
+        }
+
+        /**
+         * Apply portrait offset via bottomMargin based on XML configuration. 100% = base at bottom
+         * edge, lower % = higher position
+         */
+        private fun applyPortraitOffset(container: android.widget.LinearLayout) {
+                try {
+                        val offsetPercent = resources.getInteger(R.integer.gp_offset_portrait)
+
+                        // Usar altura do parent (FrameLayout) menos altura do container para
+                        // calcular espaço disponível
+                        val parent = container.parent as? android.view.View
+                        val availableHeight = parent?.height ?: 0
+                        val containerHeight = container.height
+
+                        if (availableHeight <= 0 || containerHeight <= 0) {
+                                Log.w(
+                                        TAG,
+                                        "Portrait: Heights not available yet (available=$availableHeight, container=$containerHeight)"
+                                )
+                                return
+                        }
+
+                        // Espaço máximo para mover o gamepad (altura disponível - altura do
+                        // gamepad)
+                        val maxMovement = availableHeight - containerHeight
+
+                        // Calcular margin: offset 100% = 0px (borda inferior), offset 0% =
+                        // maxMovement (topo)
+                        val bottomMargin = (maxMovement * (100 - offsetPercent) / 100.0).toInt()
+
+                        val layoutParams = container.layoutParams as FrameLayout.LayoutParams
+                        layoutParams.bottomMargin = bottomMargin
+                        container.layoutParams = layoutParams
+
+                        Log.d(
+                                TAG,
+                                "Portrait offset: $offsetPercent% → availableHeight=$availableHeight, containerHeight=$containerHeight, maxMovement=$maxMovement, bottomMargin=$bottomMargin px"
+                        )
+                } catch (e: Exception) {
+                        Log.e(TAG, "Error applying portrait offset", e)
+                }
+        }
+
+        /**
+         * Apply landscape offset via topMargin based on XML configuration. 100% = base at bottom,
+         * 0% = base at top
+         */
+        private fun applyLandscapeOffset(container: android.widget.LinearLayout) {
+                try {
+                        val offsetPercent = resources.getInteger(R.integer.gp_offset_landscape)
+
+                        // Usar altura do parent (FrameLayout) menos altura do container para
+                        // calcular espaço disponível
+                        val parent = container.parent as? android.view.View
+                        val availableHeight = parent?.height ?: 0
+                        val containerHeight = container.height
+
+                        if (availableHeight <= 0 || containerHeight <= 0) {
+                                Log.w(
+                                        TAG,
+                                        "Landscape: Heights not available yet (available=$availableHeight, container=$containerHeight)"
+                                )
+                                return
+                        }
+
+                        // Espaço máximo para mover o gamepad
+                        val maxMovement = availableHeight - containerHeight
+
+                        // Calcular margin: offset 0% = 0px (topo), offset 100% = maxMovement (borda
+                        // inferior)
+                        val topMargin = (maxMovement * offsetPercent / 100.0).toInt()
+
+                        val layoutParams = container.layoutParams as FrameLayout.LayoutParams
+                        layoutParams.topMargin = topMargin
+                        container.layoutParams = layoutParams
+
+                        Log.d(
+                                TAG,
+                                "Landscape offset: $offsetPercent% → availableHeight=$availableHeight, containerHeight=$containerHeight, maxMovement=$maxMovement, topMargin=$topMargin px"
+                        )
+                } catch (e: Exception) {
+                        Log.e(TAG, "Error applying landscape offset", e)
+                }
+        }
+
+        /**
+         * Equalizes the height of left and right gamepad containers in landscape mode. This ensures
+         * that centers remain aligned even when one side has different secondary dial
+         * configurations (e.g., MENU button on right only).
+         */
+        private fun equalizeGamePadHeights(container: android.widget.LinearLayout) {
+                val leftContainer =
+                        container.findViewById<android.widget.FrameLayout>(R.id.left_container)
+                val rightContainer =
+                        container.findViewById<android.widget.FrameLayout>(R.id.right_container)
+
+                if (leftContainer != null && rightContainer != null) {
+                        val leftHeight = leftContainer.height
+                        val rightHeight = rightContainer.height
+                        val maxHeight = maxOf(leftHeight, rightHeight)
+
+                        if (maxHeight > 0) {
+                                Log.d(
+                                        TAG,
+                                        "GamePad heights - LEFT: $leftHeight, RIGHT: $rightHeight, MAX: $maxHeight"
+                                )
+
+                                // Set both to the same height
+                                if (leftHeight != maxHeight) {
+                                        leftContainer.minimumHeight = maxHeight
+                                        Log.d(TAG, "LEFT container minHeight set to $maxHeight")
+                                }
+                                if (rightHeight != maxHeight) {
+                                        rightContainer.minimumHeight = maxHeight
+                                        Log.d(TAG, "RIGHT container minHeight set to $maxHeight")
+                                }
+                        }
+                }
         }
 
         /** Adjust gamepad container sizes programmatically */

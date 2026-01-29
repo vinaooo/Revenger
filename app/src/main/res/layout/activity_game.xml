@@ -30,15 +30,13 @@
         android:orientation="horizontal"
         android:gravity="bottom"
         android:elevation="100dp"
-        android:translationZ="100dp"
-        android:paddingBottom="16dp">
+        android:translationZ="100dp">
 
         <FrameLayout
             android:id="@+id/left_container"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.25"
-            android:layout_marginBottom="@dimen/gp_padding_vertical" />
+            android:layout_weight="0.25" />
 
         <View
             android:layout_width="0dp"
@@ -49,7 +47,6 @@
             android:id="@+id/right_container"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.25"
-            android:layout_marginBottom="@dimen/gp_padding_vertical" />
+            android:layout_weight="0.25" />
     </LinearLayout>
 </FrameLayout>
