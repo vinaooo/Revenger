@@ -1168,13 +1168,19 @@ class GameActivity : FragmentActivity() {
                 // Reset margins and minimumHeight from previous orientation
                 layoutParams.topMargin = 0
                 layoutParams.bottomMargin = 0
-                
+
                 // Reset minimumHeight of child containers
-                val leftContainer = gamepadContainer.findViewById<android.widget.FrameLayout>(R.id.left_container)
-                val rightContainer = gamepadContainer.findViewById<android.widget.FrameLayout>(R.id.right_container)
+                val leftContainer =
+                        gamepadContainer.findViewById<android.widget.FrameLayout>(
+                                R.id.left_container
+                        )
+                val rightContainer =
+                        gamepadContainer.findViewById<android.widget.FrameLayout>(
+                                R.id.right_container
+                        )
                 leftContainer?.minimumHeight = 0
                 rightContainer?.minimumHeight = 0
-                
+
                 Log.d(TAG, "Reset margins and minimumHeight for orientation change")
 
                 // Check current orientation
