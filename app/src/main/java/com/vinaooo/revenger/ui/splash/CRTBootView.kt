@@ -11,6 +11,7 @@ import android.graphics.Path
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 
 /**
@@ -44,6 +45,9 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     private var animator: ValueAnimator? = null
     private var isAnimationStarted = false
 
+    // Modo da animação: false = forward (boot), true = reverse (shutdown)
+    private var isReverseMode = false
+
     // Callback para notificar término da animação
     var onAnimationEndListener: (() -> Unit)? = null
 
@@ -65,6 +69,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         Log.d(TAG, "Starting CRT animation")
 
         isAnimationStarted = true
+        isReverseMode = false
         animator?.cancel()
 
         animator =
@@ -81,6 +86,37 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                             object : AnimatorListenerAdapter() {
                                 override fun onAnimationEnd(animation: Animator) {
                                     Log.d(TAG, "CRT animation completed")
+                                    onAnimationEndListener?.invoke()
+                                }
+                            }
+                    )
+                }
+
+        animator?.start()
+    }
+
+    /** Inicia a animação CRT reversa (shutdown) */
+    fun startReverseAnimation() {
+        Log.d(TAG, "Starting CRT reverse animation (shutdown)")
+
+        isAnimationStarted = true
+        isReverseMode = true
+        animator?.cancel()
+
+        animator =
+                ValueAnimator.ofFloat(1f, 0f).apply {
+                    duration = ANIMATION_DURATION
+                    interpolator = AccelerateInterpolator()
+
+                    addUpdateListener { animation ->
+                        progress = animation.animatedValue as Float
+                        invalidate()
+                    }
+
+                    addListener(
+                            object : AnimatorListenerAdapter() {
+                                override fun onAnimationEnd(animation: Animator) {
+                                    Log.d(TAG, "CRT reverse animation completed")
                                     onAnimationEndListener?.invoke()
                                 }
                             }
@@ -261,7 +297,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         canvas.drawPath(path, paint)
     }
 
-    /** Fase 3: Desenha expansão vertical + scanlines com fade-out */
+    /** Fase 3: Desenha expansão vertical + scanlines com fade-out (ou fade-in se reverso) */
     private fun drawExpansionPhase(canvas: Canvas, centerX: Float, centerY: Float) {
         // Normalizar progress para esta fase (0.0 - 1.0)
         val phaseProgress = (progress - PHASE_2_END) / (1f - PHASE_2_END)
@@ -274,8 +310,13 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         // Raio dos cantos arredondados (30dp)
         val cornerRadius = 30f * resources.displayMetrics.density
 
-        // Fade out: opacidade diminui conforme se aproxima do fim
-        val fadeOutAlpha = (1f - phaseProgress) * 255
+        // Fade out no modo normal, fade in no modo reverso
+        val fadeAlpha =
+                if (isReverseMode) {
+                    phaseProgress * 255 // Fade in: opacidade aumenta
+                } else {
+                    (1f - phaseProgress) * 255 // Fade out: opacidade diminui
+                }
 
         // Salvar estado do canvas
         canvas.save()
@@ -293,15 +334,15 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         )
         canvas.clipPath(clipPath)
 
-        // Preencher área com branco (simula a "imagem" da TV) com fade out
+        // Preencher área com branco (simula a "imagem" da TV)
         paint.color = Color.WHITE
-        paint.alpha = fadeOutAlpha.toInt()
+        paint.alpha = fadeAlpha.toInt()
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
 
         // Restaurar canvas antes de desenhar scanlines
         canvas.restore()
 
-        // Desenhar scanlines com fade-in gradual
+        // Desenhar scanlines com fade gradual
         drawScanlines(canvas, phaseProgress, clipTop, clipBottom)
     }
 
