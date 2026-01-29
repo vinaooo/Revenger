@@ -20,13 +20,21 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
-        <activity android:name=".views.GameActivity"
+        
+        <!-- SplashActivity - Entry point com animação CRT -->
+        <activity android:name=".views.SplashActivity"
             android:exported="true"
-            android:configChanges="keyboardHidden|orientation|screenSize|uiMode">
+            android:theme="@style/Theme.Revenger.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        
+        <!-- GameActivity - Emulador principal -->
+        <activity android:name=".views.GameActivity"
+            android:exported="false"
+            android:configChanges="keyboardHidden|orientation|screenSize|uiMode">
         </activity>
     </application>
 </manifest>
