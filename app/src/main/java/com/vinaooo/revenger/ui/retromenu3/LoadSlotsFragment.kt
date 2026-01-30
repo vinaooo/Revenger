@@ -29,7 +29,10 @@ class LoadSlotsFragment : SaveStateGridFragment() {
     override fun onSlotConfirmed(slot: SaveSlotData) {
         if (slot.isEmpty) {
             // Empty slot: do nothing or show toast
-            android.util.Log.d("LoadSlotsFragment", "Cannot load from empty slot ${slot.slotNumber}")
+            android.util.Log.d(
+                    "LoadSlotsFragment",
+                    "Cannot load from empty slot ${slot.slotNumber}"
+            )
             // TODO: Show toast "Slot is empty"
             return
         }
@@ -52,7 +55,10 @@ class LoadSlotsFragment : SaveStateGridFragment() {
             // Get state bytes from slot
             val stateBytes = saveStateManager.loadFromSlot(slotNumber)
             if (stateBytes == null) {
-                android.util.Log.e("LoadSlotsFragment", "Failed to load state from slot $slotNumber")
+                android.util.Log.e(
+                        "LoadSlotsFragment",
+                        "Failed to load state from slot $slotNumber"
+                )
                 return
             }
 
@@ -61,7 +67,6 @@ class LoadSlotsFragment : SaveStateGridFragment() {
 
             android.util.Log.d("LoadSlotsFragment", "Load successful from slot $slotNumber")
             listener?.onLoadCompleted(slotNumber)
-
         } catch (e: Exception) {
             android.util.Log.e("LoadSlotsFragment", "Error loading state", e)
         }

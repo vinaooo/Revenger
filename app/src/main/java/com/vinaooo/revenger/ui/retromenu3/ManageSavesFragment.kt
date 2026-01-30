@@ -25,7 +25,10 @@ class ManageSavesFragment : SaveStateGridFragment() {
     private var sourceSlot: SaveSlotData? = null
 
     private enum class Operation {
-        MOVE, COPY, DELETE, RENAME
+        MOVE,
+        COPY,
+        DELETE,
+        RENAME
     }
 
     fun setListener(listener: ManageSavesListener) {
@@ -59,26 +62,29 @@ class ManageSavesFragment : SaveStateGridFragment() {
     }
 
     private fun showOperationsDialog(slot: SaveSlotData) {
-        val options = arrayOf(
-            getString(R.string.operation_move),
-            getString(R.string.operation_copy),
-            getString(R.string.operation_delete),
-            getString(R.string.operation_rename),
-            getString(R.string.dialog_cancel)
-        )
+        val options =
+                arrayOf(
+                        getString(R.string.operation_move),
+                        getString(R.string.operation_copy),
+                        getString(R.string.operation_delete),
+                        getString(R.string.operation_rename),
+                        getString(R.string.dialog_cancel)
+                )
 
         AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.operations_dialog_title, slot.name))
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> startOperation(Operation.MOVE, slot)
-                    1 -> startOperation(Operation.COPY, slot)
-                    2 -> confirmDelete(slot)
-                    3 -> showRenameDialog(slot)
-                    4 -> { /* Cancel */ }
+                .setTitle(getString(R.string.operations_dialog_title, slot.name))
+                .setItems(options) { _, which ->
+                    when (which) {
+                        0 -> startOperation(Operation.MOVE, slot)
+                        1 -> startOperation(Operation.COPY, slot)
+                        2 -> confirmDelete(slot)
+                        3 -> showRenameDialog(slot)
+                        4 -> {
+                            /* Cancel */
+                        }
+                    }
                 }
-            }
-            .show()
+                .show()
     }
 
     private fun startOperation(operation: Operation, slot: SaveSlotData) {
@@ -118,31 +124,33 @@ class ManageSavesFragment : SaveStateGridFragment() {
     }
 
     private fun showOverwriteConfirmation(
-        operation: Operation,
-        source: SaveSlotData,
-        target: SaveSlotData
+            operation: Operation,
+            source: SaveSlotData,
+            target: SaveSlotData
     ) {
         AlertDialog.Builder(requireContext())
-            .setTitle(R.string.overwrite_dialog_title)
-            .setMessage(getString(R.string.overwrite_dialog_message, target.name))
-            .setPositiveButton(R.string.dialog_overwrite) { _, _ ->
-                executeOperation(operation, source.slotNumber, target.slotNumber)
-            }
-            .setNegativeButton(R.string.dialog_cancel) { _, _ ->
-                cancelOperation()
-            }
-            .show()
+                .setTitle(R.string.overwrite_dialog_title)
+                .setMessage(getString(R.string.overwrite_dialog_message, target.name))
+                .setPositiveButton(R.string.dialog_overwrite) { _, _ ->
+                    executeOperation(operation, source.slotNumber, target.slotNumber)
+                }
+                .setNegativeButton(R.string.dialog_cancel) { _, _ -> cancelOperation() }
+                .show()
     }
 
     private fun executeOperation(operation: Operation, sourceSlotNum: Int, targetSlotNum: Int) {
-        val success = when (operation) {
-            Operation.MOVE -> saveStateManager.moveSlot(sourceSlotNum, targetSlotNum)
-            Operation.COPY -> saveStateManager.copySlot(sourceSlotNum, targetSlotNum)
-            else -> false
-        }
+        val success =
+                when (operation) {
+                    Operation.MOVE -> saveStateManager.moveSlot(sourceSlotNum, targetSlotNum)
+                    Operation.COPY -> saveStateManager.copySlot(sourceSlotNum, targetSlotNum)
+                    else -> false
+                }
 
         if (success) {
-            android.util.Log.d("ManageSavesFragment", "$operation successful: $sourceSlotNum -> $targetSlotNum")
+            android.util.Log.d(
+                    "ManageSavesFragment",
+                    "$operation successful: $sourceSlotNum -> $targetSlotNum"
+            )
         } else {
             android.util.Log.e("ManageSavesFragment", "$operation failed")
         }
@@ -153,38 +161,42 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
     private fun confirmDelete(slot: SaveSlotData) {
         AlertDialog.Builder(requireContext())
-            .setTitle(R.string.delete_dialog_title)
-            .setMessage(getString(R.string.delete_dialog_message, slot.name))
-            .setPositiveButton(R.string.dialog_delete) { _, _ ->
-                val success = saveStateManager.deleteSlot(slot.slotNumber)
-                if (success) {
-                    android.util.Log.d("ManageSavesFragment", "Deleted slot ${slot.slotNumber}")
+                .setTitle(R.string.delete_dialog_title)
+                .setMessage(getString(R.string.delete_dialog_message, slot.name))
+                .setPositiveButton(R.string.dialog_delete) { _, _ ->
+                    val success = saveStateManager.deleteSlot(slot.slotNumber)
+                    if (success) {
+                        android.util.Log.d("ManageSavesFragment", "Deleted slot ${slot.slotNumber}")
+                    }
+                    refreshGrid()
                 }
-                refreshGrid()
-            }
-            .setNegativeButton(R.string.dialog_cancel, null)
-            .show()
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .show()
     }
 
     private fun showRenameDialog(slot: SaveSlotData) {
-        val editText = EditText(requireContext()).apply {
-            setText(slot.name)
-            selectAll()
-        }
+        val editText =
+                EditText(requireContext()).apply {
+                    setText(slot.name)
+                    selectAll()
+                }
 
         AlertDialog.Builder(requireContext())
-            .setTitle(R.string.rename_dialog_title)
-            .setView(editText)
-            .setPositiveButton(R.string.dialog_rename) { _, _ ->
-                val newName = editText.text.toString().ifBlank { "Slot ${slot.slotNumber}" }
-                val success = saveStateManager.renameSlot(slot.slotNumber, newName)
-                if (success) {
-                    android.util.Log.d("ManageSavesFragment", "Renamed slot ${slot.slotNumber} to '$newName'")
+                .setTitle(R.string.rename_dialog_title)
+                .setView(editText)
+                .setPositiveButton(R.string.dialog_rename) { _, _ ->
+                    val newName = editText.text.toString().ifBlank { "Slot ${slot.slotNumber}" }
+                    val success = saveStateManager.renameSlot(slot.slotNumber, newName)
+                    if (success) {
+                        android.util.Log.d(
+                                "ManageSavesFragment",
+                                "Renamed slot ${slot.slotNumber} to '$newName'"
+                        )
+                    }
+                    refreshGrid()
                 }
-                refreshGrid()
-            }
-            .setNegativeButton(R.string.dialog_cancel, null)
-            .show()
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .show()
     }
 
     companion object {
