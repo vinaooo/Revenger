@@ -4,9 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import com.vinaooo.revenger.models.SaveSlotData
-import org.json.JSONObject
 import java.io.File
 import java.time.Instant
+import org.json.JSONObject
 
 /**
  * Manages multiple save state slots (1-9) with metadata and screenshots.
@@ -43,18 +43,19 @@ class SaveStateManager private constructor(private val context: Context) {
         private const val LEGACY_STATE_FILE = "state"
         const val TOTAL_SLOTS = 9
 
-        @Volatile
-        private var instance: SaveStateManager? = null
+        @Volatile private var instance: SaveStateManager? = null
 
         fun getInstance(context: Context): SaveStateManager {
-            return instance ?: synchronized(this) {
-                instance ?: SaveStateManager(context.applicationContext).also { instance = it }
-            }
+            return instance
+                    ?: synchronized(this) {
+                        instance
+                                ?: SaveStateManager(context.applicationContext).also {
+                                    instance = it
+                                }
+                    }
         }
 
-        /**
-         * Clear singleton instance (for testing purposes only)
-         */
+        /** Clear singleton instance (for testing purposes only) */
         internal fun clearInstance() {
             instance = null
         }
@@ -70,16 +71,12 @@ class SaveStateManager private constructor(private val context: Context) {
 
     // ========== PUBLIC API ==========
 
-    /**
-     * Get all 9 slots with their current state (empty or occupied)
-     */
+    /** Get all 9 slots with their current state (empty or occupied) */
     fun getAllSlots(): List<SaveSlotData> {
         return (1..TOTAL_SLOTS).map { getSlot(it) }
     }
 
-    /**
-     * Get a specific slot by number (1-9)
-     */
+    /** Get a specific slot by number (1-9) */
     fun getSlot(slotNumber: Int): SaveSlotData {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
@@ -94,17 +91,22 @@ class SaveStateManager private constructor(private val context: Context) {
 
         val metadata = readMetadata(metadataFile, slotNumber)
         return SaveSlotData(
-            slotNumber = slotNumber,
-            name = metadata.optString("name", "Slot $slotNumber"),
-            timestamp = metadata.optString("timestamp", null)?.let { 
-                try { Instant.parse(it) } catch (e: Exception) { null }
-            },
-            romName = metadata.optString("romName", ""),
-            playTime = metadata.optLong("playTime", 0),
-            description = metadata.optString("description", ""),
-            stateFile = stateFile,
-            screenshotFile = if (screenshotFile.exists()) screenshotFile else null,
-            isEmpty = false
+                slotNumber = slotNumber,
+                name = metadata.optString("name", "Slot $slotNumber"),
+                timestamp =
+                        metadata.optString("timestamp", null)?.let {
+                            try {
+                                Instant.parse(it)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        },
+                romName = metadata.optString("romName", ""),
+                playTime = metadata.optLong("playTime", 0),
+                description = metadata.optString("description", ""),
+                stateFile = stateFile,
+                screenshotFile = if (screenshotFile.exists()) screenshotFile else null,
+                isEmpty = false
         )
     }
 
@@ -119,11 +121,11 @@ class SaveStateManager private constructor(private val context: Context) {
      * @return true if save was successful
      */
     fun saveToSlot(
-        slotNumber: Int,
-        stateBytes: ByteArray,
-        screenshot: Bitmap?,
-        name: String? = null,
-        romName: String = ""
+            slotNumber: Int,
+            stateBytes: ByteArray,
+            screenshot: Bitmap?,
+            name: String? = null,
+            romName: String = ""
     ): Boolean {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
@@ -145,14 +147,15 @@ class SaveStateManager private constructor(private val context: Context) {
 
             // Save metadata
             val metadataFile = File(slotDir, METADATA_FILE)
-            val metadata = JSONObject().apply {
-                put("name", name ?: "Slot $slotNumber")
-                put("timestamp", Instant.now().toString())
-                put("slotNumber", slotNumber)
-                put("romName", romName)
-                put("playTime", 0) // TODO: Track play time
-                put("description", "")
-            }
+            val metadata =
+                    JSONObject().apply {
+                        put("name", name ?: "Slot $slotNumber")
+                        put("timestamp", Instant.now().toString())
+                        put("slotNumber", slotNumber)
+                        put("romName", romName)
+                        put("playTime", 0) // TODO: Track play time
+                        put("description", "")
+                    }
             metadataFile.writeText(metadata.toString(2))
 
             Log.d(TAG, "Save state saved to slot $slotNumber")
@@ -327,30 +330,22 @@ class SaveStateManager private constructor(private val context: Context) {
         }
     }
 
-    /**
-     * Check if any slot has a save state
-     */
+    /** Check if any slot has a save state */
     fun hasAnySave(): Boolean {
         return (1..TOTAL_SLOTS).any { !getSlot(it).isEmpty }
     }
 
-    /**
-     * Get the first empty slot number, or null if all slots are occupied
-     */
+    /** Get the first empty slot number, or null if all slots are occupied */
     fun getFirstEmptySlot(): Int? {
         return (1..TOTAL_SLOTS).firstOrNull { getSlot(it).isEmpty }
     }
 
-    /**
-     * Get the number of occupied slots
-     */
+    /** Get the number of occupied slots */
     fun getOccupiedSlotCount(): Int {
         return (1..TOTAL_SLOTS).count { !getSlot(it).isEmpty }
     }
 
-    /**
-     * Get the saves directory path (for debugging)
-     */
+    /** Get the saves directory path (for debugging) */
     fun getSavesDirectory(): File {
         return savesDir
     }
@@ -384,9 +379,7 @@ class SaveStateManager private constructor(private val context: Context) {
         }
     }
 
-    /**
-     * Migrate legacy single save state to slot 1
-     */
+    /** Migrate legacy single save state to slot 1 */
     private fun migrateLegacySaveIfNeeded() {
         val legacyFile = File(filesDir, LEGACY_STATE_FILE)
 
@@ -412,14 +405,15 @@ class SaveStateManager private constructor(private val context: Context) {
 
             // Create metadata for migrated save (no screenshot - will be created on next save)
             val metadataFile = File(slot1Dir, METADATA_FILE)
-            val metadata = JSONObject().apply {
-                put("name", "Slot 1 (Legacy)")
-                put("timestamp", Instant.now().toString())
-                put("slotNumber", 1)
-                put("romName", "")
-                put("playTime", 0)
-                put("description", "Migrated from single-slot save system")
-            }
+            val metadata =
+                    JSONObject().apply {
+                        put("name", "Slot 1 (Legacy)")
+                        put("timestamp", Instant.now().toString())
+                        put("slotNumber", 1)
+                        put("romName", "")
+                        put("playTime", 0)
+                        put("description", "Migrated from single-slot save system")
+                    }
             metadataFile.writeText(metadata.toString(2))
 
             // Delete legacy file after successful migration
@@ -431,9 +425,7 @@ class SaveStateManager private constructor(private val context: Context) {
         }
     }
 
-    /**
-     * Check if legacy save file exists (for backward compatibility checks)
-     */
+    /** Check if legacy save file exists (for backward compatibility checks) */
     fun hasLegacySave(): Boolean {
         val legacyFile = File(filesDir, LEGACY_STATE_FILE)
         return legacyFile.exists() && legacyFile.length() > 0
