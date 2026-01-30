@@ -319,30 +319,30 @@ class ProgressFragment : MenuFragmentBase() {
                     val fragment = LoadSlotsFragment.newInstance()
                     fragment.setListener(loadSlotsListener)
                     parentFragmentManager
-                        .beginTransaction()
-                        .replace(id, fragment)
-                        .addToBackStack(null)
-                        .commitAllowingStateLoss()
+                            .beginTransaction()
+                            .replace(id, fragment)
+                            .addToBackStack(null)
+                            .commitAllowingStateLoss()
                 }
                 saveState -> {
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Save State selected")
                     val fragment = SaveSlotsFragment.newInstance()
                     fragment.setListener(saveSlotsListener)
                     parentFragmentManager
-                        .beginTransaction()
-                        .replace(id, fragment)
-                        .addToBackStack(null)
-                        .commitAllowingStateLoss()
+                            .beginTransaction()
+                            .replace(id, fragment)
+                            .addToBackStack(null)
+                            .commitAllowingStateLoss()
                 }
                 manageSaves -> {
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Manage Saves selected")
                     val fragment = ManageSavesFragment.newInstance()
                     fragment.setListener(manageSavesListener)
                     parentFragmentManager
-                        .beginTransaction()
-                        .replace(id, fragment)
-                        .addToBackStack(null)
-                        .commitAllowingStateLoss()
+                            .beginTransaction()
+                            .replace(id, fragment)
+                            .addToBackStack(null)
+                            .commitAllowingStateLoss()
                 }
                 backProgress -> {
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Back to main menu selected")
@@ -350,15 +350,15 @@ class ProgressFragment : MenuFragmentBase() {
                 }
                 else -> {
                     android.util.Log.w(
-                        TAG,
-                        "[ACTION] Progress menu: Unknown item at index $selectedIndex"
+                            TAG,
+                            "[ACTION] Progress menu: Unknown item at index $selectedIndex"
                     )
                 }
             }
         } else {
             android.util.Log.w(
-                TAG,
-                "[ACTION] Progress menu: Invalid selection index $selectedIndex (menuItems.size=${menuItems.size})"
+                    TAG,
+                    "[ACTION] Progress menu: Invalid selection index $selectedIndex (menuItems.size=${menuItems.size})"
             )
         }
     }
