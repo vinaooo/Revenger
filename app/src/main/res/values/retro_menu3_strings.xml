@@ -1,3 +1,6 @@
+    <!-- Multi-slot Save System -->
+    <string name="manage_saves_option">Manage Saves</string>
+    <string name="manage_saves_title">Manage Save Slots</string>
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- ============================================ -->

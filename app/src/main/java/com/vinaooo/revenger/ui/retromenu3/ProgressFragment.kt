@@ -48,6 +48,7 @@ class ProgressFragment : MenuFragmentBase() {
     private lateinit var progressContainer: LinearLayout
     private lateinit var saveState: RetroCardView
     private lateinit var loadState: RetroCardView
+    private lateinit var manageSaves: RetroCardView
     private lateinit var backProgress: RetroCardView
 
     // Menu title
@@ -59,11 +60,13 @@ class ProgressFragment : MenuFragmentBase() {
     // Menu option titles for color control
     private lateinit var saveStateTitle: TextView
     private lateinit var loadStateTitle: TextView
+    private lateinit var manageSavesTitle: TextView
     private lateinit var backTitle: TextView
 
     // Selection arrows
     private lateinit var selectionArrowSaveState: TextView
     private lateinit var selectionArrowLoadState: TextView
+    private lateinit var selectionArrowManageSaves: TextView
     private lateinit var selectionArrowBack: TextView
 
     // Callback interface
@@ -131,6 +134,7 @@ class ProgressFragment : MenuFragmentBase() {
         // Menu items
         saveState = view.findViewById(R.id.progress_save_state)
         loadState = view.findViewById(R.id.progress_load_state)
+        manageSaves = view.findViewById(R.id.progress_manage_saves)
         backProgress = view.findViewById(R.id.progress_back)
 
         // Check if save state exists
@@ -143,12 +147,12 @@ class ProgressFragment : MenuFragmentBase() {
                     // Com save: Load State habilitado e navegável
                     loadState.isEnabled = true
                     loadState.alpha = 1.0f
-                    listOf(loadState, saveState, backProgress) // 3 itens navegáveis
+                    listOf(loadState, saveState, manageSaves, backProgress) // 4 itens navegáveis
                 } else {
                     // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
                     loadState.isEnabled = false
                     loadState.alpha = 0.5f
-                    listOf(saveState, backProgress) // Apenas 2 itens navegáveis
+                    listOf(saveState, manageSaves, backProgress) // 3 itens navegáveis
                 }
 
         // Configure ProgressFragment to not use background colors on cards
@@ -160,11 +164,13 @@ class ProgressFragment : MenuFragmentBase() {
         // Initialize menu option titles
         saveStateTitle = view.findViewById(R.id.save_state_title)
         loadStateTitle = view.findViewById(R.id.load_state_title)
+        manageSavesTitle = view.findViewById(R.id.manage_saves_title)
         backTitle = view.findViewById(R.id.back_title)
 
         // Initialize selection arrows
         selectionArrowSaveState = view.findViewById(R.id.selection_arrow_save_state)
         selectionArrowLoadState = view.findViewById(R.id.selection_arrow_load_state)
+        selectionArrowManageSaves = view.findViewById(R.id.selection_arrow_manage_saves)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
         // Set first item as selected (always valid - Load State removed from nav if disabled)
@@ -176,10 +182,12 @@ class ProgressFragment : MenuFragmentBase() {
                 progressTitle,
                 saveStateTitle,
                 loadStateTitle,
+                manageSavesTitle,
                 backTitle,
                 selectionArrowSaveState,
                 selectionArrowLoadState,
-                selectionArrowBack
+                selectionArrowManageSaves,
+                selectionArrowBack,
         )
 
         // Aplicar capitalização configurada aos textos
@@ -188,6 +196,7 @@ class ProgressFragment : MenuFragmentBase() {
                 progressTitle,
                 saveStateTitle,
                 loadStateTitle,
+                manageSavesTitle,
                 backTitle
         )
     }
@@ -203,15 +212,13 @@ class ProgressFragment : MenuFragmentBase() {
         // Rebuild menuItems list dynamically
         menuItems =
                 if (hasSaveState) {
-                    // Com save: Load State habilitado e navegável
                     loadState.isEnabled = true
                     loadState.alpha = 1.0f
-                    listOf(loadState, saveState, backProgress) // 3 itens navegáveis
+                    listOf(loadState, saveState, manageSaves, backProgress)
                 } else {
-                    // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
                     loadState.isEnabled = false
                     loadState.alpha = 0.5f
-                    listOf(saveState, backProgress) // Apenas 2 itens navegáveis
+                    listOf(saveState, manageSaves, backProgress)
                 }
 
         android.util.Log.d(
@@ -244,7 +251,7 @@ class ProgressFragment : MenuFragmentBase() {
      * SelectItem + ActivateSelected after 100ms delay.
      */
     private fun setupTouchNavigationSystem() {
-        // menuItems list is dynamic (2 or 3 items depending on save state)
+        // menuItems list is dynamic (3 ou 4 itens dependendo do save state)
         menuItems.forEachIndexed { index, menuItem ->
             menuItem.setOnClickListener {
                 android.util.Log.d(
@@ -266,7 +273,7 @@ class ProgressFragment : MenuFragmentBase() {
                             viewModel.navigationController?.activateItem()
                         },
                         MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS
-                ) // MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS = focus-then-activate delay
+                )
             }
         }
     }
@@ -303,35 +310,40 @@ class ProgressFragment : MenuFragmentBase() {
         android.util.Log.d(TAG, "[ACTION] Progress menu: CONFIRM on index $selectedIndex")
 
         // CRITICAL: Use menuItems list to identify which item is selected
-        // This handles both cases: with Load State (3 items) and without (2 items)
+        // Agora com 3 ou 4 itens (incluindo Manage Saves)
         if (selectedIndex >= 0 && selectedIndex < menuItems.size) {
             val selectedItem = menuItems[selectedIndex]
             android.util.Log.d(TAG, "[ACTION] Progress menu: Selected item = ${selectedItem.id}")
 
             when (selectedItem) {
                 loadState -> {
-                    // Load State - Execute action directly
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Load State selected")
-                    viewModel.loadStateCentralized {
-                        android.util.Log.d(TAG, "[ACTION] Progress menu: State loaded successfully")
-                    }
+                    // Navegar para LoadSlotsFragment
+                    parentFragmentManager
+                            .beginTransaction()
+                            .replace(id, LoadSlotsFragment.newInstance())
+                            .addToBackStack(null)
+                            .commitAllowingStateLoss()
                 }
                 saveState -> {
-                    // Save State - Execute action directly with refreshMenuItems callback
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Save State selected")
-                    viewModel.saveStateCentralized(
-                            keepPaused = true,
-                            onComplete = {
-                                android.util.Log.d(
-                                        TAG,
-                                        "[ACTION] Progress menu: State saved successfully"
-                                )
-                                refreshMenuItems()
-                            }
-                    )
+                    // Navegar para SaveSlotsFragment
+                    parentFragmentManager
+                            .beginTransaction()
+                            .replace(id, SaveSlotsFragment.newInstance())
+                            .addToBackStack(null)
+                            .commitAllowingStateLoss()
+                }
+                manageSaves -> {
+                    android.util.Log.d(TAG, "[ACTION] Progress menu: Manage Saves selected")
+                    // Navegar para ManageSavesFragment
+                    parentFragmentManager
+                            .beginTransaction()
+                            .replace(id, ManageSavesFragment.newInstance())
+                            .addToBackStack(null)
+                            .commitAllowingStateLoss()
                 }
                 backProgress -> {
-                    // Back to main menu - Execute action directly
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Back to main menu selected")
                     performBack()
                 }
@@ -460,6 +472,35 @@ class ProgressFragment : MenuFragmentBase() {
                     )
             )
             selectionArrowSaveState.visibility = View.GONE
+        }
+
+        // Manage Saves
+        if (selectedItem == manageSaves) {
+            manageSavesTitle.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.rm_selected_color
+                    )
+            )
+            selectionArrowManageSaves.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.rm_selected_color
+                    )
+            )
+            selectionArrowManageSaves.visibility = View.VISIBLE
+            (selectionArrowManageSaves.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0
+                marginEnd = 0
+            }
+        } else {
+            manageSavesTitle.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.rm_normal_color
+                    )
+            )
+            selectionArrowManageSaves.visibility = View.GONE
         }
 
         // Back
