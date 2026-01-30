@@ -1,10 +1,10 @@
 package com.vinaooo.revenger.tests
 
 import com.vinaooo.revenger.models.SaveSlotData
-import org.junit.Assert.*
-import org.junit.Test
 import java.io.File
 import java.time.Instant
+import org.junit.Assert.*
+import org.junit.Test
 
 /**
  * Unit tests for SaveSlotData class.
@@ -36,15 +36,16 @@ class SaveSlotDataTest {
 
     @Test
     fun `getDisplayName returns name for occupied slots`() {
-        val slot = SaveSlotData(
-            slotNumber = 1,
-            name = "Boss Fight",
-            timestamp = Instant.now(),
-            romName = "Zelda",
-            stateFile = null,
-            screenshotFile = null,
-            isEmpty = false
-        )
+        val slot =
+                SaveSlotData(
+                        slotNumber = 1,
+                        name = "Boss Fight",
+                        timestamp = Instant.now(),
+                        romName = "Zelda",
+                        stateFile = null,
+                        screenshotFile = null,
+                        isEmpty = false
+                )
         assertEquals("Boss Fight", slot.getDisplayName())
     }
 
@@ -65,15 +66,16 @@ class SaveSlotDataTest {
 
     @Test
     fun `getFormattedTimestamp returns formatted date for valid timestamp`() {
-        val slot = SaveSlotData(
-            slotNumber = 1,
-            name = "Test",
-            timestamp = Instant.parse("2026-01-30T14:30:00Z"),
-            romName = "TestROM",
-            stateFile = null,
-            screenshotFile = null,
-            isEmpty = false
-        )
+        val slot =
+                SaveSlotData(
+                        slotNumber = 1,
+                        name = "Test",
+                        timestamp = Instant.parse("2026-01-30T14:30:00Z"),
+                        romName = "TestROM",
+                        stateFile = null,
+                        screenshotFile = null,
+                        isEmpty = false
+                )
         // The formatted timestamp will depend on the system timezone
         val formatted = slot.getFormattedTimestamp()
         assertTrue("Timestamp should not be empty", formatted.isNotEmpty())
@@ -88,46 +90,49 @@ class SaveSlotDataTest {
 
     @Test
     fun `getFormattedPlayTime formats seconds correctly`() {
-        val slot = SaveSlotData(
-            slotNumber = 1,
-            name = "Test",
-            timestamp = Instant.now(),
-            romName = "TestROM",
-            playTime = 45,  // 45 seconds
-            stateFile = null,
-            screenshotFile = null,
-            isEmpty = false
-        )
+        val slot =
+                SaveSlotData(
+                        slotNumber = 1,
+                        name = "Test",
+                        timestamp = Instant.now(),
+                        romName = "TestROM",
+                        playTime = 45, // 45 seconds
+                        stateFile = null,
+                        screenshotFile = null,
+                        isEmpty = false
+                )
         assertEquals("00:00:45", slot.getFormattedPlayTime())
     }
 
     @Test
     fun `getFormattedPlayTime formats minutes correctly`() {
-        val slot = SaveSlotData(
-            slotNumber = 1,
-            name = "Test",
-            timestamp = Instant.now(),
-            romName = "TestROM",
-            playTime = 125,  // 2 min 5 sec
-            stateFile = null,
-            screenshotFile = null,
-            isEmpty = false
-        )
+        val slot =
+                SaveSlotData(
+                        slotNumber = 1,
+                        name = "Test",
+                        timestamp = Instant.now(),
+                        romName = "TestROM",
+                        playTime = 125, // 2 min 5 sec
+                        stateFile = null,
+                        screenshotFile = null,
+                        isEmpty = false
+                )
         assertEquals("00:02:05", slot.getFormattedPlayTime())
     }
 
     @Test
     fun `getFormattedPlayTime formats hours correctly`() {
-        val slot = SaveSlotData(
-            slotNumber = 1,
-            name = "Test",
-            timestamp = Instant.now(),
-            romName = "TestROM",
-            playTime = 3665,  // 1 hour 1 min 5 sec
-            stateFile = null,
-            screenshotFile = null,
-            isEmpty = false
-        )
+        val slot =
+                SaveSlotData(
+                        slotNumber = 1,
+                        name = "Test",
+                        timestamp = Instant.now(),
+                        romName = "TestROM",
+                        playTime = 3665, // 1 hour 1 min 5 sec
+                        stateFile = null,
+                        screenshotFile = null,
+                        isEmpty = false
+                )
         assertEquals("01:01:05", slot.getFormattedPlayTime())
     }
 
@@ -139,15 +144,16 @@ class SaveSlotDataTest {
 
     @Test
     fun `hasScreenshot returns false for non-existent file`() {
-        val slot = SaveSlotData(
-            slotNumber = 1,
-            name = "Test",
-            timestamp = Instant.now(),
-            romName = "TestROM",
-            stateFile = null,
-            screenshotFile = File("/non/existent/path/screenshot.webp"),
-            isEmpty = false
-        )
+        val slot =
+                SaveSlotData(
+                        slotNumber = 1,
+                        name = "Test",
+                        timestamp = Instant.now(),
+                        romName = "TestROM",
+                        stateFile = null,
+                        screenshotFile = File("/non/existent/path/screenshot.webp"),
+                        isEmpty = false
+                )
         assertFalse(slot.hasScreenshot())
     }
 
@@ -156,7 +162,7 @@ class SaveSlotDataTest {
         val slot1 = SaveSlotData.empty(1)
         val slot2 = SaveSlotData.empty(1)
         val slot3 = SaveSlotData.empty(2)
-        
+
         assertEquals(slot1, slot2)
         assertNotEquals(slot1, slot3)
     }
@@ -164,18 +170,19 @@ class SaveSlotDataTest {
     @Test
     fun `occupied slot preserves all properties`() {
         val now = Instant.now()
-        val slot = SaveSlotData(
-            slotNumber = 3,
-            name = "Final Boss",
-            timestamp = now,
-            romName = "Super Mario World",
-            playTime = 7200,
-            description = "Before final battle",
-            stateFile = File("/path/to/state.bin"),
-            screenshotFile = File("/path/to/screenshot.webp"),
-            isEmpty = false
-        )
-        
+        val slot =
+                SaveSlotData(
+                        slotNumber = 3,
+                        name = "Final Boss",
+                        timestamp = now,
+                        romName = "Super Mario World",
+                        playTime = 7200,
+                        description = "Before final battle",
+                        stateFile = File("/path/to/state.bin"),
+                        screenshotFile = File("/path/to/screenshot.webp"),
+                        isEmpty = false
+                )
+
         assertEquals(3, slot.slotNumber)
         assertEquals("Final Boss", slot.name)
         assertEquals(now, slot.timestamp)
