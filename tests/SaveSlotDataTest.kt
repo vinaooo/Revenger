@@ -1,9 +1,9 @@
 package com.vinaooo.revenger.tests
 
 import com.vinaooo.revenger.models.SaveSlotData
+import java.time.Instant
 import org.junit.Assert.*
 import org.junit.Test
-import java.time.Instant
 
 class SaveSlotDataTest {
 
@@ -23,15 +23,18 @@ class SaveSlotDataTest {
 
     @Test
     fun `getDisplayName returns name for occupied slots`() {
-        val slot = SaveSlotData(
-            slotNumber = 1,
-            name = "Boss Fight",
-            timestamp = Instant.now(),
-            romName = "Zelda",
-            stateFile = null,
-            screenshotFile = null,
-            isEmpty = false
-        )
+        val slot =
+                SaveSlotData(
+                        slotNumber = 1,
+                        name = "Boss Fight",
+                        timestamp = Instant.now(),
+                        romName = "Zelda",
+                        stateFile = null,
+                        screenshotFile = null,
+                        playTime = 0,
+                        description = "",
+                        isEmpty = false
+                )
         assertEquals("Boss Fight", slot.getDisplayName())
     }
 }

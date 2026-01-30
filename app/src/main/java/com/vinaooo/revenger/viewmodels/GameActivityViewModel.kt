@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.Application
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.*
@@ -12,6 +14,7 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.swordfish.radialgamepad.library.event.Event
@@ -22,11 +25,13 @@ import com.vinaooo.revenger.controllers.SpeedController
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
+import com.vinaooo.revenger.managers.SaveStateManager
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.retromenu3.*
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
+import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
@@ -71,6 +76,9 @@ class GameActivityViewModel(application: Application) :
     internal var keyboardInputAdapter:
             com.vinaooo.revenger.ui.retromenu3.navigation.KeyboardInputAdapter? =
             null
+
+    /** Currently selected save slot for multi-slot operations (default = 1) */
+    val selectedSlot: MutableLiveData<Int> = MutableLiveData(1)
 
     // ===== SHARED REFERENCES =====
     // These are shared between specialized ViewModels
@@ -260,6 +268,25 @@ class GameActivityViewModel(application: Application) :
         controllerInput.shouldHandleGamepadMenuButton = { shouldHandleGamepadMenuButton() }
     }
 
+    /** Capture screenshot when menu opens. Called from showRetroMenu3() before pausing the game. */
+    fun captureScreenshotForSaveState() {
+        retroView?.view?.let { glRetroView ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ScreenshotCaptureUtil.captureAndCacheScreenshot(glRetroView)
+            }
+        }
+    }
+
+    /** Get cached screenshot for save operation. */
+    fun getCachedScreenshot(): Bitmap? {
+        return ScreenshotCaptureUtil.getCachedScreenshot()
+    }
+
+    /** Clear cached screenshot when menu closes. */
+    fun clearCachedScreenshot() {
+        ScreenshotCaptureUtil.clearCachedScreenshot()
+    }
+
     /** Configure menu callback with activity reference */
     fun setupMenuCallback(activity: FragmentActivity) {
         // PHASE 3.1a: Initialize NavigationController (permanently enabled after Phase 4
@@ -278,6 +305,16 @@ class GameActivityViewModel(application: Application) :
             navigationController?.onMenuOpenedCallback = {
                 // Preservar estado do emulador
                 retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
+                // Capturar screenshot imediatamente quando o menu abre
+                try {
+                    captureScreenshotForSaveState()
+                } catch (e: Exception) {
+                    android.util.Log.w(
+                            "GameActivityViewModel",
+                            "Failed to capture screenshot on menu open",
+                            e
+                    )
+                }
                 // PAUSAR o jogo quando menu abre
                 retroView?.let { speedController?.pause(it.view) }
             }
@@ -1071,16 +1108,66 @@ class GameActivityViewModel(application: Application) :
             Handler(Looper.getMainLooper())
                     .postDelayed(
                             {
-                                utils.saveState(currentRetroView)
-                                currentRetroView.view.frameSpeed = savedFrameSpeed
-                                onComplete?.invoke()
+                                try {
+                                    utils.saveState(currentRetroView)
+
+                                    // Also persist into multi-slot manager (slot 1)
+                                    try {
+                                        val stateBytes = currentRetroView.view.serializeState()
+                                        val screenshot = getCachedScreenshot()
+                                        val romName = resources.getString(R.string.conf_rom)
+                                        val slotToUse = selectedSlot.value ?: 1
+                                        SaveStateManager.getInstance(getApplication())
+                                                .saveToSlot(
+                                                        slotToUse,
+                                                        stateBytes,
+                                                        screenshot,
+                                                        null,
+                                                        romName
+                                                )
+                                    } catch (e: Exception) {
+                                        android.util.Log.w(
+                                                "GameActivityViewModel",
+                                                "Failed to persist to SaveStateManager",
+                                                e
+                                        )
+                                    }
+
+                                    currentRetroView.view.frameSpeed = savedFrameSpeed
+                                    // Clear cached screenshot after applying to save
+                                    clearCachedScreenshot()
+                                } finally {
+                                    onComplete?.invoke()
+                                }
                             },
                             200
                     )
         } else {
             // Keep current frameSpeed (including 0 for paused state in menu)
-            utils.saveState(currentRetroView)
-            onComplete?.invoke()
+            try {
+                utils.saveState(currentRetroView)
+
+                // Also persist into multi-slot manager (slot 1)
+                try {
+                    val stateBytes = currentRetroView.view.serializeState()
+                    val screenshot = getCachedScreenshot()
+                    val romName = resources.getString(R.string.conf_rom)
+                    val slotToUse = selectedSlot.value ?: 1
+                    SaveStateManager.getInstance(getApplication())
+                            .saveToSlot(slotToUse, stateBytes, screenshot, null, romName)
+                } catch (e: Exception) {
+                    android.util.Log.w(
+                            "GameActivityViewModel",
+                            "Failed to persist to SaveStateManager",
+                            e
+                    )
+                }
+
+                // Clear cached screenshot after applying to save
+                clearCachedScreenshot()
+            } finally {
+                onComplete?.invoke()
+            }
         }
     }
 
