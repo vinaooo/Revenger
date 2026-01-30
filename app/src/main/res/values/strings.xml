@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Multi-slot Save System Dialogs and Operations -->
+    <string name="save_name_hint">Enter save name</string>
+    <string name="save_name_dialog_title">Save Slot Name</string>
+    <string name="dialog_save">Save</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="overwrite_dialog_title">Overwrite Save?</string>
+    <string name="overwrite_dialog_message">Overwrite slot "%1$s"?</string>
+    <string name="dialog_overwrite">Overwrite</string>
+    <string name="operations_dialog_title">Select operation for "%1$s"</string>
+    <string name="operation_move">Move</string>
+    <string name="operation_copy">Copy</string>
+    <string name="operation_delete">Delete</string>
+    <string name="operation_rename">Rename</string>
+    <string name="select_destination_title">Select destination slot</string>
+    <string name="delete_dialog_title">Delete Save?</string>
+    <string name="delete_dialog_message">Delete slot "%1$s"?</string>
+    <string name="dialog_delete">Delete</string>
+    <string name="rename_dialog_title">Rename Save Slot</string>
+    <string name="dialog_rename">Rename</string>
+</resources>

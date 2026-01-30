@@ -21,6 +21,16 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 
 class RetroView(private val context: Context, private val coroutineScope: CoroutineScope) {
+    /**
+     * Captura o bitmap do GLRetroView usando drawing cache.
+     * @return Bitmap do screenshot ou null se falhar
+     */
+    fun getBitmapScreenshot(): android.graphics.Bitmap? {
+        view.isDrawingCacheEnabled = true
+        val bitmap = android.graphics.Bitmap.createBitmap(view.drawingCache)
+        view.isDrawingCacheEnabled = false
+        return bitmap
+    }
     companion object {
         var romBytes: ByteArray? = null
     }

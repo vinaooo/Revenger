@@ -84,8 +84,9 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             // Get serialized state
             val stateBytes = retroView.view.serializeState()
 
-            // Get cached screenshot
-            val screenshot = viewModel.getCachedScreenshot()
+            // Get screenshot using utilitário
+            val screenshot =
+                    com.vinaooo.revenger.utils.ScreenshotCaptureUtil.captureScreenshot(retroView)
 
             // Get ROM name from config
             val romName = getString(R.string.conf_name)
