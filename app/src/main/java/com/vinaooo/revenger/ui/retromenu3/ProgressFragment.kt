@@ -309,8 +309,6 @@ class ProgressFragment : MenuFragmentBase() {
         val selectedIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[ACTION] Progress menu: CONFIRM on index $selectedIndex")
 
-        // CRITICAL: Use menuItems list to identify which item is selected
-        // Agora com 3 ou 4 itens (incluindo Manage Saves)
         if (selectedIndex >= 0 && selectedIndex < menuItems.size) {
             val selectedItem = menuItems[selectedIndex]
             android.util.Log.d(TAG, "[ACTION] Progress menu: Selected item = ${selectedItem.id}")
@@ -318,30 +316,33 @@ class ProgressFragment : MenuFragmentBase() {
             when (selectedItem) {
                 loadState -> {
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Load State selected")
-                    // Navegar para LoadSlotsFragment
+                    val fragment = LoadSlotsFragment.newInstance()
+                    fragment.setListener(loadSlotsListener)
                     parentFragmentManager
-                            .beginTransaction()
-                            .replace(id, LoadSlotsFragment.newInstance())
-                            .addToBackStack(null)
-                            .commitAllowingStateLoss()
+                        .beginTransaction()
+                        .replace(id, fragment)
+                        .addToBackStack(null)
+                        .commitAllowingStateLoss()
                 }
                 saveState -> {
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Save State selected")
-                    // Navegar para SaveSlotsFragment
+                    val fragment = SaveSlotsFragment.newInstance()
+                    fragment.setListener(saveSlotsListener)
                     parentFragmentManager
-                            .beginTransaction()
-                            .replace(id, SaveSlotsFragment.newInstance())
-                            .addToBackStack(null)
-                            .commitAllowingStateLoss()
+                        .beginTransaction()
+                        .replace(id, fragment)
+                        .addToBackStack(null)
+                        .commitAllowingStateLoss()
                 }
                 manageSaves -> {
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Manage Saves selected")
-                    // Navegar para ManageSavesFragment
+                    val fragment = ManageSavesFragment.newInstance()
+                    fragment.setListener(manageSavesListener)
                     parentFragmentManager
-                            .beginTransaction()
-                            .replace(id, ManageSavesFragment.newInstance())
-                            .addToBackStack(null)
-                            .commitAllowingStateLoss()
+                        .beginTransaction()
+                        .replace(id, fragment)
+                        .addToBackStack(null)
+                        .commitAllowingStateLoss()
                 }
                 backProgress -> {
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Back to main menu selected")
@@ -349,15 +350,15 @@ class ProgressFragment : MenuFragmentBase() {
                 }
                 else -> {
                     android.util.Log.w(
-                            TAG,
-                            "[ACTION] Progress menu: Unknown item at index $selectedIndex"
+                        TAG,
+                        "[ACTION] Progress menu: Unknown item at index $selectedIndex"
                     )
                 }
             }
         } else {
             android.util.Log.w(
-                    TAG,
-                    "[ACTION] Progress menu: Invalid selection index $selectedIndex (menuItems.size=${menuItems.size})"
+                TAG,
+                "[ACTION] Progress menu: Invalid selection index $selectedIndex (menuItems.size=${menuItems.size})"
             )
         }
     }
