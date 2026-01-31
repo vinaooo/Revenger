@@ -6,8 +6,7 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
 
 /**
- * Fragment for managing save state slots.
- * Provides operations like copy, move, delete, and rename.
+ * Fragment for managing save state slots. Provides operations like copy, move, delete, and rename.
  */
 class ManageSavesFragment : SaveStateGridFragment() {
 
@@ -26,18 +25,19 @@ class ManageSavesFragment : SaveStateGridFragment() {
     private fun showSlotOperationsDialog(slot: SaveSlotData) {
         val operations = arrayOf("Copy", "Move", "Delete", "Rename", "Cancel")
 
-        val dialog = AlertDialog.Builder(requireContext())
-            .setTitle("Manage ${slot.getDisplayName()}")
-            .setItems(operations) { _, which ->
-                when (which) {
-                    0 -> showCopyDialog(slot)
-                    1 -> showMoveDialog(slot)
-                    2 -> showDeleteConfirmation(slot)
-                    3 -> showRenameDialog(slot)
-                    4 -> {} // Cancel
-                }
-            }
-            .create()
+        val dialog =
+                AlertDialog.Builder(requireContext())
+                        .setTitle("Manage ${slot.getDisplayName()}")
+                        .setItems(operations) { _, which ->
+                            when (which) {
+                                0 -> showCopyDialog(slot)
+                                1 -> showMoveDialog(slot)
+                                2 -> showDeleteConfirmation(slot)
+                                3 -> showRenameDialog(slot)
+                                4 -> {} // Cancel
+                            }
+                        }
+                        .create()
 
         dialog.show()
     }
@@ -46,14 +46,15 @@ class ManageSavesFragment : SaveStateGridFragment() {
         // Show dialog to select destination slot
         val slotNames = (1..9).map { "Slot $it" }.toTypedArray()
 
-        val dialog = AlertDialog.Builder(requireContext())
-            .setTitle("Copy ${slot.getDisplayName()} to:")
-            .setItems(slotNames) { _, which ->
-                val destSlot = which + 1
-                performCopy(slot, destSlot)
-            }
-            .setNegativeButton("Cancel", null)
-            .create()
+        val dialog =
+                AlertDialog.Builder(requireContext())
+                        .setTitle("Copy ${slot.getDisplayName()} to:")
+                        .setItems(slotNames) { _, which ->
+                            val destSlot = which + 1
+                            performCopy(slot, destSlot)
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .create()
 
         dialog.show()
     }
@@ -62,27 +63,27 @@ class ManageSavesFragment : SaveStateGridFragment() {
         // Show dialog to select destination slot
         val slotNames = (1..9).map { "Slot $it" }.toTypedArray()
 
-        val dialog = AlertDialog.Builder(requireContext())
-            .setTitle("Move ${slot.getDisplayName()} to:")
-            .setItems(slotNames) { _, which ->
-                val destSlot = which + 1
-                performMove(slot, destSlot)
-            }
-            .setNegativeButton("Cancel", null)
-            .create()
+        val dialog =
+                AlertDialog.Builder(requireContext())
+                        .setTitle("Move ${slot.getDisplayName()} to:")
+                        .setItems(slotNames) { _, which ->
+                            val destSlot = which + 1
+                            performMove(slot, destSlot)
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .create()
 
         dialog.show()
     }
 
     private fun showDeleteConfirmation(slot: SaveSlotData) {
-        val dialog = AlertDialog.Builder(requireContext())
-            .setTitle("Delete Save")
-            .setMessage("Delete ${slot.getDisplayName()}? This cannot be undone.")
-            .setPositiveButton("Delete") { _, _ ->
-                performDelete(slot)
-            }
-            .setNegativeButton("Cancel", null)
-            .create()
+        val dialog =
+                AlertDialog.Builder(requireContext())
+                        .setTitle("Delete Save")
+                        .setMessage("Delete ${slot.getDisplayName()}? This cannot be undone.")
+                        .setPositiveButton("Delete") { _, _ -> performDelete(slot) }
+                        .setNegativeButton("Cancel", null)
+                        .create()
 
         dialog.show()
     }
@@ -92,17 +93,18 @@ class ManageSavesFragment : SaveStateGridFragment() {
         input.setText(slot.name)
         input.selectAll()
 
-        val dialog = AlertDialog.Builder(requireContext())
-            .setTitle("Rename ${slot.getDisplayName()}")
-            .setView(input)
-            .setPositiveButton("Rename") { _, _ ->
-                val newName = input.text.toString().trim()
-                if (newName.isNotEmpty()) {
-                    performRename(slot, newName)
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .create()
+        val dialog =
+                AlertDialog.Builder(requireContext())
+                        .setTitle("Rename ${slot.getDisplayName()}")
+                        .setView(input)
+                        .setPositiveButton("Rename") { _, _ ->
+                            val newName = input.text.toString().trim()
+                            if (newName.isNotEmpty()) {
+                                performRename(slot, newName)
+                            }
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .create()
 
         dialog.show()
     }
@@ -111,7 +113,8 @@ class ManageSavesFragment : SaveStateGridFragment() {
         try {
             val success = saveStateManager.copySlot(sourceSlot.slotNumber, destSlotNumber)
             if (success) {
-                Toast.makeText(requireContext(), "Save copied successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Save copied successfully", Toast.LENGTH_SHORT)
+                        .show()
                 // Refresh the grid
                 populateGrid()
             } else {
@@ -127,7 +130,8 @@ class ManageSavesFragment : SaveStateGridFragment() {
         try {
             val success = saveStateManager.moveSlot(sourceSlot.slotNumber, destSlotNumber)
             if (success) {
-                Toast.makeText(requireContext(), "Save moved successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Save moved successfully", Toast.LENGTH_SHORT)
+                        .show()
                 // Refresh the grid
                 populateGrid()
             } else {
@@ -143,7 +147,8 @@ class ManageSavesFragment : SaveStateGridFragment() {
         try {
             val success = saveStateManager.deleteSlot(slot.slotNumber)
             if (success) {
-                Toast.makeText(requireContext(), "Save deleted successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Save deleted successfully", Toast.LENGTH_SHORT)
+                        .show()
                 // Refresh the grid
                 populateGrid()
             } else {
@@ -159,7 +164,8 @@ class ManageSavesFragment : SaveStateGridFragment() {
         try {
             val success = saveStateManager.renameSlot(slot.slotNumber, newName)
             if (success) {
-                Toast.makeText(requireContext(), "Save renamed successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Save renamed successfully", Toast.LENGTH_SHORT)
+                        .show()
                 // Refresh the grid
                 populateGrid()
             } else {

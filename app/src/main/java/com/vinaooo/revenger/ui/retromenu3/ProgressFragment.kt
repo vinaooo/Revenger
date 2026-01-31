@@ -316,8 +316,7 @@ class ProgressFragment : MenuFragmentBase() {
                             "[ACTION] Progress menu: Load State selected - opening LoadSlotsFragment"
                     )
                     try {
-                        val loadFragment =
-                                com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment()
+                        val loadFragment = com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment()
                         // First replace the menu container with the load fragment
                         parentFragmentManager
                                 .beginTransaction()

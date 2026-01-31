@@ -323,8 +323,8 @@ class SaveStateManager private constructor(private val context: Context) {
     // ========== CONVENIENCE METHODS ==========
 
     /**
-     * Save current game state to specified slot.
-     * This method should be called from UI layer with current game state.
+     * Save current game state to specified slot. This method should be called from UI layer with
+     * current game state.
      */
     fun saveState(slotNumber: Int): Boolean {
         // This is a placeholder - actual implementation would need current game state
@@ -333,10 +333,7 @@ class SaveStateManager private constructor(private val context: Context) {
         return false
     }
 
-    /**
-     * Load game state from specified slot.
-     * This method should load the state into the emulator.
-     */
+    /** Load game state from specified slot. This method should load the state into the emulator. */
     fun loadState(slotNumber: Int): Boolean {
         // This is a placeholder - actual implementation would load state into emulator
         // For now, return false to indicate not implemented

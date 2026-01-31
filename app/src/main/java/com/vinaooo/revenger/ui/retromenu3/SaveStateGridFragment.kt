@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.view.children
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.managers.SaveStateManager
@@ -56,27 +55,21 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
     // ========== ABSTRACT METHODS ==========
 
-    /**
-     * Get the title resource ID for this grid
-     */
+    /** Get the title resource ID for this grid */
     abstract fun getTitleResId(): Int
 
-    /**
-     * Called when a slot is selected and confirmed
-     */
+    /** Called when a slot is selected and confirmed */
     abstract fun onSlotConfirmed(slot: SaveSlotData)
 
-    /**
-     * Called when back is confirmed
-     */
+    /** Called when back is confirmed */
     abstract fun onBackConfirmed()
 
     // ========== LIFECYCLE ==========
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View {
         return inflater.inflate(R.layout.save_state_grid, container, false)
     }
@@ -97,7 +90,10 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
         // Register with NavigationController
         viewModel.navigationController?.registerFragment(this, getTotalNavigableItems())
-        android.util.Log.d(TAG, "[NAVIGATION] $TAG registered with ${getTotalNavigableItems()} items")
+        android.util.Log.d(
+                TAG,
+                "[NAVIGATION] $TAG registered with ${getTotalNavigableItems()} items"
+        )
     }
 
     override fun onDestroyView() {
@@ -122,18 +118,9 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         backButton.setUseBackgroundColor(false)
 
         // Apply fonts
-        ViewUtils.applySelectedFontToViews(
-            requireContext(),
-            gridTitle,
-            backTitle,
-            backArrow
-        )
+        ViewUtils.applySelectedFontToViews(requireContext(), gridTitle, backTitle, backArrow)
 
-        FontUtils.applyTextCapitalization(
-            requireContext(),
-            gridTitle,
-            backTitle
-        )
+        FontUtils.applyTextCapitalization(requireContext(), gridTitle, backTitle)
     }
 
     private fun setupClickListeners() {
@@ -141,9 +128,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         backButton.setOnClickListener {
             android.util.Log.d(TAG, "[TOUCH] Back button clicked")
             selectBackButton()
-            it.postDelayed({
-                onBackConfirmed()
-            }, TOUCH_ACTIVATION_DELAY_MS)
+            it.postDelayed({ onBackConfirmed() }, TOUCH_ACTIVATION_DELAY_MS)
         }
     }
 
@@ -161,10 +146,11 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
                 val slotView = createSlotView(slot, row, col)
                 slotViews.add(slotView)
 
-                val params = GridLayout.LayoutParams().apply {
-                    rowSpec = GridLayout.spec(row)
-                    columnSpec = GridLayout.spec(col)
-                }
+                val params =
+                        GridLayout.LayoutParams().apply {
+                            rowSpec = GridLayout.spec(row)
+                            columnSpec = GridLayout.spec(col)
+                        }
                 slotsGrid.addView(slotView, params)
             }
         }
@@ -188,9 +174,8 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
             slot.screenshotFile?.let { file ->
                 val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                 screenshot.setImageBitmap(bitmap)
-            } ?: run {
-                screenshot.setImageResource(R.drawable.ic_no_screenshot)
             }
+                    ?: run { screenshot.setImageResource(R.drawable.ic_no_screenshot) }
             name.text = slot.getDisplayName()
             container.setBackgroundResource(R.drawable.slot_occupied_background)
         }
@@ -202,9 +187,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         slotView.setOnClickListener {
             android.util.Log.d(TAG, "[TOUCH] Slot ${slot.slotNumber} clicked (row=$row, col=$col)")
             selectSlot(row, col)
-            it.postDelayed({
-                onSlotConfirmed(slot)
-            }, TOUCH_ACTIVATION_DELAY_MS)
+            it.postDelayed({ onSlotConfirmed(slot) }, TOUCH_ACTIVATION_DELAY_MS)
         }
 
         return slotView
@@ -244,9 +227,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /**
-     * Navigate left in the grid
-     */
+    /** Navigate left in the grid */
     fun performNavigateLeft() {
         if (!isBackButtonSelected && selectedCol > 0) {
             selectedCol--
@@ -254,9 +235,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         }
     }
 
-    /**
-     * Navigate right in the grid
-     */
+    /** Navigate right in the grid */
     fun performNavigateRight() {
         if (!isBackButtonSelected && selectedCol < GRID_COLS - 1) {
             selectedCol++
@@ -309,10 +288,8 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
                 selectionBorder.visibility = if (isSelected) View.VISIBLE else View.GONE
                 slotName.setTextColor(
-                    if (isSelected)
-                        resources.getColor(R.color.rm_selected_color, null)
-                    else
-                        resources.getColor(R.color.rm_text_color, null)
+                        if (isSelected) resources.getColor(R.color.rm_selected_color, null)
+                        else resources.getColor(R.color.rm_text_color, null)
                 )
             }
         }

@@ -6,8 +6,7 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
 
 /**
- * Fragment for Save State slots grid.
- * Allows user to select a slot to save the current game state.
+ * Fragment for Save State slots grid. Allows user to select a slot to save the current game state.
  */
 class SaveSlotsFragment : SaveStateGridFragment() {
 
@@ -25,14 +24,13 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
     private fun showSaveConfirmationDialog(slot: SaveSlotData) {
         val context = requireContext()
-        val dialog = AlertDialog.Builder(context)
-            .setTitle("Save Game State")
-            .setMessage("Save current game state to ${slot.getDisplayName()}?")
-            .setPositiveButton("Save") { _, _ ->
-                performSave(slot)
-            }
-            .setNegativeButton("Cancel", null)
-            .create()
+        val dialog =
+                AlertDialog.Builder(context)
+                        .setTitle("Save Game State")
+                        .setMessage("Save current game state to ${slot.getDisplayName()}?")
+                        .setPositiveButton("Save") { _, _ -> performSave(slot) }
+                        .setNegativeButton("Cancel", null)
+                        .create()
 
         dialog.show()
     }
@@ -43,7 +41,12 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             saveStateManager.saveState(slot.slotNumber)
 
             // Show success message
-            Toast.makeText(requireContext(), "Game saved to ${slot.getDisplayName()}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                            requireContext(),
+                            "Game saved to ${slot.getDisplayName()}",
+                            Toast.LENGTH_SHORT
+                    )
+                    .show()
 
             // Navigate back to main menu
             viewModel.navigationController?.navigateBack()
