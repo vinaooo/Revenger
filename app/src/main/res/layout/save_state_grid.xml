@@ -59,7 +59,8 @@
                 android:columnCount="3"
                 android:rowCount="3"
                 android:alignmentMode="alignBounds"
-                android:useDefaultMargins="false">
+                android:useDefaultMargins="false"
+                android:orientation="horizontal">
 
                 <!-- Slots will be added programmatically -->
 

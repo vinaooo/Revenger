@@ -146,12 +146,9 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
                 val slotView = createSlotView(slot, row, col)
                 slotViews.add(slotView)
 
-                val params =
-                        GridLayout.LayoutParams().apply {
-                            rowSpec = GridLayout.spec(row)
-                            columnSpec = GridLayout.spec(col)
-                        }
-                slotsGrid.addView(slotView, params)
+                // Add view directly to GridLayout - it will position automatically based on
+                // columnCount
+                slotsGrid.addView(slotView)
             }
         }
     }
