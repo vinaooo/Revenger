@@ -163,7 +163,26 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
         // Set slot content
         if (slot.isEmpty) {
-            screenshot.setImageResource(R.drawable.ic_empty_slot)
+            // Load SVG asset for empty slots
+            try {
+                val inputStream = requireContext().assets.open("videogame_asset_120.svg")
+                val svg = com.caverock.androidsvg.SVG.getFromInputStream(inputStream)
+                // Create bitmap with appropriate size - SVG is actually 48x48
+                val bitmap = android.graphics.Bitmap.createBitmap(200, 200, android.graphics.Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(bitmap)
+                // Render SVG centered in the bitmap
+                val matrix = android.graphics.Matrix()
+                val scale = 200f / 48f  // Scale to fit in 200x200 bitmap (SVG is 48x48)
+                matrix.setScale(scale, scale)
+                matrix.postTranslate((200f - 48f * scale) / 2f, (200f - 48f * scale) / 2f)
+                canvas.setMatrix(matrix)
+                svg.renderToCanvas(canvas)
+                screenshot.setImageBitmap(bitmap)
+                inputStream.close()
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error loading SVG for empty slot", e)
+                screenshot.setImageResource(R.drawable.ic_empty_slot)
+            }
             name.text = getString(R.string.slot_empty)
             container.setBackgroundResource(R.drawable.slot_background)
         } else {
