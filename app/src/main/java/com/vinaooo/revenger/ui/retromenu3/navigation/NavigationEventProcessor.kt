@@ -30,12 +30,8 @@ class NavigationEventProcessor(
                 when (event.direction) {
                     Direction.UP -> navigateUp()
                     Direction.DOWN -> navigateDown()
-                    Direction.LEFT -> {
-                        /* Reservado para uso futuro */
-                    }
-                    Direction.RIGHT -> {
-                        /* Reservado para uso futuro */
-                    }
+                    Direction.LEFT -> navigateLeft()
+                    Direction.RIGHT -> navigateRight()
                 }
             }
             is NavigationEvent.SelectItem -> {
@@ -91,6 +87,38 @@ class NavigationEventProcessor(
         // Sync selectedItemIndex with fragment's current selection
         stateManager.updateSelectedIndex(
                 stateManager.currentFragment?.getCurrentSelectedIndex() ?: 0
+        )
+    }
+
+    /** Navega para o item à esquerda (LEFT). */
+    fun navigateLeft() {
+        android.util.Log.d(TAG, "[NAV] navigateLeft called")
+        // Delegate navigation to fragment to support custom logic
+        stateManager.currentFragment?.onNavigateLeft()
+
+        // Sync selectedItemIndex with fragment's current selection
+        stateManager.updateSelectedIndex(
+                stateManager.currentFragment?.getCurrentSelectedIndex() ?: 0
+        )
+        android.util.Log.d(
+                TAG,
+                "[NAV] navigateLeft completed, new index: ${stateManager.selectedItemIndex}"
+        )
+    }
+
+    /** Navega para o item à direita (RIGHT). */
+    fun navigateRight() {
+        android.util.Log.d(TAG, "[NAV] navigateRight called")
+        // Delegate navigation to fragment to support custom logic
+        stateManager.currentFragment?.onNavigateRight()
+
+        // Sync selectedItemIndex with fragment's current selection
+        stateManager.updateSelectedIndex(
+                stateManager.currentFragment?.getCurrentSelectedIndex() ?: 0
+        )
+        android.util.Log.d(
+                TAG,
+                "[NAV] navigateRight completed, new index: ${stateManager.selectedItemIndex}"
         )
     }
 

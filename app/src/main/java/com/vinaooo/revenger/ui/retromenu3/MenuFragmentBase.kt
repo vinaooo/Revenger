@@ -47,6 +47,16 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     /** Método abstrato para navegação para baixo específica do fragment */
     protected abstract fun performNavigateDown()
 
+    /** Método para navegação para esquerda específica do fragment (padrão: não faz nada) */
+    protected open fun performNavigateLeft() {
+        // Default: do nothing for linear menus
+    }
+
+    /** Método para navegação para direita específica do fragment (padrão: não faz nada) */
+    protected open fun performNavigateRight() {
+        // Default: do nothing for linear menus
+    }
+
     /** Método abstrato para confirmação específica do fragment */
     protected abstract fun performConfirm()
 
@@ -103,6 +113,18 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         )
         val result = performNavigateDown()
         android.util.Log.d("MenuBase", "[NAV] ↓ onNavigateDown completed - result=$result")
+        return true
+    }
+
+    override fun onNavigateLeft(): Boolean {
+        android.util.Log.d("MenuBase", "[NAV] ← Navigate Left triggered")
+        performNavigateLeft()
+        return true
+    }
+
+    override fun onNavigateRight(): Boolean {
+        android.util.Log.d("MenuBase", "[NAV] → Navigate Right triggered")
+        performNavigateRight()
         return true
     }
 

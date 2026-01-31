@@ -24,11 +24,9 @@
         <LinearLayout
             android:id="@+id/grid_container"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="@dimen/rm_center_content_weight"
-            android:layout_gravity="center_vertical"
-            android:orientation="vertical"
-            android:paddingVertical="@dimen/rm_container_padding_vertical">
+            android:orientation="vertical">
 
             <!-- Menu Title -->
             <TextView
@@ -51,27 +49,23 @@
                 android:shadowDy="@dimen/rm_shadow_dy"
                 android:shadowRadius="@dimen/rm_shadow_radius" />
 
-            <!-- 3x3 Grid using GridLayout -->
-            <GridLayout
+            <!-- 3x3 Grid using LinearLayout -->
+            <LinearLayout
                 android:id="@+id/slots_grid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:columnCount="3"
-                android:rowCount="3"
-                android:alignmentMode="alignBounds"
-                android:useDefaultMargins="false"
-                android:orientation="horizontal">
-
-                <!-- Slots will be added programmatically -->
-
-            </GridLayout>
+                android:layout_weight="0"
+                android:orientation="horizontal"
+                android:weightSum="3">
+                <!-- Columns will be added programmatically -->
+            </LinearLayout>
 
             <!-- Back Button -->
             <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                 android:id="@+id/grid_back_button"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/rm_menu_item_height"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:clickable="true"
                 android:focusable="true">
 

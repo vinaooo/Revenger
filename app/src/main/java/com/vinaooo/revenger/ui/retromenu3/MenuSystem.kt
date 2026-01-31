@@ -270,6 +270,18 @@ interface MenuFragment {
     fun onNavigateDown(): Boolean
 
     /**
+     * Navigate left in the menu (gamepad DPAD left)
+     * @return true if navigation was handled, false otherwise
+     */
+    fun onNavigateLeft(): Boolean
+
+    /**
+     * Navigate right in the menu (gamepad DPAD right)
+     * @return true if navigation was handled, false otherwise
+     */
+    fun onNavigateRight(): Boolean
+
+    /**
      * Confirm current selection (gamepad A button)
      * @return true if action was handled, false otherwise
      */

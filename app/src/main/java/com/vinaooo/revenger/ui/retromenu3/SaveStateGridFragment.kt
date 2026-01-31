@@ -5,8 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.GridLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
@@ -38,7 +38,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
     // Views
     protected lateinit var gridContainer: ViewGroup
-    protected lateinit var slotsGrid: GridLayout
+    protected lateinit var slotsGrid: LinearLayout
     protected lateinit var gridTitle: TextView
     protected lateinit var backButton: RetroCardView
     protected lateinit var backArrow: TextView
@@ -138,24 +138,61 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
         val slots = saveStateManager.getAllSlots()
 
+        // Create three column containers programmatically
+        val column1 =
+                LinearLayout(requireContext()).apply {
+                    orientation = LinearLayout.VERTICAL
+                    layoutParams =
+                            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+                    weightSum = 3f
+                }
+        val column2 =
+                LinearLayout(requireContext()).apply {
+                    orientation = LinearLayout.VERTICAL
+                    layoutParams =
+                            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+                    weightSum = 3f
+                }
+        val column3 =
+                LinearLayout(requireContext()).apply {
+                    orientation = LinearLayout.VERTICAL
+                    layoutParams =
+                            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+                    weightSum = 3f
+                }
+
+        // Add columns to the grid
+        slotsGrid.addView(column1)
+        slotsGrid.addView(column2)
+        slotsGrid.addView(column3)
+
+        android.util.Log.d(TAG, "Creating ${slots.size} slots")
+
         for (row in 0 until GRID_ROWS) {
             for (col in 0 until GRID_COLS) {
                 val slotIndex = row * GRID_COLS + col
+                if (slotIndex >= slots.size) continue
+
                 val slot = slots[slotIndex]
 
                 val slotView = createSlotView(slot, row, col)
                 slotViews.add(slotView)
 
-                // Add view directly to GridLayout - it will position automatically based on
-                // columnCount
-                slotsGrid.addView(slotView)
+                // Add to the appropriate column
+                when (col) {
+                    0 -> column1.addView(slotView)
+                    1 -> column2.addView(slotView)
+                    2 -> column3.addView(slotView)
+                }
             }
         }
+
+        android.util.Log.d(TAG, "Grid populated with ${slotViews.size} slot views")
     }
 
     private fun createSlotView(slot: SaveSlotData, row: Int, col: Int): View {
         val inflater = LayoutInflater.from(requireContext())
-        val slotView = inflater.inflate(R.layout.save_slot_item, slotsGrid, false)
+        val slotView = inflater.inflate(R.layout.save_slot_item, null, false)
 
         val screenshot = slotView.findViewById<ImageView>(R.id.slot_screenshot)
         val name = slotView.findViewById<TextView>(R.id.slot_name)
@@ -249,18 +286,32 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     }
 
     /** Navigate left in the grid */
-    fun performNavigateLeft() {
+    override fun performNavigateLeft() {
+        android.util.Log.d(
+                TAG,
+                "[NAV] performNavigateLeft called: selectedCol=$selectedCol, isBackButtonSelected=$isBackButtonSelected"
+        )
         if (!isBackButtonSelected && selectedCol > 0) {
             selectedCol--
             updateSelectionVisualInternal()
+            android.util.Log.d(TAG, "[NAV] Moved left to col=$selectedCol")
+        } else {
+            android.util.Log.d(TAG, "[NAV] Cannot move left: at edge or back selected")
         }
     }
 
     /** Navigate right in the grid */
-    fun performNavigateRight() {
+    override fun performNavigateRight() {
+        android.util.Log.d(
+                TAG,
+                "[NAV] performNavigateRight called: selectedCol=$selectedCol, isBackButtonSelected=$isBackButtonSelected"
+        )
         if (!isBackButtonSelected && selectedCol < GRID_COLS - 1) {
             selectedCol++
             updateSelectionVisualInternal()
+            android.util.Log.d(TAG, "[NAV] Moved right to col=$selectedCol")
+        } else {
+            android.util.Log.d(TAG, "[NAV] Cannot move right: at edge or back selected")
         }
     }
 
@@ -302,12 +353,16 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
             for (col in 0 until GRID_COLS) {
                 val index = row * GRID_COLS + col
                 val slotView = slotViews.getOrNull(index) ?: continue
-                val selectionBorder = slotView.findViewById<View>(R.id.slot_selection_border)
+                val container = slotView.findViewById<View>(R.id.slot_container)
                 val slotName = slotView.findViewById<TextView>(R.id.slot_name)
 
                 val isSelected = !isBackButtonSelected && row == selectedRow && col == selectedCol
 
-                selectionBorder.visibility = if (isSelected) View.VISIBLE else View.GONE
+                // Change background color for selection instead of border
+                container.setBackgroundResource(
+                        if (isSelected) R.drawable.slot_selected_background
+                        else R.drawable.slot_background
+                )
                 slotName.setTextColor(
                         if (isSelected) resources.getColor(R.color.rm_selected_color, null)
                         else resources.getColor(R.color.rm_text_color, null)
@@ -330,8 +385,13 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     // ========== MENU INTERFACE ==========
 
     override fun getMenuItems(): List<MenuItem> {
-        // Grid navigation is handled internally
-        return listOf(MenuItem("grid", "Save State Grid", action = MenuAction.CONTINUE))
+        // Return 9 slot items + 1 back button item
+        val items = mutableListOf<MenuItem>()
+        for (i in 0 until GRID_ROWS * GRID_COLS) {
+            items.add(MenuItem("slot_$i", "Slot ${i + 1}", action = MenuAction.CONTINUE))
+        }
+        items.add(MenuItem("back", "Back", action = MenuAction.BACK))
+        return items
     }
 
     override fun onMenuItemSelected(item: MenuItem) {

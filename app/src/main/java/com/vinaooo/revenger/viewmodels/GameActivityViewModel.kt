@@ -420,6 +420,30 @@ class GameActivityViewModel(application: Application) :
             )
         }
 
+        controllerInput.menuNavigateLeftCallback = {
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                            direction =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.Direction.LEFT,
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
+        }
+
+        controllerInput.menuNavigateRightCallback = {
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                            direction =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.Direction.RIGHT,
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
+        }
+
         controllerInput.menuConfirmCallback = {
             navigationController?.handleNavigationEvent(
                     com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.ActivateSelected(

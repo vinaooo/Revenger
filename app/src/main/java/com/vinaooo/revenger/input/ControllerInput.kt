@@ -126,6 +126,8 @@ class ControllerInput(private val context: Context) {
         /** Callbacks for RetroMenu3 navigation */
         var menuNavigateUpCallback: () -> Unit = {}
         var menuNavigateDownCallback: () -> Unit = {}
+        var menuNavigateLeftCallback: () -> Unit = {}
+        var menuNavigateRightCallback: () -> Unit = {}
         var menuConfirmCallback: () -> Unit = {}
         var menuBackCallback: () -> Unit = {}
 
@@ -134,6 +136,8 @@ class ControllerInput(private val context: Context) {
         private var lastMenuConfirmCallbackTime: Long = 0
         private var lastMenuNavigateUpCallbackTime: Long = 0
         private var lastMenuNavigateDownCallbackTime: Long = 0
+        private var lastMenuNavigateLeftCallbackTime: Long = 0
+        private var lastMenuNavigateRightCallbackTime: Long = 0
         private var lastStartButtonCallbackTime: Long = 0
         private var lastGamepadMenuButtonCallbackTime: Long = 0
 
@@ -181,6 +185,8 @@ class ControllerInput(private val context: Context) {
                 lastMenuConfirmCallbackTime = 0L
                 lastMenuNavigateUpCallbackTime = 0L
                 lastMenuNavigateDownCallbackTime = 0L
+                lastMenuNavigateLeftCallbackTime = 0L
+                lastMenuNavigateRightCallbackTime = 0L
                 lastStartButtonCallbackTime = 0L
                 lastGamepadMenuButtonCallbackTime = 0L
 
@@ -845,13 +851,29 @@ class ControllerInput(private val context: Context) {
                                         KeyEvent.KEYCODE_DPAD_LEFT -> {
                                                 android.util.Log.d(
                                                         "ControllerInput",
-                                                        "DPAD LEFT (KeyEvent) intercepted"
+                                                        "DPAD LEFT (KeyEvent) intercepted for menu navigation - calling callback"
+                                                )
+                                                executeMenuCallback(
+                                                        menuNavigateLeftCallback,
+                                                        lastMenuNavigateLeftCallbackTime
+                                                ) { lastMenuNavigateLeftCallbackTime = it }
+                                                android.util.Log.d(
+                                                        "ControllerInput",
+                                                        "DPAD LEFT (KeyEvent) callback completed"
                                                 )
                                         }
                                         KeyEvent.KEYCODE_DPAD_RIGHT -> {
                                                 android.util.Log.d(
                                                         "ControllerInput",
-                                                        "DPAD RIGHT (KeyEvent) intercepted"
+                                                        "DPAD RIGHT (KeyEvent) intercepted for menu navigation - calling callback"
+                                                )
+                                                executeMenuCallback(
+                                                        menuNavigateRightCallback,
+                                                        lastMenuNavigateRightCallbackTime
+                                                ) { lastMenuNavigateRightCallbackTime = it }
+                                                android.util.Log.d(
+                                                        "ControllerInput",
+                                                        "DPAD RIGHT (KeyEvent) callback completed"
                                                 )
                                         }
                                 }
@@ -1039,10 +1061,18 @@ class ControllerInput(private val context: Context) {
                                         )
                                         return true
                                 }
-                                hatX < -0.5f -> { // DPAD LEFT (if needed in the future)
+                                hatX < -0.5f -> { // DPAD LEFT
                                         android.util.Log.d(
                                                 "ControllerInput",
-                                                "[INTERCEPT] ⬅️ DPAD LEFT detected - blocking"
+                                                "[INTERCEPT] ⬅️ DPAD LEFT detected - calling menuNavigateLeftCallback"
+                                        )
+                                        executeMenuCallback(
+                                                menuNavigateLeftCallback,
+                                                lastMenuNavigateLeftCallbackTime
+                                        ) { lastMenuNavigateLeftCallbackTime = it }
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ✅ DPAD LEFT callback completed - returning true"
                                         )
                                         android.util.Log.d(
                                                 "ControllerInput",
@@ -1050,10 +1080,18 @@ class ControllerInput(private val context: Context) {
                                         )
                                         return true
                                 }
-                                hatX > 0.5f -> { // DPAD RIGHT (if needed in the future)
+                                hatX > 0.5f -> { // DPAD RIGHT
                                         android.util.Log.d(
                                                 "ControllerInput",
-                                                "[INTERCEPT] ➡️ DPAD RIGHT detected - blocking"
+                                                "[INTERCEPT] ➡️ DPAD RIGHT detected - calling menuNavigateRightCallback"
+                                        )
+                                        executeMenuCallback(
+                                                menuNavigateRightCallback,
+                                                lastMenuNavigateRightCallbackTime
+                                        ) { lastMenuNavigateRightCallbackTime = it }
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "[INTERCEPT] ✅ DPAD RIGHT callback completed - returning true"
                                         )
                                         android.util.Log.d(
                                                 "ControllerInput",
