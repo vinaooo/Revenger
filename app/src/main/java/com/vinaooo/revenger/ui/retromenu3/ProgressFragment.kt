@@ -310,10 +310,31 @@ class ProgressFragment : MenuFragmentBase() {
 
             when (selectedItem) {
                 loadState -> {
-                    // Load State - Execute action directly
-                    android.util.Log.d(TAG, "[ACTION] Progress menu: Load State selected")
-                    viewModel.loadStateCentralized {
-                        android.util.Log.d(TAG, "[ACTION] Progress menu: State loaded successfully")
+                    // Load State - open LoadSlotsFragment submenu to choose slot
+                    android.util.Log.d(
+                            TAG,
+                            "[ACTION] Progress menu: Load State selected - opening LoadSlotsFragment"
+                    )
+                    try {
+                        val loadFragment =
+                                com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment()
+                        // First replace the menu container with the load fragment
+                        parentFragmentManager
+                                .beginTransaction()
+                                .replace(R.id.menu_container, loadFragment, "LoadSlotsFragment")
+                                .addToBackStack("LoadSlotsFragment")
+                                .commitAllowingStateLoss()
+
+                        // Hide main menu visuals after adding submenu (handled elsewhere)
+                    } catch (e: Exception) {
+                        android.util.Log.e(TAG, "Failed to open LoadSlotsFragment", e)
+                        // Fallback: perform direct load
+                        viewModel.loadStateCentralized {
+                            android.util.Log.d(
+                                    TAG,
+                                    "[ACTION] Progress menu: State loaded successfully (fallback)"
+                            )
+                        }
                     }
                 }
                 saveState -> {

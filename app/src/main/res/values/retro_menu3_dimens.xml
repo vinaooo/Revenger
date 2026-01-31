@@ -81,4 +81,8 @@
      <!-- Slot text sizes -->
      <dimen name="rm_slot_title_text_size">14sp</dimen>
      <dimen name="rm_slot_ts_text_size">11sp</dimen>
+     <!-- Save State Grid -->
+     <dimen name="save_slot_size">80dp</dimen>
+     <dimen name="save_slot_margin">4dp</dimen>
+     <dimen name="save_slot_padding">4dp</dimen>
 </resources>

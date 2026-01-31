@@ -319,4 +319,28 @@ class SaveStateManager private constructor(private val context: Context) {
             Log.e(TAG, "Failed to migrate legacy save state", e)
         }
     }
+
+    // ========== CONVENIENCE METHODS ==========
+
+    /**
+     * Save current game state to specified slot.
+     * This method should be called from UI layer with current game state.
+     */
+    fun saveState(slotNumber: Int): Boolean {
+        // This is a placeholder - actual implementation would need current game state
+        // For now, return false to indicate not implemented
+        Log.w(TAG, "saveState($slotNumber) called but not implemented - needs current game state")
+        return false
+    }
+
+    /**
+     * Load game state from specified slot.
+     * This method should load the state into the emulator.
+     */
+    fun loadState(slotNumber: Int): Boolean {
+        // This is a placeholder - actual implementation would load state into emulator
+        // For now, return false to indicate not implemented
+        Log.w(TAG, "loadState($slotNumber) called but not implemented - needs emulator integration")
+        return false
+    }
 }
