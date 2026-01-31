@@ -222,6 +222,8 @@ dependencies {
     
     // Phase 9.4: SDK 36 Features - REMOVED: Material Design Components (replaced with RetroCardView)
     // implementation 'com.google.android.material:material:1.13.0'
+    // SVG rendering for runtime asset SVGs
+    implementation 'com.caverock:androidsvg:1.4'
 }
 
 dependencies {

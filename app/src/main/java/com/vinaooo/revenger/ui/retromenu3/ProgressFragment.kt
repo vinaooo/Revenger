@@ -196,7 +196,7 @@ class ProgressFragment : MenuFragmentBase() {
      * Refresh menuItems list dynamically based on current save state. Called after saving to enable
      * Load State immediately.
      */
-    private fun refreshMenuItems() {
+    fun refreshMenuItems() {
         val hasSaveState = viewModel.hasSaveState()
         val previousItemCount = menuItems.size
 
@@ -317,18 +317,36 @@ class ProgressFragment : MenuFragmentBase() {
                     }
                 }
                 saveState -> {
-                    // Save State - Execute action directly with refreshMenuItems callback
-                    android.util.Log.d(TAG, "[ACTION] Progress menu: Save State selected")
-                    viewModel.saveStateCentralized(
-                            keepPaused = true,
-                            onComplete = {
-                                android.util.Log.d(
-                                        TAG,
-                                        "[ACTION] Progress menu: State saved successfully"
-                                )
-                                refreshMenuItems()
-                            }
+                    // Save State - open SaveSlotsFragment submenu to choose slot
+                    android.util.Log.d(
+                            TAG,
+                            "[ACTION] Progress menu: Save State selected - opening SaveSlotsFragment"
                     )
+                    try {
+                        val saveFragment =
+                                com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment.newInstance()
+                        // First replace the menu container with the save fragment
+                        parentFragmentManager
+                                .beginTransaction()
+                                .replace(R.id.menu_container, saveFragment, "SaveSlotsFragment")
+                                .addToBackStack("SaveSlotsFragment")
+                                .commitAllowingStateLoss()
+
+                        // Hide main menu visuals after adding submenu (handled elsewhere)
+                    } catch (e: Exception) {
+                        android.util.Log.e(TAG, "Failed to open SaveSlotsFragment", e)
+                        // Fallback: perform direct save
+                        viewModel.saveStateCentralized(
+                                keepPaused = true,
+                                onComplete = {
+                                    android.util.Log.d(
+                                            TAG,
+                                            "[ACTION] Progress menu: State saved successfully (fallback)"
+                                    )
+                                    refreshMenuItems()
+                                }
+                        )
+                    }
                 }
                 backProgress -> {
                     // Back to main menu - Execute action directly

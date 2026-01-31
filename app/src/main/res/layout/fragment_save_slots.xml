@@ -1,19 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/rm_background"
+    android:paddingVertical="@dimen/rm_container_padding_vertical"
+    android:paddingStart="@dimen/rm_menu_item_padding"
+    android:paddingEnd="@dimen/rm_menu_item_padding">
+
+    <TextView
+        android:id="@+id/save_slots_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save Slots"
+        android:textSize="@dimen/rm_title_text_size"
+        android:textColor="@color/rm_text_color"
+        android:layout_marginBottom="@dimen/rm_title_margin_bottom"
+        android:includeFontPadding="false"
+        android:shadowColor="@color/rm_shadow_color"
+        android:shadowDx="@dimen/rm_shadow_dx"
+        android:shadowDy="@dimen/rm_shadow_dy"
+        android:shadowRadius="@dimen/rm_shadow_radius" />
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="false"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        android:fadeScrollbars="false"
+        android:clipToPadding="false">
 
-        <GridLayout
-            android:id="@+id/grid_slots"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="3"
-            android:padding="8dp" />
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <GridLayout
+                android:id="@+id/grid_slots"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:columnCount="3"
+                android:useDefaultMargins="false"
+                android:alignmentMode="alignMargins"
+                android:padding="4dp"
+                android:gravity="center" />
+
+        </LinearLayout>
 
     </ScrollView>
 
-</FrameLayout>
+</LinearLayout>

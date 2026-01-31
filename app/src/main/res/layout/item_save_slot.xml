@@ -1,38 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="6dp"
-    android:background="@android:color/white"
-    android:elevation="2dp">
+<com.vinaooo.revenger.ui.retromenu3.RetroCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/rm_slot_item_width"
+    android:layout_height="@dimen/rm_slot_item_height"
+    android:layout_margin="4dp"
+    android:padding="@dimen/rm_slot_item_padding"
+    android:clickable="true"
+    android:focusable="true">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="6dp">
+        android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/iv_slot_image"
+        <!-- White border behind content -->
+        <View
             android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:scaleType="centerCrop"
-            android:contentDescription="" />
+            android:layout_height="match_parent"
+            android:background="@drawable/slot_border_white"
+            android:clickable="false"
+            android:focusable="false" />
 
-        <TextView
-            android:id="@+id/tv_slot_name"
+        <!-- Normal content: screenshot + name + timestamp -->
+        <LinearLayout
+            android:id="@+id/normal_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:paddingTop="4dp" />
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tv_slot_ts"
+            <ImageView
+                android:id="@+id/iv_slot_image"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/rm_slot_item_image_height"
+                android:scaleType="centerCrop"
+                android:contentDescription="" />
+
+            <TextView
+                android:id="@+id/tv_slot_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:paddingTop="4dp"
+                android:includeFontPadding="false"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="@dimen/rm_slot_title_text_size" />
+
+            <TextView
+                android:id="@+id/tv_slot_ts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:paddingTop="2dp"
+                android:includeFontPadding="false"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="@dimen/rm_slot_ts_text_size" />
+
+        </LinearLayout>
+
+        <!-- Empty slot overlay: centered icon + label (wrap content so both stay inside card) -->
+        <LinearLayout
+            android:id="@+id/empty_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:paddingTop="2dp" />
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
 
-    </LinearLayout>
+            <ImageView
+                android:id="@+id/iv_empty_icon"
+                android:layout_width="@dimen/rm_slot_empty_icon_size"
+                android:layout_height="@dimen/rm_slot_empty_icon_size"
+                android:contentDescription=""
+                android:scaleType="centerInside"
+                android:adjustViewBounds="true"
+                android:layout_marginBottom="0dp"
+                android:tint="@android:color/white" />
 
-</FrameLayout>
+            <TextView
+                android:id="@+id/tv_empty_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:text="empty"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:includeFontPadding="false"
+                android:gravity="center"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</com.vinaooo.revenger.ui.retromenu3.RetroCardView>

@@ -71,4 +71,14 @@
     
     <!-- Letter Spacing -->
     <item name="rm_title_letter_spacing" format="float" type="dimen">0.05</item>
+    
+     <!-- Save slot grid -->
+     <dimen name="rm_slot_item_width">100dp</dimen>
+     <dimen name="rm_slot_item_height">120dp</dimen>
+     <dimen name="rm_slot_item_image_height">72dp</dimen>
+     <dimen name="rm_slot_item_padding">6dp</dimen>
+     <dimen name="rm_slot_empty_icon_size">72dp</dimen>
+     <!-- Slot text sizes -->
+     <dimen name="rm_slot_title_text_size">14sp</dimen>
+     <dimen name="rm_slot_ts_text_size">11sp</dimen>
 </resources>

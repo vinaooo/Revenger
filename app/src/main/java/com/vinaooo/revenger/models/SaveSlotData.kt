@@ -37,7 +37,7 @@ data class SaveSlotData(
 
     fun getFormattedTimestamp(): String {
         return timestamp?.let {
-            java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+            java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy HH:mm")
                     .withZone(java.time.ZoneId.systemDefault())
                     .format(it)
         }
