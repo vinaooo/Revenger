@@ -607,94 +607,119 @@ class ProgressFragment : MenuFragmentBase() {
     // ===== Multi-Slot Save System Navigation =====
 
     /**
-     * Shows the Save Slots submenu (9-slot grid for saving game state)
-     * Displays SaveSlotsFragment and sets this fragment as the listener
+     * Shows the Save Slots submenu (9-slot grid for saving game state) Displays SaveSlotsFragment
+     * and sets this fragment as the listener
      */
     private fun showSaveSlotsSubmenu() {
         android.util.Log.d(TAG, "[NAVIGATION] Opening Save Slots submenu")
-        
-        val fragment = SaveSlotsFragment().apply {
-            setListener(object : SaveSlotsFragment.SaveSlotsListener {
-                override fun onSaveCompleted(slotNumber: Int) {
-                    android.util.Log.d(TAG, "[CALLBACK] Save completed to slot $slotNumber")
-                    // Refresh menu items in case this was the first save
-                    refreshMenuItems()
-                    // Close submenu and return to Progress menu
-                    dismissSubmenu()
-                }
 
-                override fun onBackToProgressMenu() {
-                    android.util.Log.d(TAG, "[CALLBACK] Back from Save Slots submenu")
-                    dismissSubmenu()
+        val fragment =
+                SaveSlotsFragment().apply {
+                    setListener(
+                            object : SaveSlotsFragment.SaveSlotsListener {
+                                override fun onSaveCompleted(slotNumber: Int) {
+                                    android.util.Log.d(
+                                            TAG,
+                                            "[CALLBACK] Save completed to slot $slotNumber"
+                                    )
+                                    // Refresh menu items in case this was the first save
+                                    refreshMenuItems()
+                                    // Close submenu and return to Progress menu
+                                    dismissSubmenu()
+                                }
+
+                                override fun onBackToProgressMenu() {
+                                    android.util.Log.d(
+                                            TAG,
+                                            "[CALLBACK] Back from Save Slots submenu"
+                                    )
+                                    dismissSubmenu()
+                                }
+                            }
+                    )
                 }
-            })
-        }
 
         showSubmenuFragment(fragment)
     }
 
     /**
-     * Shows the Load Slots submenu (9-slot grid for loading game state)
-     * Displays LoadSlotsFragment and sets this fragment as the listener
+     * Shows the Load Slots submenu (9-slot grid for loading game state) Displays LoadSlotsFragment
+     * and sets this fragment as the listener
      */
     private fun showLoadSlotsSubmenu() {
         android.util.Log.d(TAG, "[NAVIGATION] Opening Load Slots submenu")
-        
-        val fragment = LoadSlotsFragment().apply {
-            setListener(object : LoadSlotsFragment.LoadSlotsListener {
-                override fun onLoadCompleted(slotNumber: Int) {
-                    android.util.Log.d(TAG, "[CALLBACK] Load completed from slot $slotNumber")
-                    // Close entire menu system after successful load
-                    dismissMenu()
-                }
 
-                override fun onBackToProgressMenu() {
-                    android.util.Log.d(TAG, "[CALLBACK] Back from Load Slots submenu")
-                    dismissSubmenu()
+        val fragment =
+                LoadSlotsFragment().apply {
+                    setListener(
+                            object : LoadSlotsFragment.LoadSlotsListener {
+                                override fun onLoadCompleted(slotNumber: Int) {
+                                    android.util.Log.d(
+                                            TAG,
+                                            "[CALLBACK] Load completed from slot $slotNumber"
+                                    )
+                                    // Close entire menu system after successful load
+                                    dismissMenu()
+                                }
+
+                                override fun onBackToProgressMenu() {
+                                    android.util.Log.d(
+                                            TAG,
+                                            "[CALLBACK] Back from Load Slots submenu"
+                                    )
+                                    dismissSubmenu()
+                                }
+                            }
+                    )
                 }
-            })
-        }
 
         showSubmenuFragment(fragment)
     }
 
     /**
-     * Shows the Manage Saves submenu (9-slot grid for copy/move/delete/rename operations)
-     * Displays ManageSavesFragment and sets this fragment as the listener
+     * Shows the Manage Saves submenu (9-slot grid for copy/move/delete/rename operations) Displays
+     * ManageSavesFragment and sets this fragment as the listener
      */
     private fun showManageSavesSubmenu() {
         android.util.Log.d(TAG, "[NAVIGATION] Opening Manage Saves submenu")
-        
-        val fragment = ManageSavesFragment().apply {
-            setListener(object : ManageSavesFragment.ManageSavesListener {
-                override fun onBackToProgressMenu() {
-                    android.util.Log.d(TAG, "[CALLBACK] Back from Manage Saves submenu")
-                    dismissSubmenu()
+
+        val fragment =
+                ManageSavesFragment().apply {
+                    setListener(
+                            object : ManageSavesFragment.ManageSavesListener {
+                                override fun onBackToProgressMenu() {
+                                    android.util.Log.d(
+                                            TAG,
+                                            "[CALLBACK] Back from Manage Saves submenu"
+                                    )
+                                    dismissSubmenu()
+                                }
+                            }
+                    )
                 }
-            })
-        }
 
         showSubmenuFragment(fragment)
     }
 
     /**
-     * Shows a submenu fragment on top of the current Progress menu
-     * Uses FragmentManager to add the fragment to the container
+     * Shows a submenu fragment on top of the current Progress menu Uses FragmentManager to add the
+     * fragment to the container
      */
     private fun showSubmenuFragment(fragment: MenuFragmentBase) {
         try {
-            parentFragmentManager.beginTransaction()
-                .add(android.R.id.content, fragment)
-                .addToBackStack("progress_submenu")
-                .commit()
+            parentFragmentManager
+                    .beginTransaction()
+                    .add(android.R.id.content, fragment)
+                    .addToBackStack("progress_submenu")
+                    .commit()
         } catch (e: Exception) {
             android.util.Log.e(TAG, "[ERROR] Failed to show submenu fragment", e)
         }
     }
 
     /**
-     * Dismisses the current submenu fragment and returns to Progress menu
-     * Pops the back stack to remove the submenu fragment
+     * Dismisses the current submenu fragment and returns to Progress menu Pops the back stack to
+     * remove the submenu fragment
      */
     private fun dismissSubmenu() {
         try {

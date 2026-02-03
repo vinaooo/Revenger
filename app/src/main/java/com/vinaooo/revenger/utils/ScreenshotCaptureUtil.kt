@@ -14,35 +14,31 @@ import com.swordfish.libretrodroid.GLRetroView
 /**
  * Utility class for capturing screenshots from the emulator's GLRetroView.
  *
- * Uses PixelCopy API to capture only the game viewport, excluding
- * black borders and gamepad overlays.
+ * Uses PixelCopy API to capture only the game viewport, excluding black borders and gamepad
+ * overlays.
  */
 object ScreenshotCaptureUtil {
 
     private const val TAG = "ScreenshotCaptureUtil"
 
     /**
-     * Cached screenshot from when the menu was opened.
-     * This bitmap is captured at pause time and used when saving.
+     * Cached screenshot from when the menu was opened. This bitmap is captured at pause time and
+     * used when saving.
      */
     private var cachedScreenshot: Bitmap? = null
 
     /**
      * Capture screenshot of the GLRetroView game area.
      *
-     * This method captures the visible game content, excluding black borders
-     * by using the viewport configuration.
+     * This method captures the visible game content, excluding black borders by using the viewport
+     * configuration.
      *
      * @param glRetroView The GLRetroView instance to capture
      * @param window The window for pixel copy operation
      * @param callback Called with the captured Bitmap or null on failure
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun captureGameScreen(
-        glRetroView: GLRetroView,
-        window: Window,
-        callback: (Bitmap?) -> Unit
-    ) {
+    fun captureGameScreen(glRetroView: GLRetroView, window: Window, callback: (Bitmap?) -> Unit) {
         try {
             // Get the visible area of the GLRetroView
             val width = glRetroView.width
@@ -61,29 +57,24 @@ object ScreenshotCaptureUtil {
             val location = IntArray(2)
             glRetroView.getLocationInWindow(location)
 
-            val rect = Rect(
-                location[0],
-                location[1],
-                location[0] + width,
-                location[1] + height
-            )
+            val rect = Rect(location[0], location[1], location[0] + width, location[1] + height)
 
             PixelCopy.request(
-                window,
-                rect,
-                bitmap,
-                { copyResult ->
-                    if (copyResult == PixelCopy.SUCCESS) {
-                        // Crop out black borders if present
-                        val croppedBitmap = cropBlackBorders(bitmap)
-                        callback(croppedBitmap)
-                    } else {
-                        Log.e(TAG, "PixelCopy failed with result: $copyResult")
-                        bitmap.recycle()
-                        callback(null)
-                    }
-                },
-                Handler(Looper.getMainLooper())
+                    window,
+                    rect,
+                    bitmap,
+                    { copyResult ->
+                        if (copyResult == PixelCopy.SUCCESS) {
+                            // Crop out black borders if present
+                            val croppedBitmap = cropBlackBorders(bitmap)
+                            callback(croppedBitmap)
+                        } else {
+                            Log.e(TAG, "PixelCopy failed with result: $copyResult")
+                            bitmap.recycle()
+                            callback(null)
+                        }
+                    },
+                    Handler(Looper.getMainLooper())
             )
         } catch (e: Exception) {
             Log.e(TAG, "Failed to capture screenshot", e)
@@ -92,8 +83,8 @@ object ScreenshotCaptureUtil {
     }
 
     /**
-     * Capture and cache screenshot when menu opens.
-     * This should be called when the game pauses for menu.
+     * Capture and cache screenshot when menu opens. This should be called when the game pauses for
+     * menu.
      */
     @RequiresApi(Build.VERSION_CODES.O)
     fun captureAndCacheScreenshot(glRetroView: GLRetroView, window: Window) {
@@ -103,16 +94,12 @@ object ScreenshotCaptureUtil {
         }
     }
 
-    /**
-     * Get the cached screenshot for saving.
-     */
+    /** Get the cached screenshot for saving. */
     fun getCachedScreenshot(): Bitmap? {
         return cachedScreenshot
     }
 
-    /**
-     * Clear the cached screenshot (call when menu closes without saving).
-     */
+    /** Clear the cached screenshot (call when menu closes without saving). */
     fun clearCachedScreenshot() {
         cachedScreenshot?.recycle()
         cachedScreenshot = null
@@ -122,8 +109,8 @@ object ScreenshotCaptureUtil {
     /**
      * Crop black borders from the screenshot.
      *
-     * Analyzes the bitmap to find the actual game content area,
-     * removing any black (or near-black) borders.
+     * Analyzes the bitmap to find the actual game content area, removing any black (or near-black)
+     * borders.
      */
     private fun cropBlackBorders(bitmap: Bitmap): Bitmap {
         val width = bitmap.width

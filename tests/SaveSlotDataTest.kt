@@ -1,13 +1,11 @@
 package com.vinaooo.revenger.tests
 
 import com.vinaooo.revenger.models.SaveSlotData
+import java.time.Instant
 import org.junit.Assert.*
 import org.junit.Test
-import java.time.Instant
 
-/**
- * Unit tests for SaveSlotData
- */
+/** Unit tests for SaveSlotData */
 class SaveSlotDataTest {
 
     @Test
@@ -26,15 +24,16 @@ class SaveSlotDataTest {
 
     @Test
     fun `getDisplayName returns name for occupied slots`() {
-        val slot = SaveSlotData(
-            slotNumber = 1,
-            name = "Boss Fight",
-            timestamp = Instant.now(),
-            romName = "Zelda",
-            stateFile = null,
-            screenshotFile = null,
-            isEmpty = false
-        )
+        val slot =
+                SaveSlotData(
+                        slotNumber = 1,
+                        name = "Boss Fight",
+                        timestamp = Instant.now(),
+                        romName = "Zelda",
+                        stateFile = null,
+                        screenshotFile = null,
+                        isEmpty = false
+                )
         assertEquals("Boss Fight", slot.getDisplayName())
     }
 
@@ -47,15 +46,16 @@ class SaveSlotDataTest {
     @Test
     fun `getFormattedTimestamp returns formatted date for non-null timestamp`() {
         val instant = Instant.parse("2026-01-30T14:32:00Z")
-        val slot = SaveSlotData(
-            slotNumber = 1,
-            name = "Test",
-            timestamp = instant,
-            romName = "Zelda",
-            stateFile = null,
-            screenshotFile = null,
-            isEmpty = false
-        )
+        val slot =
+                SaveSlotData(
+                        slotNumber = 1,
+                        name = "Test",
+                        timestamp = instant,
+                        romName = "Zelda",
+                        stateFile = null,
+                        screenshotFile = null,
+                        isEmpty = false
+                )
         val formatted = slot.getFormattedTimestamp()
         assertNotNull(formatted)
         assertTrue(formatted.contains("/"))
@@ -65,17 +65,18 @@ class SaveSlotDataTest {
     @Test
     fun `slot with all parameters set correctly`() {
         val now = Instant.now()
-        val slot = SaveSlotData(
-            slotNumber = 7,
-            name = "Custom Save",
-            timestamp = now,
-            romName = "Super Metroid",
-            playTime = 3600,
-            description = "Boss defeated",
-            stateFile = null,
-            screenshotFile = null,
-            isEmpty = false
-        )
+        val slot =
+                SaveSlotData(
+                        slotNumber = 7,
+                        name = "Custom Save",
+                        timestamp = now,
+                        romName = "Super Metroid",
+                        playTime = 3600,
+                        description = "Boss defeated",
+                        stateFile = null,
+                        screenshotFile = null,
+                        isEmpty = false
+                )
 
         assertEquals(7, slot.slotNumber)
         assertEquals("Custom Save", slot.name)

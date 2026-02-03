@@ -62,7 +62,6 @@ class LoadSlotsFragment : SaveStateGridFragment() {
 
             Log.d("LoadSlotsFragment", "Load successful from slot $slotNumber")
             listener?.onLoadCompleted(slotNumber)
-
         } catch (e: Exception) {
             Log.e("LoadSlotsFragment", "Error loading state", e)
         }

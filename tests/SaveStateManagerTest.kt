@@ -1,17 +1,14 @@
 package com.vinaooo.revenger.tests
 
 import com.vinaooo.revenger.managers.SaveStateManager
+import java.io.File
+import java.nio.file.Files
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 
-/**
- * Unit tests for SaveStateManager
- */
+/** Unit tests for SaveStateManager */
 class SaveStateManagerTest {
 
     private lateinit var testFilesDir: File
@@ -92,7 +89,8 @@ class SaveStateManagerTest {
     @Test
     fun `renameSlot - updates metadata name field`() {
         val metadataFile = File(testFilesDir, "metadata.json")
-        val originalMetadata = """
+        val originalMetadata =
+                """
             {
               "name": "Old Name",
               "slotNumber": 5,
@@ -137,14 +135,15 @@ class SaveStateManagerTest {
 
     @Test
     fun `metadata structure - valid JSON format`() {
-        val metadata = org.json.JSONObject().apply {
-            put("name", "Boss Fight Save")
-            put("timestamp", "2026-01-30T14:32:00Z")
-            put("slotNumber", 1)
-            put("romName", "The Legend of Zelda")
-            put("playTime", 3600)
-            put("description", "Defeated the first boss")
-        }
+        val metadata =
+                org.json.JSONObject().apply {
+                    put("name", "Boss Fight Save")
+                    put("timestamp", "2026-01-30T14:32:00Z")
+                    put("slotNumber", 1)
+                    put("romName", "The Legend of Zelda")
+                    put("playTime", 3600)
+                    put("description", "Defeated the first boss")
+                }
 
         val jsonString = metadata.toString(2)
         val parsed = org.json.JSONObject(jsonString)

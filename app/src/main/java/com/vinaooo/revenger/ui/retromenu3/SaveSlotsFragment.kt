@@ -1,8 +1,8 @@
 package com.vinaooo.revenger.ui.retromenu3
 
 import android.app.AlertDialog
-import android.widget.EditText
 import android.util.Log
+import android.widget.EditText
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
 
@@ -45,32 +45,33 @@ class SaveSlotsFragment : SaveStateGridFragment() {
     }
 
     private fun showNamingDialog(slotNumber: Int) {
-        val editText = EditText(requireContext()).apply {
-            hint = getString(R.string.save_name_hint)
-            setText("Slot $slotNumber")
-            selectAll()
-        }
+        val editText =
+                EditText(requireContext()).apply {
+                    hint = getString(R.string.save_name_hint)
+                    setText("Slot $slotNumber")
+                    selectAll()
+                }
 
         AlertDialog.Builder(requireContext())
-            .setTitle(R.string.save_name_dialog_title)
-            .setView(editText)
-            .setPositiveButton(R.string.dialog_save) { _, _ ->
-                val name = editText.text.toString().ifBlank { "Slot $slotNumber" }
-                performSave(slotNumber, name)
-            }
-            .setNegativeButton(R.string.dialog_cancel, null)
-            .show()
+                .setTitle(R.string.save_name_dialog_title)
+                .setView(editText)
+                .setPositiveButton(R.string.dialog_save) { _, _ ->
+                    val name = editText.text.toString().ifBlank { "Slot $slotNumber" }
+                    performSave(slotNumber, name)
+                }
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .show()
     }
 
     private fun showOverwriteConfirmation(slot: SaveSlotData) {
         AlertDialog.Builder(requireContext())
-            .setTitle(R.string.overwrite_dialog_title)
-            .setMessage(getString(R.string.overwrite_dialog_message, slot.name))
-            .setPositiveButton(R.string.dialog_overwrite) { _, _ ->
-                showNamingDialog(slot.slotNumber)
-            }
-            .setNegativeButton(R.string.dialog_cancel, null)
-            .show()
+                .setTitle(R.string.overwrite_dialog_title)
+                .setMessage(getString(R.string.overwrite_dialog_message, slot.name))
+                .setPositiveButton(R.string.dialog_overwrite) { _, _ ->
+                    showNamingDialog(slot.slotNumber)
+                }
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .show()
     }
 
     private fun performSave(slotNumber: Int, name: String) {
@@ -88,19 +89,24 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             val romName = getString(R.string.conf_name)
 
             // Capture screenshot using ScreenshotCaptureUtil
-            val screenshot: android.graphics.Bitmap? = com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getCachedScreenshot()
+            val screenshot: android.graphics.Bitmap? =
+                    com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getCachedScreenshot()
             if (screenshot == null) {
-                Log.w("SaveSlotsFragment", "No cached screenshot available, saving without screenshot")
+                Log.w(
+                        "SaveSlotsFragment",
+                        "No cached screenshot available, saving without screenshot"
+                )
             }
 
             // Save to slot
-            val success = saveStateManager.saveToSlot(
-                slotNumber = slotNumber,
-                stateBytes = stateBytes,
-                screenshot = screenshot,
-                name = name,
-                romName = romName
-            )
+            val success =
+                    saveStateManager.saveToSlot(
+                            slotNumber = slotNumber,
+                            stateBytes = stateBytes,
+                            screenshot = screenshot,
+                            name = name,
+                            romName = romName
+                    )
 
             if (success) {
                 Log.d("SaveSlotsFragment", "Save successful to slot $slotNumber")
