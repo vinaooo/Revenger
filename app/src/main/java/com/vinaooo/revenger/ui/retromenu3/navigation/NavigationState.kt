@@ -15,7 +15,7 @@ enum class MenuType {
     /** Submenu de configurações (Audio, Shader, Game Speed, Back) */
     SETTINGS,
 
-    /** Submenu de progresso (Load State, Save State, Back) */
+    /** Submenu de progresso (Load State, Save State, Manage Saves, Back) */
     PROGRESS,
 
     /** Submenu de saída (Save & Exit, Exit without Save, Back) */
@@ -25,7 +25,16 @@ enum class MenuType {
     ABOUT,
 
     /** Submenu de variáveis do core LibRetro */
-    CORE_VARIABLES
+    CORE_VARIABLES,
+
+    /** Grid de slots para salvar (3x3 grid com 9 slots) */
+    SAVE_SLOTS,
+
+    /** Grid de slots para carregar (3x3 grid com 9 slots) */
+    LOAD_SLOTS,
+
+    /** Grid de slots para gerenciar (renomear, copiar, mover, deletar) */
+    MANAGE_SAVES
 }
 
 /**

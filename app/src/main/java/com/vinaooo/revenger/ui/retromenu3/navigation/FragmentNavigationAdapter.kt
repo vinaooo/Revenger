@@ -5,8 +5,11 @@ import androidx.fragment.app.FragmentManager
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.ui.retromenu3.AboutFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitFragment
+import com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment
+import com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment
 import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
+import com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment
 import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
 
 /**
@@ -51,6 +54,9 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
             MenuType.CORE_VARIABLES -> {
                 android.util.Log.w(TAG, "[SHOW] Core Variables menu not yet implemented")
             }
+            MenuType.SAVE_SLOTS -> showSaveSlotsMenu()
+            MenuType.LOAD_SLOTS -> showLoadSlotsMenu()
+            MenuType.MANAGE_SAVES -> showManageSavesMenu()
         }
     }
 
@@ -134,6 +140,48 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
 
         android.util.Log.d(TAG, "[SHOW] Exit menu added successfully")
     }
+
+    private fun showSaveSlotsMenu() {
+        android.util.Log.d(TAG, "[SHOW] Save Slots menu")
+
+        val saveSlotsFragment = SaveSlotsFragment.newInstance()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(MENU_CONTAINER_ID, saveSlotsFragment, TAG_SAVE_SLOTS_MENU)
+                .addToBackStack(TAG_SAVE_SLOTS_MENU)
+                .commitAllowingStateLoss()
+
+        android.util.Log.d(TAG, "[SHOW] Save Slots menu added successfully")
+    }
+
+    private fun showLoadSlotsMenu() {
+        android.util.Log.d(TAG, "[SHOW] Load Slots menu")
+
+        val loadSlotsFragment = LoadSlotsFragment.newInstance()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(MENU_CONTAINER_ID, loadSlotsFragment, TAG_LOAD_SLOTS_MENU)
+                .addToBackStack(TAG_LOAD_SLOTS_MENU)
+                .commitAllowingStateLoss()
+
+        android.util.Log.d(TAG, "[SHOW] Load Slots menu added successfully")
+    }
+
+    private fun showManageSavesMenu() {
+        android.util.Log.d(TAG, "[SHOW] Manage Saves menu")
+
+        val manageSavesFragment = ManageSavesFragment.newInstance()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(MENU_CONTAINER_ID, manageSavesFragment, TAG_MANAGE_SAVES_MENU)
+                .addToBackStack(TAG_MANAGE_SAVES_MENU)
+                .commitAllowingStateLoss()
+
+        android.util.Log.d(TAG, "[SHOW] Manage Saves menu added successfully")
+    }
     /**
      * Esconde o menu atual.
      *
@@ -199,6 +247,9 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
         private const val TAG_PROGRESS_MENU = "ProgressFragment"
         private const val TAG_ABOUT_MENU = "AboutFragment"
         private const val TAG_EXIT_MENU = "ExitFragment"
+        private const val TAG_SAVE_SLOTS_MENU = "SaveSlotsFragment"
+        private const val TAG_LOAD_SLOTS_MENU = "LoadSlotsFragment"
+        private const val TAG_MANAGE_SAVES_MENU = "ManageSavesFragment"
 
         /**
          * ID do container onde os fragments de menu são exibidos. Este é o FrameLayout definido em

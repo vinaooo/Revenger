@@ -30,12 +30,8 @@ class NavigationEventProcessor(
                 when (event.direction) {
                     Direction.UP -> navigateUp()
                     Direction.DOWN -> navigateDown()
-                    Direction.LEFT -> {
-                        /* Reservado para uso futuro */
-                    }
-                    Direction.RIGHT -> {
-                        /* Reservado para uso futuro */
-                    }
+                    Direction.LEFT -> navigateLeft()
+                    Direction.RIGHT -> navigateRight()
                 }
             }
             is NavigationEvent.SelectItem -> {
@@ -92,6 +88,28 @@ class NavigationEventProcessor(
         stateManager.updateSelectedIndex(
                 stateManager.currentFragment?.getCurrentSelectedIndex() ?: 0
         )
+    }
+
+    /** Navega para a esquerda (LEFT). Usado para navegação 2D em grids. */
+    fun navigateLeft() {
+        val handled = stateManager.currentFragment?.onNavigateLeft() ?: false
+        if (handled) {
+            // Sync selectedItemIndex with fragment's current selection
+            stateManager.updateSelectedIndex(
+                    stateManager.currentFragment?.getCurrentSelectedIndex() ?: 0
+            )
+        }
+    }
+
+    /** Navega para a direita (RIGHT). Usado para navegação 2D em grids. */
+    fun navigateRight() {
+        val handled = stateManager.currentFragment?.onNavigateRight() ?: false
+        if (handled) {
+            // Sync selectedItemIndex with fragment's current selection
+            stateManager.updateSelectedIndex(
+                    stateManager.currentFragment?.getCurrentSelectedIndex() ?: 0
+            )
+        }
     }
 
     /** Seleciona um item específico diretamente. */

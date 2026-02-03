@@ -89,6 +89,16 @@ class NavigationController(private val activity: FragmentActivity) {
         processor.navigateDown()
     }
 
+    /** Navega para a esquerda (LEFT). Usado para navegação 2D em grids. */
+    fun navigateLeft() {
+        processor.navigateLeft()
+    }
+
+    /** Navega para a direita (RIGHT). Usado para navegação 2D em grids. */
+    fun navigateRight() {
+        processor.navigateRight()
+    }
+
     /**
      * Seleciona um item específico diretamente (normalmente touch).
      *

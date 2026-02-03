@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Retro-styled operations menu for managing saves -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialog_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#AA000000"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Center dialog box -->
+    <LinearLayout
+        android:id="@+id/operations_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/rm_menu_item_padding"
+        android:background="@color/rm_background"
+        android:minWidth="280dp">
+
+        <!-- Dialog Title -->
+        <TextView
+            android:id="@+id/dialog_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="@dimen/rm_title_text_size"
+            android:textColor="@color/rm_text_color"
+            android:textStyle="bold"
+            android:paddingBottom="16dp"
+            android:includeFontPadding="false"
+            android:shadowColor="@color/rm_shadow_color"
+            android:shadowDx="@dimen/rm_shadow_dx"
+            android:shadowDy="@dimen/rm_shadow_dy"
+            android:shadowRadius="@dimen/rm_shadow_radius" />
+
+        <!-- Rename Button -->
+        <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+            android:id="@+id/operation_rename"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/rm_menu_item_height"
+            android:clickable="true"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="@dimen/rm_menu_item_padding">
+
+                <TextView
+                    android:id="@+id/rename_arrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/rm_selection_arrow"
+                    android:textSize="@dimen/rm_arrow_text_size"
+                    android:textColor="@color/rm_selected_color"
+                    android:padding="0dp"
+                    android:includeFontPadding="false"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/rename_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/operation_rename"
+                    android:textSize="@dimen/rm_menu_item_text_size"
+                    android:textColor="@color/rm_text_color"
+                    android:includeFontPadding="false" />
+            </LinearLayout>
+        </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
+        <!-- Copy Button -->
+        <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+            android:id="@+id/operation_copy"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/rm_menu_item_height"
+            android:clickable="true"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="@dimen/rm_menu_item_padding">
+
+                <TextView
+                    android:id="@+id/copy_arrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/rm_selection_arrow"
+                    android:textSize="@dimen/rm_arrow_text_size"
+                    android:textColor="@color/rm_selected_color"
+                    android:padding="0dp"
+                    android:includeFontPadding="false"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/copy_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/operation_copy"
+                    android:textSize="@dimen/rm_menu_item_text_size"
+                    android:textColor="@color/rm_text_color"
+                    android:includeFontPadding="false" />
+            </LinearLayout>
+        </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
+        <!-- Move Button -->
+        <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+            android:id="@+id/operation_move"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/rm_menu_item_height"
+            android:clickable="true"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="@dimen/rm_menu_item_padding">
+
+                <TextView
+                    android:id="@+id/move_arrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/rm_selection_arrow"
+                    android:textSize="@dimen/rm_arrow_text_size"
+                    android:textColor="@color/rm_selected_color"
+                    android:padding="0dp"
+                    android:includeFontPadding="false"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/move_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/operation_move"
+                    android:textSize="@dimen/rm_menu_item_text_size"
+                    android:textColor="@color/rm_text_color"
+                    android:includeFontPadding="false" />
+            </LinearLayout>
+        </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
+        <!-- Delete Button -->
+        <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+            android:id="@+id/operation_delete"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/rm_menu_item_height"
+            android:clickable="true"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="@dimen/rm_menu_item_padding">
+
+                <TextView
+                    android:id="@+id/delete_arrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/rm_selection_arrow"
+                    android:textSize="@dimen/rm_arrow_text_size"
+                    android:textColor="@color/rm_selected_color"
+                    android:padding="0dp"
+                    android:includeFontPadding="false"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/delete_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/operation_delete"
+                    android:textSize="@dimen/rm_menu_item_text_size"
+                    android:textColor="#FF6B6B"
+                    android:includeFontPadding="false" />
+            </LinearLayout>
+        </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
+        <!-- Separator -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#444444" />
+
+        <!-- Cancel Button -->
+        <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+            android:id="@+id/operation_cancel"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/rm_menu_item_height"
+            android:clickable="true"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="@dimen/rm_menu_item_padding">
+
+                <TextView
+                    android:id="@+id/cancel_arrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/rm_selection_arrow"
+                    android:textSize="@dimen/rm_arrow_text_size"
+                    android:textColor="@color/rm_selected_color"
+                    android:padding="0dp"
+                    android:includeFontPadding="false"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/cancel_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dialog_cancel"
+                    android:textSize="@dimen/rm_menu_item_text_size"
+                    android:textColor="@color/rm_text_color"
+                    android:includeFontPadding="false" />
+            </LinearLayout>
+        </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
+    </LinearLayout>
+
+</FrameLayout>

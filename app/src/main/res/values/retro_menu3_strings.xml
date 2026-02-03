@@ -91,6 +91,7 @@
     <!-- Slot Display -->
     <string name="slot_empty">Empty</string>
     <string name="slot_screenshot_description">Save state screenshot</string>
+    <string name="slot_is_empty">Slot is empty</string>
 
     <!-- Save Dialogs -->
     <string name="save_name_hint">Enter save name</string>
@@ -121,5 +122,26 @@
     <string name="dialog_overwrite">Overwrite</string>
     <string name="dialog_delete">Delete</string>
     <string name="dialog_rename">Rename</string>
+
+    <!-- Operation Messages -->
+    <string name="save_success">Saved to Slot %d</string>
+    <string name="save_error">Failed to save</string>
+    <string name="load_success">Loaded from Slot %d</string>
+    <string name="load_error">Failed to load</string>
+    <string name="rename_success">Renamed successfully</string>
+    <string name="rename_error">Failed to rename</string>
+    <string name="copy_success">Copied successfully</string>
+    <string name="copy_error">Failed to copy</string>
+    <string name="move_success">Moved successfully</string>
+    <string name="move_error">Failed to move</string>
+    <string name="delete_success">Deleted successfully</string>
+    <string name="delete_error">Failed to delete</string>
+    <string name="operation_cancelled">Operation cancelled</string>
+    <string name="same_slot_error">Cannot select same slot</string>
+    <string name="slot_occupied_error">Target slot is occupied</string>
+    <string name="select_target_copy">Select slot to copy to</string>
+    <string name="select_target_move">Select slot to move to</string>
+    <string name="select_slot_to_copy">Select an empty slot to copy to</string>
+    <string name="select_slot_to_move">Select an empty slot to move to</string>
 
 </resources>
