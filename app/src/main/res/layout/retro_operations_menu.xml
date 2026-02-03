@@ -8,32 +8,45 @@
     android:clickable="true"
     android:focusable="true">
 
-    <!-- Center dialog box -->
+    <!-- Horizontal wrapper to constrain width to center 50% like RetroMenu3 -->
     <LinearLayout
-        android:id="@+id/operations_container"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:orientation="vertical"
-        android:padding="@dimen/rm_menu_item_padding"
-        android:background="@color/rm_background"
-        android:minWidth="280dp">
+        android:orientation="horizontal"
+        android:gravity="center">
 
-        <!-- Dialog Title -->
-        <TextView
-            android:id="@+id/dialog_title"
-            android:layout_width="match_parent"
+        <!-- Left spacer (25%) -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="0.25" />
+
+        <!-- Center dialog box (50%) -->
+        <LinearLayout
+            android:id="@+id/operations_container"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textSize="@dimen/rm_title_text_size"
-            android:textColor="@color/rm_text_color"
-            android:textStyle="bold"
-            android:paddingBottom="16dp"
-            android:includeFontPadding="false"
-            android:shadowColor="@color/rm_shadow_color"
-            android:shadowDx="@dimen/rm_shadow_dx"
-            android:shadowDy="@dimen/rm_shadow_dy"
-            android:shadowRadius="@dimen/rm_shadow_radius" />
+            android:layout_weight="0.50"
+            android:orientation="vertical"
+            android:padding="@dimen/rm_menu_item_padding"
+            android:background="@color/rm_background">
+
+            <!-- Dialog Title -->
+            <TextView
+                android:id="@+id/dialog_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="@dimen/rm_title_text_size"
+                android:textColor="@color/rm_text_color"
+                android:textStyle="bold"
+                android:paddingBottom="16dp"
+                android:includeFontPadding="false"
+                android:shadowColor="@color/rm_shadow_color"
+                android:shadowDx="@dimen/rm_shadow_dx"
+                android:shadowDy="@dimen/rm_shadow_dy"
+                android:shadowRadius="@dimen/rm_shadow_radius" />
 
         <!-- Rename Button -->
         <com.vinaooo.revenger.ui.retromenu3.RetroCardView
@@ -226,6 +239,14 @@
                     android:includeFontPadding="false" />
             </LinearLayout>
         </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
+        </LinearLayout>
+
+        <!-- Right spacer (25%) -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="0.25" />
 
     </LinearLayout>
 

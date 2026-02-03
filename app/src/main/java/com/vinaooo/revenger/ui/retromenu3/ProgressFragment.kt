@@ -65,6 +65,9 @@ class ProgressFragment : MenuFragmentBase() {
     private lateinit var selectionArrowManageSaves: TextView
     private lateinit var selectionArrowBack: TextView
 
+    // Track selected index when navigating to submenus
+    private var savedSelectionIndex = 0
+
     // Callback interface
     interface ProgressListener {
         fun onBackToMainMenu()
@@ -187,8 +190,8 @@ class ProgressFragment : MenuFragmentBase() {
     }
 
     /**
-     * Touch navigation system using NavigationController.
-     * Touch events create SelectItem + ActivateSelected after 100ms delay.
+     * Touch navigation system using NavigationController. Touch events create SelectItem +
+     * ActivateSelected after 100ms delay.
      */
     private fun setupTouchNavigationSystem() {
         menuItems.forEachIndexed { index, menuItem ->
@@ -287,14 +290,19 @@ class ProgressFragment : MenuFragmentBase() {
     }
 
     /**
-     * Navigate to a submenu using FragmentNavigationAdapter.
+     * Navigate to a submenu using NavigationController. This ensures the current PROGRESS state is
+     * pushed to the navigation stack.
      */
     private fun navigateToSubmenu(menuType: MenuType) {
-        android.util.Log.d(TAG, "[NAV] Navigating to submenu: $menuType")
-        
-        // Show the submenu fragment directly
-        val fragmentAdapter = com.vinaooo.revenger.ui.retromenu3.navigation.FragmentNavigationAdapter(requireActivity())
-        fragmentAdapter.showMenu(menuType)
+        // Save current selection before navigating to submenu
+        savedSelectionIndex = getCurrentSelectedIndex()
+        android.util.Log.d(
+                TAG,
+                "[NAV] Navigating to submenu: $menuType (saved index: $savedSelectionIndex)"
+        )
+
+        // Use NavigationController to properly push state and navigate
+        viewModel.navigationController?.navigateToSubmenu(menuType)
     }
 
     /** Back action */
@@ -532,12 +540,19 @@ class ProgressFragment : MenuFragmentBase() {
                 "[RESUME] 🏁 onResume() CALLED - isAdded=$isAdded, isResumed=$isResumed, isRemoving=$isRemoving"
         )
 
-        // PHASE 3: Skip old navigation system logic (permanently enabled)
-        android.util.Log.d(
-                "ProgressFragment",
-                "[RESUME] ✅ New navigation system active - skipping old MenuState checks"
-        )
-        return
+        // Re-register with NavigationController when returning from a submenu
+        // This ensures selection state is restored correctly
+        if (::menuItems.isInitialized) {
+            viewModel.navigationController?.registerFragment(this, menuItems.size)
+            // Restore selection to saved index (from before navigating to submenu)
+            setSelectedIndex(savedSelectionIndex)
+            viewModel.navigationController?.selectItem(savedSelectionIndex)
+            updateSelectionVisualInternal()
+            android.util.Log.d(
+                    "ProgressFragment",
+                    "[RESUME] ✅ Re-registered with NavigationController, restored selection to index $savedSelectionIndex"
+            )
+        }
     }
 
     companion object {

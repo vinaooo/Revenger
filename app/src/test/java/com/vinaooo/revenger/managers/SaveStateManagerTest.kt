@@ -1,9 +1,8 @@
 package com.vinaooo.revenger.managers
 
 import android.content.Context
-import android.graphics.Bitmap
 import androidx.test.core.app.ApplicationProvider
-import com.vinaooo.revenger.models.SaveSlotData
+import java.io.File
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -11,11 +10,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.io.File
 
 /**
- * Unit tests for SaveStateManager.
- * Uses Robolectric to provide Android Context for file operations.
+ * Unit tests for SaveStateManager. Uses Robolectric to provide Android Context for file operations.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -30,14 +27,14 @@ class SaveStateManagerTest {
     fun setup() {
         // Clear singleton before each test
         SaveStateManager.clearInstance()
-        
+
         context = ApplicationProvider.getApplicationContext()
         filesDir = context.filesDir
         savesDir = File(filesDir, "saves")
-        
+
         // Clean up any existing saves
         savesDir.deleteRecursively()
-        
+
         // Create fresh manager instance
         manager = SaveStateManager.getInstance(context)
     }
@@ -60,9 +57,7 @@ class SaveStateManagerTest {
     @Test
     fun `getAllSlots returns slots numbered 1 to 9`() {
         val slots = manager.getAllSlots()
-        slots.forEachIndexed { index, slot ->
-            assertEquals(index + 1, slot.slotNumber)
-        }
+        slots.forEachIndexed { index, slot -> assertEquals(index + 1, slot.slotNumber) }
     }
 
     @Test
@@ -74,12 +69,8 @@ class SaveStateManagerTest {
 
     @Test
     fun `getSlot with invalid number throws exception`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            manager.getSlot(0)
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            manager.getSlot(10)
-        }
+        assertThrows(IllegalArgumentException::class.java) { manager.getSlot(0) }
+        assertThrows(IllegalArgumentException::class.java) { manager.getSlot(10) }
     }
 
     // ========== SAVE OPERATIONS ==========
@@ -153,9 +144,7 @@ class SaveStateManagerTest {
 
     @Test
     fun `loadFromSlot with invalid slot throws exception`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            manager.loadFromSlot(10)
-        }
+        assertThrows(IllegalArgumentException::class.java) { manager.loadFromSlot(10) }
     }
 
     // ========== DELETE OPERATIONS ==========
@@ -212,9 +201,7 @@ class SaveStateManagerTest {
     @Test
     fun `copySlot to same slot throws exception`() {
         manager.saveToSlot(1, "test".toByteArray(), null)
-        assertThrows(IllegalArgumentException::class.java) {
-            manager.copySlot(1, 1)
-        }
+        assertThrows(IllegalArgumentException::class.java) { manager.copySlot(1, 1) }
     }
 
     @Test

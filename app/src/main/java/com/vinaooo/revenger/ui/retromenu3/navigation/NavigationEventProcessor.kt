@@ -307,6 +307,41 @@ class NavigationEventProcessor(
         }
     }
 
+    /**
+     * Navega para um submenu específico, empilhando o estado atual. Usado pelos fragments para
+     * navegar para submenus mantendo o histórico.
+     *
+     * @param targetMenu Menu destino
+     * @param saveCurrentState Se deve salvar o estado atual na pilha (default: true)
+     */
+    fun navigateToSubmenu(targetMenu: MenuType, saveCurrentState: Boolean = true) {
+        android.util.Log.d(
+                TAG,
+                "[NAV_TO_SUBMENU] Navigating to $targetMenu from ${stateManager.currentMenu} (saveState=$saveCurrentState)"
+        )
+
+        if (saveCurrentState) {
+            // Salvar estado atual na pilha antes de navegar
+            stateManager.pushCurrentState()
+            android.util.Log.d(
+                    TAG,
+                    "[NAV_TO_SUBMENU] Pushed state: menu=${stateManager.currentMenu}, index=${stateManager.selectedItemIndex}, stack size=${stateManager.getStackSize()}"
+            )
+        }
+
+        // Atualizar para o novo menu
+        stateManager.updateCurrentMenu(targetMenu)
+        stateManager.updateSelectedIndex(0)
+
+        // Mostrar o fragment do submenu
+        fragmentAdapter.showMenu(targetMenu)
+
+        android.util.Log.d(
+                TAG,
+                "[NAV_TO_SUBMENU] Now at $targetMenu with selection 0, stack size=${stateManager.getStackSize()}"
+        )
+    }
+
     /** Fecha o menu externamente. */
     fun closeMenuExternal(closingButton: Int? = null) {
         android.util.Log.d(TAG, "[CLOSE_EXTERNAL] Closing menu externally, button: $closingButton")

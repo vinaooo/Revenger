@@ -129,6 +129,17 @@ class NavigationController(private val activity: FragmentActivity) {
     }
 
     /**
+     * Navega para um submenu específico, empilhando o estado atual. Usado pelos fragments para
+     * navegar para submenus mantendo o histórico.
+     *
+     * @param targetMenu Menu destino
+     * @param saveCurrentState Se deve salvar o estado atual na pilha (default: true)
+     */
+    fun navigateToSubmenu(targetMenu: MenuType, saveCurrentState: Boolean = true) {
+        processor.navigateToSubmenu(targetMenu, saveCurrentState)
+    }
+
+    /**
      * Registra o fragmento atualmente visível.
      * @param fragment Fragmento ativo
      * @param itemCount Número de itens no menu

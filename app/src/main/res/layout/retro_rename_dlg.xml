@@ -8,16 +8,29 @@
     android:clickable="true"
     android:focusable="true">
 
-    <!-- Center dialog box -->
+    <!-- Horizontal layout to center dialog at 50% width -->
     <LinearLayout
-        android:id="@+id/dialog_container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="vertical"
-        android:padding="@dimen/rm_menu_item_padding"
-        android:background="@color/rm_background"
-        android:minWidth="300dp">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:weightSum="1">
+
+        <!-- Left spacer (25%) -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.25" />
+
+        <!-- Center dialog box (50%) -->
+        <LinearLayout
+            android:id="@+id/dialog_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.50"
+            android:orientation="vertical"
+            android:padding="@dimen/rm_menu_item_padding"
+            android:background="@color/rm_background">
 
         <!-- Dialog Title -->
         <TextView
@@ -142,6 +155,14 @@
             </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
         </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Right spacer (25%) -->
+    <View
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.25" />
 
     </LinearLayout>
 

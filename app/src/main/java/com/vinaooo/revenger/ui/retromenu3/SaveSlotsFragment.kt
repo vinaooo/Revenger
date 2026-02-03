@@ -1,11 +1,8 @@
 package com.vinaooo.revenger.ui.retromenu3
 
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.vinaooo.revenger.R
@@ -60,7 +57,13 @@ class SaveSlotsFragment : SaveStateGridFragment() {
         if (isDialogVisible) {
             hideDialog()
         } else {
-            listener?.onBackToProgressMenu()
+            // Navigate back using NavigationController - this will pop the PROGRESS state from
+            // stack
+            android.util.Log.d(
+                    TAG,
+                    "[BACK] SaveSlotsFragment onBackConfirmed - using NavigationController"
+            )
+            viewModel.navigationController?.navigateBack()
         }
     }
 
@@ -72,9 +75,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
         return super.performBack()
     }
 
-    /**
-     * Shows a retro-styled overwrite confirmation dialog.
-     */
+    /** Shows a retro-styled overwrite confirmation dialog. */
     private fun showOverwriteConfirmation(slot: SaveSlotData) {
         pendingSlotNumber = slot.slotNumber
         isDialogVisible = true
@@ -82,8 +83,9 @@ class SaveSlotsFragment : SaveStateGridFragment() {
         val parent = view?.parent as? ViewGroup ?: return
 
         // Create dialog overlay
-        dialogOverlay = LayoutInflater.from(requireContext())
-            .inflate(R.layout.retro_confirm_dlg, parent, false)
+        dialogOverlay =
+                LayoutInflater.from(requireContext())
+                        .inflate(R.layout.retro_confirm_dlg, parent, false)
 
         // Setup dialog content
         dialogOverlay?.let { dialog ->
@@ -115,13 +117,15 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
             // Apply fonts
             ViewUtils.applySelectedFontToViews(
-                requireContext(),
-                titleView, messageView, confirmText, cancelText, confirmArrow, cancelArrow
+                    requireContext(),
+                    titleView,
+                    messageView,
+                    confirmText,
+                    cancelText,
+                    confirmArrow,
+                    cancelArrow
             )
-            FontUtils.applyTextCapitalization(
-                requireContext(),
-                titleView, confirmText, cancelText
-            )
+            FontUtils.applyTextCapitalization(requireContext(), titleView, confirmText, cancelText)
 
             // Click listeners
             confirmButton.setOnClickListener {
@@ -129,9 +133,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
                 performSave(pendingSlotNumber, "Slot $pendingSlotNumber")
             }
 
-            cancelButton.setOnClickListener {
-                hideDialog()
-            }
+            cancelButton.setOnClickListener { hideDialog() }
 
             // Add to parent
             parent.addView(dialog)
@@ -145,14 +147,14 @@ class SaveSlotsFragment : SaveStateGridFragment() {
     private fun hideDialog() {
         dialogOverlay?.let { dialog ->
             dialog.animate()
-                .alpha(0f)
-                .setDuration(100)
-                .withEndAction {
-                    (dialog.parent as? ViewGroup)?.removeView(dialog)
-                    dialogOverlay = null
-                    isDialogVisible = false
-                }
-                .start()
+                    .alpha(0f)
+                    .setDuration(100)
+                    .withEndAction {
+                        (dialog.parent as? ViewGroup)?.removeView(dialog)
+                        dialogOverlay = null
+                        isDialogVisible = false
+                    }
+                    .start()
         }
     }
 
@@ -160,7 +162,8 @@ class SaveSlotsFragment : SaveStateGridFragment() {
         val retroView = viewModel.retroView
         if (retroView == null) {
             android.util.Log.e("SaveSlotsFragment", "RetroView is null, cannot save")
-            Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT)
+                    .show()
             return
         }
 
@@ -172,37 +175,42 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             val screenshot = viewModel.getCachedScreenshot()
 
             // Get ROM name from config
-            val romName = try {
-                getString(R.string.conf_name)
-            } catch (e: Exception) {
-                "Unknown Game"
-            }
+            val romName =
+                    try {
+                        getString(R.string.conf_name)
+                    } catch (e: Exception) {
+                        "Unknown Game"
+                    }
 
             // Save to slot
-            val success = saveStateManager.saveToSlot(
-                slotNumber = slotNumber,
-                stateBytes = stateBytes,
-                screenshot = screenshot,
-                name = name,
-                romName = romName
-            )
+            val success =
+                    saveStateManager.saveToSlot(
+                            slotNumber = slotNumber,
+                            stateBytes = stateBytes,
+                            screenshot = screenshot,
+                            name = name,
+                            romName = romName
+                    )
 
             if (success) {
                 android.util.Log.d("SaveSlotsFragment", "Save successful to slot $slotNumber")
                 refreshGrid()
                 Toast.makeText(
-                    requireContext(),
-                    getString(R.string.save_success, slotNumber),
-                    Toast.LENGTH_SHORT
-                ).show()
+                                requireContext(),
+                                getString(R.string.save_success, slotNumber),
+                                Toast.LENGTH_SHORT
+                        )
+                        .show()
                 listener?.onSaveCompleted(slotNumber)
             } else {
                 android.util.Log.e("SaveSlotsFragment", "Save failed to slot $slotNumber")
-                Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT)
+                        .show()
             }
         } catch (e: Exception) {
             android.util.Log.e("SaveSlotsFragment", "Error saving state", e)
-            Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT)
+                    .show()
         }
     }
 

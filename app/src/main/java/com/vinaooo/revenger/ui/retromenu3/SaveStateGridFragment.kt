@@ -5,8 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.GridLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
@@ -39,7 +39,10 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
     // Views
     protected lateinit var gridContainer: ViewGroup
-    protected lateinit var slotsGrid: GridLayout
+    protected lateinit var slotsGrid: LinearLayout
+    protected lateinit var gridRow1: LinearLayout
+    protected lateinit var gridRow2: LinearLayout
+    protected lateinit var gridRow3: LinearLayout
     protected lateinit var gridTitle: TextView
     protected lateinit var backButton: RetroCardView
     protected lateinit var backArrow: TextView
@@ -56,27 +59,21 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
     // ========== ABSTRACT METHODS ==========
 
-    /**
-     * Get the title resource ID for this grid
-     */
+    /** Get the title resource ID for this grid */
     abstract fun getTitleResId(): Int
 
-    /**
-     * Called when a slot is selected and confirmed
-     */
+    /** Called when a slot is selected and confirmed */
     abstract fun onSlotConfirmed(slot: SaveSlotData)
 
-    /**
-     * Called when back is confirmed
-     */
+    /** Called when back is confirmed */
     abstract fun onBackConfirmed()
 
     // ========== LIFECYCLE ==========
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View {
         return inflater.inflate(R.layout.save_state_grid, container, false)
     }
@@ -90,14 +87,23 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
         saveStateManager = SaveStateManager.getInstance(requireContext())
 
+        // Reset grid position to (0, 0) - first slot
+        selectedRow = 0
+        selectedCol = 0
+        isBackButtonSelected = false
+
         setupViews(view)
         setupClickListeners()
         populateGrid()
         updateSelectionVisualInternal()
 
-        // Register with NavigationController
+        // Register with NavigationController with reset index
         viewModel.navigationController?.registerFragment(this, getTotalNavigableItems())
-        android.util.Log.d(TAG, "[NAVIGATION] ${this::class.simpleName} registered with ${getTotalNavigableItems()} items")
+        viewModel.navigationController?.selectItem(0) // Force reset to first item
+        android.util.Log.d(
+                TAG,
+                "[NAVIGATION] ${this::class.simpleName} registered with ${getTotalNavigableItems()} items, selection reset to 0"
+        )
     }
 
     override fun onDestroyView() {
@@ -110,6 +116,9 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     private fun setupViews(view: View) {
         gridContainer = view.findViewById(R.id.grid_container)
         slotsGrid = view.findViewById(R.id.slots_grid)
+        gridRow1 = view.findViewById(R.id.grid_row_1)
+        gridRow2 = view.findViewById(R.id.grid_row_2)
+        gridRow3 = view.findViewById(R.id.grid_row_3)
         gridTitle = view.findViewById(R.id.grid_title)
         backButton = view.findViewById(R.id.grid_back_button)
         backArrow = view.findViewById(R.id.selection_arrow_back)
@@ -122,18 +131,9 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         backButton.setUseBackgroundColor(false)
 
         // Apply fonts
-        ViewUtils.applySelectedFontToViews(
-            requireContext(),
-            gridTitle,
-            backTitle,
-            backArrow
-        )
+        ViewUtils.applySelectedFontToViews(requireContext(), gridTitle, backTitle, backArrow)
 
-        FontUtils.applyTextCapitalization(
-            requireContext(),
-            gridTitle,
-            backTitle
-        )
+        FontUtils.applyTextCapitalization(requireContext(), gridTitle, backTitle)
     }
 
     private fun setupClickListeners() {
@@ -141,17 +141,18 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         backButton.setOnClickListener {
             android.util.Log.d(TAG, "[TOUCH] Back button clicked")
             selectBackButton()
-            it.postDelayed({
-                onBackConfirmed()
-            }, TOUCH_ACTIVATION_DELAY_MS)
+            it.postDelayed({ onBackConfirmed() }, TOUCH_ACTIVATION_DELAY_MS)
         }
     }
 
     protected fun populateGrid() {
         slotViews.clear()
-        slotsGrid.removeAllViews()
+        gridRow1.removeAllViews()
+        gridRow2.removeAllViews()
+        gridRow3.removeAllViews()
 
         val slots = saveStateManager.getAllSlots()
+        val rows = listOf(gridRow1, gridRow2, gridRow3)
 
         for (row in 0 until GRID_ROWS) {
             for (col in 0 until GRID_COLS) {
@@ -161,18 +162,15 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
                 val slotView = createSlotView(slot, row, col)
                 slotViews.add(slotView)
 
-                val params = GridLayout.LayoutParams().apply {
-                    rowSpec = GridLayout.spec(row)
-                    columnSpec = GridLayout.spec(col)
-                }
-                slotsGrid.addView(slotView, params)
+                rows[row].addView(slotView)
             }
         }
     }
 
     private fun createSlotView(slot: SaveSlotData, row: Int, col: Int): View {
         val inflater = LayoutInflater.from(requireContext())
-        val slotView = inflater.inflate(R.layout.save_slot_item, slotsGrid, false)
+        val rows = listOf(gridRow1, gridRow2, gridRow3)
+        val slotView = inflater.inflate(R.layout.save_slot_item, rows[row], false)
 
         val screenshot = slotView.findViewById<ImageView>(R.id.slot_screenshot)
         val name = slotView.findViewById<TextView>(R.id.slot_name)
@@ -197,9 +195,8 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
                     android.util.Log.e(TAG, "Failed to load screenshot: ${e.message}")
                     screenshot.setImageResource(R.drawable.ic_no_screenshot)
                 }
-            } ?: run {
-                screenshot.setImageResource(R.drawable.ic_no_screenshot)
             }
+                    ?: run { screenshot.setImageResource(R.drawable.ic_no_screenshot) }
             name.text = slot.getDisplayName()
             container.setBackgroundResource(R.drawable.slot_background_occupied)
         }
@@ -211,10 +208,13 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         slotView.setOnClickListener {
             android.util.Log.d(TAG, "[TOUCH] Slot ${slot.slotNumber} clicked (row=$row, col=$col)")
             selectSlot(row, col)
-            it.postDelayed({
-                val currentSlot = saveStateManager.getSlot(row * GRID_COLS + col + 1)
-                onSlotConfirmed(currentSlot)
-            }, TOUCH_ACTIVATION_DELAY_MS)
+            it.postDelayed(
+                    {
+                        val currentSlot = saveStateManager.getSlot(row * GRID_COLS + col + 1)
+                        onSlotConfirmed(currentSlot)
+                    },
+                    TOUCH_ACTIVATION_DELAY_MS
+            )
         }
 
         return slotView
@@ -254,9 +254,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /**
-     * Navigate left in the grid
-     */
+    /** Navigate left in the grid */
     protected fun performNavigateLeft() {
         if (!isBackButtonSelected && selectedCol > 0) {
             selectedCol--
@@ -264,9 +262,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         }
     }
 
-    /**
-     * Navigate right in the grid
-     */
+    /** Navigate right in the grid */
     protected fun performNavigateRight() {
         if (!isBackButtonSelected && selectedCol < GRID_COLS - 1) {
             selectedCol++
@@ -332,10 +328,8 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
                 selectionBorder.visibility = if (isSelected) View.VISIBLE else View.GONE
                 slotName.setTextColor(
-                    if (isSelected)
-                        resources.getColor(R.color.rm_selected_color, null)
-                    else
-                        resources.getColor(R.color.rm_text_color, null)
+                        if (isSelected) resources.getColor(R.color.rm_selected_color, null)
+                        else resources.getColor(R.color.rm_text_color, null)
                 )
             }
         }
@@ -382,9 +376,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /**
-     * Refresh the grid after a save operation
-     */
+    /** Refresh the grid after a save operation */
     protected fun refreshGrid() {
         populateGrid()
         updateSelectionVisualInternal()

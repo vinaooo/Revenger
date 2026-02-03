@@ -271,17 +271,15 @@ interface MenuFragment {
     fun onNavigateDown(): Boolean
 
     /**
-     * Navigate left in the menu (gamepad DPAD left).
-     * Used for 2D grid navigation (e.g., save slot grids).
-     * Default implementation returns false (no horizontal navigation).
+     * Navigate left in the menu (gamepad DPAD left). Used for 2D grid navigation (e.g., save slot
+     * grids). Default implementation returns false (no horizontal navigation).
      * @return true if navigation was handled, false otherwise
      */
     fun onNavigateLeft(): Boolean = false
 
     /**
-     * Navigate right in the menu (gamepad DPAD right).
-     * Used for 2D grid navigation (e.g., save slot grids).
-     * Default implementation returns false (no horizontal navigation).
+     * Navigate right in the menu (gamepad DPAD right). Used for 2D grid navigation (e.g., save slot
+     * grids). Default implementation returns false (no horizontal navigation).
      * @return true if navigation was handled, false otherwise
      */
     fun onNavigateRight(): Boolean = false

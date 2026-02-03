@@ -176,15 +176,28 @@ object MenuLayoutConfig {
      * @param view A view raiz do menu (FrameLayout ou similar)
      */
     fun applyProportionsToMenuLayout(view: View) {
+        Log.d(
+                TAG,
+                "🚀 applyProportionsToMenuLayout CALLED for ${view::class.simpleName} (id: ${view.id})"
+        )
         try {
             // Obter proporções baseado na orientação
-            val proportions = getConfiguredProportions(view) ?: return
+            val proportions = getConfiguredProportions(view)
+            if (proportions == null) {
+                Log.w(TAG, "⚠️ getConfiguredProportions returned null, aborting")
+                return
+            }
 
             // Encontrar o LinearLayout horizontal
-            val mainLayout = findMainHorizontalLayout(view) ?: return
+            val mainLayout = findMainHorizontalLayout(view)
+            if (mainLayout == null) {
+                Log.w(TAG, "⚠️ findMainHorizontalLayout returned null, aborting")
+                return
+            }
 
             // Aplicar as proporções
             applyLayoutProportions(mainLayout, proportions)
+            Log.d(TAG, "✅ Proportions applied successfully!")
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao aplicar proporções ao menu layout", e)
         }
@@ -194,20 +207,36 @@ object MenuLayoutConfig {
     private fun findMainHorizontalLayout(view: View): android.widget.LinearLayout? {
         // Se for FrameLayout, procura um LinearLayout filho horizontal
         if (view is android.widget.FrameLayout) {
+            Log.d(
+                    TAG,
+                    "🔍 findMainHorizontalLayout: view is FrameLayout with ${view.childCount} children"
+            )
             for (i in 0 until view.childCount) {
                 val child = view.getChildAt(i)
+                Log.d(TAG, "🔍 Child[$i]: ${child::class.simpleName}")
                 if (child is android.widget.LinearLayout) {
                     val orientation = child.orientation
+                    Log.d(
+                            TAG,
+                            "🔍 LinearLayout orientation=${if (orientation == android.widget.LinearLayout.HORIZONTAL) "HORIZONTAL" else "VERTICAL"}, childCount=${child.childCount}"
+                    )
                     // Se for LinearLayout horizontal com 3+ filhos, é o container correto
                     if (orientation == android.widget.LinearLayout.HORIZONTAL &&
                                     child.childCount >= 3
                     ) {
+                        Log.d(TAG, "✅ Found main horizontal layout!")
                         return child
                     }
                 }
             }
+        } else {
+            Log.d(
+                    TAG,
+                    "⚠️ findMainHorizontalLayout: view is ${view::class.simpleName}, not FrameLayout"
+            )
         }
 
+        Log.w(TAG, "❌ findMainHorizontalLayout: no matching layout found")
         return null
     }
 
@@ -422,7 +451,8 @@ object MenuLayoutConfig {
                         R.id.settings_menu_container,
                         R.id.progress_container,
                         R.id.about_container,
-                        R.id.exit_menu_container
+                        R.id.exit_menu_container,
+                        R.id.grid_container // SaveStateGridFragment (Load/Save/Manage)
                 )
 
         for (id in possibleIds) {

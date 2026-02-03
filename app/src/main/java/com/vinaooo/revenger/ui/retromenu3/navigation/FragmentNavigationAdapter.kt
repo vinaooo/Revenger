@@ -102,6 +102,11 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
     private fun showProgressMenu() {
         android.util.Log.d(TAG, "[SHOW] Progress menu")
 
+        // Clear any existing grid submenus from backstack first
+        while (fragmentManager.backStackEntryCount > 1) {
+            fragmentManager.popBackStackImmediate()
+        }
+
         val progressFragment = ProgressFragment.newInstance()
 
         fragmentManager

@@ -388,6 +388,30 @@ class GameActivityViewModel(application: Application) :
             )
         }
 
+        controllerInput.menuNavigateLeftCallback = {
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                            direction =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.Direction.LEFT,
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
+        }
+
+        controllerInput.menuNavigateRightCallback = {
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                            direction =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.Direction.RIGHT,
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
+        }
+
         controllerInput.menuConfirmCallback = {
             navigationController?.handleNavigationEvent(
                     com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.ActivateSelected(
@@ -1126,8 +1150,7 @@ class GameActivityViewModel(application: Application) :
     // ========== SCREENSHOT CAPTURE FOR SAVE STATES ==========
 
     /**
-     * Capture screenshot when menu opens.
-     * Called from showRetroMenu3() before pausing the game.
+     * Capture screenshot when menu opens. Called from showRetroMenu3() before pausing the game.
      *
      * @param onCaptured Optional callback when capture completes
      */
@@ -1135,26 +1158,24 @@ class GameActivityViewModel(application: Application) :
         retroView?.view?.let { glRetroView ->
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 com.vinaooo.revenger.utils.ScreenshotCaptureUtil.captureAndCacheScreenshot(
-                    glRetroView,
-                    onCaptured
+                        glRetroView,
+                        onCaptured
                 )
             } else {
                 onCaptured?.invoke(false)
             }
-        } ?: onCaptured?.invoke(false)
+        }
+                ?: onCaptured?.invoke(false)
     }
 
-    /**
-     * Get cached screenshot for save operation.
-     * Returns null if no screenshot was captured.
-     */
+    /** Get cached screenshot for save operation. Returns null if no screenshot was captured. */
     fun getCachedScreenshot(): android.graphics.Bitmap? {
         return com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getCachedScreenshot()
     }
 
     /**
-     * Clear cached screenshot when menu closes without saving.
-     * Frees memory used by the cached bitmap.
+     * Clear cached screenshot when menu closes without saving. Frees memory used by the cached
+     * bitmap.
      */
     fun clearCachedScreenshot() {
         com.vinaooo.revenger.utils.ScreenshotCaptureUtil.clearCachedScreenshot()

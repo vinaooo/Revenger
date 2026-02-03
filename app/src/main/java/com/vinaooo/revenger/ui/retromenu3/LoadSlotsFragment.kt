@@ -31,11 +31,8 @@ class LoadSlotsFragment : SaveStateGridFragment() {
         if (slot.isEmpty) {
             // Empty slot: show feedback and do nothing
             android.util.Log.d(TAG, "Cannot load from empty slot ${slot.slotNumber}")
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.slot_is_empty),
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(requireContext(), getString(R.string.slot_is_empty), Toast.LENGTH_SHORT)
+                    .show()
             return
         }
 
@@ -43,14 +40,20 @@ class LoadSlotsFragment : SaveStateGridFragment() {
     }
 
     override fun onBackConfirmed() {
-        listener?.onBackToProgressMenu()
+        // Navigate back using NavigationController - this will pop the PROGRESS state from stack
+        android.util.Log.d(
+                TAG,
+                "[BACK] LoadSlotsFragment onBackConfirmed - using NavigationController"
+        )
+        viewModel.navigationController?.navigateBack()
     }
 
     private fun performLoad(slotNumber: Int) {
         val retroView = viewModel.retroView
         if (retroView == null) {
             android.util.Log.e(TAG, "RetroView is null, cannot load")
-            Toast.makeText(requireContext(), getString(R.string.load_error), Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.load_error), Toast.LENGTH_SHORT)
+                    .show()
             return
         }
 
@@ -60,7 +63,8 @@ class LoadSlotsFragment : SaveStateGridFragment() {
 
             if (stateBytes == null) {
                 android.util.Log.e(TAG, "Failed to load state from slot $slotNumber")
-                Toast.makeText(requireContext(), getString(R.string.load_error), Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.load_error), Toast.LENGTH_SHORT)
+                        .show()
                 return
             }
 
@@ -70,18 +74,21 @@ class LoadSlotsFragment : SaveStateGridFragment() {
             if (success) {
                 android.util.Log.d(TAG, "Load successful from slot $slotNumber")
                 Toast.makeText(
-                    requireContext(),
-                    getString(R.string.load_success, slotNumber),
-                    Toast.LENGTH_SHORT
-                ).show()
+                                requireContext(),
+                                getString(R.string.load_success, slotNumber),
+                                Toast.LENGTH_SHORT
+                        )
+                        .show()
                 listener?.onLoadCompleted(slotNumber)
             } else {
                 android.util.Log.e(TAG, "Failed to unserialize state from slot $slotNumber")
-                Toast.makeText(requireContext(), getString(R.string.load_error), Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.load_error), Toast.LENGTH_SHORT)
+                        .show()
             }
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Error loading state", e)
-            Toast.makeText(requireContext(), getString(R.string.load_error), Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.load_error), Toast.LENGTH_SHORT)
+                    .show()
         }
     }
 
