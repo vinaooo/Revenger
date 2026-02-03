@@ -71,4 +71,9 @@
     
     <!-- Letter Spacing -->
     <item name="rm_title_letter_spacing" format="float" type="dimen">0.05</item>
+    
+    <!-- Save State Grid Slots -->
+    <dimen name="save_slot_size">80dp</dimen>
+    <dimen name="save_slot_margin">4dp</dimen>
+    <dimen name="save_slot_padding">4dp</dimen>
 </resources>
