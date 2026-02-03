@@ -253,7 +253,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     /**
      * Navigate left in the grid
      */
-    fun performNavigateLeft() {
+    override fun performNavigateLeft() {
         if (!isBackButtonSelected && selectedCol > 0) {
             selectedCol--
             updateSelectionVisualInternal()
@@ -263,7 +263,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     /**
      * Navigate right in the grid
      */
-    fun performNavigateRight() {
+    override fun performNavigateRight() {
         if (!isBackButtonSelected && selectedCol < GRID_COLS - 1) {
             selectedCol++
             updateSelectionVisualInternal()

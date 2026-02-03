@@ -87,8 +87,11 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             // Get ROM name from config
             val romName = getString(R.string.conf_name)
 
-            // TODO: Capture screenshot from retroView
-            val screenshot: android.graphics.Bitmap? = null
+            // Capture screenshot using ScreenshotCaptureUtil
+            val screenshot: android.graphics.Bitmap? = com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getCachedScreenshot()
+            if (screenshot == null) {
+                Log.w("SaveSlotsFragment", "No cached screenshot available, saving without screenshot")
+            }
 
             // Save to slot
             val success = saveStateManager.saveToSlot(

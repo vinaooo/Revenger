@@ -89,6 +89,16 @@ class NavigationController(private val activity: FragmentActivity) {
         processor.navigateDown()
     }
 
+    /** Navega para a esquerda (LEFT - para navegação em grids). */
+    fun navigateLeft() {
+        processor.navigateLeft()
+    }
+
+    /** Navega para a direita (RIGHT - para navegação em grids). */
+    fun navigateRight() {
+        processor.navigateRight()
+    }
+
     /**
      * Seleciona um item específico diretamente (normalmente touch).
      *

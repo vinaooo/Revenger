@@ -270,6 +270,24 @@ interface MenuFragment {
     fun onNavigateDown(): Boolean
 
     /**
+     * Navigate left in the menu (gamepad DPAD left, for grid navigation)
+     * @return true if navigation was handled, false otherwise
+     */
+    fun onNavigateLeft(): Boolean {
+        // Default implementation: do nothing (only grid fragments override)
+        return false
+    }
+
+    /**
+     * Navigate right in the menu (gamepad DPAD right, for grid navigation)
+     * @return true if navigation was handled, false otherwise
+     */
+    fun onNavigateRight(): Boolean {
+        // Default implementation: do nothing (only grid fragments override)
+        return false
+    }
+
+    /**
      * Confirm current selection (gamepad A button)
      * @return true if action was handled, false otherwise
      */

@@ -30,12 +30,8 @@ class NavigationEventProcessor(
                 when (event.direction) {
                     Direction.UP -> navigateUp()
                     Direction.DOWN -> navigateDown()
-                    Direction.LEFT -> {
-                        /* Reservado para uso futuro */
-                    }
-                    Direction.RIGHT -> {
-                        /* Reservado para uso futuro */
-                    }
+                    Direction.LEFT -> navigateLeft()
+                    Direction.RIGHT -> navigateRight()
                 }
             }
             is NavigationEvent.SelectItem -> {
@@ -87,6 +83,28 @@ class NavigationEventProcessor(
     fun navigateDown() {
         // PHASE 3.2: Delegate navigation to fragment to support custom logic
         stateManager.currentFragment?.onNavigateDown()
+
+        // Sync selectedItemIndex with fragment's current selection
+        stateManager.updateSelectedIndex(
+                stateManager.currentFragment?.getCurrentSelectedIndex() ?: 0
+        )
+    }
+
+    /** Navega para a esquerda (LEFT - usado para navegação em grids). */
+    fun navigateLeft() {
+        // Delegate navigation to fragment (only grid fragments override this)
+        stateManager.currentFragment?.onNavigateLeft()
+
+        // Sync selectedItemIndex with fragment's current selection
+        stateManager.updateSelectedIndex(
+                stateManager.currentFragment?.getCurrentSelectedIndex() ?: 0
+        )
+    }
+
+    /** Navega para a direita (RIGHT - usado para navegação em grids). */
+    fun navigateRight() {
+        // Delegate navigation to fragment (only grid fragments override this)
+        stateManager.currentFragment?.onNavigateRight()
 
         // Sync selectedItemIndex with fragment's current selection
         stateManager.updateSelectedIndex(
