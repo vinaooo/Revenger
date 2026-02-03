@@ -276,6 +276,8 @@ class GameActivityViewModel(application: Application) :
 
             // PHASE 3.2b: Configurar callbacks para pausar/resumir o jogo
             navigationController?.onMenuOpenedCallback = {
+                // Capturar screenshot ANTES de pausar para save states
+                captureScreenshotForSaveState()
                 // Preservar estado do emulador
                 retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
                 // PAUSAR o jogo quando menu abre
@@ -319,6 +321,9 @@ class GameActivityViewModel(application: Application) :
                 // Identificado via logs: UP chega 150ms depois, 50ms era insuficiente
                 // Bloquear apenas o botão que REALMENTE fechou o menu
                 controllerInput.keepInterceptingButtons(200, closingButton = closingButton)
+
+                // Limpar screenshot cacheado quando menu fecha
+                clearCachedScreenshot()
 
                 // RESUMIR o jogo quando menu fecha - aplicar velocidade salva nas preferences
                 retroView?.let { speedController?.restoreSpeedFromPreferences(it.view) }
@@ -1116,6 +1121,43 @@ class GameActivityViewModel(application: Application) :
     /** Get current shader state for UI management */
     fun getShaderState(): String {
         return shaderViewModel.getShaderState()
+    }
+
+    // ========== SCREENSHOT CAPTURE FOR SAVE STATES ==========
+
+    /**
+     * Capture screenshot when menu opens.
+     * Called from showRetroMenu3() before pausing the game.
+     *
+     * @param onCaptured Optional callback when capture completes
+     */
+    fun captureScreenshotForSaveState(onCaptured: ((Boolean) -> Unit)? = null) {
+        retroView?.view?.let { glRetroView ->
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                com.vinaooo.revenger.utils.ScreenshotCaptureUtil.captureAndCacheScreenshot(
+                    glRetroView,
+                    onCaptured
+                )
+            } else {
+                onCaptured?.invoke(false)
+            }
+        } ?: onCaptured?.invoke(false)
+    }
+
+    /**
+     * Get cached screenshot for save operation.
+     * Returns null if no screenshot was captured.
+     */
+    fun getCachedScreenshot(): android.graphics.Bitmap? {
+        return com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getCachedScreenshot()
+    }
+
+    /**
+     * Clear cached screenshot when menu closes without saving.
+     * Frees memory used by the cached bitmap.
+     */
+    fun clearCachedScreenshot() {
+        com.vinaooo.revenger.utils.ScreenshotCaptureUtil.clearCachedScreenshot()
     }
 
     /** Hide the system bars */
