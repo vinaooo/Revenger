@@ -48,6 +48,7 @@ class ProgressFragment : MenuFragmentBase() {
     private lateinit var progressContainer: LinearLayout
     private lateinit var saveState: RetroCardView
     private lateinit var loadState: RetroCardView
+    private lateinit var manageSaves: RetroCardView
     private lateinit var backProgress: RetroCardView
 
     // Menu title
@@ -59,11 +60,13 @@ class ProgressFragment : MenuFragmentBase() {
     // Menu option titles for color control
     private lateinit var saveStateTitle: TextView
     private lateinit var loadStateTitle: TextView
+    private lateinit var manageSavesTitle: TextView
     private lateinit var backTitle: TextView
 
     // Selection arrows
     private lateinit var selectionArrowSaveState: TextView
     private lateinit var selectionArrowLoadState: TextView
+    private lateinit var selectionArrowManageSaves: TextView
     private lateinit var selectionArrowBack: TextView
 
     // Callback interface
@@ -131,6 +134,7 @@ class ProgressFragment : MenuFragmentBase() {
         // Menu items
         saveState = view.findViewById(R.id.progress_save_state)
         loadState = view.findViewById(R.id.progress_load_state)
+        manageSaves = view.findViewById(R.id.progress_manage_saves)
         backProgress = view.findViewById(R.id.progress_back)
 
         // Check if save state exists
@@ -143,28 +147,31 @@ class ProgressFragment : MenuFragmentBase() {
                     // Com save: Load State habilitado e navegável
                     loadState.isEnabled = true
                     loadState.alpha = 1.0f
-                    listOf(loadState, saveState, backProgress) // 3 itens navegáveis
+                    listOf(loadState, saveState, manageSaves, backProgress) // 4 itens navegáveis
                 } else {
                     // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
                     loadState.isEnabled = false
                     loadState.alpha = 0.5f
-                    listOf(saveState, backProgress) // Apenas 2 itens navegáveis
+                    listOf(saveState, manageSaves, backProgress) // Apenas 3 itens navegáveis
                 }
 
         // Configure ProgressFragment to not use background colors on cards
         // (unlike main menu which uses yellow background for selection)
         saveState.setUseBackgroundColor(false)
         loadState.setUseBackgroundColor(false)
+        manageSaves.setUseBackgroundColor(false)
         backProgress.setUseBackgroundColor(false)
 
         // Initialize menu option titles
         saveStateTitle = view.findViewById(R.id.save_state_title)
         loadStateTitle = view.findViewById(R.id.load_state_title)
+        manageSavesTitle = view.findViewById(R.id.manage_saves_title)
         backTitle = view.findViewById(R.id.back_title)
 
         // Initialize selection arrows
         selectionArrowSaveState = view.findViewById(R.id.selection_arrow_save_state)
         selectionArrowLoadState = view.findViewById(R.id.selection_arrow_load_state)
+        selectionArrowManageSaves = view.findViewById(R.id.selection_arrow_manage_saves)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
         // Set first item as selected (always valid - Load State removed from nav if disabled)
@@ -176,9 +183,11 @@ class ProgressFragment : MenuFragmentBase() {
                 progressTitle,
                 saveStateTitle,
                 loadStateTitle,
+                manageSavesTitle,
                 backTitle,
                 selectionArrowSaveState,
                 selectionArrowLoadState,
+                selectionArrowManageSaves,
                 selectionArrowBack
         )
 
@@ -188,6 +197,7 @@ class ProgressFragment : MenuFragmentBase() {
                 progressTitle,
                 saveStateTitle,
                 loadStateTitle,
+                manageSavesTitle,
                 backTitle
         )
     }
@@ -206,12 +216,12 @@ class ProgressFragment : MenuFragmentBase() {
                     // Com save: Load State habilitado e navegável
                     loadState.isEnabled = true
                     loadState.alpha = 1.0f
-                    listOf(loadState, saveState, backProgress) // 3 itens navegáveis
+                    listOf(loadState, saveState, manageSaves, backProgress) // 4 itens navegáveis
                 } else {
                     // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
                     loadState.isEnabled = false
                     loadState.alpha = 0.5f
-                    listOf(saveState, backProgress) // Apenas 2 itens navegáveis
+                    listOf(saveState, manageSaves, backProgress) // Apenas 3 itens navegáveis
                 }
 
         android.util.Log.d(
@@ -329,6 +339,11 @@ class ProgressFragment : MenuFragmentBase() {
                                 refreshMenuItems()
                             }
                     )
+                }
+                manageSaves -> {
+                    // Manage Saves - Show submenu
+                    android.util.Log.d(TAG, "[ACTION] Progress menu: Manage Saves selected")
+                    showManageSavesSubmenu()
                 }
                 backProgress -> {
                     // Back to main menu - Execute action directly
@@ -462,6 +477,35 @@ class ProgressFragment : MenuFragmentBase() {
             selectionArrowSaveState.visibility = View.GONE
         }
 
+        // Manage Saves
+        if (selectedItem == manageSaves) {
+            manageSavesTitle.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.rm_selected_color
+                    )
+            )
+            selectionArrowManageSaves.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.rm_selected_color
+                    )
+            )
+            selectionArrowManageSaves.visibility = View.VISIBLE
+            (selectionArrowManageSaves.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0
+                marginEnd = 0
+            }
+        } else {
+            manageSavesTitle.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.rm_normal_color
+                    )
+            )
+            selectionArrowManageSaves.visibility = View.GONE
+        }
+
         // Back
         if (selectedItem == backProgress) {
             backTitle.setTextColor(
@@ -558,6 +602,106 @@ class ProgressFragment : MenuFragmentBase() {
                 "[RESUME] ✅ New navigation system active - skipping old MenuState checks"
         )
         return
+    }
+
+    // ===== Multi-Slot Save System Navigation =====
+
+    /**
+     * Shows the Save Slots submenu (9-slot grid for saving game state)
+     * Displays SaveSlotsFragment and sets this fragment as the listener
+     */
+    private fun showSaveSlotsSubmenu() {
+        android.util.Log.d(TAG, "[NAVIGATION] Opening Save Slots submenu")
+        
+        val fragment = SaveSlotsFragment().apply {
+            setListener(object : SaveSlotsFragment.SaveSlotsListener {
+                override fun onSaveCompleted(slotNumber: Int) {
+                    android.util.Log.d(TAG, "[CALLBACK] Save completed to slot $slotNumber")
+                    // Refresh menu items in case this was the first save
+                    refreshMenuItems()
+                    // Close submenu and return to Progress menu
+                    dismissSubmenu()
+                }
+
+                override fun onBackToProgressMenu() {
+                    android.util.Log.d(TAG, "[CALLBACK] Back from Save Slots submenu")
+                    dismissSubmenu()
+                }
+            })
+        }
+
+        showSubmenuFragment(fragment)
+    }
+
+    /**
+     * Shows the Load Slots submenu (9-slot grid for loading game state)
+     * Displays LoadSlotsFragment and sets this fragment as the listener
+     */
+    private fun showLoadSlotsSubmenu() {
+        android.util.Log.d(TAG, "[NAVIGATION] Opening Load Slots submenu")
+        
+        val fragment = LoadSlotsFragment().apply {
+            setListener(object : LoadSlotsFragment.LoadSlotsListener {
+                override fun onLoadCompleted(slotNumber: Int) {
+                    android.util.Log.d(TAG, "[CALLBACK] Load completed from slot $slotNumber")
+                    // Close entire menu system after successful load
+                    dismissMenu()
+                }
+
+                override fun onBackToProgressMenu() {
+                    android.util.Log.d(TAG, "[CALLBACK] Back from Load Slots submenu")
+                    dismissSubmenu()
+                }
+            })
+        }
+
+        showSubmenuFragment(fragment)
+    }
+
+    /**
+     * Shows the Manage Saves submenu (9-slot grid for copy/move/delete/rename operations)
+     * Displays ManageSavesFragment and sets this fragment as the listener
+     */
+    private fun showManageSavesSubmenu() {
+        android.util.Log.d(TAG, "[NAVIGATION] Opening Manage Saves submenu")
+        
+        val fragment = ManageSavesFragment().apply {
+            setListener(object : ManageSavesFragment.ManageSavesListener {
+                override fun onBackToProgressMenu() {
+                    android.util.Log.d(TAG, "[CALLBACK] Back from Manage Saves submenu")
+                    dismissSubmenu()
+                }
+            })
+        }
+
+        showSubmenuFragment(fragment)
+    }
+
+    /**
+     * Shows a submenu fragment on top of the current Progress menu
+     * Uses FragmentManager to add the fragment to the container
+     */
+    private fun showSubmenuFragment(fragment: MenuFragmentBase) {
+        try {
+            parentFragmentManager.beginTransaction()
+                .add(android.R.id.content, fragment)
+                .addToBackStack("progress_submenu")
+                .commit()
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "[ERROR] Failed to show submenu fragment", e)
+        }
+    }
+
+    /**
+     * Dismisses the current submenu fragment and returns to Progress menu
+     * Pops the back stack to remove the submenu fragment
+     */
+    private fun dismissSubmenu() {
+        try {
+            parentFragmentManager.popBackStack()
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "[ERROR] Failed to dismiss submenu", e)
+        }
     }
 
     companion object {
