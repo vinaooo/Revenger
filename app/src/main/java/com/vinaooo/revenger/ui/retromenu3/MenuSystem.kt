@@ -23,6 +23,7 @@ sealed class MenuAction {
     object RESET : MenuAction()
     object SAVE_STATE : MenuAction()
     object LOAD_STATE : MenuAction()
+    object MANAGE_SAVES : MenuAction()
     object TOGGLE_AUDIO : MenuAction()
     object TOGGLE_SPEED : MenuAction()
     object TOGGLE_SHADER : MenuAction()

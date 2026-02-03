@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -15,29 +16,24 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 /**
  * Fragment do submenu Progress (Save/Load States).
  *
- * **Funcionalidades**:
- * - Save State: Salva estado atual do jogo
- * - Load State: Carrega último estado salvo (desabilitado se não houver save)
+ * **Funcionalidades (Multi-Slot System)**:
+ * - Load State: Abre grid de 9 slots para carregar
+ * - Save State: Abre grid de 9 slots para salvar
+ * - Manage Saves: Abre grid para gerenciar (rename, copy, move, delete)
  * - Back: Volta ao menu principal
  *
- * **Navegação Inteligente (Phase 3+)**:
- * - Pula automaticamente item "Load State" se desabilitado durante navegação UP/DOWN
- * - Validação de estado de save antes de habilitar Load
+ * **Navegação**:
+ * - Cada opção navega para um submenu com grid 3x3
+ * - Suporte a navegação 2D (UP/DOWN/LEFT/RIGHT) nos grids
  *
  * **Arquitetura Multi-Input**:
  * - Gamepad: DPAD UP/DOWN para navegar, A para confirmar, B para voltar
  * - Teclado: Arrow keys para navegar, Enter para confirmar, Backspace para voltar
  * - Touch: Toque com highlight imediato + delay de 100ms para ativação
  *
- * **Visual**:
- * - Design idêntico ao RetroMenu3 para consistência
- * - Material Design 3 com cores dinâmicas
- * - RetroCardView customizados com animações de seleção
- *
- * **Phase 3.3**: Limpeza de 53 linhas de código legacy (setupLegacyClickListeners removido).
- *
- * @see MenuFragmentBase Classe base com navegação unificada
- * @see GameActivityViewModel ViewModel centralizado para save/load operations
+ * @see SaveSlotsFragment Grid para salvar em 9 slots
+ * @see LoadSlotsFragment Grid para carregar de 9 slots
+ * @see ManageSavesFragment Grid para gerenciar saves
  */
 class ProgressFragment : MenuFragmentBase() {
 
@@ -46,24 +42,27 @@ class ProgressFragment : MenuFragmentBase() {
 
     // Menu item views
     private lateinit var progressContainer: LinearLayout
-    private lateinit var saveState: RetroCardView
     private lateinit var loadState: RetroCardView
+    private lateinit var saveState: RetroCardView
+    private lateinit var manageSaves: RetroCardView
     private lateinit var backProgress: RetroCardView
 
     // Menu title
     private lateinit var progressTitle: TextView
 
-    // Ordered list of menu items for navigation
+    // Ordered list of menu items for navigation (always 4 items)
     private lateinit var menuItems: List<RetroCardView>
 
     // Menu option titles for color control
-    private lateinit var saveStateTitle: TextView
     private lateinit var loadStateTitle: TextView
+    private lateinit var saveStateTitle: TextView
+    private lateinit var manageSavesTitle: TextView
     private lateinit var backTitle: TextView
 
     // Selection arrows
-    private lateinit var selectionArrowSaveState: TextView
     private lateinit var selectionArrowLoadState: TextView
+    private lateinit var selectionArrowSaveState: TextView
+    private lateinit var selectionArrowManageSaves: TextView
     private lateinit var selectionArrowBack: TextView
 
     // Callback interface
@@ -99,21 +98,16 @@ class ProgressFragment : MenuFragmentBase() {
 
         setupViews(view)
         setupClickListeners()
-        // REMOVED: animateMenuIn() - submenu now appears instantly without animation
 
-        // REMOVED: No longer closes when touching the sides
-        // Menu only closes when selecting Back
-
-        // PHASE 3: Register with NavigationController (permanently enabled)
-        viewModel.navigationController?.registerFragment(this, getMenuItems().size)
+        // Register with NavigationController
+        viewModel.navigationController?.registerFragment(this, menuItems.size)
         android.util.Log.d(
                 TAG,
-                "[NAVIGATION] ProgressFragment registered with ${getMenuItems().size} items"
+                "[NAVIGATION] ProgressFragment registered with ${menuItems.size} items"
         )
     }
 
     override fun onDestroyView() {
-        // PHASE 3: DON'T unregister - let next fragment override registration (permanently enabled)
         android.util.Log.d(
                 TAG,
                 "[NAVIGATION] ProgressFragment onDestroyView - keeping registration for next fragment"
@@ -128,57 +122,47 @@ class ProgressFragment : MenuFragmentBase() {
         // Menu title
         progressTitle = view.findViewById(R.id.progress_title)
 
-        // Menu items
-        saveState = view.findViewById(R.id.progress_save_state)
+        // Menu items (order: Load, Save, Manage, Back)
         loadState = view.findViewById(R.id.progress_load_state)
+        saveState = view.findViewById(R.id.progress_save_state)
+        manageSaves = view.findViewById(R.id.progress_manage_saves)
         backProgress = view.findViewById(R.id.progress_back)
 
-        // Check if save state exists
-        val hasSaveState = viewModel.hasSaveState()
+        // Build menuItems list (always 4 items now)
+        menuItems = listOf(loadState, saveState, manageSaves, backProgress)
 
-        // CRITICAL: Build menuItems list dynamically
-        // Load State sempre VISÍVEL, mas removido da navegação quando desabilitado
-        menuItems =
-                if (hasSaveState) {
-                    // Com save: Load State habilitado e navegável
-                    loadState.isEnabled = true
-                    loadState.alpha = 1.0f
-                    listOf(loadState, saveState, backProgress) // 3 itens navegáveis
-                } else {
-                    // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
-                    loadState.isEnabled = false
-                    loadState.alpha = 0.5f
-                    listOf(saveState, backProgress) // Apenas 2 itens navegáveis
-                }
-
-        // Configure ProgressFragment to not use background colors on cards
-        // (unlike main menu which uses yellow background for selection)
-        saveState.setUseBackgroundColor(false)
+        // Configure to not use background colors on cards
         loadState.setUseBackgroundColor(false)
+        saveState.setUseBackgroundColor(false)
+        manageSaves.setUseBackgroundColor(false)
         backProgress.setUseBackgroundColor(false)
 
         // Initialize menu option titles
-        saveStateTitle = view.findViewById(R.id.save_state_title)
         loadStateTitle = view.findViewById(R.id.load_state_title)
+        saveStateTitle = view.findViewById(R.id.save_state_title)
+        manageSavesTitle = view.findViewById(R.id.manage_saves_title)
         backTitle = view.findViewById(R.id.back_title)
 
         // Initialize selection arrows
-        selectionArrowSaveState = view.findViewById(R.id.selection_arrow_save_state)
         selectionArrowLoadState = view.findViewById(R.id.selection_arrow_load_state)
+        selectionArrowSaveState = view.findViewById(R.id.selection_arrow_save_state)
+        selectionArrowManageSaves = view.findViewById(R.id.selection_arrow_manage_saves)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
-        // Set first item as selected (always valid - Load State removed from nav if disabled)
+        // Set first item as selected
         updateSelectionVisualInternal()
 
         // Apply arcade font to all text views
         ViewUtils.applySelectedFontToViews(
                 requireContext(),
                 progressTitle,
-                saveStateTitle,
                 loadStateTitle,
+                saveStateTitle,
+                manageSavesTitle,
                 backTitle,
-                selectionArrowSaveState,
                 selectionArrowLoadState,
+                selectionArrowSaveState,
+                selectionArrowManageSaves,
                 selectionArrowBack
         )
 
@@ -186,65 +170,27 @@ class ProgressFragment : MenuFragmentBase() {
         FontUtils.applyTextCapitalization(
                 requireContext(),
                 progressTitle,
-                saveStateTitle,
                 loadStateTitle,
+                saveStateTitle,
+                manageSavesTitle,
                 backTitle
         )
     }
 
-    /**
-     * Refresh menuItems list dynamically based on current save state. Called after saving to enable
-     * Load State immediately.
-     */
-    private fun refreshMenuItems() {
-        val hasSaveState = viewModel.hasSaveState()
-        val previousItemCount = menuItems.size
-
-        // Rebuild menuItems list dynamically
-        menuItems =
-                if (hasSaveState) {
-                    // Com save: Load State habilitado e navegável
-                    loadState.isEnabled = true
-                    loadState.alpha = 1.0f
-                    listOf(loadState, saveState, backProgress) // 3 itens navegáveis
-                } else {
-                    // Sem save: Load State VISÍVEL mas desabilitado e NÃO navegável
-                    loadState.isEnabled = false
-                    loadState.alpha = 0.5f
-                    listOf(saveState, backProgress) // Apenas 2 itens navegáveis
-                }
-
-        android.util.Log.d(
-                TAG,
-                "[REFRESH] menuItems updated: $previousItemCount -> ${menuItems.size} items (hasSaveState=$hasSaveState)"
-        )
-
-        // CRITICAL: Update NavigationController with new item count (permanently enabled)
-        viewModel.navigationController?.registerFragment(this, menuItems.size)
-        android.util.Log.d(
-                TAG,
-                "[REFRESH] NavigationController re-registered with ${menuItems.size} items"
-        )
-
-        // Update visual to reflect changes
-        updateSelectionVisualInternal()
-    }
-
     private fun setupClickListeners() {
-        // PHASE 3.3a: Route touch events through NavigationController (permanently enabled)
+        // Route touch events through NavigationController
         android.util.Log.d(
                 TAG,
-                "[TOUCH] Using new navigation system - touch routed through NavigationController"
+                "[TOUCH] Using navigation system - touch routed through NavigationController"
         )
         setupTouchNavigationSystem()
     }
 
     /**
-     * PHASE 3.3: New touch navigation system using NavigationController. Touch events create
-     * SelectItem + ActivateSelected after 100ms delay.
+     * Touch navigation system using NavigationController.
+     * Touch events create SelectItem + ActivateSelected after 100ms delay.
      */
     private fun setupTouchNavigationSystem() {
-        // menuItems list is dynamic (2 or 3 items depending on save state)
         menuItems.forEachIndexed { index, menuItem ->
             menuItem.setOnClickListener {
                 android.util.Log.d(
@@ -252,11 +198,11 @@ class ProgressFragment : MenuFragmentBase() {
                         "[TOUCH] Progress item $index clicked - routing through NavigationController"
                 )
 
-                // PHASE 3.3b: Focus-then-activate delay
+                // Focus-then-activate delay
                 // 1. Select item (immediate visual feedback)
                 viewModel.navigationController?.selectItem(index)
 
-                // 2. After TOUCH_ACTIVATION_DELAY_MS delay, activate item
+                // 2. After delay, activate item
                 it.postDelayed(
                         {
                             android.util.Log.d(
@@ -266,14 +212,12 @@ class ProgressFragment : MenuFragmentBase() {
                             viewModel.navigationController?.activateItem()
                         },
                         MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS
-                ) // MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS = focus-then-activate delay
+                )
             }
         }
     }
 
     private fun dismissMenu() {
-        // IMPORTANT: Do not call dismissRetroMenu3() here to avoid crashes
-        // Just remove the fragment visually - WITHOUT animation
         parentFragmentManager.beginTransaction().remove(this).commitAllowingStateLoss()
     }
 
@@ -297,41 +241,33 @@ class ProgressFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /** Confirm current selection - Execute actions DIRECTLY (não usar performClick) */
+    /** Confirm current selection - Navigate to grid submenus */
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[ACTION] Progress menu: CONFIRM on index $selectedIndex")
 
-        // CRITICAL: Use menuItems list to identify which item is selected
-        // This handles both cases: with Load State (3 items) and without (2 items)
         if (selectedIndex >= 0 && selectedIndex < menuItems.size) {
             val selectedItem = menuItems[selectedIndex]
             android.util.Log.d(TAG, "[ACTION] Progress menu: Selected item = ${selectedItem.id}")
 
             when (selectedItem) {
                 loadState -> {
-                    // Load State - Execute action directly
-                    android.util.Log.d(TAG, "[ACTION] Progress menu: Load State selected")
-                    viewModel.loadStateCentralized {
-                        android.util.Log.d(TAG, "[ACTION] Progress menu: State loaded successfully")
-                    }
+                    // Navigate to Load Slots grid
+                    android.util.Log.d(TAG, "[ACTION] Progress menu: Opening Load Slots grid")
+                    navigateToSubmenu(MenuType.LOAD_SLOTS)
                 }
                 saveState -> {
-                    // Save State - Execute action directly with refreshMenuItems callback
-                    android.util.Log.d(TAG, "[ACTION] Progress menu: Save State selected")
-                    viewModel.saveStateCentralized(
-                            keepPaused = true,
-                            onComplete = {
-                                android.util.Log.d(
-                                        TAG,
-                                        "[ACTION] Progress menu: State saved successfully"
-                                )
-                                refreshMenuItems()
-                            }
-                    )
+                    // Navigate to Save Slots grid
+                    android.util.Log.d(TAG, "[ACTION] Progress menu: Opening Save Slots grid")
+                    navigateToSubmenu(MenuType.SAVE_SLOTS)
+                }
+                manageSaves -> {
+                    // Navigate to Manage Saves grid
+                    android.util.Log.d(TAG, "[ACTION] Progress menu: Opening Manage Saves grid")
+                    navigateToSubmenu(MenuType.MANAGE_SAVES)
                 }
                 backProgress -> {
-                    // Back to main menu - Execute action directly
+                    // Back to main menu
                     android.util.Log.d(TAG, "[ACTION] Progress menu: Back to main menu selected")
                     performBack()
                 }
@@ -345,9 +281,20 @@ class ProgressFragment : MenuFragmentBase() {
         } else {
             android.util.Log.w(
                     TAG,
-                    "[ACTION] Progress menu: Invalid selection index $selectedIndex (menuItems.size=${menuItems.size})"
+                    "[ACTION] Progress menu: Invalid selection index $selectedIndex"
             )
         }
+    }
+
+    /**
+     * Navigate to a submenu using FragmentNavigationAdapter.
+     */
+    private fun navigateToSubmenu(menuType: MenuType) {
+        android.util.Log.d(TAG, "[NAV] Navigating to submenu: $menuType")
+        
+        // Show the submenu fragment directly
+        val fragmentAdapter = com.vinaooo.revenger.ui.retromenu3.navigation.FragmentNavigationAdapter(requireActivity())
+        fragmentAdapter.showMenu(menuType)
     }
 
     /** Back action */
@@ -462,6 +409,35 @@ class ProgressFragment : MenuFragmentBase() {
             selectionArrowSaveState.visibility = View.GONE
         }
 
+        // Manage Saves
+        if (selectedItem == manageSaves) {
+            manageSavesTitle.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.rm_selected_color
+                    )
+            )
+            selectionArrowManageSaves.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.rm_selected_color
+                    )
+            )
+            selectionArrowManageSaves.visibility = View.VISIBLE
+            (selectionArrowManageSaves.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0
+                marginEnd = 0
+            }
+        } else {
+            manageSavesTitle.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            requireContext(),
+                            R.color.rm_normal_color
+                    )
+            )
+            selectionArrowManageSaves.visibility = View.GONE
+        }
+
         // Back
         if (selectedItem == backProgress) {
             backTitle.setTextColor(
@@ -518,25 +494,29 @@ class ProgressFragment : MenuFragmentBase() {
     override fun getMenuItems(): List<MenuItem> {
         return listOf(
                 MenuItem(
+                        "load",
+                        getString(R.string.menu_load_state),
+                        action = MenuAction.LOAD_STATE
+                ),
+                MenuItem(
                         "save",
                         getString(R.string.menu_save_state),
                         action = MenuAction.SAVE_STATE
                 ),
                 MenuItem(
-                        "load",
-                        getString(R.string.menu_load_state),
-                        action = MenuAction.LOAD_STATE,
-                        isEnabled = viewModel.hasSaveState()
+                        "manage",
+                        getString(R.string.manage_saves_title),
+                        action = MenuAction.MANAGE_SAVES
                 ),
                 MenuItem("back", getString(R.string.settings_back), action = MenuAction.BACK)
         )
     }
 
     override fun onMenuItemSelected(item: MenuItem) {
-        // Use new MenuAction system, but fallback to old click listeners for compatibility
         when (item.action) {
-            MenuAction.SAVE_STATE -> saveState.performClick()
             MenuAction.LOAD_STATE -> loadState.performClick()
+            MenuAction.SAVE_STATE -> saveState.performClick()
+            MenuAction.MANAGE_SAVES -> manageSaves.performClick()
             MenuAction.BACK -> backProgress.performClick()
             else -> {
                 /* Ignore other actions */
