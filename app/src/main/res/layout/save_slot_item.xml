@@ -3,20 +3,22 @@
     Save Slot Item Layout
     Individual slot in the 3x3 grid showing screenshot preview and slot name.
     Used by SaveStateGridFragment for save/load/manage operations.
+    Uses layout_weight for proportional sizing across different screen sizes.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/slot_container"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
     android:layout_margin="@dimen/save_slot_margin"
     android:clickable="true"
     android:focusable="true">
 
     <LinearLayout
         android:id="@+id/slot_content"
-        android:layout_width="@dimen/save_slot_width"
-        android:layout_height="@dimen/save_slot_height"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
         android:padding="@dimen/save_slot_padding"
@@ -52,8 +54,8 @@
     <!-- Selection Indicator (border overlay) -->
     <View
         android:id="@+id/slot_selection_border"
-        android:layout_width="@dimen/save_slot_width"
-        android:layout_height="@dimen/save_slot_height"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:background="@drawable/slot_selected_border"
         android:visibility="gone" />
 

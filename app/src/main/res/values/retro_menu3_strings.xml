@@ -94,7 +94,7 @@
     <string name="slot_is_empty">Slot is empty</string>
 
     <!-- Save Dialogs -->
-    <string name="save_name_hint">Enter save name</string>
+    <string name="save_name_hint">ENTER SAVE NAME</string>
     <string name="save_name_dialog_title">Name your save</string>
     <string name="overwrite_dialog_title">Overwrite Save?</string>
     <string name="overwrite_dialog_message">Replace \"%s\" with new save?</string>
@@ -114,7 +114,7 @@
     <string name="delete_dialog_message">Permanently delete \"%s\"?</string>
 
     <!-- Rename Dialog -->
-    <string name="rename_dialog_title">Rename Save</string>
+    <string name="rename_dialog_title">RENAME SAVE</string>
 
     <!-- Dialog Buttons -->
     <string name="dialog_save">Save</string>

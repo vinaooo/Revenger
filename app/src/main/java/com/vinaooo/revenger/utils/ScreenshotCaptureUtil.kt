@@ -1,6 +1,7 @@
 package com.vinaooo.revenger.utils
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -10,6 +11,7 @@ import android.view.SurfaceView
 import android.view.View
 import androidx.annotation.RequiresApi
 import com.swordfish.libretrodroid.GLRetroView
+import com.swordfish.libretrodroid.LibretroDroid
 
 /**
  * Utility class for capturing screenshots from the emulator's GLRetroView.
@@ -17,10 +19,10 @@ import com.swordfish.libretrodroid.GLRetroView
  * Uses PixelCopy API for hardware-accelerated capture from GL surfaces. Screenshots are cached when
  * the menu opens and used when saving states.
  *
- * Performance considerations:
- * - PixelCopy is async and doesn't block the GL thread
- * - Screenshots are cached to avoid capturing during save dialog
- * - WebP compression is deferred to SaveStateManager
+ * Features:
+ * - Automatically crops black bars (letterbox/pillarbox) based on game aspect ratio
+ * - Uses PixelCopy API for accurate GL surface capture
+ * - Caches screenshots for save state operations
  *
  * IMPORTANT: GLRetroView is a GLSurfaceView, so we must use PixelCopy.request(SurfaceView, ...)
  * instead of PixelCopy.request(Window, ...) to capture the actual GL content.
@@ -35,14 +37,45 @@ object ScreenshotCaptureUtil {
     @Volatile private var cachedScreenshot: Bitmap? = null
 
     /**
+     * Calculate the game content rectangle within the GLRetroView.
+     * This removes the black bars (letterbox/pillarbox) based on the game's aspect ratio.
+     *
+     * @param viewWidth The width of the GLRetroView
+     * @param viewHeight The height of the GLRetroView
+     * @param gameAspectRatio The aspect ratio of the game content
+     * @return Rect representing the game content area (excluding black bars)
+     */
+    private fun calculateGameContentRect(viewWidth: Int, viewHeight: Int, gameAspectRatio: Float): Rect {
+        val viewAspectRatio = viewWidth.toFloat() / viewHeight.toFloat()
+        
+        val contentWidth: Int
+        val contentHeight: Int
+        val offsetX: Int
+        val offsetY: Int
+        
+        if (gameAspectRatio > viewAspectRatio) {
+            // Game is wider than view - has black bars on top/bottom (letterbox)
+            contentWidth = viewWidth
+            contentHeight = (viewWidth / gameAspectRatio).toInt()
+            offsetX = 0
+            offsetY = (viewHeight - contentHeight) / 2
+        } else {
+            // Game is taller than view - has black bars on left/right (pillarbox)
+            contentHeight = viewHeight
+            contentWidth = (viewHeight * gameAspectRatio).toInt()
+            offsetX = (viewWidth - contentWidth) / 2
+            offsetY = 0
+        }
+        
+        return Rect(offsetX, offsetY, offsetX + contentWidth, offsetY + contentHeight)
+    }
+
+    /**
      * Capture screenshot of the GLRetroView game area using PixelCopy API.
+     * Automatically crops black bars based on game aspect ratio.
      *
-     * This method captures the visible game content asynchronously. Works with GL surfaces via
-     * hardware-accelerated capture.
-     *
-     * NOTE: GLRetroView extends GLSurfaceView, which extends SurfaceView. We MUST use
-     * PixelCopy.request(SurfaceView, ...) to capture the GL content, not PixelCopy.request(Window,
-     * ...) which only captures the window compositor layer.
+     * This method captures only the visible game content, excluding any letterbox/pillarbox
+     * black bars that may be present due to aspect ratio differences.
      *
      * @param glRetroView The GLRetroView instance to capture
      * @param callback Called with the captured Bitmap or null on failure
@@ -59,11 +92,34 @@ object ScreenshotCaptureUtil {
                 return
             }
 
-            // Create bitmap with view dimensions
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            // Get game aspect ratio from LibretroDroid
+            val gameAspectRatio = try {
+                // Note: This requires the game to be running. If not available, capture full view.
+                val aspectRatio = getGameAspectRatioSafe()
+                if (aspectRatio > 0) aspectRatio else width.toFloat() / height.toFloat()
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not get game aspect ratio, using view aspect ratio")
+                width.toFloat() / height.toFloat()
+            }
+
+            // Calculate the game content rectangle (excluding black bars)
+            val gameRect = calculateGameContentRect(width, height, gameAspectRatio)
+            
+            Log.d(TAG, "View: ${width}x$height, Game aspect: $gameAspectRatio, Content rect: $gameRect")
+
+            // Create bitmap for the cropped game content
+            val croppedWidth = gameRect.width()
+            val croppedHeight = gameRect.height()
+            
+            if (croppedWidth <= 0 || croppedHeight <= 0) {
+                Log.w(TAG, "Invalid cropped dimensions: ${croppedWidth}x$croppedHeight")
+                callback(null)
+                return
+            }
+
+            val bitmap = Bitmap.createBitmap(croppedWidth, croppedHeight, Bitmap.Config.ARGB_8888)
 
             // GLRetroView extends GLSurfaceView which extends SurfaceView
-            // We need to use the SurfaceView variant of PixelCopy to capture GL content
             val surfaceView = glRetroView as SurfaceView
 
             // Check if surface is valid
@@ -74,13 +130,14 @@ object ScreenshotCaptureUtil {
                 return
             }
 
-            // Use PixelCopy with SurfaceView to capture the actual GL rendered content
+            // Use PixelCopy with source rect to capture only the game content area
             PixelCopy.request(
                     surfaceView,
+                    gameRect, // Only capture the game content area
                     bitmap,
                     { copyResult ->
                         if (copyResult == PixelCopy.SUCCESS) {
-                            Log.d(TAG, "Screenshot captured successfully: ${width}x$height")
+                            Log.d(TAG, "Screenshot captured successfully: ${croppedWidth}x$croppedHeight (cropped from ${width}x$height)")
                             callback(bitmap)
                         } else {
                             Log.e(TAG, "PixelCopy failed with result: $copyResult")
@@ -93,6 +150,21 @@ object ScreenshotCaptureUtil {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to capture screenshot", e)
             callback(null)
+        }
+    }
+    
+    /**
+     * Safely get the game aspect ratio without crashing if not available.
+     */
+    private fun getGameAspectRatioSafe(): Float {
+        return try {
+            // LibretroDroid provides aspect ratio through JNI
+            // This may throw if the core isn't loaded yet
+            val method = LibretroDroid::class.java.getDeclaredMethod("getAspectRatio")
+            method.invoke(null) as? Float ?: -1f
+        } catch (e: Exception) {
+            Log.w(TAG, "getAspectRatio not available: ${e.message}")
+            -1f
         }
     }
 

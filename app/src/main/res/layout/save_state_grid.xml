@@ -29,9 +29,8 @@
         <LinearLayout
             android:id="@+id/grid_container"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="@dimen/rm_center_content_weight"
-            android:layout_gravity="center_vertical"
             android:orientation="vertical"
             android:paddingVertical="@dimen/rm_container_padding_vertical">
 
@@ -56,20 +55,21 @@
                 android:shadowDy="@dimen/rm_shadow_dy"
                 android:shadowRadius="@dimen/rm_shadow_radius" />
 
-            <!-- 3x3 Grid Container -->
+            <!-- 3x3 Grid Container - fills available space proportionally -->
             <LinearLayout
                 android:id="@+id/slots_grid"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:orientation="vertical"
-                android:layout_marginBottom="8dp">
+                android:gravity="center">
 
                 <!-- Row 1: Slots 1, 2, 3 -->
                 <LinearLayout
                     android:id="@+id/grid_row_1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
                     android:orientation="horizontal"
                     android:gravity="center">
                     <!-- Slots added programmatically -->
@@ -78,8 +78,9 @@
                 <!-- Row 2: Slots 4, 5, 6 -->
                 <LinearLayout
                     android:id="@+id/grid_row_2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
                     android:orientation="horizontal"
                     android:gravity="center">
                     <!-- Slots added programmatically -->
@@ -88,8 +89,9 @@
                 <!-- Row 3: Slots 7, 8, 9 -->
                 <LinearLayout
                     android:id="@+id/grid_row_3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
                     android:orientation="horizontal"
                     android:gravity="center">
                     <!-- Slots added programmatically -->
