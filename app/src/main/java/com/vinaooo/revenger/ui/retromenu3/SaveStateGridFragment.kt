@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -44,9 +45,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     protected lateinit var gridRow2: LinearLayout
     protected lateinit var gridRow3: LinearLayout
     protected lateinit var gridTitle: TextView
-    protected lateinit var backButton: RetroCardView
-    protected lateinit var backArrow: TextView
-    protected lateinit var backTitle: TextView
+    protected lateinit var backButton: Button
 
     // Slot views (3x3 = 9 items)
     protected val slotViews = mutableListOf<View>()
@@ -121,19 +120,14 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         gridRow3 = view.findViewById(R.id.grid_row_3)
         gridTitle = view.findViewById(R.id.grid_title)
         backButton = view.findViewById(R.id.grid_back_button)
-        backArrow = view.findViewById(R.id.selection_arrow_back)
-        backTitle = view.findViewById(R.id.back_title)
 
         // Set title
         gridTitle.setText(getTitleResId())
 
-        // Configure back button
-        backButton.setUseBackgroundColor(false)
-
         // Apply fonts
-        ViewUtils.applySelectedFontToViews(requireContext(), gridTitle, backTitle, backArrow)
+        ViewUtils.applySelectedFontToViews(requireContext(), gridTitle, backButton)
 
-        FontUtils.applyTextCapitalization(requireContext(), gridTitle, backTitle)
+        FontUtils.applyTextCapitalization(requireContext(), gridTitle, backButton)
     }
 
     private fun setupClickListeners() {
@@ -337,13 +331,11 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
         // Update back button visual
         if (isBackButtonSelected) {
-            backButton.setState(RetroCardView.State.SELECTED)
-            backArrow.visibility = View.VISIBLE
-            backTitle.setTextColor(resources.getColor(R.color.rm_selected_color, null))
+            backButton.setTextColor(resources.getColor(R.color.rm_selected_color, null))
+            backButton.setBackgroundResource(R.drawable.back_button_background_selected)
         } else {
-            backButton.setState(RetroCardView.State.NORMAL)
-            backArrow.visibility = View.GONE
-            backTitle.setTextColor(resources.getColor(R.color.rm_text_color, null))
+            backButton.setTextColor(resources.getColor(R.color.rm_text_color, null))
+            backButton.setBackgroundResource(R.drawable.back_button_background)
         }
     }
 

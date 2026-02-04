@@ -32,7 +32,8 @@
             android:layout_height="match_parent"
             android:layout_weight="@dimen/rm_center_content_weight"
             android:orientation="vertical"
-            android:paddingVertical="@dimen/rm_container_padding_vertical">
+            android:paddingTop="@dimen/rm_container_padding_vertical"
+            android:paddingBottom="4dp">
 
             <!-- Menu Title -->
             <TextView
@@ -99,47 +100,31 @@
 
             </LinearLayout>
 
-            <!-- Back Button -->
-            <com.vinaooo.revenger.ui.retromenu3.RetroCardView
-                android:id="@+id/grid_back_button"
+            <!-- Back Button Container for right alignment -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/rm_menu_item_height"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:clickable="true"
-                android:focusable="true">
+                android:gravity="end"
+                android:paddingEnd="@dimen/save_slot_margin">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="@dimen/rm_menu_item_padding">
+                <Button
+                    android:id="@+id/grid_back_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_back"
+                    android:textSize="@dimen/rm_menu_item_text_size"
+                    android:textColor="@color/rm_text_color"
+                    android:background="@drawable/back_button_background"
+                    android:minHeight="0dp"
+                    android:minWidth="80dp"
+                    android:paddingTop="1dp"
+                    android:paddingBottom="1dp"
+                    android:paddingHorizontal="16dp"
+                    android:gravity="center"
+                    android:includeFontPadding="false" />
 
-                    <TextView
-                        android:id="@+id/selection_arrow_back"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/rm_selection_arrow"
-                        android:textSize="@dimen/rm_arrow_text_size"
-                        android:textColor="@color/rm_text_color"
-                        android:padding="0dp"
-                        android:includeFontPadding="false"
-                        android:visibility="gone" />
-
-                    <TextView
-                        android:id="@+id/back_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_back"
-                        android:textSize="@dimen/rm_menu_item_text_size"
-                        android:textColor="@color/rm_text_color"
-                        android:includeFontPadding="false"
-                        android:shadowColor="@color/rm_shadow_color"
-                        android:shadowDx="@dimen/rm_shadow_dx"
-                        android:shadowDy="@dimen/rm_shadow_dy"
-                        android:shadowRadius="@dimen/rm_shadow_radius" />
-                </LinearLayout>
-            </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+            </LinearLayout>
 
         </LinearLayout>
 

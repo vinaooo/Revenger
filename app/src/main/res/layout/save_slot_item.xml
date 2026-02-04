@@ -4,6 +4,7 @@
     Individual slot in the 3x3 grid showing screenshot preview and slot name.
     Used by SaveStateGridFragment for save/load/manage operations.
     Uses layout_weight for proportional sizing across different screen sizes.
+    Text overlays the image with semi-transparent background for better visibility.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -21,33 +22,55 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
-        android:padding="@dimen/save_slot_padding"
-        android:background="@drawable/slot_background_empty">
+        android:background="@drawable/slot_background_empty"
+        android:clipToOutline="true"
+        android:outlineProvider="background">
 
-        <!-- Screenshot or Placeholder -->
-        <ImageView
-            android:id="@+id/slot_screenshot"
+        <!-- Screenshot takes full space -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:scaleType="centerCrop"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/slot_screenshot_description"
-            tools:src="@drawable/ic_empty_slot" />
+            android:layout_height="match_parent"
+            android:clipChildren="true"
+            android:clipToPadding="true">
 
-        <!-- Slot Name -->
-        <TextView
-            android:id="@+id/slot_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textSize="@dimen/save_slot_text_size"
-            android:textColor="@color/rm_text_color"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:includeFontPadding="false"
-            android:layout_marginTop="2dp"
-            tools:text="Slot 1" />
+            <!-- Screenshot or Placeholder -->
+            <ImageView
+                android:id="@+id/slot_screenshot"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/slot_screenshot_description"
+                tools:src="@drawable/ic_empty_slot" />
+
+            <!-- Slot Name with semi-transparent background overlay at bottom -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:background="#4D333333"
+                android:padding="4dp"
+                android:gravity="start">
+
+                <TextView
+                    android:id="@+id/slot_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:textSize="@dimen/save_slot_text_size"
+                    android:textColor="@color/rm_text_color"
+                    android:shadowColor="@color/rm_shadow_color"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    tools:text="Slot 1" />
+
+            </LinearLayout>
+
+        </FrameLayout>
 
     </LinearLayout>
 

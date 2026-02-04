@@ -16,6 +16,7 @@ import com.vinaooo.revenger.gamepad.GamePadAlignmentManager
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.privacy.EnhancedPrivacyManager
 import com.vinaooo.revenger.utils.AndroidCompatibility
+import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** Main game activity for the emulator Phase 9.4: Enhanced with SDK 36 features */
@@ -72,6 +73,9 @@ class GameActivity : FragmentActivity() {
                 )
 
                 super.onCreate(savedInstanceState)
+
+                // Initialize ScreenshotCaptureUtil with context for aspect ratio detection
+                ScreenshotCaptureUtil.setContext(this)
 
                 // Apply conditional features based on Android version
                 AndroidCompatibility.applyConditionalFeatures()

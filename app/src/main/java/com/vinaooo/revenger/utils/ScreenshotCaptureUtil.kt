@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.utils
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Build
@@ -11,7 +12,7 @@ import android.view.SurfaceView
 import android.view.View
 import androidx.annotation.RequiresApi
 import com.swordfish.libretrodroid.GLRetroView
-import com.swordfish.libretrodroid.LibretroDroid
+import com.vinaooo.revenger.R
 
 /**
  * Utility class for capturing screenshots from the emulator's GLRetroView.
@@ -23,6 +24,7 @@ import com.swordfish.libretrodroid.LibretroDroid
  * - Automatically crops black bars (letterbox/pillarbox) based on game aspect ratio
  * - Uses PixelCopy API for accurate GL surface capture
  * - Caches screenshots for save state operations
+ * - Determines aspect ratio from LibRetro core name in config
  *
  * IMPORTANT: GLRetroView is a GLSurfaceView, so we must use PixelCopy.request(SurfaceView, ...)
  * instead of PixelCopy.request(Window, ...) to capture the actual GL content.
@@ -35,6 +37,84 @@ object ScreenshotCaptureUtil {
      * Cached screenshot from when the menu was opened. Captured at pause time and used when saving.
      */
     @Volatile private var cachedScreenshot: Bitmap? = null
+
+    /**
+     * Cached context for reading config values.
+     */
+    private var cachedContext: Context? = null
+
+    /**
+     * Set the context for reading config values.
+     * Should be called from GameActivity.onCreate().
+     */
+    fun setContext(context: Context) {
+        cachedContext = context.applicationContext
+    }
+
+    /**
+     * Known aspect ratios for LibRetro cores.
+     * These are the standard PAR-corrected aspect ratios for each system.
+     */
+    private object AspectRatios {
+        // SNES: 8:7 pixel aspect ratio, 256x224 -> 4:3 display
+        const val SNES = 4f / 3f
+        
+        // Game Boy: 160x144 -> 10:9 display
+        const val GAME_BOY = 10f / 9f
+        
+        // Game Boy Color: Same as Game Boy
+        const val GAME_BOY_COLOR = GAME_BOY
+        
+        // Game Boy Advance: 240x160 -> 3:2 display
+        const val GAME_BOY_ADVANCE = 3f / 2f
+        
+        // Sega Master System: 256x192 -> 4:3 display
+        const val MASTER_SYSTEM = 4f / 3f
+        
+        // Sega Mega Drive / Genesis: 320x224 -> 4:3 display
+        const val MEGA_DRIVE = 4f / 3f
+        
+        // NES: 256x240 -> 4:3 display
+        const val NES = 4f / 3f
+        
+        // Default fallback
+        const val DEFAULT = 4f / 3f
+    }
+
+    /**
+     * Get the aspect ratio for a given LibRetro core name.
+     * 
+     * @param coreName The core name from config (e.g., "gambatte", "snes9x", "genesis_plus_gx")
+     * @return The aspect ratio for the core's target system
+     */
+    private fun getAspectRatioForCore(coreName: String): Float {
+        return when (coreName.lowercase()) {
+            // SNES cores
+            "snes9x", "bsnes", "snes9x_next", "mednafen_snes", "mesen-s" -> AspectRatios.SNES
+            
+            // Game Boy / Game Boy Color cores
+            "gambatte", "mgba", "vba_next", "sameboy", "gearboy" -> AspectRatios.GAME_BOY
+            
+            // Game Boy Advance cores
+            "gpsp", "vba-m", "meteor" -> AspectRatios.GAME_BOY_ADVANCE
+            
+            // Master System cores
+            "gearsystem", "genesis_plus_gx", "picodrive", "smsplus" -> AspectRatios.MASTER_SYSTEM
+            
+            // Mega Drive / Genesis cores (same cores as Master System, but different aspect)
+            // Note: picodrive and genesis_plus_gx support both, so we use Master System default
+            // The actual aspect depends on the ROM being played
+            
+            // NES cores
+            "nestopia", "fceumm", "quicknes", "mesen" -> AspectRatios.NES
+            
+            // Default fallback
+            else -> {
+                Log.w(TAG, "Unknown core '$coreName', using default aspect ratio")
+                AspectRatios.DEFAULT
+            }
+        }
+    }
 
     /**
      * Calculate the game content rectangle within the GLRetroView.
@@ -92,14 +172,21 @@ object ScreenshotCaptureUtil {
                 return
             }
 
-            // Get game aspect ratio from LibretroDroid
+            // Get game aspect ratio based on the core name from config
             val gameAspectRatio = try {
-                // Note: This requires the game to be running. If not available, capture full view.
-                val aspectRatio = getGameAspectRatioSafe()
-                if (aspectRatio > 0) aspectRatio else width.toFloat() / height.toFloat()
+                val context = cachedContext
+                if (context != null) {
+                    val coreName = context.getString(R.string.conf_core)
+                    val aspectRatio = getAspectRatioForCore(coreName)
+                    Log.d(TAG, "Core: $coreName, Aspect ratio: $aspectRatio")
+                    aspectRatio
+                } else {
+                    Log.w(TAG, "Context not set, using default aspect ratio")
+                    AspectRatios.DEFAULT
+                }
             } catch (e: Exception) {
-                Log.w(TAG, "Could not get game aspect ratio, using view aspect ratio")
-                width.toFloat() / height.toFloat()
+                Log.w(TAG, "Could not determine aspect ratio: ${e.message}")
+                AspectRatios.DEFAULT
             }
 
             // Calculate the game content rectangle (excluding black bars)
@@ -150,21 +237,6 @@ object ScreenshotCaptureUtil {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to capture screenshot", e)
             callback(null)
-        }
-    }
-    
-    /**
-     * Safely get the game aspect ratio without crashing if not available.
-     */
-    private fun getGameAspectRatioSafe(): Float {
-        return try {
-            // LibretroDroid provides aspect ratio through JNI
-            // This may throw if the core isn't loaded yet
-            val method = LibretroDroid::class.java.getDeclaredMethod("getAspectRatio")
-            method.invoke(null) as? Float ?: -1f
-        } catch (e: Exception) {
-            Log.w(TAG, "getAspectRatio not available: ${e.message}")
-            -1f
         }
     }
 
