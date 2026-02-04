@@ -312,21 +312,9 @@ class ProgressFragment : MenuFragmentBase() {
                 "[BACK] 🚀 performBack ENTRY POINT - isAdded=$isAdded, hasContext=${context != null}"
         )
 
-        try {
-            android.util.Log.d(TAG, "[BACK] performBack called - navigating to main menu")
-
-            // PHASE 3: Use NavigationController (permanently enabled)
-            android.util.Log.d(
-                    TAG,
-                    "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
-            )
-            val success = viewModel.navigationController?.navigateBack() ?: false
-            android.util.Log.d(TAG, "[BACK] NavigationController.navigateBack() returned: $success")
-            return success
-        } catch (e: Exception) {
-            android.util.Log.e(TAG, "[BACK] ❌ EXCEPTION in performBack: ${e.message}", e)
-            return false
-        }
+        // Return false to let NavigationEventProcessor handle the back navigation
+        // Don't call navigateBack() here as it causes infinite recursion
+        return false
     }
 
     /** Update selection visual - specific implementation for ProgressFragment */

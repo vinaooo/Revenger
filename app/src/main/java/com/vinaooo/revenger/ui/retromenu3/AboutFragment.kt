@@ -342,17 +342,9 @@ class AboutFragment : MenuFragmentBase() {
 
     /** Handle back action */
     override fun performBack(): Boolean {
-        // PHASE 3: Use NavigationController for back navigation
-        android.util.Log.d(
-                "AboutFragment",
-                "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
-        )
-        val success = viewModel.navigationController?.navigateBack() ?: false
-        android.util.Log.d(
-                "AboutFragment",
-                "[BACK] NavigationController.navigateBack() returned: $success"
-        )
-        return success
+        // Return false to let NavigationEventProcessor handle the back navigation
+        // Don't call navigateBack() here as it causes infinite recursion
+        return false
     }
 
     /** Update selection visuals */

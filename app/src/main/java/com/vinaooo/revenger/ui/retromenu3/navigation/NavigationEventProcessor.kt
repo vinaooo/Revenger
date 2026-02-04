@@ -197,6 +197,19 @@ class NavigationEventProcessor(
     fun navigateBack(): Boolean {
         android.util.Log.d(TAG, "[NAVIGATE_BACK] Navigate back called")
 
+        // IMPORTANT: First, let the current fragment handle the back event
+        // This allows fragments with dialogs to consume the back event
+        val fragment = stateManager.currentFragment
+        if (fragment != null) {
+            val consumed = fragment.onBack()
+            android.util.Log.d(TAG, "[NAVIGATE_BACK] Fragment onBack() returned: $consumed")
+            if (consumed) {
+                // Fragment consumed the event (e.g., closed a dialog)
+                // Don't navigate back in the menu stack
+                return true
+            }
+        }
+
         if (stateManager.currentMenu == MenuType.MAIN && stateManager.isStackEmpty()) {
             android.util.Log.d(TAG, "[NAVIGATE_BACK] At main menu, closing menu completely")
             android.util.Log.d(TAG, "[NAVIGATE_BACK] Resetting combo state before menu close")

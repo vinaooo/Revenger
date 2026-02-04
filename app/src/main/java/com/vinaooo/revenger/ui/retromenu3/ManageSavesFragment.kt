@@ -39,6 +39,10 @@ class ManageSavesFragment : SaveStateGridFragment() {
     private var pendingOperation: Operation? = null
     private var isSelectingTargetSlot = false
 
+    // Dialog navigation state
+    private var dialogSelectedIndex = 0
+    private var dialogButtons: List<RetroCardView> = emptyList()
+
     enum class Operation {
         RENAME,
         COPY,
@@ -48,6 +52,18 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
     fun setListener(listener: ManageSavesListener) {
         this.listener = listener
+    }
+
+    override fun onDestroyView() {
+        // Clean up any visible dialog
+        dialogOverlay?.let { dialog ->
+            (dialog.parent as? ViewGroup)?.removeView(dialog)
+        }
+        dialogOverlay = null
+        isDialogVisible = false
+        dialogButtons = emptyList()
+        dialogSelectedIndex = 0
+        super.onDestroyView()
     }
 
     override fun getTitleResId(): Int = R.string.manage_saves_title
@@ -115,7 +131,80 @@ class ManageSavesFragment : SaveStateGridFragment() {
                         .show()
                 true
             }
-            else -> super.performBack()
+            // Return false to let NavigationEventProcessor handle the back navigation
+            // Don't call super.performBack() as it causes infinite recursion
+            else -> false
+        }
+    }
+
+    // ========== DIALOG NAVIGATION ==========
+
+    override fun performNavigateUp() {
+        if (isDialogVisible && dialogButtons.isNotEmpty()) {
+            if (dialogSelectedIndex > 0) {
+                dialogSelectedIndex--
+                updateDialogSelection()
+            }
+            return
+        }
+        super.performNavigateUp()
+    }
+
+    override fun performNavigateDown() {
+        if (isDialogVisible && dialogButtons.isNotEmpty()) {
+            if (dialogSelectedIndex < dialogButtons.size - 1) {
+                dialogSelectedIndex++
+                updateDialogSelection()
+            }
+            return
+        }
+        super.performNavigateDown()
+    }
+
+    override fun performConfirm() {
+        if (isDialogVisible && dialogButtons.isNotEmpty()) {
+            dialogButtons.getOrNull(dialogSelectedIndex)?.performClick()
+            return
+        }
+        super.performConfirm()
+    }
+
+    private fun updateDialogSelection() {
+        dialogButtons.forEachIndexed { index, button ->
+            val arrow = button.findViewById<TextView>(
+                when (button.id) {
+                    R.id.operation_rename -> R.id.rename_arrow
+                    R.id.operation_copy -> R.id.copy_arrow
+                    R.id.operation_move -> R.id.move_arrow
+                    R.id.operation_delete -> R.id.delete_arrow
+                    R.id.operation_cancel -> R.id.cancel_arrow
+                    R.id.dialog_confirm_button -> R.id.confirm_button_arrow
+                    R.id.dialog_cancel_button -> R.id.cancel_button_arrow
+                    else -> return@forEachIndexed
+                }
+            )
+            val textView = button.findViewById<TextView>(
+                when (button.id) {
+                    R.id.operation_rename -> R.id.rename_text
+                    R.id.operation_copy -> R.id.copy_text
+                    R.id.operation_move -> R.id.move_text
+                    R.id.operation_delete -> R.id.delete_text
+                    R.id.operation_cancel -> R.id.cancel_text
+                    R.id.dialog_confirm_button -> R.id.confirm_button_text
+                    R.id.dialog_cancel_button -> R.id.cancel_button_text
+                    else -> return@forEachIndexed
+                }
+            )
+
+            if (index == dialogSelectedIndex) {
+                button.setState(RetroCardView.State.SELECTED)
+                arrow?.visibility = View.VISIBLE
+                textView?.setTextColor(resources.getColor(R.color.rm_selected_color, null))
+            } else {
+                button.setState(RetroCardView.State.NORMAL)
+                arrow?.visibility = View.GONE
+                textView?.setTextColor(resources.getColor(R.color.rm_text_color, null))
+            }
         }
     }
 
@@ -138,12 +227,12 @@ class ManageSavesFragment : SaveStateGridFragment() {
         pendingSlot = slot
         isDialogVisible = true
 
-        val parent = view?.parent as? ViewGroup ?: return
+        val container = view as? ViewGroup ?: return
 
         // Create dialog overlay
         dialogOverlay =
                 LayoutInflater.from(requireContext())
-                        .inflate(R.layout.retro_operations_menu, parent, false)
+                        .inflate(R.layout.retro_operations_menu, container, false)
 
         dialogOverlay?.let { dialog ->
             val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
@@ -191,8 +280,13 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
             cancelButton.setOnClickListener { hideDialog() }
 
-            // Add to parent
-            parent.addView(dialog)
+            // Setup gamepad navigation for dialog
+            dialogButtons = listOf(renameButton, copyButton, moveButton, deleteButton, cancelButton)
+            dialogSelectedIndex = 0
+            updateDialogSelection()
+
+            // Add to fragment's root view
+            container.addView(dialog)
 
             // Animate in
             dialog.alpha = 0f
@@ -214,11 +308,11 @@ class ManageSavesFragment : SaveStateGridFragment() {
         pendingSlot = slot
         isDialogVisible = true
 
-        val parent = view?.parent as? ViewGroup ?: return
+        val container = view as? ViewGroup ?: return
 
         dialogOverlay =
                 LayoutInflater.from(requireContext())
-                        .inflate(R.layout.retro_rename_dlg, parent, false)
+                        .inflate(R.layout.retro_rename_dlg, container, false)
 
         dialogOverlay?.let { dialog ->
             val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
@@ -246,7 +340,12 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
             cancelButton.setOnClickListener { hideDialog() }
 
-            parent.addView(dialog)
+            // Setup gamepad navigation for dialog
+            dialogButtons = listOf(confirmButton, cancelButton)
+            dialogSelectedIndex = 0
+            updateDialogSelection()
+
+            container.addView(dialog)
             dialog.alpha = 0f
             dialog.animate().alpha(1f).setDuration(150).start()
 
@@ -259,11 +358,11 @@ class ManageSavesFragment : SaveStateGridFragment() {
         pendingSlot = slot
         isDialogVisible = true
 
-        val parent = view?.parent as? ViewGroup ?: return
+        val container = view as? ViewGroup ?: return
 
         dialogOverlay =
                 LayoutInflater.from(requireContext())
-                        .inflate(R.layout.retro_confirm_dlg, parent, false)
+                        .inflate(R.layout.retro_confirm_dlg, container, false)
 
         dialogOverlay?.let { dialog ->
             val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
@@ -303,7 +402,12 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
             cancelButton.setOnClickListener { hideDialog() }
 
-            parent.addView(dialog)
+            // Setup gamepad navigation for dialog (cancel selected by default for safety)
+            dialogButtons = listOf(confirmButton, cancelButton)
+            dialogSelectedIndex = 1  // Cancel selected by default
+            updateDialogSelection()
+
+            container.addView(dialog)
             dialog.alpha = 0f
             dialog.animate().alpha(1f).setDuration(150).start()
         }
@@ -364,17 +468,20 @@ class ManageSavesFragment : SaveStateGridFragment() {
     }
 
     private fun hideDialog() {
-        dialogOverlay?.let { dialog ->
-            dialog.animate()
-                    .alpha(0f)
-                    .setDuration(100)
-                    .withEndAction {
-                        (dialog.parent as? ViewGroup)?.removeView(dialog)
-                        dialogOverlay = null
-                        isDialogVisible = false
-                    }
-                    .start()
-        }
+        val dialog = dialogOverlay ?: return
+        
+        // Cancel any ongoing animations
+        dialog.animate().cancel()
+        
+        // Immediately hide and remove
+        dialog.visibility = View.GONE
+        (dialog.parent as? ViewGroup)?.removeView(dialog)
+        
+        // Reset state
+        dialogOverlay = null
+        isDialogVisible = false
+        dialogButtons = emptyList()
+        dialogSelectedIndex = 0
     }
 
     // ========== OPERATIONS ==========

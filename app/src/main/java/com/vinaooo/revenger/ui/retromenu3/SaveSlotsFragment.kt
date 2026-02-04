@@ -37,6 +37,10 @@ class SaveSlotsFragment : SaveStateGridFragment() {
     private var isDialogVisible = false
     private var pendingSlotNumber: Int = 0
 
+    // Dialog navigation state
+    private var dialogSelectedIndex = 0
+    private var dialogButtons: List<RetroCardView> = emptyList()
+
     fun setListener(listener: SaveSlotsListener) {
         this.listener = listener
     }
@@ -72,7 +76,81 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             hideDialog()
             return true
         }
-        return super.performBack()
+        // Return false to let NavigationEventProcessor handle the back navigation
+        return false
+    }
+
+    // ========== DIALOG NAVIGATION ==========
+
+    override fun performNavigateUp() {
+        if (isDialogVisible && dialogButtons.isNotEmpty()) {
+            if (dialogSelectedIndex > 0) {
+                dialogSelectedIndex--
+                updateDialogSelection()
+            }
+            return
+        }
+        super.performNavigateUp()
+    }
+
+    override fun performNavigateDown() {
+        if (isDialogVisible && dialogButtons.isNotEmpty()) {
+            if (dialogSelectedIndex < dialogButtons.size - 1) {
+                dialogSelectedIndex++
+                updateDialogSelection()
+            }
+            return
+        }
+        super.performNavigateDown()
+    }
+
+    override fun performConfirm() {
+        if (isDialogVisible && dialogButtons.isNotEmpty()) {
+            dialogButtons.getOrNull(dialogSelectedIndex)?.performClick()
+            return
+        }
+        super.performConfirm()
+    }
+
+    private fun updateDialogSelection() {
+        dialogButtons.forEachIndexed { index, button ->
+            val arrow = button.findViewById<TextView>(
+                when (button.id) {
+                    R.id.dialog_confirm_button -> R.id.confirm_button_arrow
+                    R.id.dialog_cancel_button -> R.id.cancel_button_arrow
+                    else -> return@forEachIndexed
+                }
+            )
+            val textView = button.findViewById<TextView>(
+                when (button.id) {
+                    R.id.dialog_confirm_button -> R.id.confirm_button_text
+                    R.id.dialog_cancel_button -> R.id.cancel_button_text
+                    else -> return@forEachIndexed
+                }
+            )
+
+            if (index == dialogSelectedIndex) {
+                button.setState(RetroCardView.State.SELECTED)
+                arrow?.visibility = View.VISIBLE
+                textView?.setTextColor(resources.getColor(R.color.rm_selected_color, null))
+            } else {
+                button.setState(RetroCardView.State.NORMAL)
+                arrow?.visibility = View.GONE
+                textView?.setTextColor(resources.getColor(R.color.rm_text_color, null))
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        // Clean up any visible dialog
+        dialogOverlay?.let { dialog ->
+            (dialog.parent as? ViewGroup)?.removeView(dialog)
+        }
+        dialogOverlay = null
+        isDialogVisible = false
+        dialogButtons = emptyList()
+        dialogSelectedIndex = 0
+        super.onDestroyView()
     }
 
     /** Shows a retro-styled overwrite confirmation dialog. */
@@ -80,12 +158,12 @@ class SaveSlotsFragment : SaveStateGridFragment() {
         pendingSlotNumber = slot.slotNumber
         isDialogVisible = true
 
-        val parent = view?.parent as? ViewGroup ?: return
+        val container = view as? ViewGroup ?: return
 
         // Create dialog overlay
         dialogOverlay =
                 LayoutInflater.from(requireContext())
-                        .inflate(R.layout.retro_confirm_dlg, parent, false)
+                        .inflate(R.layout.retro_confirm_dlg, container, false)
 
         // Setup dialog content
         dialogOverlay?.let { dialog ->
@@ -135,8 +213,13 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
             cancelButton.setOnClickListener { hideDialog() }
 
-            // Add to parent
-            parent.addView(dialog)
+            // Setup gamepad navigation for dialog
+            dialogButtons = listOf(confirmButton, cancelButton)
+            dialogSelectedIndex = 0
+            updateDialogSelection()
+
+            // Add to fragment's root view
+            container.addView(dialog)
 
             // Animate in
             dialog.alpha = 0f
@@ -145,17 +228,20 @@ class SaveSlotsFragment : SaveStateGridFragment() {
     }
 
     private fun hideDialog() {
-        dialogOverlay?.let { dialog ->
-            dialog.animate()
-                    .alpha(0f)
-                    .setDuration(100)
-                    .withEndAction {
-                        (dialog.parent as? ViewGroup)?.removeView(dialog)
-                        dialogOverlay = null
-                        isDialogVisible = false
-                    }
-                    .start()
-        }
+        val dialog = dialogOverlay ?: return
+        
+        // Cancel any ongoing animations
+        dialog.animate().cancel()
+        
+        // Immediately hide and remove
+        dialog.visibility = View.GONE
+        (dialog.parent as? ViewGroup)?.removeView(dialog)
+        
+        // Reset state
+        dialogOverlay = null
+        isDialogVisible = false
+        dialogButtons = emptyList()
+        dialogSelectedIndex = 0
     }
 
     private fun performSave(slotNumber: Int, name: String) {

@@ -297,8 +297,9 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
     override fun performBack(): Boolean {
         android.util.Log.d(TAG, "[BACK] performBack called")
-        onBackConfirmed()
-        return true
+        // Return false to let NavigationEventProcessor handle the back navigation
+        // Subclasses can override to handle dialogs and return true if they consume the event
+        return false
     }
 
     private fun selectSlot(row: Int, col: Int) {
