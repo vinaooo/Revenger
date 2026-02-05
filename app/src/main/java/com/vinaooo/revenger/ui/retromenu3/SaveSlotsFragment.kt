@@ -381,6 +381,9 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             // Get cached screenshot
             val screenshot = viewModel.getCachedScreenshot()
 
+            // Get cached full-screen screenshot for load preview overlay
+            val preview = viewModel.getCachedFullScreenshot()
+
             // Get ROM name from config
             val romName =
                     try {
@@ -395,6 +398,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
                             slotNumber = slotNumber,
                             stateBytes = stateBytes,
                             screenshot = screenshot,
+                            preview = preview,
                             name = name,
                             romName = romName
                     )

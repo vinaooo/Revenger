@@ -412,6 +412,20 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
             backButton.setTextColor(resources.getColor(R.color.rm_text_color, null))
             backButton.setBackgroundResource(R.drawable.back_button_background)
         }
+
+        // Notify subclass of selection change
+        val selectedSlotIndex = if (isBackButtonSelected) -1 else selectedRow * GRID_COLS + selectedCol
+        onSelectionChanged(selectedSlotIndex)
+    }
+
+    /**
+     * Hook for subclasses to react to slot selection changes.
+     * Called at the end of updateSelectionVisualInternal().
+     *
+     * @param slotIndex 0-based slot index (0-8), or -1 if back button is selected
+     */
+    protected open fun onSelectionChanged(slotIndex: Int) {
+        // Default: no-op. Subclasses (e.g., LoadSlotsFragment) can override.
     }
 
     // ========== GLOW ANIMATION METHODS ==========

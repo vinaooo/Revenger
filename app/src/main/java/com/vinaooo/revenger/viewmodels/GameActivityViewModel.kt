@@ -119,6 +119,38 @@ class GameActivityViewModel(application: Application) :
     private var exitFragment: ExitFragment? = null
     private var aboutFragment: AboutFragment? = null
 
+    // ===== LOAD PREVIEW OVERLAY =====
+
+    /**
+     * Callback to show/hide the full-screen preview overlay in GameActivity.
+     * Set by GameActivity during initialization, called by fragments on slot selection.
+     */
+    var loadPreviewCallback: ((android.graphics.Bitmap?) -> Unit)? = null
+
+    /**
+     * Show the load preview overlay with the given bitmap.
+     * Used when user navigates between slots in Load State grid.
+     */
+    fun showLoadPreview(bitmap: android.graphics.Bitmap) {
+        loadPreviewCallback?.invoke(bitmap)
+    }
+
+    /**
+     * Hide the load preview overlay.
+     * Called when navigating away from Load State or when menu closes.
+     */
+    fun hideLoadPreview() {
+        loadPreviewCallback?.invoke(null)
+    }
+
+    /**
+     * Get the cached full-screen screenshot (with black bars) for preview overlay.
+     * Used when saving to slot — the full screenshot is saved alongside the cropped one.
+     */
+    fun getCachedFullScreenshot(): android.graphics.Bitmap? {
+        return com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getCachedFullScreenshot()
+    }
+
     // ===== CENTRALIZED STATE MANAGEMENT =====
     // Estado distribuído migrado para MenuStateManager
 
@@ -329,6 +361,11 @@ class GameActivityViewModel(application: Application) :
 
                 // RESUMIR o jogo quando menu fecha - aplicar velocidade salva nas preferences
                 retroView?.let { speedController?.restoreSpeedFromPreferences(it.view) }
+
+                // Hide load preview overlay AFTER game resumes with delay.
+                // The GL surface needs time to render the loaded state frame;
+                // hiding immediately causes a brief flash of the old game frame.
+                Handler(Looper.getMainLooper()).postDelayed({ hideLoadPreview() }, 300)
 
                 android.util.Log.d(
                         "GameActivityViewModel",

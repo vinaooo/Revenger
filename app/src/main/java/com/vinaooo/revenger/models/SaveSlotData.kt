@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter
  * @property description Optional description
  * @property stateFile Reference to the state.bin file
  * @property screenshotFile Reference to the screenshot file (may not exist for legacy saves)
+ * @property previewFile Reference to the full-screen preview file (may not exist for old saves)
  * @property isEmpty True if this slot has no save data
  */
 data class SaveSlotData(
@@ -30,6 +31,7 @@ data class SaveSlotData(
         val description: String = "",
         val stateFile: File?,
         val screenshotFile: File?,
+        val previewFile: File? = null,
         val isEmpty: Boolean
 ) {
     companion object {
@@ -86,5 +88,10 @@ data class SaveSlotData(
     /** Check if this slot has a valid screenshot file. */
     fun hasScreenshot(): Boolean {
         return screenshotFile?.exists() == true
+    }
+
+    /** Check if this slot has a valid full-screen preview file for load overlay. */
+    fun hasPreview(): Boolean {
+        return previewFile?.exists() == true
     }
 }

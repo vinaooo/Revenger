@@ -12,6 +12,16 @@
         android:layout_height="match_parent"
         android:background="@android:color/black" />
     
+    <!-- Layer 1.5: Load Preview Overlay (between game and menu) -->
+    <!-- Full-screen screenshot shown when user selects a slot in Load State -->
+    <ImageView
+        android:id="@+id/load_preview_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:visibility="gone"
+        android:importantForAccessibility="no" />
+    
     <!-- Layer 2: Menu Container (Middle - Conditionally visible) -->
     <!-- This container will hold RetroMenu3Fragment and its submenus -->
     <FrameLayout

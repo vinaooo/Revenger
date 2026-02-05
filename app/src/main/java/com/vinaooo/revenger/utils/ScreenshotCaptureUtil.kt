@@ -35,8 +35,15 @@ object ScreenshotCaptureUtil {
 
     /**
      * Cached screenshot from when the menu was opened. Captured at pause time and used when saving.
+     * This is the cropped version (no black bars) used for slot thumbnails.
      */
     @Volatile private var cachedScreenshot: Bitmap? = null
+
+    /**
+     * Cached full-screen screenshot including black bars.
+     * Used as load preview overlay — matches the screen pixel-perfectly with fitXY.
+     */
+    @Volatile private var cachedFullScreenshot: Bitmap? = null
 
     /**
      * Cached context for reading config values.
@@ -246,6 +253,58 @@ object ScreenshotCaptureUtil {
     }
 
     /**
+     * Capture a full-screen screenshot of the GLRetroView WITHOUT cropping.
+     * Includes black bars (letterbox/pillarbox) so the image matches the screen pixel-perfectly
+     * when displayed with fitXY + match_parent. Used for load preview overlay.
+     *
+     * @param glRetroView The GLRetroView instance to capture
+     * @param callback Called with the captured Bitmap or null on failure
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun captureFullScreen(glRetroView: GLRetroView, callback: (Bitmap?) -> Unit) {
+        try {
+            val width = glRetroView.width
+            val height = glRetroView.height
+
+            if (width <= 0 || height <= 0) {
+                Log.w(TAG, "Invalid view dimensions for full capture: ${width}x$height")
+                callback(null)
+                return
+            }
+
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val surfaceView = glRetroView as SurfaceView
+
+            if (!surfaceView.holder.surface.isValid) {
+                Log.e(TAG, "Surface is not valid for full capture")
+                bitmap.recycle()
+                callback(null)
+                return
+            }
+
+            // Capture entire surface — no source rect, no crop
+            PixelCopy.request(
+                    surfaceView,
+                    bitmap,
+                    { copyResult ->
+                        if (copyResult == PixelCopy.SUCCESS) {
+                            Log.d(TAG, "Full screenshot captured: ${width}x$height")
+                            callback(bitmap)
+                        } else {
+                            Log.e(TAG, "Full PixelCopy failed with result: $copyResult")
+                            bitmap.recycle()
+                            callback(null)
+                        }
+                    },
+                    Handler(Looper.getMainLooper())
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to capture full screenshot", e)
+            callback(null)
+        }
+    }
+
+    /**
      * Auto-crop black borders from a bitmap.
      *
      * Some LibRetro cores (e.g., picodrive for Master System) render frames with
@@ -366,8 +425,9 @@ object ScreenshotCaptureUtil {
     }
 
     /**
-     * Capture and cache screenshot when menu opens. This should be called when the game pauses for
-     * menu.
+     * Capture and cache both cropped and full screenshots when menu opens.
+     * Cropped screenshot (no black bars) is used for slot thumbnails.
+     * Full screenshot (with black bars) is used for load preview overlay.
      *
      * @param glRetroView The GLRetroView to capture from
      * @param onCaptured Optional callback when capture completes
@@ -377,20 +437,34 @@ object ScreenshotCaptureUtil {
             glRetroView: GLRetroView,
             onCaptured: ((Boolean) -> Unit)? = null
     ) {
+        // Capture cropped screenshot for slot thumbnails
         captureGameScreen(glRetroView) { bitmap ->
             synchronized(this) {
-                // Recycle old cached screenshot
                 cachedScreenshot?.recycle()
                 cachedScreenshot = bitmap
             }
-            Log.d(TAG, "Screenshot cached: ${bitmap != null}")
-            onCaptured?.invoke(bitmap != null)
+            Log.d(TAG, "Cropped screenshot cached: ${bitmap != null}")
+        }
+
+        // Capture full screenshot for load preview overlay
+        captureFullScreen(glRetroView) { fullBitmap ->
+            synchronized(this) {
+                cachedFullScreenshot?.recycle()
+                cachedFullScreenshot = fullBitmap
+            }
+            Log.d(TAG, "Full screenshot cached: ${fullBitmap != null}")
+            onCaptured?.invoke(fullBitmap != null || cachedScreenshot != null)
         }
     }
 
-    /** Get the cached screenshot for saving. Returns null if no screenshot was cached. */
+    /** Get the cached cropped screenshot for saving. Returns null if no screenshot was cached. */
     fun getCachedScreenshot(): Bitmap? {
         return cachedScreenshot
+    }
+
+    /** Get the cached full-screen screenshot (with black bars) for preview overlay. */
+    fun getCachedFullScreenshot(): Bitmap? {
+        return cachedFullScreenshot
     }
 
     /** Check if a cached screenshot exists. */
@@ -398,13 +472,15 @@ object ScreenshotCaptureUtil {
         return cachedScreenshot != null
     }
 
-    /** Clear the cached screenshot. Call when menu closes without saving to free memory. */
+    /** Clear all cached screenshots. Call when menu closes without saving to free memory. */
     fun clearCachedScreenshot() {
         synchronized(this) {
             cachedScreenshot?.recycle()
             cachedScreenshot = null
+            cachedFullScreenshot?.recycle()
+            cachedFullScreenshot = null
         }
-        Log.d(TAG, "Cached screenshot cleared")
+        Log.d(TAG, "All cached screenshots cleared")
     }
 
     /**

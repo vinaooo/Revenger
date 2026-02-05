@@ -30,6 +30,7 @@ class GameActivity : FragmentActivity() {
         private lateinit var rightContainer: FrameLayout
         private lateinit var retroviewContainer: FrameLayout
         private lateinit var menuContainer: FrameLayout
+        private lateinit var loadPreviewOverlay: android.widget.ImageView
         private val viewModel: GameActivityViewModel by viewModels()
 
         // GamePad alignment manager para offset vertical
@@ -99,6 +100,18 @@ class GameActivity : FragmentActivity() {
                 rightContainer = findViewById(R.id.right_container)
                 retroviewContainer = findViewById(R.id.retroview_container)
                 menuContainer = findViewById(R.id.menu_container)
+                loadPreviewOverlay = findViewById(R.id.load_preview_overlay)
+
+                // Setup load preview overlay callback
+                viewModel.loadPreviewCallback = { bitmap ->
+                        if (bitmap != null) {
+                                loadPreviewOverlay.setImageBitmap(bitmap)
+                                loadPreviewOverlay.visibility = android.view.View.VISIBLE
+                        } else {
+                                loadPreviewOverlay.visibility = android.view.View.GONE
+                                loadPreviewOverlay.setImageDrawable(null)
+                        }
+                }
 
                 // Get gamepad container reference
                 val gamepadContainers = findViewById<android.widget.LinearLayout>(R.id.containers)
