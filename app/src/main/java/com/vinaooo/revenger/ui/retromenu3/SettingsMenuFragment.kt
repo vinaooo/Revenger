@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -66,11 +67,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
     private lateinit var selectionArrowShader: TextView
     private lateinit var selectionArrowGameSpeed: TextView
     private lateinit var selectionArrowBack: TextView
-
-    // Callback interface
-    interface SettingsMenuListener {
-        fun onBackToMainMenu()
-    }
 
     private var settingsListener: SettingsMenuListener? = null
 
@@ -309,7 +305,8 @@ class SettingsMenuFragment : MenuFragmentBase() {
             (selectedIndex == 2 && !isShaderEnabled) || (selectedIndex == 3 && isShaderEnabled) -> {
                 // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Settings menu: Back to main menu selected")
-                performBack()
+                // Use NavigationController to navigate back (don't call performBack which returns false)
+                viewModel.navigationController?.navigateBack()
             }
             else ->
                     android.util.Log.w(
@@ -321,17 +318,9 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     /** Back action */
     override fun performBack(): Boolean {
-        // PHASE 3: Use NavigationController for back navigation
-        Log.d(
-                "SettingsMenuFragment",
-                "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
-        )
-        val success = viewModel.navigationController?.navigateBack() ?: false
-        Log.d(
-                "SettingsMenuFragment",
-                "[BACK] NavigationController.navigateBack() returned: $success"
-        )
-        return success
+        // Return false to let NavigationEventProcessor handle the back navigation
+        // Don't call navigateBack() here as it causes infinite recursion
+        return false
     }
 
     /** Update selection visual - specific implementation for SettingsMenuFragment */

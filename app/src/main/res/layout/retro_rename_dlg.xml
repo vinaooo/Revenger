@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Retro-styled rename dialog with EditText -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialog_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#AA000000"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Horizontal layout to center dialog at 50% width -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:weightSum="1">
+
+        <!-- Left spacer (25%) -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.25" />
+
+        <!-- Center dialog box (50%) -->
+        <LinearLayout
+            android:id="@+id/dialog_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.50"
+            android:orientation="vertical"
+            android:padding="@dimen/rm_menu_item_padding"
+            android:background="@color/rm_background">
+
+        <!-- Dialog Title -->
+        <TextView
+            android:id="@+id/dialog_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/rename_dialog_title"
+            android:textSize="@dimen/rm_title_text_size"
+            android:textColor="@color/rm_text_color"
+            android:textStyle="bold"
+            android:paddingBottom="16dp"
+            android:includeFontPadding="false"
+            android:shadowColor="@color/rm_shadow_color"
+            android:shadowDx="@dimen/rm_shadow_dx"
+            android:shadowDy="@dimen/rm_shadow_dy"
+            android:shadowRadius="@dimen/rm_shadow_radius" />
+
+        <!-- EditText for rename -->
+        <EditText
+            android:id="@+id/rename_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/save_name_hint"
+            android:textSize="@dimen/rm_menu_item_text_size"
+            android:textColor="@color/rm_text_color"
+            android:textColorHint="#888888"
+            android:background="@drawable/slot_background_empty"
+            android:padding="12dp"
+            android:inputType="text"
+            android:maxLines="1"
+            android:imeOptions="actionDone"
+            android:importantForAutofill="no" />
+
+        <!-- Buttons Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="16dp">
+
+            <!-- Confirm Button -->
+            <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+                android:id="@+id/dialog_confirm_button"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/rm_menu_item_height"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="@dimen/rm_menu_item_padding">
+
+                    <TextView
+                        android:id="@+id/confirm_button_arrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/rm_selection_arrow"
+                        android:textSize="@dimen/rm_arrow_text_size"
+                        android:textColor="@color/rm_selected_color"
+                        android:padding="0dp"
+                        android:includeFontPadding="false"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/confirm_button_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/dialog_rename"
+                        android:textSize="@dimen/rm_menu_item_text_size"
+                        android:textColor="@color/rm_text_color"
+                        android:includeFontPadding="false"
+                        android:shadowColor="@color/rm_shadow_color"
+                        android:shadowDx="@dimen/rm_shadow_dx"
+                        android:shadowDy="@dimen/rm_shadow_dy"
+                        android:shadowRadius="@dimen/rm_shadow_radius" />
+                </LinearLayout>
+            </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
+            <!-- Cancel Button -->
+            <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+                android:id="@+id/dialog_cancel_button"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/rm_menu_item_height"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="@dimen/rm_menu_item_padding">
+
+                    <TextView
+                        android:id="@+id/cancel_button_arrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/rm_selection_arrow"
+                        android:textSize="@dimen/rm_arrow_text_size"
+                        android:textColor="@color/rm_selected_color"
+                        android:padding="0dp"
+                        android:includeFontPadding="false"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/cancel_button_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/dialog_cancel"
+                        android:textSize="@dimen/rm_menu_item_text_size"
+                        android:textColor="@color/rm_text_color"
+                        android:includeFontPadding="false"
+                        android:shadowColor="@color/rm_shadow_color"
+                        android:shadowDx="@dimen/rm_shadow_dx"
+                        android:shadowDy="@dimen/rm_shadow_dy"
+                        android:shadowRadius="@dimen/rm_shadow_radius" />
+                </LinearLayout>
+            </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Right spacer (25%) -->
+    <View
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.25" />
+
+    </LinearLayout>
+
+</FrameLayout>

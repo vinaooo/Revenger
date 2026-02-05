@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/black">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="RetroCardView Test"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="32dp" />
+
+    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+        android:id="@+id/test_card_normal"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Estado Normal"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:layout_gravity="center" />
+
+    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
+    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+        android:id="@+id/test_card_selected"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Estado Selecionado"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            android:layout_gravity="center" />
+
+    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
+    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+        android:id="@+id/test_card_pressed"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_marginBottom="32dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Estado Pressionado"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            android:layout_gravity="center" />
+
+    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
+    <Button
+        android:id="@+id/btn_toggle_states"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Alternar Estados"
+        android:layout_gravity="center_horizontal" />
+
+</LinearLayout>

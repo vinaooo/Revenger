@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.callbacks.ExitListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -65,11 +66,6 @@ class ExitFragment : MenuFragmentBase() {
     private lateinit var selectionArrowSaveAndExit: TextView
     private lateinit var selectionArrowExitWithoutSave: TextView
     private lateinit var selectionArrowBack: TextView
-
-    // Callback interface
-    interface ExitListener {
-        fun onBackToMainMenu()
-    }
 
     private var exitListener: ExitListener? = null
 
@@ -277,7 +273,8 @@ class ExitFragment : MenuFragmentBase() {
             2 -> {
                 // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Back to main menu selected")
-                performBack()
+                // Use NavigationController to navigate back (don't call performBack which returns false)
+                viewModel.navigationController?.navigateBack()
             }
             else ->
                     android.util.Log.w(
@@ -289,19 +286,11 @@ class ExitFragment : MenuFragmentBase() {
 
     /** Back action */
     override fun performBack(): Boolean {
-        android.util.Log.d("ExitFragment", "[BACK] performBack called - navigating to main menu")
+        android.util.Log.d("ExitFragment", "[BACK] performBack called - returning false to allow normal navigation")
 
-        // PHASE 3: Use NavigationController for back navigation
-        android.util.Log.d(
-                "ExitFragment",
-                "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
-        )
-        val success = viewModel.navigationController?.navigateBack() ?: false
-        android.util.Log.d(
-                "ExitFragment",
-                "[BACK] NavigationController.navigateBack() returned: $success"
-        )
-        return success
+        // Return false to allow NavigationEventProcessor to handle the back navigation normally
+        // This prevents infinite recursion (performBack -> navigateBack -> onBack -> performBack)
+        return false
     }
 
     /** Update selection visual - specific implementation for ExitFragment */

@@ -137,6 +137,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                     )
                 }
 
+                val romLoadStartTime = System.currentTimeMillis()
                 val romInputStream = context.resources.openRawResource(romResourceId)
                 if (resources.getBoolean(R.bool.conf_load_bytes)) {
                     if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
@@ -152,15 +153,18 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 shader = getShaderConfig()
                 variables = getCoreVariables()
 
+                val sramLoadStartTime = System.currentTimeMillis()
                 if (storage.sram.exists()) {
                     storage.sram.inputStream().use { saveRAMState = it.readBytes() }
                 }
             }
 
     /** GLRetroView instance itself */
-    val view = GLRetroView(context, retroViewData)
-
+    val view: GLRetroView
+    
     init {
+        view = GLRetroView(context, retroViewData)
+        
         val params =
                 FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.WRAP_CONTENT,

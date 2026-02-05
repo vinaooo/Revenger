@@ -1,8 +1,13 @@
 package com.vinaooo.revenger.ui.retromenu3
 
-import android.util.Log
+
 import androidx.fragment.app.Fragment
+import android.util.Log
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.callbacks.ProgressListener
+import com.vinaooo.revenger.ui.retromenu3.callbacks.ExitListener
+import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
+import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
@@ -95,16 +100,16 @@ class SubmenuCoordinator(
     private var getCurrentSelectedIndexCallback: (() -> Int)? = null
 
     private fun restoreMainMenuSelection() {
-        android.util.Log.d(
+        Log.d(
                 TAG,
                 "[RESTORE] 🔥 🔥 🔥 ========== RESTORE MAIN MENU SELECTION START =========="
         )
-        android.util.Log.d(TAG, "[RESTORE] 📊 hasSubmenuOpen=$hasSubmenuOpen")
-        android.util.Log.d(TAG, "[RESTORE] 📊 isRestoringSelection=$isRestoringSelection")
+        Log.d(TAG, "[RESTORE] 📊 hasSubmenuOpen=$hasSubmenuOpen")
+        Log.d(TAG, "[RESTORE] 📊 isRestoringSelection=$isRestoringSelection")
 
         if (!hasSubmenuOpen) {
-            android.util.Log.d(TAG, "[RESTORE] ❌ No submenu was open - skipping restoration")
-            android.util.Log.d(
+            Log.d(TAG, "[RESTORE] ❌ No submenu was open - skipping restoration")
+            Log.d(
                     TAG,
                     "[RESTORE] 🔥 🔥 🔥 ========== RESTORE MAIN MENU SELECTION END (NO SUBMENU) =========="
             )
@@ -112,8 +117,8 @@ class SubmenuCoordinator(
         }
 
         if (isRestoringSelection) {
-            android.util.Log.d(TAG, "[RESTORE] ❌ Already restoring selection - skipping")
-            android.util.Log.d(
+            Log.d(TAG, "[RESTORE] ❌ Already restoring selection - skipping")
+            Log.d(
                     TAG,
                     "[RESTORE] 🔥 🔥 🔥 ========== RESTORE MAIN MENU SELECTION END (ALREADY RESTORING) =========="
             )
@@ -123,55 +128,55 @@ class SubmenuCoordinator(
         isRestoringSelection = true
         hasSubmenuOpen = false
 
-        android.util.Log.d(TAG, "[RESTORE] ✅ Starting restoration process")
-        android.util.Log.d(
+        Log.d(TAG, "[RESTORE] ✅ Starting restoration process")
+        Log.d(
                 TAG,
                 "[RESTORE] 📊 mainMenuSelectedIndexBeforeSubmenu=$mainMenuSelectedIndexBeforeSubmenu"
         )
 
         // Garantir que os textos do menu principal sejam mostrados
-        android.util.Log.d(TAG, "[RESTORE] 📝 Calling viewManager.showMainMenuTexts()")
+        Log.d(TAG, "[RESTORE] 📝 Calling viewManager.showMainMenuTexts()")
         viewManager.showMainMenuTexts()
 
         // IMPORTANTE: Determinar o estado correto para restaurar baseado no estado atual
         val currentState = menuManager.getCurrentState()
-        android.util.Log.d(TAG, "[RESTORE] 🔍 Checking current state before determining target...")
+        Log.d(TAG, "[RESTORE] 🔍 Checking current state before determining target...")
 
         val targetState =
                 when (currentState) {
                     MenuState.SETTINGS_MENU -> {
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[RESTORE] 🎯 Current state SETTINGS_MENU -> Target MAIN_MENU"
                         )
                         // CRITICAL: Unregister SettingsMenuFragment to prevent re-activation
-                        android.util.Log.d(TAG, "[RESTORE] 🧹 Unregistering SettingsMenuFragment")
+                        Log.d(TAG, "[RESTORE] 🧹 Unregistering SettingsMenuFragment")
                         viewModel.unregisterSettingsMenuFragment()
                         MenuState.MAIN_MENU // Voltar do Settings para Main
                     }
                     MenuState.ABOUT_MENU -> {
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[RESTORE] 🎯 Current state ABOUT_MENU -> Target MAIN_MENU"
                         )
                         MenuState.MAIN_MENU // Voltar do About para Main
                     }
                     MenuState.PROGRESS_MENU -> {
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[RESTORE] 🎯 Current state PROGRESS_MENU -> Target MAIN_MENU"
                         )
                         MenuState.MAIN_MENU // Voltar do Progress para Main
                     }
                     MenuState.EXIT_MENU -> {
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[RESTORE] 🎯 Current state EXIT_MENU -> Target MAIN_MENU"
                         )
                         MenuState.MAIN_MENU // Voltar do Exit para Main
                     }
                     else -> {
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[RESTORE] 🎯 Current state $currentState -> Target MAIN_MENU (fallback)"
                         )
@@ -179,16 +184,16 @@ class SubmenuCoordinator(
                     }
                 }
 
-        android.util.Log.d(
+        Log.d(
                 TAG,
                 "[RESTORE] 🔄 Current state: $currentState, Target state: $targetState"
         )
 
         // Restaurar o estado do menu para o estado pai apropriado
-        android.util.Log.d(TAG, "[RESTORE] 🧭 Calling menuManager.navigateToState($targetState)")
+        Log.d(TAG, "[RESTORE] 🧭 Calling menuManager.navigateToState($targetState)")
         menuManager.navigateToState(targetState)
 
-        android.util.Log.d(
+        Log.d(
                 TAG,
                 "[RESTORE] 🎯 Calling setSelectedIndexCallback($mainMenuSelectedIndexBeforeSubmenu)"
         )
@@ -196,13 +201,13 @@ class SubmenuCoordinator(
 
         // MARCAR QUE A RESTAURAÇÃO PRINCIPAL FOI CONCLUÍDA (antes dos postDelayeds)
         // Isso permite que operações subsequentes funcionem mesmo se os delays ainda não executaram
-        android.util.Log.d(TAG, "[RESTORE] ✅ Main restoration operations completed")
+        Log.d(TAG, "[RESTORE] ✅ Main restoration operations completed")
         isRestoringSelection = false
 
         // AGUARDAR UM MOMENTO PARA GARANTIR QUE setSelectedIndex FOI PROCESSADO
         fragment.view?.postDelayed(
                 {
-                    android.util.Log.d(
+                    Log.d(
                             TAG,
                             "[RESTORE] ⏱️ First postDelayed executed - checking if should show main menu"
                     )
@@ -210,17 +215,17 @@ class SubmenuCoordinator(
                     // MOSTRAR O MENU PRINCIPAL NOVAMENTE COM SELEÇÃO PRESERVADA
                     // APENAS se estamos voltando para o MAIN_MENU, não para submenus
                     if (targetState == MenuState.MAIN_MENU) {
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[RESTORE] 📺 Calling showMainMenuCallback(true) - RETURNING TO MAIN MENU"
                         )
                         showMainMenuCallback?.invoke(true)
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[RESTORE] 📺 showMainMenuCallback invoked successfully"
                         )
                     } else {
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[RESTORE] 🚫 Skipping showMainMenuCallback (targetState=$targetState != MAIN_MENU)"
                         )
@@ -229,22 +234,22 @@ class SubmenuCoordinator(
                     // AGUARDAR MAIS UM MOMENTO PARA GARANTIR QUE O MENU FOI MOSTRADO
                     fragment.view?.postDelayed(
                             {
-                                android.util.Log.d(
+                                Log.d(
                                         TAG,
                                         "[RESTORE] ⏱️ Second postDelayed executed - updating selection visual"
                                 )
 
                                 // ATUALIZAR A VISUALIZAÇÃO DAS SETAS APÓS RESTAURAR O ESTADO
                                 val currentIndex = getCurrentSelectedIndexCallback?.invoke() ?: 0
-                                android.util.Log.d(
+                                Log.d(
                                         TAG,
                                         "[RESTORE] 🎨 Updating selection visual for index: $currentIndex"
                                 )
                                 animationController?.updateSelectionVisual(currentIndex)
 
                                 // MARCAR QUE A RESTAURAÇÃO VISUAL FOI CONCLUÍDA
-                                android.util.Log.d(TAG, "[RESTORE] ✅ Visual restoration completed")
-                                android.util.Log.d(
+                                Log.d(TAG, "[RESTORE] ✅ Visual restoration completed")
+                                Log.d(
                                         TAG,
                                         "[RESTORE] 🔥 🔥 🔥 ========== RESTORE MAIN MENU SELECTION END =========="
                                 )
@@ -303,7 +308,7 @@ class SubmenuCoordinator(
             Log.e(TAG, "[DEBUG] showSettingsSubmenu - Creating SettingsMenuFragment")
             val settingsFragment = SettingsMenuFragment.newInstance()
             settingsFragment.setSettingsListener(
-                    fragment as SettingsMenuFragment.SettingsMenuListener
+                    fragment as SettingsMenuListener
             )
 
             // Primeiro adicionar o submenu (mas invisível inicialmente)
@@ -340,7 +345,7 @@ class SubmenuCoordinator(
         try {
             Log.e(TAG, "[DEBUG] showAboutSubmenu - Creating AboutFragment")
             val aboutFragment = AboutFragment.newInstance()
-            aboutFragment.setAboutListener(fragment as AboutFragment.AboutListener)
+            aboutFragment.setAboutListener(fragment as AboutListener)
 
             // Primeiro adicionar o submenu (mas invisível inicialmente)
             fragment.parentFragmentManager
@@ -376,7 +381,7 @@ class SubmenuCoordinator(
         try {
             Log.e(TAG, "[DEBUG] showProgressSubmenu - Creating ProgressFragment")
             val progressFragment = ProgressFragment.newInstance()
-            progressFragment.setProgressListener(fragment as ProgressFragment.ProgressListener)
+            progressFragment.setProgressListener(fragment as ProgressListener)
 
             // Primeiro adicionar o submenu (mas invisível inicialmente)
             fragment.parentFragmentManager
@@ -412,7 +417,7 @@ class SubmenuCoordinator(
         try {
             Log.e(TAG, "[DEBUG] showExitSubmenu - Creating ExitFragment")
             val exitFragment = ExitFragment.newInstance()
-            exitFragment.setExitListener(fragment as ExitFragment.ExitListener)
+            exitFragment.setExitListener(fragment as ExitListener)
 
             // Primeiro adicionar o submenu (mas invisível inicialmente)
             fragment.parentFragmentManager
@@ -444,15 +449,15 @@ class SubmenuCoordinator(
     }
 
     fun closeCurrentSubmenu() {
-        android.util.Log.d(
+        Log.d(
                 TAG,
                 "[CLOSE_SUBMENU] 🚪 ========== CLOSE CURRENT SUBMENU START =========="
         )
 
         // Prevent multiple simultaneous close operations
         if (isClosingSubmenu) {
-            android.util.Log.d(TAG, "[CLOSE_SUBMENU] ❌ Already closing submenu, skipping")
-            android.util.Log.d(
+            Log.d(TAG, "[CLOSE_SUBMENU] ❌ Already closing submenu, skipping")
+            Log.d(
                     TAG,
                     "[CLOSE_SUBMENU] 🚪 ========== CLOSE CURRENT SUBMENU END (ALREADY CLOSING) =========="
             )
@@ -462,28 +467,28 @@ class SubmenuCoordinator(
         isClosingSubmenu = true
         isClosingSubmenuProgrammatically = true
 
-        android.util.Log.d(TAG, "[CLOSE_SUBMENU] ✅ Starting close operation")
+        Log.d(TAG, "[CLOSE_SUBMENU] ✅ Starting close operation")
 
         try {
             // Fazer pop do back stack para fechar o submenu atual
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "[CLOSE_SUBMENU] 📚 Calling parentFragmentManager.popBackStack()"
             )
             fragment.parentFragmentManager.popBackStack()
 
             // A restauração será feita pelo back stack listener
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "[CLOSE_SUBMENU] 📋 Restoration will be handled by back stack listener"
             )
         } catch (e: Exception) {
-            android.util.Log.e(TAG, "[CLOSE_SUBMENU] ❌ Error closing submenu", e)
+            Log.e(TAG, "[CLOSE_SUBMENU] ❌ Error closing submenu", e)
         } finally {
             isClosingSubmenu = false
             isClosingSubmenuProgrammatically = false
-            android.util.Log.d(TAG, "[CLOSE_SUBMENU] 🔄 Close operation flags reset")
-            android.util.Log.d(
+            Log.d(TAG, "[CLOSE_SUBMENU] 🔄 Close operation flags reset")
+            Log.d(
                     TAG,
                     "[CLOSE_SUBMENU] 🚪 ========== CLOSE CURRENT SUBMENU END =========="
             )
@@ -495,7 +500,7 @@ class SubmenuCoordinator(
         fragment.parentFragmentManager.addOnBackStackChangedListener {
             // SAFETY CHECK: Verificar se fragment ainda está associado a um FragmentManager
             if (!fragment.isAdded || fragment.activity == null) {
-                android.util.Log.d(
+                Log.d(
                         TAG,
                         "[BACK_STACK] ⚠️ Fragment not added or activity null - skipping listener"
                 )
@@ -505,7 +510,7 @@ class SubmenuCoordinator(
             val backStackCount = fragment.parentFragmentManager.backStackEntryCount
             val backStackDecreased = backStackCount < previousBackStackCount
 
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "[BACK_STACK] 📚 Back stack changed: previous=$previousBackStackCount, current=$backStackCount, decreased=$backStackDecreased"
             )
@@ -515,7 +520,7 @@ class SubmenuCoordinator(
                 // VERIFICAR SE ESTAMOS NO MEIO DE closeCurrentSubmenu() (fechamento programático)
                 // Se sim, NÃO executar a lógica de restauração para evitar duplicação
                 if (isClosingSubmenuProgrammatically) {
-                    android.util.Log.d(
+                    Log.d(
                             TAG,
                             "[BACK_STACK] 🚫 Skipping restoration - isClosingSubmenuProgrammatically=true"
                     )
@@ -526,7 +531,7 @@ class SubmenuCoordinator(
                 // VERIFICAR SE ESTAMOS NO MEIO DE dismissAllMenus (START button)
                 // Se sim, NÃO mostrar o menu principal para evitar piscada
                 if (viewModel.isDismissingAllMenus()) {
-                    android.util.Log.d(
+                    Log.d(
                             TAG,
                             "[BACK_STACK] 🚫 Skipping restoration - isDismissingAllMenus=true"
                     )
@@ -534,7 +539,7 @@ class SubmenuCoordinator(
                     return@addOnBackStackChangedListener
                 }
 
-                android.util.Log.d(
+                Log.d(
                         TAG,
                         "[BACK_STACK] ✅ Back stack decreased and submenu was open - calling restoreMainMenuSelection()"
                 )
@@ -558,7 +563,7 @@ class SubmenuCoordinator(
                     return@addOnBackStackChangedListener
                 }
 
-                android.util.Log.d(
+                Log.d(
                         TAG,
                         "[BACK_STACK] ✅ Back stack empty - calling restoreMainMenuSelection()"
                 )

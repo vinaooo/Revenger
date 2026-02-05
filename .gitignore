@@ -21,21 +21,9 @@ backup_files/themes.xml_backup.xml
 # Configuration backup folder (project root)
 /config_backup
 
-# Testes
-/tests/*.md
-*_test
-test*/*.md
-
-# Documentation (Phase 9.4)
-docs
-
 # Performance logs and reports (Phase 9.4)
 performance_*.log
 performance_reports/
-*_test.*
-
-# Documentation
-# /docs
 
 # Scripts
 /scripts

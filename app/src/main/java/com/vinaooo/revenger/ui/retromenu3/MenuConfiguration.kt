@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+
 /**
  * Data class representing the complete configuration for a menu. Allows dynamic menu creation
  * without hardcoded values.

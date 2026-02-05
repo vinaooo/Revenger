@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+import android.util.Log
 import java.util.LinkedList
 
 /**
@@ -35,7 +36,7 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
     @Synchronized
     fun enqueue(event: NavigationEvent): Boolean {
         if (shouldDebounce(event)) {
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "Debounced: ${event.javaClass.simpleName} from ${event.inputSource} " +
                             "(${event.timestamp - lastProcessedTimestamp}ms since last event)"
@@ -44,7 +45,7 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
         }
 
         queue.add(event)
-        android.util.Log.d(
+        Log.d(
                 TAG,
                 "Enqueued: ${event.javaClass.simpleName} from ${event.inputSource} " +
                         "(queue size: ${queue.size})"
@@ -68,7 +69,7 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
 
         if (event != null) {
             lastProcessedTimestamp = event.timestamp
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "Dequeued: ${event.javaClass.simpleName} from ${event.inputSource} " +
                             "(queue size: ${queue.size})"
@@ -101,7 +102,7 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
         val size = queue.size
         queue.clear()
         if (size > 0) {
-            android.util.Log.d(TAG, "Cleared $size pending events")
+            Log.d(TAG, "Cleared $size pending events")
         }
     }
 
@@ -155,7 +156,7 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
     @Synchronized
     fun resetDebounceWindow() {
         lastProcessedTimestamp = 0
-        android.util.Log.d(TAG, "Debounce window reset")
+        Log.d(TAG, "Debounce window reset")
     }
 
     /** Retorna estatísticas da fila para debugging. */

@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+
 /**
  * Evento unificado de navegação que representa todas as ações possíveis nos menus, independente da
  * fonte de entrada (gamepad, touch, teclado).

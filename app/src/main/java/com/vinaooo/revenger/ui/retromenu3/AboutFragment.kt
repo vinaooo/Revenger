@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -59,11 +60,6 @@ class AboutFragment : MenuFragmentBase() {
 
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<RetroCardView>
-
-    // Callback interface
-    interface AboutListener {
-        fun onAboutBackToMainMenu()
-    }
 
     private var aboutListener: AboutListener? = null
 
@@ -329,7 +325,8 @@ class AboutFragment : MenuFragmentBase() {
             0 -> {
                 // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] About menu: Back to main menu selected")
-                performBack()
+                // Use NavigationController to navigate back (don't call performBack which returns false)
+                viewModel.navigationController?.navigateBack()
             }
             else -> {
                 android.util.Log.w(
@@ -342,17 +339,9 @@ class AboutFragment : MenuFragmentBase() {
 
     /** Handle back action */
     override fun performBack(): Boolean {
-        // PHASE 3: Use NavigationController for back navigation
-        android.util.Log.d(
-                "AboutFragment",
-                "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
-        )
-        val success = viewModel.navigationController?.navigateBack() ?: false
-        android.util.Log.d(
-                "AboutFragment",
-                "[BACK] NavigationController.navigateBack() returned: $success"
-        )
-        return success
+        // Return false to let NavigationEventProcessor handle the back navigation
+        // Don't call navigateBack() here as it causes infinite recursion
+        return false
     }
 
     /** Update selection visuals */

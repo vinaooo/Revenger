@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+import android.util.Log
 import android.os.Bundle
 
 /**
@@ -15,7 +16,7 @@ enum class MenuType {
     /** Submenu de configurações (Audio, Shader, Game Speed, Back) */
     SETTINGS,
 
-    /** Submenu de progresso (Load State, Save State, Back) */
+    /** Submenu de progresso (Load State, Save State, Manage Saves, Back) */
     PROGRESS,
 
     /** Submenu de saída (Save & Exit, Exit without Save, Back) */
@@ -25,7 +26,16 @@ enum class MenuType {
     ABOUT,
 
     /** Submenu de variáveis do core LibRetro */
-    CORE_VARIABLES
+    CORE_VARIABLES,
+
+    /** Grid de slots para salvar (3x3 grid com 9 slots) */
+    SAVE_SLOTS,
+
+    /** Grid de slots para carregar (3x3 grid com 9 slots) */
+    LOAD_SLOTS,
+
+    /** Grid de slots para gerenciar (renomear, copiar, mover, deletar) */
+    MANAGE_SAVES
 }
 
 /**
@@ -70,7 +80,7 @@ data class MenuState(val menuType: MenuType, val selectedIndex: Int = 0) {
                 MenuState(menuType, index)
             } catch (e: IllegalArgumentException) {
                 // MenuType inválido no Bundle
-                android.util.Log.w("NavigationState", "Invalid MenuType in bundle: $typeString")
+                Log.w("NavigationState", "Invalid MenuType in bundle: $typeString")
                 null
             }
         }
@@ -160,7 +170,7 @@ class NavigationStack {
                 val menuType = MenuType.valueOf(typeString)
                 stack.add(MenuState(menuType, index))
             } catch (e: IllegalArgumentException) {
-                android.util.Log.w("NavigationStack", "Invalid MenuType in stack: $typeString")
+                Log.w("NavigationStack", "Invalid MenuType in stack: $typeString")
             }
         }
     }

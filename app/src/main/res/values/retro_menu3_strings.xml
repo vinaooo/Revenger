@@ -84,4 +84,67 @@
     <string name="exit_menu_option_b">Exit without Save</string>
     <string name="exit_menu_option_c">Back</string>
 
+    <!-- ============================================ -->
+    <!-- SAVE STATE SLOTS - Multi-slot save system   -->
+    <!-- ============================================ -->
+
+    <!-- Slot Display -->
+    <string name="slot_empty">Empty</string>
+    <string name="slot_screenshot_description">Save state screenshot</string>
+    <string name="slot_is_empty">Slot is empty</string>
+
+    <!-- Save Dialogs -->
+    <string name="save_name_hint">ENTER SAVE NAME</string>
+    <string name="save_name_dialog_title">Name your save</string>
+    <string name="overwrite_dialog_title">Overwrite Save?</string>
+    <string name="overwrite_dialog_message">Replace \"%s\" with new save?</string>
+
+    <!-- Manage Saves Menu -->
+    <string name="manage_saves_title">Manage Saves</string>
+    <string name="manage_saves_option">Manage Saves</string>
+    <string name="operations_dialog_title">%s</string>
+    <string name="operation_move">Move</string>
+    <string name="operation_copy">Copy</string>
+    <string name="operation_delete">Delete</string>
+    <string name="operation_rename">Rename</string>
+    <string name="select_destination_title">Select Destination</string>
+
+    <!-- Delete Dialog -->
+    <string name="delete_dialog_title">Delete Save?</string>
+    <string name="delete_dialog_message">Permanently delete \"%s\"?</string>
+
+    <!-- Rename Dialog -->
+    <string name="rename_dialog_title">RENAME SAVE</string>
+    
+    <!-- Name Save Dialog -->
+    <string name="name_save_dialog_title">NAME YOUR SAVE</string>
+
+    <!-- Dialog Buttons -->
+    <string name="dialog_save">Save</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_overwrite">Overwrite</string>
+    <string name="dialog_delete">Delete</string>
+    <string name="dialog_rename">Rename</string>
+
+    <!-- Operation Messages -->
+    <string name="save_success">Saved to Slot %d</string>
+    <string name="save_error">Failed to save</string>
+    <string name="load_success">Loaded from Slot %d</string>
+    <string name="load_error">Failed to load</string>
+    <string name="rename_success">Renamed successfully</string>
+    <string name="rename_error">Failed to rename</string>
+    <string name="copy_success">Copied successfully</string>
+    <string name="copy_error">Failed to copy</string>
+    <string name="move_success">Moved successfully</string>
+    <string name="move_error">Failed to move</string>
+    <string name="delete_success">Deleted successfully</string>
+    <string name="delete_error">Failed to delete</string>
+    <string name="operation_cancelled">Operation cancelled</string>
+    <string name="same_slot_error">Cannot select same slot</string>
+    <string name="slot_occupied_error">Target slot is occupied</string>
+    <string name="select_target_copy">Select slot to copy to</string>
+    <string name="select_target_move">Select slot to move to</string>
+    <string name="select_slot_to_copy">Select an empty slot to copy to</string>
+    <string name="select_slot_to_move">Select an empty slot to move to</string>
+
 </resources>

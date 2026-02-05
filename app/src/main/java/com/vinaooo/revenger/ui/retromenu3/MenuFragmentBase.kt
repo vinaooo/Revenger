@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.viewmodels.InputViewModel
@@ -75,12 +76,12 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
             val inputViewModel = ViewModelProvider(requireActivity())[InputViewModel::class.java]
             inputViewModel.getControllerInput().clearPendingInputsPreserveHeld()
 
-            android.util.Log.d(
+            Log.d(
                     "MenuFragmentBase",
                     "[LIFECYCLE] onPause() - clearPendingInputsPreserveHeld() for ${this::class.simpleName}"
             )
         } catch (e: Exception) {
-            android.util.Log.e(
+            Log.e(
                     "MenuFragmentBase",
                     "[LIFECYCLE] Failed to clear pending inputs in onPause()",
                     e
@@ -91,29 +92,29 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     // ========== IMPLEMENTAÇÃO DA INTERFACE MenuFragment ==========
 
     override fun onNavigateUp(): Boolean {
-        android.util.Log.d("MenuBase", "[NAV] ↑ Navigate Up triggered")
+        Log.d("MenuBase", "[NAV] ↑ Navigate Up triggered")
         performNavigateUp()
         return true
     }
 
     override fun onNavigateDown(): Boolean {
-        android.util.Log.d(
+        Log.d(
                 "MenuBase",
                 "[NAV] ↓ onNavigateDown triggered - calling performNavigateDown"
         )
         val result = performNavigateDown()
-        android.util.Log.d("MenuBase", "[NAV] ↓ onNavigateDown completed - result=$result")
+        Log.d("MenuBase", "[NAV] ↓ onNavigateDown completed - result=$result")
         return true
     }
 
     override fun onConfirm(): Boolean {
-        android.util.Log.d("MenuBase", "[ACTION] ✓ Confirm triggered")
+        Log.d("MenuBase", "[ACTION] ✓ Confirm triggered")
         performConfirm()
         return true
     }
 
     override fun onBack(): Boolean {
-        android.util.Log.d("MenuBase", "[ACTION] ← Back triggered")
+        Log.d("MenuBase", "[ACTION] ← Back triggered")
         return performBack()
     }
     override fun getCurrentSelectedIndex(): Int = _currentSelectedIndex
@@ -125,14 +126,14 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
 
             // PHASE 4: Log quando item do menu é selecionado (amarelo)
             val itemTitle = if (index < menuItems.size) menuItems[index].title else "UNKNOWN"
-            android.util.Log.d(
+            Log.d(
                     "MenuBase",
                     "[MENU-SELECTION] ✅ Item selected (YELLOW): index=$index, title='$itemTitle'"
             )
 
             updateSelectionVisualInternal()
         } else {
-            android.util.Log.w(
+            Log.w(
                     "MenuFragmentBase",
                     "Invalid index $index, valid range: 0..${menuItems.size-1}"
             )

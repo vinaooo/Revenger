@@ -160,6 +160,54 @@
                         </LinearLayout>
                     </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
 
+                    <!-- Manage Saves -->
+                    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+                        android:id="@+id/progress_manage_saves"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/rm_menu_item_height"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:padding="@dimen/rm_menu_item_padding">
+
+                            <!-- Selection Arrow -->
+                            <TextView
+                                android:id="@+id/selection_arrow_manage_saves"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/rm_selection_arrow"
+                                android:textSize="@dimen/rm_arrow_text_size"
+                                android:textColor="@color/rm_text_color"
+                                android:padding="0dp"
+                                android:includeFontPadding="false"
+                                android:visibility="gone" />
+
+                            <!-- Content -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:id="@+id/manage_saves_title"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/manage_saves_option"
+                                    android:textSize="@dimen/rm_menu_item_text_size"
+                                    android:textColor="@color/rm_text_color"
+                                    android:includeFontPadding="false"
+                                    android:shadowColor="@color/rm_shadow_color"
+                                    android:shadowDx="@dimen/rm_shadow_dx"
+                                    android:shadowDy="@dimen/rm_shadow_dy"
+                                    android:shadowRadius="@dimen/rm_shadow_radius" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+
                     <!-- Back -->
                     <com.vinaooo.revenger.ui.retromenu3.RetroCardView
                         android:id="@+id/progress_back"

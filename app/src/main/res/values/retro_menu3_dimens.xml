@@ -24,7 +24,7 @@
          Portrait: Alinhado ao topo com pequeno espaço abaixo (10-70-20)
          Landscape: Centralizado (30-40-30)
     -->
-    <string name="rm_portrait_vertical_proportions">336601</string>
+    <string name="rm_portrait_vertical_proportions">304030</string>
     <string name="rm_landscape_vertical_proportions">009901</string>
     
     <!-- Legacy Layout Weights (mantidos para compatibilidade) -->
@@ -71,4 +71,11 @@
     
     <!-- Letter Spacing -->
     <item name="rm_title_letter_spacing" format="float" type="dimen">0.05</item>
+
+    <!-- Save State Grid Dimensions -->
+    <dimen name="save_slot_width">90dp</dimen>
+    <dimen name="save_slot_height">80dp</dimen>
+    <dimen name="save_slot_margin">4dp</dimen>
+    <dimen name="save_slot_padding">4dp</dimen>
+    <dimen name="save_slot_text_size">10sp</dimen>
 </resources>

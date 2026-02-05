@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+
 /**
  * Interface para adaptadores de entrada.
  *

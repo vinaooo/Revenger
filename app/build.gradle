@@ -93,6 +93,12 @@ android {
         }
     }
 
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
     splits {
         abi {
             enable = false
