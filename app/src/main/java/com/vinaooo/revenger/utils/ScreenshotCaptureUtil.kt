@@ -224,8 +224,13 @@ object ScreenshotCaptureUtil {
                     bitmap,
                     { copyResult ->
                         if (copyResult == PixelCopy.SUCCESS) {
-                            Log.d(TAG, "Screenshot captured successfully: ${croppedWidth}x$croppedHeight (cropped from ${width}x$height)")
-                            callback(bitmap)
+                            Log.d(TAG, "Screenshot captured: ${croppedWidth}x$croppedHeight (cropped from ${width}x$height)")
+                            // Auto-crop any remaining black borders from the core output
+                            val autoCropped = autoCropBlackBorders(bitmap)
+                            if (autoCropped !== bitmap) {
+                                bitmap.recycle()
+                            }
+                            callback(autoCropped)
                         } else {
                             Log.e(TAG, "PixelCopy failed with result: $copyResult")
                             bitmap.recycle()
@@ -238,6 +243,126 @@ object ScreenshotCaptureUtil {
             Log.e(TAG, "Failed to capture screenshot", e)
             callback(null)
         }
+    }
+
+    /**
+     * Auto-crop black borders from a bitmap.
+     *
+     * Some LibRetro cores (e.g., picodrive for Master System) render frames with
+     * small black borders that don't match the reported aspect ratio exactly.
+     * This method detects and removes those borders by scanning pixel brightness.
+     *
+     * Only crops if borders are detected (brightness threshold < 10).
+     * Limits cropping to max 5% of each dimension to avoid false positives.
+     *
+     * @param bitmap The source bitmap to auto-crop
+     * @return A new cropped bitmap, or the original if no cropping was needed
+     */
+    private fun autoCropBlackBorders(bitmap: Bitmap): Bitmap {
+        val w = bitmap.width
+        val h = bitmap.height
+        val maxCropX = (w * 0.05f).toInt() // Max 5% crop on each side
+        val maxCropY = (h * 0.05f).toInt()
+        val sampleStep = maxOf(h / 20, 1) // Sample ~20 rows for performance
+        val brightnessThreshold = 10
+
+        // Find left border
+        var left = 0
+        for (x in 0 until minOf(maxCropX, w)) {
+            var hasContent = false
+            for (y in 0 until h step sampleStep) {
+                val pixel = bitmap.getPixel(x, y)
+                val r = (pixel shr 16) and 0xFF
+                val g = (pixel shr 8) and 0xFF
+                val b = pixel and 0xFF
+                if (r + g + b > brightnessThreshold) {
+                    hasContent = true
+                    break
+                }
+            }
+            if (hasContent) {
+                left = x
+                break
+            }
+        }
+
+        // Find right border
+        var right = w - 1
+        for (x in w - 1 downTo maxOf(w - maxCropX, 0)) {
+            var hasContent = false
+            for (y in 0 until h step sampleStep) {
+                val pixel = bitmap.getPixel(x, y)
+                val r = (pixel shr 16) and 0xFF
+                val g = (pixel shr 8) and 0xFF
+                val b = pixel and 0xFF
+                if (r + g + b > brightnessThreshold) {
+                    hasContent = true
+                    break
+                }
+            }
+            if (hasContent) {
+                right = x
+                break
+            }
+        }
+
+        // Find top border
+        val sampleStepX = maxOf(w / 20, 1)
+        var top = 0
+        for (y in 0 until minOf(maxCropY, h)) {
+            var hasContent = false
+            for (x in 0 until w step sampleStepX) {
+                val pixel = bitmap.getPixel(x, y)
+                val r = (pixel shr 16) and 0xFF
+                val g = (pixel shr 8) and 0xFF
+                val b = pixel and 0xFF
+                if (r + g + b > brightnessThreshold) {
+                    hasContent = true
+                    break
+                }
+            }
+            if (hasContent) {
+                top = y
+                break
+            }
+        }
+
+        // Find bottom border
+        var bottom = h - 1
+        for (y in h - 1 downTo maxOf(h - maxCropY, 0)) {
+            var hasContent = false
+            for (x in 0 until w step sampleStepX) {
+                val pixel = bitmap.getPixel(x, y)
+                val r = (pixel shr 16) and 0xFF
+                val g = (pixel shr 8) and 0xFF
+                val b = pixel and 0xFF
+                if (r + g + b > brightnessThreshold) {
+                    hasContent = true
+                    break
+                }
+            }
+            if (hasContent) {
+                bottom = y
+                break
+            }
+        }
+
+        val cropWidth = right - left + 1
+        val cropHeight = bottom - top + 1
+
+        // Only crop if we actually found borders (at least 2px on any side)
+        if (left < 2 && (w - 1 - right) < 2 && top < 2 && (h - 1 - bottom) < 2) {
+            Log.d(TAG, "Auto-crop: No significant black borders detected")
+            return bitmap
+        }
+
+        if (cropWidth <= 0 || cropHeight <= 0) {
+            Log.w(TAG, "Auto-crop: Invalid crop dimensions, skipping")
+            return bitmap
+        }
+
+        Log.d(TAG, "Auto-crop: Removing borders L=$left T=$top R=${w - 1 - right} B=${h - 1 - bottom} -> ${cropWidth}x$cropHeight")
+        return Bitmap.createBitmap(bitmap, left, top, cropWidth, cropHeight)
     }
 
     /**

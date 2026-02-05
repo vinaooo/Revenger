@@ -29,6 +29,7 @@
             android:layout_weight="@dimen/rm_center_content_weight"
             android:orientation="vertical"
             android:paddingVertical="@dimen/rm_container_padding_vertical"
+            android:paddingHorizontal="16dp"
             android:background="@color/rm_background">
 
             <!-- Dialog Title -->

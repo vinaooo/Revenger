@@ -30,8 +30,8 @@
             android:layout_height="match_parent"
             android:layout_weight="0.80"
             android:orientation="vertical"
-            android:padding="@dimen/rm_menu_item_padding"
             android:paddingVertical="@dimen/rm_container_padding_vertical"
+            android:paddingHorizontal="16dp"
             android:background="@color/rm_background">
 
             <!-- Dialog Title -->
