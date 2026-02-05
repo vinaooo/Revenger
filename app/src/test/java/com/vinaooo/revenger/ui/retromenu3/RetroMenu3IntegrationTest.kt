@@ -1,31 +1,27 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.view.View
+import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.ViewModelProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 import org.junit.Assert.*
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
  * Testes de integração para fluxos completos do menu RetroMenu3. Testa navegação, ações, submenus e
  * interações completas.
  */
-@RunWith(AndroidJUnit4::class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [33])
 class RetroMenu3IntegrationTest {
 
     private lateinit var activity: FragmentActivity
-    private lateinit var viewModel: GameActivityViewModel
     private lateinit var fragment: RetroMenu3Fragment
 
-    @Before
-    fun setup() {
-        // Criar activity de teste
+    private fun launchFragment() {
         activity =
                 Robolectric.buildActivity(FragmentActivity::class.java)
                         .create()
@@ -33,20 +29,19 @@ class RetroMenu3IntegrationTest {
                         .resume()
                         .get()
 
-        // Obter ViewModel
-        viewModel = ViewModelProvider(activity)[GameActivityViewModel::class.java]
+        val container = FrameLayout(activity).apply { id = View.generateViewId() }
+        activity.setContentView(container)
 
-        // Criar fragment com configuração padrão
         fragment = RetroMenu3Fragment.newInstance()
+        activity.supportFragmentManager
+                .beginTransaction()
+                .add(container.id, fragment, "test_fragment")
+                .commitNow()
     }
 
     @Test
     fun `test complete menu navigation flow - open menu and navigate items`() {
-        // Iniciar fragment
-        activity.supportFragmentManager
-                .beginTransaction()
-                .add(android.R.id.content, fragment, "test_fragment")
-                .commitNow()
+        launchFragment()
 
         // Verificar que fragment foi criado
         assertNotNull(fragment)
@@ -74,11 +69,7 @@ class RetroMenu3IntegrationTest {
 
     @Test
     fun `test submenu navigation flow - progress menu`() {
-        // Iniciar fragment
-        activity.supportFragmentManager
-                .beginTransaction()
-                .add(android.R.id.content, fragment, "test_fragment")
-                .commitNow()
+        launchFragment()
 
         fragment.showMainMenu()
 
@@ -95,11 +86,7 @@ class RetroMenu3IntegrationTest {
 
     @Test
     fun `test menu action flow - continue game`() {
-        // Iniciar fragment
-        activity.supportFragmentManager
-                .beginTransaction()
-                .add(android.R.id.content, fragment, "test_fragment")
-                .commitNow()
+        launchFragment()
 
         fragment.showMainMenu()
 
@@ -115,11 +102,7 @@ class RetroMenu3IntegrationTest {
 
     @Test
     fun `test menu action flow - reset game`() {
-        // Iniciar fragment
-        activity.supportFragmentManager
-                .beginTransaction()
-                .add(android.R.id.content, fragment, "test_fragment")
-                .commitNow()
+        launchFragment()
 
         fragment.showMainMenu()
 
@@ -135,11 +118,7 @@ class RetroMenu3IntegrationTest {
 
     @Test
     fun `test menu action flow - save log`() {
-        // Iniciar fragment
-        activity.supportFragmentManager
-                .beginTransaction()
-                .add(android.R.id.content, fragment, "test_fragment")
-                .commitNow()
+        launchFragment()
 
         fragment.showMainMenu()
 
@@ -155,11 +134,7 @@ class RetroMenu3IntegrationTest {
 
     @Test
     fun `test menu lifecycle - show and hide menu`() {
-        // Iniciar fragment
-        activity.supportFragmentManager
-                .beginTransaction()
-                .add(android.R.id.content, fragment, "test_fragment")
-                .commitNow()
+        launchFragment()
 
         // Mostrar menu
         fragment.showMainMenu()
@@ -176,30 +151,17 @@ class RetroMenu3IntegrationTest {
 
     @Test
     fun `test fragment creation with default configuration`() {
-        // Criar fragment com configuração padrão
-        val customFragment = RetroMenu3Fragment.newInstance()
+        launchFragment()
+        fragment.showMainMenu()
 
-        // Iniciar fragment
-        activity.supportFragmentManager
-                .beginTransaction()
-                .add(android.R.id.content, customFragment, "custom_fragment")
-                .commitNow()
-
-        customFragment.showMainMenu()
-
-        // Verificar que o fragment foi criado com configuração padrão
-        val menuItems = customFragment.getMenuItems()
-        assertEquals(5, menuItems.size) // Deve ter os 5 itens padrão do menu
-        assertEquals(0, customFragment.getCurrentSelectedIndex()) // Deve começar no primeiro item
+        val menuItems = fragment.getMenuItems()
+        assertEquals(5, menuItems.size)
+        assertEquals(0, fragment.getCurrentSelectedIndex())
     }
 
     @Test
     fun `test menu state persistence during navigation`() {
-        // Iniciar fragment
-        activity.supportFragmentManager
-                .beginTransaction()
-                .add(android.R.id.content, fragment, "test_fragment")
-                .commitNow()
+        launchFragment()
 
         fragment.showMainMenu()
 

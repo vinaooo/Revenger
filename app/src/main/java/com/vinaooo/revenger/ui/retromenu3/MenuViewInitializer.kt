@@ -138,7 +138,12 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
                 TAG,
                 "[TOUCH] Using new navigation system - touch routed through NavigationController"
         )
-        setupTouchNavigationSystem(views, navigationController!!)
+        if (navigationController == null) {
+            MenuLogger.lifecycle("MenuViewInitializer: navigationController ausente - listeners não configurados")
+            return
+        }
+
+        setupTouchNavigationSystem(views, navigationController)
 
         MenuLogger.lifecycle("MenuViewInitializer: setupClickListeners COMPLETED")
     }

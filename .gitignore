@@ -22,6 +22,7 @@ backup_files/themes.xml_backup.xml
 /config_backup
 
 # Testes
+/tests
 /tests/*.md
 *_test
 test*/*.md

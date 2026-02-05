@@ -41,6 +41,12 @@ class PreferencesRepositoryTest {
                     ShaderType.SHARP.configName
             )
         } returns ShaderType.SHARP.configName
+        every {
+            mockSharedPreferences.getBoolean(
+                PreferencesConstants.PREF_FAST_FORWARD_ENABLED,
+                false
+            )
+        } returns false
 
         every { mockSharedPreferences.edit() } returns mockEditor
         every { mockEditor.putBoolean(any(), any()) } returns mockEditor

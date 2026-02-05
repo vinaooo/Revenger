@@ -1,13 +1,44 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.view.View
+import android.widget.FrameLayout
+import androidx.fragment.app.FragmentActivity
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [33])
 class RetroMenu3FragmentTest {
+
+    private lateinit var activity: FragmentActivity
+    private lateinit var fragment: RetroMenu3Fragment
+
+    @Before
+    fun setup() {
+        activity =
+                Robolectric.buildActivity(FragmentActivity::class.java)
+                        .create()
+                        .start()
+                        .resume()
+                        .get()
+
+        val container = FrameLayout(activity).apply { id = View.generateViewId() }
+        activity.setContentView(container)
+
+        fragment = RetroMenu3Fragment.newInstance()
+        activity.supportFragmentManager
+                .beginTransaction()
+                .add(container.id, fragment, "test_fragment")
+                .commitNow()
+    }
 
     @Test
     fun `test fragment instantiation without context`() {
-        val fragment = RetroMenu3Fragment.newInstance()
         assertNotNull(fragment)
         assertTrue(fragment is MenuFragmentBase)
         assertTrue(fragment is MenuFragment)
@@ -15,7 +46,6 @@ class RetroMenu3FragmentTest {
 
     @Test
     fun `test getMenuItems returns correct structure`() {
-        val fragment = RetroMenu3Fragment.newInstance()
         val menuItems = fragment.getMenuItems()
 
         assertEquals(5, menuItems.size)
@@ -31,7 +61,6 @@ class RetroMenu3FragmentTest {
 
     @Test
     fun `test menu item actions are properly defined`() {
-        val fragment = RetroMenu3Fragment.newInstance()
         val menuItems = fragment.getMenuItems()
 
         // Verify all items have non-empty properties
@@ -44,9 +73,6 @@ class RetroMenu3FragmentTest {
 
     @Test
     fun `test fragment creation with default configuration`() {
-        // Create fragment with default configuration
-        val fragment = RetroMenu3Fragment.newInstance()
-
         // Verify fragment is created successfully
         assertNotNull(fragment)
     }

@@ -121,11 +121,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
     private val retroViewData =
             GLRetroViewData(context).apply {
-                val retroViewDataStartTime = System.currentTimeMillis()
-                Log.e("STARTUP_TIMING", "⏱️ [RetroViewData] START building GLRetroViewData")
-                
                 coreFilePath = "libcore.so"
-                Log.e("STARTUP_TIMING", "⏱️ [RetroViewData] coreFilePath set")
 
                 /* Prepare the ROM bytes */
                 val romName = context.getString(R.string.conf_rom)
@@ -146,40 +142,28 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 if (resources.getBoolean(R.bool.conf_load_bytes)) {
                     if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
                     gameFileBytes = romBytes
-                    Log.e("STARTUP_TIMING", "⏱️ [RetroViewData] ROM loaded to memory in ${System.currentTimeMillis() - romLoadStartTime}ms")
                 } else {
                     if (!storage.rom.exists()) {
                         storage.rom.outputStream().use { romInputStream.copyTo(it) }
                     }
 
                     gameFilePath = storage.rom.absolutePath
-                    Log.e("STARTUP_TIMING", "⏱️ [RetroViewData] ROM loaded from file in ${System.currentTimeMillis() - romLoadStartTime}ms")
                 }
 
                 shader = getShaderConfig()
-                Log.e("STARTUP_TIMING", "⏱️ [RetroViewData] Shader configured")
                 variables = getCoreVariables()
-                Log.e("STARTUP_TIMING", "⏱️ [RetroViewData] Variables configured")
 
                 val sramLoadStartTime = System.currentTimeMillis()
                 if (storage.sram.exists()) {
                     storage.sram.inputStream().use { saveRAMState = it.readBytes() }
-                    Log.e("STARTUP_TIMING", "⏱️ [RetroViewData] SRAM loaded in ${System.currentTimeMillis() - sramLoadStartTime}ms")
-                } else {
-                    Log.e("STARTUP_TIMING", "⏱️ [RetroViewData] No SRAM file to load")
                 }
-                
-                Log.e("STARTUP_TIMING", "⏱️ [RetroViewData] COMPLETE - Total: ${System.currentTimeMillis() - retroViewDataStartTime}ms")
             }
 
     /** GLRetroView instance itself */
     val view: GLRetroView
     
     init {
-        val glRetroViewStartTime = System.currentTimeMillis()
-        Log.e("STARTUP_TIMING", "⏱️ [GLRetroView] START creating GLRetroView")
         view = GLRetroView(context, retroViewData)
-        Log.e("STARTUP_TIMING", "⏱️ [GLRetroView] CREATED in ${System.currentTimeMillis() - glRetroViewStartTime}ms")
         
         val params =
                 FrameLayout.LayoutParams(
@@ -196,15 +180,12 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
     /** Register listener for when first frame is rendered */
     fun registerFrameRenderedListener() {
-        val listenerStartTime = System.currentTimeMillis()
-        Log.e("STARTUP_TIMING", "⏱️ [FrameRendered] Listener registered, waiting for first frame...")
         coroutineScope.launch {
             view.getGLRetroEvents().takeWhile { _frameRendered.value != true }.collectLatest { event
                 ->
                 if (event == GLRetroView.GLRetroEvents.FrameRendered &&
                                 _frameRendered.value == false
                 ) {
-                    Log.e("STARTUP_TIMING", "⏱️ [FrameRendered] 🎮 FIRST FRAME RENDERED! Time since listener registered: ${System.currentTimeMillis() - listenerStartTime}ms")
                     _frameRendered.postValue(true)
                 }
             }
