@@ -35,7 +35,10 @@ enum class MenuType {
     LOAD_SLOTS,
 
     /** Grid de slots para gerenciar (renomear, copiar, mover, deletar) */
-    MANAGE_SAVES
+    MANAGE_SAVES,
+
+    /** Grid de slots para salvar durante o fluxo Save and Exit */
+    EXIT_SAVE_SLOTS
 }
 
 /**

@@ -69,6 +69,7 @@ class LoadSlotsFragment : SaveStateGridFragment() {
 
             if (success) {
                 android.util.Log.d(TAG, "Load successful from slot $slotNumber")
+                com.vinaooo.revenger.managers.SessionSlotTracker.getInstance().recordLoad(slotNumber)
                 Toast.makeText(
                                 requireContext(),
                                 getString(R.string.load_success, slotNumber),

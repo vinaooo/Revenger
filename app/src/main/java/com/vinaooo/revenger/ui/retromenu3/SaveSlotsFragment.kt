@@ -401,6 +401,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
             if (success) {
                 android.util.Log.d("SaveSlotsFragment", "Save successful to slot $slotNumber")
+                com.vinaooo.revenger.managers.SessionSlotTracker.getInstance().recordSave(slotNumber)
                 refreshGrid()
                 Toast.makeText(
                                 requireContext(),
