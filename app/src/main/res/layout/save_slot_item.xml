@@ -74,12 +74,25 @@
 
     </LinearLayout>
 
+    <!-- Glow Indicator for Last-Used Slot (Pulsing White Border) -->
+    <!-- Placed after slot_content so it appears in front of background -->
+    <!-- Elevated above slot_content but below selection border -->
+    <!-- Only visible when this slot is last-used but NOT selected -->
+    <View
+        android:id="@+id/slot_glow_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/slot_glow_indicator"
+        android:visibility="gone"
+        android:elevation="2dp" />
+
     <!-- Selection Indicator (border overlay) -->
     <View
         android:id="@+id/slot_selection_border"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/slot_selected_border"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:elevation="4dp" />
 
 </FrameLayout>

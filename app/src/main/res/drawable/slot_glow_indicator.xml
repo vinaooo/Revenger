@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Glow Indicator for Last-Used Save Slot
+    
+    Visual indicator showing which save slot was last accessed (save/load).
+    Appears as a white border with pulsing alpha animation.
+    Only visible on non-selected slots that are the last-used slot.
+    
+    Used by SaveStateGridFragment for all slot grids:
+    - SaveSlotsFragment
+    - LoadSlotsFragment
+    - ExitSaveGridFragment
+    - ManageSavesFragment
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    
+    <!-- Transparent background (glow is border-only) -->
+    <solid android:color="#00000000" />
+    
+    <!-- White stroke border -->
+    <stroke
+        android:width="2dp"
+        android:color="#FFFFFF" />
+    
+    <!-- Rounded corners to match slot styling -->
+    <corners android:radius="8dp" />
+    
+</shape>
