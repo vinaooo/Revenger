@@ -289,19 +289,11 @@ class ExitFragment : MenuFragmentBase() {
 
     /** Back action */
     override fun performBack(): Boolean {
-        android.util.Log.d("ExitFragment", "[BACK] performBack called - navigating to main menu")
+        android.util.Log.d("ExitFragment", "[BACK] performBack called - returning false to allow normal navigation")
 
-        // PHASE 3: Use NavigationController for back navigation
-        android.util.Log.d(
-                "ExitFragment",
-                "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
-        )
-        val success = viewModel.navigationController?.navigateBack() ?: false
-        android.util.Log.d(
-                "ExitFragment",
-                "[BACK] NavigationController.navigateBack() returned: $success"
-        )
-        return success
+        // Return false to allow NavigationEventProcessor to handle the back navigation normally
+        // This prevents infinite recursion (performBack -> navigateBack -> onBack -> performBack)
+        return false
     }
 
     /** Update selection visual - specific implementation for ExitFragment */
