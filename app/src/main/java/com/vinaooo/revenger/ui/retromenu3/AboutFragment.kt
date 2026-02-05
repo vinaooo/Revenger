@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -59,11 +60,6 @@ class AboutFragment : MenuFragmentBase() {
 
     // Ordered list of menu items for navigation
     private lateinit var menuItems: List<RetroCardView>
-
-    // Callback interface
-    interface AboutListener {
-        fun onAboutBackToMainMenu()
-    }
 
     private var aboutListener: AboutListener? = null
 

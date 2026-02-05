@@ -6,6 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.callbacks.ProgressListener
+import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
+import com.vinaooo.revenger.ui.retromenu3.callbacks.ExitListener
+import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
+import com.vinaooo.revenger.ui.retromenu3.callbacks.RetroMenu3Listener
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
@@ -39,10 +44,10 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
  */
 class RetroMenu3Fragment :
         MenuFragmentBase(),
-        ProgressFragment.ProgressListener,
-        SettingsMenuFragment.SettingsMenuListener,
-        ExitFragment.ExitListener,
-        AboutFragment.AboutListener {
+        ProgressListener,
+        SettingsMenuListener,
+        ExitListener,
+        AboutListener {
 
         // Get ViewModel reference for centralized methods
         private lateinit var viewModel: GameActivityViewModel
@@ -68,20 +73,6 @@ class RetroMenu3Fragment :
         private lateinit var callbackManager: MenuCallbackManager
         private lateinit var actionHandler: MenuActionHandler
         lateinit var menuViews: MenuViews
-
-        // Callback interface
-        interface RetroMenu3Listener {
-                fun onResetGame()
-                fun onSaveState()
-                fun onLoadState()
-                fun onToggleAudio()
-                fun onFastForward()
-                fun onToggleShader()
-                fun getAudioState(): Boolean
-                fun getFastForwardState(): Boolean
-                fun getShaderState(): String
-                fun hasSaveState(): Boolean
-        }
 
         private var menuListener: RetroMenu3Listener? = null
 

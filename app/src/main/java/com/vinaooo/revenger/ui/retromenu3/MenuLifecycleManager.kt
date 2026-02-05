@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.util.Log
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -136,7 +137,7 @@ class MenuLifecycleManagerImpl(
             // Call clearKeyLog through ViewModel to reset combo state
             viewModel.clearControllerKeyLog()
         } catch (e: Exception) {
-            android.util.Log.w(
+            Log.w(
                     "MenuLifecycleManager",
                     "Error resetting combo state in onDestroy",
                     e
@@ -154,7 +155,7 @@ class MenuLifecycleManagerImpl(
             com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig
                     .applyAllProportionsToMenuLayout(view)
         } catch (e: Exception) {
-            android.util.Log.e("MenuLifecycleManager", "Error applying layout proportions", e)
+            Log.e("MenuLifecycleManager", "Error applying layout proportions", e)
         }
     }
 

@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.callbacks.ProgressListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
@@ -67,11 +68,6 @@ class ProgressFragment : MenuFragmentBase() {
 
     // Track selected index when navigating to submenus
     private var savedSelectionIndex = 0
-
-    // Callback interface
-    interface ProgressListener {
-        fun onBackToMainMenu()
-    }
 
     private var progressListener: ProgressListener? = null
 

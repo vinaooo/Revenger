@@ -1,5 +1,7 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+
+import com.vinaooo.revenger.ui.retromenu3.callbacks.RetroMenu3Listener
 import com.vinaooo.revenger.utils.MenuLogger
 
 /**
@@ -21,7 +23,7 @@ interface MenuCallbackManager {
 }
 
 /** Implementação do MenuCallbackManager. Delega chamadas para o RetroMenu3Listener. */
-class MenuCallbackManagerImpl(private val listener: RetroMenu3Fragment.RetroMenu3Listener?) :
+class MenuCallbackManagerImpl(private val listener: RetroMenu3Listener?) :
         MenuCallbackManager {
 
     override fun onContinueGame() {
@@ -87,7 +89,7 @@ class MenuCallbackManagerImpl(private val listener: RetroMenu3Fragment.RetroMenu
 }
 
 /** Versão do MenuCallbackManager sem logging para testes */
-class MenuCallbackManagerTestImpl(private val listener: RetroMenu3Fragment.RetroMenu3Listener?) :
+class MenuCallbackManagerTestImpl(private val listener: RetroMenu3Listener?) :
         MenuCallbackManager {
 
     override fun onContinueGame() {

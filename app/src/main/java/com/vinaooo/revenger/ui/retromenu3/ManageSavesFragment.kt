@@ -8,6 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
+import com.vinaooo.revenger.ui.retromenu3.callbacks.ManageSavesListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 
@@ -24,10 +25,6 @@ import com.vinaooo.revenger.utils.ViewUtils
  * - Empty slots show "No Save" and cannot be managed
  */
 class ManageSavesFragment : SaveStateGridFragment() {
-
-    interface ManageSavesListener {
-        fun onBackToProgressMenu()
-    }
 
     private var listener: ManageSavesListener? = null
 

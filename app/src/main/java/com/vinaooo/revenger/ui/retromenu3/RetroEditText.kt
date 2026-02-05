@@ -1,11 +1,12 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Typeface
 import android.util.AttributeSet
-import android.util.Log
 import androidx.appcompat.widget.AppCompatTextView
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.vinaooo.revenger.R
 

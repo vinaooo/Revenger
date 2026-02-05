@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+import android.util.Log
 import android.os.Bundle
 
 /**
@@ -79,7 +80,7 @@ data class MenuState(val menuType: MenuType, val selectedIndex: Int = 0) {
                 MenuState(menuType, index)
             } catch (e: IllegalArgumentException) {
                 // MenuType inválido no Bundle
-                android.util.Log.w("NavigationState", "Invalid MenuType in bundle: $typeString")
+                Log.w("NavigationState", "Invalid MenuType in bundle: $typeString")
                 null
             }
         }
@@ -169,7 +170,7 @@ class NavigationStack {
                 val menuType = MenuType.valueOf(typeString)
                 stack.add(MenuState(menuType, index))
             } catch (e: IllegalArgumentException) {
-                android.util.Log.w("NavigationStack", "Invalid MenuType in stack: $typeString")
+                Log.w("NavigationStack", "Invalid MenuType in stack: $typeString")
             }
         }
     }

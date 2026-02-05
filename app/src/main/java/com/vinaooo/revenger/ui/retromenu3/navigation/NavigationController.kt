@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+import android.util.Log
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.ui.retromenu3.MenuFragment
@@ -56,7 +57,7 @@ class NavigationController(private val activity: FragmentActivity) {
         // Adiciona à fila com debouncing
         if (!eventQueue.enqueue(event)) {
             // Evento foi debounced (ignorado)
-            android.util.Log.d(TAG, "[DEBOUNCE] Event debounced: $event")
+            Log.d(TAG, "[DEBOUNCE] Event debounced: $event")
             return
         }
 
@@ -107,7 +108,7 @@ class NavigationController(private val activity: FragmentActivity) {
      */
     fun selectItem(index: Int) {
         if (index < 0) {
-            android.util.Log.e(TAG, "[ERROR] Item index cannot be negative: $index")
+            Log.e(TAG, "[ERROR] Item index cannot be negative: $index")
             throw IllegalArgumentException("Item index cannot be negative: $index")
         }
 
@@ -152,12 +153,12 @@ class NavigationController(private val activity: FragmentActivity) {
         val backStackCount = fragmentAdapter.getBackStackCount()
         if (backStackCount == 0) {
             stateManager.updateCurrentMenu(MenuType.MAIN)
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "Registered MAIN menu fragment with $itemCount items, currentIndex=${stateManager.selectedItemIndex}"
             )
         } else {
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "Registered submenu fragment (backStack=$backStackCount) with $itemCount items"
             )
@@ -181,7 +182,7 @@ class NavigationController(private val activity: FragmentActivity) {
      */
     fun isMenuActive(): Boolean {
         val hasFragment = stateManager.isMenuActive()
-        android.util.Log.d(TAG, "isMenuActive: hasFragment=$hasFragment")
+        Log.d(TAG, "isMenuActive: hasFragment=$hasFragment")
         return hasFragment
     }
 
@@ -193,7 +194,7 @@ class NavigationController(private val activity: FragmentActivity) {
     fun saveState(outState: Bundle) {
         stateManager.saveState(outState)
 
-        android.util.Log.d(
+        Log.d(
                 TAG,
                 "Saved state: menu=${stateManager.currentMenu}, index=${stateManager.selectedItemIndex}, stack size=${stateManager.getStackSize()}"
         )
@@ -207,7 +208,7 @@ class NavigationController(private val activity: FragmentActivity) {
     fun restoreState(savedState: Bundle?) {
         stateManager.restoreState(savedState)
 
-        android.util.Log.d(
+        Log.d(
                 TAG,
                 "Restored state: menu=${stateManager.currentMenu}, index=${stateManager.selectedItemIndex}, stack size=${stateManager.getStackSize()}"
         )

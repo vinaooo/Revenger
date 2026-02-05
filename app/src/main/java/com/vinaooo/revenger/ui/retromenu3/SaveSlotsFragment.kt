@@ -7,6 +7,7 @@ import android.widget.TextView
 import android.widget.Toast
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
+import com.vinaooo.revenger.ui.retromenu3.callbacks.SaveSlotsListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 
@@ -24,11 +25,6 @@ import com.vinaooo.revenger.utils.ViewUtils
  * - Occupied slot: Show overwrite confirmation
  */
 class SaveSlotsFragment : SaveStateGridFragment() {
-
-    interface SaveSlotsListener {
-        fun onSaveCompleted(slotNumber: Int)
-        fun onBackToProgressMenu()
-    }
 
     private var listener: SaveSlotsListener? = null
 

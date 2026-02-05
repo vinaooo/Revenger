@@ -1,8 +1,9 @@
 package com.vinaooo.revenger.ui.retromenu3.config
 
+
 import android.content.res.Configuration
-import android.util.Log
 import android.view.View
+import android.util.Log
 import com.vinaooo.revenger.R
 
 /**

@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -66,11 +67,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
     private lateinit var selectionArrowShader: TextView
     private lateinit var selectionArrowGameSpeed: TextView
     private lateinit var selectionArrowBack: TextView
-
-    // Callback interface
-    interface SettingsMenuListener {
-        fun onBackToMainMenu()
-    }
 
     private var settingsListener: SettingsMenuListener? = null
 

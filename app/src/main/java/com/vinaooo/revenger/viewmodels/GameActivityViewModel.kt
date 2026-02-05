@@ -24,6 +24,8 @@ import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.retromenu3.*
+import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
+import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
@@ -31,8 +33,8 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
         AndroidViewModel(application),
-        SettingsMenuFragment.SettingsMenuListener,
-        AboutFragment.AboutListener,
+        SettingsMenuListener,
+        AboutListener,
         MenuManager.MenuManagerListener {
 
     private val resources = application.resources

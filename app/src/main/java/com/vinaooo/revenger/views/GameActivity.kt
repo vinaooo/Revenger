@@ -15,6 +15,7 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.gamepad.GamePadAlignmentManager
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.privacy.EnhancedPrivacyManager
+import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.utils.AndroidCompatibility
 import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -655,8 +656,7 @@ class GameActivity : FragmentActivity() {
                                                                                         // FragmentManager
                                                                                         settingsFragment
                                                                                                 .setSettingsListener(
-                                                                                                        retroMenu3 as
-                                                                                                                com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment.SettingsMenuListener
+                                                                                                        retroMenu3 as SettingsMenuListener
                                                                                                 )
                                                                                         Log.d(
                                                                                                 TAG,

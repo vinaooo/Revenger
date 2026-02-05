@@ -3,6 +3,7 @@ package com.vinaooo.revenger.ui.retromenu3
 import android.widget.Toast
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
+import com.vinaooo.revenger.ui.retromenu3.callbacks.LoadSlotsListener
 
 /**
  * Fragment for loading game state from one of 9 slots.
@@ -13,11 +14,6 @@ import com.vinaooo.revenger.models.SaveSlotData
  * - Loads state and resumes game on confirmation
  */
 class LoadSlotsFragment : SaveStateGridFragment() {
-
-    interface LoadSlotsListener {
-        fun onLoadCompleted(slotNumber: Int)
-        fun onBackToProgressMenu()
-    }
 
     private var listener: LoadSlotsListener? = null
 

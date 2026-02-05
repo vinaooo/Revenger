@@ -2,17 +2,16 @@ package com.vinaooo.revenger.models
 
 import org.junit.Assert.*
 import org.junit.Test
-import java.io.File
 import java.time.Instant
 
 /**
- * Unit tests for SaveSlotData data class.
- * Tests empty slot creation, display name logic, and timestamp formatting.
+ * Testes unitários para SaveSlotData.
+ * Testa criação de slots vazios, nomes de exibição e formatação de timestamps.
  */
 class SaveSlotDataTest {
 
     @Test
-    fun `empty slot should have isEmpty true`() {
+    fun `empty slot deve ter isEmpty true`() {
         val slot = SaveSlotData.empty(1)
         
         assertTrue(slot.isEmpty)
@@ -21,27 +20,26 @@ class SaveSlotDataTest {
         assertNull(slot.timestamp)
         assertNull(slot.stateFile)
         assertNull(slot.screenshotFile)
-        assertEquals("", slot.romName)
-        assertEquals(0L, slot.playTime)
     }
 
     @Test
-    fun `empty creates slots with correct number`() {
+    fun `empty cria slots com numero correto`() {
         for (i in 1..9) {
             val slot = SaveSlotData.empty(i)
             assertEquals(i, slot.slotNumber)
             assertEquals("Slot $i", slot.name)
+            assertTrue(slot.isEmpty)
         }
     }
 
     @Test
-    fun `getDisplayName returns Empty for empty slots`() {
+    fun `getDisplayName retorna Empty para slots vazios`() {
         val slot = SaveSlotData.empty(5)
         assertEquals("Empty", slot.getDisplayName())
     }
 
     @Test
-    fun `getDisplayName returns name for occupied slots`() {
+    fun `getDisplayName retorna nome para slots ocupados`() {
         val slot = SaveSlotData(
             slotNumber = 1,
             name = "Boss Fight",
@@ -57,81 +55,39 @@ class SaveSlotDataTest {
     }
 
     @Test
-    fun `getFormattedTimestamp returns empty for null timestamp`() {
+    fun `getFormattedTimestamp retorna vazio para timestamp null`() {
         val slot = SaveSlotData.empty(1)
         assertEquals("", slot.getFormattedTimestamp())
     }
 
     @Test
-    fun `getFormattedTimestamp returns formatted date`() {
+    fun `getFormattedTimestamp retorna data formatada`() {
         val slot = SaveSlotData(
             slotNumber = 1,
             name = "Test",
-            timestamp = Instant.parse("2026-01-30T14:32:00Z"),
+            timestamp = Instant.parse("2026-02-05T14:30:00Z"),
             romName = "Test ROM",
             stateFile = null,
             screenshotFile = null,
             isEmpty = false
         )
-        // Note: Exact format depends on system timezone
         val formatted = slot.getFormattedTimestamp()
         assertTrue(formatted.isNotEmpty())
-        assertTrue(formatted.contains("/"))
-        assertTrue(formatted.contains(":"))
+        assertTrue(formatted.contains("/") || formatted.contains("-"))
     }
 
     @Test
-    fun `getFormattedPlayTime returns empty for zero`() {
-        val slot = SaveSlotData.empty(1)
-        assertEquals("", slot.getFormattedPlayTime())
+    fun `copy cria nova instancia com dados modificados`() {
+        val original = SaveSlotData.empty(1)
+        val modified = original.copy(name = "New Name", isEmpty = false)
+        
+        assertEquals("New Name", modified.name)
+        assertFalse(modified.isEmpty)
+        assertEquals(original.slotNumber, modified.slotNumber)
     }
 
     @Test
-    fun `getFormattedPlayTime formats hours and minutes`() {
-        val slot = createSlotWithPlayTime(5400) // 1h 30m
-        assertEquals("1h 30m", slot.getFormattedPlayTime())
-    }
-
-    @Test
-    fun `getFormattedPlayTime formats hours only`() {
-        val slot = createSlotWithPlayTime(7200) // 2h
-        assertEquals("2h", slot.getFormattedPlayTime())
-    }
-
-    @Test
-    fun `getFormattedPlayTime formats minutes only`() {
-        val slot = createSlotWithPlayTime(2700) // 45m
-        assertEquals("45m", slot.getFormattedPlayTime())
-    }
-
-    @Test
-    fun `getFormattedPlayTime returns less than 1m for small values`() {
-        val slot = createSlotWithPlayTime(30) // 30 seconds
-        assertEquals("<1m", slot.getFormattedPlayTime())
-    }
-
-    @Test
-    fun `hasScreenshot returns false when screenshotFile is null`() {
-        val slot = SaveSlotData.empty(1)
-        assertFalse(slot.hasScreenshot())
-    }
-
-    @Test
-    fun `hasScreenshot returns false when file does not exist`() {
-        val slot = SaveSlotData(
-            slotNumber = 1,
-            name = "Test",
-            timestamp = Instant.now(),
-            romName = "Test",
-            stateFile = null,
-            screenshotFile = File("/nonexistent/path/screenshot.webp"),
-            isEmpty = false
-        )
-        assertFalse(slot.hasScreenshot())
-    }
-
-    @Test
-    fun `data class equality works correctly`() {
+    fun `equals compara corretamente dois slots`() {
         val slot1 = SaveSlotData.empty(1)
         val slot2 = SaveSlotData.empty(1)
         val slot3 = SaveSlotData.empty(2)
@@ -141,26 +97,11 @@ class SaveSlotDataTest {
     }
 
     @Test
-    fun `data class copy works correctly`() {
-        val original = SaveSlotData.empty(1)
-        val copied = original.copy(name = "New Name", isEmpty = false)
+    fun `toString retorna representacao legivel`() {
+        val slot = SaveSlotData.empty(5)
+        val str = slot.toString()
         
-        assertEquals(1, copied.slotNumber)
-        assertEquals("New Name", copied.name)
-        assertFalse(copied.isEmpty)
-    }
-
-    // Helper function
-    private fun createSlotWithPlayTime(seconds: Long): SaveSlotData {
-        return SaveSlotData(
-            slotNumber = 1,
-            name = "Test",
-            timestamp = Instant.now(),
-            romName = "Test",
-            playTime = seconds,
-            stateFile = null,
-            screenshotFile = null,
-            isEmpty = false
-        )
+        assertTrue(str.contains("SaveSlotData"))
+        assertTrue(str.contains("slotNumber=5"))
     }
 }

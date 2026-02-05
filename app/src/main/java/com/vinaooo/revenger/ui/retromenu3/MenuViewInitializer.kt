@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -134,7 +135,7 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
         MenuLogger.lifecycle("MenuViewInitializer: setupClickListeners START")
 
         // PHASE 3.3a: Touch events routed through NavigationController (permanently enabled)
-        android.util.Log.d(
+        Log.d(
                 TAG,
                 "[TOUCH] Using new navigation system - touch routed through NavigationController"
         )
@@ -159,7 +160,7 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
         // For each menu item, setup touch listener that routes through NavigationController
         views.menuItems.forEachIndexed { index, menuItem ->
             menuItem.setOnClickListener {
-                android.util.Log.d(
+                Log.d(
                         TAG,
                         "[TOUCH] Menu item $index clicked - routing through NavigationController"
                 )
@@ -171,7 +172,7 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
                 // 2. After TOUCH_ACTIVATION_DELAY_MS delay, activate item
                 it.postDelayed(
                         {
-                            android.util.Log.d(TAG, "[TOUCH] Activating item $index after delay")
+                            Log.d(TAG, "[TOUCH] Activating item $index after delay")
                             navigationController.activateItem()
                         },
                         MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS

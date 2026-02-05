@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.util.Log
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -99,14 +100,14 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         // Register with NavigationController with reset index
         viewModel.navigationController?.registerFragment(this, getTotalNavigableItems())
         viewModel.navigationController?.selectItem(0) // Force reset to first item
-        android.util.Log.d(
+        Log.d(
                 TAG,
                 "[NAVIGATION] ${this::class.simpleName} registered with ${getTotalNavigableItems()} items, selection reset to 0"
         )
     }
 
     override fun onDestroyView() {
-        android.util.Log.d(TAG, "[NAVIGATION] ${this::class.simpleName} onDestroyView")
+        Log.d(TAG, "[NAVIGATION] ${this::class.simpleName} onDestroyView")
         super.onDestroyView()
     }
 
@@ -133,7 +134,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     private fun setupClickListeners() {
         // Touch on back button
         backButton.setOnClickListener {
-            android.util.Log.d(TAG, "[TOUCH] Back button clicked")
+            Log.d(TAG, "[TOUCH] Back button clicked")
             selectBackButton()
             it.postDelayed({ onBackConfirmed() }, TOUCH_ACTIVATION_DELAY_MS)
         }
@@ -186,7 +187,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
                         screenshot.setImageResource(R.drawable.ic_no_screenshot)
                     }
                 } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Failed to load screenshot: ${e.message}")
+                    Log.e(TAG, "Failed to load screenshot: ${e.message}")
                     screenshot.setImageResource(R.drawable.ic_no_screenshot)
                 }
             }
@@ -200,7 +201,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
         // Touch listener
         slotView.setOnClickListener {
-            android.util.Log.d(TAG, "[TOUCH] Slot ${slot.slotNumber} clicked (row=$row, col=$col)")
+            Log.d(TAG, "[TOUCH] Slot ${slot.slotNumber} clicked (row=$row, col=$col)")
             selectSlot(row, col)
             it.postDelayed(
                     {
@@ -266,31 +267,31 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
     // Override onNavigateLeft/Right from MenuFragment interface
     override fun onNavigateLeft(): Boolean {
-        android.util.Log.d(TAG, "[NAV] ← Navigate Left triggered")
+        Log.d(TAG, "[NAV] ← Navigate Left triggered")
         performNavigateLeft()
         return true
     }
 
     override fun onNavigateRight(): Boolean {
-        android.util.Log.d(TAG, "[NAV] → Navigate Right triggered")
+        Log.d(TAG, "[NAV] → Navigate Right triggered")
         performNavigateRight()
         return true
     }
 
     override fun performConfirm() {
         if (isBackButtonSelected) {
-            android.util.Log.d(TAG, "[ACTION] Back button confirmed")
+            Log.d(TAG, "[ACTION] Back button confirmed")
             onBackConfirmed()
         } else {
             val slotIndex = selectedRow * GRID_COLS + selectedCol
             val slot = saveStateManager.getSlot(slotIndex + 1)
-            android.util.Log.d(TAG, "[ACTION] Slot ${slot.slotNumber} confirmed")
+            Log.d(TAG, "[ACTION] Slot ${slot.slotNumber} confirmed")
             onSlotConfirmed(slot)
         }
     }
 
     override fun performBack(): Boolean {
-        android.util.Log.d(TAG, "[BACK] performBack called")
+        Log.d(TAG, "[BACK] performBack called")
         // Return false to let NavigationEventProcessor handle the back navigation
         // Subclasses can override to handle dialogs and return true if they consume the event
         return false

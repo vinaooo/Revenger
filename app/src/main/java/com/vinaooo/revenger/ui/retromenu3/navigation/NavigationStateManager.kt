@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+import android.util.Log
 import android.os.Bundle
 import com.vinaooo.revenger.ui.retromenu3.MenuFragment
 
@@ -39,7 +40,7 @@ class NavigationStateManager {
      */
     fun updateSelectedIndex(index: Int) {
         if (index < 0) {
-            android.util.Log.e(TAG, "[ERROR] Selected index cannot be negative: $index")
+            Log.e(TAG, "[ERROR] Selected index cannot be negative: $index")
             throw IllegalArgumentException("Selected index cannot be negative: $index")
         }
         selectedItemIndex = index
@@ -134,7 +135,7 @@ class NavigationStateManager {
                 val stackBundle = savedState.getBundle(KEY_NAV_STACK)
                 navigationStack.fromBundle(stackBundle)
             } catch (e: IllegalArgumentException) {
-                android.util.Log.w(TAG, "Invalid menu type in saved state: $menuString")
+                Log.w(TAG, "Invalid menu type in saved state: $menuString")
             }
         }
     }
