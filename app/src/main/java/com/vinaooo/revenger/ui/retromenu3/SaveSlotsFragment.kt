@@ -21,7 +21,7 @@ import com.vinaooo.revenger.utils.ViewUtils
  * - Automatic screenshot capture from cached bitmap
  *
  * Dialog Flow:
- * - Empty slot: Direct save with default name "Slot X"
+ * - Empty slot: Show naming dialog (optional - can skip)
  * - Occupied slot: Show overwrite confirmation
  */
 class SaveSlotsFragment : SaveStateGridFragment() {
@@ -37,6 +37,10 @@ class SaveSlotsFragment : SaveStateGridFragment() {
     private var dialogSelectedIndex = 0
     private var dialogButtons: List<RetroCardView> = emptyList()
 
+    // Keyboard for naming dialog
+    private var retroKeyboard: RetroKeyboard? = null
+    private var isKeyboardActive = false
+
     fun setListener(listener: SaveSlotsListener) {
         this.listener = listener
     }
@@ -45,8 +49,8 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
     override fun onSlotConfirmed(slot: SaveSlotData) {
         if (slot.isEmpty) {
-            // Empty slot: save directly with default name
-            performSave(slot.slotNumber, "Slot ${slot.slotNumber}")
+            // Empty slot: show naming dialog (optional)
+            showNamingDialog(slot.slotNumber)
         } else {
             // Occupied slot: show overwrite confirmation
             showOverwriteConfirmation(slot)
@@ -78,7 +82,100 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
     // ========== DIALOG NAVIGATION ==========
 
+    /** Shows a retro-styled naming dialog with keyboard for new saves. */
+    private fun showNamingDialog(slotNumber: Int) {
+        pendingSlotNumber = slotNumber
+        isDialogVisible = true
+        isKeyboardActive = true
+
+        val container = view as? ViewGroup ?: return
+
+        dialogOverlay =
+                LayoutInflater.from(requireContext())
+                        .inflate(R.layout.retro_rename_keyboard_dlg, container, false)
+
+        dialogOverlay?.let { dialog ->
+            val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
+            val retroEditText = dialog.findViewById<RetroEditText>(R.id.rename_edit_text)
+
+            titleView.text = getString(R.string.name_save_dialog_title)
+            
+            // Set hint text
+            retroEditText.setHintText(getString(R.string.save_name_hint))
+            retroEditText.setRetroHintColor(0x88888888.toInt())
+            
+            // Apply retro font
+            FontUtils.getSelectedTypeface(requireContext())?.let { typeface ->
+                retroEditText.applyTypeface(typeface)
+            }
+
+            // Apply fonts to other TextViews
+            val textViews = mutableListOf<TextView>()
+            findAllTextViews(dialog, textViews)
+            textViews.removeAll { it is RetroEditText }
+            ViewUtils.applySelectedFontToViews(requireContext(), *textViews.toTypedArray())
+
+            // Initialize RetroKeyboard
+            retroKeyboard = RetroKeyboard(
+                context = requireContext(),
+                retroEditText = retroEditText,
+                onConfirm = { newName ->
+                    val finalName = newName.ifBlank { "Slot $slotNumber" }
+                    hideNamingDialog()
+                    performSave(slotNumber, finalName)
+                },
+                onCancel = {
+                    hideNamingDialog()
+                    // Save with default name if canceled
+                    performSave(slotNumber, "Slot $slotNumber")
+                }
+            )
+
+            // Set default text (slot number)
+            retroKeyboard?.setText("Slot $slotNumber")
+
+            container.addView(dialog)
+            
+            // Apply menu proportions
+            com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyAllProportionsToMenuLayout(dialog)
+            
+            dialog.alpha = 0f
+            dialog.animate().alpha(1f).setDuration(150).start()
+
+            // Setup keyboard
+            retroKeyboard?.setupKeyboardInView(dialog)
+        }
+    }
+
+    private fun hideNamingDialog() {
+        val dialog = dialogOverlay ?: return
+        
+        dialog.animate().cancel()
+        dialog.visibility = View.GONE
+        (dialog.parent as? ViewGroup)?.removeView(dialog)
+        
+        dialogOverlay = null
+        isDialogVisible = false
+        isKeyboardActive = false
+        retroKeyboard = null
+    }
+
+    private fun findAllTextViews(view: View, result: MutableList<TextView>) {
+        if (view is TextView) {
+            result.add(view)
+        }
+        if (view is ViewGroup) {
+            for (i in 0 until view.childCount) {
+                findAllTextViews(view.getChildAt(i), result)
+            }
+        }
+    }
+
     override fun performNavigateUp() {
+        if (isKeyboardActive && retroKeyboard != null) {
+            retroKeyboard?.navigateUp()
+            return
+        }
         if (isDialogVisible && dialogButtons.isNotEmpty()) {
             if (dialogSelectedIndex > 0) {
                 dialogSelectedIndex--
@@ -90,6 +187,10 @@ class SaveSlotsFragment : SaveStateGridFragment() {
     }
 
     override fun performNavigateDown() {
+        if (isKeyboardActive && retroKeyboard != null) {
+            retroKeyboard?.navigateDown()
+            return
+        }
         if (isDialogVisible && dialogButtons.isNotEmpty()) {
             if (dialogSelectedIndex < dialogButtons.size - 1) {
                 dialogSelectedIndex++
@@ -100,7 +201,27 @@ class SaveSlotsFragment : SaveStateGridFragment() {
         super.performNavigateDown()
     }
 
+    override fun onNavigateLeft(): Boolean {
+        if (isKeyboardActive && retroKeyboard != null) {
+            retroKeyboard?.navigateLeft()
+            return true
+        }
+        return super.onNavigateLeft()
+    }
+
+    override fun onNavigateRight(): Boolean {
+        if (isKeyboardActive && retroKeyboard != null) {
+            retroKeyboard?.navigateRight()
+            return true
+        }
+        return super.onNavigateRight()
+    }
+
     override fun performConfirm() {
+        if (isKeyboardActive && retroKeyboard != null) {
+            retroKeyboard?.pressCurrentKey()
+            return
+        }
         if (isDialogVisible && dialogButtons.isNotEmpty()) {
             dialogButtons.getOrNull(dialogSelectedIndex)?.performClick()
             return
@@ -138,6 +259,10 @@ class SaveSlotsFragment : SaveStateGridFragment() {
     }
 
     override fun onDestroyView() {
+        // Clean up keyboard
+        retroKeyboard = null
+        isKeyboardActive = false
+        
         // Clean up any visible dialog
         dialogOverlay?.let { dialog ->
             (dialog.parent as? ViewGroup)?.removeView(dialog)

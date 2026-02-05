@@ -115,6 +115,9 @@
 
     <!-- Rename Dialog -->
     <string name="rename_dialog_title">RENAME SAVE</string>
+    
+    <!-- Name Save Dialog -->
+    <string name="name_save_dialog_title">NAME YOUR SAVE</string>
 
     <!-- Dialog Buttons -->
     <string name="dialog_save">Save</string>
