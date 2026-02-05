@@ -62,6 +62,7 @@ class GameActivity : FragmentActivity() {
                 }
 
         override fun onCreate(savedInstanceState: Bundle?) {
+                val startTime = System.currentTimeMillis()
                 android.util.Log.e(
                         "GAME_ACTIVITY",
                         "🚨🚨🚨🚨🚨 GAME_ACTIVITY ONCREATE CALLED - NEW APK VERSION 🚨🚨🚨🚨🚨"
@@ -71,11 +72,14 @@ class GameActivity : FragmentActivity() {
                         "GAME_ACTIVITY",
                         "🔧 APK VERSION: DEBUG WITH EXTENSIVE LOGGING - REV ${System.currentTimeMillis()}"
                 )
+                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+0ms] GameActivity.onCreate() START")
 
                 super.onCreate(savedInstanceState)
+                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] super.onCreate() completed")
 
                 // Initialize ScreenshotCaptureUtil with context for aspect ratio detection
                 ScreenshotCaptureUtil.setContext(this)
+                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] ScreenshotCaptureUtil.setContext() completed")
 
                 // Apply conditional features based on Android version
                 AndroidCompatibility.applyConditionalFeatures()
@@ -84,6 +88,7 @@ class GameActivity : FragmentActivity() {
                 initializeSdk36Features()
 
                 setContentView(R.layout.activity_game)
+                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setContentView() completed")
 
                 // Configure status/navigation bars based on current theme
                 configureSystemBarsForTheme()
@@ -122,14 +127,19 @@ class GameActivity : FragmentActivity() {
                 // auto-rotate
                 viewModel.updateGamePadVisibility(this, leftContainer, rightContainer)
                 viewModel.setupRetroView(this, retroviewContainer)
+                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupRetroView() completed")
                 viewModel.setupGamePads(this, leftContainer, rightContainer)
+                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupGamePads() completed")
 
                 // Force gamepad positioning based on orientation
                 adjustGamePadPositionForOrientation(gamepadContainers)
 
                 viewModel.prepareRetroMenu3()
+                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] prepareRetroMenu3() completed")
                 viewModel.setupMenuCallback(this)
+                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupMenuCallback() completed")
                 viewModel.setMenuContainer(menuContainer)
+                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] onCreate() COMPLETE - Total: ${System.currentTimeMillis() - startTime}ms")
         }
 
         /**
