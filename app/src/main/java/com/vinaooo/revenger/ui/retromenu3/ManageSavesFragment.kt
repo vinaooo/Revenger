@@ -388,6 +388,10 @@ class ManageSavesFragment : SaveStateGridFragment() {
             retroKeyboard?.setText(slot.name ?: "")
 
             container.addView(dialog)
+            
+            // Apply same proportions as other RetroMenu3 menus
+            com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyAllProportionsToMenuLayout(dialog)
+            
             dialog.alpha = 0f
             dialog.animate().alpha(1f).setDuration(150).start()
 
