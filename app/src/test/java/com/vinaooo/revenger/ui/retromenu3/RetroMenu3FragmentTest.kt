@@ -48,10 +48,10 @@ class RetroMenu3FragmentTest {
     fun `test getMenuItems returns correct structure`() {
         val menuItems = fragment.getMenuItems()
 
-        assertEquals(5, menuItems.size)
+        assertEquals(6, menuItems.size)
 
-        // Test item IDs
-        val expectedIds = listOf("continue", "reset", "progress", "settings", "exit")
+        // Test item IDs (including About menu)
+        val expectedIds = listOf("continue", "reset", "progress", "settings", "about", "exit")
         menuItems.forEachIndexed { index, item ->
             assertEquals(expectedIds[index], item.id)
             assertFalse(item.title.isEmpty())

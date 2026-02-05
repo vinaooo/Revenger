@@ -277,7 +277,8 @@ class ExitFragment : MenuFragmentBase() {
             2 -> {
                 // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Back to main menu selected")
-                performBack()
+                // Use NavigationController to navigate back (don't call performBack which returns false)
+                viewModel.navigationController?.navigateBack()
             }
             else ->
                     android.util.Log.w(
