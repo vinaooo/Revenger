@@ -238,23 +238,24 @@ class ExitFragment : MenuFragmentBase() {
         android.util.Log.d(TAG, "[ACTION] Exit menu: CONFIRM on index $selectedIndex")
         when (selectedIndex) {
             0 -> {
-                // Save and Exit - Execute action with shutdown animation
+                // Save and Exit - Conditional logic based on session slot context
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Save and Exit selected")
 
-                // Fechar menu primeiro
-                viewModel.dismissRetroMenu3()
+                val tracker = com.vinaooo.revenger.managers.SessionSlotTracker.getInstance()
 
-                // Salvar estado e depois iniciar animação
-                viewModel.saveStateCentralized(
-                        onComplete = {
-                            // Quando save terminar, iniciar animação de shutdown
-                            (requireActivity() as? com.vinaooo.revenger.views.GameActivity)
-                                    ?.startShutdownAnimation {
-                                        // Quando animação terminar, encerrar processo
-                                        android.os.Process.killProcess(android.os.Process.myPid())
-                                    }
-                        }
-                )
+                if (tracker.hasSlotContext()) {
+                    // Scenario 1: User already saved/loaded during this session
+                    // Auto-save to the last used slot
+                    val slotNumber = tracker.getLastUsedSlot()!!
+                    android.util.Log.d(TAG, "[ACTION] Auto-saving to last used slot $slotNumber")
+                    performAutoSaveAndExit(slotNumber)
+                } else {
+                    // Scenario 2: No slot context - show save grid for user to choose
+                    android.util.Log.d(TAG, "[ACTION] No slot context - navigating to ExitSaveGrid")
+                    viewModel.navigationController?.navigateToSubmenu(
+                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.EXIT_SAVE_SLOTS
+                    )
+                }
             }
             1 -> {
                 // Exit without Save - Execute action with shutdown animation
@@ -291,6 +292,76 @@ class ExitFragment : MenuFragmentBase() {
         // Return false to allow NavigationEventProcessor to handle the back navigation normally
         // This prevents infinite recursion (performBack -> navigateBack -> onBack -> performBack)
         return false
+    }
+
+    /**
+     * Performs auto-save to the specified slot and then exits the app.
+     *
+     * This is called when the user selects "Save and Exit" and has previously
+     * used a save slot during the current session (via Save State or Load State).
+     *
+     * @param slotNumber The slot to auto-save to (1-9)
+     */
+    private fun performAutoSaveAndExit(slotNumber: Int) {
+        val currentRetroView = viewModel.retroView
+        if (currentRetroView == null) {
+            android.util.Log.e(TAG, "[ACTION] RetroView is null, falling back to legacy save")
+            viewModel.dismissRetroMenu3()
+            viewModel.saveStateCentralized(
+                onComplete = {
+                    (requireActivity() as? com.vinaooo.revenger.views.GameActivity)
+                        ?.startShutdownAnimation {
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }
+                }
+            )
+            return
+        }
+
+        try {
+            // Serialize state from emulator
+            val stateBytes = currentRetroView.view.serializeState()
+
+            // Get cached screenshot
+            val screenshot = viewModel.getCachedScreenshot()
+
+            // Get ROM name from config
+            val romName = try {
+                getString(R.string.conf_name)
+            } catch (e: Exception) {
+                "Unknown Game"
+            }
+
+            // Save to the slot via SaveStateManager
+            val saveStateManager = com.vinaooo.revenger.managers.SaveStateManager.getInstance(requireContext())
+            val success = saveStateManager.saveToSlot(
+                slotNumber = slotNumber,
+                stateBytes = stateBytes,
+                screenshot = screenshot,
+                name = saveStateManager.getSlot(slotNumber).let {
+                    if (it.isEmpty) "Slot $slotNumber" else it.name
+                },
+                romName = romName
+            )
+
+            if (success) {
+                android.util.Log.d(TAG, "[ACTION] Auto-save successful to slot $slotNumber")
+                // Update tracker
+                com.vinaooo.revenger.managers.SessionSlotTracker.getInstance().recordSave(slotNumber)
+            } else {
+                android.util.Log.e(TAG, "[ACTION] Auto-save failed to slot $slotNumber, proceeding with exit")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "[ACTION] Error during auto-save", e)
+        }
+
+        // Dismiss menu and exit regardless of save result
+        viewModel.dismissRetroMenu3()
+
+        (requireActivity() as? com.vinaooo.revenger.views.GameActivity)
+            ?.startShutdownAnimation {
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
     }
 
     /** Update selection visual - specific implementation for ExitFragment */

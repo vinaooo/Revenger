@@ -39,6 +39,7 @@ class SaveStateManager private constructor(private val context: Context) {
         private const val SAVES_DIR = "saves"
         private const val STATE_FILE = "state.bin"
         private const val SCREENSHOT_FILE = "screenshot.webp"
+        private const val PREVIEW_FILE = "preview.webp"
         private const val METADATA_FILE = "metadata.json"
         private const val LEGACY_STATE_FILE = "state"
         const val TOTAL_SLOTS = 9
@@ -83,6 +84,7 @@ class SaveStateManager private constructor(private val context: Context) {
         val slotDir = getSlotDirectory(slotNumber)
         val stateFile = File(slotDir, STATE_FILE)
         val screenshotFile = File(slotDir, SCREENSHOT_FILE)
+        val previewFile = File(slotDir, PREVIEW_FILE)
         val metadataFile = File(slotDir, METADATA_FILE)
 
         if (!stateFile.exists()) {
@@ -99,6 +101,7 @@ class SaveStateManager private constructor(private val context: Context) {
                 description = metadata.optString("description", ""),
                 stateFile = stateFile,
                 screenshotFile = if (screenshotFile.exists()) screenshotFile else null,
+                previewFile = if (previewFile.exists()) previewFile else null,
                 isEmpty = false
         )
     }
@@ -109,6 +112,7 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param slotNumber Target slot (1-9)
      * @param stateBytes Serialized state data from RetroView
      * @param screenshot Bitmap of the game screen (will be saved as WebP)
+     * @param preview Full-screen bitmap with black bars for load preview overlay (optional)
      * @param name User-defined name (defaults to "Slot X")
      * @param romName Name of the current ROM
      * @return true if save was successful
@@ -117,6 +121,7 @@ class SaveStateManager private constructor(private val context: Context) {
             slotNumber: Int,
             stateBytes: ByteArray,
             screenshot: Bitmap?,
+            preview: Bitmap? = null,
             name: String? = null,
             romName: String = ""
     ): Boolean {
@@ -132,6 +137,9 @@ class SaveStateManager private constructor(private val context: Context) {
 
             // Save screenshot if provided
             screenshot?.let { bitmap -> saveScreenshot(slotDir, bitmap) }
+
+            // Save full-screen preview if provided (for load preview overlay)
+            preview?.let { bitmap -> savePreview(slotDir, bitmap) }
 
             // Save metadata
             val metadataFile = File(slotDir, METADATA_FILE)
@@ -372,6 +380,17 @@ class SaveStateManager private constructor(private val context: Context) {
     private fun saveScreenshot(slotDir: File, bitmap: Bitmap) {
         val screenshotFile = File(slotDir, SCREENSHOT_FILE)
         screenshotFile.outputStream().use { out ->
+            bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 80, out)
+        }
+    }
+
+    /**
+     * Save full-screen preview image to a slot directory.
+     * This image includes black bars and is used for the load preview overlay.
+     */
+    private fun savePreview(slotDir: File, bitmap: Bitmap) {
+        val previewFile = File(slotDir, PREVIEW_FILE)
+        previewFile.outputStream().use { out ->
             bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 80, out)
         }
     }

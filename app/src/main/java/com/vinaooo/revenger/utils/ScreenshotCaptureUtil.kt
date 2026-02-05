@@ -35,8 +35,15 @@ object ScreenshotCaptureUtil {
 
     /**
      * Cached screenshot from when the menu was opened. Captured at pause time and used when saving.
+     * This is the cropped version (no black bars) used for slot thumbnails.
      */
     @Volatile private var cachedScreenshot: Bitmap? = null
+
+    /**
+     * Cached full-screen screenshot including black bars.
+     * Used as load preview overlay — matches the screen pixel-perfectly with fitXY.
+     */
+    @Volatile private var cachedFullScreenshot: Bitmap? = null
 
     /**
      * Cached context for reading config values.
@@ -224,8 +231,13 @@ object ScreenshotCaptureUtil {
                     bitmap,
                     { copyResult ->
                         if (copyResult == PixelCopy.SUCCESS) {
-                            Log.d(TAG, "Screenshot captured successfully: ${croppedWidth}x$croppedHeight (cropped from ${width}x$height)")
-                            callback(bitmap)
+                            Log.d(TAG, "Screenshot captured: ${croppedWidth}x$croppedHeight (cropped from ${width}x$height)")
+                            // Auto-crop any remaining black borders from the core output
+                            val autoCropped = autoCropBlackBorders(bitmap)
+                            if (autoCropped !== bitmap) {
+                                bitmap.recycle()
+                            }
+                            callback(autoCropped)
                         } else {
                             Log.e(TAG, "PixelCopy failed with result: $copyResult")
                             bitmap.recycle()
@@ -241,8 +253,181 @@ object ScreenshotCaptureUtil {
     }
 
     /**
-     * Capture and cache screenshot when menu opens. This should be called when the game pauses for
-     * menu.
+     * Capture a full-screen screenshot of the GLRetroView WITHOUT cropping.
+     * Includes black bars (letterbox/pillarbox) so the image matches the screen pixel-perfectly
+     * when displayed with fitXY + match_parent. Used for load preview overlay.
+     *
+     * @param glRetroView The GLRetroView instance to capture
+     * @param callback Called with the captured Bitmap or null on failure
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun captureFullScreen(glRetroView: GLRetroView, callback: (Bitmap?) -> Unit) {
+        try {
+            val width = glRetroView.width
+            val height = glRetroView.height
+
+            if (width <= 0 || height <= 0) {
+                Log.w(TAG, "Invalid view dimensions for full capture: ${width}x$height")
+                callback(null)
+                return
+            }
+
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val surfaceView = glRetroView as SurfaceView
+
+            if (!surfaceView.holder.surface.isValid) {
+                Log.e(TAG, "Surface is not valid for full capture")
+                bitmap.recycle()
+                callback(null)
+                return
+            }
+
+            // Capture entire surface — no source rect, no crop
+            PixelCopy.request(
+                    surfaceView,
+                    bitmap,
+                    { copyResult ->
+                        if (copyResult == PixelCopy.SUCCESS) {
+                            Log.d(TAG, "Full screenshot captured: ${width}x$height")
+                            callback(bitmap)
+                        } else {
+                            Log.e(TAG, "Full PixelCopy failed with result: $copyResult")
+                            bitmap.recycle()
+                            callback(null)
+                        }
+                    },
+                    Handler(Looper.getMainLooper())
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to capture full screenshot", e)
+            callback(null)
+        }
+    }
+
+    /**
+     * Auto-crop black borders from a bitmap.
+     *
+     * Some LibRetro cores (e.g., picodrive for Master System) render frames with
+     * small black borders that don't match the reported aspect ratio exactly.
+     * This method detects and removes those borders by scanning pixel brightness.
+     *
+     * Only crops if borders are detected (brightness threshold < 10).
+     * Limits cropping to max 5% of each dimension to avoid false positives.
+     *
+     * @param bitmap The source bitmap to auto-crop
+     * @return A new cropped bitmap, or the original if no cropping was needed
+     */
+    private fun autoCropBlackBorders(bitmap: Bitmap): Bitmap {
+        val w = bitmap.width
+        val h = bitmap.height
+        val maxCropX = (w * 0.05f).toInt() // Max 5% crop on each side
+        val maxCropY = (h * 0.05f).toInt()
+        val sampleStep = maxOf(h / 20, 1) // Sample ~20 rows for performance
+        val brightnessThreshold = 10
+
+        // Find left border
+        var left = 0
+        for (x in 0 until minOf(maxCropX, w)) {
+            var hasContent = false
+            for (y in 0 until h step sampleStep) {
+                val pixel = bitmap.getPixel(x, y)
+                val r = (pixel shr 16) and 0xFF
+                val g = (pixel shr 8) and 0xFF
+                val b = pixel and 0xFF
+                if (r + g + b > brightnessThreshold) {
+                    hasContent = true
+                    break
+                }
+            }
+            if (hasContent) {
+                left = x
+                break
+            }
+        }
+
+        // Find right border
+        var right = w - 1
+        for (x in w - 1 downTo maxOf(w - maxCropX, 0)) {
+            var hasContent = false
+            for (y in 0 until h step sampleStep) {
+                val pixel = bitmap.getPixel(x, y)
+                val r = (pixel shr 16) and 0xFF
+                val g = (pixel shr 8) and 0xFF
+                val b = pixel and 0xFF
+                if (r + g + b > brightnessThreshold) {
+                    hasContent = true
+                    break
+                }
+            }
+            if (hasContent) {
+                right = x
+                break
+            }
+        }
+
+        // Find top border
+        val sampleStepX = maxOf(w / 20, 1)
+        var top = 0
+        for (y in 0 until minOf(maxCropY, h)) {
+            var hasContent = false
+            for (x in 0 until w step sampleStepX) {
+                val pixel = bitmap.getPixel(x, y)
+                val r = (pixel shr 16) and 0xFF
+                val g = (pixel shr 8) and 0xFF
+                val b = pixel and 0xFF
+                if (r + g + b > brightnessThreshold) {
+                    hasContent = true
+                    break
+                }
+            }
+            if (hasContent) {
+                top = y
+                break
+            }
+        }
+
+        // Find bottom border
+        var bottom = h - 1
+        for (y in h - 1 downTo maxOf(h - maxCropY, 0)) {
+            var hasContent = false
+            for (x in 0 until w step sampleStepX) {
+                val pixel = bitmap.getPixel(x, y)
+                val r = (pixel shr 16) and 0xFF
+                val g = (pixel shr 8) and 0xFF
+                val b = pixel and 0xFF
+                if (r + g + b > brightnessThreshold) {
+                    hasContent = true
+                    break
+                }
+            }
+            if (hasContent) {
+                bottom = y
+                break
+            }
+        }
+
+        val cropWidth = right - left + 1
+        val cropHeight = bottom - top + 1
+
+        // Only crop if we actually found borders (at least 2px on any side)
+        if (left < 2 && (w - 1 - right) < 2 && top < 2 && (h - 1 - bottom) < 2) {
+            Log.d(TAG, "Auto-crop: No significant black borders detected")
+            return bitmap
+        }
+
+        if (cropWidth <= 0 || cropHeight <= 0) {
+            Log.w(TAG, "Auto-crop: Invalid crop dimensions, skipping")
+            return bitmap
+        }
+
+        Log.d(TAG, "Auto-crop: Removing borders L=$left T=$top R=${w - 1 - right} B=${h - 1 - bottom} -> ${cropWidth}x$cropHeight")
+        return Bitmap.createBitmap(bitmap, left, top, cropWidth, cropHeight)
+    }
+
+    /**
+     * Capture and cache both cropped and full screenshots when menu opens.
+     * Cropped screenshot (no black bars) is used for slot thumbnails.
+     * Full screenshot (with black bars) is used for load preview overlay.
      *
      * @param glRetroView The GLRetroView to capture from
      * @param onCaptured Optional callback when capture completes
@@ -252,20 +437,34 @@ object ScreenshotCaptureUtil {
             glRetroView: GLRetroView,
             onCaptured: ((Boolean) -> Unit)? = null
     ) {
+        // Capture cropped screenshot for slot thumbnails
         captureGameScreen(glRetroView) { bitmap ->
             synchronized(this) {
-                // Recycle old cached screenshot
                 cachedScreenshot?.recycle()
                 cachedScreenshot = bitmap
             }
-            Log.d(TAG, "Screenshot cached: ${bitmap != null}")
-            onCaptured?.invoke(bitmap != null)
+            Log.d(TAG, "Cropped screenshot cached: ${bitmap != null}")
+        }
+
+        // Capture full screenshot for load preview overlay
+        captureFullScreen(glRetroView) { fullBitmap ->
+            synchronized(this) {
+                cachedFullScreenshot?.recycle()
+                cachedFullScreenshot = fullBitmap
+            }
+            Log.d(TAG, "Full screenshot cached: ${fullBitmap != null}")
+            onCaptured?.invoke(fullBitmap != null || cachedScreenshot != null)
         }
     }
 
-    /** Get the cached screenshot for saving. Returns null if no screenshot was cached. */
+    /** Get the cached cropped screenshot for saving. Returns null if no screenshot was cached. */
     fun getCachedScreenshot(): Bitmap? {
         return cachedScreenshot
+    }
+
+    /** Get the cached full-screen screenshot (with black bars) for preview overlay. */
+    fun getCachedFullScreenshot(): Bitmap? {
+        return cachedFullScreenshot
     }
 
     /** Check if a cached screenshot exists. */
@@ -273,13 +472,15 @@ object ScreenshotCaptureUtil {
         return cachedScreenshot != null
     }
 
-    /** Clear the cached screenshot. Call when menu closes without saving to free memory. */
+    /** Clear all cached screenshots. Call when menu closes without saving to free memory. */
     fun clearCachedScreenshot() {
         synchronized(this) {
             cachedScreenshot?.recycle()
             cachedScreenshot = null
+            cachedFullScreenshot?.recycle()
+            cachedFullScreenshot = null
         }
-        Log.d(TAG, "Cached screenshot cleared")
+        Log.d(TAG, "All cached screenshots cleared")
     }
 
     /**

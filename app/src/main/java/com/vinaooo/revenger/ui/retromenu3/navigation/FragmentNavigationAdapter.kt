@@ -7,6 +7,7 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.ui.retromenu3.AboutFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitFragment
 import com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment
+import com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment
 import com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment
 import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
@@ -58,6 +59,7 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
             MenuType.SAVE_SLOTS -> showSaveSlotsMenu()
             MenuType.LOAD_SLOTS -> showLoadSlotsMenu()
             MenuType.MANAGE_SAVES -> showManageSavesMenu()
+            MenuType.EXIT_SAVE_SLOTS -> showExitSaveSlotsMenu()
         }
     }
 
@@ -188,6 +190,20 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
 
         Log.d(TAG, "[SHOW] Manage Saves menu added successfully")
     }
+    private fun showExitSaveSlotsMenu() {
+        Log.d(TAG, "[SHOW] Exit Save Slots menu")
+
+        val exitSaveGridFragment = ExitSaveGridFragment.newInstance()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(MENU_CONTAINER_ID, exitSaveGridFragment, TAG_EXIT_SAVE_SLOTS_MENU)
+                .addToBackStack(TAG_EXIT_SAVE_SLOTS_MENU)
+                .commitAllowingStateLoss()
+
+        Log.d(TAG, "[SHOW] Exit Save Slots menu added successfully")
+    }
+
     /**
      * Esconde o menu atual.
      *
@@ -256,6 +272,7 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
         private const val TAG_SAVE_SLOTS_MENU = "SaveSlotsFragment"
         private const val TAG_LOAD_SLOTS_MENU = "LoadSlotsFragment"
         private const val TAG_MANAGE_SAVES_MENU = "ManageSavesFragment"
+        private const val TAG_EXIT_SAVE_SLOTS_MENU = "ExitSaveGridFragment"
 
         /**
          * ID do container onde os fragments de menu são exibidos. Este é o FrameLayout definido em

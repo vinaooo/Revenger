@@ -147,4 +147,10 @@
     <string name="select_slot_to_copy">Select an empty slot to copy to</string>
     <string name="select_slot_to_move">Select an empty slot to move to</string>
 
+    <!-- Exit Save Grid (Save and Exit flow) -->
+    <string name="exit_save_grid_title">Save and Exit</string>
+    <string name="exit_button_label">Exit</string>
+    <string name="exit_button_disabled_hint">Save to a slot first</string>
+    <string name="auto_save_success">Auto-saved to Slot %d</string>
+
 </resources>
