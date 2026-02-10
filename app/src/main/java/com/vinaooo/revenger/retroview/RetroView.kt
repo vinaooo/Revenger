@@ -143,9 +143,10 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                     if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
                     gameFileBytes = romBytes
                 } else {
-                    if (!storage.rom.exists()) {
-                        storage.rom.outputStream().use { romInputStream.copyTo(it) }
-                    }
+                    // Always overwrite ROM file to ensure latest version is loaded
+                    // This ensures that configuration changes in config.xml are respected
+                    storage.rom.outputStream().use { romInputStream.copyTo(it) }
+                    Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
 
                     gameFilePath = storage.rom.absolutePath
                 }
