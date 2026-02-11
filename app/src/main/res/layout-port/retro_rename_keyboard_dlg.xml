@@ -34,7 +34,8 @@
             android:layout_gravity="center"
             android:paddingVertical="@dimen/rm_container_padding_vertical"
             android:paddingHorizontal="16dp"
-            android:background="@drawable/retro_menu_border">
+            android:background="@drawable/retro_menu_border"
+            android:maxHeight="560dp">
 
             <!-- Dialog Title -->
             <TextView
@@ -73,10 +74,10 @@
             <LinearLayout
                 android:id="@+id/keyboard_wrapper"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:layout_marginTop="@dimen/rm_menu_item_padding"
-                android:orientation="vertical"
-                android:maxHeight="320dp">
+                android:orientation="vertical">
 
                 <include
                     layout="@layout/retro_keyboard"
