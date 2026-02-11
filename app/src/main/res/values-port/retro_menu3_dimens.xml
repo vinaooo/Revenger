@@ -16,4 +16,6 @@
     <dimen name="rm_menu_item_height">32dp</dimen>
     <dimen name="rm_menu_item_padding">4dp</dimen>
     <dimen name="rm_extra_space_height">8dp</dimen>
+    <!-- Keep border width consistent in portrait -->
+    <dimen name="rm_menu_border_width">2dp</dimen>
 </resources>

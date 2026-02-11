@@ -78,4 +78,6 @@
     <dimen name="save_slot_margin">4dp</dimen>
     <dimen name="save_slot_padding">4dp</dimen>
     <dimen name="save_slot_text_size">10sp</dimen>
+     <!-- Border width for retro menu dialogs -->
+     <dimen name="rm_menu_border_width">2dp</dimen>
 </resources>

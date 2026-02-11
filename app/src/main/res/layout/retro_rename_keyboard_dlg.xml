@@ -13,6 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
+        android:gravity="center"
         android:padding="@dimen/rm_menu_item_padding">
 
         <!-- Left 25% - Empty Space -->
@@ -25,12 +26,13 @@
         <LinearLayout
             android:id="@+id/dialog_container"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="@dimen/rm_center_content_weight"
             android:orientation="vertical"
+            android:layout_gravity="center"
             android:paddingVertical="@dimen/rm_container_padding_vertical"
             android:paddingHorizontal="16dp"
-            android:background="@color/rm_background">
+            android:background="@drawable/retro_menu_border">
 
             <!-- Dialog Title -->
             <!-- Menu Title - matching RetroMenu3 standard -->
@@ -61,7 +63,7 @@
                 android:layout_height="@dimen/rm_menu_item_height"
                 android:textSize="@dimen/rm_menu_item_text_size"
                 android:textColor="@color/rm_text_color"
-                android:background="@drawable/slot_background_empty"
+                android:background="@drawable/retro_input_border"
                 android:paddingHorizontal="@dimen/rm_menu_item_padding"
                 android:gravity="center_vertical"
                 android:maxLines="1" />
@@ -70,10 +72,10 @@
             <LinearLayout
                 android:id="@+id/keyboard_wrapper"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/rm_menu_item_padding"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:maxHeight="320dp">
 
                 <include
                     layout="@layout/retro_keyboard"
