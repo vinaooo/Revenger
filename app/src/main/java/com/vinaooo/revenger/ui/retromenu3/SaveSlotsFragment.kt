@@ -10,6 +10,7 @@ import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.ui.retromenu3.callbacks.SaveSlotsListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
+import android.util.Log
 
 /**
  * Fragment for saving game state to one of 9 slots.
@@ -149,11 +150,19 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
     private fun hideNamingDialog() {
         val dialog = dialogOverlay ?: return
-        
-        dialog.animate().cancel()
-        dialog.visibility = View.GONE
-        (dialog.parent as? ViewGroup)?.removeView(dialog)
-        
+
+        try {
+            Log.d("SaveSlotsFragment", "[DIALOG] hideNamingDialog() called ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name}")
+            dialog.animate().cancel()
+            dialog.visibility = View.GONE
+            val parentBefore = dialog.parent
+            Log.d("SaveSlotsFragment", "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName}")
+            (dialog.parent as? ViewGroup)?.removeView(dialog)
+            Log.d("SaveSlotsFragment", "[DIALOG] hideNamingDialog removal requested; backStack? N/A")
+        } catch (t: Throwable) {
+            Log.e("SaveSlotsFragment", "[DIALOG] Exception in hideNamingDialog", t)
+        }
+
         dialogOverlay = null
         isDialogVisible = false
         isKeyboardActive = false
@@ -350,14 +359,23 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
     private fun hideDialog() {
         val dialog = dialogOverlay ?: return
-        
-        // Cancel any ongoing animations
-        dialog.animate().cancel()
-        
-        // Immediately hide and remove
-        dialog.visibility = View.GONE
-        (dialog.parent as? ViewGroup)?.removeView(dialog)
-        
+
+        try {
+            Log.d("SaveSlotsFragment", "[DIALOG] hideDialog() called ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name}")
+            // Cancel any ongoing animations
+            dialog.animate().cancel()
+
+            // Immediately hide and remove
+            dialog.visibility = View.GONE
+            val parentBefore = dialog.parent
+            Log.d("SaveSlotsFragment", "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName}")
+            (dialog.parent as? ViewGroup)?.removeView(dialog)
+            val parentAfter = dialog.parent
+            Log.d("SaveSlotsFragment", "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName}")
+        } catch (t: Throwable) {
+            Log.e("SaveSlotsFragment", "[DIALOG] Exception while hiding dialog", t)
+        }
+
         // Reset state
         dialogOverlay = null
         isDialogVisible = false

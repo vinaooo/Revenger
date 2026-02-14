@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
+import android.util.Log
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.ui.retromenu3.callbacks.ProgressListener
 import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
@@ -341,23 +342,33 @@ class RetroMenu3Fragment :
                         getAnimationController().dismissMenu {
                                 // Check if fragment is still associated with a fragment manager
                                 // before removing
-                                if (isAdded) {
-                                        android.util.Log.d(
-                                                "RetroMenu3Fragment",
-                                                "[DISMISS] Fragment still associated with manager, removing..."
-                                        )
-                                        parentFragmentManager
-                                                .beginTransaction()
-                                                .remove(this)
-                                                .commit()
-                                        // Execute callback after animation and fragment removal
-                                        onAnimationEnd?.invoke()
-                                } else {
-                                        android.util.Log.w(
-                                                "RetroMenu3Fragment",
-                                                "[DISMISS] Fragment not associated with manager, skipping removal"
-                                        )
-                                        // Execute callback even if fragment removal failed
+                                try {
+                                        Log.d("RetroMenu3Fragment", "[DISMISS] Animation end callback ts=${System.currentTimeMillis()} isAdded=$isAdded")
+                                        if (isAdded) {
+                                                android.util.Log.d(
+                                                                "RetroMenu3Fragment",
+                                                                "[DISMISS] Fragment still associated with manager, removing..."
+                                                        )
+                                                        parentFragmentManager
+                                                                .beginTransaction()
+                                                                .remove(this)
+                                                                .commit()
+
+                                                val after = parentFragmentManager.findFragmentById(com.vinaooo.revenger.R.id.menu_container)
+                                                Log.d("RetroMenu3Fragment", "[DISMISS] After remove requested, fragmentById=${after?.javaClass?.simpleName} backStack=${parentFragmentManager.backStackEntryCount}")
+
+                                                // Execute callback after animation and fragment removal
+                                                onAnimationEnd?.invoke()
+                                        } else {
+                                                android.util.Log.w(
+                                                                "RetroMenu3Fragment",
+                                                                "[DISMISS] Fragment not associated with manager, skipping removal"
+                                                        )
+                                                        // Execute callback even if fragment removal failed
+                                                        onAnimationEnd?.invoke()
+                                        }
+                                } catch (t: Throwable) {
+                                        Log.e("RetroMenu3Fragment", "[DISMISS] Exception during dismiss callback", t)
                                         onAnimationEnd?.invoke()
                                 }
                         }

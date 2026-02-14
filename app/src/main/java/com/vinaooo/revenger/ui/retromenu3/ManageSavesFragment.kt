@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import android.util.Log
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.ui.retromenu3.callbacks.ManageSavesListener
@@ -512,20 +513,33 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
     private fun hideDialog() {
         val dialog = dialogOverlay ?: return
-        
-        // Cancel any ongoing animations
-        dialog.animate().cancel()
-        
-        // Immediately hide and remove
-        dialog.visibility = View.GONE
-        (dialog.parent as? ViewGroup)?.removeView(dialog)
-        
+
+        try {
+            Log.d(TAG, "[DIALOG] hideDialog() called - dialogOverlay present")
+            // Cancel any ongoing animations
+            dialog.animate().cancel()
+
+            // Log parent before removal
+            val parentBefore = dialog.parent
+            Log.d(TAG, "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName}")
+
+            // Immediately hide and remove
+            dialog.visibility = View.GONE
+            (dialog.parent as? ViewGroup)?.removeView(dialog)
+
+            // Verify removal
+            val parentAfter = dialog.parent
+            Log.d(TAG, "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName} isDialogVisible=${isDialogVisible}")
+        } catch (t: Throwable) {
+            Log.e(TAG, "[DIALOG] Exception while hiding dialog", t)
+        }
+
         // Reset state
         dialogOverlay = null
         isDialogVisible = false
         dialogButtons = emptyList()
         dialogSelectedIndex = 0
-        
+
         // Reset keyboard state
         retroKeyboard = null
         isKeyboardActive = false

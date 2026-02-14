@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.controllers.AudioController
@@ -310,12 +311,25 @@ class GameActivityViewModel(application: Application) :
 
             // PHASE 3.2b: Configurar callbacks para pausar/resumir o jogo
             navigationController?.onMenuOpenedCallback = {
+                try {
+                    Log.d("GameActivityViewModel", "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} - menu opened callback start")
+                    Log.d("GameActivityViewModel", "[ON_MENU_OPENED] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}")
+                } catch (t: Throwable) {
+                    Log.w("GameActivityViewModel", "[ON_MENU_OPENED] failed to log fragment manager state", t)
+                }
+
                 // Capturar screenshot ANTES de pausar para save states
                 captureScreenshotForSaveState()
                 // Preservar estado do emulador
                 retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
                 // PAUSAR o jogo quando menu abre
                 retroView?.let { speedController?.pause(it.view) }
+
+                try {
+                    Log.d("GameActivityViewModel", "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} - menu opened callback completed")
+                } catch (t: Throwable) {
+                    Log.w("GameActivityViewModel", "[ON_MENU_OPENED] failed to log completion", t)
+                }
             }
 
             navigationController?.onMenuClosedCallback = { closingButton: Int? ->
@@ -323,6 +337,12 @@ class GameActivityViewModel(application: Application) :
                         "GameActivityViewModel",
                         "🔥 [ON_MENU_CLOSED_CALLBACK] ===== MENU CLOSED ====="
                 )
+                try {
+                    Log.d("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} closingButton=$closingButton")
+                    Log.d("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}")
+                } catch (t: Throwable) {
+                    Log.w("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] failed to log fragment manager state", t)
+                }
                 android.util.Log.d(
                         "GameActivityViewModel",
                         "🔥 [ON_MENU_CLOSED_CALLBACK] Timestamp: ${System.currentTimeMillis()}"
