@@ -79,6 +79,16 @@ class GameActivity : FragmentActivity() {
                 super.onCreate(savedInstanceState)
                 android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] super.onCreate() completed")
 
+                // CRÍTICO: Aplicar orientação em DUAS etapas para eliminar flash:
+                // 1. Forçar Configuration ANTES de setContentView (escolhe layout correto)
+                // 2. Aplicar requestedOrientation para persistência
+                val configOrientation = resources.getInteger(R.integer.conf_orientation)
+                com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(this, configOrientation)
+                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] forceConfiguration() completed")
+
+                viewModel.setConfigOrientation(this)
+                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setConfigOrientation() completed")
+
                 // Initialize ScreenshotCaptureUtil with context for aspect ratio detection
                 ScreenshotCaptureUtil.setContext(this)
                 android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] ScreenshotCaptureUtil.setContext() completed")
@@ -136,7 +146,6 @@ class GameActivity : FragmentActivity() {
                 }
 
                 registerInputListener()
-                viewModel.setConfigOrientation(this)
                 registerRotationSettingsListener() // Adicionar listener para mudanças de
                 // auto-rotate
                 viewModel.updateGamePadVisibility(this, leftContainer, rightContainer)
@@ -147,6 +156,13 @@ class GameActivity : FragmentActivity() {
 
                 // Force gamepad positioning based on orientation
                 adjustGamePadPositionForOrientation(gamepadContainers)
+
+                // Revelar gamepads após próximo frame (quando orientação estiver estabilizada)
+                // Isso elimina flash de gamepads na orientação errada
+                gamePadContainer.post {
+                    gamePadContainer.visibility = android.view.View.VISIBLE
+                    android.util.Log.d(TAG, "GamePads revealed after orientation settled")
+                }
 
                 viewModel.prepareRetroMenu3()
                 android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] prepareRetroMenu3() completed")

@@ -31,6 +31,7 @@
     
     <!-- Layer 3: GamePad (Top - Conditionally visible, always above menu) -->
     <!-- CRITICAL: elevation and translationZ ensure gamepad stays on top of menu -->
+    <!-- visibility=invisible prevents flash during orientation changes (revealed via post{}) -->
     <LinearLayout
         android:id="@+id/containers"
         android:layout_width="match_parent"
@@ -40,7 +41,8 @@
         android:orientation="horizontal"
         android:gravity="top"
         android:elevation="100dp"
-        android:translationZ="100dp">
+        android:translationZ="100dp"
+        android:visibility="invisible">
 
         <FrameLayout
             android:id="@+id/left_container"

@@ -1490,47 +1490,7 @@ class GameActivityViewModel(application: Application) :
     /** Set the screen orientation based on the config */
     fun setConfigOrientation(activity: Activity) {
         val configOrientation = resources.getInteger(R.integer.conf_orientation)
-
-        // Verificar preferência de auto-rotate do sistema
-        val accelerometerRotationEnabled =
-                try {
-                    android.provider.Settings.System.getInt(
-                            activity.contentResolver,
-                            android.provider.Settings.System.ACCELEROMETER_ROTATION,
-                            0
-                    ) == 1
-                } catch (e: Exception) {
-                    false
-                }
-
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "setConfigOrientation: config=$configOrientation, autoRotate=$accelerometerRotationEnabled"
-        )
-
-        val orientation =
-                when (configOrientation) {
-                    1 -> ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT // Sempre portrait
-                    2 -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE // Sempre landscape
-                    3 -> {
-                        // Se config é "qualquer orientação", respeitar preferência do SO
-                        if (accelerometerRotationEnabled) {
-                            // Auto-rotate habilitado → permitir rotação livre baseada em sensores
-                            ActivityInfo.SCREEN_ORIENTATION_USER
-                        } else {
-                            // Auto-rotate desabilitado → delegar completamente ao sistema
-                            // UNSPECIFIED permite que o botão manual do sistema funcione
-                            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                        }
-                    }
-                    else -> return
-                }
-
-        activity.requestedOrientation = orientation
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "Applied orientation: ${orientation} (USER=2, USER_PORTRAIT=7, USER_LANDSCAPE=6, UNSPECIFIED=-1)"
-        )
+        com.vinaooo.revenger.utils.OrientationManager.applyConfigOrientation(activity, configOrientation)
     }
 
     /** Dispose the composite disposable; call on onDestroy */
