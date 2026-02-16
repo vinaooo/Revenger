@@ -85,6 +85,14 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
                 .add(MENU_CONTAINER_ID, mainFragment, TAG_MAIN_MENU)
                 .commitNow()
 
+        // Diagnostic: confirm fragment was added
+        try {
+            val found = fragmentManager.findFragmentByTag(TAG_MAIN_MENU)
+            Log.d(TAG, "[SHOW] Main menu added - fragment=${found?.javaClass?.simpleName} isAdded=${found?.isAdded} backStack=${fragmentManager.backStackEntryCount}")
+        } catch (t: Throwable) {
+            Log.w(TAG, "[SHOW] failed to log fragment state after add", t)
+        }
+
         Log.d(TAG, "[SHOW] Main menu added successfully (synchronous)")
     }
 
@@ -221,11 +229,18 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
         val currentFragment = fragmentManager.findFragmentById(MENU_CONTAINER_ID)
 
         if (currentFragment != null && currentFragment.isAdded) {
-            fragmentManager.beginTransaction().remove(currentFragment).commitAllowingStateLoss()
+            try {
+                fragmentManager.beginTransaction().remove(currentFragment).commitAllowingStateLoss()
+                Log.d(TAG, "[HIDE] Menu remove requested for fragment=${currentFragment.javaClass.simpleName}")
 
-            Log.d(TAG, "[HIDE] Menu removed successfully")
+                // Verify state after transaction (best-effort)
+                val foundAfter = fragmentManager.findFragmentById(MENU_CONTAINER_ID)
+                Log.d(TAG, "[HIDE] After remove: fragmentById=${foundAfter?.javaClass?.simpleName} backStack=${fragmentManager.backStackEntryCount}")
+            } catch (t: Throwable) {
+                Log.e(TAG, "[HIDE] Exception while removing fragment", t)
+            }
         } else {
-            Log.w(TAG, "[HIDE] No menu to hide")
+            Log.w(TAG, "[HIDE] No menu to hide (currentFragment=null or not added)")
         }
     }
 

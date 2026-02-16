@@ -61,6 +61,12 @@ class NavigationController(private val activity: FragmentActivity) {
             return
         }
 
+        try {
+            Log.d(TAG, "[HANDLE_EVENT] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} enqueuedEvent=$event")
+        } catch (t: Throwable) {
+            Log.w(TAG, "[HANDLE_EVENT] failed to log event", t)
+        }
+
         // Processa o evento
         processNextEvent()
     }

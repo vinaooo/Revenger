@@ -185,6 +185,29 @@ object FontUtils {
         textViews.forEach { applyTextCapitalization(context, it) }
     }
 
+    /**
+     * Retorna uma string já formatada segundo a configuração `rm_text_capitalization`.
+     * Use em Toasts, hints e em qualquer lugar que construa texto programaticamente.
+     */
+    fun getCapitalizedString(context: Context, resId: Int, vararg formatArgs: Any?): String {
+        val raw = if (formatArgs.isNotEmpty()) {
+            context.resources.getString(resId, *formatArgs)
+        } else {
+            context.resources.getString(resId)
+        }
+
+        val capitalizationStyle =
+                context.resources.getInteger(
+                        com.vinaooo.revenger.R.integer.rm_text_capitalization
+                )
+
+        return when (capitalizationStyle) {
+            1 -> raw.lowercase().replaceFirstChar { it.uppercase() }
+            2 -> raw.uppercase()
+            else -> raw
+        }
+    }
+
     /** Retorna a cor do texto selecionado baseada na configuração do RetroMenu3 */
     fun getSelectedTextColor(context: Context): Int {
         return androidx.core.content.ContextCompat.getColor(

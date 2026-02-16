@@ -10,6 +10,7 @@ import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.ui.retromenu3.callbacks.SaveSlotsListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
+import android.util.Log
 
 /**
  * Fragment for saving game state to one of 9 slots.
@@ -98,10 +99,10 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
             val retroEditText = dialog.findViewById<RetroEditText>(R.id.rename_edit_text)
 
-            titleView.text = getString(R.string.name_save_dialog_title)
+            titleView.text = FontUtils.getCapitalizedString(requireContext(), R.string.name_save_dialog_title)
             
             // Set hint text
-            retroEditText.setHintText(getString(R.string.save_name_hint))
+            retroEditText.setHintText(FontUtils.getCapitalizedString(requireContext(), R.string.save_name_hint))
             retroEditText.setRetroHintColor(0x88888888.toInt())
             
             // Apply retro font
@@ -149,11 +150,19 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
     private fun hideNamingDialog() {
         val dialog = dialogOverlay ?: return
-        
-        dialog.animate().cancel()
-        dialog.visibility = View.GONE
-        (dialog.parent as? ViewGroup)?.removeView(dialog)
-        
+
+        try {
+            Log.d("SaveSlotsFragment", "[DIALOG] hideNamingDialog() called ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name}")
+            dialog.animate().cancel()
+            dialog.visibility = View.GONE
+            val parentBefore = dialog.parent
+            Log.d("SaveSlotsFragment", "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName}")
+            (dialog.parent as? ViewGroup)?.removeView(dialog)
+            Log.d("SaveSlotsFragment", "[DIALOG] hideNamingDialog removal requested; backStack? N/A")
+        } catch (t: Throwable) {
+            Log.e("SaveSlotsFragment", "[DIALOG] Exception in hideNamingDialog", t)
+        }
+
         dialogOverlay = null
         isDialogVisible = false
         isKeyboardActive = false
@@ -302,6 +311,9 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             confirmText.text = getString(R.string.dialog_overwrite)
             cancelText.text = getString(R.string.dialog_cancel)
 
+            // Garantir que a mensagem do diálogo também seja capitalizada pelo utilitário
+            FontUtils.applyTextCapitalization(requireContext(), messageView, confirmText, cancelText)
+
             // Configure buttons
             confirmButton.setUseBackgroundColor(false)
             cancelButton.setUseBackgroundColor(false)
@@ -350,14 +362,23 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
     private fun hideDialog() {
         val dialog = dialogOverlay ?: return
-        
-        // Cancel any ongoing animations
-        dialog.animate().cancel()
-        
-        // Immediately hide and remove
-        dialog.visibility = View.GONE
-        (dialog.parent as? ViewGroup)?.removeView(dialog)
-        
+
+        try {
+            Log.d("SaveSlotsFragment", "[DIALOG] hideDialog() called ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name}")
+            // Cancel any ongoing animations
+            dialog.animate().cancel()
+
+            // Immediately hide and remove
+            dialog.visibility = View.GONE
+            val parentBefore = dialog.parent
+            Log.d("SaveSlotsFragment", "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName}")
+            (dialog.parent as? ViewGroup)?.removeView(dialog)
+            val parentAfter = dialog.parent
+            Log.d("SaveSlotsFragment", "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName}")
+        } catch (t: Throwable) {
+            Log.e("SaveSlotsFragment", "[DIALOG] Exception while hiding dialog", t)
+        }
+
         // Reset state
         dialogOverlay = null
         isDialogVisible = false
@@ -369,7 +390,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
         val retroView = viewModel.retroView
         if (retroView == null) {
             android.util.Log.e("SaveSlotsFragment", "RetroView is null, cannot save")
-            Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.save_error), Toast.LENGTH_SHORT)
                     .show()
             return
         }
@@ -409,19 +430,19 @@ class SaveSlotsFragment : SaveStateGridFragment() {
                 refreshGrid()
                 Toast.makeText(
                                 requireContext(),
-                                getString(R.string.save_success, slotNumber),
+                                FontUtils.getCapitalizedString(requireContext(), R.string.save_success, slotNumber),
                                 Toast.LENGTH_SHORT
                         )
                         .show()
                 listener?.onSaveCompleted(slotNumber)
             } else {
                 android.util.Log.e("SaveSlotsFragment", "Save failed to slot $slotNumber")
-                Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT)
+                Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.save_error), Toast.LENGTH_SHORT)
                         .show()
             }
         } catch (e: Exception) {
             android.util.Log.e("SaveSlotsFragment", "Error saving state", e)
-            Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.save_error), Toast.LENGTH_SHORT)
                     .show()
         }
     }

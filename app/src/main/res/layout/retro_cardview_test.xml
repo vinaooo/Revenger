@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="RetroCardView Test"
+        android:text="@string/retrocardview_test"
         android:textColor="@android:color/white"
         android:textSize="24sp"
         android:layout_gravity="center_horizontal"
@@ -24,7 +24,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Estado Normal"
+            android:text="@string/estado_normal"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:layout_gravity="center" />
@@ -40,7 +40,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Estado Selecionado"
+            android:text="@string/estado_selecionado"
             android:textColor="@android:color/black"
             android:textSize="18sp"
             android:layout_gravity="center" />
@@ -56,7 +56,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Estado Pressionado"
+            android:text="@string/estado_pressionado"
             android:textColor="@android:color/black"
             android:textSize="18sp"
             android:layout_gravity="center" />
@@ -67,7 +67,7 @@
         android:id="@+id/btn_toggle_states"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Alternar Estados"
+        android:text="@string/alternar_estados"
         android:layout_gravity="center_horizontal" />
 
 </LinearLayout>

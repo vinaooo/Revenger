@@ -87,7 +87,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Change the back button text to "EXIT" and disable it initially
-        backButton.text = getString(R.string.exit_button_label)
+        backButton.text = FontUtils.getCapitalizedString(requireContext(), R.string.exit_button_label)
         updateExitButtonState()
     }
 
@@ -185,10 +185,10 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
             val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
             val retroEditText = dialog.findViewById<RetroEditText>(R.id.rename_edit_text)
 
-            titleView.text = getString(R.string.name_save_dialog_title)
+            titleView.text = FontUtils.getCapitalizedString(requireContext(), R.string.name_save_dialog_title)
 
             // Set hint text
-            retroEditText.setHintText(getString(R.string.save_name_hint))
+            retroEditText.setHintText(FontUtils.getCapitalizedString(requireContext(), R.string.save_name_hint))
             retroEditText.setRetroHintColor(0x88888888.toInt())
 
             // Apply retro font
@@ -282,7 +282,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
             val cancelArrow = dialog.findViewById<TextView>(R.id.cancel_button_arrow)
 
             titleView.text = getString(R.string.overwrite_dialog_title)
-            messageView.text = getString(R.string.overwrite_dialog_message, slot.name)
+            messageView.text = FontUtils.getCapitalizedString(requireContext(), R.string.overwrite_dialog_message, slot.name)
             confirmText.text = getString(R.string.dialog_overwrite)
             cancelText.text = getString(R.string.dialog_cancel)
 
@@ -308,7 +308,8 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
                 confirmArrow,
                 cancelArrow
             )
-            FontUtils.applyTextCapitalization(requireContext(), titleView, confirmText, cancelText)
+            // Aplicar capitalização configurada também à mensagem do diálogo
+            FontUtils.applyTextCapitalization(requireContext(), titleView, messageView, confirmText, cancelText)
 
             // Click listeners
             confirmButton.setOnClickListener {
@@ -428,7 +429,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
         val retroView = viewModel.retroView
         if (retroView == null) {
             Log.e(TAG, "RetroView is null, cannot save")
-            Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.save_error), Toast.LENGTH_SHORT)
                 .show()
             return
         }
@@ -475,17 +476,17 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
 
                 Toast.makeText(
                     requireContext(),
-                    getString(R.string.save_success, slotNumber),
+                    FontUtils.getCapitalizedString(requireContext(), R.string.save_success, slotNumber),
                     Toast.LENGTH_SHORT
                 ).show()
             } else {
                 Log.e(TAG, "Save failed to slot $slotNumber")
-                Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT)
+                Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.save_error), Toast.LENGTH_SHORT)
                     .show()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error saving state", e)
-            Toast.makeText(requireContext(), getString(R.string.save_error), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.save_error), Toast.LENGTH_SHORT)
                 .show()
         }
     }

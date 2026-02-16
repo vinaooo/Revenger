@@ -24,7 +24,8 @@
         <!-- SplashActivity - Entry point com animação CRT -->
         <activity android:name=".views.SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.Revenger.Splash">
+            android:theme="@style/Theme.Revenger.Splash"
+            android:configChanges="orientation|screenSize|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

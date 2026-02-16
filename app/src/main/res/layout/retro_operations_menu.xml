@@ -30,7 +30,7 @@
             android:layout_weight="0.50"
             android:orientation="vertical"
             android:padding="@dimen/rm_menu_item_padding"
-            android:background="@color/rm_background">
+            android:background="@drawable/retro_menu_border">
 
             <!-- Dialog Title -->
             <TextView
@@ -201,7 +201,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginVertical="8dp"
-            android:background="#444444" />
+            android:background="@color/rm_divider" />
 
         <!-- Cancel Button -->
         <com.vinaooo.revenger.ui.retromenu3.RetroCardView

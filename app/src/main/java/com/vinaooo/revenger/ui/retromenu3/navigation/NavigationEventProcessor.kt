@@ -26,6 +26,11 @@ class NavigationEventProcessor(
 
     /** Processa um evento de navegação. */
     fun processEvent(event: NavigationEvent) {
+        try {
+            Log.d(TAG, "[PROCESS_EVENT] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} event=$event lastAction=$lastActionButton currentMenu=${stateManager.currentMenu} backStack=${fragmentAdapter.getBackStackCount()}")
+        } catch (t: Throwable) {
+            Log.w(TAG, "[PROCESS_EVENT] failed to log debug info", t)
+        }
         when (event) {
             is NavigationEvent.Navigate -> {
                 when (event.direction) {

@@ -30,7 +30,7 @@
             android:layout_weight="0.50"
             android:orientation="vertical"
             android:padding="@dimen/rm_menu_item_padding"
-            android:background="@color/rm_background">
+            android:background="@drawable/retro_menu_border">
 
         <!-- Dialog Title -->
         <TextView
@@ -59,7 +59,7 @@
             android:textSize="@dimen/rm_menu_item_text_size"
             android:textColor="@color/rm_text_color"
             android:textColorHint="#888888"
-            android:background="@drawable/slot_background_empty"
+            android:background="@drawable/retro_input_border"
             android:padding="12dp"
             android:inputType="text"
             android:maxLines="1"

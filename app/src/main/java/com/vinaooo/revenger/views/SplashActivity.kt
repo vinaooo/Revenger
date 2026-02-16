@@ -1,6 +1,7 @@
 package com.vinaooo.revenger.views
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -12,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.ui.splash.CRTBootView
+import com.vinaooo.revenger.utils.OrientationManager
 
 /**
  * SplashActivity - Tela inicial com efeito CRT
@@ -41,7 +43,12 @@ class SplashActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
 
-        Log.d(TAG, "SplashActivity created")
+        // CRÍTICO: Aplicar orientação IMEDIATAMENTE após super.onCreate()
+        // para evitar flash de orientação incorreta
+        val configOrientation = resources.getInteger(R.integer.conf_orientation)
+        OrientationManager.applyConfigOrientation(this, configOrientation)
+
+        Log.d(TAG, "SplashActivity created - orientation: $configOrientation")
 
         // Manter splash nativa na tela até estarmos prontos
         splashScreen.setKeepOnScreenCondition { !isReady }
@@ -114,6 +121,16 @@ class SplashActivity : AppCompatActivity() {
 
         // Sem transição - fade out já aconteceu na Fase 3
         @Suppress("DEPRECATION") overridePendingTransition(0, 0)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        // Reaplicar orientação forçada para manter conf_orientation soberano
+        // Isso garante que mudanças de orientação física não interfiram na animação
+        val configOrientation = resources.getInteger(R.integer.conf_orientation)
+        OrientationManager.applyConfigOrientation(this, configOrientation)
+        Log.d(TAG, "Configuration changed - orientation reapplied: $configOrientation")
     }
 
     override fun onDestroy() {

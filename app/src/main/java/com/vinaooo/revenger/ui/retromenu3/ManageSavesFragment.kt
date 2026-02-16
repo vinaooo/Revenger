@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import android.util.Log
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.ui.retromenu3.callbacks.ManageSavesListener
@@ -76,7 +77,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
         if (slot.isEmpty) {
             // Empty slot: show feedback
             android.util.Log.d(TAG, "Cannot manage empty slot ${slot.slotNumber}")
-            Toast.makeText(requireContext(), getString(R.string.slot_is_empty), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.slot_is_empty), Toast.LENGTH_SHORT)
                     .show()
             return
         }
@@ -94,7 +95,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
                 updateTitle()
                 Toast.makeText(
                                 requireContext(),
-                                getString(R.string.operation_cancelled),
+                                FontUtils.getCapitalizedString(requireContext(), R.string.operation_cancelled),
                                 Toast.LENGTH_SHORT
                         )
                         .show()
@@ -123,7 +124,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
                 updateTitle()
                 Toast.makeText(
                                 requireContext(),
-                                getString(R.string.operation_cancelled),
+                                FontUtils.getCapitalizedString(requireContext(), R.string.operation_cancelled),
                                 Toast.LENGTH_SHORT
                         )
                         .show()
@@ -349,10 +350,10 @@ class ManageSavesFragment : SaveStateGridFragment() {
             val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
             val retroEditText = dialog.findViewById<RetroEditText>(R.id.rename_edit_text)
 
-            titleView.text = getString(R.string.rename_dialog_title)
+            titleView.text = FontUtils.getCapitalizedString(requireContext(), R.string.rename_dialog_title)
             
             // Set hint text for RetroEditText
-            retroEditText.setHintText(getString(R.string.save_name_hint))
+            retroEditText.setHintText(FontUtils.getCapitalizedString(requireContext(), R.string.save_name_hint))
             retroEditText.setRetroHintColor(0x88888888.toInt())
             
             // Apply retro font to RetroEditText
@@ -366,6 +367,8 @@ class ManageSavesFragment : SaveStateGridFragment() {
             // Remove RetroEditText from list since we handle it separately
             textViews.removeAll { it is RetroEditText }
             ViewUtils.applySelectedFontToViews(requireContext(), *textViews.toTypedArray())
+            // Garantir capitalização configurada nos textos do diálogo
+            FontUtils.applyTextCapitalization(requireContext(), *textViews.toTypedArray())
 
             // Initialize RetroKeyboard
             retroKeyboard = RetroKeyboard(
@@ -418,7 +421,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
             val cancelArrow = dialog.findViewById<TextView>(R.id.cancel_button_arrow)
 
             titleView.text = getString(R.string.delete_dialog_title)
-            messageView.text = getString(R.string.delete_dialog_message, slot.name)
+            messageView.text = FontUtils.getCapitalizedString(requireContext(), R.string.delete_dialog_message, slot.name)
             confirmText.text = getString(R.string.dialog_delete)
             cancelText.text = getString(R.string.dialog_cancel)
 
@@ -479,7 +482,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
         if (targetSlot.slotNumber == sourceSlot.slotNumber) {
             Toast.makeText(
                             requireContext(),
-                            getString(R.string.same_slot_error),
+                            FontUtils.getCapitalizedString(requireContext(), R.string.same_slot_error),
                             Toast.LENGTH_SHORT
                     )
                     .show()
@@ -490,7 +493,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
         if (!targetSlot.isEmpty) {
             Toast.makeText(
                             requireContext(),
-                            getString(R.string.slot_occupied_error),
+                            FontUtils.getCapitalizedString(requireContext(), R.string.slot_occupied_error),
                             Toast.LENGTH_SHORT
                     )
                     .show()
@@ -512,20 +515,33 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
     private fun hideDialog() {
         val dialog = dialogOverlay ?: return
-        
-        // Cancel any ongoing animations
-        dialog.animate().cancel()
-        
-        // Immediately hide and remove
-        dialog.visibility = View.GONE
-        (dialog.parent as? ViewGroup)?.removeView(dialog)
-        
+
+        try {
+            Log.d(TAG, "[DIALOG] hideDialog() called - dialogOverlay present")
+            // Cancel any ongoing animations
+            dialog.animate().cancel()
+
+            // Log parent before removal
+            val parentBefore = dialog.parent
+            Log.d(TAG, "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName}")
+
+            // Immediately hide and remove
+            dialog.visibility = View.GONE
+            (dialog.parent as? ViewGroup)?.removeView(dialog)
+
+            // Verify removal
+            val parentAfter = dialog.parent
+            Log.d(TAG, "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName} isDialogVisible=${isDialogVisible}")
+        } catch (t: Throwable) {
+            Log.e(TAG, "[DIALOG] Exception while hiding dialog", t)
+        }
+
         // Reset state
         dialogOverlay = null
         isDialogVisible = false
         dialogButtons = emptyList()
         dialogSelectedIndex = 0
-        
+
         // Reset keyboard state
         retroKeyboard = null
         isKeyboardActive = false
@@ -537,10 +553,10 @@ class ManageSavesFragment : SaveStateGridFragment() {
         val success = saveStateManager.renameSlot(slotNumber, newName)
         if (success) {
             refreshGrid()
-            Toast.makeText(requireContext(), getString(R.string.rename_success), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.rename_success), Toast.LENGTH_SHORT)
                     .show()
         } else {
-            Toast.makeText(requireContext(), getString(R.string.rename_error), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.rename_error), Toast.LENGTH_SHORT)
                     .show()
         }
     }
@@ -549,10 +565,10 @@ class ManageSavesFragment : SaveStateGridFragment() {
         val success = saveStateManager.copySlot(fromSlot, toSlot)
         if (success) {
             refreshGrid()
-            Toast.makeText(requireContext(), getString(R.string.copy_success), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.copy_success), Toast.LENGTH_SHORT)
                     .show()
         } else {
-            Toast.makeText(requireContext(), getString(R.string.copy_error), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.copy_error), Toast.LENGTH_SHORT)
                     .show()
         }
     }
@@ -561,10 +577,10 @@ class ManageSavesFragment : SaveStateGridFragment() {
         val success = saveStateManager.moveSlot(fromSlot, toSlot)
         if (success) {
             refreshGrid()
-            Toast.makeText(requireContext(), getString(R.string.move_success), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.move_success), Toast.LENGTH_SHORT)
                     .show()
         } else {
-            Toast.makeText(requireContext(), getString(R.string.move_error), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.move_error), Toast.LENGTH_SHORT)
                     .show()
         }
     }
@@ -573,10 +589,10 @@ class ManageSavesFragment : SaveStateGridFragment() {
         val success = saveStateManager.deleteSlot(slotNumber)
         if (success) {
             refreshGrid()
-            Toast.makeText(requireContext(), getString(R.string.delete_success), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.delete_success), Toast.LENGTH_SHORT)
                     .show()
         } else {
-            Toast.makeText(requireContext(), getString(R.string.delete_error), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.delete_error), Toast.LENGTH_SHORT)
                     .show()
         }
     }

@@ -16,18 +16,19 @@
         android:orientation="horizontal"
         android:gravity="center">
 
-        <TextView android:id="@+id/key_1" style="@style/RetroKeyboardKey" android:text="1" />
-        <TextView android:id="@+id/key_2" style="@style/RetroKeyboardKey" android:text="2" />
-        <TextView android:id="@+id/key_3" style="@style/RetroKeyboardKey" android:text="3" />
-        <TextView android:id="@+id/key_4" style="@style/RetroKeyboardKey" android:text="4" />
-        <TextView android:id="@+id/key_5" style="@style/RetroKeyboardKey" android:text="5" />
-        <TextView android:id="@+id/key_6" style="@style/RetroKeyboardKey" android:text="6" />
-        <TextView android:id="@+id/key_7" style="@style/RetroKeyboardKey" android:text="7" />
-        <TextView android:id="@+id/key_8" style="@style/RetroKeyboardKey" android:text="8" />
-        <TextView android:id="@+id/key_9" style="@style/RetroKeyboardKey" android:text="9" />
-        <TextView android:id="@+id/key_0" style="@style/RetroKeyboardKey" android:text="0" />
-        <TextView android:id="@+id/key_dash" style="@style/RetroKeyboardKey" android:text="-" />
-        <TextView android:id="@+id/key_underscore" style="@style/RetroKeyboardKey" android:text="_" />
+        <!-- key_1 duplicado removido -->
+        <TextView android:id="@+id/key_1" style="@style/RetroKeyboardKey" android:text="@string/key_1" />
+        <TextView android:id="@+id/key_2" style="@style/RetroKeyboardKey" android:text="@string/key_2" />
+        <TextView android:id="@+id/key_3" style="@style/RetroKeyboardKey" android:text="@string/key_3" />
+        <TextView android:id="@+id/key_4" style="@style/RetroKeyboardKey" android:text="@string/key_4" />
+        <TextView android:id="@+id/key_5" style="@style/RetroKeyboardKey" android:text="@string/key_5" />
+        <TextView android:id="@+id/key_6" style="@style/RetroKeyboardKey" android:text="@string/key_6" />
+        <TextView android:id="@+id/key_7" style="@style/RetroKeyboardKey" android:text="@string/key_7" />
+        <TextView android:id="@+id/key_8" style="@style/RetroKeyboardKey" android:text="@string/key_8" />
+        <TextView android:id="@+id/key_9" style="@style/RetroKeyboardKey" android:text="@string/key_9" />
+        <TextView android:id="@+id/key_0" style="@style/RetroKeyboardKey" android:text="@string/key_0" />
+        <TextView android:id="@+id/key_dash" style="@style/RetroKeyboardKey" android:text="@string/key_dash" />
+        <TextView android:id="@+id/key_underscore" style="@style/RetroKeyboardKey" android:text="@string/key_underscore" />
     </LinearLayout>
 
     <!-- Row 2: QWERTYUIOP -->
@@ -39,16 +40,16 @@
         android:orientation="horizontal"
         android:gravity="center">
 
-        <TextView android:id="@+id/key_q" style="@style/RetroKeyboardKey" android:text="Q" />
-        <TextView android:id="@+id/key_w" style="@style/RetroKeyboardKey" android:text="W" />
-        <TextView android:id="@+id/key_e" style="@style/RetroKeyboardKey" android:text="E" />
-        <TextView android:id="@+id/key_r" style="@style/RetroKeyboardKey" android:text="R" />
-        <TextView android:id="@+id/key_t" style="@style/RetroKeyboardKey" android:text="T" />
-        <TextView android:id="@+id/key_y" style="@style/RetroKeyboardKey" android:text="Y" />
-        <TextView android:id="@+id/key_u" style="@style/RetroKeyboardKey" android:text="U" />
-        <TextView android:id="@+id/key_i" style="@style/RetroKeyboardKey" android:text="I" />
-        <TextView android:id="@+id/key_o" style="@style/RetroKeyboardKey" android:text="O" />
-        <TextView android:id="@+id/key_p" style="@style/RetroKeyboardKey" android:text="P" />
+        <TextView android:id="@+id/key_q" style="@style/RetroKeyboardKey" android:text="@string/key_q" />
+        <TextView android:id="@+id/key_w" style="@style/RetroKeyboardKey" android:text="@string/key_w" />
+        <TextView android:id="@+id/key_e" style="@style/RetroKeyboardKey" android:text="@string/key_e" />
+        <TextView android:id="@+id/key_r" style="@style/RetroKeyboardKey" android:text="@string/key_r" />
+        <TextView android:id="@+id/key_t" style="@style/RetroKeyboardKey" android:text="@string/key_t" />
+        <TextView android:id="@+id/key_y" style="@style/RetroKeyboardKey" android:text="@string/key_y" />
+        <TextView android:id="@+id/key_u" style="@style/RetroKeyboardKey" android:text="@string/key_u" />
+        <TextView android:id="@+id/key_i" style="@style/RetroKeyboardKey" android:text="@string/key_i" />
+        <TextView android:id="@+id/key_o" style="@style/RetroKeyboardKey" android:text="@string/key_o" />
+        <TextView android:id="@+id/key_p" style="@style/RetroKeyboardKey" android:text="@string/key_p" />
     </LinearLayout>
 
     <!-- Row 3: ASDFGHJKL -->
@@ -60,15 +61,15 @@
         android:orientation="horizontal"
         android:gravity="center">
 
-        <TextView android:id="@+id/key_a" style="@style/RetroKeyboardKey" android:text="A" />
-        <TextView android:id="@+id/key_s" style="@style/RetroKeyboardKey" android:text="S" />
-        <TextView android:id="@+id/key_d" style="@style/RetroKeyboardKey" android:text="D" />
-        <TextView android:id="@+id/key_f" style="@style/RetroKeyboardKey" android:text="F" />
-        <TextView android:id="@+id/key_g" style="@style/RetroKeyboardKey" android:text="G" />
-        <TextView android:id="@+id/key_h" style="@style/RetroKeyboardKey" android:text="H" />
-        <TextView android:id="@+id/key_j" style="@style/RetroKeyboardKey" android:text="J" />
-        <TextView android:id="@+id/key_k" style="@style/RetroKeyboardKey" android:text="K" />
-        <TextView android:id="@+id/key_l" style="@style/RetroKeyboardKey" android:text="L" />
+        <TextView android:id="@+id/key_a" style="@style/RetroKeyboardKey" android:text="@string/key_a" />
+        <TextView android:id="@+id/key_s" style="@style/RetroKeyboardKey" android:text="@string/key_s" />
+        <TextView android:id="@+id/key_d" style="@style/RetroKeyboardKey" android:text="@string/key_d" />
+        <TextView android:id="@+id/key_f" style="@style/RetroKeyboardKey" android:text="@string/key_f" />
+        <TextView android:id="@+id/key_g" style="@style/RetroKeyboardKey" android:text="@string/key_g" />
+        <TextView android:id="@+id/key_h" style="@style/RetroKeyboardKey" android:text="@string/key_h" />
+        <TextView android:id="@+id/key_j" style="@style/RetroKeyboardKey" android:text="@string/key_j" />
+        <TextView android:id="@+id/key_k" style="@style/RetroKeyboardKey" android:text="@string/key_k" />
+        <TextView android:id="@+id/key_l" style="@style/RetroKeyboardKey" android:text="@string/key_l" />
     </LinearLayout>
 
     <!-- Row 4: ZXCVBNM + , + . + Backspace -->
@@ -80,16 +81,16 @@
         android:orientation="horizontal"
         android:gravity="center">
 
-        <TextView android:id="@+id/key_z" style="@style/RetroKeyboardKey" android:text="Z" />
-        <TextView android:id="@+id/key_x" style="@style/RetroKeyboardKey" android:text="X" />
-        <TextView android:id="@+id/key_c" style="@style/RetroKeyboardKey" android:text="C" />
-        <TextView android:id="@+id/key_v" style="@style/RetroKeyboardKey" android:text="V" />
-        <TextView android:id="@+id/key_b" style="@style/RetroKeyboardKey" android:text="B" />
-        <TextView android:id="@+id/key_n" style="@style/RetroKeyboardKey" android:text="N" />
-        <TextView android:id="@+id/key_m" style="@style/RetroKeyboardKey" android:text="M" />
-        <TextView android:id="@+id/key_comma" style="@style/RetroKeyboardKey" android:text="," />
-        <TextView android:id="@+id/key_dot" style="@style/RetroKeyboardKey" android:text="." />
-        <TextView android:id="@+id/key_backspace" style="@style/RetroKeyboardKeyWide" android:text="⌫" />
+        <TextView android:id="@+id/key_z" style="@style/RetroKeyboardKey" android:text="@string/key_z" />
+        <TextView android:id="@+id/key_x" style="@style/RetroKeyboardKey" android:text="@string/key_x" />
+        <TextView android:id="@+id/key_c" style="@style/RetroKeyboardKey" android:text="@string/key_c" />
+        <TextView android:id="@+id/key_v" style="@style/RetroKeyboardKey" android:text="@string/key_v" />
+        <TextView android:id="@+id/key_b" style="@style/RetroKeyboardKey" android:text="@string/key_b" />
+        <TextView android:id="@+id/key_n" style="@style/RetroKeyboardKey" android:text="@string/key_n" />
+        <TextView android:id="@+id/key_m" style="@style/RetroKeyboardKey" android:text="@string/key_m" />
+        <TextView android:id="@+id/key_comma" style="@style/RetroKeyboardKey" android:text="@string/key_comma" />
+        <TextView android:id="@+id/key_dot" style="@style/RetroKeyboardKey" android:text="@string/key_dot" />
+        <TextView android:id="@+id/key_backspace" style="@style/RetroKeyboardKeyWide" android:text="@string/key_backspace" />
     </LinearLayout>
 
     <!-- Row 5: CANCEL + Space + OK -->
@@ -101,9 +102,9 @@
         android:orientation="horizontal"
         android:gravity="center">
 
-        <TextView android:id="@+id/key_cancel" style="@style/RetroKeyboardKeyActionWide" android:text="CANCEL" />
-        <TextView android:id="@+id/key_space" style="@style/RetroKeyboardKeySpace" android:text="SPACE" />
-        <TextView android:id="@+id/key_ok" style="@style/RetroKeyboardKeyActionWide" android:text="OK" />
+        <TextView android:id="@+id/key_cancel" style="@style/RetroKeyboardKeyActionWide" android:text="@string/key_cancel" />
+        <TextView android:id="@+id/key_space" style="@style/RetroKeyboardKeySpace" android:text="@string/key_space" />
+        <TextView android:id="@+id/key_ok" style="@style/RetroKeyboardKeyActionWide" android:text="@string/key_ok" />
     </LinearLayout>
-
 </LinearLayout>
+

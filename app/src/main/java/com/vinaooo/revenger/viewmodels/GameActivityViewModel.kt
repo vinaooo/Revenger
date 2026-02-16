@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.controllers.AudioController
@@ -310,12 +311,25 @@ class GameActivityViewModel(application: Application) :
 
             // PHASE 3.2b: Configurar callbacks para pausar/resumir o jogo
             navigationController?.onMenuOpenedCallback = {
+                try {
+                    Log.d("GameActivityViewModel", "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} - menu opened callback start")
+                    Log.d("GameActivityViewModel", "[ON_MENU_OPENED] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}")
+                } catch (t: Throwable) {
+                    Log.w("GameActivityViewModel", "[ON_MENU_OPENED] failed to log fragment manager state", t)
+                }
+
                 // Capturar screenshot ANTES de pausar para save states
                 captureScreenshotForSaveState()
                 // Preservar estado do emulador
                 retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
                 // PAUSAR o jogo quando menu abre
                 retroView?.let { speedController?.pause(it.view) }
+
+                try {
+                    Log.d("GameActivityViewModel", "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} - menu opened callback completed")
+                } catch (t: Throwable) {
+                    Log.w("GameActivityViewModel", "[ON_MENU_OPENED] failed to log completion", t)
+                }
             }
 
             navigationController?.onMenuClosedCallback = { closingButton: Int? ->
@@ -323,6 +337,12 @@ class GameActivityViewModel(application: Application) :
                         "GameActivityViewModel",
                         "🔥 [ON_MENU_CLOSED_CALLBACK] ===== MENU CLOSED ====="
                 )
+                try {
+                    Log.d("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} closingButton=$closingButton")
+                    Log.d("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}")
+                } catch (t: Throwable) {
+                    Log.w("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] failed to log fragment manager state", t)
+                }
                 android.util.Log.d(
                         "GameActivityViewModel",
                         "🔥 [ON_MENU_CLOSED_CALLBACK] Timestamp: ${System.currentTimeMillis()}"
@@ -1470,47 +1490,7 @@ class GameActivityViewModel(application: Application) :
     /** Set the screen orientation based on the config */
     fun setConfigOrientation(activity: Activity) {
         val configOrientation = resources.getInteger(R.integer.conf_orientation)
-
-        // Verificar preferência de auto-rotate do sistema
-        val accelerometerRotationEnabled =
-                try {
-                    android.provider.Settings.System.getInt(
-                            activity.contentResolver,
-                            android.provider.Settings.System.ACCELEROMETER_ROTATION,
-                            0
-                    ) == 1
-                } catch (e: Exception) {
-                    false
-                }
-
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "setConfigOrientation: config=$configOrientation, autoRotate=$accelerometerRotationEnabled"
-        )
-
-        val orientation =
-                when (configOrientation) {
-                    1 -> ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT // Sempre portrait
-                    2 -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE // Sempre landscape
-                    3 -> {
-                        // Se config é "qualquer orientação", respeitar preferência do SO
-                        if (accelerometerRotationEnabled) {
-                            // Auto-rotate habilitado → permitir rotação livre baseada em sensores
-                            ActivityInfo.SCREEN_ORIENTATION_USER
-                        } else {
-                            // Auto-rotate desabilitado → delegar completamente ao sistema
-                            // UNSPECIFIED permite que o botão manual do sistema funcione
-                            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                        }
-                    }
-                    else -> return
-                }
-
-        activity.requestedOrientation = orientation
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "Applied orientation: ${orientation} (USER=2, USER_PORTRAIT=7, USER_LANDSCAPE=6, UNSPECIFIED=-1)"
-        )
+        com.vinaooo.revenger.utils.OrientationManager.applyConfigOrientation(activity, configOrientation)
     }
 
     /** Dispose the composite disposable; call on onDestroy */
