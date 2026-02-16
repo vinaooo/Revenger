@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- RetroMenu3 - Colors -->
+    <!--
+        Cores para elementos de slots de save (fundo, borda, glow):
+        - rm_white: borda do glow do slot
+        - rm_slot_empty_bg: fundo do slot vazio
+        - rm_slot_occupied_bg: fundo do slot ocupado
+        - rm_slot_occupied_border: borda do slot ocupado
+        - rm_divider: borda do slot vazio (reaproveitada)
+        - rm_transparent_color: fundo transparente (reaproveitada)
+    -->
 
     <!-- Background -->
     <color name="rm_background">#CC333333</color>
     <color name="rm_submenu_background">#00000000</color>
+    <!-- Slots de save -->
+    <color name="rm_white">#FFFFFF</color>
+    <color name="rm_slot_empty_bg">#33000000</color>
+    <color name="rm_slot_occupied_bg">#44000000</color>
+    <color name="rm_slot_occupied_border">#888888</color>
 
     <!-- Text Colors -->
     <color name="rm_text_color">#F5F5F5</color>

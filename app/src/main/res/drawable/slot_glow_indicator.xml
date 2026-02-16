@@ -16,12 +16,11 @@
     android:shape="rectangle">
     
     <!-- Transparent background (glow is border-only) -->
-    <solid android:color="#00000000" />
-    
-    <!-- White stroke border -->
+    <solid android:color="@color/rm_transparent_color" />
+    <!-- White stroke border (resource) -->
     <stroke
         android:width="2dp"
-        android:color="#FFFFFF" />
+        android:color="@color/rm_white" />
     
     <!-- Rounded corners to match slot styling -->
     <corners android:radius="8dp" />
