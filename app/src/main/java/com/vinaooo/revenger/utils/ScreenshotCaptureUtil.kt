@@ -157,8 +157,27 @@ object ScreenshotCaptureUtil {
         return Rect(offsetX, offsetY, offsetX + contentWidth, offsetY + contentHeight)
     }
 
-    /**
-     * Capture screenshot of the GLRetroView game area using PixelCopy API.
+    /**     * POC overload: accept `IRetroView` and delegate to the appropriate implementation.
+     * If the underlying view is a `GLRetroView` the existing PixelCopy-based capture is used.
+     * Otherwise `IRetroView.captureScreenshot()` is used as a fallback.
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun captureGameScreen(iRetroView: com.vinaooo.revenger.retroview.IRetroView, callback: (Bitmap?) -> Unit) {
+        val v = iRetroView.view
+        if (v is GLRetroView) {
+            captureGameScreen(v, callback)
+            return
+        }
+
+        try {
+            iRetroView.captureScreenshot(callback)
+        } catch (e: Exception) {
+            Log.w(TAG, "IRetroView fallback capture failed: ${e.message}")
+            callback(null)
+        }
+    }
+
+    /**     * Capture screenshot of the GLRetroView game area using PixelCopy API.
      * Automatically crops black bars based on game aspect ratio.
      *
      * This method captures only the visible game content, excluding any letterbox/pillarbox
@@ -248,6 +267,27 @@ object ScreenshotCaptureUtil {
             )
         } catch (e: Exception) {
             Log.e(TAG, "Failed to capture screenshot", e)
+            callback(null)
+        }
+    }
+
+    /**
+     * POC overload: accept `IRetroView` for full-screen capture. Delegates to GL implementation
+     * when possible; otherwise falls back to `IRetroView.captureScreenshot()`.
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun captureFullScreen(iRetroView: com.vinaooo.revenger.retroview.IRetroView, callback: (Bitmap?) -> Unit) {
+        val v = iRetroView.view
+        if (v is GLRetroView) {
+            captureFullScreen(v, callback)
+            return
+        }
+
+        // Fallback: use the IRetroView capture hook - best-effort full screenshot
+        try {
+            iRetroView.captureScreenshot(callback)
+        } catch (e: Exception) {
+            Log.w(TAG, "IRetroView fallback full capture failed: ${e.message}")
             callback(null)
         }
     }
@@ -422,6 +462,43 @@ object ScreenshotCaptureUtil {
 
         Log.d(TAG, "Auto-crop: Removing borders L=$left T=$top R=${w - 1 - right} B=${h - 1 - bottom} -> ${cropWidth}x$cropHeight")
         return Bitmap.createBitmap(bitmap, left, top, cropWidth, cropHeight)
+    }
+
+    /**
+     * POC overload: accept `IRetroView` and delegate to GL implementation when possible.
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun captureAndCacheScreenshot(
+        iRetroView: com.vinaooo.revenger.retroview.IRetroView,
+        onCaptured: ((Boolean) -> Unit)? = null
+    ) {
+        val v = iRetroView.view
+        if (v is GLRetroView) {
+            captureAndCacheScreenshot(v, onCaptured)
+            return
+        }
+
+        // Fallback: use IRetroView.captureScreenshot() for cropped screenshot
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            try {
+                iRetroView.captureScreenshot { bitmap ->
+                    synchronized(this) {
+                        cachedScreenshot?.recycle()
+                        cachedScreenshot = bitmap
+                        // No reliable full-screen capture available from generic IRetroView
+                        cachedFullScreenshot?.recycle()
+                        cachedFullScreenshot = null
+                    }
+                    Log.d(TAG, "IRetroView: Cropped screenshot cached: ${bitmap != null}")
+                    onCaptured?.invoke(bitmap != null)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "IRetroView: captureAndCache fallback failed: ${e.message}")
+                onCaptured?.invoke(false)
+            }
+        } else {
+            onCaptured?.invoke(false)
+        }
     }
 
     /**

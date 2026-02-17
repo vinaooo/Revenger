@@ -86,7 +86,7 @@ class SaveStateManagerTest {
     @Test
     fun `saveToSlot cria arquivo de estado`() {
         val testData = "test state data".toByteArray()
-        val result = manager.saveToSlot(1, testData, null, "Test Save")
+        val result = manager.saveToSlot(1, testData, null, name = "Test Save")
 
         assertTrue(result)
 
@@ -111,8 +111,8 @@ class SaveStateManagerTest {
         val data1 = "first save".toByteArray()
         val data2 = "second save".toByteArray()
         
-        manager.saveToSlot(2, data1, null, "First")
-        manager.saveToSlot(2, data2, null, "Second")
+        manager.saveToSlot(2, data1, null, name = "First")
+        manager.saveToSlot(2, data2, null, name = "Second")
         
         val slot = manager.getSlot(2)
         assertEquals("Second", slot.name)
@@ -124,7 +124,7 @@ class SaveStateManagerTest {
         val stateData = "state".toByteArray()
         val screenshot = Bitmap.createBitmap(160, 144, Bitmap.Config.ARGB_8888)
         
-        manager.saveToSlot(4, stateData, screenshot, "With Screenshot")
+        manager.saveToSlot(4, stateData, screenshot, preview = null, name = "With Screenshot")
         
         val slot = manager.getSlot(4)
         assertNotNull(slot.screenshotFile)
@@ -136,7 +136,7 @@ class SaveStateManagerTest {
     @Test
     fun `deleteSlot remove arquivos e marca como vazio`() {
         val testData = "test".toByteArray()
-        manager.saveToSlot(5, testData, null, "To Delete")
+        manager.saveToSlot(5, testData, null, name = "To Delete")
         
         assertTrue(manager.deleteSlot(5))
         
@@ -150,7 +150,7 @@ class SaveStateManagerTest {
         val stateData = "state".toByteArray()
         val screenshot = Bitmap.createBitmap(160, 144, Bitmap.Config.ARGB_8888)
         
-        manager.saveToSlot(7, stateData, screenshot, "With Image")
+        manager.saveToSlot(7, stateData, screenshot, preview = null, name = "With Image")
         manager.deleteSlot(7)
         
         val slot = manager.getSlot(7)
@@ -162,7 +162,7 @@ class SaveStateManagerTest {
     @Test
     fun `copySlot duplica dados para outro slot`() {
         val testData = "copy test".toByteArray()
-        manager.saveToSlot(1, testData, null, "Original")
+        manager.saveToSlot(1, testData, null, name = "Original")
         
         assertTrue(manager.copySlot(1, 2))
         
@@ -177,7 +177,7 @@ class SaveStateManagerTest {
     @Test
     fun `moveSlot transfere dados e limpa origem`() {
         val testData = "move test".toByteArray()
-        manager.saveToSlot(3, testData, null, "To Move")
+        manager.saveToSlot(3, testData, null, name = "To Move")
         
         assertTrue(manager.moveSlot(3, 4))
         
@@ -199,7 +199,7 @@ class SaveStateManagerTest {
     @Test
     fun `renameSlot altera nome do slot`() {
         val testData = "rename test".toByteArray()
-        manager.saveToSlot(7, testData, null, "Old Name")
+        manager.saveToSlot(7, testData, null, name = "Old Name")
         
         assertTrue(manager.renameSlot(7, "New Name"))
         

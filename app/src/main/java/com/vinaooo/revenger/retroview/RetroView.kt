@@ -160,12 +160,18 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 }
             }
 
-    /** GLRetroView instance itself */
+    /** GLRetroView instance itself (legacy public surface used across the app) */
     val view: GLRetroView
-    
+
+    /** POC: renderer abstraction adapter (IRetroView) */
+    lateinit var iRetroView: IRetroView
+
     init {
         view = GLRetroView(context, retroViewData)
-        
+        // POC: adapter que expõe a interface `IRetroView` para este GL surface
+        // iRetroView = GLRetroViewAdapter(view)
+        iRetroView = StubVkRetroView(context)
+
         val params =
                 FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.WRAP_CONTENT,

@@ -61,6 +61,10 @@ android {
         versionCode 1
         versionName '1.0'
         resConfigs 'en'
+        // Ensure AndroidJUnit4-based instrumented tests are executed by the
+        // AndroidX test runner (fixes 'No tests found' when JUnit4 tests are
+        // present in androidTest).
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -246,6 +250,9 @@ dependencies {
     // Instrumentation Test dependencies (androidTest)
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test:rules:1.6.1'
+    // Explicit runner dependency to ensure AndroidJUnit4 discovery in the
+    // instrumented test APK.
+    androidTestImplementation 'androidx.test:runner:1.6.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
     androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.6.1'
     androidTestImplementation 'org.mockito:mockito-android:5.12.0'

@@ -11,6 +11,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.Assert.assertNotNull
 
 /**
  * Testes de Instrumentation (Espresso) - Integração completa
@@ -34,8 +35,9 @@ class GameActivityCleanupIntegrationTest {
         // Todas as 8 properties foram inicializadas sem exceção
 
         // Validar que layout está inflated
-        onView(withId(R.id.retroView)).check { view, noViewFoundException ->
-            // View pode existir ou não, mas sem crashes
+        activityRule.scenario.onActivity { activity ->
+            val container = activity.findViewById<android.view.View>(R.id.retroview_container)
+            assertNotNull("retroview_container should be present", container)
         }
     }
 
@@ -49,8 +51,9 @@ class GameActivityCleanupIntegrationTest {
         }
 
         // Atividade deve continuar funcionando
-        onView(withId(R.id.retroView)).check { view, noViewFoundException ->
-            // Should still exist after rotation
+        activityRule.scenario.onActivity { activity ->
+            val container = activity.findViewById<android.view.View>(R.id.retroview_container)
+            assertNotNull("retroview_container should be present after rotation", container)
         }
 
         // Voltar para portrait
@@ -139,8 +142,8 @@ class CriticalBehaviorValidationTest {
 
         activityRule.scenario.onActivity { activity ->
             try {
-                // Qualquer acesso a propriedades não inicializadas lançaria aqui
-                val viewModel = activity.viewModel
+                // Access the activity-scoped ViewModel via ViewModelProvider to avoid private-field access
+                val viewModel = androidx.lifecycle.ViewModelProvider(activity).get(com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java)
                 assert(viewModel != null) { "ViewModel should be initialized" }
             } catch (e: UninitializedPropertyAccessException) {
                 exceptionThrown = true
@@ -172,7 +175,7 @@ class CriticalBehaviorValidationTest {
     fun testViewModelsAccessible() {
         activityRule.scenario.onActivity { activity ->
             // Todas as propriedades devem ser acessíveis
-            val viewModel = activity.viewModel
+            val viewModel = androidx.lifecycle.ViewModelProvider(activity).get(com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java)
 
             // Se chegarmos aqui sem exception, está correto
             assert(viewModel != null) { "ViewModel acessível" }
@@ -186,8 +189,8 @@ class CriticalBehaviorValidationTest {
 
         activityRule.scenario.onActivity { activity ->
             try {
-                // Acessar propriedades que deveriam estar inicializadas
-                val retroView = activity.retroView
+                // Acessar propriedades que deveriam estar inicializadas (via ViewModel)
+                val retroView = androidx.lifecycle.ViewModelProvider(activity).get(com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java).retroView
                 // Pode ser null por design, mas não deve lançar exception
             } catch (e: NullPointerException) {
                 nullPointerThrown = true

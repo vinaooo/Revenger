@@ -1214,17 +1214,16 @@ class GameActivityViewModel(application: Application) :
      * @param onCaptured Optional callback when capture completes
      */
     fun captureScreenshotForSaveState(onCaptured: ((Boolean) -> Unit)? = null) {
-        retroView?.view?.let { glRetroView ->
+        retroView?.iRetroView?.let { iRetroView ->
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 com.vinaooo.revenger.utils.ScreenshotCaptureUtil.captureAndCacheScreenshot(
-                        glRetroView,
+                        iRetroView,
                         onCaptured
                 )
             } else {
                 onCaptured?.invoke(false)
             }
-        }
-                ?: onCaptured?.invoke(false)
+        } ?: onCaptured?.invoke(false)
     }
 
     /** Get cached screenshot for save operation. Returns null if no screenshot was captured. */
