@@ -15,6 +15,7 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.config.GameScreenInsetConfig
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.repositories.Storage
+import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.takeWhile
@@ -139,20 +140,63 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
                 val romLoadStartTime = System.currentTimeMillis()
                 val romInputStream = context.resources.openRawResource(romResourceId)
-                if (resources.getBoolean(R.bool.conf_load_bytes)) {
+
+                // If a valid ROM already exists in app cache (e.g. manually pushed for testing),
+                // prefer it even when `conf_load_bytes` is true. This avoids using a packaged
+                // placeholder or truncated resource when a full ROM is available on-device.
+                val existingOk = storage.rom.exists() && storage.rom.length() > 1_000_000L
+                if (existingOk) {
+                    Log.i("RetroView", "Using existing ROM in cache (conf_load_bytes override): ${storage.rom.absolutePath} size=${storage.rom.length()}")
+
+                    // Some cores (eg. mednafen_psx_hw) detect file format from extension.
+                    // Create a secondary copy with a `.bin` extension and prefer that path
+                    // when launching the core so it recognises the image format.
+                    val romWithExt = File(storage.rom.parentFile, storage.rom.name + ".bin")
+                    if (!romWithExt.exists()) {
+                        try {
+                            storage.rom.copyTo(romWithExt)
+                            Log.i("RetroView", "Created ROM copy with extension: ${romWithExt.absolutePath}")
+                        } catch (t: Throwable) {
+                            Log.w("RetroView", "Failed to create .bin copy for ROM, will use raw cache file", t)
+                        }
+                    }
+
+                    gameFilePath = if (romWithExt.exists()) romWithExt.absolutePath else storage.rom.absolutePath
+                } else if (resources.getBoolean(R.bool.conf_load_bytes)) {
                     if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
                     gameFileBytes = romBytes
                 } else {
-                    // Always overwrite ROM file to ensure latest version is loaded
-                    // This ensures that configuration changes in config.xml are respected
+                    // Write packaged ROM to cache when there's no large manual ROM present
                     storage.rom.outputStream().use { romInputStream.copyTo(it) }
                     Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
+
+                    // Also create a .bin copy so cores that rely on extensions can detect format
+                    val romWithExt = File(storage.rom.parentFile, storage.rom.name + ".bin")
+                    try {
+                        storage.rom.copyTo(romWithExt, overwrite = true)
+                        Log.i("RetroView", "Also wrote ROM with .bin extension: ${romWithExt.absolutePath}")
+                    } catch (t: Throwable) {
+                        Log.w("RetroView", "Failed to write .bin copy of packaged ROM", t)
+                    }
 
                     gameFilePath = storage.rom.absolutePath
                 }
 
                 shader = getShaderConfig()
                 variables = getCoreVariables()
+
+                // Ensure libretro cores look for firmware/BIOS files under the app's
+                // internal `files/system` directory first — that's where we install
+                // test BIOS during debugging. Fall back to external files dir only
+                // if internal is not available.
+                val internalSystem = storage.storagePath + "/system"
+                val external = context.getExternalFilesDir(null)?.path
+
+                systemDirectory = if (File(internalSystem).exists()) {
+                    internalSystem
+                } else {
+                    (external ?: storage.storagePath) + "/system"
+                }
 
                 val sramLoadStartTime = System.currentTimeMillis()
                 if (storage.sram.exists()) {
