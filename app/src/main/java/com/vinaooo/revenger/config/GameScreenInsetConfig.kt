@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.config
 
+import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.RectF
@@ -8,52 +9,43 @@ import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.R
 
 /**
- * Configuration system for game screen viewport using CSS-like inset margins.
+ * Configuration system for game screen viewport using a simplified preset model.
  *
- * Allows defining the game display area through percentual margins from each screen edge. The game
- * is automatically centered within the defined area while maintaining its native aspect ratio.
+ * The configuration is now composed of three values:
  *
- * Supported formats:
- * - "V" : V% margin on all sides
- * - "V_H" : V% vertical (top/bottom), H% horizontal (left/right)
- * - "T_R_B_L" : top_right_bottom_left (CSS style)
+ *   * `gs_align_horizontal` -- "left" | "center" | "right"
+ *   * `gs_align_vertical`   -- "top" | "center" | "bottom"
+ *   * `gs_camera_hole_pct`  -- integer 0..99 representing the offset margin
+ *       used both to avoid the camera hole and to perform the requested
+ *       alignment.
  *
- * Example: "5_25_45_25" = 5% top, 25% right, 45% bottom, 25% left Result: Game area at x=0.25,
- * y=0.05, width=0.50, height=0.50
+ * The camera margin always applies to the screen edge where the front camera
+ * is located (assuming natural orientation with camera at the top). In
+ * landscape the edge is inferred from the display rotation. Alignment and
+ * camera margins add together if they point to the same side.
+ *
+ * Legacy numeric formats ("5_25_45_25" etc.) remain supported via
+ * [parseInset] purely for backward compatibility; new builds should use the
+ * tags listed above.
  */
 object GameScreenInsetConfig {
     private const val TAG = "GameScreenInsetConfig"
 
-    /**
-     * Represents inset margins in percentual values (0-99)
-     *
-     * @property top Top margin in percentage (0-99)
-     * @property right Right margin in percentage (0-99)
-     * @property bottom Bottom margin in percentage (0-99)
-     * @property left Left margin in percentage (0-99)
-     */
     data class Inset(val top: Int, val right: Int, val bottom: Int, val left: Int) {
-        /** Validates that inset values don't exceed screen bounds */
         fun isValid(): Boolean {
             val verticalSum = top + bottom
             val horizontalSum = left + right
             return verticalSum < 100 &&
                     horizontalSum < 100 &&
-                    top >= 0 &&
-                    right >= 0 &&
-                    bottom >= 0 &&
-                    left >= 0
+                    top >= 0 && right >= 0 && bottom >= 0 && left >= 0
         }
 
-        /** Clamps invalid values to valid range */
         fun clamped(): Inset {
-            // Clamp individual values to 0-99
             val clampedTop = top.coerceIn(0, 99)
             val clampedRight = right.coerceIn(0, 99)
             val clampedBottom = bottom.coerceIn(0, 99)
             val clampedLeft = left.coerceIn(0, 99)
 
-            // Check if sum exceeds 100
             var finalTop = clampedTop
             var finalBottom = clampedBottom
             var finalLeft = clampedLeft
@@ -64,166 +56,154 @@ object GameScreenInsetConfig {
                 finalTop = (finalTop * ratio).toInt()
                 finalBottom = (finalBottom * ratio).toInt()
             }
-
             if (finalLeft + finalRight >= 100) {
                 val ratio = 99f / (finalLeft + finalRight)
                 finalLeft = (finalLeft * ratio).toInt()
                 finalRight = (finalRight * ratio).toInt()
             }
-
             return Inset(finalTop, finalRight, finalBottom, finalLeft)
         }
     }
 
-    /**
-     * Parses inset string from XML configuration.
-     *
-     * Supports three formats:
-     * 1. Single value: "10" → 10% on all sides
-     * 2. Two values: "10_20" → 10% vertical, 20% horizontal
-     * 3. Four values: "10_20_30_40" → top, right, bottom, left
-     *
-     * @param insetString String in format "V", "V_H", or "T_R_B_L"
-     * @return Parsed Inset object
-     */
-    fun parseInset(insetString: String): Inset {
-        try {
-            val trimmed = insetString.trim()
+    enum class AlignH { LEFT, CENTER, RIGHT }
+    enum class AlignV { TOP, CENTER, BOTTOM }
+    enum class CameraSide { TOP, BOTTOM, LEFT, RIGHT }
 
-            if (trimmed.isEmpty() || trimmed == "0") {
-                return Inset(0, 0, 0, 0)
-            }
-
-            val parts = trimmed.split("_").map { it.toIntOrNull()?.coerceIn(0, 99) ?: 0 }
-
-            val inset =
-                    when (parts.size) {
-                        1 -> {
-                            // Format: "V" - same margin on all sides
-                            val value = parts[0]
-                            Inset(value, value, value, value)
-                        }
-                        2 -> {
-                            // Format: "V_H" - vertical and horizontal
-                            val vertical = parts[0]
-                            val horizontal = parts[1]
-                            Inset(vertical, horizontal, vertical, horizontal)
-                        }
-                        4 -> {
-                            // Format: "T_R_B_L" - CSS style (top, right, bottom, left)
-                            Inset(parts[0], parts[1], parts[2], parts[3])
-                        }
-                        else -> {
-                            Log.w(TAG, "Invalid inset format: '$insetString'. Using default (0).")
-                            Inset(0, 0, 0, 0)
-                        }
-                    }
-
-            // Validate and clamp if needed
-            if (!inset.isValid()) {
-                val clamped = inset.clamped()
-                Log.w(TAG, "Invalid inset values: $inset. Clamped to: $clamped")
-                return clamped
-            }
-
-            Log.d(TAG, "Parsed inset '$insetString' → $inset")
-            return inset
-        } catch (e: Exception) {
-            Log.e(
-                    TAG,
-                    "Error parsing inset string '$insetString': ${e.message}. Using default (0).",
-                    e
-            )
-            return Inset(0, 0, 0, 0)
+    private fun parseAlignH(raw: String): AlignH {
+        return when (raw.trim().lowercase()) {
+            "left" -> AlignH.LEFT
+            "right" -> AlignH.RIGHT
+            else -> AlignH.CENTER
         }
     }
 
-    /**
-     * Converts inset margins to normalized viewport coordinates.
-     *
-     * The viewport defines the area where the game will be rendered. LibretroDroid automatically
-     * centers the game within this area while maintaining aspect ratio.
-     *
-     * @param inset Inset margins in percentage
-     * @return RectF with normalized coordinates (0.0 - 1.0)
-     */
+    private fun parseAlignV(raw: String): AlignV {
+        return when (raw.trim().lowercase()) {
+            "top" -> AlignV.TOP
+            "bottom" -> AlignV.BOTTOM
+            else -> AlignV.CENTER
+        }
+    }
+
+    private fun detectCameraSide(context: Context): CameraSide {
+        return try {
+            val wm = context.getSystemService(Context.WINDOW_SERVICE) as? android.view.WindowManager
+            val rot = wm?.defaultDisplay?.rotation ?: 0
+            when (rot) {
+                android.view.Surface.ROTATION_0 -> CameraSide.TOP
+                android.view.Surface.ROTATION_90 -> CameraSide.RIGHT
+                android.view.Surface.ROTATION_180 -> CameraSide.BOTTOM
+                android.view.Surface.ROTATION_270 -> CameraSide.LEFT
+                else -> CameraSide.TOP
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to detect camera side, assuming top", e)
+            CameraSide.TOP
+        }
+    }
+
+    fun calculateInset(
+        hAlign: AlignH,
+        vAlign: AlignV,
+        cameraSide: CameraSide,
+        cameraPct: Int
+    ): Inset {
+        var top = 0
+        var right = 0
+        var bottom = 0
+        var left = 0
+
+        when (vAlign) {
+            AlignV.TOP -> top += cameraPct
+            AlignV.BOTTOM -> bottom += cameraPct
+            else -> {}
+        }
+        when (hAlign) {
+            AlignH.LEFT -> left += cameraPct
+            AlignH.RIGHT -> right += cameraPct
+            else -> {}
+        }
+
+        when (cameraSide) {
+            CameraSide.TOP -> top += cameraPct
+            CameraSide.BOTTOM -> bottom += cameraPct
+            CameraSide.LEFT -> left += cameraPct
+            CameraSide.RIGHT -> right += cameraPct
+        }
+
+        val inset = Inset(top, right, bottom, left)
+        if (!inset.isValid()) {
+            val clamped = inset.clamped()
+            Log.w(TAG, "Invalid inset $inset -> clamped $clamped")
+            return clamped
+        }
+        return inset
+    }
+
+    fun getConfiguredInset(context: Context, isPortrait: Boolean): Inset {
+        val resources = context.resources
+        val hRaw = resources.getString(R.string.gs_align_horizontal)
+        val vRaw = resources.getString(R.string.gs_align_vertical)
+        val cameraPct = try {
+            resources.getInteger(R.integer.gs_camera_hole_pct)
+        } catch (e: Resources.NotFoundException) {
+            0
+        }
+
+        val hAlign = parseAlignH(hRaw)
+        val vAlign = parseAlignV(vRaw)
+        val cameraSide = detectCameraSide(context)
+
+        Log.d(TAG, "hAlign=$hAlign vAlign=$vAlign pct=$cameraPct% side=$cameraSide")
+        return calculateInset(hAlign, vAlign, cameraSide, cameraPct)
+    }
+
+    @Deprecated("Legacy numeric format", ReplaceWith("getConfiguredInset(resources, isPortrait)"))
+    fun parseInset(insetString: String): Inset {
+        try {
+            val trimmed = insetString.trim()
+            if (trimmed.isEmpty() || trimmed == "0") return Inset(0,0,0,0)
+            val parts = trimmed.split("_").map { it.toIntOrNull()?.coerceIn(0,99) ?: 0 }
+            val inset = when (parts.size) {
+                1 -> Inset(parts[0],parts[0],parts[0],parts[0])
+                2 -> Inset(parts[0],parts[1],parts[0],parts[1])
+                4 -> Inset(parts[0],parts[1],parts[2],parts[3])
+                else -> { Log.w(TAG,"Formato inválido '$insetString'"); Inset(0,0,0,0) }
+            }
+            if (!inset.isValid()) return inset.clamped()
+            return inset
+        } catch (e: Exception) {
+            Log.e(TAG,"Erro parsing inset '$insetString'",e)
+            return Inset(0,0,0,0)
+        }
+    }
+
     fun insetToViewport(inset: Inset): RectF {
         val x = inset.left / 100f
         val y = inset.top / 100f
         val width = (100 - inset.left - inset.right) / 100f
         val height = (100 - inset.top - inset.bottom) / 100f
-
-        val viewport = RectF(x, y, width, height)
-
-        Log.d(TAG, "Inset $inset → Viewport(x=$x, y=$y, w=$width, h=$height)")
-
+        val viewport = RectF(x,y,width,height)
+        Log.d(TAG,"Inset $inset → Viewport(x=$x,y=$y,w=$width,h=$height)")
         return viewport
     }
 
-    /**
-     * Gets the configured inset based on current orientation.
-     *
-     * @param resources Android resources to read configuration
-     * @param isPortrait True if portrait orientation, false if landscape
-     * @return Configured Inset object
-     */
-    fun getConfiguredInset(resources: Resources, isPortrait: Boolean): Inset {
-        val insetString =
-                if (isPortrait) {
-                    resources.getString(R.string.gs_inset_portrait)
-                } else {
-                    resources.getString(R.string.gs_inset_landscape)
-                }
-
-        val orientation = if (isPortrait) "Portrait" else "Landscape"
-        Log.d(TAG, "Reading $orientation inset configuration: '$insetString'")
-
-        return parseInset(insetString)
-    }
-
-    /**
-     * Detects current orientation from resources.
-     *
-     * @param resources Android resources
-     * @return True if portrait, false if landscape
-     */
-    fun isPortraitOrientation(resources: Resources): Boolean {
-        return resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    }
-
-    /**
-     * Applies configured viewport to GLRetroView.
-     *
-     * Reads inset configuration from XML (gs_inset_portrait/gs_inset_landscape), parses the inset
-     * values, converts to normalized viewport coordinates, and applies to the RetroView via
-     * LibretroDroid's setViewport() API.
-     *
-     * The viewport defines the rendering area. LibretroDroid automatically centers the game within
-     * this area while maintaining its native aspect ratio.
-     *
-     * @param retroView GLRetroView instance to configure
-     * @param resources Android resources to read configuration
-     * @param isPortrait True if portrait orientation, false if landscape
-     */
-    fun applyToRetroView(retroView: GLRetroView, resources: Resources, isPortrait: Boolean) {
+    fun applyToRetroView(retroView: GLRetroView, isPortrait: Boolean) {
         try {
-            val inset = getConfiguredInset(resources, isPortrait)
+            val inset = getConfiguredInset(retroView.context, isPortrait)
             val viewportRect = insetToViewport(inset)
-
             val orientation = if (isPortrait) "Portrait" else "Landscape"
-            Log.i(TAG, "✅ Applying $orientation viewport: $viewportRect (inset: $inset)")
-
-            // Apply viewport via LibretroDroid 0.13.1+ API
+            Log.i(TAG,"✅ Applying $orientation viewport: $viewportRect (inset: $inset)")
             retroView.queueEvent {
                 com.swordfish.libretrodroid.LibretroDroid.setViewport(
-                        viewportRect.left,
-                        viewportRect.top,
-                        viewportRect.width(),
-                        viewportRect.height()
+                    viewportRect.left,
+                    viewportRect.top,
+                    viewportRect.width(),
+                    viewportRect.height()
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to process viewport configuration", e)
+            Log.e(TAG,"❌ Failed to process viewport configuration",e)
         }
     }
 }

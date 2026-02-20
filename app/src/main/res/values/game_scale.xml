@@ -4,30 +4,54 @@
     <!-- Game Screen Inset Configuration             -->
     <!-- ============================================ -->
     
-    <!-- Define margens (insets) em % para a área de exibição do jogo.
-         O jogo será renderizado e centralizado dentro da área restante,
-         mantendo automaticamente seu aspect ratio nativo.
-         
-         Formatos suportados:
-         - "V"           : V% em todos os lados
+    <!-- Define percentage-based margins (insets) for the game display area.
+         The game will be rendered and centered inside the remaining region,
+         automatically preserving its native aspect ratio.
+
+         Supported formats (legacy):
+         - "V"           : V% on all sides
          - "V_H"         : V% vertical (top/bottom), H% horizontal (left/right)
-         - "T_R_B_L"     : top_right_bottom_left (estilo CSS)
-         
-         Valores: 0-99 (percentual da tela)
-         Regras: top + bottom < 100, left + right < 100
-         
-         Exemplos:
-         - "0"           : Sem margens (padrão atual)
-         - "10"          : 10% margem em todos os lados (80% área útil)
+         - "T_R_B_L"     : top_right_bottom_left (CSS style)
+
+         Values: 0–99 (percent of screen)
+         Rules: top + bottom < 100, left + right < 100
+
+         Examples (for legacy tests):
+         - "0"           : no margins (pre-refactor default)
+         - "10"          : 10% margin all around (80% area usable)
          - "5_25"        : 5% top/bottom, 25% left/right
          - "5_25_45_25"  : top=5%, right=25%, bottom=45%, left=25%
+         - "150"         : invalid value, will be clamped to 99
+         - "50_60"       : vertical sum exceeds 100 → automatically clamped
     -->
     
-    <!-- Portrait: Configuração para orientação vertical -->
-    <!-- Formato: top_right_bottom_left (CSS style) -->
-    <!-- Atual: 0_0_50_0 = Jogo no topo, 50% altura, largura total -->
-    <string name="gs_inset_portrait">0</string>
-    
-    <!-- Landscape: Configuração para orientação horizontal -->
-    <string name="gs_inset_landscape">0</string>
+    <!-- Horizonal alignment: left|center|right -->
+    <string name="gs_align_horizontal">left</string>
+
+    <!-- Vertical alignment: top|center|bottom -->
+    <string name="gs_align_vertical">top</string>
+
+    <!--
+         Percentage (0–99) used as an offset margin. It is applied in two
+         situations:
+           1. to create additional spacing on the camera side (top in portrait;
+              left or right in landscape depending on device rotation)
+           2. to perform the selected horizontal/vertical alignment described
+              above
+      Changing this value adjusts how much the game area is pushed toward
+      the specified edge.
+    -->
+    <integer name="gs_camera_hole_pct">0</integer>
+
+    <!--
+      Examples of using the new system:
+      - h_align="center", v_align="center" → nothing is moved (default)
+      - v_align="top", camera_hole_pct="10" → game pushed down 10%
+      - h_align="left", camera_hole_pct="5"  → game pushed right 5%
+      - h_align="center", camera_hole_pct="5" + landscape & rot90 →
+        spacing on the right since the camera will be on that side
+
+      Old `gs_inset_portrait`/`gs_inset_landscape` settings still work for
+      legacy APKs but are not emitted in new builds.
+    -->
 </resources>

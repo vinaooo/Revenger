@@ -229,14 +229,19 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
     /**
      * Apply viewport configuration from XML resources.
      *
-     * Reads inset configuration (gs_inset_portrait/gs_inset_landscape) and applies it to the
-     * RetroView. The viewport defines the rendering area, and LibretroDroid automatically centers
-     * the game within this area while maintaining native aspect ratio.
+     * Configuration now uses three values: `gs_align_horizontal`,
+     * `gs_align_vertical` and `gs_camera_hole_pct`.  The helper class parses the
+     * selected alignments, detects the side where the camera is located and
+     * combines both pieces of information into a final inset that is applied to
+     * the RetroView.  The old `gs_inset_portrait`/`gs_inset_landscape` format is
+     * handled for legacy APKs but not emitted in new builds.
      *
      * @param isPortrait True if current orientation is portrait, false if landscape
      */
     fun applyViewportFromConfig(isPortrait: Boolean) {
-        GameScreenInsetConfig.applyToRetroView(view, resources, isPortrait)
+        // the RetroView holds its own context, so we forward it instead of
+        // passing `resources` separately
+        GameScreenInsetConfig.applyToRetroView(view, isPortrait)
         Log.d(
                 "RetroView",
                 "Viewport configuration applied for ${if (isPortrait) "portrait" else "landscape"} orientation"
