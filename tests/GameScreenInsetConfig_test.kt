@@ -20,15 +20,15 @@ class GameScreenInsetConfigTest {
             GameScreenInsetConfig::class.java.getDeclaredMethod("parseAlignH", String::class.java)
                 .apply { isAccessible = true }
                 .invoke(null, "left"))
-        // rather than reflect, just call public via resources overload? We can test calculateInset directly
-        // simpler: just ensure calculateInset handles enums
-        assertEquals(GameScreenInsetConfig.Inset(5, 0, 0, 0),
-            GameScreenInsetConfig.calculateInset(
-                GameScreenInsetConfig.AlignH.CENTER,
-                GameScreenInsetConfig.AlignV.TOP,
-                GameScreenInsetConfig.CameraSide.TOP,
-                5
-            ))
+        // simply exercise calculateInset signature
+        val inset = GameScreenInsetConfig.calculateInset(
+            GameScreenInsetConfig.AlignH.CENTER,
+            GameScreenInsetConfig.AlignV.TOP,
+            GameScreenInsetConfig.CameraSide.TOP,
+            cameraPct = 5,
+            alignPct = 3
+        )
+        assertEquals(GameScreenInsetConfig.Inset(3, 0, 5, 0), inset) // top align + camera top
     }
 
     @Test
@@ -38,7 +38,8 @@ class GameScreenInsetConfigTest {
             GameScreenInsetConfig.AlignH.CENTER,
             GameScreenInsetConfig.AlignV.CENTER,
             GameScreenInsetConfig.CameraSide.TOP,
-            pct
+            cameraPct = pct,
+            alignPct = 0
         )
         assertEquals(GameScreenInsetConfig.Inset(10, 0, 0, 0), topInset)
 
@@ -46,32 +47,57 @@ class GameScreenInsetConfigTest {
             GameScreenInsetConfig.AlignH.CENTER,
             GameScreenInsetConfig.AlignV.CENTER,
             GameScreenInsetConfig.CameraSide.RIGHT,
-            pct
+            cameraPct = pct,
+            alignPct = 0
         )
         assertEquals(GameScreenInsetConfig.Inset(0, 10, 0, 0), rightInset)
     }
 
     @Test
+    fun `alignment alone moves when offset provided`() {
+        val offset = 12
+        val leftInset = GameScreenInsetConfig.calculateInset(
+            GameScreenInsetConfig.AlignH.LEFT,
+            GameScreenInsetConfig.AlignV.CENTER,
+            GameScreenInsetConfig.CameraSide.TOP, // camera aligns top but cameraPct zero
+            cameraPct = 0,
+            alignPct = offset
+        )
+        assertEquals(GameScreenInsetConfig.Inset(0, 0, 0, 12), leftInset)
+
+        val bottomInset = GameScreenInsetConfig.calculateInset(
+            GameScreenInsetConfig.AlignH.CENTER,
+            GameScreenInsetConfig.AlignV.BOTTOM,
+            GameScreenInsetConfig.CameraSide.LEFT,
+            cameraPct = 0,
+            alignPct = offset
+        )
+        assertEquals(GameScreenInsetConfig.Inset(0, 0, 12, 0), bottomInset)
+    }
+
+    @Test
     fun `alignment and camera add together`() {
         val pct = 7
+        val offset = 5
         val inset = GameScreenInsetConfig.calculateInset(
             GameScreenInsetConfig.AlignH.LEFT,
             GameScreenInsetConfig.AlignV.BOTTOM,
             GameScreenInsetConfig.CameraSide.BOTTOM,
-            pct
+            cameraPct = pct,
+            alignPct = offset
         )
-        // bottom from both align (vAlign bottom) and camera side bottom -> 14
-        assertEquals(GameScreenInsetConfig.Inset(0, 0, 14, 0), inset)
+        // bottom from both align (vAlign bottom) and camera side bottom -> 12
+        assertEquals(GameScreenInsetConfig.Inset(0, 0, 12, 0), inset)
     }
 
     @Test
     fun `clamping still works with new calculator`() {
-        // specify huge pct that would overflow each side
         val inset = GameScreenInsetConfig.calculateInset(
             GameScreenInsetConfig.AlignH.RIGHT,
             GameScreenInsetConfig.AlignV.TOP,
             GameScreenInsetConfig.CameraSide.RIGHT,
-            80
+            cameraPct = 80,
+            alignPct = 80
         )
         assertTrue(inset.isValid())
         assertTrue(inset.left <= 99 && inset.top <= 99)

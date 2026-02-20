@@ -32,16 +32,21 @@
     <string name="gs_align_vertical">top</string>
 
     <!--
-         Percentage (0–99) used as an offset margin. It is applied in two
-         situations:
-           1. to create additional spacing on the camera side (top in portrait;
-              left or right in landscape depending on device rotation)
-           2. to perform the selected horizontal/vertical alignment described
-              above
-      Changing this value adjusts how much the game area is pushed toward
-      the specified edge.
+         Percentage (0–99) used as an offset margin for the camera hole. When
+         non‑zero it reserves space on whichever edge the front camera sits (top
+         in portrait, left/right in landscape according to rotation). It is
+         ignored when the screen has no camera or the user does not care.
     -->
     <integer name="gs_camera_hole_pct">0</integer>
+
+    <!--
+         Separate percentage (0–99) used to apply alignment offset regardless
+         of camera.  This is the value that will move the game area to the left,
+         right, top or bottom when gs_align_horizontal/vertical is set.  A
+         value of 0 causes alignment to have no visible effect unless a camera
+         margin is also present.
+    -->
+    <integer name="gs_align_offset_pct">0</integer>
 
     <!--
       Examples of using the new system:

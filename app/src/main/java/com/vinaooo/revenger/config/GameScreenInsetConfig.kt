@@ -106,24 +106,27 @@ object GameScreenInsetConfig {
         hAlign: AlignH,
         vAlign: AlignV,
         cameraSide: CameraSide,
-        cameraPct: Int
+        cameraPct: Int,
+        alignPct: Int
     ): Inset {
         var top = 0
         var right = 0
         var bottom = 0
         var left = 0
 
+        // apply alignment offset (independent of camera)
         when (vAlign) {
-            AlignV.TOP -> top += cameraPct
-            AlignV.BOTTOM -> bottom += cameraPct
+            AlignV.TOP -> top += alignPct
+            AlignV.BOTTOM -> bottom += alignPct
             else -> {}
         }
         when (hAlign) {
-            AlignH.LEFT -> left += cameraPct
-            AlignH.RIGHT -> right += cameraPct
+            AlignH.LEFT -> left += alignPct
+            AlignH.RIGHT -> right += alignPct
             else -> {}
         }
 
+        // apply camera margin on the detected side
         when (cameraSide) {
             CameraSide.TOP -> top += cameraPct
             CameraSide.BOTTOM -> bottom += cameraPct
@@ -149,13 +152,21 @@ object GameScreenInsetConfig {
         } catch (e: Resources.NotFoundException) {
             0
         }
+        val alignPct = try {
+            resources.getInteger(R.integer.gs_align_offset_pct)
+        } catch (e: Resources.NotFoundException) {
+            0
+        }
 
         val hAlign = parseAlignH(hRaw)
         val vAlign = parseAlignV(vRaw)
         val cameraSide = detectCameraSide(context)
 
-        Log.d(TAG, "hAlign=$hAlign vAlign=$vAlign pct=$cameraPct% side=$cameraSide")
-        return calculateInset(hAlign, vAlign, cameraSide, cameraPct)
+        Log.d(
+            TAG,
+            "hAlign=$hAlign vAlign=$vAlign align=$alignPct% camera=$cameraPct% side=$cameraSide"
+        )
+        return calculateInset(hAlign, vAlign, cameraSide, cameraPct, alignPct)
     }
 
     @Deprecated("Legacy numeric format", ReplaceWith("getConfiguredInset(resources, isPortrait)"))

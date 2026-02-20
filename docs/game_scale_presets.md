@@ -9,7 +9,8 @@ It replaces the previous direct use of `gs_inset_portrait` and
 ```xml
 <string name="gs_align_horizontal">center</string>        <!-- left|center|right -->
 <string name="gs_align_vertical">center</string>          <!-- top|center|bottom -->
-<integer name="gs_camera_hole_pct">0</integer>           <!-- 0..99 percentage -->
+<integer name="gs_camera_hole_pct">0</integer>           <!-- 0..99 percentage for camera margin -->
+<integer name="gs_align_offset_pct">0</integer>           <!-- 0..99 percentage for alignment movement -->
 ```
 
 ### How it works
