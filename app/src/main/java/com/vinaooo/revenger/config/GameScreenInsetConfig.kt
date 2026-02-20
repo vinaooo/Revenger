@@ -30,6 +30,7 @@ import com.vinaooo.revenger.R
  */
 object GameScreenInsetConfig {
     private const val TAG = "GameScreenInsetConfig"
+    private const val DEFAULT_ALIGN_PCT = 10 // fallback margin used when user specifies an edge but no explicit offset
 
     data class Inset(val top: Int, val right: Int, val bottom: Int, val left: Int) {
         fun isValid(): Boolean {
@@ -162,11 +163,19 @@ object GameScreenInsetConfig {
         val vAlign = parseAlignV(vRaw)
         val cameraSide = detectCameraSide(context)
 
+        // if user didn't supply an explicit offset but did request an edge
+        // alignment, use a sensible default so the change is visible
+        val effectiveAlignPct = if (alignPct == 0 &&
+            (hAlign != AlignH.CENTER || vAlign != AlignV.CENTER)
+        ) {
+            DEFAULT_ALIGN_PCT
+        } else alignPct
+
         Log.d(
             TAG,
-            "hAlign=$hAlign vAlign=$vAlign align=$alignPct% camera=$cameraPct% side=$cameraSide"
+            "hAlign=$hAlign vAlign=$vAlign align=$effectiveAlignPct% camera=$cameraPct% side=$cameraSide"
         )
-        return calculateInset(hAlign, vAlign, cameraSide, cameraPct, alignPct)
+        return calculateInset(hAlign, vAlign, cameraSide, cameraPct, effectiveAlignPct)
     }
 
     @Deprecated("Legacy numeric format", ReplaceWith("getConfiguredInset(resources, isPortrait)"))

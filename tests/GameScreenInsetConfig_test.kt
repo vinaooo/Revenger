@@ -76,6 +76,20 @@ class GameScreenInsetConfigTest {
     }
 
     @Test
+    fun `alignment uses default offset when none specified`() {
+        // ZERO alignPct but non-center alignment should use DEFAULT_ALIGN_PCT
+        val default = 10
+        val inset = GameScreenInsetConfig.calculateInset(
+            GameScreenInsetConfig.AlignH.RIGHT,
+            GameScreenInsetConfig.AlignV.TOP,
+            GameScreenInsetConfig.CameraSide.LEFT,
+            cameraPct = 0,
+            alignPct = 0
+        )
+        assertEquals(GameScreenInsetConfig.Inset(default, 0, 0, 0), inset)
+    }
+
+    @Test
     fun `alignment and camera add together`() {
         val pct = 7
         val offset = 5

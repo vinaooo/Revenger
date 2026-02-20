@@ -20,10 +20,10 @@ It replaces the previous direct use of `gs_inset_portrait` and
   * portrait → top
   * landscape → left or right, depending on rotation
 
-* **Horizontal/vertical alignment** requests that the viewport be pushed toward
-  that edge within the remaining area. The same percentage value
-  (`camera_hole_pct`) is used for the alignment; if the camera and alignment
-  margins point to the same side the effect accumulates.
+* **Horizontal/vertical alignment** anchors the game area to the selected
+  edge.  Moving to a side always uses a default inset (10%) to make the change
+  visible; the value may be overridden by `gs_align_offset_pct` if desired.
+  The camera margin (when present) stacks with this alignment offset.
 
 * If both alignments are `center`, the game fills the available area (even if
   a camera margin exists).
