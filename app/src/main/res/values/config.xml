@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- A unique identifier for the app (no spaces or special characters allowed) -->
-    <string name="conf_id">sth</string>
+    <string name="conf_id">metroid0mission</string>
 
     <!-- The pretty name for the app -->
-    <string name="conf_name">Não jogar</string>
+    <string name="conf_name">Metroid Zero Mission</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="conf_core">picodrive</string>
+    <string name="conf_core">mgba</string>
     <!-- <string name="conf_core">picodrive</string> -->
 
     <!-- Snes = snes9x -->
@@ -17,14 +17,13 @@
     <!-- Master e Mega = picodrive (the best) -->
     
     <!-- rom name, the same name the rom file in res/raw without extension -->
-    <string name="conf_rom">sth</string>
+    <string name="conf_rom">metroid0mission</string>
 
     <!-- Load ROM directly from memory; larger games should have this disabled -->
     <bool name="conf_load_bytes">false</bool>
 
     <!-- Core variables (key=value separated by commas) -->
-    <string name="conf_variables">picodrive_overclk68k=+400%,picodrive_overclksz80=+100%</string>
-
+    <string name="conf_variables">mgba_gb_model=Autodetect,mgba_skip_bios=ON,mgba_sgb_borders=OFF,mgba_audio_low_pass_filter=enabled,mgba_audio_low_pass_range=80,mgba_color_correction=GBA,mgba_interframe_blending=mix_smart</string>
     <!-- Fast forward speed multiplier -->
     <integer name="conf_fast_forward_multiplier">2</integer>
 
@@ -41,7 +40,7 @@
               Modes 1 and 2 always enforce their orientation regardless of system settings.
               Landscape <-> Portrait transitions can be slow as they rebuild the emulator.
     -->
-    <integer name="conf_orientation">2</integer>
+    <integer name="conf_orientation">3</integer>
 
     <!-- Menu display modes
         0: No menu (disabled)
