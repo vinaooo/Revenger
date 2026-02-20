@@ -46,13 +46,20 @@ Here's a diagram of how most Android emulators are configured:
         └── rom3.state
 ```
 
-Here's how Revenger is configured:
+Here's how Revenger is configured with the new multi‑slot system:
 
 ```
 └── Revenger
-    ├── rom
-    ├── save
-    ├── state
+    ├── rom                 # packaged game data
+    ├── save                # SRAM and game-specific files
+    │   ├── slot1.sav       # first save slot
+    │   ├── slot2.sav       # second save slot
+    │   ├── slot3.sav       # third save slot
+    │   └── slotN.sav       # …multiple slots supported
+    ├── state               # save‑state directory (one file per slot)
+    │   ├── slot1.state
+    │   ├── slot2.state
+    │   └── slotN.state
     └── *other system files*
 ```
 
@@ -119,10 +126,6 @@ The generated APK will be available at:
 - Debug: `app/build/outputs/apk/debug/app-debug.apk`
 - Release: `app/build/outputs/apk/release/app-universal-release.apk`
 
-**Expected APK size:** ~60MB (includes LibretroDroid cores)
-
-# Autogen Tool
-Revenger has a directory called `autogen` which contains a basic script to batch-generate Revenger packages. To use it, simply navigate to this folder. Place your ROMs in the `input` folder. In this same folder, put a `config.xml` file with your preferred configuration for these ROMs. Ignore the ID and NAME fields, as they will be overwritten. The script also supports nested folders, in which each can contain their own configuration file. Execute the script with `python generate.py`.
 
 # Recent Updates - RetroMenu3 Refactoring
 
@@ -142,18 +145,6 @@ Starting with the current version, Revenger features a completely refactored men
 - **Testability**: Comprehensive unit tests
 - **Compatibility**: Backward compatibility maintained
 
-### 📱 Menu Controls
-- **RetroMenu3**: Triggered with `SELECT + START`
-- **Navigation**: DPAD to move, A/B to confirm/cancel
-
-### 🧪 Test Status
-- ✅ **Unit Tests**: 50 tasks passing
-- ✅ **Build**: Clean and fast compilation
-- ✅ **Runtime**: Startup <1 second
-- ✅ **Device**: Tested on Android emulator
-
-### 📚 Technical Documentation
-See `docs/FASE6_FINALIZACAO_TESTES.md` for full refactoring details.
 
 ---
 
