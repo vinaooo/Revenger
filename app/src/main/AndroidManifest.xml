@@ -14,12 +14,14 @@
         android:largeHeap="true"
         android:isGame="true"
         android:hardwareAccelerated="true"
+        android:extractNativeLibs="true"
         android:name=".RevengerApplication"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/conf_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+        android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
+        android:pageSizeCompat="enabled">
         
         <!-- SplashActivity - Entry point com animação CRT -->
         <activity android:name=".views.SplashActivity"

@@ -133,7 +133,11 @@ android {
 
 task prepareCore {
     doLast {
-        for (abi in ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']) {
+        def missingAbis = []
+        def availableAbis = []
+        def abis = ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
+
+        for (abi in abis) {
             def jniAbiFolder = file("${rootProject.projectDir}/app/src/main/jniLibs/$abi")
 
             if (jniAbiFolder.exists() && jniAbiFolder.list().length > 0) {
@@ -141,45 +145,126 @@ task prepareCore {
                 continue
             }
 
-            jniAbiFolder.mkdirs()
-            
-            def coreUrl = "https://buildbot.libretro.com/nightly/android/latest/$abi/${getConfigValue('conf_core')}_libretro_android.so.zip"
+            // Use a temp dir for extraction so we can inspect ELF headers before deciding where to place the .so
             def coreName = getConfigValue('conf_core')
-            def zipFile = new File(jniAbiFolder, "${coreName}_libretro_android.so.zip")
-            
-            println "Baixando LibRetro core: $coreName para $abi"
-            
-            // Native Java download implementation
+            def tmpDir = new File(buildDir, "tmp/cores/${coreName}/${abi}")
+            tmpDir.mkdirs()
+
+            jniAbiFolder.mkdirs()
+            def coreUrl = "https://buildbot.libretro.com/nightly/android/latest/$abi/${coreName}_libretro_android.so.zip"
+            def zipFile = new File(tmpDir, "${coreName}_libretro_android.so.zip")
+
+            println "Checking availability for $coreName on ABI=$abi"
+
+            // First: quick HEAD check to verify remote exists for this ABI
             try {
                 def url = new URL(coreUrl)
-                def connection = url.openConnection()
+                def conn = url.openConnection()
+                conn.setConnectTimeout(10000)
+                conn.setReadTimeout(10000)
+                if (conn instanceof HttpURLConnection) {
+                    conn.setRequestMethod('HEAD')
+                    conn.setRequestProperty('User-Agent', 'LibRetroChecker/1.0')
+                    conn.connect()
+                    def rc = conn.getResponseCode()
+                    if (rc >= 200 && rc < 300) {
+                        availableAbis << abi
+                    } else {
+                        println "Core '${coreName}' not available for ABI $abi (HTTP $rc). Skipping ABI."
+                        missingAbis << abi
+                        continue
+                    }
+                } else {
+                    // Non-HTTP - attempt to open stream briefly
+                    conn.getInputStream().close()
+                    availableAbis << abi
+                }
+            } catch (Exception e) {
+                println "Could not reach $coreUrl for $abi: ${e.message} — skipping ABI."
+                missingAbis << abi
+                continue
+            }
+
+            // If available, perform download to tmp
+            println "Baixando LibRetro core: $coreName para $abi (tmp)"
+            try {
+                def url2 = new URL(coreUrl)
+                def connection = url2.openConnection()
                 connection.setConnectTimeout(30000) // 30s
                 connection.setReadTimeout(60000)    // 60s
-                connection.setRequestProperty("User-Agent", "LibRetroDownloader/1.0")
-                
+                connection.setRequestProperty('User-Agent', 'LibRetroDownloader/1.0')
+
                 zipFile.withOutputStream { out ->
                     connection.inputStream.withCloseable { input ->
                         out << input
                     }
                 }
-                
-                println "Download completed: ${zipFile.length()} bytes"
-                
-                // Extrair ZIP
+
+                println "Download completed (tmp): ${zipFile.length()} bytes"
+
+                // Extract to tmp first
                 copy {
                     from zipTree(zipFile.absolutePath)
-                    into jniAbiFolder.absolutePath
-                    rename "${coreName}_libretro_android.so", "libcore.so"
+                    into tmpDir.absolutePath
                 }
-                
-                // Clean ZIP file
+
+                def extractedSo = new File(tmpDir, "${coreName}_libretro_android.so")
+                if (!extractedSo.exists()) {
+                    throw new GradleException("Downloaded ZIP did not contain ${coreName}_libretro_android.so")
+                }
+
+                // Quick ELF alignment verification (helps catch 16KB install failure)
+                def minAlign = null
+                try {
+                    def proc = ['readelf','-l', extractedSo.absolutePath].execute()
+                    proc.waitFor()
+                    def elfOut = proc.in.text + proc.err.text
+                    def alignMatcher = (elfOut =~ /(?:align|ALIGN)\s+0x([0-9a-fA-F]+)/)
+                    def alignValues = []
+                    alignMatcher.each { alignValues << Long.parseLong(it[1], 16) }
+                    if (!alignValues.isEmpty()) {
+                        minAlign = alignValues.min()
+                    }
+                } catch (Exception e) {
+                    println "Skipping readelf alignment check (readelf missing): ${e.message}"
+                }
+
+                if (minAlign != null && minAlign < 0x4000) {
+                    println "Detected misaligned core for $abi (min p_align=0x${Long.toHexString(minAlign)}). Will package core in assets instead of native lib/ to avoid system 16KB warnings."
+
+                    // Copy into assets so runtime can extract and use it (prevents APK containing misaligned lib in lib/)
+                    def assetDest = file("${projectDir}/src/main/assets/cores/${coreName}/${abi}")
+                    assetDest.mkdirs()
+                    copy {
+                        from extractedSo.absolutePath
+                        into assetDest.absolutePath
+                        rename { 'libcore.so' }
+                    }
+
+                    // Ensure jniAbiFolder does NOT contain libcore.so so it isn't packaged under lib/
+                    def packagedSo = new File(jniAbiFolder, 'libcore.so')
+                    if (packagedSo.exists()) packagedSo.delete()
+
+                    missingAbis << abi // mark as 'not bundled as native' so developer is aware
+                } else {
+                    // Good alignment or unknown — put it in native jniLibs so it is bundled normally
+                    copy {
+                        from extractedSo.absolutePath
+                        into jniAbiFolder.absolutePath
+                        rename { 'libcore.so' }
+                    }
+
+                    println "ELF alignment OK or unknown; libcore.so packaged for $abi"
+                }
+
+                // Clean tmp ZIP
                 zipFile.delete()
-                
-                println "Core $coreName successfully extracted for $abi"
-                
+
+                println "Core $coreName processed for $abi"
+
             } catch (Exception e) {
-                println "ERRO no download nativo: ${e.message}"
-                
+                println "ERRO no download/process para $abi: ${e.message}"
+
                 // Fallback: use old method if plugin available
                 try {
                     download {
@@ -189,16 +274,31 @@ task prepareCore {
                     copy {
                         from zipTree("${jniAbiFolder.absolutePath}/${coreName}_libretro_android.so.zip")
                         into jniAbiFolder.absolutePath
-                        rename "${coreName}_libretro_android.so", "libcore.so"
+                        rename "${coreName}_libretro_android.so", 'libcore.so'
                     }
                     delete {
                         delete "${jniAbiFolder.absolutePath}/${coreName}_libretro_android.so.zip"
                     }
                     println "Fallback bem-sucedido para $abi"
                 } catch (Exception e2) {
-                    throw new GradleException("Falha no download e fallback para $abi: ${e2.message}")
+                    println "Falha no download e fallback para $abi: ${e2.message}. Marking ABI as missing."
+                    missingAbis << abi
                 }
+            } finally {
+                // cleanup tmpDir
+                tmpDir.deleteDir()
             }
+        }
+
+        // Summary for the user
+        if (!missingAbis.isEmpty()) {
+            println '\n====================================================='
+            println "Aviso: o core '${getConfigValue('conf_core')}' NÃO está disponível nas seguintes ABIs remotas: ${missingAbis.join(', ')}"
+            println " → O build continuará, mas essas ABIs serão puladas.\n"
+            println "Soluções:\n  - Coloque o .so apropriado em app/src/main/jniLibs/<abi>/\n  - Ou escolha uma core/ABI suportada pelo buildbot."
+            println '=====================================================\n'
+        } else {
+            println '\nAll requested ABIs have cores available (or were already present).\n'
         }
     }
 }

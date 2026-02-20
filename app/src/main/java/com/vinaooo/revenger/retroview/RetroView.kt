@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
+import java.io.File
 
 class RetroView(private val context: Context, private val coroutineScope: CoroutineScope) {
     companion object {
@@ -121,7 +122,30 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
     private val retroViewData =
             GLRetroViewData(context).apply {
-                coreFilePath = "libcore.so"
+                // Prefer core from assets if a misaligned core was packaged into assets by Gradle
+                val coreName = context.getString(com.vinaooo.revenger.R.string.conf_core)
+                val abi = android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "arm64-v8a"
+                val assetCorePath = "cores/${coreName}/${abi}/libcore.so"
+                var extractedCorePath: String? = null
+
+                try {
+                    context.assets.open(assetCorePath).use { input ->
+                        val coreOut = File(context.filesDir, "cores/${coreName}/${abi}")
+                        coreOut.mkdirs()
+                        val outFile = File(coreOut, "libcore.so")
+                        if (!outFile.exists()) {
+                            outFile.outputStream().use { output -> input.copyTo(output) }
+                            outFile.setReadable(true, false)
+                        }
+                        extractedCorePath = outFile.absolutePath
+                        android.util.Log.i("RetroView", "Using core extracted from assets: $extractedCorePath")
+                    }
+                } catch (e: Exception) {
+                    // asset not present — fall back to bundled native lib
+                    extractedCorePath = null
+                }
+
+                coreFilePath = extractedCorePath ?: "libcore.so"
 
                 /* Prepare the ROM bytes */
                 val romName = context.getString(R.string.conf_rom)
