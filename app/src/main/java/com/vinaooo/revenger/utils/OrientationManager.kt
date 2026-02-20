@@ -6,15 +6,15 @@ import android.content.res.Configuration
 import android.util.Log
 
 /**
- * OrientationManager - Centraliza lógica de aplicação de orientação de tela
+ * OrientationManager - Centralizes screen orientation application logic
  *
- * Propósito: Garantir que tanto SplashActivity quanto GameActivity apliquem a mesma
- * lógica de orientação baseada em conf_orientation do config.xml
+ * Purpose: Ensure that both SplashActivity and GameActivity apply the same
+ * orientation logic based on conf_orientation from config.xml
  *
- * Valores de conf_orientation:
- * - 1: Portrait obrigatório
- * - 2: Landscape obrigatório
- * - 3: Qualquer orientação (respeita auto-rotate do sistema)
+ * conf_orientation values:
+ * - 1: Portrait only
+ * - 2: Landscape only
+ * - 3: Any orientation (respects system auto-rotate)
  */
 object OrientationManager {
     private const val TAG = "OrientationManager"
@@ -26,7 +26,7 @@ object OrientationManager {
      * @param configOrientation Valor de conf_orientation (1, 2, ou 3)
      */
     fun applyConfigOrientation(activity: Activity, configOrientation: Int) {
-        // Verificar preferência de auto-rotate do sistema
+        // Check system auto-rotate preference
         val accelerometerRotationEnabled = try {
             android.provider.Settings.System.getInt(
                 activity.contentResolver,
@@ -47,18 +47,18 @@ object OrientationManager {
             1 -> ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT // Sempre portrait
             2 -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE // Sempre landscape
             3 -> {
-                // Se config é "qualquer orientação", respeitar preferência do SO
+                // If config is "any orientation", respect OS preference
                 if (accelerometerRotationEnabled) {
-                    // Auto-rotate habilitado → permitir rotação livre baseada em sensores
+                    // Auto-rotate enabled → allow free rotation based on sensors
                     ActivityInfo.SCREEN_ORIENTATION_USER
                 } else {
-                    // Auto-rotate desabilitado → delegar completamente ao sistema
-                    // UNSPECIFIED permite que o botão manual do sistema funcione
+                    // Auto-rotate disabled → delegate completely to the system
+                    // UNSPECIFIED allows the system manual button to work
                     ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 }
             }
             else -> {
-                Log.w(TAG, "Valor inválido de conf_orientation: $configOrientation")
+                Log.w(TAG, "Invalid conf_orientation value: $configOrientation")
                 return
             }
         }
@@ -77,13 +77,13 @@ object OrientationManager {
      */
     @Suppress("DEPRECATION")
     fun forceConfigurationBeforeSetContent(activity: Activity, configOrientation: Int) {
-        // Para modo 3 (any orientation), não forçar nada - deixar Android decidir
+        // For mode 3 (any orientation), do not force anything - let Android decide
         if (configOrientation == 3) {
             Log.d(TAG, "Mode 3 (any orientation) - skipping configuration force")
             return
         }
 
-        // Determinar a orientação desejada
+        // Determine the desired orientation
         val desiredOrientation = when (configOrientation) {
             1 -> Configuration.ORIENTATION_PORTRAIT
             2 -> Configuration.ORIENTATION_LANDSCAPE
@@ -93,18 +93,18 @@ object OrientationManager {
             }
         }
 
-        // Obter configuration atual e criar uma cópia modificada
+        // Get current configuration and create a modified copy
         val currentConfig = activity.resources.configuration
         
-        // Verificar se já está na orientação correta
+        // Check if it's already in the correct orientation
         if (currentConfig.orientation == desiredOrientation) {
             Log.d(TAG, "Configuration already correct: $desiredOrientation")
             return
         }
 
-        // Forçar a orientação na configuration
-        // NOTA: Este método é deprecated mas é a única forma de garantir
-        // que setContentView() escolha o layout correto imediatamente
+        // Force the orientation in the configuration
+        // NOTE: This method is deprecated but it is the only way to ensure
+        // that setContentView() chooses the correct layout immediately
         val newConfig = Configuration(currentConfig)
         newConfig.orientation = desiredOrientation
         

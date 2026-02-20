@@ -153,7 +153,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     // ===== CENTRALIZED STATE MANAGEMENT =====
-    // Estado distribuído migrado para MenuStateManager
+    // Distributed state migrated to MenuStateManager
 
     /** Check if settings menu is active */
     private fun isSettingsMenuActive(): Boolean =
@@ -370,10 +370,10 @@ class GameActivityViewModel(application: Application) :
                         "🔥 [ON_MENU_CLOSED_CALLBACK] comboAlreadyTriggered reset, keyLog cleared, debounce updated"
                 )
 
-                // Grace period: Manter interceptação ativa por 200ms após menu fechar
-                // 200ms cobre o delay de ~150ms do hardware entre ACTION_DOWN e ACTION_UP
-                // Identificado via logs: UP chega 150ms depois, 50ms era insuficiente
-                // Bloquear apenas o botão que REALMENTE fechou o menu
+                // Grace period: keep interception active for 200ms after menu closes
+                // 200ms covers the ~150ms hardware delay between ACTION_DOWN and ACTION_UP
+                // Identified via logs: UP arrives 150ms later; 50ms was insufficient
+                // Block only the button that actually closed the menu
                 controllerInput.keepInterceptingButtons(200, closingButton = closingButton)
 
                 // Limpar screenshot cacheado quando menu fecha
@@ -493,9 +493,9 @@ class GameActivityViewModel(application: Application) :
         }
 
         // Control when to intercept DPAD for menu
-        // CRITICAL: NÃO verificar isDismissingAllMenus() aqui!
-        // Precisamos continuar interceptando botões mesmo durante o fechamento
-        // para evitar que ACTION_UP vaze para o jogo
+        // CRITICAL: DO NOT check isDismissingAllMenus() here!
+        // We need to keep intercepting buttons even during closing
+        // to prevent ACTION_UP from leaking into the game
         controllerInput.shouldInterceptDpadForMenu = {
             val result = isAnyMenuActive() // Removido: && !isDismissingAllMenus()
             result
@@ -709,7 +709,7 @@ class GameActivityViewModel(application: Application) :
                         exitFragmentActive
         val menuSystemActive = retroMenu3Open || (retroMenu3FragmentExists && hasActiveSubmenu)
 
-        // SIMPLIFICADO: Menu está ativo se qualquer um desses for true
+        // SIMPLIFIED: Menu is active if any of these is true
         val result =
                 retroMenu3Open ||
                         menuSystemActive ||

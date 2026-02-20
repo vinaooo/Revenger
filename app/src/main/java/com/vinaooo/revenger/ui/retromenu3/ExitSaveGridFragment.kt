@@ -308,7 +308,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
                 confirmArrow,
                 cancelArrow
             )
-            // Aplicar capitalização configurada também à mensagem do diálogo
+            // Apply configured capitalization also to the dialog message
             FontUtils.applyTextCapitalization(requireContext(), titleView, messageView, confirmText, cancelText)
 
             // Click listeners

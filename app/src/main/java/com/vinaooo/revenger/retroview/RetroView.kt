@@ -28,13 +28,13 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
     private val resources = context.resources
     private val storage = Storage.getInstance(context)
 
-    // Shader dinâmico para modo "settings"
+    // Dynamic shader for "settings" mode
     private var _dynamicShader: String = "sharp"
     var dynamicShader: String
         get() = _dynamicShader
         set(value) {
             _dynamicShader = value
-            // Aplicar shader em tempo real se estiver no modo settings
+            // Apply shader in real time if in settings mode
             if (isSettingsMode()) {
                 applyShaderInRealtime(value)
             }
@@ -59,7 +59,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                     else -> ShaderConfig.Sharp
                 }
 
-        // Aplicar shader via propriedade do GLRetroView
+        // Apply shader via GLRetroView property
         view.shader = shaderConfig
         Log.i("RetroView", "Shader aplicado em tempo real: $shaderName")
     }
@@ -97,7 +97,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                         "RetroView",
                         "Shader configurado: Settings (modo dinâmico) - usando: $_dynamicShader"
                 )
-                // Modo settings: usar shader dinâmico
+                // Settings mode: use dynamic shader
                 when (_dynamicShader) {
                     "disabled" -> ShaderConfig.Default
                     "sharp" -> ShaderConfig.Sharp

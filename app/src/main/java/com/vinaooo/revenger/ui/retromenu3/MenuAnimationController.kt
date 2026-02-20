@@ -7,7 +7,7 @@ import android.view.View
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.MenuLogger
 
-/** Interface para controle de animações do menu. */
+/** Interface for controlling menu animations. */
 interface MenuAnimationController {
         fun setMenuViews(menuViews: MenuViews)
         fun animateMenuIn(onComplete: (() -> Unit)? = null)
@@ -18,7 +18,7 @@ interface MenuAnimationController {
 }
 
 /**
- * Implementação do MenuAnimationController. Gerencia animações de entrada/saída do menu usando
+ * Implementation of MenuAnimationController. Manages menu in/out animations using
  * ViewPropertyAnimator.
  */
 class MenuAnimationControllerImpl : MenuAnimationController {
@@ -32,10 +32,10 @@ class MenuAnimationControllerImpl : MenuAnimationController {
         override fun animateMenuIn(onComplete: (() -> Unit)?) {
                 MenuLogger.lifecycle("MenuAnimationController: animateMenuIn START")
 
-                // Configurar estado inicial
+                // Set initial state
                 menuViews.menuContainer.alpha = 0f
 
-                // Animar entrada
+                // Animate in
                 menuViews
                         .menuContainer
                         .animate()
@@ -56,7 +56,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
         override fun animateMenuOut(onComplete: (() -> Unit)?) {
                 MenuLogger.lifecycle("MenuAnimationController: animateMenuOut START")
 
-                // Animar saída
+                // Animate out
                 menuViews
                         .menuContainer
                         .animate()
@@ -255,28 +255,28 @@ class MenuAnimationControllerImpl : MenuAnimationController {
         }
 
         companion object {
-                /** Duração da animação de entrada do menu em milissegundos */
+                /** Duration of the menu entrance animation in milliseconds */
                 const val ANIMATION_DURATION_IN = 300L
 
-                /** Duração da animação de saída do menu em milissegundos */
+                /** Duration of the menu exit animation in milliseconds */
                 const val ANIMATION_DURATION_OUT = 200L
 
-                /** Índice do item Continue no menu */
+                /** Index of the Continue item in the menu */
                 const val MENU_ITEM_CONTINUE = 0
 
-                /** Índice do item Reset no menu */
+                /** Index of the Reset item in the menu */
                 const val MENU_ITEM_RESET = 1
 
-                /** Índice do item Progress no menu */
+                /** Index of the Progress item in the menu */
                 const val MENU_ITEM_PROGRESS = 2
 
-                /** Índice do item Settings no menu */
+                /** Index of the Settings item in the menu */
                 const val MENU_ITEM_SETTINGS = 3
 
-                /** Índice do item About no menu */
+                /** Index of the About item in the menu */
                 const val MENU_ITEM_ABOUT = 4
 
-                /** Índice do item Exit no menu */
+                /** Index of the Exit item in the menu */
                 const val MENU_ITEM_EXIT = 5
         }
 }

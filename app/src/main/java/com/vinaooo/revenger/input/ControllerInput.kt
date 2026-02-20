@@ -39,7 +39,7 @@ class ControllerInput(private val context: Context) {
         /** Set of keys currently being held by the user */
         private val keyLog = mutableSetOf<Int>()
 
-        /** Keys que já dispararam ação e devem ficar bloqueados até receber ACTION_UP */
+        /** Keys that have already triggered an action and should remain blocked until they receive ACTION_UP */
         private val blockedUntilKeyUp = mutableSetOf<Int>()
 
         /**
@@ -56,10 +56,10 @@ class ControllerInput(private val context: Context) {
         private var menuCloseDebounceTime = 0L
         private val MENU_CLOSE_DEBOUNCE_MS = 200L // 200ms debounce after menu closes
 
-        // FIX ERRO 1: Tracking de contexto para KEY_DOWN/KEY_UP (B/BackSpace)
-        // Guarda timestamp do último KEY_DOWN por tecla para validar KEY_UP correspondente
+        // FIX ERROR 1: Context tracking for KEY_DOWN/KEY_UP (B/BackSpace)
+        // Store timestamp of last KEY_DOWN per key to validate corresponding KEY_UP
         private val keyDownTimestamps = mutableMapOf<Int, Long>()
-        private val KEY_UP_TIMEOUT_MS = 500L // Timeout para considerar KEY_UP órfão
+        private val KEY_UP_TIMEOUT_MS = 500L // Timeout to consider a KEY_UP orphaned
 
         /**
          * Clears the keyLog to avoid combo detection after closing the menu.
@@ -80,12 +80,12 @@ class ControllerInput(private val context: Context) {
         }
 
         /**
-         * Limpa apenas os botões de ação do menu (A, B, D-PAD) do keyLog NÃO limpa START/SELECT
-         * para não causar problemas no combo Deve ser chamado quando o menu fecha para evitar
-         * "wasAlreadyPressed" false positives
+         * Clears only the menu action buttons (A, B, D-PAD) from the keyLog. Does NOT clear
+         * START/SELECT to avoid combo issues. Should be called when the menu closes to prevent
+         * "wasAlreadyPressed" false positives.
          */
         fun clearMenuActionButtons() {
-                // Remove apenas botões de menu (A, B, D-PAD), mantém START/SELECT
+                // Remove only menu buttons (A, B, D-PAD), keep START/SELECT
                 keyLog.removeIf { keyCode ->
                         keyCode == KeyEvent.KEYCODE_BUTTON_A ||
                                 keyCode == KeyEvent.KEYCODE_BUTTON_B ||
@@ -177,8 +177,8 @@ class ControllerInput(private val context: Context) {
         }
 
         /**
-         * Limpa estado de input para evitar vazamento de eventos durante transições. Reseta
-         * debounces, keyLog, combo e tracking de KEY_DOWN/UP.
+         * Clears input state to prevent event leakage during transitions. Resets
+         * debounces, keyLog, combo, and KEY_DOWN/UP tracking.
          */
         fun clearPendingInputs() {
                 lastMenuBackCallbackTime = 0L
@@ -206,10 +206,10 @@ class ControllerInput(private val context: Context) {
         }
 
         /**
-         * Versão que preserva teclas atualmente pressionadas (ex.: B segurado ao voltar de
-         * submenu). Reseta apenas debounces e flags de combo/grace, mantendo keyLog +
-         * blockedUntilKeyUp para que o ACTION_UP correspondente seja consumido no próximo fragmento
-         * sem reprocessar DOWN.
+         * Version that preserves currently held keys (e.g., B held when returning from
+         * submenu). Resets only debounces and combo/grace flags, keeping keyLog +
+         * blockedUntilKeyUp so the corresponding ACTION_UP is consumed in the next fragment
+         * without reprocessing DOWN.
          */
         fun clearPendingInputsPreserveHeld() {
                 lastMenuBackCallbackTime = 0L
@@ -232,25 +232,25 @@ class ControllerInput(private val context: Context) {
                 )
         }
 
-        /** Function to check if devemos interceptar DPAD para menu */
+        /** Function to check if we should intercept DPAD for menu */
         var shouldInterceptDpadForMenu: () -> Boolean = { false }
 
         /**
-         * Flag para manter interceptação ativa por um período após menu fechar Isso previne que
-         * ACTION_UP vaze para o jogo
+         * Flag to keep interception active for a period after menu closes. This prevents
+         * ACTION_UP from leaking to the game
          */
         private var keepInterceptingUntil: Long = 0L
 
         /** Which button closed the menu (to block only that button during grace period) */
         private var buttonThatClosedMenu: Int? = null
 
-        /** Ativa interceptação temporária por X ms após menu fechar */
+        /** Activate temporary interception for X ms after menu closes */
         fun keepInterceptingButtons(durationMs: Long = 500, closingButton: Int? = null) {
                 keepInterceptingUntil = System.currentTimeMillis() + durationMs
                 buttonThatClosedMenu = closingButton
         }
 
-        /** Verifica se devemos continuar interceptando (menu aberto OU período de graça ativo) */
+        /** Check if we should continue intercepting (menu open OR grace period active) */
         private fun shouldInterceptButtons(): Boolean {
                 val menuActive = shouldInterceptDpadForMenu()
                 val gracePeriodActive = System.currentTimeMillis() < keepInterceptingUntil
@@ -260,25 +260,25 @@ class ControllerInput(private val context: Context) {
         }
 
         /**
-         * Verifica se um botão ESPECÍFICO deve ser bloqueado durante grace period Bloqueia apenas o
-         * botão que fechou o menu durante o grace period NÃO bloqueia outros botões mesmo se menu
-         * estiver "tecnicamente ativo"
+         * Checks if a SPECIFIC button should be blocked during the grace period. Blocks only the
+         * button that closed the menu during the grace period. Does NOT block other buttons even
+         * if the menu is "technically active".
          */
         private fun shouldInterceptSpecificButton(keyCode: Int): Boolean {
-                // Verificação 1: Menu aberto? Sim, interceptar
+                // Check 1: Menu open? Yes, intercept
                 val menuActive = shouldInterceptDpadForMenu()
                 if (menuActive) {
                         return true
                 }
 
-                // Verificação 2: Grace period ativo E é o botão que fechou? Sim, interceptar
+                // Check 2: Grace period active AND is the button that closed? Yes, intercept
                 val now = System.currentTimeMillis()
                 val gracePeriodActive = now < keepInterceptingUntil
                 if (gracePeriodActive && keyCode == buttonThatClosedMenu) {
                         return true
                 }
 
-                // Botão pode passar
+                // Button may pass
                 return false
         }
 
@@ -411,7 +411,7 @@ class ControllerInput(private val context: Context) {
                         // ENABLED FOR DEBUG: Combo rejection logs
                         android.util.Log.d(
                                 "ControllerInput",
-                                "❌ COMBO REJEITADO - Verificando condições faltantes:"
+                                "❌ COMBO REJECTED - Checking missing conditions:"
                         )
                         android.util.Log.d(
                                 "ControllerInput",
@@ -490,7 +490,7 @@ class ControllerInput(private val context: Context) {
                         )
 
                 // INTERCEPT BUTTON A for confirmation when menu is open
-                // Durante grace period, NÃO bloquear A (só menu aberto bloqueia)
+                // During grace period, DO NOT block A (only open menu blocks)
                 val menuActiveForA = shouldInterceptDpadForMenu()
                 val shouldInterceptA = keyCode == KeyEvent.KEYCODE_BUTTON_A && menuActiveForA
                 if (shouldInterceptA) {
@@ -503,8 +503,8 @@ class ControllerInput(private val context: Context) {
                                         "ControllerInput",
                                         "   → Executing menuConfirmCallback"
                                 )
-                                // NOTE: NÃO bloqueamos A aqui porque ele nem sempre fecha o menu
-                                // O bloqueio será feito no callback onMenuClosedCallback
+                                // NOTE: We do NOT block A here because it does not always close the menu
+                                // Blocking will be done in onMenuClosedCallback
                                 executeMenuCallback(
                                         menuConfirmCallback,
                                         lastMenuConfirmCallbackTime
@@ -530,7 +530,7 @@ class ControllerInput(private val context: Context) {
                         )
 
                         if (action == KeyEvent.ACTION_DOWN) {
-                                // Verificar se já foi adicionado ao keyLog (hold/repeat)
+                                // Check if already added to keyLog (hold/repeat)
                                 val alreadyPressed = keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
                                 if (alreadyPressed) {
                                         android.util.Log.d(
@@ -552,7 +552,7 @@ class ControllerInput(private val context: Context) {
                                         lastMenuBackCallbackTime = it
                                 }
                         } else if (action == KeyEvent.ACTION_UP) {
-                                // ACTION_UP: remover do keyLog para permitir nova interação
+                                // ACTION_UP: remove from keyLog to allow new interaction
                                 val wasPressed = keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
                                 keyLog.remove(KeyEvent.KEYCODE_BUTTON_B)
                                 keyDownTimestamps.remove(KeyEvent.KEYCODE_BUTTON_B)
@@ -759,7 +759,7 @@ class ControllerInput(private val context: Context) {
                 }
 
                 // INTERCEPT BUTTON A for confirmation when menu is open
-                // Durante grace period, NÃO bloquear A (só menu aberto bloqueia)
+                // During grace period, DO NOT block A (only open menu blocks)
                 if (keyCode == KeyEvent.KEYCODE_BUTTON_A && shouldInterceptDpadForMenu()) {
                         if (event.action == KeyEvent.ACTION_DOWN) {
                                 android.util.Log.d(

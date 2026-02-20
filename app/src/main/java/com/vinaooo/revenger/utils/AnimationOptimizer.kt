@@ -247,7 +247,7 @@ object AnimationOptimizer {
 
     /** Limpa os pools quando necessário (chamar no onDestroy da Activity) */
     fun clearPools() {
-        // Não é estritamente necessário, mas ajuda na limpeza de memória
+        // Not strictly necessary, but helps with memory cleanup
         MenuLogger.performance("Animation pools cleared")
     }
 }

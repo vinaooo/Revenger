@@ -310,10 +310,10 @@ object AdvancedPerformanceProfiler {
                         android.widget.TextView(context).apply {
                             setBackgroundColor(
                                     android.graphics.Color.parseColor("#CC000000")
-                            ) // Mais opaco
-                            setTextColor(android.graphics.Color.YELLOW) // Cor mais visível
-                            textSize = 14f // Fonte maior
-                            setPadding(20, 12, 20, 12) // Padding maior
+                            ) // More opaque
+                            setTextColor(android.graphics.Color.YELLOW) // More visible color
+                            textSize = 14f // Larger font
+                            setPadding(20, 12, 20, 12) // Bigger padding
                             text = "Initializing FPS overlay..."
                             layoutParams =
                                     android.widget.FrameLayout.LayoutParams(
@@ -326,7 +326,7 @@ object AdvancedPerformanceProfiler {
                                                 gravity =
                                                         android.view.Gravity.TOP or
                                                                 android.view.Gravity.START
-                                                setMargins(32, 150, 32, 32) // Margens maiores
+                                                setMargins(32, 150, 32, 32) // Larger margins
                                             }
                             // Garantir que fique na frente
                             elevation = 10f

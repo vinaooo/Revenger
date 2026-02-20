@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =====================================================
-# Script Otimizado - Executar Testes de Cleanup
+# Optimized Script - Run Cleanup Tests
 # =====================================================
 
 set -e
@@ -22,7 +22,7 @@ echo -e "${BLUE}╚════════════════════�
 echo ""
 
 # =====================================================
-# FASE 1: Unit Tests (Cleanup Validation)
+# PHASE 1: Unit Tests (Cleanup Validation)
 # =====================================================
 echo -e "${YELLOW}[FASE 1]${NC} Executando Testes Unitários de Validação de Cleanup"
 echo ""
@@ -38,7 +38,7 @@ fi
 echo ""
 
 # =====================================================
-# FASE 2: Build Verification
+# PHASE 2: Build Verification
 # =====================================================
 echo -e "${YELLOW}[FASE 2]${NC} Verificação de Build (Zero Warnings)"
 echo ""
@@ -60,12 +60,12 @@ fi
 echo ""
 
 # =====================================================
-# FASE 3: Code Quality Validation
+# PHASE 3: Code Quality Validation
 # =====================================================
 echo -e "${YELLOW}[FASE 3]${NC} Validação de Qualidade de Código"
 echo ""
 
-# T1: Latinit removidos
+# T1: lateinit removed
 echo -n "Validando Fase 3 (Latinit → Val)... "
 LATINIT_COUNT=$(grep -c "lateinit var" "$PROJECT_ROOT/app/src/main/java/com/vinaooo/revenger/viewmodels/GameActivityViewModel.kt" 2>/dev/null || true)
 if [ "$LATINIT_COUNT" -eq 0 ]; then
@@ -76,7 +76,7 @@ else
     T1_RESULT="FAIL"
 fi
 
-# T2: Código morto
+# T2: Dead code
 echo -n "Validando Fase 1 (Código Morto)... "
 UNREACHABLE=$(echo "$BUILD_OUTPUT" | grep -c "UNREACHABLE_CODE" || true)
 if [ "$UNREACHABLE" -eq 0 ]; then
@@ -87,7 +87,7 @@ else
     T2_RESULT="FAIL"
 fi
 
-# T4: Parâmetro removido
+# T4: Parameter removed
 echo -n "Validando Fase 4.1 (Parâmetro Removido)... "
 PARAM_COUNT=$(grep "fun prepareRetroMenu3()" "$PROJECT_ROOT/app/src/main/java/com/vinaooo/revenger/viewmodels/GameActivityViewModel.kt" 2>/dev/null | wc -l || true)
 if [ "$PARAM_COUNT" -gt 0 ]; then
@@ -98,7 +98,7 @@ else
     T4_RESULT="FAIL"
 fi
 
-# T5: Safe call/cast removidos
+# T5: Safe call/cast removed
 echo -n "Validando Fase 4.2 (Safe Call/Cast)... "
 UNSAFE_CAST=$(grep -c "as? androidx.fragment.app.FragmentActivity" "$PROJECT_ROOT/app/src/main/java/com/vinaooo/revenger/viewmodels/GameActivityViewModel.kt" 2>/dev/null || true)
 if [ "$UNSAFE_CAST" -eq 0 ]; then
@@ -114,7 +114,7 @@ FASE3_RESULT="PASSOU"
 echo ""
 
 # =====================================================
-# RESUMO FINAL
+# FINAL SUMMARY
 # =====================================================
 echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║                  RESUMO FINAL                      ║${NC}"

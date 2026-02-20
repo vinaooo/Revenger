@@ -120,8 +120,8 @@ object ViewUtils {
     }
 
     /**
-     * Animação otimizada de view usando ViewPropertyAnimator com pool de objetos. Substitui
-     * animateView para melhor performance.
+     * Optimized view animation using ViewPropertyAnimator with object pooling. Replaces
+     * animateView for better performance.
      */
     fun animateViewOptimized(
             view: View,
@@ -134,8 +134,8 @@ object ViewUtils {
     }
 
     /**
-     * Animação em lote otimizada usando pools de objetos. Substitui animateMenuViewsBatch para
-     * melhor performance.
+     * Optimized batch animation using object pools. Replaces animateMenuViewsBatch for
+     * better performance.
      */
     fun animateMenuViewsBatchOptimized(
             views: Array<View>,

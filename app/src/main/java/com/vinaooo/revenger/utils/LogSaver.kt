@@ -256,7 +256,7 @@ object LogSaver {
             val inputStream = process.inputStream
             val logs = inputStream.bufferedReader().use { it.readText() }
 
-            // Filtrar apenas logs relevantes (últimas 1000 linhas para não ficar muito grande)
+            // Filter only relevant logs (last 1000 lines to avoid being too large)
             val lines = logs.lines()
             val relevantLines = lines.takeLast(1000)
 

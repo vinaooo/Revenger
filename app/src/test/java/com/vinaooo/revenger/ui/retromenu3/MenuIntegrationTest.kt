@@ -89,7 +89,7 @@ class MenuIntegrationTest {
     }
 
     @Test
-    fun `configuracao do menu e valida`() {
+    fun `menu configuration is valid`() {
         val config = MenuConfigurationBuilder.createMainMenu().build()
         
         assertTrue(config.isValid())
@@ -98,33 +98,33 @@ class MenuIntegrationTest {
     }
 
     @Test
-    fun `fragment herda de MenuFragmentBase`() {
+    fun `fragment inherits from MenuFragmentBase`() {
         assertTrue(fragment is MenuFragmentBase)
     }
 
     @Test
-    fun `fragment implementa MenuFragment`() {
+    fun `fragment implements MenuFragment`() {
         assertTrue(fragment is MenuFragment)
     }
 
     @Test
-    fun `onBackToMainMenu pode ser chamado sem erro`() {
+    fun `onBackToMainMenu can be called without error`() {
         try {
             fragment.onBackToMainMenu()
-            // Sucesso se não lançar exceção
+            // Success if no exception thrown
             assertTrue(true)
         } catch (e: Exception) {
-            fail("onBackToMainMenu não deveria lançar exceção: ${e.message}")
+            fail("onBackToMainMenu should not throw exception: ${e.message}")
         }
     }
 
     @Test
-    fun `onAboutBackToMainMenu pode ser chamado sem erro`() {
+    fun `onAboutBackToMainMenu can be called without error`() {
         try {
             fragment.onAboutBackToMainMenu()
             assertTrue(true)
         } catch (e: Exception) {
-            fail("onAboutBackToMainMenu não deveria lançar exceção: ${e.message}")
+            fail("onAboutBackToMainMenu should not throw exception: ${e.message}")
         }
     }
 

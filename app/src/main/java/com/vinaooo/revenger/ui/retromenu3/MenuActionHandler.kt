@@ -10,8 +10,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Classe especializada para processar ações de menu no RetroMenu3Fragment. Responsável por executar
- * todas as ações do menu (continue, reset, submenus, etc.) através de uma interface unificada.
+ * Specialized class to process menu actions in the RetroMenu3Fragment. Responsible for executing
+ * all menu actions (continue, reset, submenus, etc.) through a unified interface.
  */
 class MenuActionHandler(
         private val fragment: Fragment,
@@ -24,7 +24,7 @@ class MenuActionHandler(
                 private const val TAG = "MenuActionHandler"
         }
 
-        /** Executa uma ação de menu baseada no MenuAction */
+        /** Executes a menu action based on MenuAction */
         fun executeAction(action: MenuAction) {
                 MenuLogger.action("Executing action: $action")
 
@@ -37,7 +37,7 @@ class MenuActionHandler(
                 }
         }
 
-        /** Executa ação de continuar jogo */
+        /** Executes the continue game action */
         private fun executeContinue() {
                 Log.d(
                         "MenuActionHandler",
@@ -103,7 +103,7 @@ class MenuActionHandler(
                 }
         }
 
-        /** Executa ação de reset do jogo */
+        /** Executes the game reset action */
         private fun executeReset() {
                 Log.d(
                         "MenuActionHandler",
@@ -187,7 +187,7 @@ class MenuActionHandler(
                 }
         }
 
-        /** Executa ação de salvar log */
+        /** Executes the save log action */
         private fun executeSaveLog() {
                 MenuLogger.action("💾 Starting log file save process")
 
@@ -241,10 +241,9 @@ class MenuActionHandler(
                 }
         }
 
-        /** Executa ação de navegação para submenu */
+        /** Executes navigation to a submenu action */
         private fun executeNavigate(targetMenu: MenuState) {
-                // O ÍNDICE SELECIONADO ATUAL SERÁ SALVO DIRETAMENTE NO openSubmenu DO
-                // SubmenuCoordinator
+                // The CURRENT SELECTED INDEX WILL BE SAVED DIRECTLY IN SubmenuCoordinator.openSubmenu
                 MenuLogger.action("� Opening submenu: $targetMenu")
 
                 when (targetMenu) {
@@ -262,7 +261,7 @@ class MenuActionHandler(
                 submenuCoordinator.openSubmenu(MenuState.PROGRESS_MENU)
         }
 
-        /** Abre submenu de configurações */
+        /** Opens settings submenu */
         private fun openSettingsSubmenu() {
                 MenuLogger.action("⚙️ Open Settings submenu")
                 submenuCoordinator.openSubmenu(MenuState.SETTINGS_MENU)
@@ -274,7 +273,7 @@ class MenuActionHandler(
                 submenuCoordinator.openSubmenu(MenuState.ABOUT_MENU)
         }
 
-        /** Abre submenu de saída */
+        /** Opens exit submenu */
         private fun openExitSubmenu() {
                 MenuLogger.action("🚪 Open Exit submenu")
                 submenuCoordinator.openSubmenu(MenuState.EXIT_MENU)

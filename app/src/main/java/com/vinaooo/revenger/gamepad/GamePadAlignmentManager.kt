@@ -6,35 +6,35 @@ import com.swordfish.radialgamepad.library.config.RadialGamePadConfig
 import com.vinaooo.revenger.R
 
 /**
- * Gerenciador centralizado para alinhamento e posicionamento do GamePad virtual.
+ * Centralized manager for virtual GamePad alignment and positioning.
  *
- * Responsabilidades:
- * 1. Calcular Empty Dials necessários para manter simetria entre LEFT e RIGHT
- * 2. Calcular margin baseada no offset vertical (0-100%) configurado em XML
- * 3. Fornecer métodos para aplicação dinâmica em runtime
+ * Responsibilities:
+ * 1. Calculate Empty Dials required to maintain symmetry between LEFT and RIGHT
+ * 2. Calculate margin based on vertical offset (0-100%) configured in XML
+ * 3. Provide methods for dynamic application at runtime
  *
- * Objetivo: Garantir que os centros do LEFT e RIGHT GamePad sejam sempre alinhados horizontalmente,
- * mesmo quando têm diferentes configurações de botões secundários.
+ * Goal: Ensure that the centers of LEFT and RIGHT GamePads are always horizontally
+ * aligned, even when they have different secondary button configurations.
  */
 class GamePadAlignmentManager(private val resources: Resources) {
 
     companion object {
         private const val TAG = "GamePadAlignmentManager"
 
-        // Índices padrão que precisam ser espelhados
-        private const val MENU_INDEX = 8 // Índice do botão MENU (RIGHT)
+        // Default indices that need to be mirrored
+        private const val MENU_INDEX = 8 // Index of MENU button (RIGHT)
     }
 
     /**
-     * Calcula a margin inferior em pixels baseada no offset vertical (0-100%) e altura da tela.
+     * Calculates bottom margin in pixels based on vertical offset (0-100%) and screen height.
      *
-     * @param screenHeight Altura total da tela em pixels (exclusivo de status bar, nav bar, etc)
-     * @param offsetPercent Offset vertical em percentual (0-100). 100 = na borda inferior, 50 =
-     * centralizado
-     * @return Margin inferior em pixels. Valores negativos movem o GamePad para cima.
+     * @param screenHeight Total screen height in pixels (excluding status bar, nav bar, etc)
+     * @param offsetPercent Vertical offset as percentage (0-100). 100 = bottom edge, 50 =
+     * centered
+     * @return Bottom margin in pixels. Negative values move the GamePad up.
      *
-     * Fórmula: screenHeight * (100 - offsetPercent) / 100 Exemplo: screenHeight=1000, offset=100 →
-     * margin = 0px (na borda) Exemplo: screenHeight=1000, offset=50 → margin = 500px (centralizado)
+     * Formula: screenHeight * (100 - offsetPercent) / 100 Example: screenHeight=1000, offset=100 →
+     * margin = 0px (at edge) Example: screenHeight=1000, offset=50 → margin = 500px (centered)
      */
     fun calculateBottomMarginPortrait(screenHeight: Int, offsetPercent: Int): Int {
         val clampedOffset = offsetPercent.coerceIn(0, 100)
@@ -50,12 +50,12 @@ class GamePadAlignmentManager(private val resources: Resources) {
     }
 
     /**
-     * Calcula a margin superior em pixels para landscape. Em landscape, o GamePad é posicionado no
-     * topo, então usamos marginTop.
+     * Calculates top margin in pixels for landscape. In landscape, the GamePad is positioned at
+     * the top, so we use marginTop.
      *
-     * @param screenHeight Altura da tela em pixels
-     * @param offsetPercent Offset vertical em percentual (0-100). 100 = na borda inferior, 0 = topo
-     * @return Margin superior em pixels. Positivo = move para baixo
+     * @param screenHeight Screen height in pixels
+     * @param offsetPercent Vertical offset as percentage (0-100). 100 = bottom edge, 0 = top
+     * @return Top margin in pixels. Positive = moves downward
      */
     fun calculateTopMarginLandscape(screenHeight: Int, offsetPercent: Int): Int {
         val clampedOffset = offsetPercent.coerceIn(0, 100)
@@ -74,25 +74,25 @@ class GamePadAlignmentManager(private val resources: Resources) {
     }
 
     /**
-     * Retorna os índices de Empty Dials necessários para o lado LEFT para espelhar a configuração
-     * do lado RIGHT.
+     * Returns the indices of Empty Dials required for the LEFT side to mirror the RIGHT
+     * side configuration.
      *
-     * Nota: Esta versão é simplificada pois o Empty Dial já foi adicionado diretamente em
-     * GamePadConfig.kt para o índice 8 (MENU). Este método existe para documentação futura e
-     * extensibilidade.
+     * Note: This version is simplified because the Empty Dial has already been added directly
+     * in GamePadConfig.kt for index 8 (MENU). This method exists for future documentation and
+     * extensibility.
      *
-     * @return Lista contendo o índice 8 (MENU)
+     * @return List containing index 8 (MENU)
      */
     fun getEmptyDialIndicesForLeft(): List<Int> {
         return listOf(MENU_INDEX)
     }
 
     /**
-     * Retorna informações sobre o alinhamento atual para logging/debug.
+     * Returns information about current alignment for logging/debug.
      *
-     * @param leftConfig Configuração do GamePad LEFT
-     * @param rightConfig Configuração do GamePad RIGHT
-     * @return String com resumo de ambas as configurações
+     * @param leftConfig LEFT GamePad configuration
+     * @param rightConfig RIGHT GamePad configuration
+     * @return String summarizing both configurations
      */
     fun getAlignmentDebugInfo(
             leftConfig: RadialGamePadConfig?,
@@ -117,9 +117,9 @@ class GamePadAlignmentManager(private val resources: Resources) {
     }
 
     /**
-     * Valida se os offsets XML estão no intervalo correto.
+     * Validates that XML offsets are within the correct range.
      *
-     * @return Pair<Boolean, String> com validação e mensagem de erro (se houver)
+     * @return Pair<Boolean, String> with validation result and error message (if any)
      */
     fun validateOffsets(): Pair<Boolean, String> {
         return try {
@@ -143,7 +143,7 @@ class GamePadAlignmentManager(private val resources: Resources) {
                 else -> {
                     Log.d(
                             TAG,
-                            "Offsets válidos - Portrait: $portraitOffset%, Landscape: $landscapeOffset%"
+                            "Offsets valid - Portrait: $portraitOffset%, Landscape: $landscapeOffset%"
                     )
                     Pair(true, "")
                 }

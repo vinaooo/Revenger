@@ -1,18 +1,18 @@
 #!/bin/bash
 
-# Script auxiliar para testes da Fase 9
-# Sistema Multi-Slot Save States - Revenger
+# Auxiliary script for Phase 9 tests
+# Multi-Slot Save States System - Revenger
 
 set -e
 
-# Cores para output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Funções auxiliares
+# Helper functions
 print_header() {
     echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
     echo -e "${BLUE}  $1${NC}"
@@ -35,17 +35,17 @@ print_info() {
     echo -e "${BLUE}ℹ $1${NC}"
 }
 
-# Ler config_id do config.xml
+# Read config_id from config.xml
 get_config_id() {
     local config_id=$(grep -oP '(?<=<string name="config_id">)[^<]+' app/src/main/res/values/config.xml 2>/dev/null)
     if [ -z "$config_id" ]; then
-        print_error "Não foi possível ler config_id do config.xml"
+        print_error "Could not read config_id from config.xml"
         exit 1
     fi
     echo "$config_id"
 }
 
-# Verificar se o app está instalado
+# Check if the app is installed
 check_app_installed() {
     local config_id=$1
     local package="com.vinaooo.revenger.$config_id"
@@ -57,42 +57,42 @@ check_app_installed() {
     fi
 }
 
-# Menu principal
+# Main menu
 show_menu() {
     echo ""
-    print_header "MENU DE TESTES - FASE 9"
-    echo "1) Verificar ambiente de teste"
-    echo "2) Build e instalar APK"
-    echo "3) Limpar dados do app (reset completo)"
-    echo "4) Criar save legado para teste de migração"
-    echo "5) Ver estrutura de saves no device"
-    echo "6) Ver metadata de um slot específico"
-    echo "7) Iniciar app"
-    echo "8) Ver logs em tempo real"
-    echo "9) Capturar screenshot do device"
-    echo "10) Executar testes unitários"
-    echo "0) Sair"
+    print_header "TEST MENU - PHASE 9"
+    echo "1) Check test environment"
+    echo "2) Build and install APK"
+    echo "3) Clear app data (full reset)"
+    echo "4) Create legacy save for migration test"
+    echo "5) View save structure on device"
+    echo "6) View metadata of a specific slot"
+    echo "7) Launch app"
+    echo "8) View real-time logs"
+    echo "9) Capture screenshot from device"
+    echo "10) Run unit tests"
+    echo "0) Exit"
     echo ""
-    echo -n "Escolha uma opção: "
+    echo -n "Choose an option: "
 }
 
-# 1. Verificar ambiente
+# 1. Check environment
 check_environment() {
-    print_header "VERIFICANDO AMBIENTE DE TESTE"
+    print_header "CHECKING TEST ENVIRONMENT"
     
     # Verificar ADB
     if command -v adb &> /dev/null; then
-        print_success "ADB instalado"
+        print_success "ADB installed"
     else
-        print_error "ADB não encontrado"
+        print_error "ADB not found"
         return 1
     fi
     
     # Verificar device conectado
     if adb devices | grep -q "device$"; then
-        print_success "Device conectado"
+        print_success "Device connected"
     else
-        print_error "Nenhum device conectado"
+        print_error "No device connected"
         return 1
     fi
     
@@ -102,93 +102,93 @@ check_environment() {
     
     # Verificar app instalado
     if check_app_installed "$config_id"; then
-        print_success "App instalado: com.vinaooo.revenger.$config_id"
+        print_success "App installed: com.vinaooo.revenger.$config_id"
     else
-        print_warning "App não instalado"
+        print_warning "App not installed"
     fi
     
     # Verificar ROM configurada
     local rom=$(grep -oP '(?<=<string name="config_rom">)[^<]+' app/src/main/res/values/config.xml 2>/dev/null)
     if [ -n "$rom" ]; then
-        print_success "ROM configurada: $rom"
+        print_success "ROM configured: $rom"
     else
-        print_warning "ROM não configurada"
+        print_warning "ROM not configured"
     fi
     
-    # Verificar testes unitários
+    # Check unit tests
     local test_count=$(find app/src/test -name "*.kt" -type f | wc -l)
-    print_success "Testes unitários: $test_count arquivos"
+    print_success "Unit tests: $test_count files"
     
     echo ""
-    print_info "Ambiente pronto para testes!"
+    print_info "Environment ready for tests!"
 }
 
-# 2. Build e instalar
+# 2. Build and install
 build_and_install() {
-    print_header "BUILD E INSTALAÇÃO"
+    print_header "BUILD AND INSTALL"
     
-    print_info "Compilando APK..."
+    print_info "Building APK..."
     ./gradlew clean assembleDebug
     
-    print_info "Instalando no device..."
+    print_info "Installing on device..."
     ./gradlew installDebug
     
-    print_success "APK instalado com sucesso!"
+    print_success "APK installed successfully!"
 }
 
-# 3. Limpar dados
+# 3. Clear data
 clear_app_data() {
     local config_id=$(get_config_id)
     local package="com.vinaooo.revenger.$config_id"
     
-    print_header "LIMPANDO DADOS DO APP"
-    print_warning "Isso irá apagar TODOS os saves e configurações!"
-    echo -n "Confirma? (s/N): "
+    print_header "CLEARING APP DATA"
+    print_warning "This will delete ALL saves and settings!"
+    echo -n "Confirm? (y/N): "
     read -r confirm
     
     if [[ "$confirm" == "s" || "$confirm" == "S" ]]; then
         adb shell pm clear "$package"
         print_success "Dados limpos!"
     else
-        print_info "Operação cancelada"
+        print_info "Operation cancelled"
     fi
 }
 
-# 4. Criar save legado
+# 4. Create legacy save
 create_legacy_save() {
     local config_id=$(get_config_id)
     local package="com.vinaooo.revenger.$config_id"
     local data_dir="/data/data/$package/files"
     
-    print_header "CRIANDO SAVE LEGADO"
+    print_header "CREATING LEGACY SAVE"
     
     if ! check_app_installed "$config_id"; then
-        print_error "App não está instalado. Execute opção 2 primeiro."
+        print_error "App is not installed. Run option 2 first."
         return 1
     fi
     
-    print_info "Criando arquivo de save legado..."
+    print_info "Creating legacy save file..."
     adb shell "echo 'Legacy save state data for testing migration' > $data_dir/state"
     
     if adb shell "[ -f $data_dir/state ] && echo 'exists'" | grep -q "exists"; then
-        print_success "Save legado criado em: $data_dir/state"
-        print_info "Reinicie o app para testar a migração"
+        print_success "Legacy save created at: $data_dir/state"
+        print_info "Restart the app to test migration"
     else
-        print_error "Falha ao criar save legado"
+        print_error "Failed to create legacy save"
     fi
 }
 
-# 5. Ver estrutura de saves
+# 5. View save structure
 show_save_structure() {
     local config_id=$(get_config_id)
     local package="com.vinaooo.revenger.$config_id"
     local saves_dir="/data/data/$package/files/saves"
     
-    print_header "ESTRUTURA DE SAVES"
+    print_header "SAVE STRUCTURE"
     
     if ! adb shell "[ -d $saves_dir ] && echo 'exists'" | grep -q "exists"; then
-        print_warning "Pasta de saves não existe ainda"
-        print_info "Crie um save primeiro no emulador"
+        print_warning "Saves folder does not exist yet"
+        print_info "Create a save first in the emulator"
         return
     fi
     
@@ -201,7 +201,7 @@ show_save_structure() {
     print_info "Slots ocupados: $occupied/9"
 }
 
-# 6. Ver metadata de slot
+# 6. View slot metadata
 show_slot_metadata() {
     local config_id=$(get_config_id)
     local package="com.vinaooo.revenger.$config_id"
@@ -226,7 +226,7 @@ show_slot_metadata() {
     fi
 }
 
-# 7. Iniciar app
+# 7. Launch app
 start_app() {
     local config_id=$(get_config_id)
     local package="com.vinaooo.revenger.$config_id"
@@ -243,7 +243,7 @@ start_app() {
     print_info "Use SELECT+START para abrir o menu"
 }
 
-# 8. Ver logs
+# 8. View logs
 show_logs() {
     print_header "LOGS EM TEMPO REAL"
     print_info "Pressione Ctrl+C para parar"
@@ -252,7 +252,7 @@ show_logs() {
     adb logcat | grep -E "(Revenger|SaveStateManager|SaveSlot|RetroMenu3|Screenshot)"
 }
 
-# 9. Capturar screenshot
+# 9. Capture screenshot
 capture_screenshot() {
     print_header "CAPTURAR SCREENSHOT"
     
@@ -269,7 +269,7 @@ capture_screenshot() {
     fi
 }
 
-# 10. Executar testes unitários
+# 10. Run unit tests
 run_unit_tests() {
     print_header "EXECUTANDO TESTES UNITÁRIOS"
     
@@ -280,7 +280,7 @@ run_unit_tests() {
     print_info "app/build/reports/tests/testDebugUnitTest/index.html"
 }
 
-# Loop principal
+# Main loop
 main() {
     while true; do
         show_menu
@@ -312,5 +312,5 @@ main() {
     done
 }
 
-# Executar
+# Execute
 main

@@ -6,8 +6,8 @@ import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
 import com.vinaooo.revenger.utils.MenuLogger
 
 /**
- * Benchmarks de performance para o sistema de menu RetroMenu3. Mede tempos de renderização,
- * navegação e animações.
+ * Performance benchmarks for the RetroMenu3 menu system. Measures render, navigation, and
+ * animation timings.
  */
 object MenuPerformanceBenchmark {
 
@@ -37,7 +37,7 @@ object MenuPerformanceBenchmark {
                 val totalMemoryKb: Long
         )
 
-        /** Executa benchmark completo do sistema de menu */
+        /** Runs a complete benchmark of the menu system */
         fun runCompleteMenuBenchmark(fragment: RetroMenu3Fragment): MenuBenchmarkResults {
                 MenuLogger.performance("Starting complete menu benchmark")
 
@@ -58,7 +58,7 @@ object MenuPerformanceBenchmark {
                 return results
         }
 
-        /** Benchmark de criação do menu */
+        /** Benchmark of menu creation */
         private fun benchmarkMenuCreation(): BenchmarkResult {
                 val times = mutableListOf<Long>()
 
@@ -76,7 +76,7 @@ object MenuPerformanceBenchmark {
                 return calculateStats("Menu Creation", times)
         }
 
-        /** Benchmark de navegação no menu */
+        /** Benchmark of menu navigation */
         private fun benchmarkNavigation(fragment: RetroMenu3Fragment): BenchmarkResult {
                 val times = mutableListOf<Long>()
 
@@ -101,7 +101,7 @@ object MenuPerformanceBenchmark {
                 return calculateStats("Menu Navigation", times)
         }
 
-        /** Benchmark de animações do menu */
+        /** Benchmark of menu animations */
         private fun benchmarkAnimations(fragment: RetroMenu3Fragment): BenchmarkResult {
                 val times = mutableListOf<Long>()
 
@@ -111,24 +111,24 @@ object MenuPerformanceBenchmark {
                 // Warmup
                 repeat(WARMUP_ITERATIONS) {
                         fragment.dimMainMenu()
-                        Thread.sleep(250) // Esperar animação
+                        Thread.sleep(250) // Wait for animation
                         fragment.restoreMainMenu()
-                        Thread.sleep(250) // Esperar animação
+                        Thread.sleep(250) // Wait for animation
                 }
 
                 // Measurement
                 repeat(
                         MEASUREMENT_ITERATIONS / 2
-                ) { // Menos iterações pois animações são mais lentas
+                ) { // Fewer iterations because animations are slower
                         val startTime = SystemClock.elapsedRealtime()
                         fragment.dimMainMenu()
-                        Thread.sleep(250) // Esperar animação completar
+                        Thread.sleep(250) // Wait for animation to complete
                         val endTime = SystemClock.elapsedRealtime()
                         times.add(endTime - startTime)
 
                         val startTime2 = SystemClock.elapsedRealtime()
                         fragment.restoreMainMenu()
-                        Thread.sleep(250) // Esperar animação completar
+                        Thread.sleep(250) // Wait for animation to complete
                         val endTime2 = SystemClock.elapsedRealtime()
                         times.add(endTime2 - startTime2)
                 }
@@ -136,11 +136,11 @@ object MenuPerformanceBenchmark {
                 return calculateStats("Menu Animation", times)
         }
 
-        /** Mede uso de memória */
+        /** Measures memory usage */
         private fun measureMemoryUsage(): MemoryStats {
                 val runtime = Runtime.getRuntime()
 
-                // Forçar garbage collection para medição mais precisa
+                // Force garbage collection for more accurate measurement
                 System.gc()
                 Thread.sleep(100)
                 System.gc()
@@ -156,13 +156,13 @@ object MenuPerformanceBenchmark {
                 )
         }
 
-        /** Calcula estatísticas dos tempos medidos */
+        /** Calculates statistics from measured times */
         private fun calculateStats(operation: String, times: List<Long>): BenchmarkResult {
                 val average = times.average()
                 val min = times.minOrNull() ?: 0L
                 val max = times.maxOrNull() ?: 0L
 
-                // Calcular desvio padrão
+                // Calculate standard deviation
                 val variance = times.map { (it - average) * (it - average) }.average()
                 val standardDeviation = kotlin.math.sqrt(variance)
 
@@ -206,7 +206,7 @@ object MenuPerformanceBenchmark {
                 val comparison = StringBuilder()
                 comparison.append("=== PERFORMANCE COMPARISON ===\n")
 
-                // Comparar criação de menu
+                // Compare menu creation
                 val creationDiff =
                         current.menuCreationTime.averageTimeMs -
                                 baseline.menuCreationTime.averageTimeMs
@@ -214,21 +214,21 @@ object MenuPerformanceBenchmark {
                         "Menu Creation: ${String.format("%.2f", creationDiff)}ms ${if (creationDiff > 0) "slower" else "faster"}\n"
                 )
 
-                // Comparar navegação
+                // Compare navigation
                 val navigationDiff =
                         current.navigationTime.averageTimeMs - baseline.navigationTime.averageTimeMs
                 comparison.append(
                         "Menu Navigation: ${String.format("%.2f", navigationDiff)}ms ${if (navigationDiff > 0) "slower" else "faster"}\n"
                 )
 
-                // Comparar animações
+                // Compare animations
                 val animationDiff =
                         current.animationTime.averageTimeMs - baseline.animationTime.averageTimeMs
                 comparison.append(
                         "Menu Animation: ${String.format("%.2f", animationDiff)}ms ${if (animationDiff > 0) "slower" else "faster"}\n"
                 )
 
-                // Comparar memória
+                // Compare memory
                 val memoryDiff =
                         current.memoryUsage.allocatedMemoryKb -
                                 baseline.memoryUsage.allocatedMemoryKb
@@ -239,11 +239,11 @@ object MenuPerformanceBenchmark {
                 return comparison.toString()
         }
 
-        /** Benchmark de configuração customizada vs padrão */
+        /** Custom vs default configuration benchmark */
         fun benchmarkConfigurationComparison(): BenchmarkResult {
                 val times = mutableListOf<Long>()
 
-                // Criar configuração customizada complexa
+                // Create complex custom configuration
                 val customConfig =
                         MenuConfigurationBuilder.create()
                                 .menuId("benchmark_config")

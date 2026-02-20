@@ -10,8 +10,8 @@ import com.vinaooo.revenger.repositories.SharedPreferencesRepository
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel especializado para gerenciamento de áudio. Responsável por controle de volume, mute e
- * configurações de áudio.
+ * ViewModel specialized in audio management. Responsible for volume control, mute, and
+ * audio settings.
  */
 class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -25,7 +25,7 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
             )
     private var audioController: AudioController? = null
 
-    // Estado do áudio
+    // Audio state
     private var isAudioEnabled: Boolean = true
 
     init {
@@ -43,11 +43,11 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // ========== MÉTODOS DE CONTROLE DE ÁUDIO ==========
+    // ========== AUDIO CONTROL METHODS ==========
 
     @Suppress("UNUSED_PARAMETER")
     fun toggleAudio(retroView: Any?): Boolean {
-        // TODO: Implementar toggle de áudio
+        // TODO: Implement audio toggle
         return isAudioEnabled
     }
 

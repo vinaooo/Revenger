@@ -232,7 +232,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         slotContent.clipToOutline = true
         slotContent.invalidateOutline()
 
-        // Aplicar capitalização configurada ao nome do slot (respeita rm_text_capitalization)
+        // Apply configured capitalization to slot name (respects rm_text_capitalization)
         FontUtils.applyTextCapitalization(requireContext(), name)
 
         // Apply font to slot name

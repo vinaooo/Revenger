@@ -17,10 +17,10 @@ import android.view.animation.DecelerateInterpolator
 /**
  * CRTBootView - View customizada que simula efeito de TV CRT ligando
  *
- * Fases da animação:
- * - Fase 1 (0.0 - 0.3): Ponto branco no centro (sem ícone)
- * - Fase 2 (0.3 - 0.5): Linha horizontal expandindo
- * - Fase 3 (0.5 - 1.0): Expansão vertical + scanlines com fade-in
+ * Animation phases:
+ * - Phase 1 (0.0 - 0.3): White dot in center (no icon)
+ * - Phase 2 (0.3 - 0.5): Horizontal line expanding
+ * - Phase 3 (0.5 - 1.0): Vertical expansion + scanlines with fade-in
  */
 class CRTBootView
 @JvmOverloads
@@ -30,14 +30,14 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     companion object {
         private const val TAG = "CRTBootView"
 
-        // Configurações da animação
-        const val ANIMATION_DURATION = 925L // Duração total (ms) - 450ms + 300ms + 175ms
-        const val PHASE_1_END = 0.4865f // Fim da fase do ponto (450ms)
-        const val PHASE_2_END = 0.8108f // Fim da fase da linha (300ms mais)
-        const val DOT_MAX_RADIUS = 8f // Raio máximo do ponto branco (dp)
-        const val LINE_HEIGHT = 1f // Altura da linha (dp) - mais fina
-        const val SCANLINE_SPACING = 4 // Espaçamento entre scanlines (px)
-        const val SCANLINE_MAX_OPACITY = 76 // Opacidade máxima das scanlines (0-255, ~30%)
+        // Animation settings
+        const val ANIMATION_DURATION = 925L // Total duration (ms) - 450ms + 300ms + 175ms
+        const val PHASE_1_END = 0.4865f // End of dot phase (450ms)
+        const val PHASE_2_END = 0.8108f // End of line phase (additional 300ms)
+        const val DOT_MAX_RADIUS = 8f // Maximum radius of the white dot (dp)
+        const val LINE_HEIGHT = 1f // Line height (dp) - thinner
+        const val SCANLINE_SPACING = 4 // Spacing between scanlines (px)
+        const val SCANLINE_MAX_OPACITY = 76 // Maximum opacity of scanlines (0-255, ~30%)
     }
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -45,13 +45,13 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     private var animator: ValueAnimator? = null
     private var isAnimationStarted = false
 
-    // Modo da animação: false = forward (boot), true = reverse (shutdown)
+    // Animation mode: false = forward (boot), true = reverse (shutdown)
     private var isReverseMode = false
 
-    // Callback para notificar término da animação
+    // Callback to notify end of animation
     var onAnimationEndListener: (() -> Unit)? = null
 
-    // Conversão dp para px
+    // DP to px conversion
     private val dotMaxRadiusPx: Float
         get() = DOT_MAX_RADIUS * resources.displayMetrics.density
 
@@ -64,7 +64,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         Log.d(TAG, "CRTBootView initialized")
     }
 
-    /** Inicia a animação CRT */
+    /** Start the CRT animation */
     fun startAnimation() {
         Log.d(TAG, "Starting CRT animation")
 
@@ -95,7 +95,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         animator?.start()
     }
 
-    /** Inicia a animação CRT reversa (shutdown) */
+    /** Start the CRT reverse animation (shutdown) */
     fun startReverseAnimation() {
         Log.d(TAG, "Starting CRT reverse animation (shutdown)")
 
@@ -126,7 +126,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         animator?.start()
     }
 
-    /** Para a animação (se estiver rodando) */
+    /** Stop the animation (if running) */
     fun stopAnimation() {
         animator?.cancel()
         animator = null
@@ -135,10 +135,10 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        // SEMPRE desenhar fundo preto para evitar flash de conteúdo indesejado
+        // ALWAYS draw black background to avoid flashing unwanted content
         canvas.drawColor(Color.BLACK)
 
-        // Só desenhar animação se começou
+        // Only draw animation if it has started
         if (!isAnimationStarted) {
             return
         }
@@ -150,36 +150,36 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         paint.color = Color.WHITE
 
         when {
-            // Fase 1: Ponto branco (0.0 - PHASE_1_END)
+            // Phase 1: White dot (0.0 - PHASE_1_END)
             progress < PHASE_1_END -> {
                 drawDotPhase(canvas, centerX, centerY)
             }
 
-            // Fase 2: Linha horizontal + Ponto FIXO no centro (PHASE_1_END até PHASE_2_END)
-            // O ponto permanece com tamanho e opacidade máximos
+            // Phase 2: Horizontal line + FIXED dot at center (PHASE_1_END to PHASE_2_END)
+            // The dot remains at maximum size and opacity
             progress < PHASE_2_END -> {
-                // Desenhar ponto (opacidade FIXA em 100%)
+                // Draw dot (fixed opacity at 100%)
                 drawDotPhaseWithAlpha(canvas, centerX, centerY, 1.0f)
 
-                // Desenhar linha horizontal
+                // Draw horizontal line
                 drawLinePhase(canvas, centerX, centerY)
             }
 
-            // Fase 3: Expansão vertical + scanlines (PHASE_2_END até 1.0)
+            // Phase 3: Vertical expansion + scanlines (PHASE_2_END to 1.0)
             else -> {
                 drawExpansionPhase(canvas, centerX, centerY)
             }
         }
     }
 
-    /** Fase 1: Desenha ponto branco crescendo no centro com efeito de glow/fade */
+    /** Phase 1: Draw a white dot growing in the center with glow/fade effect */
     private fun drawDotPhase(canvas: Canvas, centerX: Float, centerY: Float) {
         drawDotPhaseWithAlpha(canvas, centerX, centerY, 1f)
     }
 
     /**
-     * Fase 1 com opacidade controlada (para transição suave) O tamanho do ponto fica fixo no
-     * tamanho máximo quando entra Fase 2
+     * Phase 1 with controlled opacity (for smooth transition). Dot size is fixed at max
+     * when entering Phase 2
      */
     private fun drawDotPhaseWithAlpha(
             canvas: Canvas,
@@ -187,21 +187,21 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             centerY: Float,
             alphaMultiplier: Float
     ) {
-        // Calcular o raio: durante Fase 1 cresce, durante Fase 2+ mantém tamanho máximo
+        // Calculate radius: during Phase 1 it grows, during Phase 2+ it stays at max size
         val radius =
                 if (progress < PHASE_1_END) {
-                    // Fase 1: crescer normalmente
+                    // Phase 1: grow normally
                     (progress / PHASE_1_END) * dotMaxRadiusPx
                 } else {
-                    // Fase 2 e além: tamanho máximo fixo
+                    // Phase 2 and beyond: fixed max size
                     dotMaxRadiusPx
                 }
 
-        // Opacidade aumenta rapidamente, multiplicada pelo fator de transição
+        // Opacity increases rapidly, multiplied by transition factor
         val mainAlpha = 255
         val finalAlpha = (mainAlpha * alphaMultiplier).toInt()
 
-        // Desenhar múltiplas camadas de glow/fade ao redor do círculo
+        // Draw multiple glow/fade layers around the circle
         val glowLayers = 5
         for (layer in glowLayers downTo 1) {
             // Aumenta o raio para cada camada de glow
@@ -211,22 +211,22 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             val glowAlpha = (finalAlpha * (1f - layer / glowLayers.toFloat()) * 0.6f).toInt()
             paint.alpha = glowAlpha.coerceIn(0, 255)
 
-            // Desenhar círculo de glow
+            // Draw glow circle
             canvas.drawCircle(centerX, centerY, glowRadius, paint)
         }
 
-        // Desenhar círculo principal
+        // Draw main circle
         paint.alpha = finalAlpha
         canvas.drawCircle(centerX, centerY, radius, paint)
     }
 
-    /** Fase 2: Desenha linha horizontal expandindo com efeito de glow/fade */
+    /** Phase 2: Draw horizontal line expanding with glow/fade effect */
     private fun drawLinePhase(canvas: Canvas, centerX: Float, centerY: Float) {
         drawLinePhaseWithAlpha(canvas, centerX, centerY, 1f)
     }
 
     /**
-     * Fase 2 com opacidade controlada (para transição suave) Desenha linha com pontas de agulha
+     * Phase 2 with controlled opacity (for smooth transition). Draw line with needle tips
      * (triangulares)
      */
     private fun drawLinePhaseWithAlpha(
@@ -238,16 +238,16 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         // Normalizar progress para esta fase (0.0 - 1.0)
         val phaseProgress = (progress - PHASE_1_END) / (PHASE_2_END - PHASE_1_END)
 
-        // Largura da linha cresce de 0 até a largura total da tela
+        // Line width grows from 0 to full screen width
         val lineWidth = phaseProgress * width
 
-        // Tamanho da ponta de agulha (proporcional à altura da linha)
+        // Length of needle tip (proportional to line height)
         val needleLength = lineHeightPx * 3f
 
-        // Desenhar múltiplas camadas de glow/fade ao redor da linha
+        // Draw multiple glow/fade layers around the line
         val glowLayers = 8
         for (layer in glowLayers downTo 1) {
-            // Aumenta a altura (espessura) para cada camada de glow
+            // Increase height (thickness) for each glow layer
             val glowHeight = lineHeightPx + (layer * 5f)
             val glowNeedleLength = needleLength + (layer * 3f)
 
@@ -256,11 +256,11 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                     (255 * (1f - layer / glowLayers.toFloat()) * 0.65f * alphaMultiplier).toInt()
             paint.alpha = glowAlpha.coerceIn(0, 255)
 
-            // Desenhar linha de glow com pontas de agulha
+            // Draw glow line with needle tips
             drawNeedleLine(canvas, centerX, centerY, lineWidth, glowHeight, glowNeedleLength)
         }
 
-        // Desenhar linha principal com pontas de agulha
+        // Draw main line with needle tips
         paint.alpha = (255 * alphaMultiplier).toInt()
         drawNeedleLine(canvas, centerX, centerY, lineWidth, lineHeightPx, needleLength)
     }
@@ -281,7 +281,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         val top = centerY - lineHeight / 2
         val bottom = centerY + lineHeight / 2
 
-        // Desenhar forma com pontas de agulha:
+        // Draw shape with needle tips:
         //     ←─────────────────────────→
         //    ◁═════════════════════════════▷
         //     ←─────────────────────────→
@@ -292,17 +292,17 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         path.lineTo(right + needleLength, centerY) // Ponta direita (agulha)
         path.lineTo(right, bottom) // Canto inferior direito
         path.lineTo(left, bottom) // Canto inferior esquerdo
-        path.close() // Volta para ponta esquerda
+        path.close() // Returns to leftmost point
 
         canvas.drawPath(path, paint)
     }
 
-    /** Fase 3: Desenha expansão vertical + scanlines com fade-out (ou fade-in se reverso) */
+    /** Phase 3: Draw vertical expansion + scanlines with fade-out (or fade-in if reverse) */
     private fun drawExpansionPhase(canvas: Canvas, centerX: Float, centerY: Float) {
         // Normalizar progress para esta fase (0.0 - 1.0)
         val phaseProgress = (progress - PHASE_2_END) / (1f - PHASE_2_END)
 
-        // Altura do clip cresce do centro para as bordas
+        // Clip height grows from center toward edges
         val clipHeight = height * phaseProgress
         val clipTop = centerY - clipHeight / 2
         val clipBottom = centerY + clipHeight / 2
@@ -321,7 +321,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         // Salvar estado do canvas
         canvas.save()
 
-        // Aplicar clip com cantos arredondados para criar efeito de expansão vertical
+        // Apply clip with rounded corners to create vertical expansion effect
         val clipPath = Path()
         clipPath.addRoundRect(
                 0f,
@@ -334,15 +334,15 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         )
         canvas.clipPath(clipPath)
 
-        // Preencher área com branco (simula a "imagem" da TV)
+        // Fill area with white (simulates the TV "image")
         paint.color = Color.WHITE
         paint.alpha = fadeAlpha.toInt()
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
 
-        // Restaurar canvas antes de desenhar scanlines
+        // Restore canvas before drawing scanlines
         canvas.restore()
 
-        // Desenhar scanlines com fade gradual
+        // Draw scanlines with gradual fade
         drawScanlines(canvas, phaseProgress, clipTop, clipBottom)
     }
 
@@ -361,7 +361,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         paint.color = Color.argb(scanlineOpacity, 0, 0, 0)
         paint.strokeWidth = 1f
 
-        // Desenhar linhas apenas na área visível (entre clipTop e clipBottom)
+        // Draw lines only in visible area (between clipTop and clipBottom)
         val startY = (clipTop.toInt() / SCANLINE_SPACING) * SCANLINE_SPACING
         val endY = clipBottom.toInt()
 

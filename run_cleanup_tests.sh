@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # =====================================================
-# Script de Execução de Testes - Kotlin Warnings Cleanup
+# Test Execution Script - Kotlin Warnings Cleanup
 # =====================================================
 #
-# Este script executa todos os testes da sessão de limpeza de warnings
-# Cobertura: Fase 1 (dead code), Fase 2 (ViewModelProvider), 
-#           Fase 3 (lateinit), Fase 4 (parameters & casts)
+# This script runs all tests for the warnings cleanup session
+# Coverage: Phase 1 (dead code), Phase 2 (ViewModelProvider), 
+#           Phase 3 (lateinit), Phase 4 (parameters & casts)
 #
 
 set -e
@@ -17,19 +17,19 @@ REPORT_FILE="$PROJECT_ROOT/tests/TEST_REPORT_$(date +%Y%m%d_%H%M%S).md"
 FAILED_TESTS=0
 PASSED_TESTS=0
 
-# Cores para output
+# Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo -e "${YELLOW}========================================${NC}"
-echo -e "${YELLOW}Teste de Limpeza de Kotlin Warnings${NC}"
+echo -e "${YELLOW}Kotlin Warnings Cleanup Test${NC}"
 echo -e "${YELLOW}========================================${NC}"
 echo ""
 
 # =====================================================
-# Função: Log estruturado
+# Function: Structured logging
 # =====================================================
 log_test() {
     echo -e "${YELLOW}[TESTE]${NC} $1"
@@ -41,164 +41,164 @@ log_pass() {
 }
 
 log_fail() {
-    echo -e "${RED}[FALHA]${NC} $1"
+    echo -e "${RED}[FAIL]${NC} $1"
     ((FAILED_TESTS++))
 }
 
 # =====================================================
-# Fase 1: Unit Tests (Robolectric)
+# Phase 1: Unit Tests (Robolectric)
 # =====================================================
 echo ""
-echo -e "${YELLOW}>>> FASE 1: Testes Unitários (Robolectric)${NC}"
+echo -e "${YELLOW}>>> PHASE 1: Unit Tests (Robolectric)${NC}"
 echo ""
 
-log_test "Compilando testes unitários..."
+log_test "Compiling unit tests..."
 if cd "$PROJECT_ROOT" && ./gradlew testDebugUnitTest --info 2>&1 | tail -20; then
-    log_pass "Compilação de testes unitários bem-sucedida"
+    log_pass "Unit test compilation succeeded"
 else
-    log_fail "Falha na compilação de testes unitários"
+    log_fail "Unit test compilation failed"
 fi
 
-log_test "Executando GameActivityViewModelCleanupTest (T1 - Initialization)..."
+log_test "Running GameActivityViewModelCleanupTest (T1 - Initialization)..."
 if cd "$PROJECT_ROOT" && ./gradlew testDebugUnitTest \
     --tests "com.vinaooo.revenger.viewmodels.GameActivityViewModelCleanupTest_T1_Initialization" \
     2>&1 | grep -E "PASSED|FAILED"; then
-    log_pass "T1 - Initialization tests executados"
+    log_pass "T1 - Initialization tests executed"
 else
-    log_fail "T1 - Initialization tests falharam"
+    log_fail "T1 - Initialization tests failed"
 fi
 
-log_test "Executando GameActivityViewModelCleanupTest (T2 - DeadCode)..."
+log_test "Running GameActivityViewModelCleanupTest (T2 - DeadCode)..."
 if cd "$PROJECT_ROOT" && ./gradlew testDebugUnitTest \
     --tests "com.vinaooo.revenger.viewmodels.GameActivityViewModelCleanupTest_T2_DeadCode" \
     2>&1 | grep -E "PASSED|FAILED"; then
-    log_pass "T2 - DeadCode tests executados"
+    log_pass "T2 - DeadCode tests executed"
 else
-    log_fail "T2 - DeadCode tests falharam"
+    log_fail "T2 - DeadCode tests failed"
 fi
 
-log_test "Executando GameActivityViewModelCleanupTest (T4 - UnusedParameter)..."
+log_test "Running GameActivityViewModelCleanupTest (T4 - UnusedParameter)..."
 if cd "$PROJECT_ROOT" && ./gradlew testDebugUnitTest \
     --tests "com.vinaooo.revenger.viewmodels.GameActivityViewModelCleanupTest_T4_UnusedParameter" \
     2>&1 | grep -E "PASSED|FAILED"; then
-    log_pass "T4 - UnusedParameter tests executados"
+    log_pass "T4 - UnusedParameter tests executed"
 else
-    log_fail "T4 - UnusedParameter tests falharam"
+    log_fail "T4 - UnusedParameter tests failed"
 fi
 
 # =====================================================
-# Fase 2: Instrumentation Tests (Espresso)
+# Phase 2: Instrumentation Tests (Espresso)
 # =====================================================
 echo ""
-echo -e "${YELLOW}>>> FASE 2: Testes de Instrumentation (Espresso)${NC}"
+echo -e "${YELLOW}>>> PHASE 2: Instrumentation Tests (Espresso)${NC}"
 echo ""
 
-log_test "Compilando testes de instrumentation..."
+log_test "Compiling instrumentation tests..."
 if cd "$PROJECT_ROOT" && ./gradlew assembleAndroidTest 2>&1 | tail -10; then
-    log_pass "Compilação de testes de instrumentation bem-sucedida"
+    log_pass "Instrumentation test compilation succeeded"
 else
-    log_fail "Falha na compilação de testes de instrumentation"
+    log_fail "Instrumentation test compilation failed"
 fi
 
-log_test "Executando GameActivityCleanupIntegrationTest..."
+log_test "Running GameActivityCleanupIntegrationTest..."
 if cd "$PROJECT_ROOT" && ./gradlew connectedAndroidTest \
     --tests "com.vinaooo.revenger.ui.integration.GameActivityCleanupIntegrationTest" \
     2>&1 | tail -15; then
-    log_pass "GameActivityCleanupIntegrationTest executados"
+    log_pass "GameActivityCleanupIntegrationTest executed"
 else
-    log_fail "GameActivityCleanupIntegrationTest falharam (Emulator pode não estar em execução)"
+    log_fail "GameActivityCleanupIntegrationTest failed (Emulator may not be running)"
 fi
 
-log_test "Executando CriticalBehaviorValidationTest..."
+log_test "Running CriticalBehaviorValidationTest..."
 if cd "$PROJECT_ROOT" && ./gradlew connectedAndroidTest \
     --tests "com.vinaooo.revenger.ui.integration.CriticalBehaviorValidationTest" \
     2>&1 | tail -15; then
-    log_pass "CriticalBehaviorValidationTest executados"
+    log_pass "CriticalBehaviorValidationTest executed"
 else
-    log_fail "CriticalBehaviorValidationTest falharam"
+    log_fail "CriticalBehaviorValidationTest failed"
 fi
 
 # =====================================================
-# Fase 3: Análise de Build (Compilation Warnings)
+# Phase 3: Build Analysis (Compilation Warnings)
 # =====================================================
 echo ""
-echo -e "${YELLOW}>>> FASE 3: Validação de Build (Zero Warnings)${NC}"
+echo -e "${YELLOW}>>> PHASE 3: Build Validation (Zero Warnings)${NC}"
 echo ""
 
-log_test "Executando clean build..."
+log_test "Running clean build..."
 if cd "$PROJECT_ROOT" && ./gradlew clean assembleDebug 2>&1 | tail -5; then
-    log_pass "Build limpo bem-sucedido"
+    log_pass "Clean build succeeded"
 else
-    log_fail "Falha no build limpo"
+    log_fail "Clean build failed"
 fi
 
-log_test "Verificando warnings de compilação Kotlin..."
+log_test "Checking Kotlin compilation warnings..."
 BUILD_OUTPUT=$(cd "$PROJECT_ROOT" && ./gradlew assembleDebug 2>&1)
 KOTLIN_WARNINGS=$(echo "$BUILD_OUTPUT" | grep -c "warning:" || true)
 
 if [ "$KOTLIN_WARNINGS" -eq 0 ]; then
-    log_pass "Zero warnings de compilação Kotlin (esperado)"
+    log_pass "Zero Kotlin compilation warnings (expected)"
 else
-    log_fail "Encontrados $KOTLIN_WARNINGS warnings de compilação"
+    log_fail "Found $KOTLIN_WARNINGS compilation warnings"
 fi
 
 # =====================================================
-# Fase 4: Code Quality Checks
+# Phase 4: Code Quality Checks
 # =====================================================
 echo ""
-echo -e "${YELLOW}>>> FASE 4: Verificações de Qualidade de Código${NC}"
+echo -e "${YELLOW}>>> PHASE 4: Code Quality Checks${NC}"
 echo ""
 
-log_test "Executando detekt (linter)..."
+log_test "Running detekt (linter)..."
 if cd "$PROJECT_ROOT" && ./gradlew detekt 2>&1 | tail -5; then
-    log_pass "Detekt executado com sucesso"
+    log_pass "Detekt executed successfully"
 else
-    log_fail "Falha na execução do detekt"
+    log_fail "Detekt execution failed"
 fi
 
 # =====================================================
-# Fase 5: Validação de Funcionalidades Críticas
+# Phase 5: Critical Features Validation
 # =====================================================
 echo ""
-echo -e "${YELLOW}>>> FASE 5: Validação de Funcionalidades Críticas${NC}"
+echo -e "${YELLOW}>>> PHASE 5: Critical Features Validation${NC}"
 echo ""
 
-log_test "Validando estrutura de código (grep checks)..."
+log_test "Validating code structure (grep checks)..."
 
-# T1: Validar que não há lateinit keywords redundantes
+# T1: Validate that there are no redundant lateinit keywords
 LATEINIT_COUNT=$(grep -r "lateinit var" "$PROJECT_ROOT/app/src/main/java/com/vinaooo/revenger/viewmodels/GameActivityViewModel.kt" 2>/dev/null | wc -l || true)
 if [ "$LATEINIT_COUNT" -eq 0 ]; then
-    log_pass "Conversão de lateinit concluída (T1.3)"
+    log_pass "lateinit conversion completed (T1.3)"
 else
-    log_fail "Ainda há $LATEINIT_COUNT declarações lateinit em GameActivityViewModel"
+    log_fail "There are still $LATEINIT_COUNT lateinit declarations in GameActivityViewModel"
 fi
 
-# T2: Validar que não há código morto óbvio (code após return/throw)
+# T2: Validate there is no obvious dead code (code after return/throw)
 DEAD_CODE=$(grep -A1 "throw\|return" "$PROJECT_ROOT/app/src/main/java/com/vinaooo/revenger/viewmodels/GameActivityViewModel.kt" 2>/dev/null | grep "Log\." | wc -l || true)
 if [ "$DEAD_CODE" -eq 0 ]; then
-    log_pass "Código morto removido (T2)"
+    log_pass "Dead code removed (T2)"
 else
-    log_fail "Possível código morto detectado"
+    log_fail "Possible dead code detected"
 fi
 
-# T4: Validar que prepareRetroMenu3 não tem parâmetros
+# T4: Validate that prepareRetroMenu3 has no parameters
 PARAM_COUNT=$(grep "fun prepareRetroMenu3(" "$PROJECT_ROOT/app/src/main/java/com/vinaooo/revenger/viewmodels/GameActivityViewModel.kt" 2>/dev/null | grep -o "([^)]*)" | tr -d '()' | wc -w || true)
 if [ "$PARAM_COUNT" -eq 0 ]; then
-    log_pass "Parâmetro removido de prepareRetroMenu3() (T4.1)"
+    log_pass "Parameter removed from prepareRetroMenu3() (T4.1)"
 else
-    log_fail "prepareRetroMenu3() ainda possui parâmetros"
+    log_fail "prepareRetroMenu3() still has parameters"
 fi
 
-# T5: Validar que safe call e cast foram removidos
+# T5: Validate that safe call and cast have been removed
 UNSAFE_CAST=$(grep "as? androidx.fragment.app.FragmentActivity" "$PROJECT_ROOT/app/src/main/java/com/vinaooo/revenger/viewmodels/GameActivityViewModel.kt" 2>/dev/null | wc -l || true)
 if [ "$UNSAFE_CAST" -eq 0 ]; then
-    log_pass "Safe call e cast removidos (T5)"
+    log_pass "Safe call and cast removed (T5)"
 else
-    log_fail "Ainda há casts redundantes em GameActivityViewModel"
+    log_fail "Redundant casts still exist in GameActivityViewModel"
 fi
 
 # =====================================================
-# Resumo Final
+# Final Summary
 # =====================================================
 echo ""
 echo -e "${YELLOW}========================================${NC}"
@@ -206,13 +206,13 @@ echo -e "${YELLOW}RESUMO DE TESTES${NC}"
 echo -e "${YELLOW}========================================${NC}"
 echo ""
 echo -e "Testes Passados: ${GREEN}$PASSED_TESTS${NC}"
-echo -e "Testes Falhados: ${RED}$FAILED_TESTS${NC}"
+echo -e "Failed Tests: ${RED}$FAILED_TESTS${NC}"
 echo ""
 
 if [ "$FAILED_TESTS" -eq 0 ]; then
     echo -e "${GREEN}✓ TODOS OS TESTES PASSARAM!${NC}"
     exit 0
 else
-    echo -e "${RED}✗ ALGUNS TESTES FALHARAM${NC}"
+    echo -e "${RED}✗ SOME TESTS FAILED${NC}"
     exit 1
 fi

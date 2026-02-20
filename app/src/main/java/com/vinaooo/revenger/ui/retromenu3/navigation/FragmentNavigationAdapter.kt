@@ -245,15 +245,15 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
     }
 
     /**
-     * Navega para trás usando o FragmentManager back stack.
+     * Navigate back using the FragmentManager back stack.
      *
-     * Este método:
-     * 1. Verifica se há fragmentos na back stack
-     * 2. Remove o fragmento do topo (pop)
-     * 2. Mostra o menu principal novamente
-     * 3. Executa a transação com commitAllowingStateLoss()
+     * This method:
+     * 1. Checks if there are fragments on the back stack
+     * 2. Pops the top fragment
+     * 3. Shows the main menu again
+     * 4. Commits the transaction with commitAllowingStateLoss()
      *
-     * @return true se navegou para trás, false se já estava no menu raiz
+     * @return true if navigated back, false if already at root menu
      */
     fun navigateBack(): Boolean {
         Log.d(TAG, "[BACK] Navigating back")

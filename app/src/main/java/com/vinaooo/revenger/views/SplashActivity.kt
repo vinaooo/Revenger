@@ -68,12 +68,12 @@ class SplashActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_splash)
 
-        // Aplicar fullscreen APÓS setContentView
+        // Apply fullscreen AFTER setContentView
         setupFullscreen()
 
-        // Bloquear botão BACK durante a animação
+        // Block BACK button during animation
         onBackPressedDispatcher.addCallback(this) {
-            // Não faz nada - bloqueia BACK durante splash
+            // Do nothing - blocks BACK during splash
             Log.d(TAG, "BACK pressed but blocked during splash")
         }
 
@@ -101,7 +101,7 @@ class SplashActivity : AppCompatActivity() {
         window.decorView.setBackgroundColor(android.graphics.Color.BLACK)
         window.setBackgroundDrawableResource(android.R.color.black)
 
-        // Esconder barras do sistema usando API moderna (API 30+)
+        // Hide system bars using modern API (API 30+)
         window.insetsController?.let { controller ->
             controller.hide(WindowInsets.Type.systemBars())
             controller.systemBarsBehavior =
@@ -126,8 +126,8 @@ class SplashActivity : AppCompatActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
-        // Reaplicar orientação forçada para manter conf_orientation soberano
-        // Isso garante que mudanças de orientação física não interfiram na animação
+        // Reapply forced orientation to keep conf_orientation authoritative
+        // This ensures physical orientation changes do not interfere with the animation
         val configOrientation = resources.getInteger(R.integer.conf_orientation)
         OrientationManager.applyConfigOrientation(this, configOrientation)
         Log.d(TAG, "Configuration changed - orientation reapplied: $configOrientation")

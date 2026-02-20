@@ -13,26 +13,26 @@ import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * Fragment do submenu About (Informações).
+ * Submenu fragment for About (Information).
  *
- * **Funcionalidades**:
- * - Exibe informações sobre o projeto (nome, versão)
- * - Mostra nome da ROM atual
- * - Mostra core LibRetro em uso
- * - Back: Volta ao menu principal
+ * **Features**:
+ * - Displays project information (name, version)
+ * - Shows current ROM name
+ * - Shows LibRetro core in use
+ * - Back: Returns to main menu
  *
- * **Arquitetura Multi-Input (Phase 3+)**:
- * - Gamepad/Teclado: Navegação simplificada (só tem 1 botão Back)
- * - Touch: Highlight + 100ms delay para ativação
+ * **Multi-Input Architecture (Phase 3+)**:
+ * - Gamepad/Keyboard: Simplified navigation (only 1 Back button)
+ * - Touch: Highlight + 100ms activation delay
  *
  * **Visual**:
- * - Design informativo com Material Design 3
- * - Leitura de config.xml para dados dinâmicos
- * - Tipografia otimizada para legibilidade
+ * - Informational design with Material Design 3
+ * - Reads config.xml for dynamic data
+ * - Typography optimized for readability
  *
- * **Phase 3.3**: Limpeza de 8 linhas de código legacy.
+ * **Phase 3.3**: Cleaned up 8 lines of legacy code.
  *
- * @see MenuFragmentBase Classe base com navegação unificada
+ * @see MenuFragmentBase Base class with unified navigation
  * @see GameActivityViewModel ViewModel para dados da ROM/Core
  */
 class AboutFragment : MenuFragmentBase() {
@@ -79,7 +79,7 @@ class AboutFragment : MenuFragmentBase() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Aplicar proporções de layout configuráveis
+        // Apply configurable layout proportions
         applyLayoutProportions(view)
 
         // Initialize ViewModel
@@ -150,52 +150,52 @@ class AboutFragment : MenuFragmentBase() {
         // Populate information with combined label and value
         populateAboutInfo()
 
-        // Aplicar capitalização configurada a TODOS os textos (título, labels, títulos dos botões)
+        // Apply configured capitalization to ALL texts (title, labels, button titles)
         val capitalizationStyle =
                 resources.getInteger(com.vinaooo.revenger.R.integer.rm_text_capitalization)
 
-        // Aplicar capitalização ao título
+        // Apply capitalization to the title
         val titleText = aboutTitle.text.toString()
         val capitalizedTitle =
                 when (capitalizationStyle) {
                     1 -> {
-                        // Primeira letra maiúscula
+                        // First letter uppercase
                         if (titleText.isNotEmpty()) {
                             titleText.substring(0, 1).uppercase() + titleText.substring(1)
                         } else {
                             titleText
                         }
                     }
-                    2 -> titleText.uppercase() // Tudo maiúsculo
-                    else -> titleText // Normal (padrão)
+                    2 -> titleText.uppercase() // All uppercase
+                    else -> titleText // Normal (default)
                 }
         if (capitalizedTitle != titleText) {
             aboutTitle.text = capitalizedTitle
         }
 
-        // Aplicar capitalização aos textos informativos (já incluem label + value)
+        // Apply capitalization to informational texts (already include label + value)
         val infoViews = arrayOf(projectNameInfo, romNameInfo, coreNameInfo)
         infoViews.forEach { infoView ->
             val infoText = infoView.text.toString()
             val capitalizedInfo =
                     when (capitalizationStyle) {
                         1 -> {
-                            // Primeira letra maiúscula
+                            // First letter uppercase
                             if (infoText.isNotEmpty()) {
                                 infoText.substring(0, 1).uppercase() + infoText.substring(1)
                             } else {
                                 infoText
                             }
                         }
-                        2 -> infoText.uppercase() // Tudo maiúsculo
-                        else -> infoText // Normal (padrão)
+                        2 -> infoText.uppercase() // All uppercase
+                        else -> infoText // Normal (default)
                     }
             if (capitalizedInfo != infoText) {
                 infoView.text = capitalizedInfo
             }
         }
 
-        // Aplicar capitalização aos títulos dos botões do menu
+        // Apply capitalization to menu button titles
         applyConfiguredCapitalization(backTitle)
 
         // DEBUG: Log info views after all processing
@@ -212,7 +212,7 @@ class AboutFragment : MenuFragmentBase() {
         backTitle.invalidate()
     }
 
-    /** Aplica a capitalização configurada a um TextView */
+    /** Applies configured capitalization to a TextView */
     private fun applyConfiguredCapitalization(textView: android.widget.TextView) {
         val capitalizationStyle =
                 resources.getInteger(com.vinaooo.revenger.R.integer.rm_text_capitalization)
@@ -220,15 +220,15 @@ class AboutFragment : MenuFragmentBase() {
         val capitalizedText =
                 when (capitalizationStyle) {
                     1 -> {
-                        // Primeira letra maiúscula
+                        // First letter uppercase
                         if (originalText.isNotEmpty()) {
                             originalText.substring(0, 1).uppercase() + originalText.substring(1)
                         } else {
                             originalText
                         }
                     }
-                    2 -> originalText.uppercase() // Tudo maiúsculo
-                    else -> originalText // Normal (padrão)
+                    2 -> originalText.uppercase() // All uppercase
+                    else -> originalText // Normal (default)
                 }
         if (capitalizedText != originalText) {
             textView.text = capitalizedText
@@ -316,7 +316,7 @@ class AboutFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /** Confirm selection - Execute actions DIRECTLY (não usar performClick) */
+    /** Confirm selection - Execute actions DIRECTLY (do not use performClick) */
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[ACTION] About menu: CONFIRM on index $selectedIndex")

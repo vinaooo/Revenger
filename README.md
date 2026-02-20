@@ -124,35 +124,35 @@ The generated APK will be available at:
 # Autogen Tool
 Revenger has a directory called `autogen` which contains a basic script to batch-generate Revenger packages. To use it, simply navigate to this folder. Place your ROMs in the `input` folder. In this same folder, put a `config.xml` file with your preferred configuration for these ROMs. Ignore the ID and NAME fields, as they will be overwritten. The script also supports nested folders, in which each can contain their own configuration file. Execute the script with `python generate.py`.
 
-# Recent Updates - RetroMenu3 Refatoração
+# Recent Updates - RetroMenu3 Refactoring
 
-## Sistema de Menus Refatorado ✅
+## Refactored Menu System ✅
 
 A partir da versão atual, o Revenger conta com um sistema de menus completamente refatorado baseado em **Command Pattern + State Machine**:
 
-### 🏗️ Arquitetura Unificada
+### 🏗️ Unified Architecture
 - **Command Pattern**: MenuAction sealed class para comandos type-safe
 - **State Machine**: MenuState enum centralizando navegação
 - **Interface Unificada**: MenuFragment padronizando comportamento de menus
 - **MenuManager**: Coordenação central de todos os menus
 
-### 🎯 Melhorias Implementadas
+### 🎯 Improvements Implemented
 - **Manutenibilidade**: Código organizado e fácil de extender
 - **Performance**: Eliminação de duplicação (~100 linhas reduzidas)
 - **Testabilidade**: Testes unitários abrangentes
 - **Compatibilidade**: Backward compatibility mantida
 
-### 📱 Controles de Menu
+### 📱 Menu Controls
 - **RetroMenu3**: Ativado com `SELECT + START`
 - **Navegação**: DPAD para navegar, A/B para confirmar/cancelar
 
-### 🧪 Status de Testes
+### 🧪 Test Status
 - ✅ **Unit Tests**: 50 tarefas passando
 - ✅ **Build**: Compilação limpa e rápida
 - ✅ **Runtime**: Inicialização <1 segundo
 - ✅ **Device**: Testado em emulador Android
 
-### 📚 Documentação Técnica
+### 📚 Technical Documentation
 Consulte `docs/FASE6_FINALIZACAO_TESTES.md` para detalhes completos da refatoração.
 
 ---

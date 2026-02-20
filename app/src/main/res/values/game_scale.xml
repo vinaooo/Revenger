@@ -4,30 +4,30 @@
     <!-- Game Screen Inset Configuration             -->
     <!-- ============================================ -->
     
-    <!-- Define margens (insets) em % para a área de exibição do jogo.
-         O jogo será renderizado e centralizado dentro da área restante,
-         mantendo automaticamente seu aspect ratio nativo.
+    <!-- Define margins (insets) in % for the game display area.
+         The game will be rendered and centered within the remaining area,
+         automatically preserving its native aspect ratio.
          
-         Formatos suportados:
-         - "V"           : V% em todos os lados
+         Supported formats:
+         - "V"           : V% on all sides
          - "V_H"         : V% vertical (top/bottom), H% horizontal (left/right)
-         - "T_R_B_L"     : top_right_bottom_left (estilo CSS)
+         - "T_R_B_L"     : top_right_bottom_left (CSS style)
          
-         Valores: 0-99 (percentual da tela)
-         Regras: top + bottom < 100, left + right < 100
+         Values: 0-99 (percentage of screen)
+         Rules: top + bottom < 100, left + right < 100
          
-         Exemplos:
-         - "0"           : Sem margens (padrão atual)
-         - "10"          : 10% margem em todos os lados (80% área útil)
+         Examples:
+         - "0"           : No margins (current default)
+         - "10"          : 10% margin on all sides (80% usable area)
          - "5_25"        : 5% top/bottom, 25% left/right
          - "5_25_45_25"  : top=5%, right=25%, bottom=45%, left=25%
     -->
     
-    <!-- Portrait: Configuração para orientação vertical -->
+    <!-- Portrait: Configuration for vertical orientation -->
     <!-- Formato: top_right_bottom_left (CSS style) -->
     <!-- Atual: 0_0_50_0 = Jogo no topo, 50% altura, largura total -->
     <string name="gs_inset_portrait">0</string>
     
-    <!-- Landscape: Configuração para orientação horizontal -->
+    <!-- Landscape: Configuration for horizontal orientation -->
     <string name="gs_inset_landscape">0</string>
 </resources>

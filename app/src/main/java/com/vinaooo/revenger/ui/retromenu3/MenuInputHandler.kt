@@ -3,7 +3,7 @@ package com.vinaooo.revenger.ui.retromenu3
 
 import com.vinaooo.revenger.utils.MenuLogger
 
-/** Interface para processamento de entrada do usuário no menu. */
+/** Interface for processing user input in the menu. */
 interface MenuInputHandler {
     fun setupInputHandling(menuViews: MenuViews)
     fun handleNavigateUp(): Boolean
@@ -14,7 +14,7 @@ interface MenuInputHandler {
 }
 
 /**
- * Implementação básica do MenuInputHandler. TODO: Implementar lógica completa após criar
+ * Basic implementation of MenuInputHandler. TODO: Implement full logic after creating
  * MenuCallbackManager.
  */
 class MenuInputHandlerImpl(
@@ -26,7 +26,7 @@ class MenuInputHandlerImpl(
 
     override fun setupInputHandling(menuViews: MenuViews) {
         MenuLogger.action("MenuInputHandler: setupInputHandling - Configurando handlers de entrada")
-        // TODO: Configurar listeners para botões virtuais e entrada física
+        // TODO: Set up listeners for virtual buttons and physical input
     }
 
     override fun handleNavigateUp(): Boolean {

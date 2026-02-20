@@ -60,7 +60,7 @@ class GamePad(
     private fun eventHandler(event: Event, retroView: GLRetroView) {
         when (event) {
             is Event.Button -> {
-                // Log ANTES do callback para ver todos os eventos que chegam da biblioteca
+                // Log BEFORE the callback to see all events coming from the library
                 val buttonName =
                         when (event.id) {
                             android.view.KeyEvent.KEYCODE_BUTTON_A -> "A"
@@ -76,7 +76,7 @@ class GamePad(
                         "🎮 RadialGamePad event received: $buttonName $actionName (BEFORE callback)"
                 )
 
-                // Invoca o callback e verifica se o evento foi interceptado
+                // Invoke the callback and check if the event was intercepted
                 val intercepted = onButtonEvent?.invoke(event) ?: false
 
                 android.util.Log.d(
@@ -84,16 +84,16 @@ class GamePad(
                         "🎮 Callback returned: intercepted=$intercepted (will ${if (intercepted) "BLOCK" else "SEND"} to core)"
                 )
 
-                // Só envia para o core se NÃO foi interceptado
+                // Only send to the core if NOT intercepted
                 if (!intercepted) {
                     retroView.sendKeyEvent(event.action, event.id)
                 }
             }
             is Event.Direction -> {
-                // Invoca o callback e verifica se o evento foi interceptado
+                // Invoke the callback and check if the event was intercepted
                 val intercepted = onButtonEvent?.invoke(event) ?: false
 
-                // Só envia para o core se NÃO foi interceptado
+                // Only send to the core if NOT intercepted
                 if (!intercepted) {
                     when (event.id) {
                         GLRetroView.MOTION_SOURCE_DPAD ->

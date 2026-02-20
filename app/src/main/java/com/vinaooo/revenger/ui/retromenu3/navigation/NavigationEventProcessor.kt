@@ -4,10 +4,10 @@ import android.util.Log
 import com.vinaooo.revenger.ui.retromenu3.MenuIndices
 
 /**
- * Processador de eventos de navegação.
+ * Navigation event processor.
  *
- * Responsável pela lógica de processamento de eventos e execução de ações de navegação. Remove a
- * complexidade lógica do NavigationController.
+ * Responsible for the logic of processing events and executing navigation actions. Removes the
+ * logical complexity from the NavigationController.
  */
 class NavigationEventProcessor(
         private val stateManager: NavigationStateManager,
@@ -17,14 +17,14 @@ class NavigationEventProcessor(
         private val onMenuClosed: (Int?) -> Unit
 ) {
 
-    /** Rastreia o último botão que causou uma ação (para grace period) */
+    /** Tracks the last button that caused an action (for grace period) */
     private var lastActionButton: Int? = null
 
     companion object {
         private const val TAG = "NavigationEventProcessor"
     }
 
-    /** Processa um evento de navegação. */
+    /** Processes a navigation event. */
     fun processEvent(event: NavigationEvent) {
         try {
             Log.d(TAG, "[PROCESS_EVENT] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} event=$event lastAction=$lastActionButton currentMenu=${stateManager.currentMenu} backStack=${fragmentAdapter.getBackStackCount()}")
@@ -48,7 +48,7 @@ class NavigationEventProcessor(
                         TAG,
                         "[MENU_EVENT] ActivateSelected: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
                 )
-                lastActionButton = event.keyCode // Salvar botão que ativou
+                lastActionButton = event.keyCode // Save button that activated
                 activateItem()
             }
             is NavigationEvent.NavigateBack -> {
@@ -56,7 +56,7 @@ class NavigationEventProcessor(
                         TAG,
                         "[MENU_EVENT] NavigateBack: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
                 )
-                lastActionButton = event.keyCode // Salvar botão que voltou
+                lastActionButton = event.keyCode // Save button that returned
                 navigateBack()
             }
             is NavigationEvent.OpenMenu -> {
@@ -68,7 +68,7 @@ class NavigationEventProcessor(
                         TAG,
                         "[MENU_EVENT] CloseAllMenus: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
                 )
-                lastActionButton = event.keyCode // Salvar botão que fechou
+                lastActionButton = event.keyCode // Save button that closed
                 closeAllMenus()
             }
         }
@@ -96,7 +96,7 @@ class NavigationEventProcessor(
         )
     }
 
-    /** Navega para a esquerda (LEFT). Usado para navegação 2D em grids. */
+    /** Navigate left (LEFT). Used for 2D grid navigation. */
     fun navigateLeft() {
         val handled = stateManager.currentFragment?.onNavigateLeft() ?: false
         if (handled) {

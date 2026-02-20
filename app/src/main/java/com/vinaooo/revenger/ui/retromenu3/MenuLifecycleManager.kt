@@ -10,8 +10,8 @@ import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * Interface para gerenciamento do ciclo de vida do RetroMenu3Fragment. Responsável por
- * inicialização, setup e cleanup do fragment.
+ * Interface for managing the lifecycle of the RetroMenu3Fragment. Responsible for
+ * initialization, setup, and cleanup of the fragment.
  */
 interface MenuLifecycleManager {
     fun onCreateView(inflater: LayoutInflater, container: ViewGroup?): View
@@ -21,8 +21,8 @@ interface MenuLifecycleManager {
 }
 
 /**
- * Implementação do MenuLifecycleManager. Coordena a inicialização do menu e delega para os outros
- * managers especializados.
+ * Implementation of MenuLifecycleManager. Coordinates menu initialization and delegates to
+ * other specialized managers.
  */
 class MenuLifecycleManagerImpl(
         private val fragment: RetroMenu3Fragment,
@@ -46,7 +46,7 @@ class MenuLifecycleManagerImpl(
         MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Iniciando configuração")
 
         try {
-            // NOVO: Aplicar proporções de layout configuráveis (10-80-10, 10-70-20, etc)
+            // NEW: Apply configurable layout proportions (10-80-10, 10-70-20, etc)
             applyConfigurableLayoutProportions(view)
             MenuLogger.lifecycle("MenuLifecycleManager: Layout proportions applied")
 
@@ -57,7 +57,7 @@ class MenuLifecycleManagerImpl(
             com.vinaooo.revenger.utils.ViewUtils.forceZeroElevationRecursively(view)
             MenuLogger.lifecycle("MenuLifecycleManager: Elevation forced to zero")
 
-            // Inicializar views através do viewInitializer
+            // Initialize views via viewInitializer
             val menuViews = viewInitializer.initializeViews(view)
 
             // ARMAZENAR menuViews NO FRAGMENT
@@ -67,7 +67,7 @@ class MenuLifecycleManagerImpl(
             // Configurar estados iniciais das views
             viewInitializer.configureInitialViewStates(menuViews)
 
-            // Configurar título dinâmico
+            // Configure dynamic title
             viewInitializer.setupDynamicTitle(menuViews)
 
             // Setup MenuViewManager views
@@ -88,7 +88,7 @@ class MenuLifecycleManagerImpl(
             val navigationController = viewModel.navigationController
             viewInitializer.setupClickListeners(menuViews, actionHandler, navigationController)
 
-            // Iniciar animação do menu
+            // Start menu animation
             animationController.animateMenuIn()
             MenuLogger.lifecycle("MenuLifecycleManager: Menu animation started")
 
@@ -146,8 +146,8 @@ class MenuLifecycleManagerImpl(
     }
 
     /**
-     * Aplica as proporções de layout configuráveis ao menu. Detecta automaticamente se é portrait
-     * ou landscape e aplica a configuração correta.
+     * Applies configurable layout proportions to the menu. Automatically detects if the
+     * orientation is portrait or landscape and applies the correct configuration.
      */
     private fun applyConfigurableLayoutProportions(view: View) {
         try {

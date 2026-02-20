@@ -11,8 +11,8 @@ import com.vinaooo.revenger.R
 class GamePadConfig(context: Context, private val resources: Resources) {
         companion object {
                 // ===================================================
-                // Índices para Empty Dials (simetria dos gamepads)
-                // Usado para alinhar centros entre LEFT e RIGHT
+                // Indices for Empty Dials (gamepad symmetry)
+                // Used to align centers between LEFT and RIGHT
                 // ===================================================
                 private const val EMPTY_DIAL_INDEX_8 = 8 // Para espelhar MENU do RIGHT
 
@@ -103,10 +103,10 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                 .takeIf {
                                                         resources.getBoolean(R.bool.conf_gp_select)
                                                 },
-                                        // Empty Dial para simetria com o RIGHT
-                                        // Necessário para alinhar o centro dos gamepads
-                                        // RIGHT tem MENU no index 8, então LEFT precisa de Empty
-                                        // aqui
+                                        // Empty Dial for symmetry with RIGHT
+                                        // Necessary to align the centers of the gamepads
+                                        // RIGHT has MENU at index 8, so LEFT needs an Empty
+                                        // here
                                         SecondaryDialConfig.Empty(
                                                         index = EMPTY_DIAL_INDEX_8,
                                                         spread = 1,

@@ -15,22 +15,22 @@ import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * Fragment do submenu Progress (Save/Load States).
+ * Submenu fragment for Progress (Save/Load States).
  *
- * **Funcionalidades (Multi-Slot System)**:
- * - Load State: Abre grid de 9 slots para carregar
- * - Save State: Abre grid de 9 slots para salvar
- * - Manage Saves: Abre grid para gerenciar (rename, copy, move, delete)
- * - Back: Volta ao menu principal
+ * **Features (Multi-Slot System)**:
+ * - Load State: Opens a 9-slot grid for loading
+ * - Save State: Opens a 9-slot grid for saving
+ * - Manage Saves: Opens grid to manage (rename, copy, move, delete)
+ * - Back: Returns to main menu
  *
- * **Navegação**:
- * - Cada opção navega para um submenu com grid 3x3
- * - Suporte a navegação 2D (UP/DOWN/LEFT/RIGHT) nos grids
+ * **Navigation**:
+ * - Each option navigates to a submenu with a 3x3 grid
+ * - Supports 2D navigation (UP/DOWN/LEFT/RIGHT) within the grids
  *
- * **Arquitetura Multi-Input**:
- * - Gamepad: DPAD UP/DOWN para navegar, A para confirmar, B para voltar
- * - Teclado: Arrow keys para navegar, Enter para confirmar, Backspace para voltar
- * - Touch: Toque com highlight imediato + delay de 100ms para ativação
+ * **Multi-Input Architecture**:
+ * - Gamepad: DPAD UP/DOWN to navigate, A to confirm, B to go back
+ * - Keyboard: Arrow keys to navigate, Enter to confirm, Backspace to go back
+ * - Touch: Tap with immediate highlight + 100ms activation delay
  *
  * @see SaveSlotsFragment Grid para salvar em 9 slots
  * @see LoadSlotsFragment Grid para carregar de 9 slots
@@ -86,7 +86,7 @@ class ProgressFragment : MenuFragmentBase() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Aplicar proporções de layout configuráveis
+        // Apply configurable layout proportions
         applyLayoutProportions(view)
 
         // Initialize ViewModel
@@ -165,7 +165,7 @@ class ProgressFragment : MenuFragmentBase() {
                 selectionArrowBack
         )
 
-        // Aplicar capitalização configurada aos textos
+        // Apply configured capitalization to texts
         FontUtils.applyTextCapitalization(
                 requireContext(),
                 progressTitle,
@@ -329,10 +329,10 @@ class ProgressFragment : MenuFragmentBase() {
         // Update each menu item based on selection state
         menuItems.forEachIndexed { index, menuItem ->
             if (index == currentIndex) {
-                // Item selecionado - usar estado SELECTED do RetroCardView
+                // Selected item - use SELECTED state of RetroCardView
                 menuItem.setState(RetroCardView.State.SELECTED)
             } else {
-                // Item não selecionado - usar estado NORMAL do RetroCardView
+                // Unselected item - use NORMAL state of RetroCardView
                 menuItem.setState(RetroCardView.State.NORMAL)
             }
         }

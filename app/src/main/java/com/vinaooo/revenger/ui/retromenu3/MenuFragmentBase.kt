@@ -6,68 +6,68 @@ import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.viewmodels.InputViewModel
 
 /**
- * Classe base abstrata para todos os fragments de menu no sistema RetroMenu3. Elimina código
- * duplicado fornecendo implementações padrão para navegação e gerenciamento de estado de seleção.
+ * Abstract base class for all menu fragments in the RetroMenu3 system. Eliminates duplicate code
+ * by providing default implementations for navigation and selection state management.
  *
- * **Arquitetura Multi-Input (Phase 3+)**:
- * - Suporta gamepad, teclado e touch simultaneamente
- * - Navegação via interface MenuFragment unificada
- * - Touch com delay de 100ms para evitar ativação acidental (TOUCH_ACTIVATION_DELAY_MS)
+ * **Multi-Input Architecture (Phase 3+)**:
+ * - Supports gamepad, keyboard and touch simultaneously
+ * - Navigation via unified MenuFragment interface
+ * - Touch with 100ms delay to prevent accidental activation (TOUCH_ACTIVATION_DELAY_MS)
  *
- * **Fragments que estendem esta classe precisam implementar**:
- * - `getMenuItems()`: Retorna lista padronizada de itens
- * - `performNavigateUp()`: Lógica específica de navegação para cima
- * - `performNavigateDown()`: Lógica específica de navegação para baixo
- * - `performConfirm()`: Lógica específica de confirmação
- * - `performBack()`: Lógica específica de voltar
- * - `updateSelectionVisualInternal()`: Atualiza visual de seleção
+ * **Fragments extending this class must implement**:
+ * - `getMenuItems()`: Returns standardized list of items
+ * - `performNavigateUp()`: Fragment-specific up navigation logic
+ * - `performNavigateDown()`: Fragment-specific down navigation logic
+ * - `performConfirm()`: Fragment-specific confirm logic
+ * - `performBack()`: Fragment-specific back logic
+ * - `updateSelectionVisualInternal()`: Updates selection visuals
  *
- * **Phase 3.3**: Sistema de touch integrado com highlight imediato + delay de ativação.
+ * **Phase 3.3**: Integrated touch system with immediate highlight + activation delay.
  *
- * **FIX ERRO 1 - Phase 4.2**: onPause() limpa estado de input para evitar vazamento de eventos
- * durante transições de fragmento (B/BackSpace residual após popBackStack).
+ * **FIX ERROR 1 - Phase 4.2**: onPause() clears input state to prevent event leakage
+ * during fragment transitions (B/BackSpace residual after popBackStack).
  *
- * @see MenuFragment Interface unificada de navegação
- * @see MenuItem Modelo de dados para items de menu
- * @see MenuAction Ações padronizadas de menu
+ * @see MenuFragment Unified navigation interface
+ * @see MenuItem Data model for menu items
+ * @see MenuAction Standardized menu actions
  */
 abstract class MenuFragmentBase : Fragment(), MenuFragment {
 
-    /** Índice atualmente selecionado */
+    /** Currently selected index */
     private var _currentSelectedIndex = 0
 
     /** Retorna a lista padronizada de itens do menu */
     abstract override fun getMenuItems(): List<MenuItem>
 
-    /** Método abstrato para lidar com seleção de item do menu */
+    /** Abstract method to handle menu item selection */
     abstract override fun onMenuItemSelected(item: MenuItem)
 
-    /** Método abstrato para navegação para cima específica do fragment */
+    /** Abstract method for fragment-specific up navigation */
     protected abstract fun performNavigateUp()
 
-    /** Método abstrato para navegação para baixo específica do fragment */
+    /** Abstract method for fragment-specific down navigation */
     protected abstract fun performNavigateDown()
 
-    /** Método abstrato para confirmação específica do fragment */
+    /** Abstract method for fragment-specific confirm */
     protected abstract fun performConfirm()
 
-    /** Método abstrato para voltar específica do fragment */
+    /** Abstract method for fragment-specific back */
     protected abstract fun performBack(): Boolean
 
-    /** Método abstrato para atualizar visual da seleção */
+    /** Abstract method to update selection visual */
     protected abstract fun updateSelectionVisualInternal()
 
     // ========== LIFECYCLE HOOKS ==========
 
     /**
-     * FIX ERRO 1: Limpa estado de input ao pausar fragment para evitar vazamento de eventos.
+     * FIX ERROR 1: Clears input state when pausing fragment to avoid event leakage.
      *
-     * Problema: Ao manter B/BackSpace em submenu, o evento KEY_DOWN fecha o submenu via
-     * popBackStack(), mas o KEY_UP correspondente era processado no menu principal, causando
-     * fechamento indesejado.
+     * Problem: Holding B/BackSpace in a submenu, the KEY_DOWN event closes the submenu via
+     * popBackStack(), but the corresponding KEY_UP was processed in the main menu, causing
+     * unintended closure.
      *
-     * Solução: Limpar todos os timestamps de debounce, keyLog e flags ao pausar fragmento,
-     * garantindo que próximo fragmento comece com estado limpo.
+     * Solution: Clear all debounce timestamps, keyLog, and flags when pausing a fragment,
+     * ensuring the next fragment starts with a clean state.
      */
     override fun onPause() {
         super.onPause()
@@ -89,7 +89,7 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         }
     }
 
-    // ========== IMPLEMENTAÇÃO DA INTERFACE MenuFragment ==========
+    // ========== MenuFragment INTERFACE IMPLEMENTATION ==========
 
     override fun onNavigateUp(): Boolean {
         Log.d("MenuBase", "[NAV] ↑ Navigate Up triggered")
@@ -140,9 +140,9 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         }
     }
 
-    // ========== MÉTODOS AUXILIARES ==========
+    // ========== HELPER METHODS ==========
 
-    /** Navegação circular para cima (último item volta para o primeiro) */
+    /** Circular navigation up (last item wraps to first) */
     protected fun navigateUpCircular(itemsCount: Int) {
         _currentSelectedIndex =
                 if (_currentSelectedIndex > 0) {
@@ -153,7 +153,7 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         updateSelectionVisualInternal()
     }
 
-    /** Navegação circular para baixo (primeiro item volta para o último) */
+    /** Circular navigation down (first item wraps to last) */
     protected fun navigateDownCircular(itemsCount: Int) {
         _currentSelectedIndex =
                 if (_currentSelectedIndex < itemsCount - 1) {

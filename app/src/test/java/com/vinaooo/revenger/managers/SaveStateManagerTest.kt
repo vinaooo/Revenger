@@ -41,7 +41,7 @@ class SaveStateManagerTest {
         SaveStateManager.clearInstance()
     }
 
-    // ========== OPERAÇÕES BÁSICAS ==========
+    // ========== BASIC OPERATIONS ==========
 
     @Test
     fun `getAllSlots retorna 9 slots`() {
@@ -81,7 +81,7 @@ class SaveStateManagerTest {
         assertSame(manager1, manager2)
     }
 
-    // ========== OPERAÇÕES DE SAVE ==========
+    // ========== SAVE OPERATIONS ==========
 
     @Test
     fun `saveToSlot cria arquivo de estado`() {
@@ -131,7 +131,7 @@ class SaveStateManagerTest {
         assertTrue(slot.screenshotFile!!.exists())
     }
 
-    // ========== OPERAÇÕES DE DELETE ==========
+    // ========== DELETE OPERATIONS ==========
 
     @Test
     fun `deleteSlot remove arquivos e marca como vazio`() {
@@ -157,7 +157,7 @@ class SaveStateManagerTest {
         assertNull(slot.screenshotFile)
     }
 
-    // ========== OPERAÇÕES DE RENAME ==========
+    // ========== RENAME OPERATIONS ==========
 
     @Test
     fun `copySlot duplica dados para outro slot`() {
@@ -194,7 +194,7 @@ class SaveStateManagerTest {
         assertFalse(manager.copySlot(5, 6))
     }
 
-    // ========== OPERAÇÕES DE RENAME ==========
+    // ========== RENAME OPERATIONS ==========
 
     @Test
     fun `renameSlot altera nome do slot`() {

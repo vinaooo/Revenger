@@ -2,26 +2,25 @@ package com.vinaooo.revenger.ui.retromenu3.navigation
 
 
 /**
- * Evento unificado de navegação que representa todas as ações possíveis nos menus, independente da
- * fonte de entrada (gamepad, touch, teclado).
+ * Unified navigation event representing all possible menu actions, regardless of
+ * input source (gamepad, touch, keyboard).
  *
- * Todos os adaptadores de entrada traduzem suas entradas específicas para estes eventos
- * NavigationEvent, permitindo que o NavigationController processe todas as entradas de forma
- * uniforme.
+ * All input adapters translate their specific inputs into these NavigationEvent types,
+ * allowing the NavigationController to process all inputs uniformly.
  */
 sealed class NavigationEvent {
-        /** Timestamp do evento em milissegundos (System.currentTimeMillis()) */
+        /** Event timestamp in milliseconds (System.currentTimeMillis()) */
         abstract val timestamp: Long
 
-        /** Fonte de entrada que gerou este evento */
+        /** Input source that generated this event */
         abstract val inputSource: InputSource
 
         /**
-         * Evento de navegação direcional (DPAD, setas do teclado, gestos).
+         * Directional navigation event (DPAD, keyboard arrows, gestures).
          *
-         * Exemplos:
-         * - Usuário pressiona DPAD_DOWN → Navigate(direction = DOWN)
-         * - Usuário pressiona seta para cima → Navigate(direction = UP)
+         * Examples:
+         * - User presses DPAD_DOWN → Navigate(direction = DOWN)
+         * - User presses up arrow → Navigate(direction = UP)
          */
         data class Navigate(
                 val direction: Direction,
@@ -30,10 +29,10 @@ sealed class NavigationEvent {
         ) : NavigationEvent()
 
         /**
-         * Evento de seleção direta de um item específico (normalmente touch).
+         * Direct selection of a specific item (usually touch).
          *
-         * Exemplo:
-         * - Usuário toca no item 3 → SelectItem(index = 3)
+         * Example:
+         * - User taps item 3 → SelectItem(index = 3)
          */
         data class SelectItem(
                 val index: Int,
@@ -42,14 +41,14 @@ sealed class NavigationEvent {
         ) : NavigationEvent()
 
         /**
-         * Evento de ativação do item atualmente selecionado.
+         * Activation event for the currently selected item.
          *
-         * Exemplos:
-         * - Usuário pressiona botão A → ActivateSelected
-         * - Usuário pressiona Enter → ActivateSelected
-         * - Touch: após 100ms do SelectItem → ActivateSelected
+         * Examples:
+         * - User presses A button → ActivateSelected
+         * - User presses Enter → ActivateSelected
+         * - Touch: after 100ms from SelectItem → ActivateSelected
          *
-         * @param keyCode O código da tecla/botão que ativou (para grace period). Null para touch.
+         * @param keyCode The key/button code that activated it (for grace period). Null for touch.
          */
         data class ActivateSelected(
                 val keyCode: Int? = null,
@@ -58,15 +57,15 @@ sealed class NavigationEvent {
         ) : NavigationEvent()
 
         /**
-         * Evento de navegação para trás (voltar ao menu anterior).
+         * Back navigation event (return to the previous menu).
          *
-         * Exemplos:
-         * - Usuário pressiona botão B → NavigateBack
-         * - Usuário pressiona Escape → NavigateBack
-         * - Usuário toca no item "Voltar" → NavigateBack
-         * - Usuário pressiona botão Back do Android → NavigateBack
+         * Examples:
+         * - User presses B button → NavigateBack
+         * - User presses Escape → NavigateBack
+         * - User taps the "Back" item → NavigateBack
+         * - User presses Android Back button → NavigateBack
          *
-         * @param keyCode O código da tecla/botão que voltou (para grace period). Null para touch.
+         * @param keyCode The key/button code that triggered back (for grace period). Null for touch.
          */
         data class NavigateBack(
                 val keyCode: Int? = null,
@@ -75,11 +74,11 @@ sealed class NavigationEvent {
         ) : NavigationEvent()
 
         /**
-         * Evento de abertura do menu principal.
+         * Event to open the main menu.
          *
-         * Exemplos:
-         * - Usuário pressiona SELECT+START → OpenMenu
-         * - Usuário pressiona START (quando em jogo) → OpenMenu
+         * Examples:
+         * - User presses SELECT+START → OpenMenu
+         * - User presses START (while in game) → OpenMenu
          */
         data class OpenMenu(
                 override val timestamp: Long = System.currentTimeMillis(),
@@ -87,14 +86,14 @@ sealed class NavigationEvent {
         ) : NavigationEvent()
 
         /**
-         * Evento de fechamento COMPLETO de todos os menus (direto para o jogo).
+         * Event to completely close all menus (directly to the game).
          *
-         * Exemplos:
-         * - Usuário pressiona START (quando menu está aberto) → CloseAllMenus
-         * - Usuário pressiona botão Menu/Hamburguer (quando menu está aberto) → CloseAllMenus
+         * Examples:
+         * - User presses START (when menu is open) → CloseAllMenus
+         * - User presses the Menu/Hamburger button (when menu is open) → CloseAllMenus
          *
-         * Este evento difere de NavigateBack, que volta um passo de cada vez (submenu → main →
-         * jogo). CloseAllMenus fecha tudo diretamente (qualquer menu → jogo).
+         * This event differs from NavigateBack, which goes back one step at a time
+         * (submenu → main → game). CloseAllMenus closes everything directly (any menu → game).
          */
         data class CloseAllMenus(
                 val keyCode: Int? = null,
@@ -103,7 +102,7 @@ sealed class NavigationEvent {
         ) : NavigationEvent()
 }
 
-/** Direções de navegação possíveis. */
+/** Possible navigation directions. */
 enum class Direction {
         UP,
         DOWN,
@@ -112,10 +111,10 @@ enum class Direction {
 }
 
 /**
- * Fonte de entrada que gerou o evento.
+ * Input source that generated the event.
  *
- * Usado para logging, debugging e possíveis ajustes de comportamento específicos por tipo de
- * entrada (ex: delay touch diferente de gamepad).
+ * Used for logging, debugging and potential behavior tweaks specific to input type
+ * (e.g., different touch delay than gamepad).
  */
 enum class InputSource {
         /** Gamepad emulado (botões virtuais na tela) */

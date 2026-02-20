@@ -5,8 +5,7 @@ import com.vinaooo.revenger.ui.retromenu3.callbacks.RetroMenu3Listener
 import com.vinaooo.revenger.utils.MenuLogger
 
 /**
- * Interface para gerenciamento de callbacks do menu. Centraliza todas as chamadas para o listener
- * do menu.
+ * Interface for managing menu callbacks. Centralizes all calls to the menu listener.
  */
 interface MenuCallbackManager {
     fun onContinueGame()
@@ -22,7 +21,7 @@ interface MenuCallbackManager {
     fun hasSaveState(): Boolean
 }
 
-/** Implementação do MenuCallbackManager. Delega chamadas para o RetroMenu3Listener. */
+/** Implementation of MenuCallbackManager. Delegates calls to the RetroMenu3Listener. */
 class MenuCallbackManagerImpl(private val listener: RetroMenu3Listener?) :
         MenuCallbackManager {
 
@@ -88,7 +87,7 @@ class MenuCallbackManagerImpl(private val listener: RetroMenu3Listener?) :
     }
 }
 
-/** Versão do MenuCallbackManager sem logging para testes */
+/** Version of MenuCallbackManager without logging for tests */
 class MenuCallbackManagerTestImpl(private val listener: RetroMenu3Listener?) :
         MenuCallbackManager {
 

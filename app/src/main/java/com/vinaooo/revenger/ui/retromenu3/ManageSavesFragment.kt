@@ -367,7 +367,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
             // Remove RetroEditText from list since we handle it separately
             textViews.removeAll { it is RetroEditText }
             ViewUtils.applySelectedFontToViews(requireContext(), *textViews.toTypedArray())
-            // Garantir capitalização configurada nos textos do diálogo
+            // Ensure configured capitalization on dialog texts
             FontUtils.applyTextCapitalization(requireContext(), *textViews.toTypedArray())
 
             // Initialize RetroKeyboard

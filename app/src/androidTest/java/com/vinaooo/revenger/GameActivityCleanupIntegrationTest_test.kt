@@ -13,9 +13,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Testes de Instrumentation (Espresso) - Integração completa
+ * Instrumentation tests (Espresso) - full integration
  *
- * Objetivo: Testar comportamento da UI após mudanças de warnings cleanup
+ * Goal: Test UI behavior after warnings cleanup changes
  */
 @RunWith(AndroidJUnit4::class)
 class GameActivityCleanupIntegrationTest {
@@ -24,77 +24,77 @@ class GameActivityCleanupIntegrationTest {
 
     @Before
     fun setup() {
-        // GameActivity será criada automaticamente pela regra
+        // GameActivity will be created automatically by the rule
     }
 
-    /** T1.1 Integration: Verificar inicialização sem crashes */
+    /** T1.1 Integration: Verify initialization without crashes */
     @Test
     fun testActivityInitializationWithoutCrashes() {
-        // Se chegou aqui, activity foi inicializada com sucesso
-        // Todas as 8 properties foram inicializadas sem exceção
+        // If we get here, the activity initialized successfully
+        // All 8 properties were initialized without exception
 
-        // Validar que layout está inflated
+        // Validate that layout is inflated
         onView(withId(R.id.retroView)).check { view, noViewFoundException ->
-            // View pode existir ou não, mas sem crashes
+            // View may exist or not, but no crashes
         }
     }
 
-    /** T3.4 Integration: Verificar que rotation (config change) preserva state */
+    /** T3.4 Integration: Verify that rotation (config change) preserves state */
     @Test
     fun testOrientationChangePreservesState() {
-        // Mudança de orientação força recreation da activity
+        // Orientation change forces activity recreation
         activityRule.scenario.onActivity { activity ->
             activity.requestedOrientation =
                     android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         }
 
-        // Atividade deve continuar funcionando
+        // Activity should continue functioning
         onView(withId(R.id.retroView)).check { view, noViewFoundException ->
             // Should still exist after rotation
         }
 
-        // Voltar para portrait
+        // Return to portrait
         activityRule.scenario.onActivity { activity ->
             activity.requestedOrientation =
                     android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
     }
 
-    /** T4.1 Integration: Validar que menu pode ser aberto */
+    /** T4.1 Integration: Validate that menu can be opened */
     @Test
     fun testMenuOpeningFunctionality() {
         // Simular pressionar START button para abrir menu
-        // Note: Pode variar conforme implementação
+        // Note: May vary depending on implementation
 
         activityRule.scenario.onActivity { activity ->
-            // Validar que activity está viva
-            assert(!activity.isDestroyed) { "Activity deve estar viva" }
+            // Validate that activity is alive
+            assert(!activity.isDestroyed) { "Activity should be alive" }
         }
     }
 
-    /** T4.2 Integration: Validar que menu pode ser recriado */
+    /** T4.2 Integration: Validate that menu can be recreated */
     @Test
     fun testMenuRecreationFunctionality() {
         activityRule.scenario.onActivity { activity ->
-            // Simular múltiplos opens/closes de menu
+            // Simulate multiple menu opens/closes
             repeat(3) {
-                // Chamar prepareRetroMenu3() múltiplas vezes deve funcionar
+                // Calling prepareRetroMenu3() multiple times should work
                 assert(!activity.isDestroyed)
             }
         }
     }
 
-    /** T5 Integration: Validar que activity não crashes com null fragment */
+    /** T5 Integration: Verify activity does not crash with null fragment */
     @Test
     fun testActivityHandlesNullFragmentsGracefully() {
-        // Esta é uma validação de que não há NullPointerExceptions inesperadas
+        // This is a validation that no unexpected NullPointerExceptions occur
         activityRule.scenario.onActivity { activity ->
-            // Activity deve estar em bom estado
+            // Activity should be in good state
             assert(!activity.isDestroyed) { "Activity destroyed unexpectedly" }
         }
     }
 
-    /** General Smoke Test: Validar inicialização básica */
+    /** General Smoke Test: Validate basic initialization */
     @Test
     fun testBasicActivityLifecycle() {
         activityRule.scenario.apply {
@@ -109,7 +109,7 @@ class GameActivityCleanupIntegrationTest {
         }
     }
 
-    /** Stress Test: Múltiplas recreações */
+    /** Stress Test: Multiple recreations */
     @Test
     fun testActivityRecreationStress() {
         repeat(3) {
@@ -123,23 +123,23 @@ class GameActivityCleanupIntegrationTest {
 }
 
 /**
- * Testes de Comportamento Crítico
+ * Critical Behavior Tests
  *
- * Validar que as mudanças não introduziram comportamentos inesperados
+ * Validate that changes did not introduce unexpected behaviors
  */
 @RunWith(AndroidJUnit4::class)
 class CriticalBehaviorValidationTest {
 
     @get:Rule val activityRule = ActivityScenarioRule(GameActivity::class.java)
 
-    /** Validar que não há UninitializedPropertyAccessException */
+    /** Validate that there are no UninitializedPropertyAccessExceptions */
     @Test
     fun testNoUninitializedPropertyException() {
         var exceptionThrown = false
 
         activityRule.scenario.onActivity { activity ->
             try {
-                // Qualquer acesso a propriedades não inicializadas lançaria aqui
+                // Any access to uninitialized properties would throw here
                 val viewModel = activity.viewModel
                 assert(viewModel != null) { "ViewModel should be initialized" }
             } catch (e: UninitializedPropertyAccessException) {
@@ -147,39 +147,39 @@ class CriticalBehaviorValidationTest {
             }
         }
 
-        assert(!exceptionThrown) { "UninitializedPropertyAccessException foi lançada" }
+        assert(!exceptionThrown) { "UninitializedPropertyAccessException was thrown" }
     }
 
-    /** Validar que não há ClassCastException */
+    /** Validate that there are no ClassCastExceptions */
     @Test
     fun testNoClassCastException() {
         var exceptionThrown = false
 
         activityRule.scenario.onActivity { activity ->
             try {
-                // ViewModelProvider eliminou os casts impossíveis
+                // ViewModelProvider eliminated impossible casts
                 assert(!activity.isDestroyed)
             } catch (e: ClassCastException) {
                 exceptionThrown = true
             }
         }
 
-        assert(!exceptionThrown) { "ClassCastException foi lançada" }
+        assert(!exceptionThrown) { "ClassCastException was thrown" }
     }
 
-    /** Validar que ViewModels são accessible */
+    /** Validate that ViewModels are accessible */
     @Test
     fun testViewModelsAccessible() {
         activityRule.scenario.onActivity { activity ->
-            // Todas as propriedades devem ser acessíveis
+            // All properties should be accessible
             val viewModel = activity.viewModel
 
-            // Se chegarmos aqui sem exception, está correto
-            assert(viewModel != null) { "ViewModel acessível" }
+            // If we reach here without exception, it's correct
+            assert(viewModel != null) { "ViewModel accessible" }
         }
     }
 
-    /** Validar que não há NullPointerException desnecessária */
+    /** Validate that there are no unnecessary NullPointerExceptions */
     @Test
     fun testNoUnexpectedNullPointerException() {
         var nullPointerThrown = false
@@ -188,38 +188,38 @@ class CriticalBehaviorValidationTest {
             try {
                 // Acessar propriedades que deveriam estar inicializadas
                 val retroView = activity.retroView
-                // Pode ser null por design, mas não deve lançar exception
+                // May be null by design, but should not throw exception
             } catch (e: NullPointerException) {
                 nullPointerThrown = true
             }
         }
 
-        assert(!nullPointerThrown) { "NullPointerException foi lançada desnecessariamente" }
+        assert(!nullPointerThrown) { "NullPointerException was thrown unnecessarily" }
     }
 }
 
 /**
- * Testes de Memory e Performance
+ * Memory and Performance Tests
  *
- * Validar que não há memory leaks após mudanças
+ * Validate that there are no memory leaks after changes
  */
 @RunWith(AndroidJUnit4::class)
 class MemoryAndPerformanceTest {
 
     @get:Rule val activityRule = ActivityScenarioRule(GameActivity::class.java)
 
-    /** Validar que ViewModels não causam memory leak */
+    /** Validate that ViewModels do not cause memory leak */
     @Test
     fun testNoViewModelMemoryLeak() {
         activityRule.scenario.apply {
             onActivity { activity -> assert(!activity.isDestroyed) }
 
-            // Activity será destruída quando sair do escopo
-            // Robolectric/Espresso deve limpar ViewModels automaticamente
+            // Activity will be destroyed when leaving scope
+            // Robolectric/Espresso should clean up ViewModels automatically
         }
     }
 
-    /** Validar que múltiplas recreações não causam vazamento */
+    /** Validate that multiple recreations do not cause leaks */
     @Test
     fun testMultipleRecreationsNoLeak() {
         repeat(5) {
@@ -227,7 +227,7 @@ class MemoryAndPerformanceTest {
 
             activityRule.scenario.onActivity { activity ->
                 assert(!activity.isDestroyed)
-                // Se houvesse leak significativo, memory pressure aumentaria
+                // If there were a significant leak, memory pressure would increase
             }
         }
     }

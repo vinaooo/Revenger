@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.vinaooo.revenger.retroview.RetroView
 
-/** Controller para gerenciamento dinâmico de shaders em tempo real */
+/** Controller for dynamic real-time shader management */
 class ShaderController(
         private val context: Context,
         private val sharedPreferences: SharedPreferences
@@ -32,23 +32,23 @@ class ShaderController(
         Log.d("ShaderController", "Shader inicial carregado: $currentShader")
     }
 
-    /** Verifica se está no modo settings (seleção dinâmica de shader) */
+    /** Checks if we are in settings mode (dynamic shader selection) */
     private fun isSettingsMode(): Boolean {
-        // Como não temos acesso direto ao context aqui, vamos verificar via RetroView
+        // Since we don't have direct context access here, check via RetroView
         return retroView?.isShaderSelectionEnabled() ?: false
     }
 
-    /** Conecta o controller ao RetroView */
+    /** Connects the controller to the RetroView */
     fun connect(retroView: RetroView) {
         this.retroView = retroView
-        // Só aplicar shader se estiver no modo settings
+        // Only apply shader if in settings mode
         if (isSettingsMode()) {
             applyCurrentShader()
         }
         Log.d("ShaderController", "Conectado ao RetroView")
     }
 
-    /** Define o shader atual */
+    /** Sets the current shader */
     fun setShader(shader: String) {
         if (shader !in availableShaders) {
             Log.w("ShaderController", "Shader inválido: $shader")
@@ -57,16 +57,16 @@ class ShaderController(
 
         currentShader = shader
 
-        // Salvar nas preferências
+        // Save to preferences
         sharedPreferences.edit().putString(PREF_CURRENT_SHADER, shader).apply()
 
-        // Aplicar em tempo real
+        // Apply in real time
         applyCurrentShader()
 
         Log.d("ShaderController", "Shader alterado para: $shader")
     }
 
-    /** Cicla para o próximo shader */
+    /** Cycle to the next shader */
     fun cycleShader(): String {
         val currentIndex = availableShaders.indexOf(currentShader)
         val nextIndex = (currentIndex + 1) % availableShaders.size
@@ -76,10 +76,10 @@ class ShaderController(
         return nextShader
     }
 
-    /** Obtém o shader atual */
+    /** Get the current shader */
     fun getCurrentShader(): String = currentShader
 
-    /** Obtém o nome display do shader atual */
+    /** Get the display name of the current shader */
     fun getCurrentShaderDisplayName(): String {
         return when (currentShader) {
             "disabled" -> "Disabled"
@@ -90,7 +90,7 @@ class ShaderController(
         }
     }
 
-    /** Aplica o shader atual ao RetroView */
+    /** Apply the current shader to the RetroView */
     private fun applyCurrentShader() {
         retroView?.let { rv ->
             rv.dynamicShader = currentShader
@@ -98,7 +98,7 @@ class ShaderController(
         }
                 ?: Log.w(
                         "ShaderController",
-                        "RetroView não conectado, não foi possível aplicar shader"
+                        "RetroView not connected, could not apply shader"
                 )
     }
 }
