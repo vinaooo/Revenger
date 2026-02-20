@@ -15,33 +15,33 @@ import com.vinaooo.revenger.ui.retromenu3.callbacks.RetroMenu3Listener
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * Fragment principal do sistema RetroMenu3.
+ * Main fragment of the RetroMenu3 system.
  *
- * **Menu Principal** ativado por combo SELECT+START no gamepad.
+ * **Main Menu** activated by SELECT+START combo on gamepad.
  *
  * **Arquitetura Multi-Input (Phase 3+)**:
- * - Suporta navegação via gamepad, teclado e touch
- * - Debouncing adaptativo: 30ms navegação, 200ms ações
+ * - Supports navigation via gamepad, keyboard and touch
+ * - Adaptive debouncing: 30ms navigation, 200ms actions
  * - Sistema single-trigger para responsividade
  *
  * **Responsabilidades**:
- * - Gerenciar menu principal com 6 opções (Continue, Reset, Progress, Settings, About, Exit)
- * - Coordenar navegação entre submenus via SubmenuCoordinator
- * - Integrar com GameActivityViewModel para ações centralizadas
- * - Implementar listeners de todos os submenus para back navigation
+ * - Manage main menu with 6 options (Continue, Reset, Progress, Settings, About, Exit)
+ * - Coordinate navigation between submenus via SubmenuCoordinator
+ * - Integrate with GameActivityViewModel for centralized actions
+ * - Implement listeners for all submenus for back navigation
  *
  * **Managers Modulares (Phase 2+)**:
- * - `lifecycleManager`: Gerencia ciclo de vida do fragment
- * - `viewInitializer`: Inicializa views e sistema de navegação touch
- * - `animationController`: Controla animações de entrada/saída
- * - `inputHandler`: Processa inputs de gamepad/teclado (delegado para navegação unificada)
+ * - `lifecycleManager`: Manages the fragment lifecycle
+ * - `viewInitializer`: Initializes views and touch navigation system
+ * - `animationController`: Controls entry/exit animations
+ * - `inputHandler`: Processes gamepad/keyboard inputs (delegated to unified navigation)
  *
- * **Phase 3.3**: Touch integrado com highlight imediato + delay de 100ms para ativação. **Phase
- * 4**: Documentação completa e validação de compatibilidade.
+ * **Phase 3.3**: Integrated touch with immediate highlight + 100ms activation delay. **Phase
+ * 4**: Complete documentation and compatibility validation.
  *
- * @see MenuFragmentBase Classe base com navegação unificada
- * @see SubmenuCoordinator Coordenador de navegação entre menus
- * @see GameActivityViewModel ViewModel centralizado para ações
+ * @see MenuFragmentBase Base class with unified navigation
+ * @see SubmenuCoordinator Navigation coordinator between menus
+ * @see GameActivityViewModel Centralized ViewModel for actions
  */
 class RetroMenu3Fragment :
         MenuFragmentBase(),
@@ -59,7 +59,7 @@ class RetroMenu3Fragment :
         // Menu view manager for UI operations
         private lateinit var menuViewManager: MenuViewManager
 
-        // NOVOS MANAGERS - Fase 2: MenuLifecycleManager
+        // NEW MANAGERS - Phase 2: MenuLifecycleManager
         private lateinit var lifecycleManager: MenuLifecycleManager
         private lateinit var viewInitializer: MenuViewInitializer
         private lateinit var animationController: MenuAnimationController
@@ -85,7 +85,7 @@ class RetroMenu3Fragment :
         }
 
         /**
-         * Recriar submenu após mudança de orientação. Remove o fragment atual e reabre com o layout
+         * Recreate submenu after orientation change. Removes current fragment and reopens with the layout
          * correto.
          */
         fun recreateSubmenuAfterOrientationChange(currentState: MenuState) {
@@ -97,7 +97,7 @@ class RetroMenu3Fragment :
                 if (currentState == MenuState.MAIN_MENU) {
                         android.util.Log.d(
                                 "RetroMenu3",
-                                "[ORIENTATION] Estado é MAIN_MENU, nada a fazer"
+                                "[ORIENTATION] State is MAIN_MENU, nothing to do"
                         )
                         return
                 }
@@ -147,7 +147,7 @@ class RetroMenu3Fragment :
                 // Inicializar MenuViewManager (existente)
                 menuViewManager = MenuViewManager(this)
 
-                // NOVOS MANAGERS - Fase 2 e 3
+                // NEW MANAGERS - Phase 2 and 3
                 viewInitializer = MenuViewInitializerImpl(this)
                 animationController = MenuAnimationControllerImpl()
 
@@ -171,7 +171,7 @@ class RetroMenu3Fragment :
                 inputHandler =
                         MenuInputHandlerImpl(this, stateController, callbackManager, actionHandler)
 
-                // Inicializar lifecycle manager por último (depende dos outros)
+                // Initialize lifecycle manager last (depends on others)
                 lifecycleManager =
                         MenuLifecycleManagerImpl(
                                 fragment = this,
@@ -233,7 +233,7 @@ class RetroMenu3Fragment :
                         // Delegate all lifecycle management to MenuLifecycleManager
                         lifecycleManager.onViewCreated(view, savedInstanceState)
 
-                        // Configurar callbacks para o SubmenuCoordinator (agora que menuViews está
+                        // Configure callbacks for SubmenuCoordinator (now that menuViews is
                         // inicializado)
                         submenuCoordinator.setCallbacks(
                                 showMainMenuCallback = { preserveSelection: Boolean ->
@@ -269,7 +269,7 @@ class RetroMenu3Fragment :
                 }
         }
 
-        /** Desregistra fragment do NavigationController quando destruído. */
+        /** Unregister fragment from NavigationController when destroyed. */
         override fun onDestroyView() {
                 android.util.Log.d("RetroMenu3", "[LIFECYCLE] onDestroyView START")
 
@@ -284,16 +284,16 @@ class RetroMenu3Fragment :
                 android.util.Log.d("RetroMenu3", "[LIFECYCLE] onDestroyView COMPLETED")
         }
 
-        /** Salvar estado do submenu atual antes de mudança de configuração. */
+        /** Save current submenu state before configuration change. */
         override fun onSaveInstanceState(outState: Bundle) {
                 super.onSaveInstanceState(outState)
 
                 val currentState = viewModel.getMenuManager().getCurrentState()
-                android.util.Log.d("RetroMenu3", "[SAVE_STATE] � Salvando estado: $currentState")
+                android.util.Log.d("RetroMenu3", "[SAVE_STATE] 🗄 Saving state: $currentState")
                 outState.putString("SUBMENU_STATE", currentState.name)
         }
 
-        /** Restaurar submenu após mudança de configuração. */
+        /** Restore submenu after configuration change. */
         override fun onViewStateRestored(savedInstanceState: Bundle?) {
                 super.onViewStateRestored(savedInstanceState)
 
@@ -301,7 +301,7 @@ class RetroMenu3Fragment :
                         val savedStateName = savedInstanceState.getString("SUBMENU_STATE")
                         android.util.Log.d(
                                 "RetroMenu3",
-                                "[RESTORE_STATE] 📦 Estado salvo encontrado: $savedStateName"
+                                "[RESTORE_STATE] 📦 Saved state found: $savedStateName"
                         )
 
                         if (savedStateName != null) {
@@ -381,7 +381,7 @@ class RetroMenu3Fragment :
                 }
         }
 
-        // ========== IMPLEMENTAÇÃO DOS MÉTODOS ABSTRATOS DA MenuFragmentBase ==========
+        // ========== IMPLEMENTATION OF ABSTRACT METHODS FROM MenuFragmentBase ==========
 
         override fun getMenuItems(): List<MenuItem> =
                 listOf(
@@ -444,7 +444,7 @@ class RetroMenu3Fragment :
         }
 
         override fun performBack(): Boolean {
-                // Se há um submenu ativo, fechar o submenu primeiro
+                // If there is an active submenu, close it first
                 val backStackCount = parentFragmentManager.backStackEntryCount
 
                 if (backStackCount > 0) {
@@ -461,7 +461,7 @@ class RetroMenu3Fragment :
                                         "[PERFORM_BACK] ❌ Error closing submenu",
                                         e
                                 )
-                                return false // Não conseguiu fechar, deixar MenuManager lidar
+                                return false // Could not close, let MenuManager handle it
                         }
                 }
 
@@ -616,7 +616,7 @@ class RetroMenu3Fragment :
                 actionHandler.executeAction(item.action)
         }
 
-        // IMPLEMENTAÇÃO DAS INTERFACES DOS SUBMENUS
+        // IMPLEMENTATION OF SUBMENU INTERFACES
         override fun onBackToMainMenu() {
                 android.util.Log.d(TAG, "[LISTENER] 🔔 onBackToMainMenu called - closing submenu")
                 // Fechar submenu e voltar ao menu principal

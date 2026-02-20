@@ -12,7 +12,7 @@
     <dimen name="rm_title_text_size">32sp</dimen>
     <dimen name="rm_arrow_text_size">17sp</dimen>
     <dimen name="rm_menu_item_text_size">17sp</dimen>
-    <!-- Espaçamento reduzido entre opções do menu em portrait -->
+    <!-- Reduced spacing between menu options in portrait -->
     <dimen name="rm_menu_item_height">32dp</dimen>
     <dimen name="rm_menu_item_padding">4dp</dimen>
     <dimen name="rm_extra_space_height">8dp</dimen>

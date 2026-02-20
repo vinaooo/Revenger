@@ -4,8 +4,8 @@ import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * Testes unitários para as interfaces de callbacks do RetroMenu3.
- * Verifica que as interfaces segregadas (ISP) funcionam corretamente.
+ * Unit tests for the RetroMenu3 callback interfaces.
+ * Ensures segregated interfaces (ISP) work correctly.
  */
 class CallbacksTest {
 

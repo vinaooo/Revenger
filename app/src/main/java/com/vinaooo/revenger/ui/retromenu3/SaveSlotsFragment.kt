@@ -311,7 +311,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             confirmText.text = getString(R.string.dialog_overwrite)
             cancelText.text = getString(R.string.dialog_cancel)
 
-            // Garantir que a mensagem do diálogo também seja capitalizada pelo utilitário
+            // Ensure the dialog message is also capitalized by the utility
             FontUtils.applyTextCapitalization(requireContext(), messageView, confirmText, cancelText)
 
             // Configure buttons

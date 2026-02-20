@@ -16,25 +16,25 @@ import com.vinaooo.revenger.ui.splash.CRTBootView
 import com.vinaooo.revenger.utils.OrientationManager
 
 /**
- * SplashActivity - Tela inicial com efeito CRT
+ * SplashActivity - Initial screen with CRT effect
  *
- * Fluxo:
- * 1. Splash nativa do Android (fundo preto + ícone)
- * 2. Fade para animação CRT
- * 3. Animação CRT (ícone → linha → expansão + scanlines)
- * 4. GameActivity inicia
+ * Flow:
+ * 1. Android native splash (black background + icon)
+ * 2. Fade into CRT animation
+ * 3. CRT animation (icon → line → expansion + scanlines)
+ * 4. GameActivity starts
  */
 class SplashActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "SplashActivity"
-        private const val FADE_DURATION = 300L // Duração do fade (ms)
+        private const val FADE_DURATION = 300L // Fade duration (ms)
     }
 
     private lateinit var crtBootView: CRTBootView
     private val handler = Handler(Looper.getMainLooper())
 
-    // Flag para controlar se a splash nativa já terminou
+    // Flag to track if native splash has finished
     private var isReady = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,25 +43,25 @@ class SplashActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
 
-        // CRÍTICO: Aplicar orientação IMEDIATAMENTE após super.onCreate()
-        // para evitar flash de orientação incorreta
+        // CRITICAL: Apply orientation IMMEDIATELY after super.onCreate()
+        // to avoid incorrect orientation flash
         val configOrientation = resources.getInteger(R.integer.conf_orientation)
         OrientationManager.applyConfigOrientation(this, configOrientation)
 
         Log.d(TAG, "SplashActivity created - orientation: $configOrientation")
 
-        // Manter splash nativa na tela até estarmos prontos
+        // Keep native splash on screen until we are ready
         splashScreen.setKeepOnScreenCondition { !isReady }
 
-        // Controlar a animação de saída da splash nativa
-        // Remover splash imediatamente, CRT já está desenhando fundo preto
+        // Control native splash exit animation
+        // Remove splash immediately, CRT is already drawing black background
         splashScreen.setOnExitAnimationListener { splashScreenView ->
             Log.d(TAG, "Splash exit animation intercepted")
 
-            // Remover splash imediatamente - CRT já está visível com fundo preto
+            // Remove splash immediately - CRT is already visible with black background
             splashScreenView.remove()
 
-            // Iniciar animação CRT após remoção da splash
+            // Start CRT animation after splash removal
             crtBootView.startAnimation()
             Log.d(TAG, "Splash removed and CRT started")
         }
@@ -77,27 +77,27 @@ class SplashActivity : AppCompatActivity() {
             Log.d(TAG, "BACK pressed but blocked during splash")
         }
 
-        // Inicializar CRTBootView com fundo preto visível
-        // A view desenha fundo preto imediatamente (mesmo antes da animação)
+        // Initialize CRTBootView with visible black background
+        // The view draws black background immediately (even before animation)
         crtBootView = findViewById(R.id.crt_boot_view)
-        // Alpha inicial = 0, mas o FrameLayout tem fundo preto que bloqueia
+        // Initial alpha = 0, but the FrameLayout has a black background that blocks
 
-        // Configurar callback para quando a animação CRT terminar
+        // Set callback for when CRT animation ends
         crtBootView.onAnimationEndListener = { startGameActivity() }
 
-        // Marcar como pronto para sair da splash nativa após layout estar pronto
+        // Mark ready to exit native splash after layout is ready
         handler.postDelayed(
                 {
                     isReady = true
                     Log.d(TAG, "Ready to exit native splash")
                 },
                 100
-        ) // Pequeno delay para garantir que o layout está pronto
+        ) // Small delay to ensure the layout is ready
     }
 
-    /** Configura modo fullscreen e imersivo */
+    /** Configure fullscreen and immersive mode */
     private fun setupFullscreen() {
-        // Garantir fundo preto na janela
+        // Ensure black background on window
         window.decorView.setBackgroundColor(android.graphics.Color.BLACK)
         window.setBackgroundDrawableResource(android.R.color.black)
 
@@ -111,7 +111,7 @@ class SplashActivity : AppCompatActivity() {
         Log.d(TAG, "Fullscreen mode enabled")
     }
 
-    /** Inicia GameActivity e finaliza Splash */
+    /** Start GameActivity and finish Splash */
     private fun startGameActivity() {
         Log.d(TAG, "Starting GameActivity")
 
@@ -119,7 +119,7 @@ class SplashActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
 
-        // Sem transição - fade out já aconteceu na Fase 3
+        // No transition - fade out already occurred in Phase 3
         @Suppress("DEPRECATION") overridePendingTransition(0, 0)
     }
 
@@ -127,7 +127,7 @@ class SplashActivity : AppCompatActivity() {
         super.onConfigurationChanged(newConfig)
 
         // Reapply forced orientation to keep conf_orientation authoritative
-        // This ensures physical orientation changes do not interfere with the animation
+        // Ensures physical orientation changes do not interfere with animation
         val configOrientation = resources.getInteger(R.integer.conf_orientation)
         OrientationManager.applyConfigOrientation(this, configOrientation)
         Log.d(TAG, "Configuration changed - orientation reapplied: $configOrientation")
@@ -136,10 +136,10 @@ class SplashActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
 
-        // Limpar callbacks pendentes
+        // Clear pending callbacks
         handler.removeCallbacksAndMessages(null)
 
-        // Parar animação se estiver rodando
+        // Stop animation if it's running
         if (::crtBootView.isInitialized) {
             crtBootView.stopAnimation()
         }

@@ -8,20 +8,20 @@ import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.retroview.RetroView
 
 /**
- * Gerenciador centralizado de entradas de controle (gamepad, teclado).
+ * Centralized control input manager (gamepad, keyboard).
  *
- * Responsabilidades:
- * - Detectar combo SELECT+START para abrir RetroMenu3
- * - Interceptar entradas quando menu está ativo
- * - Rotear navegação de menu (UP/DOWN/CONFIRM/BACK)
- * - Prevenir vazamento de inputs para o core durante operações de menu
+ * Responsibilities:
+ * - Detect SELECT+START combo to open RetroMenu3
+ * - Intercept inputs when the menu is active
+ * - Route menu navigation (UP/DOWN/CONFIRM/BACK)
+ * - Prevent input leakage to the core during menu operations
  *
- * Arquitetura Phase 4+:
- * - Sistema single-trigger para navegação responsiva
- * - Debouncing adaptativo (30ms navegação, 200ms ações)
- * - Grace period de 500ms para evitar ações duplicadas após fechar menu
+ * Phase 4+ Architecture:
+ * - Single-trigger system for responsive navigation
+ * - Adaptive debouncing (30ms navigation, 200ms actions)
+ * - 500ms grace period to avoid duplicate actions after closing menu
  *
- * @param context Contexto da aplicação para operações do sistema
+ * @param context Application context for system operations
  */
 class ControllerInput(private val context: Context) {
         companion object {
@@ -88,17 +88,17 @@ class ControllerInput(private val context: Context) {
         }
 
         /**
-         * Limpa apenas os botões de ação do menu (A, B, D-PAD) do keyLog NÃO limpa START/SELECT
-         * para não causar problemas no combo Deve ser chamado quando o menu fecha para evitar
+         * Clears only the menu action buttons (A, B, D-PAD) from keyLog DOES NOT clear START/SELECT
+         * to avoid combo issues. Should be called when the menu closes to prevent
          * "wasAlreadyPressed" false positives
                 // Tracking de contexto para eventos KEY_DOWN/KEY_UP (FIX ERRO 1)
-                // Guarda timestamp do último KEY_DOWN de cada botão para validar KEY_UP correspondente
+                // Store timestamp of the last KEY_DOWN for each button to validate corresponding KEY_UP
                 private val keyDownTimestamps = mutableMapOf<Int, Long>()
-                private val KEY_UP_TIMEOUT_MS = 500L // Timeout para considerar KEY_UP órfão
+                private val KEY_UP_TIMEOUT_MS = 500L // Timeout to consider KEY_UP orphaned
 
          */
         fun clearMenuActionButtons() {
-                // Remove apenas botões de menu (A, B, D-PAD), mantém START/SELECT
+                // Remove only menu buttons (A, B, D-PAD), keeping START/SELECT
                 keyLog.removeIf { keyCode ->
                         keyCode == KeyEvent.KEYCODE_BUTTON_A ||
                                 keyCode == KeyEvent.KEYCODE_BUTTON_B ||

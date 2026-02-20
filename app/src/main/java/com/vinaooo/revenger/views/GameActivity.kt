@@ -33,7 +33,7 @@ class GameActivity : FragmentActivity() {
         private lateinit var loadPreviewOverlay: android.widget.ImageView
         private val viewModel: GameActivityViewModel by viewModels()
 
-        // GamePad alignment manager para offset vertical
+        // GamePad alignment manager for vertical offset
         private lateinit var alignmentManager: GamePadAlignmentManager
 
         // Performance monitoring
@@ -42,7 +42,7 @@ class GameActivity : FragmentActivity() {
         // GamePad container reference for orientation changes
         private lateinit var gamePadContainer: android.widget.LinearLayout
 
-        // BroadcastReceiver para monitorar mudanças de auto-rotate
+        // BroadcastReceiver to monitor auto-rotate changes
         private var rotationSettingsReceiver: android.content.BroadcastReceiver? = null
 
         // Modern permission launcher (replaces deprecated onRequestPermissionsResult)
@@ -79,9 +79,9 @@ class GameActivity : FragmentActivity() {
                 super.onCreate(savedInstanceState)
                 android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] super.onCreate() completed")
 
-                // CRÍTICO: Aplicar orientação em DUAS etapas para eliminar flash:
-                // 1. Forçar Configuration ANTES de setContentView (escolhe layout correto)
-                // 2. Aplicar requestedOrientation para persistência
+                // CRITICAL: Apply orientation in TWO steps to eliminate flash:
+                // 1. Force Configuration BEFORE setContentView (chooses correct layout)
+                // 2. Apply requestedOrientation for persistence
                 val configOrientation = resources.getInteger(R.integer.conf_orientation)
                 com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(this, configOrientation)
                 android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] forceConfiguration() completed")
@@ -146,8 +146,7 @@ class GameActivity : FragmentActivity() {
                 }
 
                 registerInputListener()
-                registerRotationSettingsListener() // Adicionar listener para mudanças de
-                // auto-rotate
+                registerRotationSettingsListener() // Add listener for auto-rotate changes
                 viewModel.updateGamePadVisibility(this, leftContainer, rightContainer)
                 viewModel.setupRetroView(this, retroviewContainer)
                 android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupRetroView() completed")
@@ -157,8 +156,8 @@ class GameActivity : FragmentActivity() {
                 // Force gamepad positioning based on orientation
                 adjustGamePadPositionForOrientation(gamepadContainers)
 
-                // Revelar gamepads após próximo frame (quando orientação estiver estabilizada)
-                // Isso elimina flash de gamepads na orientação errada
+                // Reveal gamepads after next frame (when orientation has settled)
+                // This eliminates flash of gamepads in wrong orientation
                 gamePadContainer.post {
                     gamePadContainer.visibility = android.view.View.VISIBLE
                     android.util.Log.d(TAG, "GamePads revealed after orientation settled")
@@ -173,9 +172,9 @@ class GameActivity : FragmentActivity() {
         }
 
         /**
-         * Registra um listener para monitorar mudanças na configuração de auto-rotate do sistema.
-         * Quando o usuário muda a preferência de auto-rotate nas configurações do sistema, a
-         * orientação da app é reajustada automaticamente.
+         * Registers a listener to monitor changes in the system auto-rotate setting.
+         * When the user toggles auto-rotate in system settings, the app's orientation is
+         * automatically reapplied.
          */
         private fun registerRotationSettingsListener() {
                 rotationSettingsReceiver =
@@ -188,21 +187,21 @@ class GameActivity : FragmentActivity() {
                                                         android.content.Intent
                                                                 .ACTION_CONFIGURATION_CHANGED
                                         ) {
-                                                // Configuração mudou (pode ser auto-rotate)
+                                                // Configuration changed (could be auto-rotate)
                                                 Log.d(
                                                         TAG,
-                                                        "[ROTATION_LISTENER] Configuração do sistema mudou - verificando auto-rotate"
+                                                        "[ROTATION_LISTENER] System configuration changed - checking auto-rotate"
                                                 )
                                                 reapplyOrientation()
                                         }
                                 }
                         }
 
-                // Criar IntentFilter para detectar mudanças de configuração
+                // Create IntentFilter to detect configuration changes
                 val intentFilter = android.content.IntentFilter()
                 intentFilter.addAction(android.content.Intent.ACTION_CONFIGURATION_CHANGED)
 
-                // Registrar receiver com permissão apropriada
+                // Register receiver with appropriate permission
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                         registerReceiver(
                                 rotationSettingsReceiver,
@@ -215,13 +214,13 @@ class GameActivity : FragmentActivity() {
 
                 Log.d(
                         TAG,
-                        "[ROTATION_LISTENER] BroadcastReceiver registrado para monitorar mudanças"
+                        "[ROTATION_LISTENER] BroadcastReceiver registered to monitor changes"
                 )
         }
 
         /**
-         * Reaplica a configuração de orientação quando a preferência de auto-rotate muda. Isso
-         * permite que a app responda dinamicamente às mudanças do sistema.
+         * Reapplies orientation configuration when the auto-rotate preference changes. This
+         * allows the app to dynamically respond to system changes.
          */
         private fun reapplyOrientation() {
                 try {
@@ -237,16 +236,16 @@ class GameActivity : FragmentActivity() {
                                         false
                                 }
 
-                        Log.d(TAG, "[ROTATION_REAPPLY] Auto-rotate do sistema: $wasAutoRotate")
+                        Log.d(TAG, "[ROTATION_REAPPLY] System auto-rotate: $wasAutoRotate")
 
-                        // Reaplica a configuração de orientação baseado no novo estado
+                        // Reapply orientation configuration based on new state
                         viewModel.setConfigOrientation(this)
 
-                        Log.d(TAG, "[ROTATION_REAPPLY] Orientação reajustada com sucesso")
+                        Log.d(TAG, "[ROTATION_REAPPLY] Orientation successfully reapplied")
                 } catch (e: Exception) {
                         Log.e(
                                 TAG,
-                                "[ROTATION_REAPPLY] Erro ao reajustar orientação: ${e.message}",
+                                "[ROTATION_REAPPLY] Error reapplying orientation: ${e.message}",
                                 e
                         )
                 }
@@ -256,8 +255,8 @@ class GameActivity : FragmentActivity() {
                 super.onConfigurationChanged(newConfig)
                 Log.d(TAG, "Configuration changed - orientation=${newConfig.orientation}")
 
-                // Verificar se devemos reprocessar orientação
-                // NÃO reprocessar quando config=3 e auto-rotate=OFF (para permitir botão manual)
+                // Check if we should reprocess orientation
+                // DO NOT reprocess when config=3 and auto-rotate=OFF (to allow manual button)
                 val configOrientation = resources.getInteger(R.integer.conf_orientation)
                 val autoRotateEnabled =
                         try {
@@ -270,14 +269,14 @@ class GameActivity : FragmentActivity() {
                                 false
                         }
 
-                // Só reaplica orientação se config=1 ou 2 (forçadas) ou se config=3 com auto-rotate
+                // Only reapply orientation if config=1 or 2 (forced) or if config=3 with auto-rotate
                 // ON
                 if (configOrientation != 3 || autoRotateEnabled) {
                         reapplyOrientation()
                 } else {
                         Log.d(
                                 TAG,
-                                "[ROTATION] config=3 + auto-rotate OFF - não reaplica (permite botão manual)"
+                                "[ROTATION] config=3 + auto-rotate OFF - not reapplying (allows manual button)"
                         )
                 }
 
@@ -295,14 +294,14 @@ class GameActivity : FragmentActivity() {
                 viewModel.setupMenuCallback(this)
                 Log.d(TAG, "[ROTATION_FIX] Menu callbacks re-registered after rotation")
 
-                // --- SOLUÇÃO: Recriar fragments após mudança de orientação ---
+                // --- SOLUTION: Recreate fragments after orientation change ---
                 Log.d(TAG, "[ORIENTATION] ====== CHECKING FOR MENU AFTER ROTATION ======")
 
                 val menuManager = viewModel.getMenuManager()
                 val currentState =
-                        menuManager.getCurrentState() // CRÍTICO: Verificar o backstack REAL para
-                // detectar se estamos num submenu
-                // O currentState pode estar desatualizado após operações de BACK
+                        menuManager.getCurrentState() // CRITICAL: Check the TRUE backstack to
+                // detect if we are in a submenu
+                // currentState may be outdated after BACK operations
                 val fragmentManager = supportFragmentManager
                 val hasBackStack = fragmentManager.backStackEntryCount > 0
                 val visibleFragment = fragmentManager.findFragmentById(R.id.menu_container)
@@ -325,7 +324,7 @@ class GameActivity : FragmentActivity() {
 
                 Log.d(TAG, "[ORIENTATION] ✅ Menu fragment found, proceeding with recreation")
 
-                // Aguardar sistema completar rotação
+                // Wait for system to complete rotation
                 android.os.Handler(android.os.Looper.getMainLooper())
                         .postDelayed(
                                 {
@@ -335,8 +334,8 @@ class GameActivity : FragmentActivity() {
                                         )
 
                                         // CRITICAL FIX: Re-check backstack INSIDE postDelayed
-                                        // O backstack pode ter mudado entre a verificação inicial e
-                                        // a execução
+                                        // The backstack may have changed between the initial check and
+                                        // execution
                                         // do postDelayed
                                         val currentBackStackCount =
                                                 fragmentManager.backStackEntryCount
@@ -347,17 +346,17 @@ class GameActivity : FragmentActivity() {
                                                 "[ORIENTATION] ⚠️ RE-CHECKING backstack: initial=$hasBackStack, now=$hasBackStackNow"
                                         )
 
-                                        // CRITICAL FIX: Priorizar backstack ao invés do Fragment
-                                        // visível
-                                        // Se o backstack está vazio, SEMPRE usar MAIN_MENU
-                                        // O Fragment visível pode estar temporariamente
-                                        // desatualizado após BACK
+                                        // CRITICAL FIX: Prioritize backstack over the visible
+                                        // Fragment
+                                        // If backstack is empty, ALWAYS use MAIN_MENU
+                                        // The visible Fragment may be temporarily
+                                        // outdated after BACK
                                         val effectiveState =
                                                 if (hasBackStackNow) {
-                                                        // Há backstack: verificar qual submenu está
+                                                        // There is backstack: check which submenu is
                                                         // ativo
                                                         // Detectar estado REAL baseado no Fragment
-                                                        // visível
+                                                        // visible
                                                         val actualIsSubmenu =
                                                                 when (visibleFragment) {
                                                                         is com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment,
@@ -373,7 +372,7 @@ class GameActivity : FragmentActivity() {
                                                                 "[ORIENTATION] Backstack presente - detectando submenu: $actualIsSubmenu"
                                                         )
 
-                                                        // Usar o estado baseado no Fragment visível
+                                                        // Use state based on the visible Fragment
                                                         // se houver
                                                         // submenu
                                                         if (actualIsSubmenu) {
@@ -411,7 +410,7 @@ class GameActivity : FragmentActivity() {
                                                         // Backstack vazio: SEMPRE usar MAIN_MENU
                                                         Log.d(
                                                                 TAG,
-                                                                "[ORIENTATION] ⚠️ Backstack vazio - forçando MAIN_MENU (currentState era: $currentState)"
+                                                                "[ORIENTATION] ⚠️ Backstack empty - forcing MAIN_MENU (currentState was: $currentState)"
                                                         )
                                                         com.vinaooo.revenger.ui.retromenu3.MenuState
                                                                 .MAIN_MENU
@@ -473,9 +472,9 @@ class GameActivity : FragmentActivity() {
                                                         }
                                                 }
 
-                                        // NOTA: syncState do NavigationController será
-                                        // chamado APÓS todos os fragments
-                                        // serem criados e registrados (no postDelayed após
+                                        // NOTE: NavigationController syncState will be
+                                        // called AFTER all fragments
+                                        // to be created and registered (in postDelayed after
                                         // registrar submenu).
                                         // Isso evita que registerFragment() sobrescreva o
                                         // estado.
@@ -637,7 +636,7 @@ class GameActivity : FragmentActivity() {
                                                                                 )
                                                                         Log.d(
                                                                                 TAG,
-                                                                                "[ORIENTATION] 📋 RetroMenu3Fragment base criado e registrado"
+                                                                                "[ORIENTATION] 📋 Base RetroMenu3Fragment created and registered"
                                                                         )
 
                                                                         // CRITICAL: Update
@@ -718,7 +717,7 @@ class GameActivity : FragmentActivity() {
                                                                                                                 .simpleName
                                                                                                 Log.d(
                                                                                                         TAG,
-                                                                                                        "[ORIENTATION] ➕ Adicionando submenu no topo: $submenuTag"
+                                                                                                        "[ORIENTATION] ➕ Adding submenu on top: $submenuTag"
                                                                                                 )
 
                                                                                                 fragmentManager
@@ -733,10 +732,10 @@ class GameActivity : FragmentActivity() {
                                                                                                         )
                                                                                                         .commit()
 
-                                                                                                // CRÍTICO: Registrar
-                                                                                                // submenu no ViewModel
-                                                                                                // (listener já foi
-                                                                                                // configurado)
+                                                                                                // CRITICAL: Register
+                                                                                                // submenu in ViewModel
+                                                                                                // (listener already
+                                                                                                // configured)
                                                                                                 android.os
                                                                                                         .Handler(
                                                                                                                 android.os
@@ -763,7 +762,7 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                 )
                                                                                                                                         Log.d(
                                                                                                                                                 TAG,
-                                                                                                                                                "[ORIENTATION] 📋 SettingsMenuFragment registrado (rotation)"
+                                                                                                                                                "[ORIENTATION] 📋 SettingsMenuFragment registered (rotation)"
                                                                                                                                         )
                                                                                                                                 }
                                                                                                                                 com.vinaooo
@@ -779,7 +778,7 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                 )
                                                                                                                                         Log.d(
                                                                                                                                                 TAG,
-                                                                                                                                                "[ORIENTATION] 📋 ProgressFragment registrado (rotation)"
+                                                                                                                                                "[ORIENTATION] 📋 ProgressFragment registered (rotation)"
                                                                                                                                         )
                                                                                                                                 }
                                                                                                                                 com.vinaooo
@@ -795,7 +794,7 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                 )
                                                                                                                                         Log.d(
                                                                                                                                                 TAG,
-                                                                                                                                                "[ORIENTATION] 📋 AboutFragment registrado (rotation)"
+                                                                                                                                                "[ORIENTATION] 📋 AboutFragment registered (rotation)"
                                                                                                                                         )
                                                                                                                                 }
                                                                                                                                 com.vinaooo
@@ -811,19 +810,19 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                 )
                                                                                                                                         Log.d(
                                                                                                                                                 TAG,
-                                                                                                                                                "[ORIENTATION] 📋 ExitFragment registrado (rotation)"
+                                                                                                                                                "[ORIENTATION] 📋 ExitFragment registered (rotation)"
                                                                                                                                         )
                                                                                                                                 }
                                                                                                                                 else -> {
                                                                                                                                         Log.w(
                                                                                                                                                 TAG,
-                                                                                                                                                "[ORIENTATION] ⚠️ Estado desconhecido, submenu não registrado"
+                                                                                                                                                "[ORIENTATION] ⚠️ Unknown state, submenu not registered"
                                                                                                                                         )
                                                                                                                                 }
                                                                                                                         }
 
-                                                                                                                        // CRITICAL: Sincronizar estado do NavigationController APÓS todos os fragments
-                                                                                                                        // serem criados e registrados. Isso previne que registerFragment() sobrescreva o estado.
+                                                                                                                        // CRITICAL: Synchronize NavigationController state AFTER all fragments
+                                                                                                                        // to be created and registered. This prevents registerFragment() from overwriting state.
                                                                                                                         val navMenuTypeForSync =
                                                                                                                                 when (effectiveState
                                                                                                                                 ) {
@@ -901,7 +900,7 @@ class GameActivity : FragmentActivity() {
                                                                                                                                         selectedIndex =
                                                                                                                                                 0,
                                                                                                                                         clearStack =
-                                                                                                                                                false // Não limpar stack pois backstack já foi reconstruído
+                                                                                                                                                false // Do not clear stack because backstack has already been rebuilt
                                                                                                                                 )
                                                                                                                         Log.d(
                                                                                                                                 TAG,
@@ -1004,7 +1003,7 @@ class GameActivity : FragmentActivity() {
                                         )
                                 },
                                 250
-                        ) // Delay para garantir que sistema terminou de processar rotação
+                        ) // Delay to ensure the system finished processing rotation
         }
 
         /**
@@ -1160,11 +1159,11 @@ class GameActivity : FragmentActivity() {
         }
 
         override fun onDestroy() {
-                // Remover listener de mudanças de auto-rotate
+                // Remove auto-rotate change listener
                 rotationSettingsReceiver?.let {
                         try {
                                 unregisterReceiver(it)
-                                Log.d(TAG, "[ROTATION_LISTENER] BroadcastReceiver desregistrado")
+                                Log.d(TAG, "[ROTATION_LISTENER] BroadcastReceiver unregistered")
                         } catch (e: Exception) {
                                 Log.e(
                                         TAG,
@@ -1275,8 +1274,8 @@ class GameActivity : FragmentActivity() {
                 try {
                         val offsetPercent = resources.getInteger(R.integer.gp_offset_portrait)
 
-                        // Usar altura do parent (FrameLayout) menos altura do container para
-                        // calcular espaço disponível
+                        // Use parent height (FrameLayout) minus container height to
+                        // calculate available space
                         val parent = container.parent as? android.view.View
                         val availableHeight = parent?.height ?: 0
                         val containerHeight = container.height
@@ -1289,12 +1288,11 @@ class GameActivity : FragmentActivity() {
                                 return
                         }
 
-                        // Espaço máximo para mover o gamepad (altura disponível - altura do
-                        // gamepad)
+                        // Maximum space to move the gamepad (available height - container height)
                         val maxMovement = availableHeight - containerHeight
 
-                        // Calcular margin: offset 100% = 0px (borda inferior), offset 0% =
-                        // maxMovement (topo)
+                        // Calculate margin: offset 100% = 0px (bottom edge), offset 0% =
+                        // maxMovement (top)
                         val bottomMargin = (maxMovement * (100 - offsetPercent) / 100.0).toInt()
 
                         val layoutParams = container.layoutParams as FrameLayout.LayoutParams
@@ -1318,8 +1316,8 @@ class GameActivity : FragmentActivity() {
                 try {
                         val offsetPercent = resources.getInteger(R.integer.gp_offset_landscape)
 
-                        // Usar altura do parent (FrameLayout) menos altura do container para
-                        // calcular espaço disponível
+                        // Use parent height (FrameLayout) minus container height to
+                        // calculate available space
                         val parent = container.parent as? android.view.View
                         val availableHeight = parent?.height ?: 0
                         val containerHeight = container.height
@@ -1332,11 +1330,10 @@ class GameActivity : FragmentActivity() {
                                 return
                         }
 
-                        // Espaço máximo para mover o gamepad
+                        // Maximum space to move the gamepad
                         val maxMovement = availableHeight - containerHeight
 
-                        // Calcular margin: offset 0% = 0px (topo), offset 100% = maxMovement (borda
-                        // inferior)
+                        // Calculate margin: offset 0% = 0px (top), offset 100% = maxMovement (bottom)
                         val topMargin = (maxMovement * offsetPercent / 100.0).toInt()
 
                         val layoutParams = container.layoutParams as FrameLayout.LayoutParams
@@ -1453,7 +1450,7 @@ class GameActivity : FragmentActivity() {
                 permissionLauncher.launch(permissions)
         }
 
-        /** Inicia animação CRT reversa (shutdown) e executa callback ao terminar */
+        /** Starts reverse CRT animation (shutdown) and invokes a callback when finished */
         fun startShutdownAnimation(onComplete: () -> Unit) {
                 Log.d(TAG, "Starting shutdown animation")
 
@@ -1462,16 +1459,16 @@ class GameActivity : FragmentActivity() {
                                 R.id.crt_shutdown_view
                         )
 
-                // Tornar overlay visível
+                // Make overlay visible
                 crtShutdownView.visibility = android.view.View.VISIBLE
 
-                // Configurar callback para quando animação terminar
+                // Set callback for when animation finishes
                 crtShutdownView.onAnimationEndListener = {
                         Log.d(TAG, "Shutdown animation completed")
                         onComplete()
                 }
 
-                // Iniciar animação reversa
+                // Start reverse animation
                 crtShutdownView.startReverseAnimation()
         }
 }

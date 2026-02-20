@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FrameLayout permite controle de z-index pela ordem de declaração -->
+<!-- FrameLayout allows control of z-index by declaration order -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"

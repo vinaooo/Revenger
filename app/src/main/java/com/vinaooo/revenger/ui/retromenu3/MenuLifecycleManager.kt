@@ -43,7 +43,7 @@ class MenuLifecycleManagerImpl(
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Iniciando configuração")
+        MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Starting setup")
 
         try {
             // NEW: Apply configurable layout proportions (10-80-10, 10-70-20, etc)
@@ -97,7 +97,7 @@ class MenuLifecycleManagerImpl(
             stateController.updateSelectionVisuals()
             MenuLogger.lifecycle("MenuLifecycleManager: Selection visual updated")
 
-            MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Configuração concluída")
+            MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Setup completed")
         } catch (e: Exception) {
             MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - ERROR: ${e.message}")
             throw e
@@ -151,7 +151,7 @@ class MenuLifecycleManagerImpl(
      */
     private fun applyConfigurableLayoutProportions(view: View) {
         try {
-            // Aplicar todas as proporções (horizontal e vertical)
+            // Apply all proportions (horizontal and vertical)
             com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig
                     .applyAllProportionsToMenuLayout(view)
         } catch (e: Exception) {
@@ -160,13 +160,13 @@ class MenuLifecycleManagerImpl(
     }
 
     /**
-     * Encontra o LinearLayout principal que contém a estrutura 3-colunas. Funciona para RetroMenu3,
-     * SettingsMenu, ProgressMenu, AboutMenu e ExitMenu.
+     * Finds the main LinearLayout that contains the 3-column structure. Works for RetroMenu3,
+     * SettingsMenu, ProgressMenu, AboutMenu and ExitMenu.
      */
     private fun findMainHorizontalLayout(view: View): android.widget.LinearLayout? {
-        // IDs possíveis de containers principais (Filhos diretos da FrameLayout raiz)
-        // O LinearLayout horizontal está normalmente como first child de FrameLayout ou
-        // já é um container do menu (settings_menu_container, etc)
+        // Possible IDs of main containers (direct children of root FrameLayout)
+        // The horizontal LinearLayout is normally the first child of FrameLayout or
+        // is already a menu container (settings_menu_container, etc)
 
         // Primeiro tenta encontrar o LinearLayout que seja filho direto da FrameLayout raiz
         if (view is android.widget.FrameLayout) {
@@ -174,7 +174,7 @@ class MenuLifecycleManagerImpl(
                 val child = view.getChildAt(i)
                 if (child is android.widget.LinearLayout) {
                     val orientation = child.orientation
-                    // Se for LinearLayout horizontal com 3+ filhos, provavelmente é o container
+                    // If it's a horizontal LinearLayout with 3+ children, it's probably the container
                     // correto
                     if (orientation == android.widget.LinearLayout.HORIZONTAL &&
                                     child.childCount >= 3

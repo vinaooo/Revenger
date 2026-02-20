@@ -124,7 +124,7 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         if (index in 0 until menuItems.size) {
             _currentSelectedIndex = index
 
-            // PHASE 4: Log quando item do menu é selecionado (amarelo)
+            // PHASE 4: Log when a menu item is selected (yellow)
             val itemTitle = if (index < menuItems.size) menuItems[index].title else "UNKNOWN"
             Log.d(
                     "MenuBase",
@@ -164,22 +164,22 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         updateSelectionVisualInternal()
     }
 
-    /** Valida se o índice atual é válido */
+    /** Validates that the current index is valid */
     protected fun isValidSelection(itemsCount: Int): Boolean {
         return _currentSelectedIndex in 0 until itemsCount
     }
 
-    /** Reseta seleção para o primeiro item */
+    /** Resets selection to the first item */
     protected fun resetSelection() {
         _currentSelectedIndex = 0
         updateSelectionVisualInternal()
     }
 
     /**
-     * Aplica as proporções de layout configuráveis ao menu (horizontal e vertical). Deve ser
-     * chamado no onViewCreated dos submenus.
+     * Applies configurable layout proportions to the menu (horizontal and vertical). Should be
+     * called in onViewCreated of submenus.
      *
-     * @param view A view raiz do menu inflado
+     * @param view The root view of the inflated menu
      */
     protected fun applyLayoutProportions(view: android.view.View) {
         com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyAllProportionsToMenuLayout(
@@ -188,7 +188,7 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     }
 
     companion object {
-        /** Delay para ativação de item via touch em milissegundos */
+        /** Delay for touch item activation in milliseconds */
         const val TOUCH_ACTIVATION_DELAY_MS = 100L
     }
 }

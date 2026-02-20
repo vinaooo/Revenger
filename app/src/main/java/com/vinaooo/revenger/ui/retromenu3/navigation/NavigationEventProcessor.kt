@@ -74,7 +74,7 @@ class NavigationEventProcessor(
         }
     }
 
-    /** Navega para o item acima (UP). */
+    /** Navigates to the item above (UP). */
     fun navigateUp() {
         // PHASE 3.2: Delegate navigation to fragment to support custom logic
         stateManager.currentFragment?.onNavigateUp()
@@ -85,7 +85,7 @@ class NavigationEventProcessor(
         )
     }
 
-    /** Navega para o item abaixo (DOWN). */
+    /** Navigates to the item below (DOWN). */
     fun navigateDown() {
         // PHASE 3.2: Delegate navigation to fragment to support custom logic
         stateManager.currentFragment?.onNavigateDown()
@@ -107,7 +107,7 @@ class NavigationEventProcessor(
         }
     }
 
-    /** Navega para a direita (RIGHT). Usado para navegação 2D em grids. */
+    /** Navigates right (RIGHT). Used for 2D grid navigation. */
     fun navigateRight() {
         val handled = stateManager.currentFragment?.onNavigateRight() ?: false
         if (handled) {
@@ -118,7 +118,7 @@ class NavigationEventProcessor(
         }
     }
 
-    /** Seleciona um item específico diretamente. */
+    /** Selects a specific item directly. */
     fun selectItem(index: Int) {
         if (index < 0 || index >= stateManager.currentMenuItemCount) {
             Log.w(
@@ -132,7 +132,7 @@ class NavigationEventProcessor(
         updateSelectionVisual()
     }
 
-    /** Ativa o item atualmente selecionado. */
+    /** Activates the currently selected item. */
     fun activateItem() {
         Log.d(
                 TAG,
@@ -197,8 +197,8 @@ class NavigationEventProcessor(
     }
 
     /**
-     * Navega para trás.
-     * @return true se navegou para trás, false se já estava no menu principal
+     * Navigate back.
+     * @return true if navigated back, false if already at main menu
      */
     fun navigateBack(): Boolean {
         Log.d(TAG, "[NAVIGATE_BACK] Navigate back called")
@@ -269,7 +269,7 @@ class NavigationEventProcessor(
         }
     }
 
-    /** Abre o menu principal. */
+    /** Open the main menu. */
     private fun openMainMenu() {
         Log.d(TAG, "[MENU_OPEN] Opening main menu")
 
@@ -286,7 +286,7 @@ class NavigationEventProcessor(
         Log.d(TAG, "[MENU_OPEN] Main menu opened successfully")
     }
 
-    /** Fecha todos os menus. */
+    /** Close all menus. */
     private fun closeAllMenus() {
         Log.d(TAG, "[MENU_CLOSE] Closing all menus")
         Log.d(TAG, "[MENU_CLOSE] lastActionButton: $lastActionButton")
@@ -307,7 +307,7 @@ class NavigationEventProcessor(
         lastActionButton = null
     }
 
-    /** Atualiza o visual de seleção no fragmento atual. */
+    /** Update the selection visual in the current fragment. */
     fun updateSelectionVisual() {
         if (stateManager.currentFragment == null) {
             Log.w(TAG, "updateSelectionVisual: currentFragment is null")
@@ -327,11 +327,11 @@ class NavigationEventProcessor(
     }
 
     /**
-     * Navega para um submenu específico, empilhando o estado atual. Usado pelos fragments para
-     * navegar para submenus mantendo o histórico.
+     * Navigate to a specific submenu, pushing the current state. Used by fragments to
+     * navigate to submenus while maintaining history.
      *
-     * @param targetMenu Menu destino
-     * @param saveCurrentState Se deve salvar o estado atual na pilha (default: true)
+     * @param targetMenu Target menu
+     * @param saveCurrentState Whether to save the current state on the stack (default: true)
      */
     fun navigateToSubmenu(targetMenu: MenuType, saveCurrentState: Boolean = true) {
         Log.d(

@@ -14,31 +14,31 @@ import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * Fragment do submenu Exit (Confirmação de Saída).
+ * Exit submenu fragment (Exit confirmation).
  *
- * **Funcionalidades**:
- * - Save & Exit: Salva estado do jogo e sai do emulador
- * - Exit: Sai sem salvar
- * - Back: Cancela e volta ao menu principal
+ * **Features**:
+ * - Save & Exit: save game state and exit emulator
+ * - Exit: leave without saving
+ * - Back: cancel and return to main menu
  *
- * **Arquitetura Multi-Input (Phase 3+)**:
- * - Gamepad: DPAD UP/DOWN navegação, A confirma ação, B cancela
- * - Teclado: Arrow keys navegação, Enter confirma, Backspace cancela
- * - Touch: Toque com highlight + 100ms delay
+ * **Multi-Input Architecture (Phase 3+)**:
+ * - Gamepad: DPAD UP/DOWN navigation, A confirms action, B cancels
+ * - Keyboard: Arrow keys navigation, Enter confirms, Backspace cancels
+ * - Touch: tap with highlight + 100ms delay
  *
- * **Segurança**:
- * - Confirmação explícita antes de sair
- * - Opção de salvar estado antes de encerrar
- * - Cancelamento fácil com botão Back ou B
+ * **Safety**:
+ * - Explicit confirmation before exiting
+ * - Option to save state before quitting
+ * - Easy cancel with Back button or B
  *
  * **Visual**:
- * - Design crítico com cores de atenção (vermelho para Exit)
- * - Material Design 3 consistente
+ * - Critical design using attention colors (red for Exit)
+ * - Consistent Material Design 3
  *
- * **Phase 3.3**: Limpeza de 43 linhas de código legacy.
+ * **Phase 3.3**: cleaned up 43 lines of legacy code.
  *
- * @see MenuFragmentBase Classe base com navegação unificada
- * @see GameActivityViewModel ViewModel para save/exit operations
+ * @see MenuFragmentBase Base class with unified navigation
+ * @see GameActivityViewModel ViewModel for save/exit operations
  */
 class ExitFragment : MenuFragmentBase() {
 
@@ -84,7 +84,7 @@ class ExitFragment : MenuFragmentBase() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Aplicar proporções de layout configuráveis
+        // Apply configurable layout proportions
         applyLayoutProportions(view)
 
         // Initialize ViewModel
@@ -158,7 +158,7 @@ class ExitFragment : MenuFragmentBase() {
                 selectionArrowBack
         )
 
-        // Aplicar capitalização configurada aos textos
+        // Apply configured capitalization to texts
         FontUtils.applyTextCapitalization(
                 requireContext(),
                 exitMenuTitle,
@@ -232,7 +232,7 @@ class ExitFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /** Confirm current selection - Execute actions DIRECTLY (não usar performClick) */
+    /** Confirm current selection - execute actions DIRECTLY (do not use performClick) */
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[ACTION] Exit menu: CONFIRM on index $selectedIndex")
@@ -264,10 +264,10 @@ class ExitFragment : MenuFragmentBase() {
                 // Fechar menu primeiro
                 viewModel.dismissRetroMenu3()
 
-                // Iniciar animação de shutdown
+                // Start shutdown animation
                 (requireActivity() as? com.vinaooo.revenger.views.GameActivity)
                         ?.startShutdownAnimation {
-                            // Quando animação terminar, encerrar processo
+                            // When animation finishes, kill the process
                             android.os.Process.killProcess(android.os.Process.myPid())
                         }
             }
@@ -371,10 +371,10 @@ class ExitFragment : MenuFragmentBase() {
         // Update each menu item state based on selection
         menuItems.forEachIndexed { index, item ->
             if (index == selectedIndex) {
-                // Item selecionado - usar estado SELECTED do RetroCardView
+                // Selected item – use RetroCardView.State.SELECTED
                 item.setState(RetroCardView.State.SELECTED)
             } else {
-                // Item não selecionado - usar estado NORMAL do RetroCardView
+                // Unselected item – use RetroCardView.State.NORMAL
                 item.setState(RetroCardView.State.NORMAL)
             }
         }

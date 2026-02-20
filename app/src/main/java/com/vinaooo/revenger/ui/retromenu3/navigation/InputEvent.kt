@@ -117,18 +117,18 @@ enum class Direction {
  * (e.g., different touch delay than gamepad).
  */
 enum class InputSource {
-        /** Gamepad emulado (botões virtuais na tela) */
+        /** Emulated gamepad (virtual on-screen buttons) */
         EMULATED_GAMEPAD,
 
-        /** Gamepad físico (Bluetooth, USB) */
+        /** Physical gamepad (Bluetooth, USB) */
         PHYSICAL_GAMEPAD,
 
-        /** Toque na tela (touch events) */
+        /** Touch on screen (touch events) */
         TOUCH,
 
-        /** Teclado físico (USB, Bluetooth) */
+        /** Physical keyboard (USB, Bluetooth) */
         KEYBOARD,
 
-        /** Botão Back do sistema Android */
+        /** Android system BACK button */
         SYSTEM_BACK
 }

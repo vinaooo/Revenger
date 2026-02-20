@@ -5,8 +5,8 @@ import org.junit.Test
 import java.time.Instant
 
 /**
- * Testes unitários para SaveSlotData.
- * Testa criação de slots vazios, nomes de exibição e formatação de timestamps.
+ * Unit tests for SaveSlotData.
+ * Tests empty slot creation, display names, and timestamp formatting.
  */
 class SaveSlotDataTest {
 

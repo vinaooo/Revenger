@@ -21,7 +21,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
         
-        <!-- SplashActivity - Entry point com animação CRT -->
+        <!-- SplashActivity - Entry point with CRT animation -->
         <activity android:name=".views.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.Revenger.Splash"
@@ -32,7 +32,7 @@
             </intent-filter>
         </activity>
         
-        <!-- GameActivity - Emulador principal -->
+        <!-- GameActivity - Main emulator -->
         <activity android:name=".views.GameActivity"
             android:exported="false"
             android:configChanges="keyboardHidden|orientation|screenSize|uiMode">

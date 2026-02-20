@@ -2,38 +2,37 @@ package com.vinaooo.revenger.ui.retromenu3
 
 
 /**
- * Constantes para índices de itens do menu principal.
+ * Constants for main menu item indices.
  *
- * **Objetivo**: Centralizar valores mágicos (0-5) para facilitar manutenção. Se a ordem dos menus
- * mudar, alterar apenas aqui.
+ * **Purpose**: Centralize magic values (0–5) for easier maintenance. If menu order
+ * changes, edit only here.
  *
- * **Padrão SOLID**: Evita duplicação de valores magic numbers. **Manutenibilidade**: Mudança
- * centralizada = uma fonte da verdade.
+ * **SOLID Pattern**: Avoids duplication of magic numbers. **Maintainability**: Centralized change = single source of truth.
  *
- * **Implementado**: Phase 3.1 - Extração de constantes para eliminar magic numbers.
+ * **Implemented**: Phase 3.1 - Extracted constants to eliminate magic numbers.
  *
  * @see com.vinaooo.revenger.ui.retromenu3.NavigationEventProcessor
  * @see com.vinaooo.revenger.input.KeyboardInputAdapter
  */
 object MenuIndices {
-    /** Item 0: Continue (retomar jogo) */
+    /** Item 0: Continue (resume game) */
     const val CONTINUE = 0
 
-    /** Item 1: Reset (resetar jogo) */
+    /** Item 1: Reset (restart game) */
     const val RESET = 1
 
     /** Item 2: Progress (save/load states) */
     const val PROGRESS = 2
 
-    /** Item 3: Settings (configurações) */
+    /** Item 3: Settings (configurations) */
     const val SETTINGS = 3
 
-    /** Item 4: About (sobre o jogo/emulador) */
+    /** Item 4: About (about the game/emulator) */
     const val ABOUT = 4
 
-    /** Item 5: Exit (sair do emulador) */
+    /** Item 5: Exit (leave emulator) */
     const val EXIT = 5
 
-    /** Total de itens no menu principal */
+    /** Total number of items in main menu */
     const val TOTAL_ITEMS = 6
 }

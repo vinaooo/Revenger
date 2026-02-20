@@ -16,20 +16,20 @@ class ShaderController(
         private const val DEFAULT_SHADER = "sharp"
     }
 
-    // Lista de shaders disponíveis
+    // List of available shaders
     val availableShaders = arrayOf("disabled", "sharp", "crt", "lcd")
 
-    // Shader atual
+    // Current shader
     private var currentShader: String = DEFAULT_SHADER
 
-    // Referência ao RetroView para aplicação em tempo real
+    // Reference to RetroView for real-time application
     private var retroView: RetroView? = null
 
     init {
-        // Carregar shader salvo das preferências
+        // Load saved shader from preferences
         currentShader =
                 sharedPreferences.getString(PREF_CURRENT_SHADER, DEFAULT_SHADER) ?: DEFAULT_SHADER
-        Log.d("ShaderController", "Shader inicial carregado: $currentShader")
+        Log.d("ShaderController", "Initial shader loaded: $currentShader")
     }
 
     /** Checks if we are in settings mode (dynamic shader selection) */
@@ -45,13 +45,13 @@ class ShaderController(
         if (isSettingsMode()) {
             applyCurrentShader()
         }
-        Log.d("ShaderController", "Conectado ao RetroView")
+        Log.d("ShaderController", "Connected to RetroView")
     }
 
     /** Sets the current shader */
     fun setShader(shader: String) {
         if (shader !in availableShaders) {
-            Log.w("ShaderController", "Shader inválido: $shader")
+            Log.w("ShaderController", "Invalid shader: $shader")
             return
         }
 
@@ -63,7 +63,7 @@ class ShaderController(
         // Apply in real time
         applyCurrentShader()
 
-        Log.d("ShaderController", "Shader alterado para: $shader")
+        Log.d("ShaderController", "Shader changed to: $shader")
     }
 
     /** Cycle to the next shader */
@@ -94,7 +94,7 @@ class ShaderController(
     private fun applyCurrentShader() {
         retroView?.let { rv ->
             rv.dynamicShader = currentShader
-            Log.d("ShaderController", "Shader aplicado em tempo real: $currentShader")
+            Log.d("ShaderController", "Shader applied in real time: $currentShader")
         }
                 ?: Log.w(
                         "ShaderController",

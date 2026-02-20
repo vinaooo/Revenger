@@ -24,15 +24,15 @@ echo ""
 # =====================================================
 # PHASE 1: Unit Tests (Cleanup Validation)
 # =====================================================
-echo -e "${YELLOW}[FASE 1]${NC} Executando Testes Unitários de Validação de Cleanup"
+echo -e "${YELLOW}[PHASE 1]${NC} Running Cleanup Validation Unit Tests"
 echo ""
 
 if cd "$PROJECT_ROOT" && ./gradlew testDebugUnitTest --tests "com.vinaooo.revenger.cleanupvalidation.*" 2>&1 | tail -15; then
-    echo -e "${GREEN}✓ Testes de Cleanup Unitários - PASSARAM${NC}"
-    FASE1_RESULT="PASSOU"
+    echo -e "${GREEN}✓ Cleanup Unit Tests - PASSED${NC}"
+    FASE1_RESULT="PASSED"
 else
-    echo -e "${RED}✗ Testes de Cleanup Unitários - FALHARAM${NC}"
-    FASE1_RESULT="FALHOU"
+    echo -e "${RED}✗ Cleanup Unit Tests - FAILED${NC}"
+    FASE1_RESULT="FAILED"
 fi
 
 echo ""
@@ -40,7 +40,7 @@ echo ""
 # =====================================================
 # PHASE 2: Build Verification
 # =====================================================
-echo -e "${YELLOW}[FASE 2]${NC} Verificação de Build (Zero Warnings)"
+echo -e "${YELLOW}[PHASE 2]${NC} Build Verification (Zero Warnings)"
 echo ""
 
 BUILD_OUTPUT=$(cd "$PROJECT_ROOT" && ./gradlew clean assembleDebug 2>&1)
@@ -50,11 +50,11 @@ echo "Build Output Summary:"
 echo "$BUILD_OUTPUT" | tail -5
 
 if [ "$KOTLIN_WARNINGS" -eq 0 ]; then
-    echo -e "${GREEN}✓ Build sem Kotlin Warnings${NC}"
-    FASE2_RESULT="PASSOU"
+    echo -e "${GREEN}✓ Build without Kotlin Warnings${NC}"
+    FASE2_RESULT="PASSED"
 else
-    echo -e "${RED}✗ $KOTLIN_WARNINGS Kotlin Warnings encontrados${NC}"
-    FASE2_RESULT="FALHOU"
+    echo -e "${RED}✗ $KOTLIN_WARNINGS Kotlin Warnings found${NC}"
+    FASE2_RESULT="FAILED"
 fi
 
 echo ""
@@ -62,11 +62,11 @@ echo ""
 # =====================================================
 # PHASE 3: Code Quality Validation
 # =====================================================
-echo -e "${YELLOW}[FASE 3]${NC} Validação de Qualidade de Código"
+echo -e "${YELLOW}[PHASE 3]${NC} Code Quality Validation"
 echo ""
 
 # T1: lateinit removed
-echo -n "Validando Fase 3 (Latinit → Val)... "
+echo -n "Validating Phase 3 (Lateinit → Val)... "
 LATINIT_COUNT=$(grep -c "lateinit var" "$PROJECT_ROOT/app/src/main/java/com/vinaooo/revenger/viewmodels/GameActivityViewModel.kt" 2>/dev/null || true)
 if [ "$LATINIT_COUNT" -eq 0 ]; then
     echo -e "${GREEN}✓${NC}"
@@ -77,7 +77,7 @@ else
 fi
 
 # T2: Dead code
-echo -n "Validando Fase 1 (Código Morto)... "
+echo -n "Validating Phase 1 (Dead Code)... "
 UNREACHABLE=$(echo "$BUILD_OUTPUT" | grep -c "UNREACHABLE_CODE" || true)
 if [ "$UNREACHABLE" -eq 0 ]; then
     echo -e "${GREEN}✓${NC}"
@@ -88,7 +88,7 @@ else
 fi
 
 # T4: Parameter removed
-echo -n "Validando Fase 4.1 (Parâmetro Removido)... "
+echo -n "Validating Phase 4.1 (Parameter Removed)... "
 PARAM_COUNT=$(grep "fun prepareRetroMenu3()" "$PROJECT_ROOT/app/src/main/java/com/vinaooo/revenger/viewmodels/GameActivityViewModel.kt" 2>/dev/null | wc -l || true)
 if [ "$PARAM_COUNT" -gt 0 ]; then
     echo -e "${GREEN}✓${NC}"
@@ -109,7 +109,7 @@ else
     T5_RESULT="FAIL"
 fi
 
-FASE3_RESULT="PASSOU"
+FASE3_RESULT="PASSED"
 
 echo ""
 
@@ -117,52 +117,52 @@ echo ""
 # FINAL SUMMARY
 # =====================================================
 echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║                  RESUMO FINAL                      ║${NC}"
+echo -e "${BLUE}║                  FINAL SUMMARY                     ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-# Fase 1 Unit Tests
+# Phase 1 Unit Tests
 if [ "$FASE1_RESULT" == "PASSOU" ]; then
-    echo -e "${GREEN}✓${NC} FASE 1: Testes Unitários de Cleanup........... ${GREEN}PASSOU${NC}"
+    echo -e "${GREEN}✓${NC} PHASE 1: Cleanup Unit Tests........... ${GREEN}PASSED${NC}"
 else
-    echo -e "${RED}✗${NC} FASE 1: Testes Unitários de Cleanup........... ${RED}FALHOU${NC}"
+    echo -e "${RED}✗${NC} PHASE 1: Cleanup Unit Tests........... ${RED}FAILED${NC}"
 fi
 
-# Fase 2 Build
+# Phase 2 Build
 if [ "$FASE2_RESULT" == "PASSOU" ]; then
-    echo -e "${GREEN}✓${NC} FASE 2: Build sem Warnings...................... ${GREEN}PASSOU${NC}"
+    echo -e "${GREEN}✓${NC} PHASE 2: Build without Warnings...................... ${GREEN}PASSED${NC}"
 else
-    echo -e "${RED}✗${NC} FASE 2: Build sem Warnings...................... ${RED}FALHOU${NC}"
+    echo -e "${RED}✗${NC} PHASE 2: Build without Warnings...................... ${RED}FAILED${NC}"
 fi
 
-# Fase 3 Code Quality
+# Phase 3 Code Quality
 if [ "$FASE3_RESULT" == "PASSOU" ]; then
-    echo -e "${GREEN}✓${NC} FASE 3: Validação de Qualidade de Código... ${GREEN}PASSOU${NC}"
-    echo "  - T1 (Latinit removal):              ${GREEN}$T1_RESULT${NC}"
+    echo -e "${GREEN}✓${NC} PHASE 3: Code Quality Validation... ${GREEN}PASSED${NC}"
+    echo "  - T1 (Lateinit removal):              ${GREEN}$T1_RESULT${NC}"
     echo "  - T2 (Dead code removal):            ${GREEN}$T2_RESULT${NC}"
     echo "  - T4 (Parameter removal):            ${GREEN}$T4_RESULT${NC}"
     echo "  - T5 (Safe call/cast removal):       ${GREEN}$T5_RESULT${NC}"
 else
-    echo -e "${RED}✗${NC} FASE 3: Validação de Qualidade de Código... ${RED}FALHOU${NC}"
+    echo -e "${RED}✗${NC} PHASE 3: Code Quality Validation... ${RED}FAILED${NC}"
 fi
 
 echo ""
 
-# Status geral
-OVERALL_RESULT="PASSOU"
-[ "$FASE1_RESULT" == "FALHOU" ] && OVERALL_RESULT="FALHOU"
-[ "$FASE2_RESULT" == "FALHOU" ] && OVERALL_RESULT="FALHOU"
-[ "$FASE3_RESULT" == "FALHOU" ] && OVERALL_RESULT="FALHOU"
+# Overall status
+OVERALL_RESULT="PASSED"
+[ "$FASE1_RESULT" == "FAILED" ] && OVERALL_RESULT="FAILED"
+[ "$FASE2_RESULT" == "FAILED" ] && OVERALL_RESULT="FAILED"
+[ "$FASE3_RESULT" == "FAILED" ] && OVERALL_RESULT="FAILED"
 
 if [ "$OVERALL_RESULT" == "PASSOU" ]; then
     echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${GREEN}✓ TODOS OS TESTES PASSARAM!${NC}"
-    echo -e "${GREEN}✓ Mudanças de Cleanup Validadas com Sucesso!${NC}"
+    echo -e "${GREEN}✓ ALL TESTS PASSED!${NC}"
+    echo -e "${GREEN}✓ Cleanup changes successfully validated!${NC}"
     echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     exit 0
 else
     echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${RED}✗ ALGUNS TESTES FALHARAM${NC}"
+    echo -e "${RED}✗ SOME TESTS FAILED${NC}"
     echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     exit 1
 fi

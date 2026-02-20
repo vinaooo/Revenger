@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-        <!-- Teclado Virtual - Números e Símbolos -->
+        <!-- Virtual Keyboard - Numbers and Symbols -->
         <string name="key_0">0</string>
         <string name="key_1">1</string>
         <string name="key_2">2</string>
@@ -16,7 +16,7 @@
         <string name="key_comma">,</string>
         <string name="key_dot">.</string>
         <string name="key_backspace">⌫</string>
-        <!-- Teclado Virtual - Letras -->
+        <!-- Virtual Keyboard - Letters -->
         <string name="key_a">A</string>
         <string name="key_b">B</string>
         <string name="key_c">C</string>
@@ -43,11 +43,11 @@
         <string name="key_x">X</string>
         <string name="key_y">Y</string>
         <string name="key_z">Z</string>
-        <!-- Teclado Virtual - Comandos -->
+        <!-- Virtual Keyboard - Commands -->
         <string name="key_cancel">CANCEL</string>
         <string name="key_space">SPACE</string>
         <string name="key_ok">OK</string>
-        <!-- Textos de Teste/Exemplo -->
+        <!-- Test/Example Texts -->
         <string name="retrocardview_test">RetroCardView Test</string>
         <string name="estado_normal">Estado Normal</string>
         <string name="estado_selecionado">Estado Selecionado</string>
@@ -72,17 +72,17 @@
     <integer name="rm_text_capitalization">2</integer>
     <!-- Font Selection -->
         <!-- PLUG-AND-PLAY FONT SYSTEM:
-             Para adicionar uma nova fonte:
-             1. Coloque o arquivo .ttf em app/src/main/assets/fonts/
-             2. Defina apenas o nome do arquivo (sem extensão .ttf) abaixo
-             3. A fonte será carregada automaticamente!
+             To add a new font:
+             1. Place the .ttf file in app/src/main/assets/fonts/
+             2. Specify only the file name (no .ttf extension) below
+             3. The font will be loaded automatically!
              
-             Exemplos válidos:
-             - "minha_fonte" (carrega minha_fonte.ttf)
-             - "pixelify" (fonte hardcoded existente)
-             - "arcade" (fonte padrão)
+             Valid examples:
+             - "my_font" (loads my_font.ttf)
+             - "pixelify" (existing hardcoded font)
+             - "arcade" (default font)
              
-             Fallback automático: se a fonte não existir, usa "arcade" -->
+             Automatic fallback: if the font doesn't exist, "arcade" is used -->
     <string name="rm_font">tiny5</string>
 
     <!-- Selection Arrow -->

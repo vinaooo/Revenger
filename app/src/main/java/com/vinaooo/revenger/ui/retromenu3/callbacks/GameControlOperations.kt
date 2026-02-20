@@ -1,7 +1,7 @@
 package com.vinaooo.revenger.ui.retromenu3.callbacks
 
 /**
- * Listener para operações de controle do jogo
+ * Listener for game control operations
  */
 interface GameControlOperations {
     fun onResetGame()

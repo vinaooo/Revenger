@@ -81,11 +81,11 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 ShaderConfig.Default
             }
             "sharp" -> {
-                Log.i("RetroView", "Shader configurado: Sharp (filtragem bilinear nítida)")
+                Log.i("RetroView", "Shader configured: Sharp (sharp bilinear filtering)")
                 ShaderConfig.Sharp
             }
             "crt" -> {
-                Log.i("RetroView", "Shader configurado: CRT (simulação de monitor CRT)")
+                Log.i("RetroView", "Shader configured: CRT (CRT monitor simulation)")
                 ShaderConfig.CRT
             }
             "lcd" -> {
@@ -109,7 +109,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
             else -> {
                 Log.w(
                         "RetroView",
-                        "Configuração de shader inválida: '$shaderString'. Usando Sharp como fallback."
+                        "Invalid shader configuration: '$shaderString'. Using Sharp as fallback."
                 )
                 ShaderConfig.Sharp
             }
@@ -210,7 +210,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
         val rawVariablesString = context.getString(R.string.conf_variables)
         val rawVariables = rawVariablesString.split(",")
 
-        Log.d("RetroView", "Configurando variáveis do core: '$rawVariablesString'")
+        Log.d("RetroView", "Configuring core variables: '$rawVariablesString'")
 
         for (rawVariable in rawVariables) {
             val rawVariableSplit = rawVariable.split("=")
@@ -219,10 +219,10 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
             val key = rawVariableSplit[0].trim()
             val value = rawVariableSplit[1].trim()
             variables.add(Variable(key, value))
-            Log.d("RetroView", "Variável do core configurada: $key = $value")
+            Log.d("RetroView", "Core variable configured: $key = $value")
         }
 
-        Log.d("RetroView", "Total de variáveis do core configuradas: ${variables.size}")
+        Log.d("RetroView", "Total core variables configured: ${variables.size}")
         return variables.toTypedArray()
     }
 

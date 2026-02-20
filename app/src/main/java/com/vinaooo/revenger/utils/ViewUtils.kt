@@ -30,8 +30,8 @@ object ViewUtils {
     }
 
     /**
-     * Aplica a fonte selecionada (baseada na configuração) a múltiplas TextViews. Suporta tanto
-     * fonte arcade quanto pixelify baseada na configuração rm_font.
+     * Applies the selected font (based on configuration) to multiple TextViews. Supports both
+     * arcade and pixelify fonts according to the rm_font setting.
      *
      * @param context The context to use for font loading
      * @param views Variable number of TextViews to apply font to
@@ -44,7 +44,7 @@ object ViewUtils {
     }
 
     /**
-     * Aplica a fonte arcade a múltiplas TextViews (para compatibilidade).
+     * Applies the arcade font to multiple TextViews (for compatibility).
      *
      * @param context The context to use for font loading
      * @param views Variable number of TextViews to apply font to

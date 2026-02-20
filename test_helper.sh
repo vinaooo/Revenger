@@ -80,7 +80,7 @@ show_menu() {
 check_environment() {
     print_header "CHECKING TEST ENVIRONMENT"
     
-    # Verificar ADB
+    # Check ADB
     if command -v adb &> /dev/null; then
         print_success "ADB installed"
     else
@@ -88,7 +88,7 @@ check_environment() {
         return 1
     fi
     
-    # Verificar device conectado
+    # Check connected device
     if adb devices | grep -q "device$"; then
         print_success "Device connected"
     else
@@ -100,14 +100,14 @@ check_environment() {
     local config_id=$(get_config_id)
     print_success "Config ID: $config_id"
     
-    # Verificar app instalado
+    # Check app installed
     if check_app_installed "$config_id"; then
         print_success "App installed: com.vinaooo.revenger.$config_id"
     else
         print_warning "App not installed"
     fi
     
-    # Verificar ROM configurada
+    # Check ROM configured
     local rom=$(grep -oP '(?<=<string name="config_rom">)[^<]+' app/src/main/res/values/config.xml 2>/dev/null)
     if [ -n "$rom" ]; then
         print_success "ROM configured: $rom"
@@ -198,7 +198,7 @@ show_save_structure() {
     
     # Contar slots ocupados
     local occupied=$(adb shell "ls -d $saves_dir/slot_* 2>/dev/null | wc -l" | tr -d ' \r\n')
-    print_info "Slots ocupados: $occupied/9"
+    print_info "Occupied slots: $occupied/9"
 }
 
 # 6. View slot metadata
@@ -206,12 +206,12 @@ show_slot_metadata() {
     local config_id=$(get_config_id)
     local package="com.vinaooo.revenger.$config_id"
     
-    print_header "METADATA DE SLOT"
-    echo -n "Número do slot (1-9): "
+    print_header "SLOT METADATA"
+    echo -n "Slot number (1-9): "
     read -r slot_num
     
     if [[ ! "$slot_num" =~ ^[1-9]$ ]]; then
-        print_error "Número inválido. Use 1-9."
+        print_error "Invalid number. Use 1-9."
         return 1
     fi
     
@@ -222,7 +222,7 @@ show_slot_metadata() {
         adb shell "cat $metadata_file" | python3 -m json.tool 2>/dev/null || adb shell "cat $metadata_file"
         echo ""
     else
-        print_warning "Slot $slot_num está vazio ou não existe"
+        print_warning "Slot $slot_num is empty or does not exist"
     fi
 }
 
@@ -231,22 +231,22 @@ start_app() {
     local config_id=$(get_config_id)
     local package="com.vinaooo.revenger.$config_id"
     
-    print_header "INICIANDO APP"
+    print_header "STARTING APP"
     
-    # Parar primeiro
+    # Stop first
     adb shell am force-stop "$package"
     
     # Iniciar activity
     adb shell am start -n "$package/.views.GameActivity"
     
-    print_success "App iniciado!"
-    print_info "Use SELECT+START para abrir o menu"
+    print_success "App started!"
+    print_info "Use SELECT+START to open menu"
 }
 
 # 8. View logs
 show_logs() {
-    print_header "LOGS EM TEMPO REAL"
-    print_info "Pressione Ctrl+C para parar"
+    print_header "REAL-TIME LOGS"
+    print_info "Press Ctrl+C to stop"
     echo ""
     
     adb logcat | grep -E "(Revenger|SaveStateManager|SaveSlot|RetroMenu3|Screenshot)"
@@ -254,29 +254,29 @@ show_logs() {
 
 # 9. Capture screenshot
 capture_screenshot() {
-    print_header "CAPTURAR SCREENSHOT"
+    print_header "CAPTURE SCREENSHOT"
     
     local timestamp=$(date +%Y%m%d_%H%M%S)
     local filename="test_screenshot_$timestamp.png"
     
-    print_info "Capturando screenshot..."
+    print_info "Capturing screenshot..."
     adb exec-out screencap -p > "$filename"
     
     if [ -f "$filename" ]; then
-        print_success "Screenshot salvo: $filename"
+        print_success "Screenshot saved: $filename"
     else
-        print_error "Falha ao capturar screenshot"
+        print_error "Failed to capture screenshot"
     fi
 }
 
 # 10. Run unit tests
 run_unit_tests() {
-    print_header "EXECUTANDO TESTES UNITÁRIOS"
+    print_header "RUNNING UNIT TESTS"
     
     ./gradlew testDebugUnitTest
     
     echo ""
-    print_info "Relatório HTML disponível em:"
+    print_info "HTML report available at:"
     print_info "app/build/reports/tests/testDebugUnitTest/index.html"
 }
 
@@ -298,16 +298,16 @@ main() {
             9) capture_screenshot ;;
             10) run_unit_tests ;;
             0) 
-                print_info "Encerrando..."
+                print_info "Exiting..."
                 exit 0
                 ;;
             *)
-                print_error "Opção inválida"
+                print_error "Invalid option"
                 ;;
         esac
         
         echo ""
-        echo -n "Pressione ENTER para continuar..."
+        echo -n "Press ENTER to continue..."
         read -r
     done
 }

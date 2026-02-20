@@ -11,23 +11,23 @@ import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.MenuLogger
 
 /**
- * Data class que representa todas as views do menu RetroMenu3.
+ * Data class representing all views of the RetroMenu3 menu.
  *
- * **Padrão Value Object**: Centraliza todas as referências de views para evitar múltiplos
- * findViewById.
+ * **Value Object Pattern**: Centralizes all view references to avoid multiple
+ * findViewById calls.
  *
- * **Benefícios**:
- * - Performance: findViewById apenas uma vez
- * - Type-safety: Referências garantidas em tempo de compilação
- * - Manutenibilidade: Mudanças em layout refletidas em um só lugar
+ * **Benefits**:
+ * - Performance: findViewById done only once
+ * - Type-safety: References guaranteed at compile time
+ * - Maintainability: Layout changes reflected in a single place
  *
- * @property menuContainer Container principal do menu
- * @property continueMenu, resetMenu, progressMenu, settingsMenu, aboutMenu, exitMenu Cards de cada
- * opção
- * @property menuItems Lista ordenada de todos os cards para navegação
- * @property continueTitle, resetTitle, etc TextViews dos títulos de cada opção
- * @property selectionArrowContinue, selectionArrowReset, etc TextViews das setas de seleção (→)
- * @property titleTextView TextView do título principal do menu
+ * @property menuContainer Main menu container
+ * @property continueMenu, resetMenu, progressMenu, settingsMenu, aboutMenu, exitMenu Cards for each
+ * option
+ * @property menuItems Ordered list of all cards for navigation
+ * @property continueTitle, resetTitle, etc TextViews for titles of each option
+ * @property selectionArrowContinue, selectionArrowReset, etc TextViews for selection arrows (→)
+ * @property titleTextView TextView for the main menu title
  */
 data class MenuViews(
         val menuContainer: LinearLayout,
@@ -54,21 +54,21 @@ data class MenuViews(
 )
 
 /**
- * Interface para inicialização de views do menu.
+ * Interface for menu view initialization.
  *
- * **Padrão Strategy**: Define contrato para diferentes estratégias de inicialização de UI.
+ * **Strategy Pattern**: Defines a contract for different UI initialization strategies.
  *
- * **Responsabilidades**:
- * - `initializeViews()`: Realiza findViewById de todas as views do menu
- * - `setupClickListeners()`: Configura sistema de navegação touch (Phase 3.3)
- * - `setupDynamicTitle()`: Configura título dinâmico do menu
- * - `configureInitialViewStates()`: Define estados iniciais das views
+ * **Responsibilities**:
+ * - `initializeViews()`: Performs findViewById for all menu views
+ * - `setupClickListeners()`: Configures touch navigation system (Phase 3.3)
+ * - `setupDynamicTitle()`: Sets up dynamic menu title
+ * - `configureInitialViewStates()`: Sets initial view states
  *
- * **Phase 3.3**: setupClickListeners integrado com NavigationController para touch navigation
- * unificada. **Phase 3.3 Cleanup**: Sistema legacy removido, apenas NavigationController route.
+ * **Phase 3.3**: setupClickListeners integrated with NavigationController for unified touch
+ * navigation. **Phase 3.3 Cleanup**: Legacy system removed, only NavigationController routes.
  *
- * @see MenuViewInitializerImpl Implementação concreta
- * @see NavigationController Sistema de navegação unificado
+ * @see MenuViewInitializerImpl Concrete implementation
+ * @see NavigationController Unified navigation system
  */
 interface MenuViewInitializer {
     fun initializeViews(view: View): MenuViews
@@ -82,8 +82,8 @@ interface MenuViewInitializer {
 }
 
 /**
- * Implementação do MenuViewInitializer. Responsável por inicializar todas as referências de views e
- * configurar listeners.
+ * Implementation of MenuViewInitializer. Responsible for initializing all view references and
+ * configuring listeners.
  */
 class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitializer {
 
@@ -140,7 +140,7 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
                 "[TOUCH] Using new navigation system - touch routed through NavigationController"
         )
         if (navigationController == null) {
-            MenuLogger.lifecycle("MenuViewInitializer: navigationController ausente - listeners não configurados")
+            MenuLogger.lifecycle("MenuViewInitializer: navigationController missing - listeners not configured")
             return
         }
 
@@ -197,10 +197,10 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
 
         views.titleTextView.text = titleText
 
-        // Aplicar capitalização configurada ao título
+        // Apply configured capitalization to the title
         FontUtils.applyTextCapitalization(fragment.requireContext(), views.titleTextView)
 
-        // Garantir fonte Arcade no título
+        // Ensure Arcade font on the title
         FontUtils.applySelectedFont(fragment.requireContext(), views.titleTextView)
 
         MenuLogger.lifecycle("MenuViewInitializer: setupDynamicTitle COMPLETED")

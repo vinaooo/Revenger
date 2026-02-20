@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
-    <!-- CRTBootView - View customizada com animação CRT -->
+    <!-- CRTBootView - Custom view with CRT animation -->
     <com.vinaooo.revenger.ui.splash.CRTBootView
         android:id="@+id/crt_boot_view"
         android:layout_width="match_parent"

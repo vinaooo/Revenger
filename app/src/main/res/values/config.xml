@@ -4,7 +4,7 @@
     <string name="conf_id">sth</string>
 
     <!-- The pretty name for the app -->
-    <string name="conf_name">Não jogar</string>
+    <string name="conf_name">Do not play</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
     <string name="conf_core">picodrive</string>

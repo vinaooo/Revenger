@@ -12,8 +12,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Testes de integração para o sistema RetroMenu3.
- * Testa fluxos completos de navegação entre menus.
+ * Integration tests for the RetroMenu3 system.
+ * Tests full navigation flows between menus.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])

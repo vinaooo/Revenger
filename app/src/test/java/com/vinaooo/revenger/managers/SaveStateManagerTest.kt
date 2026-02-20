@@ -13,8 +13,8 @@ import org.robolectric.annotation.Config
 import java.io.File
 
 /**
- * Testes unitários para SaveStateManager.
- * Usa Robolectric para fornecer Context Android para operações de arquivo.
+ * Unit tests for SaveStateManager.
+ * Uses Robolectric to provide Android Context for file operations.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])

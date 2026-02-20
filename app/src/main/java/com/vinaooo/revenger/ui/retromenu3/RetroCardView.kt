@@ -8,12 +8,12 @@ import android.widget.LinearLayout
 import com.vinaooo.revenger.utils.MenuLogger
 
 /**
- * RetroCardView - View customizada que substitui MaterialCardView seguindo o estilo retro do
- * RetroMenu3. Características visuais:
- * - Bordas pixeladas (não arredondadas)
- * - Cores retro (preto, branco, amarelo)
- * - Estados: normal, selecionado, pressionado
- * - Sem dependências do Material Design
+ * RetroCardView - Custom view that replaces MaterialCardView following the retro style of
+ * RetroMenu3. Visual features:
+ * - Pixelated borders (not rounded)
+ * - Retro colors (black, white, yellow)
+ * - States: normal, selected, pressed
+ * - No Material Design dependencies
  */
 class RetroCardView
 @JvmOverloads
@@ -23,9 +23,9 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     companion object {
         // Constantes de cores para consistência visual - agora usando recursos XML
         val COLOR_SELECTED =
-                android.graphics.Color.parseColor("#FFFF00") // Item selecionado na navegação
-        val COLOR_PRESSED = android.graphics.Color.parseColor("#FFFFFF") // Item pressionado/toque
-        val COLOR_NORMAL = android.graphics.Color.parseColor("#00000000") // Estado normal
+                android.graphics.Color.parseColor("#FFFF00") // Item selected during navigation
+        val COLOR_PRESSED = android.graphics.Color.parseColor("#FFFFFF") // Pressed/touch item
+        val COLOR_NORMAL = android.graphics.Color.parseColor("#00000000") // Normal state
     }
 
     // Estados da view
@@ -48,17 +48,17 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     init {
         MenuLogger.lifecycle("RetroCardView init START")
         try {
-            // Configurações iniciais
+            // Initial setup
             isClickable = true
 
-            // Background transparente para não interferir com conteúdo filho
+            // Transparent background to avoid interfering with child content
             setBackgroundColor(Color.TRANSPARENT)
 
-            // Orientação será definida pelo XML (horizontal para itens do menu)
-            // Não definir orientação padrão para evitar conflitos com XML
+            // Orientation will be defined by XML (horizontal for menu items)
+            // Do not set default orientation to avoid XML conflicts
 
-            // Não aplica padding interno para compatibilidade com layouts existentes
-            // O padding é controlado pelos layouts XML individuais
+            // Do not apply internal padding for compatibility with existing layouts
+            // Padding is controlled by individual XML layouts
 
             updateVisualState()
             MenuLogger.lifecycle("RetroCardView init COMPLETED")
@@ -102,11 +102,11 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                 }
                 State.SELECTED -> {
                     if (useBackgroundColor) {
-                        // Background amarelo para estado selecionado (padrão)
+                        // Yellow background for selected state (default)
                         setBackgroundColor(colorSelected)
                         MenuLogger.state("updateVisualState: SELECTED - background yellow")
                     } else {
-                        // Background transparente para estado selecionado (ProgressFragment)
+                        // Transparent background for selected state (ProgressFragment)
                         setBackgroundColor(Color.TRANSPARENT)
                         MenuLogger.state(
                                 "updateVisualState: SELECTED - background transparent (no background mode)"
@@ -115,7 +115,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                 }
                 State.PRESSED -> {
                     if (useBackgroundColor) {
-                        // Background branco para estado pressionado (padrão)
+                        // White background for pressed state (default)
                         setBackgroundColor(colorPressed)
                         MenuLogger.state("updateVisualState: PRESSED - background white")
                     } else {
@@ -139,14 +139,14 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         }
     }
 
-    /** Define se deve usar cor de fundo nos estados selecionado/pressionado */
+    /** Determines whether to use a background color in selected/pressed states */
     fun setUseBackgroundColor(useBackground: Boolean) {
         MenuLogger.state("setUseBackgroundColor: $useBackground")
         useBackgroundColor = useBackground
-        updateVisualState() // Atualiza visual imediatamente
+        updateVisualState() // Update visual immediately
     }
 
-    /** Obtém se está usando cor de fundo */
+    /** Returns whether background color is being used */
     fun getUseBackgroundColor(): Boolean = useBackgroundColor
 
     override fun setPressed(pressed: Boolean) {
@@ -154,7 +154,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         setState(if (pressed) State.PRESSED else State.NORMAL)
     }
 
-    /** Obtém o estado atual */
+    /** Gets the current state */
     fun getState(): State = currentState
 
     /** Garante que os LayoutParams sejam do tipo correto para LinearLayout */

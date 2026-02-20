@@ -15,28 +15,28 @@ import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * Fragment do submenu Settings (Configurações).
+ * Submenu fragment for Settings.
  *
- * **Funcionalidades**:
- * - Sound: Toggle áudio ON/OFF
- * - Shader: Toggle shader visual ON/OFF
- * - Speed: Toggle fast-forward (velocidade aumentada)
- * - Back: Volta ao menu principal
+ * **Features**:
+ * - Sound: Toggle audio ON/OFF
+ * - Shader: Toggle visual shader ON/OFF
+ * - Speed: Toggle fast-forward (increased speed)
+ * - Back: Return to main menu
  *
- * **Arquitetura Multi-Input (Phase 3+)**:
- * - Gamepad: DPAD UP/DOWN, A confirma, B volta
- * - Teclado: Arrow keys, Enter confirma, Backspace volta
- * - Touch: Highlight imediato + 100ms delay para ativação
+ * **Multi-Input Architecture (Phase 3+)**:
+ * - Gamepad: DPAD UP/DOWN, A confirms, B backs
+ * - Keyboard: Arrow keys, Enter confirms, Backspace backs
+ * - Touch: Immediate highlight + 100ms activation delay
  *
  * **Visual**:
- * - Design idêntico ao RetroMenu3 com Material Design 3
- * - RetroCardView com animações de seleção
- * - Indicadores visuais de estado (ON/OFF)
+ * - Design identical to RetroMenu3 with Material Design 3
+ * - RetroCardView with selection animations
+ * - Visual ON/OFF state indicators
  *
- * **Phase 3.3**: Limpeza de 36 linhas de código legacy removidas.
+ * **Phase 3.3**: 36 lines of legacy code removed.
  *
- * @see MenuFragmentBase Classe base com navegação unificada
- * @see GameActivityViewModel ViewModel para toggle de configurações
+ * @see MenuFragmentBase Base class with unified navigation
+ * @see GameActivityViewModel ViewModel for toggling settings
  */
 class SettingsMenuFragment : MenuFragmentBase() {
 
@@ -85,7 +85,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Aplicar proporções de layout configuráveis
+        // Apply configurable layout proportions
         applyLayoutProportions(view)
 
         // Initialize ViewModel
@@ -240,7 +240,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
                         else R.string.fast_forward_inactive
                 )
 
-        // Aplicar capitalização configurada aos textos
+        // Apply configured capitalization to texts
         FontUtils.applyTextCapitalization(
                 requireContext(),
                 settingsMenuTitle,
@@ -272,7 +272,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /** Confirm current selection - Execute actions DIRECTLY (não usar performClick) */
+    /** Confirm current selection - execute actions DIRECTLY (do not use performClick) */
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         val isShaderEnabled = isShaderSelectionEnabled()
@@ -331,10 +331,10 @@ class SettingsMenuFragment : MenuFragmentBase() {
         // Update each menu item state based on selection
         menuItems.forEachIndexed { index, item ->
             if (index == selectedIndex) {
-                // Item selecionado - usar estado SELECTED do RetroCardView
+                // Selected item – use RetroCardView.State.SELECTED
                 item.setState(RetroCardView.State.SELECTED)
             } else {
-                // Item não selecionado - usar estado NORMAL do RetroCardView
+                // Unselected item – use RetroCardView.State.NORMAL
                 item.setState(RetroCardView.State.NORMAL)
             }
         }

@@ -128,32 +128,32 @@ Revenger has a directory called `autogen` which contains a basic script to batch
 
 ## Refactored Menu System ✅
 
-A partir da versão atual, o Revenger conta com um sistema de menus completamente refatorado baseado em **Command Pattern + State Machine**:
+Starting with the current version, Revenger features a completely refactored menu system based on **Command Pattern + State Machine**:
 
 ### 🏗️ Unified Architecture
-- **Command Pattern**: MenuAction sealed class para comandos type-safe
-- **State Machine**: MenuState enum centralizando navegação
-- **Interface Unificada**: MenuFragment padronizando comportamento de menus
-- **MenuManager**: Coordenação central de todos os menus
+- **Command Pattern**: MenuAction sealed class for type-safe commands
+- **State Machine**: MenuState enum centralizing navigation
+- **Unified Interface**: MenuFragment standardizing menu behavior
+- **MenuManager**: Central coordination of all menus
 
 ### 🎯 Improvements Implemented
-- **Manutenibilidade**: Código organizado e fácil de extender
-- **Performance**: Eliminação de duplicação (~100 linhas reduzidas)
-- **Testabilidade**: Testes unitários abrangentes
-- **Compatibilidade**: Backward compatibility mantida
+- **Maintainability**: Organized, easy-to-extend code
+- **Performance**: Duplication eliminated (~100 lines reduced)
+- **Testability**: Comprehensive unit tests
+- **Compatibility**: Backward compatibility maintained
 
 ### 📱 Menu Controls
-- **RetroMenu3**: Ativado com `SELECT + START`
-- **Navegação**: DPAD para navegar, A/B para confirmar/cancelar
+- **RetroMenu3**: Triggered with `SELECT + START`
+- **Navigation**: DPAD to move, A/B to confirm/cancel
 
 ### 🧪 Test Status
-- ✅ **Unit Tests**: 50 tarefas passando
-- ✅ **Build**: Compilação limpa e rápida
-- ✅ **Runtime**: Inicialização <1 segundo
-- ✅ **Device**: Testado em emulador Android
+- ✅ **Unit Tests**: 50 tasks passing
+- ✅ **Build**: Clean and fast compilation
+- ✅ **Runtime**: Startup <1 second
+- ✅ **Device**: Tested on Android emulator
 
 ### 📚 Technical Documentation
-Consulte `docs/FASE6_FINALIZACAO_TESTES.md` para detalhes completos da refatoração.
+See `docs/FASE6_FINALIZACAO_TESTES.md` for full refactoring details.
 
 ---
 

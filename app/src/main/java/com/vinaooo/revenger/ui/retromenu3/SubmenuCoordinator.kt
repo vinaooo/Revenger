@@ -11,38 +11,38 @@ import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * Coordenador de navegação entre menu principal e submenus.
+ * Navigation coordinator between main menu and submenus.
  *
- * **Responsabilidades**:
- * - Gerenciar transições entre RetroMenu3 (main) e submenus (Progress, Settings, About, Exit)
- * - Preservar e restaurar seleção do menu principal ao voltar de submenus
- * - Prevenir race conditions durante navegação rápida
- * - Integrar com FragmentManager para back stack management
+ * **Responsibilities**:
+ * - Manage transitions between RetroMenu3 (main) and submenus (Progress, Settings, About, Exit)
+ * - Preserve and restore main menu selection when returning from submenus
+ * - Prevent race conditions during rapid navigation
+ * - Integrate with FragmentManager for back stack management
  *
- * **Arquitetura**:
- * - **State Tracking**: Monitora back stack para detectar submenus abertos
- * - **Selection Preservation**: Salva índice selecionado antes de abrir submenu
- * - **Flags de Proteção**: Previne múltiplas operações simultâneas de close/restore
+ * **Architecture**:
+ * - **State Tracking**: Monitors back stack to detect open submenus
+ * - **Selection Preservation**: Saves selected index before opening a submenu
+ * - **Protection Flags**: Prevent multiple simultaneous close/restore operations
  *
- * **Flags de Controle**:
- * - `hasSubmenuOpen`: Indica se há submenu ativo
- * - `isClosingSubmenu`: Proteção contra múltiplos closes simultâneos
- * - `isRestoringSelection`: Proteção contra múltiplas restaurações
- * - `shouldPreserveSelectionOnShowMainMenu`: Controla se deve restaurar seleção
+ * **Control Flags**:
+ * - `hasSubmenuOpen`: Indicates if a submenu is active
+ * - `isClosingSubmenu`: Protection against multiple simultaneous closes
+ * - `isRestoringSelection`: Protection against duplicate restorations
+ * - `shouldPreserveSelectionOnShowMainMenu`: Controls whether to restore selection
  *
- * **Integração**:
- * - Trabalha com MenuManager para registro de fragments
- * - Usa MenuViewManager para operações de UI
- * - Coordena com MenuAnimationController para transições suaves
+ * **Integration**:
+ * - Works with MenuManager for fragment registration
+ * - Uses MenuViewManager for UI operations
+ * - Coordinates with MenuAnimationController for smooth transitions
  *
- * @param fragment Fragment principal (RetroMenu3Fragment)
- * @param viewModel ViewModel centralizado para ações
- * @param viewManager Gerenciador de views do menu
- * @param menuManager Manager centralizado de navegação
- * @param animationController Controlador de animações (opcional)
+ * @param fragment Main fragment (RetroMenu3Fragment)
+ * @param viewModel Centralized ViewModel for actions
+ * @param viewManager Menu view manager
+ * @param menuManager Centralized navigation manager
+ * @param animationController Animation controller (optional)
  *
- * @see RetroMenu3Fragment Fragment principal que usa este coordinator
- * @see MenuManager Gerenciador centralizado de menu states
+ * @see RetroMenu3Fragment Main fragment that uses this coordinator
+ * @see MenuManager Centralized menu state manager
  */
 class SubmenuCoordinator(
         private val fragment: Fragment,
@@ -71,14 +71,14 @@ class SubmenuCoordinator(
     // Flag to prevent multiple restoration operations
     private var isRestoringSelection: Boolean = false
 
-    // NOVO: Flag para indicar se há um submenu aberto (para controlar restauração)
+    // NEW: Flag to indicate if a submenu is open (to control restoration)
     private var hasSubmenuOpen: Boolean = false
 
-    // NOVO: Rastrear o count do back stack para detectar mudanças
+    // NEW: Track back stack count to detect changes
     private var previousBackStackCount: Int = 0
 
     init {
-        // Inicializar o count do back stack
+        // Initialize the back stack count
         previousBackStackCount = fragment.parentFragmentManager.backStackEntryCount
 
         // CRITICAL: If backstack has entries, a submenu is open
@@ -94,7 +94,7 @@ class SubmenuCoordinator(
         }
     }
 
-    // Callbacks para métodos do fragment
+    // Callbacks for fragment methods
     private var showMainMenuCallback: ((Boolean) -> Unit)? = null
     private var setSelectedIndexCallback: ((Int) -> Unit)? = null
     private var getCurrentSelectedIndexCallback: (() -> Int)? = null
@@ -134,11 +134,11 @@ class SubmenuCoordinator(
                 "[RESTORE] 📊 mainMenuSelectedIndexBeforeSubmenu=$mainMenuSelectedIndexBeforeSubmenu"
         )
 
-        // Garantir que os textos do menu principal sejam mostrados
+        // Ensure main menu texts are displayed
         Log.d(TAG, "[RESTORE] 📝 Calling viewManager.showMainMenuTexts()")
         viewManager.showMainMenuTexts()
 
-        // IMPORTANTE: Determinar o estado correto para restaurar baseado no estado atual
+        // IMPORTANT: Determine correct state to restore based on current state
         val currentState = menuManager.getCurrentState()
         Log.d(TAG, "[RESTORE] 🔍 Checking current state before determining target...")
 
@@ -152,35 +152,35 @@ class SubmenuCoordinator(
                         // CRITICAL: Unregister SettingsMenuFragment to prevent re-activation
                         Log.d(TAG, "[RESTORE] 🧹 Unregistering SettingsMenuFragment")
                         viewModel.unregisterSettingsMenuFragment()
-                        MenuState.MAIN_MENU // Voltar do Settings para Main
+                        MenuState.MAIN_MENU // Return from Settings to Main
                     }
                     MenuState.ABOUT_MENU -> {
                         Log.d(
                                 TAG,
                                 "[RESTORE] 🎯 Current state ABOUT_MENU -> Target MAIN_MENU"
                         )
-                        MenuState.MAIN_MENU // Voltar do About para Main
+                        MenuState.MAIN_MENU // Return from About to Main
                     }
                     MenuState.PROGRESS_MENU -> {
                         Log.d(
                                 TAG,
                                 "[RESTORE] 🎯 Current state PROGRESS_MENU -> Target MAIN_MENU"
                         )
-                        MenuState.MAIN_MENU // Voltar do Progress para Main
+                        MenuState.MAIN_MENU // Return from Progress to Main
                     }
                     MenuState.EXIT_MENU -> {
                         Log.d(
                                 TAG,
                                 "[RESTORE] 🎯 Current state EXIT_MENU -> Target MAIN_MENU"
                         )
-                        MenuState.MAIN_MENU // Voltar do Exit para Main
+                        MenuState.MAIN_MENU // Return from Exit to Main
                     }
                     else -> {
                         Log.d(
                                 TAG,
                                 "[RESTORE] 🎯 Current state $currentState -> Target MAIN_MENU (fallback)"
                         )
-                        MenuState.MAIN_MENU // Fallback para Main
+                        MenuState.MAIN_MENU // Fallback to Main
                     }
                 }
 
@@ -189,7 +189,7 @@ class SubmenuCoordinator(
                 "[RESTORE] 🔄 Current state: $currentState, Target state: $targetState"
         )
 
-        // Restaurar o estado do menu para o estado pai apropriado
+        // Restore menu state to the appropriate parent state
         Log.d(TAG, "[RESTORE] 🧭 Calling menuManager.navigateToState($targetState)")
         menuManager.navigateToState(targetState)
 
@@ -199,12 +199,12 @@ class SubmenuCoordinator(
         )
         setSelectedIndexCallback?.invoke(mainMenuSelectedIndexBeforeSubmenu)
 
-        // MARCAR QUE A RESTAURAÇÃO PRINCIPAL FOI CONCLUÍDA (antes dos postDelayeds)
-        // Isso permite que operações subsequentes funcionem mesmo se os delays ainda não executaram
+        // MARK that main restoration is complete (before postDelayed calls)
+        // This allows subsequent operations to work even if the delays haven't executed yet
         Log.d(TAG, "[RESTORE] ✅ Main restoration operations completed")
         isRestoringSelection = false
 
-        // AGUARDAR UM MOMENTO PARA GARANTIR QUE setSelectedIndex FOI PROCESSADO
+        // WAIT A MOMENT TO ENSURE setSelectedIndex IS PROCESSED
         fragment.view?.postDelayed(
                 {
                     Log.d(
@@ -212,8 +212,8 @@ class SubmenuCoordinator(
                             "[RESTORE] ⏱️ First postDelayed executed - checking if should show main menu"
                     )
 
-                    // MOSTRAR O MENU PRINCIPAL NOVAMENTE COM SELEÇÃO PRESERVADA
-                    // APENAS se estamos voltando para o MAIN_MENU, não para submenus
+                    // SHOW THE MAIN MENU AGAIN WITH PRESERVED SELECTION
+                    // ONLY if we are returning to MAIN_MENU, not to submenus
                     if (targetState == MenuState.MAIN_MENU) {
                         Log.d(
                                 TAG,
@@ -231,7 +231,7 @@ class SubmenuCoordinator(
                         )
                     }
 
-                    // AGUARDAR MAIS UM MOMENTO PARA GARANTIR QUE O MENU FOI MOSTRADO
+                    // WAIT ANOTHER MOMENT TO ENSURE THE MENU WAS SHOWN
                     fragment.view?.postDelayed(
                             {
                                 Log.d(
@@ -239,7 +239,7 @@ class SubmenuCoordinator(
                                         "[RESTORE] ⏱️ Second postDelayed executed - updating selection visual"
                                 )
 
-                                // ATUALIZAR A VISUALIZAÇÃO DAS SETAS APÓS RESTAURAR O ESTADO
+                                // UPDATE ARROW VISUAL AFTER RESTORING STATE
                                 val currentIndex = getCurrentSelectedIndexCallback?.invoke() ?: 0
                                 Log.d(
                                         TAG,
@@ -247,7 +247,7 @@ class SubmenuCoordinator(
                                 )
                                 animationController?.updateSelectionVisual(currentIndex)
 
-                                // MARCAR QUE A RESTAURAÇÃO VISUAL FOI CONCLUÍDA
+                                // MARK THAT VISUAL RESTORATION IS COMPLETE
                                 Log.d(TAG, "[RESTORE] ✅ Visual restoration completed")
                                 Log.d(
                                         TAG,
@@ -272,7 +272,7 @@ class SubmenuCoordinator(
     }
 
     fun testMethodExecution(testType: String) {
-        // OCULTAR COMPLETAMENTE O MENU PRINCIPAL
+        // HIDE THE MAIN MENU COMPLETELY
         viewManager.hideMainMenu()
         Log.d(TAG, "SubmenuCoordinator: testMethodExecution - Main menu hidden for $testType")
     }
@@ -280,7 +280,7 @@ class SubmenuCoordinator(
     fun openSubmenu(submenuType: MenuState) {
         Log.d(TAG, "🚪 Calling SubmenuCoordinator.openSubmenu($submenuType)")
 
-        // SALVAR O ÍNDICE ATUAL ANTES DE ABRIR O SUBMENU
+        // SAVE THE CURRENT INDEX BEFORE OPENING THE SUBMENU
         val currentIndex = getCurrentSelectedIndexCallback?.invoke() ?: 0
         mainMenuSelectedIndexBeforeSubmenu = currentIndex
         hasSubmenuOpen = true
@@ -311,7 +311,7 @@ class SubmenuCoordinator(
                     fragment as SettingsMenuListener
             )
 
-            // Primeiro adicionar o submenu (mas invisível inicialmente)
+            // First add the submenu (but invisible initially)
             fragment.parentFragmentManager
                     .beginTransaction()
                     .replace(R.id.menu_container, settingsFragment, "SettingsMenuFragment")
@@ -324,14 +324,14 @@ class SubmenuCoordinator(
                         TAG,
                         "[DEBUG] showSettingsSubmenu - Calling hideMainMenuCompletely after fragment added"
                 )
-                // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
+                // HIDE THE MAIN MENU COMPLETELY AFTER THE SUBMENU IS READY
                 viewManager.hideMainMenuCompletely()
             }
 
             // Registrar o fragment no ViewModel
             viewModel.registerSettingsMenuFragment(settingsFragment)
 
-            // Alterar o estado do menu para SETTINGS_MENU
+            // Change menu state to SETTINGS_MENU
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU)
 
             Log.d(TAG, "SubmenuCoordinator: Settings submenu opened successfully")
@@ -347,7 +347,7 @@ class SubmenuCoordinator(
             val aboutFragment = AboutFragment.newInstance()
             aboutFragment.setAboutListener(fragment as AboutListener)
 
-            // Primeiro adicionar o submenu (mas invisível inicialmente)
+            // First add the submenu (but invisible initially)
             fragment.parentFragmentManager
                     .beginTransaction()
                     .replace(R.id.menu_container, aboutFragment, "AboutFragment")
@@ -360,7 +360,7 @@ class SubmenuCoordinator(
                         TAG,
                         "[DEBUG] showAboutSubmenu - Calling hideMainMenuCompletely after fragment added"
                 )
-                // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
+                // HIDE THE MAIN MENU COMPLETELY AFTER THE SUBMENU IS READY
                 viewManager.hideMainMenuCompletely()
             }
 
@@ -383,7 +383,7 @@ class SubmenuCoordinator(
             val progressFragment = ProgressFragment.newInstance()
             progressFragment.setProgressListener(fragment as ProgressListener)
 
-            // Primeiro adicionar o submenu (mas invisível inicialmente)
+            // First add the submenu (but invisible initially)
             fragment.parentFragmentManager
                     .beginTransaction()
                     .replace(R.id.menu_container, progressFragment, "ProgressFragment")
@@ -396,7 +396,7 @@ class SubmenuCoordinator(
                         TAG,
                         "[DEBUG] showProgressSubmenu - Calling hideMainMenuCompletely after fragment added"
                 )
-                // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
+                // HIDE THE MAIN MENU COMPLETELY AFTER THE SUBMENU IS READY
                 viewManager.hideMainMenuCompletely()
             }
 
@@ -419,7 +419,7 @@ class SubmenuCoordinator(
             val exitFragment = ExitFragment.newInstance()
             exitFragment.setExitListener(fragment as ExitListener)
 
-            // Primeiro adicionar o submenu (mas invisível inicialmente)
+            // First add the submenu (but invisible initially)
             fragment.parentFragmentManager
                     .beginTransaction()
                     .replace(R.id.menu_container, exitFragment, "ExitFragment")
@@ -432,7 +432,7 @@ class SubmenuCoordinator(
                         TAG,
                         "[DEBUG] showExitSubmenu - Calling hideMainMenuCompletely after fragment added"
                 )
-                // OCULTAR COMPLETAMENTE O MENU PRINCIPAL APÓS O SUBMENU ESTAR PRONTO
+                // HIDE THE MAIN MENU COMPLETELY AFTER THE SUBMENU IS READY
                 viewManager.hideMainMenuCompletely()
             }
 
@@ -470,14 +470,14 @@ class SubmenuCoordinator(
         Log.d(TAG, "[CLOSE_SUBMENU] ✅ Starting close operation")
 
         try {
-            // Fazer pop do back stack para fechar o submenu atual
+            // Pop the back stack to close the current submenu
             Log.d(
                     TAG,
                     "[CLOSE_SUBMENU] 📚 Calling parentFragmentManager.popBackStack()"
             )
             fragment.parentFragmentManager.popBackStack()
 
-            // A restauração será feita pelo back stack listener
+            // Restoration will be handled by the back stack listener
             Log.d(
                     TAG,
                     "[CLOSE_SUBMENU] 📋 Restoration will be handled by back stack listener"
@@ -496,9 +496,9 @@ class SubmenuCoordinator(
     }
 
     fun setupBackStackListener() {
-        // Listener para detectar quando submenus são fechados via back stack
+        // Listener to detect when submenus are closed via the back stack
         fragment.parentFragmentManager.addOnBackStackChangedListener {
-            // SAFETY CHECK: Verificar se fragment ainda está associado a um FragmentManager
+            // SAFETY CHECK: Verify that fragment is still attached to a FragmentManager
             if (!fragment.isAdded || fragment.activity == null) {
                 Log.d(
                         TAG,
@@ -515,10 +515,10 @@ class SubmenuCoordinator(
                     "[BACK_STACK] 📚 Back stack changed: previous=$previousBackStackCount, current=$backStackCount, decreased=$backStackDecreased"
             )
 
-            // Se o back stack diminuiu (submenu foi fechado), executar restauração
+            // If the back stack decreased (submenu closed), perform restoration
             if (backStackDecreased && hasSubmenuOpen) {
-                // VERIFICAR SE ESTAMOS NO MEIO DE closeCurrentSubmenu() (fechamento programático)
-                // Se sim, NÃO executar a lógica de restauração para evitar duplicação
+                // CHECK IF WE ARE IN THE MIDDLE OF closeCurrentSubmenu() (programmatic close)
+                // If so, DO NOT execute restoration logic to avoid duplication
                 if (isClosingSubmenuProgrammatically) {
                     Log.d(
                             TAG,
@@ -528,8 +528,8 @@ class SubmenuCoordinator(
                     return@addOnBackStackChangedListener
                 }
 
-                // VERIFICAR SE ESTAMOS NO MEIO DE dismissAllMenus (START button)
-                // Se sim, NÃO mostrar o menu principal para evitar piscada
+                // CHECK IF WE ARE IN THE MIDDLE OF dismissAllMenus (START button)
+                // If so, DO NOT show the main menu to avoid flicker
                 if (viewModel.isDismissingAllMenus()) {
                     Log.d(
                             TAG,
@@ -543,21 +543,21 @@ class SubmenuCoordinator(
                         TAG,
                         "[BACK_STACK] ✅ Back stack decreased and submenu was open - calling restoreMainMenuSelection()"
                 )
-                // USAR O NOVO MÉTODO DE RESTAURAÇÃO
+                // USE THE NEW RESTORATION METHOD
                 restoreMainMenuSelection()
             }
 
-            // Se o back stack ficou vazio (caso especial), executar restauração
+            // If the back stack became empty (special case), perform restoration
             else if (backStackCount == 0) {
-                // VERIFICAR SE ESTAMOS NO MEIO DE closeCurrentSubmenu() (fechamento programático)
-                // Se sim, NÃO executar a lógica de restauração para evitar duplicação
+                // CHECK IF WE ARE IN THE MIDDLE OF closeCurrentSubmenu() (programmatic close)
+                // If so, DO NOT execute restoration logic to avoid duplication
                 if (isClosingSubmenuProgrammatically) {
                     previousBackStackCount = backStackCount
                     return@addOnBackStackChangedListener
                 }
 
                 // VERIFICAR SE ESTAMOS NO MEIO DE dismissAllMenus (START button)
-                // Se sim, NÃO mostrar o menu principal para evitar piscada
+                // If so, DO NOT show the main menu to avoid flicker
                 if (viewModel.isDismissingAllMenus()) {
                     previousBackStackCount = backStackCount
                     return@addOnBackStackChangedListener
@@ -567,7 +567,7 @@ class SubmenuCoordinator(
                         TAG,
                         "[BACK_STACK] ✅ Back stack empty - calling restoreMainMenuSelection()"
                 )
-                // USAR O NOVO MÉTODO DE RESTAURAÇÃO
+                // USE THE NEW RESTORATION METHOD
                 restoreMainMenuSelection()
             }
 

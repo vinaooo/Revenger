@@ -11,13 +11,13 @@ import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 
 /**
- * Representa um item de menu composto por título, seta de seleção e card view.
+ * Represents a menu item composed of a title, selection arrow, and card view.
  *
- * **Padrão Value Object**: Encapsula os 3 componentes visuais de cada item de menu.
+ * **Value Object Pattern**: Encapsulates the three visual components of each menu item.
  *
- * @property titleTextView TextView do título do item
- * @property arrowTextView TextView da seta de seleção (→)
- * @property cardView RetroCardView que contém o item completo
+ * @property titleTextView TextView for the item's title
+ * @property arrowTextView TextView for the selection arrow (→)
+ * @property cardView RetroCardView that contains the entire item
  */
 data class MenuItemView(
         val titleTextView: TextView,
@@ -26,27 +26,27 @@ data class MenuItemView(
 )
 
 /**
- * Gerenciador de views do menu RetroMenu3.
+ * RetroMenu3 menu views manager.
  *
- * **Responsabilidades**:
- * - Configuração inicial de todas as views do menu
- * - Atualização visual da seleção (cores, setas, highlight)
- * - Gerenciamento de animações de entrada/saída
- * - Estado visual dinâmico (enabled/disabled items)
+ * **Responsibilities**:
+ * - Initial configuration of all menu views
+ * - Visual update of selection (colors, arrows, highlight)
+ * - Management of entry/exit animations
+ * - Dynamic visual state (enabled/disabled items)
  *
- * **Padrão Manager**: Centraliza toda lógica de UI do menu em uma classe dedicada.
+ * **Manager Pattern**: Centralizes all menu UI logic in a dedicated class.
  *
- * **Integração**:
- * - Trabalha com MenuViewInitializer para setup inicial
- * - Usa FontUtils e ViewUtils para estilização
- * - Coordena com MenuAnimationController para transições
+ * **Integration**:
+ * - Works with MenuViewInitializer for initial setup
+ * - Uses FontUtils and ViewUtils for styling
+ * - Coordinates with MenuAnimationController for transitions
  *
- * **Phase 3**: Suporta multi-input (gamepad, keyboard, touch) com feedback visual unificado.
+ * **Phase 3**: Supports multi-input (gamepad, keyboard, touch) with unified visual feedback.
  *
- * @param fragment Fragment que contém as views (RetroMenu3Fragment)
+ * @param fragment Fragment that contains the views (RetroMenu3Fragment)
  *
- * @see MenuViewInitializer Inicializa sistema de navegação touch
- * @see MenuAnimationController Controla animações do menu
+ * @see MenuViewInitializer Initializes touch navigation system
+ * @see MenuAnimationController Controls menu animations
  * @see RetroCardView Componente customizado de card
  */
 class MenuViewManager(private val fragment: Fragment) {
@@ -89,7 +89,7 @@ class MenuViewManager(private val fragment: Fragment) {
     // Main menu title
     private var menuTitleTextView: TextView? = null
 
-    /** Configura o título dinâmico do menu baseado no estilo configurado */
+    /** Configures the dynamic menu title based on the configured style */
     fun setupDynamicTitle(view: View) {
         val titleTextView = view.findViewById<TextView>(R.id.menu_title)
         menuTitleTextView = titleTextView // Store reference for hiding/showing
@@ -107,7 +107,7 @@ class MenuViewManager(private val fragment: Fragment) {
 
         titleTextView?.text = titleText
 
-        // Garante fonte Arcade no título
+        // Ensure Arcade font on the title
         titleTextView?.let { FontUtils.applySelectedFont(fragment.requireContext(), it) }
     }
 
@@ -188,7 +188,7 @@ class MenuViewManager(private val fragment: Fragment) {
                 selectionArrowExit
         )
 
-        // Aplicar capitalização configurada aos textos dos menus (depois da fonte)
+        // Apply configured capitalization to menu texts (after font)
         FontUtils.applyTextCapitalization(
                 fragment.requireContext(),
                 continueTitle,
@@ -219,7 +219,7 @@ class MenuViewManager(private val fragment: Fragment) {
         )
     }
 
-    /** Anima a saída do menu da tela */
+    /** Animate the menu exiting the screen */
     fun animateMenuOut(onEnd: () -> Unit) {
         // Use optimized batch animation with callback
         ViewUtils.animateMenuViewsBatchOptimized(
@@ -259,7 +259,7 @@ class MenuViewManager(private val fragment: Fragment) {
         menuItemView.cardView.setState(RetroCardView.State.SELECTED)
     }
 
-    /** Define um item de menu como não selecionado */
+    /** Mark a menu item as unselected */
     private fun setItemUnselected(menuItemView: MenuItemView) {
         menuItemView.titleTextView.setTextColor(
                 androidx.core.content.ContextCompat.getColor(
@@ -272,7 +272,7 @@ class MenuViewManager(private val fragment: Fragment) {
         menuItemView.cardView.setState(RetroCardView.State.NORMAL)
     }
 
-    /** Atualiza a visualização da seleção baseado no índice atual */
+    /** Update the selection visual based on the current index */
     fun updateSelectionVisual(currentIndex: Int) {
         // Update each menu item view based on selection state
         menuItemViews.forEachIndexed { index, menuItemView ->
@@ -286,7 +286,7 @@ class MenuViewManager(private val fragment: Fragment) {
         // Layout will be updated automatically when visibility changes
     }
 
-    /** Faz o menu principal ficar em segundo plano (quando submenu é aberto) */
+    /** Put the main menu in the background (when a submenu opens) */
     fun dimMainMenu() {
         Log.d(TAG, "[VIEW] dimMainMenu called - checking menuContainerView initialization")
         if (!::menuContainerView.isInitialized) {
@@ -304,7 +304,7 @@ class MenuViewManager(private val fragment: Fragment) {
         )
     }
 
-    /** Oculta completamente os textos do menu principal (quando submenu está ativo) */
+    /** Hide main menu texts completely (when a submenu is active) */
     fun hideMainMenuTexts() {
         Log.d(
                 TAG,
@@ -315,13 +315,13 @@ class MenuViewManager(private val fragment: Fragment) {
             return
         }
 
-        // Ocultar todos os textos dos itens do menu principal
+        // Hide all main menu item texts
         menuItemViews.forEach { menuItemView ->
             menuItemView.titleTextView.visibility = View.INVISIBLE
             menuItemView.arrowTextView.visibility = View.INVISIBLE
         }
 
-        // Ocultar o título principal do menu
+        // Hide the main menu title
         menuTitleTextView?.visibility = View.INVISIBLE
         Log.d(
                 TAG,
@@ -331,7 +331,7 @@ class MenuViewManager(private val fragment: Fragment) {
         Log.d(TAG, "[VIEW] hideMainMenuTexts completed - main menu texts hidden")
     }
 
-    /** Mostra novamente os textos do menu principal (quando submenu é fechado) */
+    /** Show main menu texts again (when submenu is closed) */
     fun showMainMenuTexts() {
         Log.d(TAG, "[VIEW] showMainMenuTexts called")
         if (!::menuItemViews.isInitialized) {
@@ -345,13 +345,13 @@ class MenuViewManager(private val fragment: Fragment) {
             menuItemView.arrowTextView.visibility = View.VISIBLE
         }
 
-        // Mostrar o título principal do menu
+        // Show the main menu title
         menuTitleTextView?.visibility = View.VISIBLE
 
         Log.d(TAG, "[VIEW] showMainMenuTexts completed - main menu texts shown")
     }
 
-    /** Faz o menu principal voltar ao normal (quando submenu é fechado) */
+    /** Return the main menu to normal (when submenu is closed) */
     fun restoreMainMenu() {
         Log.d(TAG, "[VIEW] restoreMainMenu called")
         if (!::menuContainerView.isInitialized) {
@@ -385,7 +385,7 @@ class MenuViewManager(private val fragment: Fragment) {
         // Ocultar o container do menu
         menuContainerView.visibility = View.INVISIBLE
 
-        // Ocultar todos os textos dos itens do menu principal em uma única operação
+        // Hide all main menu item texts in a single operation
         if (::menuItemViews.isInitialized) {
             menuItemViews.forEach { menuItemView ->
                 menuItemView.titleTextView.visibility = View.INVISIBLE
@@ -393,7 +393,7 @@ class MenuViewManager(private val fragment: Fragment) {
             }
         }
 
-        // Ocultar o título principal do menu
+        // Hide the main menu title
         menuTitleTextView?.visibility = View.INVISIBLE
 
         Log.d(
@@ -419,10 +419,10 @@ class MenuViewManager(private val fragment: Fragment) {
         Log.d(TAG, "[VIEW] showMainMenu completed - main menu shown")
     }
 
-    // Getters para acesso às views quando necessário
+    // Getters for accessing views when needed
     fun getMenuItems(): List<RetroCardView> = menuItems
     fun getMenuItemViews(): List<MenuItemView> = menuItemViews
 
-    /** Verifica se as views do menu foram inicializadas */
+    /** Checks if the menu views have been initialized */
     fun isViewsInitialized(): Boolean = ::menuItemViews.isInitialized
 }

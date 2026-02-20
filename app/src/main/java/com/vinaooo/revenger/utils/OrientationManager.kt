@@ -20,10 +20,10 @@ object OrientationManager {
     private const val TAG = "OrientationManager"
 
     /**
-     * Aplica a orientação de tela configurada baseada em conf_orientation
+     * Applies the configured screen orientation based on conf_orientation
      *
-     * @param activity Activity onde aplicar a orientação
-     * @param configOrientation Valor de conf_orientation (1, 2, ou 3)
+     * @param activity Activity where orientation should be applied
+     * @param configOrientation Value of conf_orientation (1, 2, or 3)
      */
     fun applyConfigOrientation(activity: Activity, configOrientation: Int) {
         // Check system auto-rotate preference
@@ -34,7 +34,7 @@ object OrientationManager {
                 0
             ) == 1
         } catch (e: Exception) {
-            Log.w(TAG, "Erro ao ler configuração de auto-rotate", e)
+            Log.w(TAG, "Error reading auto-rotate setting", e)
             false
         }
 
@@ -64,16 +64,16 @@ object OrientationManager {
         }
 
         activity.requestedOrientation = orientation
-        Log.d(TAG, "Orientação aplicada: $orientation")
+        Log.d(TAG, "Orientation applied: $orientation")
     }
 
     /**
-     * Força a Configuration.orientation ANTES de setContentView()
-     * Isso garante que o Android escolha o layout correto (layout/ vs layout-land/)
-     * sem flash de orientação incorreta
+     * Forces the Configuration.orientation BEFORE setContentView()
+     * This ensures Android selects the correct layout (layout/ vs layout-land/)
+     * without an incorrect orientation flash
      *
-     * @param activity Activity onde aplicar a configuração
-     * @param configOrientation Valor de conf_orientation (1, 2, ou 3)
+     * @param activity Activity where the configuration should be applied
+     * @param configOrientation Value of conf_orientation (1, 2, or 3)
      */
     @Suppress("DEPRECATION")
     fun forceConfigurationBeforeSetContent(activity: Activity, configOrientation: Int) {

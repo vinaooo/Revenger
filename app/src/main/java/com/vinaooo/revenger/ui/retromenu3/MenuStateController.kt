@@ -4,8 +4,7 @@ package com.vinaooo.revenger.ui.retromenu3
 import com.vinaooo.revenger.utils.MenuLogger
 
 /**
- * Interface para controle de estado do menu. Gerencia seleção de itens, navegação e estado atual do
- * menu.
+ * Interface for controlling menu state. Manages item selection, navigation, and the current menu state.
  */
 interface MenuStateController {
     fun initializeState(menuViews: MenuViews)

@@ -202,10 +202,10 @@ fi
 # =====================================================
 echo ""
 echo -e "${YELLOW}========================================${NC}"
-echo -e "${YELLOW}RESUMO DE TESTES${NC}"
+echo -e "${YELLOW}TEST SUMMARY${NC}"
 echo -e "${YELLOW}========================================${NC}"
 echo ""
-echo -e "Testes Passados: ${GREEN}$PASSED_TESTS${NC}"
+echo -e "Passed Tests: ${GREEN}$PASSED_TESTS${NC}"
 echo -e "Failed Tests: ${RED}$FAILED_TESTS${NC}"
 echo ""
 
