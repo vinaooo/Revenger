@@ -41,7 +41,7 @@
               Modes 1 and 2 always enforce their orientation regardless of system settings.
               Landscape <-> Portrait transitions can be slow as they rebuild the emulator.
     -->
-    <integer name="conf_orientation">2</integer>
+    <integer name="conf_orientation">3</integer>
 
     <!-- Menu display modes
         0: No menu (disabled)
