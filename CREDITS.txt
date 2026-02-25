@@ -44,3 +44,33 @@ their outstanding contribution to the Android emulation community.
 
 The original Ludere project laid the foundation for this work and remains
 the intellectual property of its original author under GPL v3.0 terms.
+
+==============================================================================
+DOLPHIN EMULATOR - SYSTEM FILES ATTRIBUTION
+==============================================================================
+
+This project includes the Sys folder from the Dolphin Emulator project,
+used to provide per-game compatibility settings for the Dolphin LibRetro
+core (GameCube/Wii emulation).
+
+DOLPHIN EMULATOR PROJECT:
+    Name: Dolphin Emulator
+    Authors: Dolphin Emulator Team
+    Website: https://dolphin-emu.org
+    Repository: https://github.com/dolphin-emu/dolphin
+    License: GNU General Public License v2.0 or later (GPLv2+)
+    Copyright: © Dolphin Emulator Team
+
+FILES INCLUDED:
+    - Data/Sys/ directory (game settings, shader caches, system data)
+    - Extracted at runtime when the Dolphin core is configured
+
+LICENSE COMPATIBILITY:
+    The Dolphin Emulator source code is primarily licensed under GPLv2+,
+    with the entire repository being compatible with GPLv3.
+    Per-file licensing information is provided via SPDX tags in the
+    original repository. The GPLv2+ license is fully compatible with
+    Revenger's GPLv3 license.
+
+==============================================================================
+

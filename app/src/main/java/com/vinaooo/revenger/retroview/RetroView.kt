@@ -13,6 +13,7 @@ import com.swordfish.libretrodroid.ShaderConfig
 import com.swordfish.libretrodroid.Variable
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.config.GameScreenInsetConfig
+import com.vinaooo.revenger.managers.CoreSystemFilesManager
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.repositories.Storage
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +28,11 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
     private val resources = context.resources
     private val storage = Storage.getInstance(context)
+
+    init {
+        // Extract core-specific system files (e.g., Dolphin Sys folder) before core initialization
+        CoreSystemFilesManager.ensureSystemFiles(context)
+    }
 
     // Dynamic shader for "settings" mode
     private var _dynamicShader: String = "sharp"
@@ -162,10 +168,10 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
     /** GLRetroView instance itself */
     val view: GLRetroView
-    
+
     init {
         view = GLRetroView(context, retroViewData)
-        
+
         val params =
                 FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.WRAP_CONTENT,

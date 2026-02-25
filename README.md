@@ -74,6 +74,7 @@ Here's how Revenger is configured with the new multi‑slot system:
 - [LibretroDroid](https://github.com/Swordfish90/LibretroDroid): Our LibRetro frontend that interacts with RetroArch cores
 - [RadialGamePad](https://github.com/Swordfish90/RadialGamePad): Intuitive touchscreen controls
 - [LibRetro](http://buildbot.libretro.com/nightly/): Emulator cores for Android
+- [Dolphin Emulator](https://github.com/dolphin-emu/dolphin): GameCube/Wii emulator — Sys folder included for core compatibility (GPLv2+)
 
 # Configuration
 - Edit `app/src/main/res/values/config.xml` and change your configuration
@@ -175,9 +176,24 @@ This project is based on **Ludere** by **tytydraco**:
 - **tytydraco** - Original Ludere project creator and maintainer
 - **vinaooo** - Revenger fork maintainer and modifications
 
+### Dolphin Emulator System Files
+
+This project includes the **Sys folder** from the [Dolphin Emulator](https://github.com/dolphin-emu/dolphin) project, used to provide per-game compatibility settings for the Dolphin LibRetro core (GameCube/Wii emulation).
+
+- **Project**: Dolphin Emulator
+- **Authors**: Dolphin Emulator Team (https://dolphin-emu.org)
+- **Repository**: https://github.com/dolphin-emu/dolphin
+- **License**: GNU General Public License v2.0 or later (GPLv2+)
+- **Files included**: `Data/Sys/` directory (game settings, shader caches, system data)
+- **Usage**: Extracted at runtime when the Dolphin core is configured
+
+The Dolphin Emulator source code is primarily licensed under GPLv2+, with the entire repository being compatible with GPLv3. Per-file licensing is provided via SPDX tags in the original repository. The GPLv2+ license is fully compatible with Revenger's GPLv3 license.
+
 ---
 
 **© 2023 tytydraco (Original Ludere Project)**  
-**© 2025 vinaooo (Revenger Modifications)**
+**© 2025 vinaooo (Revenger Modifications)**  
+**© Dolphin Emulator Team (Sys folder, GPLv2+)**
 
 *This project complies with GNU GPL v3.0 license requirements for derivative works.*
+
