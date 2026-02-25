@@ -133,11 +133,15 @@ android {
 
 task prepareCore {
     doLast {
+        def foundAbis = []
+        def missingAbis = []
+
         for (abi in ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']) {
             def jniAbiFolder = file("${rootProject.projectDir}/app/src/main/jniLibs/$abi")
 
             if (jniAbiFolder.exists() && jniAbiFolder.list().length > 0) {
                 println "LibRetro core already exists for $abi, skipping download"
+                foundAbis.add(abi)
                 continue
             }
 
@@ -148,6 +152,7 @@ task prepareCore {
             def zipFile = new File(jniAbiFolder, "${coreName}_libretro_android.so.zip")
             
             println "Baixando LibRetro core: $coreName para $abi"
+            def downloadSuccess = false
             
             // Native Java download implementation
             try {
@@ -176,9 +181,10 @@ task prepareCore {
                 zipFile.delete()
                 
                 println "Core $coreName successfully extracted for $abi"
+                downloadSuccess = true
                 
             } catch (Exception e) {
-                println "ERRO no download nativo: ${e.message}"
+                println "ERRO no download nativo para $abi: ${e.message}"
                 
                 // Fallback: use old method if plugin available
                 try {
@@ -195,11 +201,32 @@ task prepareCore {
                         delete "${jniAbiFolder.absolutePath}/${coreName}_libretro_android.so.zip"
                     }
                     println "Fallback bem-sucedido para $abi"
+                    downloadSuccess = true
                 } catch (Exception e2) {
-                    throw new GradleException("Falha no download e fallback para $abi: ${e2.message}")
+                    println "Falha no download e fallback para $abi: ${e2.message}"
+                }
+            }
+            
+            if (downloadSuccess) {
+                foundAbis.add(abi)
+            } else {
+                missingAbis.add(abi)
+                // Remove empty JNI folder if download failed so it doesn't cause issues
+                if (jniAbiFolder.exists() && jniAbiFolder.list().length == 0) {
+                    jniAbiFolder.deleteDir()
+                }
+                if (zipFile.exists()) {
+                    zipFile.delete()
                 }
             }
         }
+        
+        println "\n=========================================================="
+        println "       RESUMO DO DOWNLOAD DE CORES LIBRETRO"
+        println "=========================================================="
+        println "✅ Arquiteturas ENCONTRADAS: ${foundAbis.isEmpty() ? 'Nenhuma' : foundAbis.join(', ')}"
+        println "❌ Arquiteturas NÃO ENCONTRADAS: ${missingAbis.isEmpty() ? 'Nenhuma' : missingAbis.join(', ')}"
+        println "==========================================================\n"
     }
 }
 preBuild.dependsOn prepareCore
