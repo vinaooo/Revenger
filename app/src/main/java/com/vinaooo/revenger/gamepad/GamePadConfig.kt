@@ -61,10 +61,10 @@ class GamePadConfig(context: Context, private val resources: Resources) {
 
         private fun getActionButtonsInOrder(): List<ButtonConfig> {
                 return listOfNotNull( // ordem antihoraria
-                        BUTTON_B, // Right (3h)
-                        BUTTON_Y, // Top (12h)
-                        BUTTON_X, // Left (9h)
-                        BUTTON_A // Bottom (6h)
+                        BUTTON_B.takeIf { resources.getBoolean(R.bool.conf_gp_b) },   // Right (3h)
+                        BUTTON_Y.takeIf { resources.getBoolean(R.bool.conf_gp_y) },   // Top (12h)
+                        BUTTON_X.takeIf { resources.getBoolean(R.bool.conf_gp_x) },   // Left (9h)
+                        BUTTON_A.takeIf { resources.getBoolean(R.bool.conf_gp_a) }    // Bottom (6h)
                 )
         }
 
