@@ -2,10 +2,10 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Activity
 import android.app.Application
-import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.*
 import android.view.KeyEvent
 import android.widget.FrameLayout
@@ -14,7 +14,6 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
-import android.util.Log
 import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.controllers.AudioController
@@ -25,8 +24,8 @@ import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.retromenu3.*
-import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
+import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
@@ -123,30 +122,30 @@ class GameActivityViewModel(application: Application) :
     // ===== LOAD PREVIEW OVERLAY =====
 
     /**
-     * Callback to show/hide the full-screen preview overlay in GameActivity.
-     * Set by GameActivity during initialization, called by fragments on slot selection.
+     * Callback to show/hide the full-screen preview overlay in GameActivity. Set by GameActivity
+     * during initialization, called by fragments on slot selection.
      */
     var loadPreviewCallback: ((android.graphics.Bitmap?) -> Unit)? = null
 
     /**
-     * Show the load preview overlay with the given bitmap.
-     * Used when user navigates between slots in Load State grid.
+     * Show the load preview overlay with the given bitmap. Used when user navigates between slots
+     * in Load State grid.
      */
     fun showLoadPreview(bitmap: android.graphics.Bitmap) {
         loadPreviewCallback?.invoke(bitmap)
     }
 
     /**
-     * Hide the load preview overlay.
-     * Called when navigating away from Load State or when menu closes.
+     * Hide the load preview overlay. Called when navigating away from Load State or when menu
+     * closes.
      */
     fun hideLoadPreview() {
         loadPreviewCallback?.invoke(null)
     }
 
     /**
-     * Get the cached full-screen screenshot (with black bars) for preview overlay.
-     * Used when saving to slot — the full screenshot is saved alongside the cropped one.
+     * Get the cached full-screen screenshot (with black bars) for preview overlay. Used when saving
+     * to slot — the full screenshot is saved alongside the cropped one.
      */
     fun getCachedFullScreenshot(): android.graphics.Bitmap? {
         return com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getCachedFullScreenshot()
@@ -312,10 +311,20 @@ class GameActivityViewModel(application: Application) :
             // PHASE 3.2b: Configurar callbacks para pausar/resumir o jogo
             navigationController?.onMenuOpenedCallback = {
                 try {
-                    Log.d("GameActivityViewModel", "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} - menu opened callback start")
-                    Log.d("GameActivityViewModel", "[ON_MENU_OPENED] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}")
+                    Log.d(
+                            "GameActivityViewModel",
+                            "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} - menu opened callback start"
+                    )
+                    Log.d(
+                            "GameActivityViewModel",
+                            "[ON_MENU_OPENED] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}"
+                    )
                 } catch (t: Throwable) {
-                    Log.w("GameActivityViewModel", "[ON_MENU_OPENED] failed to log fragment manager state", t)
+                    Log.w(
+                            "GameActivityViewModel",
+                            "[ON_MENU_OPENED] failed to log fragment manager state",
+                            t
+                    )
                 }
 
                 // Capturar screenshot ANTES de pausar para save states
@@ -326,7 +335,10 @@ class GameActivityViewModel(application: Application) :
                 retroView?.let { speedController?.pause(it.view) }
 
                 try {
-                    Log.d("GameActivityViewModel", "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} - menu opened callback completed")
+                    Log.d(
+                            "GameActivityViewModel",
+                            "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} - menu opened callback completed"
+                    )
                 } catch (t: Throwable) {
                     Log.w("GameActivityViewModel", "[ON_MENU_OPENED] failed to log completion", t)
                 }
@@ -338,10 +350,20 @@ class GameActivityViewModel(application: Application) :
                         "🔥 [ON_MENU_CLOSED_CALLBACK] ===== MENU CLOSED ====="
                 )
                 try {
-                    Log.d("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} closingButton=$closingButton")
-                    Log.d("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}")
+                    Log.d(
+                            "GameActivityViewModel",
+                            "🔥 [ON_MENU_CLOSED_CALLBACK] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} closingButton=$closingButton"
+                    )
+                    Log.d(
+                            "GameActivityViewModel",
+                            "🔥 [ON_MENU_CLOSED_CALLBACK] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}"
+                    )
                 } catch (t: Throwable) {
-                    Log.w("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] failed to log fragment manager state", t)
+                    Log.w(
+                            "GameActivityViewModel",
+                            "🔥 [ON_MENU_CLOSED_CALLBACK] failed to log fragment manager state",
+                            t
+                    )
                 }
                 android.util.Log.d(
                         "GameActivityViewModel",
@@ -1490,7 +1512,10 @@ class GameActivityViewModel(application: Application) :
     /** Set the screen orientation based on the config */
     fun setConfigOrientation(activity: Activity) {
         val configOrientation = resources.getInteger(R.integer.conf_orientation)
-        com.vinaooo.revenger.utils.OrientationManager.applyConfigOrientation(activity, configOrientation)
+        com.vinaooo.revenger.utils.OrientationManager.applyConfigOrientation(
+                activity,
+                configOrientation
+        )
     }
 
     /** Dispose the composite disposable; call on onDestroy */

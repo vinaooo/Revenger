@@ -92,17 +92,89 @@ class GamePadConfig(context: Context, private val resources: Resources) {
         }
 
         // ===================================================================
-        // Socket map (12 sockets, clock positions):
-        //   0=5h  1=4h  2=3h  3=2h  4=1h  5=12h
-        //   6=11h 7=10h 8=9h  9=8h  10=7h 11=6h
-        //
-        // LEFT side real buttons:  L1(4) L2(3) Select(2)  Menu-mirror(8)
-        // RIGHT side real buttons: R1(2) R2(3) Start(4)   Menu(8) + Fakes
-        //
-        // ALIGNMENT RULE: Every socket that is occupied on one side must also
-        // be occupied on the other side (with a real button OR an Empty dial).
-        // This keeps both RadialGamePad bounding boxes identical.
+        // ALIGNMENT STRATEGY:
+        // 1. Build each side's button map: index → (ButtonConfig, visible?)
+        // 2. Compute UNION of all visible indices from either side
+        // 3. For each visible index, ALSO include its opposite ((i+6)%12)
+        //    to balance the bounding box symmetrically around the center.
+        //    Without this, dials on one side shift the circle center, causing
+        //    the LEFT pad to clip against the left edge while the RIGHT pad
+        //    has extra margin from the right edge.
+        // 4. For each index in the balanced set:
+        //    - If that side has a visible button → SingleButton
+        //    - Otherwise → Empty dial (invisible placeholder)
         // ===================================================================
+
+        // --- LEFT side button definitions (index → button, isVisible) ---
+        private val leftButtons =
+                mapOf(
+                        2 to Pair(BUTTON_SELECT, resources.getBoolean(R.bool.conf_gp_select)),
+                        3 to Pair(BUTTON_L2, resources.getBoolean(R.bool.conf_gp_l2)),
+                        4 to Pair(BUTTON_L1, resources.getBoolean(R.bool.conf_gp_l1)),
+                )
+
+        // --- RIGHT side button definitions (index → button, isVisible) ---
+        private val rightButtons =
+                mapOf(
+                        0 to Pair(BUTTON_F1, resources.getBoolean(R.bool.conf_show_fake_button_0)),
+                        1 to Pair(BUTTON_F2, resources.getBoolean(R.bool.conf_show_fake_button_1)),
+                        2 to Pair(BUTTON_R1, resources.getBoolean(R.bool.conf_gp_r1)),
+                        3 to Pair(BUTTON_R2, resources.getBoolean(R.bool.conf_gp_r2)),
+                        4 to Pair(BUTTON_START, resources.getBoolean(R.bool.conf_gp_start)),
+                        5 to Pair(BUTTON_F4, resources.getBoolean(R.bool.conf_show_fake_button_5)),
+                        6 to Pair(BUTTON_F10, resources.getBoolean(R.bool.conf_show_fake_button_6)),
+                        7 to Pair(BUTTON_F5, resources.getBoolean(R.bool.conf_show_fake_button_7)),
+                        8 to Pair(BUTTON_F6, resources.getBoolean(R.bool.conf_menu_mode_gamepad)),
+                        9 to Pair(BUTTON_F7, resources.getBoolean(R.bool.conf_show_fake_button_9)),
+                        10 to
+                                Pair(
+                                        BUTTON_F8,
+                                        resources.getBoolean(R.bool.conf_show_fake_button_10)
+                                ),
+                        11 to
+                                Pair(
+                                        BUTTON_F9,
+                                        resources.getBoolean(R.bool.conf_show_fake_button_11)
+                                ),
+                )
+
+        // Balanced union: for each visible button, include its opposite index
+        // to keep the bounding box centered. E.g. Select at 2 → also add 8.
+        private val allIndices: List<Int> = run {
+                val leftVisible = leftButtons.filter { it.value.second }.keys
+                val rightVisible = rightButtons.filter { it.value.second }.keys
+                val visibleUnion = leftVisible + rightVisible
+                val balanced = visibleUnion + visibleUnion.map { (it + 6) % 12 }
+                balanced.distinct().sorted()
+        }
+
+        /**
+         * Builds the secondary dials list for one side. For each index in the union:
+         * - If this side has a visible button → SingleButton
+         * - Otherwise → Empty dial (keeps bounding box consistent)
+         */
+        private fun buildSecondaryDials(
+                ownButtons: Map<Int, Pair<ButtonConfig, Boolean>>
+        ): List<SecondaryDialConfig> {
+                return allIndices.map { index ->
+                        val entry = ownButtons[index]
+                        if (entry != null && entry.second) {
+                                SecondaryDialConfig.SingleButton(
+                                        index = index,
+                                        scale = 1f,
+                                        distance = 0f,
+                                        buttonConfig = entry.first
+                                )
+                        } else {
+                                SecondaryDialConfig.Empty(
+                                        index = index,
+                                        spread = 1,
+                                        scale = 1f,
+                                        distance = 0f
+                                )
+                        }
+                }
+        }
 
         val left =
                 RadialGamePadConfig(
@@ -114,83 +186,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                         primaryDial =
                                 if (resources.getBoolean(R.bool.conf_left_analog)) LEFT_ANALOG
                                 else LEFT_DPAD,
-                        secondaryDials =
-                                listOf(
-                                        // Mirror RIGHT's fake button slots with Empty dials
-                                        SecondaryDialConfig.Empty(
-                                                index = 0,
-                                                spread = 1,
-                                                scale = 1f,
-                                                distance = 0f
-                                        ),
-                                        SecondaryDialConfig.Empty(
-                                                index = 1,
-                                                spread = 1,
-                                                scale = 1f,
-                                                distance = 0f
-                                        ),
-                                        // Real buttons (or Empty if hidden)
-                                        buttonOrEmpty(
-                                                2,
-                                                BUTTON_SELECT,
-                                                resources.getBoolean(R.bool.conf_gp_select)
-                                        ),
-                                        buttonOrEmpty(
-                                                3,
-                                                BUTTON_L2,
-                                                resources.getBoolean(R.bool.conf_gp_l2)
-                                        ),
-                                        buttonOrEmpty(
-                                                4,
-                                                BUTTON_L1,
-                                                resources.getBoolean(R.bool.conf_gp_l1)
-                                        ),
-                                        // Mirror RIGHT's remaining slots
-                                        SecondaryDialConfig.Empty(
-                                                index = 5,
-                                                spread = 1,
-                                                scale = 1f,
-                                                distance = 0f
-                                        ),
-                                        SecondaryDialConfig.Empty(
-                                                index = 6,
-                                                spread = 1,
-                                                scale = 1f,
-                                                distance = 0f
-                                        ),
-                                        SecondaryDialConfig.Empty(
-                                                index = 7,
-                                                spread = 1,
-                                                scale = 1f,
-                                                distance = 0f
-                                        ),
-                                        // Menu mirror (Empty always — LEFT never shows a button
-                                        // here)
-                                        SecondaryDialConfig.Empty(
-                                                index = 8,
-                                                spread = 1,
-                                                scale = 1f,
-                                                distance = 0f
-                                        ),
-                                        SecondaryDialConfig.Empty(
-                                                index = 9,
-                                                spread = 1,
-                                                scale = 1f,
-                                                distance = 0f
-                                        ),
-                                        SecondaryDialConfig.Empty(
-                                                index = 10,
-                                                spread = 1,
-                                                scale = 1f,
-                                                distance = 0f
-                                        ),
-                                        SecondaryDialConfig.Empty(
-                                                index = 11,
-                                                spread = 1,
-                                                scale = 1f,
-                                                distance = 0f
-                                        ),
-                                )
+                        secondaryDials = buildSecondaryDials(leftButtons)
                 )
 
         val right =
@@ -208,76 +204,6 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                                         R.bool.conf_gp_allow_multiple_presses_action
                                                 )
                                 ),
-                        secondaryDials =
-                                listOf(
-                                        // Fake buttons (or Empty if hidden)
-                                        buttonOrEmpty(
-                                                0,
-                                                BUTTON_F1,
-                                                resources.getBoolean(R.bool.conf_show_fake_button_0)
-                                        ),
-                                        buttonOrEmpty(
-                                                1,
-                                                BUTTON_F2,
-                                                resources.getBoolean(R.bool.conf_show_fake_button_1)
-                                        ),
-                                        // Real buttons (or Empty if hidden)
-                                        buttonOrEmpty(
-                                                2,
-                                                BUTTON_R1,
-                                                resources.getBoolean(R.bool.conf_gp_r1)
-                                        ),
-                                        buttonOrEmpty(
-                                                3,
-                                                BUTTON_R2,
-                                                resources.getBoolean(R.bool.conf_gp_r2)
-                                        ),
-                                        buttonOrEmpty(
-                                                4,
-                                                BUTTON_START,
-                                                resources.getBoolean(R.bool.conf_gp_start)
-                                        ),
-                                        // Fake buttons (or Empty if hidden)
-                                        buttonOrEmpty(
-                                                5,
-                                                BUTTON_F4,
-                                                resources.getBoolean(R.bool.conf_show_fake_button_5)
-                                        ),
-                                        buttonOrEmpty(
-                                                6,
-                                                BUTTON_F10,
-                                                resources.getBoolean(R.bool.conf_show_fake_button_6)
-                                        ),
-                                        buttonOrEmpty(
-                                                7,
-                                                BUTTON_F5,
-                                                resources.getBoolean(R.bool.conf_show_fake_button_7)
-                                        ),
-                                        // Menu button (or Empty if hidden)
-                                        buttonOrEmpty(
-                                                8,
-                                                BUTTON_F6,
-                                                resources.getBoolean(R.bool.conf_menu_mode_gamepad)
-                                        ),
-                                        buttonOrEmpty(
-                                                9,
-                                                BUTTON_F7,
-                                                resources.getBoolean(R.bool.conf_show_fake_button_9)
-                                        ),
-                                        buttonOrEmpty(
-                                                10,
-                                                BUTTON_F8,
-                                                resources.getBoolean(
-                                                        R.bool.conf_show_fake_button_10
-                                                )
-                                        ),
-                                        buttonOrEmpty(
-                                                11,
-                                                BUTTON_F9,
-                                                resources.getBoolean(
-                                                        R.bool.conf_show_fake_button_11
-                                                )
-                                        ),
-                                )
+                        secondaryDials = buildSecondaryDials(rightButtons)
                 )
 }
