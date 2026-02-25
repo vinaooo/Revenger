@@ -61,6 +61,14 @@ android {
         versionCode 1
         versionName '1.0'
         resConfigs 'en'
+
+        // Filter ABIs based on conf_target_abi
+        def targetAbi = getConfigValue('conf_target_abi')
+        if (targetAbi != 'all') {
+            ndk {
+                abiFilters targetAbi
+            }
+        }
     }
 
     signingConfigs {
@@ -133,72 +141,111 @@ android {
 
 task prepareCore {
     doLast {
-        for (abi in ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']) {
+        def coreName = getConfigValue('conf_core')
+        def targetAbi = getConfigValue('conf_target_abi')
+        def allAbis = ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
+        def abisToFetch = (targetAbi == 'all') ? allAbis : [targetAbi]
+        def foundAbis = []
+        def missingAbis = []
+
+        println "Target ABI: ${targetAbi == 'all' ? 'all (universal)' : targetAbi}"
+
+        for (abi in abisToFetch) {
             def jniAbiFolder = file("${rootProject.projectDir}/app/src/main/jniLibs/$abi")
 
             if (jniAbiFolder.exists() && jniAbiFolder.list().length > 0) {
                 println "LibRetro core already exists for $abi, skipping download"
+                foundAbis << abi
                 continue
             }
 
+            def coreUrl = "https://buildbot.libretro.com/nightly/android/latest/$abi/${coreName}_libretro_android.so.zip"
+
+            // Check availability with HEAD request before downloading
+            try {
+                def checkUrl = new URL(coreUrl)
+                def checkConn = (HttpURLConnection) checkUrl.openConnection()
+                checkConn.setRequestMethod("HEAD")
+                checkConn.setConnectTimeout(10000)
+                checkConn.setRequestProperty("User-Agent", "LibRetroDownloader/1.0")
+                def responseCode = checkConn.getResponseCode()
+                checkConn.disconnect()
+
+                if (responseCode == 404) {
+                    println "⚠️  Core '$coreName' not available for $abi (HTTP 404) — skipping"
+                    missingAbis << abi
+                    // Clean up empty folder so it doesn't produce an empty ABI split
+                    if (jniAbiFolder.exists() && (jniAbiFolder.list() == null || jniAbiFolder.list().length == 0)) {
+                        jniAbiFolder.delete()
+                    }
+                    continue
+                } else if (responseCode != 200) {
+                    println "⚠️  Unexpected response for $abi: HTTP $responseCode — skipping"
+                    missingAbis << abi
+                    continue
+                }
+            } catch (Exception e) {
+                println "⚠️  Could not check availability for $abi: ${e.message} — skipping"
+                missingAbis << abi
+                continue
+            }
+
+            // Download the core
             jniAbiFolder.mkdirs()
-            
-            def coreUrl = "https://buildbot.libretro.com/nightly/android/latest/$abi/${getConfigValue('conf_core')}_libretro_android.so.zip"
-            def coreName = getConfigValue('conf_core')
             def zipFile = new File(jniAbiFolder, "${coreName}_libretro_android.so.zip")
-            
+
             println "Baixando LibRetro core: $coreName para $abi"
-            
-            // Native Java download implementation
+
             try {
                 def url = new URL(coreUrl)
                 def connection = url.openConnection()
-                connection.setConnectTimeout(30000) // 30s
-                connection.setReadTimeout(60000)    // 60s
+                connection.setConnectTimeout(30000)
+                connection.setReadTimeout(60000)
                 connection.setRequestProperty("User-Agent", "LibRetroDownloader/1.0")
-                
+
                 zipFile.withOutputStream { out ->
                     connection.inputStream.withCloseable { input ->
                         out << input
                     }
                 }
-                
+
                 println "Download completed: ${zipFile.length()} bytes"
-                
-                // Extrair ZIP
+
                 copy {
                     from zipTree(zipFile.absolutePath)
                     into jniAbiFolder.absolutePath
                     rename "${coreName}_libretro_android.so", "libcore.so"
                 }
-                
-                // Clean ZIP file
+
                 zipFile.delete()
-                
                 println "Core $coreName successfully extracted for $abi"
-                
+                foundAbis << abi
+
             } catch (Exception e) {
-                println "ERRO no download nativo: ${e.message}"
-                
-                // Fallback: use old method if plugin available
-                try {
-                    download {
-                        src coreUrl
-                        dest jniAbiFolder.absolutePath
-                    }
-                    copy {
-                        from zipTree("${jniAbiFolder.absolutePath}/${coreName}_libretro_android.so.zip")
-                        into jniAbiFolder.absolutePath
-                        rename "${coreName}_libretro_android.so", "libcore.so"
-                    }
-                    delete {
-                        delete "${jniAbiFolder.absolutePath}/${coreName}_libretro_android.so.zip"
-                    }
-                    println "Fallback bem-sucedido para $abi"
-                } catch (Exception e2) {
-                    throw new GradleException("Falha no download e fallback para $abi: ${e2.message}")
+                println "❌ Download failed for $abi: ${e.message}"
+                zipFile.delete()
+                if (jniAbiFolder.exists() && (jniAbiFolder.list() == null || jniAbiFolder.list().length == 0)) {
+                    jniAbiFolder.delete()
                 }
+                missingAbis << abi
             }
+        }
+
+        // Summary
+        println ""
+        println "=========================================================="
+        println "       RESUMO DO DOWNLOAD DE CORES LIBRETRO"
+        println "=========================================================="
+        if (foundAbis) {
+            println "✅ Arquiteturas ENCONTRADAS: ${foundAbis.join(', ')}"
+        }
+        if (missingAbis) {
+            println "❌ Arquiteturas NÃO ENCONTRADAS: ${missingAbis.join(', ')}"
+        }
+        println "=========================================================="
+
+        if (foundAbis.isEmpty()) {
+            throw new GradleException("Core '$coreName' not available for ANY architecture. Build cannot proceed.")
         }
     }
 }

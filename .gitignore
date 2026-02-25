@@ -8,8 +8,15 @@
 /captures
 .externalNativeBuild
 .cxx
+# Audio/media files in res/raw
 app/src/main/res/raw/*
-*.so
+
+# ROM files in assets (folder tracked via .gitkeep)
+app/src/main/assets/rom/*
+!app/src/main/assets/rom/.gitkeep
+
+# Downloaded LibRetro cores
+app/src/main/jniLibs/
 
 # Arquivos de backup
 *_backup

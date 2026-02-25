@@ -1,29 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- A unique identifier for the app (no spaces or special characters allowed) -->
-    <string name="conf_id">sth</string>
+    <string name="conf_id">julialoz</string>
 
     <!-- The pretty name for the app -->
-    <string name="conf_name">Do not play</string>
+    <string name="conf_name">Legend of Zelda</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="conf_core">picodrive</string>
-    <!-- <string name="conf_core">picodrive</string> -->
-
+    <string name="conf_core">gambatte</string>
     <!-- Snes = snes9x -->
     <!-- megadrive = genesis_plus_gx -->
     <!-- gb = gambatte -->
     <!-- master = gearsystem (best performance for Master System) -->
     <!-- Master e Mega = picodrive (the best) -->
     
-    <!-- rom name, the same name the rom file in res/raw without extension -->
-    <string name="conf_rom">sth</string>
+    <!-- rom name, the same name as the rom file in assets/rom/ -->
+    <string name="conf_rom">loz</string>
+
+    <!-- Target ABI: x86, x86_64, armeabi-v7a, arm64-v8a, or all -->
+    <string name="conf_target_abi">arm64-v8a</string>
 
     <!-- Load ROM directly from memory; larger games should have this disabled -->
     <bool name="conf_load_bytes">false</bool>
 
     <!-- Core variables (key=value separated by commas) -->
-    <string name="conf_variables">picodrive_overclk68k=+400%,picodrive_overclksz80=+100%</string>
+    <string name="conf_variables"></string>
 
     <!-- Fast forward speed multiplier -->
     <integer name="conf_fast_forward_multiplier">2</integer>

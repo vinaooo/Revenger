@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.retroview
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.view.Gravity
@@ -125,26 +124,24 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
                 /* Prepare the ROM bytes */
                 val romName = context.getString(R.string.conf_rom)
-                @SuppressLint(
-                        "DiscouragedApi"
-                ) // Reflection necessary to maintain genericity - allows any ROM without
-                // recompilar
-                val romResourceId = resources.getIdentifier(romName, "raw", context.packageName)
 
-                if (romResourceId == 0) {
-                    throw IllegalArgumentException(
-                            "ROM resource '$romName' not found in raw resources. Check config.xml and ensure the file exists in res/raw/"
-                    )
-                }
+                // Load ROM from assets/rom/ (faster builds — assets bypass AAPT2 processing)
+                val romAssetPath = "rom/$romName"
+                val romInputStream =
+                        try {
+                            context.assets.open(romAssetPath)
+                        } catch (e: java.io.FileNotFoundException) {
+                            throw IllegalArgumentException(
+                                    "ROM '$romName' not found in assets/rom/. Ensure the file exists at app/src/main/assets/rom/$romName"
+                            )
+                        }
 
                 val romLoadStartTime = System.currentTimeMillis()
-                val romInputStream = context.resources.openRawResource(romResourceId)
                 if (resources.getBoolean(R.bool.conf_load_bytes)) {
                     if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
                     gameFileBytes = romBytes
                 } else {
                     // Always overwrite ROM file to ensure latest version is loaded
-                    // This ensures that configuration changes in config.xml are respected
                     storage.rom.outputStream().use { romInputStream.copyTo(it) }
                     Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
 
@@ -162,10 +159,10 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
     /** GLRetroView instance itself */
     val view: GLRetroView
-    
+
     init {
         view = GLRetroView(context, retroViewData)
-        
+
         val params =
                 FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.WRAP_CONTENT,
