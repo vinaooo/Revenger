@@ -19,6 +19,12 @@
     <!-- rom name, the same name the rom file in res/raw without extension -->
     <string name="conf_rom">metroidprime</string>
 
+    <!-- ROM file extension (e.g., iso, gcm, wbfs, rvz for Dolphin)
+         Some cores (like Dolphin for GameCube/Wii) need the file extension to
+         identify the ROM format. Leave empty for cores that don't need it.
+         Example: "iso" for GameCube ISO files -->
+    <string name="conf_rom_extension">iso</string>
+
     <!-- Load ROM directly from memory; larger games should have this disabled -->
     <bool name="conf_load_bytes">false</bool>
 

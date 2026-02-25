@@ -16,6 +16,7 @@ import com.vinaooo.revenger.config.GameScreenInsetConfig
 import com.vinaooo.revenger.managers.CoreSystemFilesManager
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.repositories.Storage
+import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.takeWhile
@@ -79,6 +80,17 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
      * @return ShaderConfig enum value for video rendering
      */
     private fun getShaderConfig(): ShaderConfig {
+        val coreName = context.getString(R.string.conf_core).lowercase()
+
+        // HW-rendered cores (like Dolphin) use their own OpenGL rendering.
+        // LibretroDroid shaders conflict with the GL context, causing visual
+        // corruption and crashes. Force disabled for these cores.
+        val hwRenderedCores = setOf("dolphin", "mupen64plus_next", "flycast", "ppsspp")
+        if (coreName in hwRenderedCores) {
+            Log.i("RetroView", "Shader disabled: core '$coreName' uses HW rendering")
+            return ShaderConfig.Default
+        }
+
         val shaderString = context.getString(R.string.conf_shader).lowercase()
 
         return when (shaderString) {
@@ -149,12 +161,22 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                     if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
                     gameFileBytes = romBytes
                 } else {
+                    // Determine ROM file path — add extension if configured (e.g., Dolphin needs
+                    // .iso)
+                    val romExtension = context.getString(R.string.conf_rom_extension).trim()
+                    val romFile =
+                            if (romExtension.isNotEmpty()) {
+                                File("${storage.cachePath}/rom.$romExtension")
+                            } else {
+                                storage.rom
+                            }
+
                     // Always overwrite ROM file to ensure latest version is loaded
                     // This ensures that configuration changes in config.xml are respected
-                    storage.rom.outputStream().use { romInputStream.copyTo(it) }
-                    Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
+                    romFile.outputStream().use { romInputStream.copyTo(it) }
+                    Log.i("RetroView", "ROM file updated: $romName -> ${romFile.absolutePath}")
 
-                    gameFilePath = storage.rom.absolutePath
+                    gameFilePath = romFile.absolutePath
                 }
 
                 shader = getShaderConfig()
