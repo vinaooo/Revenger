@@ -139,6 +139,41 @@ android {
     }
 }
 
+task prepareRom {
+    doLast {
+        def romName = getConfigValue('conf_rom')
+        def romDir = file("${rootProject.projectDir}/app/src/main/assets/rom")
+        def backupDir = file("${rootProject.projectDir}/roms_backup")
+        backupDir.mkdirs()
+        romDir.mkdirs()
+
+        // 1. Move any non-active ROMs OUT of assets/rom/ → roms_backup/
+        romDir.listFiles()?.each { f ->
+            if (f.name != '.gitkeep' && f.name != romName) {
+                def dest = new File(backupDir, f.name)
+                if (f.renameTo(dest)) {
+                    println "📦 ROM moved to backup: ${f.name}"
+                }
+            }
+        }
+
+        // 2. Move the active ROM IN from roms_backup/ → assets/rom/
+        def activeRomInAssets = new File(romDir, romName)
+        if (!activeRomInAssets.exists()) {
+            def backupRom = new File(backupDir, romName)
+            if (backupRom.exists()) {
+                if (backupRom.renameTo(activeRomInAssets)) {
+                    println "🎮 ROM staged: ${romName} (${String.format('%.1f MB', activeRomInAssets.length() / 1048576.0)})"
+                }
+            } else {
+                throw new GradleException("ROM '$romName' not found in assets/rom/ or roms_backup/. Place your ROM file in app/src/main/assets/rom/")
+            }
+        } else {
+            println "🎮 ROM already staged: ${romName} (${String.format('%.1f MB', activeRomInAssets.length() / 1048576.0)})"
+        }
+    }
+}
+
 task prepareCore {
     doLast {
         def coreName = getConfigValue('conf_core')
@@ -249,6 +284,7 @@ task prepareCore {
         }
     }
 }
+prepareCore.dependsOn prepareRom
 preBuild.dependsOn prepareCore
 
 dependencies {

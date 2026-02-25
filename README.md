@@ -77,7 +77,7 @@ Here's how Revenger is configured with the new multi‑slot system:
 
 # Configuration
 - Edit `app/src/main/res/values/config.xml` and change your configuration
-- Copy your ROM to `app/src/main/assets/rom/` (filename should match `conf_rom` in config.xml)
+- Place your ROM files in `roms_backup/` at the project root (the build system automatically stages the active ROM based on `conf_rom` in config.xml)
 
 ## Shader Configuration
 Revenger supports configurable video shaders for enhanced visual experience:

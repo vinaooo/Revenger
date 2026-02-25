@@ -28,6 +28,9 @@ backup_files/themes.xml_backup.xml
 # Configuration backup folder (project root)
 /config_backup
 
+# ROMs backup folder (project root)
+/roms_backup
+
 # Performance logs and reports (Phase 9.4)
 performance_*.log
 performance_reports/
