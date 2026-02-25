@@ -29,7 +29,7 @@
     <bool name="conf_load_bytes">false</bool>
 
     <!-- Core variables (key=value separated by commas) -->
-    <string name="conf_variables"></string>
+<string name="conf_variables">dolphin_shader_compilation_mode=sync,dolphin_wait_for_shaders=ON</string>
     <!-- Fast forward speed multiplier -->
     <integer name="conf_fast_forward_multiplier">2</integer>
 
