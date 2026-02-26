@@ -64,14 +64,17 @@
     </LinearLayout>
 
     <!-- Layer 3.5: Floating Menu Button (Conditionally visible based on config) -->
-    <ImageButton
+    <Button
         android:id="@+id/floating_menu_button"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_margin="16dp"
         android:contentDescription="@string/app_name"
-        android:src="@android:drawable/ic_menu_sort_by_size"
-        android:scaleType="centerInside"
+        android:text="☰"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:padding="0dp"
+        android:gravity="center"
         android:background="@drawable/bg_floating_button"
         android:visibility="gone"
         android:elevation="150dp"

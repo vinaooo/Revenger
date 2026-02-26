@@ -165,7 +165,12 @@ class GameActivity : FragmentActivity() {
 
                 registerInputListener()
                 registerRotationSettingsListener() // Add listener for auto-rotate changes
-                viewModel.updateGamePadVisibility(this, leftContainer, rightContainer)
+                viewModel.updateGamePadVisibility(
+                        this,
+                        leftContainer,
+                        rightContainer,
+                        findViewById(R.id.floating_menu_button)
+                )
                 viewModel.setupRetroView(this, retroviewContainer)
                 android.util.Log.e(
                         "STARTUP_TIMING",
@@ -1091,21 +1096,24 @@ class GameActivity : FragmentActivity() {
                                         viewModel.updateGamePadVisibility(
                                                 this@GameActivity,
                                                 leftContainer,
-                                                rightContainer
+                                                rightContainer,
+                                                findViewById(R.id.floating_menu_button)
                                         )
                                 }
                                 override fun onInputDeviceRemoved(deviceId: Int) {
                                         viewModel.updateGamePadVisibility(
                                                 this@GameActivity,
                                                 leftContainer,
-                                                rightContainer
+                                                rightContainer,
+                                                findViewById(R.id.floating_menu_button)
                                         )
                                 }
                                 override fun onInputDeviceChanged(deviceId: Int) {
                                         viewModel.updateGamePadVisibility(
                                                 this@GameActivity,
                                                 leftContainer,
-                                                rightContainer
+                                                rightContainer,
+                                                findViewById(R.id.floating_menu_button)
                                         )
                                 }
                         },
@@ -1226,6 +1234,7 @@ class GameActivity : FragmentActivity() {
         override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
                 // Record frame time for performance monitoring
                 recordFrameTime()
+                triggerFloatingButtonFade()
 
                 return viewModel.processKeyEvent(keyCode, event) ?: super.onKeyDown(keyCode, event)
         }
@@ -1489,12 +1498,13 @@ class GameActivity : FragmentActivity() {
                 )
         }
 
+        private var floatingButtonFadeHandler: android.os.Handler? = null
+        private var floatingButtonFadeRunnable: Runnable? = null
+
         /** Set up the floating menu button config and listener */
         private fun setupFloatingMenuButton() {
-                val floatingButton =
-                        findViewById<android.widget.ImageButton>(R.id.floating_menu_button)
-                val configValue =
-                        resources.getString(R.string.conf_floating_menu_button).lowercase()
+                val floatingButton = findViewById<android.widget.Button>(R.id.floating_menu_button)
+                val configValue = resources.getString(R.string.conf_menu_mode_fab).lowercase()
 
                 if (configValue == "disabled") {
                         floatingButton.visibility = android.view.View.GONE
@@ -1527,11 +1537,61 @@ class GameActivity : FragmentActivity() {
                 }
 
                 floatingButton.layoutParams = layoutParams
-                floatingButton.visibility = android.view.View.VISIBLE
+                val shouldShowGamePads =
+                        com.vinaooo.revenger.gamepad.GamePad.shouldShowGamePads(this)
+                floatingButton.visibility =
+                        if (!shouldShowGamePads) android.view.View.VISIBLE
+                        else android.view.View.GONE
 
                 floatingButton.setOnClickListener {
                         Log.d(TAG, "Floating menu button clicked.")
                         viewModel.toggleMainMenu()
+                }
+
+                // Setup fade handler
+                floatingButtonFadeHandler = android.os.Handler(android.os.Looper.getMainLooper())
+                floatingButtonFadeRunnable = Runnable {
+                        floatingButton.animate().alpha(1.0f).setDuration(500).start()
+                }
+        }
+
+        private fun triggerFloatingButtonFade() {
+                if (viewModel.isAnyMenuActive()) return
+
+                val floatingButton =
+                        findViewById<android.widget.Button>(R.id.floating_menu_button) ?: return
+                if (floatingButton.visibility != android.view.View.VISIBLE) return
+
+                // Fade button to 30% alpha
+                floatingButton.animate().alpha(0.3f).setDuration(200).start()
+
+                // Cancel any pending restorative fades, and schedule a new one in 10s
+                floatingButtonFadeRunnable?.let { runnable ->
+                        floatingButtonFadeHandler?.removeCallbacks(runnable)
+                        floatingButtonFadeHandler?.postDelayed(runnable, 10000)
+                }
+        }
+
+        fun restoreFloatingButtonVisibility() {
+                val floatingButton =
+                        findViewById<android.widget.Button>(R.id.floating_menu_button) ?: return
+                if (floatingButton.visibility != android.view.View.VISIBLE) return
+
+                floatingButtonFadeRunnable?.let { runnable ->
+                        floatingButtonFadeHandler?.removeCallbacks(runnable)
+                }
+                floatingButton.animate().alpha(1.0f).setDuration(200).start()
+        }
+
+        fun fadeFloatingButtonImmediately() {
+                val floatingButton =
+                        findViewById<android.widget.Button>(R.id.floating_menu_button) ?: return
+                if (floatingButton.visibility != android.view.View.VISIBLE) return
+
+                floatingButton.animate().alpha(0.3f).setDuration(200).start()
+                floatingButtonFadeRunnable?.let { runnable ->
+                        floatingButtonFadeHandler?.removeCallbacks(runnable)
+                        floatingButtonFadeHandler?.postDelayed(runnable, 10000)
                 }
         }
 
@@ -1542,6 +1602,7 @@ class GameActivity : FragmentActivity() {
         override fun onGenericMotionEvent(event: MotionEvent): Boolean {
                 // Record frame time for performance monitoring
                 recordFrameTime()
+                triggerFloatingButtonFade()
 
                 return viewModel.processMotionEvent(event) ?: super.onGenericMotionEvent(event)
         }

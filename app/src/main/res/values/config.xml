@@ -88,11 +88,7 @@
     <bool name="conf_show_fake_button_10">false</bool>
     <bool name="conf_show_fake_button_11">false</bool>
 
-    <!-- Menu mode -->
-    <bool name="conf_menu_mode_gamepad">false</bool>
-    <bool name="conf_menu_mode_back">true</bool>
-    <bool name="conf_menu_mode_combo">true</bool>
-
+    <!-- Menu modes -->
     <!-- Floating menu button position
          "disabled" = Do not show floating button
          "top-left" = Show button in top left corner
@@ -100,7 +96,10 @@
          "bottom-left" = Show button in bottom left corner
          "bottom-right" = Show button in bottom right corner
     -->
-    <string name="conf_floating_menu_button">bottom-right</string>
+    <string name="conf_menu_mode_fab">bottom-right</string>
+    <bool name="conf_menu_mode_gamepad">false</bool>
+    <bool name="conf_menu_mode_back">true</bool>
+    <bool name="conf_menu_mode_combo">true</bool>
 
     <!-- Should the left DPAD be replaced with an analog stick? -->
     <bool name="conf_left_analog">false</bool>
