@@ -62,6 +62,20 @@
             android:layout_weight="0.25" />
     </LinearLayout>
 
+    <!-- Layer 3.5: Floating Menu Button (Conditionally visible based on config) -->
+    <ImageButton
+        android:id="@+id/floating_menu_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/app_name"
+        android:src="@android:drawable/ic_menu_sort_by_size"
+        android:scaleType="centerInside"
+        android:background="@drawable/bg_floating_button"
+        android:visibility="gone"
+        android:elevation="150dp"
+        android:translationZ="150dp" />
+
     <!-- Layer 4: Shutdown Animation Overlay (Topmost - Only visible during shutdown) -->
     <com.vinaooo.revenger.ui.splash.CRTBootView
         android:id="@+id/crt_shutdown_view"

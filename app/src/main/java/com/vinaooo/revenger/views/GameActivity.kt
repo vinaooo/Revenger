@@ -180,6 +180,9 @@ class GameActivity : FragmentActivity() {
                 // Force gamepad positioning based on orientation
                 adjustGamePadPositionForOrientation(gamepadContainers)
 
+                // Setup Floating Menu Button
+                setupFloatingMenuButton()
+
                 // Reveal gamepads after next frame (when orientation has settled)
                 // This eliminates flash of gamepads in wrong orientation
                 gamePadContainer.post {
@@ -1484,6 +1487,54 @@ class GameActivity : FragmentActivity() {
                         TAG,
                         "GamePad sizes adjusted - GamePads: $gamePadWeight, Center: $centerWeight"
                 )
+        }
+
+        /** Set up the floating menu button config and listener */
+        private fun setupFloatingMenuButton() {
+                val floatingButton =
+                        findViewById<android.widget.ImageButton>(R.id.floating_menu_button)
+                val configValue =
+                        resources.getString(R.string.conf_floating_menu_button).lowercase()
+
+                if (configValue == "disabled") {
+                        floatingButton.visibility = android.view.View.GONE
+                        return
+                }
+
+                val layoutParams = floatingButton.layoutParams as FrameLayout.LayoutParams
+
+                when (configValue) {
+                        "top-left" ->
+                                layoutParams.gravity =
+                                        android.view.Gravity.TOP or android.view.Gravity.START
+                        "top-right" ->
+                                layoutParams.gravity =
+                                        android.view.Gravity.TOP or android.view.Gravity.END
+                        "bottom-left" ->
+                                layoutParams.gravity =
+                                        android.view.Gravity.BOTTOM or android.view.Gravity.START
+                        "bottom-right" ->
+                                layoutParams.gravity =
+                                        android.view.Gravity.BOTTOM or android.view.Gravity.END
+                        else -> {
+                                Log.w(
+                                        TAG,
+                                        "Unknown floating menu button config: $configValue. Disabling floating button."
+                                )
+                                floatingButton.visibility = android.view.View.GONE
+                                return
+                        }
+                }
+
+                floatingButton.layoutParams = layoutParams
+                floatingButton.visibility = android.view.View.VISIBLE
+
+                floatingButton.setOnClickListener {
+                        Log.d(TAG, "Floating menu button clicked.")
+                        viewModel.updateMenuState(
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU
+                        )
+                }
         }
 
         override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {

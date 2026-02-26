@@ -88,12 +88,19 @@
     <bool name="conf_show_fake_button_10">false</bool>
     <bool name="conf_show_fake_button_11">false</bool>
 
-    <!-- Menu mode for gamepad menu button (☰) -->
+    <!-- Menu mode -->
     <bool name="conf_menu_mode_gamepad">false</bool>
-
-    <!-- Alternative menu modes (deprecated, use conf_menu_mode instead) -->
     <bool name="conf_menu_mode_back">true</bool>
     <bool name="conf_menu_mode_combo">true</bool>
+
+    <!-- Floating menu button position
+         "disabled" = Do not show floating button
+         "top-left" = Show button in top left corner
+         "top-right" = Show button in top right corner
+         "bottom-left" = Show button in bottom left corner
+         "bottom-right" = Show button in bottom right corner
+    -->
+    <string name="conf_floating_menu_button">bottom-left</string>
 
     <!-- Should the left DPAD be replaced with an analog stick? -->
     <bool name="conf_left_analog">false</bool>
