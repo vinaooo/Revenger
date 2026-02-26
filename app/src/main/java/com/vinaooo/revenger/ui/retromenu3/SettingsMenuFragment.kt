@@ -9,33 +9,34 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * Fragment do submenu Settings (Configurações).
+ * Submenu fragment for Settings.
  *
- * **Funcionalidades**:
- * - Sound: Toggle áudio ON/OFF
- * - Shader: Toggle shader visual ON/OFF
- * - Speed: Toggle fast-forward (velocidade aumentada)
- * - Back: Volta ao menu principal
+ * **Features**:
+ * - Sound: Toggle audio ON/OFF
+ * - Shader: Toggle visual shader ON/OFF
+ * - Speed: Toggle fast-forward (increased speed)
+ * - Back: Return to main menu
  *
- * **Arquitetura Multi-Input (Phase 3+)**:
- * - Gamepad: DPAD UP/DOWN, A confirma, B volta
- * - Teclado: Arrow keys, Enter confirma, Backspace volta
- * - Touch: Highlight imediato + 100ms delay para ativação
+ * **Multi-Input Architecture (Phase 3+)**:
+ * - Gamepad: DPAD UP/DOWN, A confirms, B backs
+ * - Keyboard: Arrow keys, Enter confirms, Backspace backs
+ * - Touch: Immediate highlight + 100ms activation delay
  *
  * **Visual**:
- * - Design idêntico ao RetroMenu3 com Material Design 3
- * - RetroCardView com animações de seleção
- * - Indicadores visuais de estado (ON/OFF)
+ * - Design identical to RetroMenu3 with Material Design 3
+ * - RetroCardView with selection animations
+ * - Visual ON/OFF state indicators
  *
- * **Phase 3.3**: Limpeza de 36 linhas de código legacy removidas.
+ * **Phase 3.3**: 36 lines of legacy code removed.
  *
- * @see MenuFragmentBase Classe base com navegação unificada
- * @see GameActivityViewModel ViewModel para toggle de configurações
+ * @see MenuFragmentBase Base class with unified navigation
+ * @see GameActivityViewModel ViewModel for toggling settings
  */
 class SettingsMenuFragment : MenuFragmentBase() {
 
@@ -67,11 +68,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
     private lateinit var selectionArrowGameSpeed: TextView
     private lateinit var selectionArrowBack: TextView
 
-    // Callback interface
-    interface SettingsMenuListener {
-        fun onBackToMainMenu()
-    }
-
     private var settingsListener: SettingsMenuListener? = null
 
     fun setSettingsListener(listener: SettingsMenuListener) {
@@ -88,6 +84,9 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Apply configurable layout proportions
+        applyLayoutProportions(view)
 
         // Initialize ViewModel
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
@@ -130,7 +129,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
         gameSpeedSettings = view.findViewById(R.id.settings_game_speed)
         backSettings = view.findViewById(R.id.settings_back)
 
-        // Check if shader selection is enabled (config_shader == "settings")
+        // Check if shader selection is enabled (conf_shader == "settings")
         val isShaderSelectionEnabled = isShaderSelectionEnabled()
 
         // Conditionally show/hide shader settings based on config
@@ -180,9 +179,9 @@ class SettingsMenuFragment : MenuFragmentBase() {
         )
     }
 
-    /** Check if shader selection is enabled based on config_shader setting */
+    /** Check if shader selection is enabled based on conf_shader setting */
     private fun isShaderSelectionEnabled(): Boolean {
-        val configShader = resources.getString(R.string.config_shader)
+        val configShader = resources.getString(R.string.conf_shader)
         return configShader == "settings"
     }
 
@@ -241,7 +240,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
                         else R.string.fast_forward_inactive
                 )
 
-        // Aplicar capitalização configurada aos textos
+        // Apply configured capitalization to texts
         FontUtils.applyTextCapitalization(
                 requireContext(),
                 settingsMenuTitle,
@@ -273,7 +272,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /** Confirm current selection - Execute actions DIRECTLY (não usar performClick) */
+    /** Confirm current selection - execute actions DIRECTLY (do not use performClick) */
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         val isShaderEnabled = isShaderSelectionEnabled()
@@ -306,7 +305,8 @@ class SettingsMenuFragment : MenuFragmentBase() {
             (selectedIndex == 2 && !isShaderEnabled) || (selectedIndex == 3 && isShaderEnabled) -> {
                 // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Settings menu: Back to main menu selected")
-                performBack()
+                // Use NavigationController to navigate back (don't call performBack which returns false)
+                viewModel.navigationController?.navigateBack()
             }
             else ->
                     android.util.Log.w(
@@ -318,17 +318,9 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     /** Back action */
     override fun performBack(): Boolean {
-        // PHASE 3: Use NavigationController for back navigation
-        Log.d(
-                "SettingsMenuFragment",
-                "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
-        )
-        val success = viewModel.navigationController?.navigateBack() ?: false
-        Log.d(
-                "SettingsMenuFragment",
-                "[BACK] NavigationController.navigateBack() returned: $success"
-        )
-        return success
+        // Return false to let NavigationEventProcessor handle the back navigation
+        // Don't call navigateBack() here as it causes infinite recursion
+        return false
     }
 
     /** Update selection visual - specific implementation for SettingsMenuFragment */
@@ -339,10 +331,10 @@ class SettingsMenuFragment : MenuFragmentBase() {
         // Update each menu item state based on selection
         menuItems.forEachIndexed { index, item ->
             if (index == selectedIndex) {
-                // Item selecionado - usar estado SELECTED do RetroCardView
+                // Selected item – use RetroCardView.State.SELECTED
                 item.setState(RetroCardView.State.SELECTED)
             } else {
-                // Item não selecionado - usar estado NORMAL do RetroCardView
+                // Unselected item – use RetroCardView.State.NORMAL
                 item.setState(RetroCardView.State.NORMAL)
             }
         }
@@ -352,12 +344,12 @@ class SettingsMenuFragment : MenuFragmentBase() {
                 if (selectedIndex == 0)
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_selected_color
+                                R.color.rm_selected_color
                         )
                 else
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_normal_color
+                                R.color.rm_normal_color
                         )
         )
 
@@ -366,36 +358,36 @@ class SettingsMenuFragment : MenuFragmentBase() {
                     if (selectedIndex == 1)
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_selected_color
+                                    R.color.rm_selected_color
                             )
                     else
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_normal_color
+                                    R.color.rm_normal_color
                             )
             )
             gameSpeedTitle.setTextColor(
                     if (selectedIndex == 2)
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_selected_color
+                                    R.color.rm_selected_color
                             )
                     else
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_normal_color
+                                    R.color.rm_normal_color
                             )
             )
             backTitle.setTextColor(
                     if (selectedIndex == 3)
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_selected_color
+                                    R.color.rm_selected_color
                             )
                     else
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_normal_color
+                                    R.color.rm_normal_color
                             )
             )
         } else {
@@ -403,24 +395,24 @@ class SettingsMenuFragment : MenuFragmentBase() {
                     if (selectedIndex == 1)
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_selected_color
+                                    R.color.rm_selected_color
                             )
                     else
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_normal_color
+                                    R.color.rm_normal_color
                             )
             )
             backTitle.setTextColor(
                     if (selectedIndex == 2)
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_selected_color
+                                    R.color.rm_selected_color
                             )
                     else
                             androidx.core.content.ContextCompat.getColor(
                                     requireContext(),
-                                    R.color.retro_menu3_normal_color
+                                    R.color.rm_normal_color
                             )
             )
         }
@@ -428,14 +420,14 @@ class SettingsMenuFragment : MenuFragmentBase() {
         // Control selection arrows colors and visibility
         // FIX: Selected item shows arrow without margin (attached to text)
         // val arrowMarginEnd =
-        // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
+        // resources.getDimensionPixelSize(R.dimen.rm_arrow_margin_end)
 
         // Sound
         if (selectedIndex == 0) {
             selectionArrowSound.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowSound.visibility = View.VISIBLE
@@ -452,7 +444,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowShader.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowShader.visibility = View.VISIBLE
@@ -470,7 +462,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowGameSpeed.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowGameSpeed.visibility = View.VISIBLE
@@ -488,7 +480,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowBack.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowBack.visibility = View.VISIBLE

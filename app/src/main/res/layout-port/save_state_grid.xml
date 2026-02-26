@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Save State Grid Layout - Portrait
+    3x3 grid of save slots with title and back button.
+    Portrait version using same weight-based structure as landscape and other menus.
+    Proportions are applied programmatically via MenuLayoutConfig.applyAllProportionsToMenuLayout()
+    respecting rm_portrait_vertical_proportions and rm_portrait_horizontal_proportions.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="@color/rm_background"
+    android:fitsSystemWindows="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="@dimen/rm_menu_item_padding">
+
+        <!-- Left Space -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="@dimen/rm_side_space_weight" />
+
+        <!-- Center Content - wrap_content height, proportions applied programmatically -->
+        <LinearLayout
+            android:id="@+id/grid_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="@dimen/rm_center_content_weight"
+            android:orientation="vertical"
+            android:paddingVertical="@dimen/rm_container_padding_vertical">
+
+            <!-- Menu Title -->
+            <TextView
+                android:id="@+id/grid_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/menu_save_state"
+                android:textSize="@dimen/rm_title_text_size"
+                android:textColor="@color/rm_text_color"
+                android:textStyle="bold"
+                android:layout_marginStart="@dimen/rm_title_margin_start"
+                android:layout_marginBottom="@dimen/rm_title_margin_bottom"
+                android:paddingStart="@dimen/rm_title_padding_start"
+                android:paddingEnd="@dimen/rm_title_padding_end"
+                android:gravity="start"
+                android:letterSpacing="@dimen/rm_title_letter_spacing"
+                android:includeFontPadding="false"
+                android:shadowColor="@color/rm_shadow_color"
+                android:shadowDx="@dimen/rm_shadow_dx"
+                android:shadowDy="@dimen/rm_shadow_dy"
+                android:shadowRadius="@dimen/rm_shadow_radius" />
+
+            <!-- 3x3 Grid Container - uses weight=1 to fill available space proportionally -->
+            <LinearLayout
+                android:id="@+id/slots_grid"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <!-- Row 1: Slots 1, 2, 3 -->
+                <LinearLayout
+                    android:id="@+id/grid_row_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+                    <!-- Slots added programmatically -->
+                </LinearLayout>
+
+                <!-- Row 2: Slots 4, 5, 6 -->
+                <LinearLayout
+                    android:id="@+id/grid_row_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+                    <!-- Slots added programmatically -->
+                </LinearLayout>
+
+                <!-- Row 3: Slots 7, 8, 9 -->
+                <LinearLayout
+                    android:id="@+id/grid_row_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+                    <!-- Slots added programmatically -->
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Back Button Container for right alignment -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="end"
+                android:paddingEnd="@dimen/save_slot_margin">
+
+                <Button
+                    android:id="@+id/grid_back_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_back"
+                    android:textSize="@dimen/rm_menu_item_text_size"
+                    android:textColor="@color/rm_text_color"
+                    android:background="@drawable/back_button_background"
+                    android:minHeight="0dp"
+                    android:minWidth="80dp"
+                    android:paddingTop="1dp"
+                    android:paddingBottom="1dp"
+                    android:paddingHorizontal="16dp"
+                    android:gravity="center"
+                    android:includeFontPadding="false" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Right Space -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="@dimen/rm_side_space_weight" />
+
+    </LinearLayout>
+</FrameLayout>

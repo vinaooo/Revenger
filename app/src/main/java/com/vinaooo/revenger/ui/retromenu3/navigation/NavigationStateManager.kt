@@ -1,45 +1,46 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+import android.util.Log
 import android.os.Bundle
 import com.vinaooo.revenger.ui.retromenu3.MenuFragment
 
 /**
- * Gerenciador de estado de navegação.
+ * Navigation state manager.
  *
- * Responsável por manter e manipular o estado atual do menu, incluindo:
- * - Menu ativo e item selecionado
- * - Pilha de histórico de navegação
- * - Referência ao fragmento atual
- * - Controle de concorrência (mutex)
+ * Responsible for maintaining and manipulating the current menu state, including:
+ * - Active menu and selected item
+ * - Navigation history stack
+ * - Reference to the current fragment
+ * - Concurrency control (mutex)
  */
 class NavigationStateManager {
-    /** Menu atualmente ativo */
+    /** Currently active menu */
     var currentMenu: MenuType = MenuType.MAIN
         private set
 
-    /** Índice do item atualmente selecionado (0-based) */
+    /** Index of the currently selected item (0-based) */
     var selectedItemIndex: Int = 0
         private set
 
-    /** Pilha de navegação para implementar "voltar" */
+    /** Navigation stack to implement "back" */
     private val navigationStack = NavigationStack()
 
-    /** Referência ao fragmento atualmente visível (para atualizar UI) */
+    /** Reference to the currently visible fragment (for updating UI) */
     var currentFragment: MenuFragment? = null
         private set
 
-    /** Número de itens no menu atual (para bounds checking) */
+    /** Number of items in the current menu (for bounds checking) */
     var currentMenuItemCount: Int = 0
         private set
 
     /**
-     * Atualiza o índice selecionado.
-     * @param index Novo índice
-     * @throws IllegalArgumentException se o índice for negativo
+     * Update the selected index.
+     * @param index New index
+     * @throws IllegalArgumentException if the index is negative
      */
     fun updateSelectedIndex(index: Int) {
         if (index < 0) {
-            android.util.Log.e(TAG, "[ERROR] Selected index cannot be negative: $index")
+            Log.e(TAG, "[ERROR] Selected index cannot be negative: $index")
             throw IllegalArgumentException("Selected index cannot be negative: $index")
         }
         selectedItemIndex = index
@@ -134,7 +135,7 @@ class NavigationStateManager {
                 val stackBundle = savedState.getBundle(KEY_NAV_STACK)
                 navigationStack.fromBundle(stackBundle)
             } catch (e: IllegalArgumentException) {
-                android.util.Log.w(TAG, "Invalid menu type in saved state: $menuString")
+                Log.w(TAG, "Invalid menu type in saved state: $menuString")
             }
         }
     }

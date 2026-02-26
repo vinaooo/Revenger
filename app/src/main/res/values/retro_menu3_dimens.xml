@@ -2,48 +2,82 @@
 <resources>
     <!-- RetroMenu3 - Dimensions and Sizes -->
     
-    <!-- Layout Weights -->
-    <item name="retro_menu3_side_space_weight" format="float" type="dimen">0.25</item>
-    <item name="retro_menu3_center_content_weight" format="float" type="dimen">0.50</item>
+    <!-- Layout Proportions Configuration - HORIZONTAL (XXYYZZ)
+         - XX = left space (in %)
+         - YY = center content (in %)
+         - ZZ = right space (in %)
+         Example: "108010" = 10% left, 80% center, 10% right
+                  "107020" = 10% left, 70% center, 20% right
+         Total MUST be 100%
+    -->
+    <string name="rm_portrait_horizontal_proportions">108010</string>
+    <string name="rm_landscape_horizontal_proportions">255025</string>
+
+    <!-- Layout Proportions Configuration - VERTICAL (XXYYZZ)
+         - XX = top space (in %)
+         - YY = menu content (in %)
+         - ZZ = bottom space (in %)
+         Example: "103050" = 10% top, 30% menu, 50% bottom
+                  "304030" = 30% top, 40% menu, 30% bottom (centered)
+         Total MUST be 100%
+         
+         Portrait: Aligned to top with small bottom space (10-70-20)
+         Landscape: Centered (30-40-30)
+    -->
+    <string name="rm_portrait_vertical_proportions">304030</string>
+    <string name="rm_landscape_vertical_proportions">009901</string>
+    
+    <!-- Legacy Layout Weights (kept for compatibility) -->
+    <item name="rm_side_space_weight" format="float" type="dimen">0.25</item>
+    <item name="rm_center_content_weight" format="float" type="dimen">0.50</item>
     
     <!-- Padding and Margins -->
-    <dimen name="retro_menu3_container_padding_vertical">24dp</dimen>
-    <dimen name="retro_menu3_title_margin_bottom">12dp</dimen>
-    <dimen name="retro_menu3_extra_space_height">16dp</dimen>
+    <dimen name="rm_container_padding_vertical">24dp</dimen>
+    <dimen name="rm_title_margin_bottom">12dp</dimen>
+    <dimen name="rm_extra_space_height">16dp</dimen>
     
     <!-- Title Alignment Anchors - CRITICAL for pixel-perfect alignment across all menus -->
-    <dimen name="retro_menu3_title_margin_start">0dp</dimen>
-    <dimen name="retro_menu3_title_padding_start">0dp</dimen>
-    <dimen name="retro_menu3_title_padding_end">0dp</dimen>
+    <dimen name="rm_title_margin_start">0dp</dimen>
+    <dimen name="rm_title_padding_start">0dp</dimen>
+    <dimen name="rm_title_padding_end">0dp</dimen>
     
     <!-- Menu Item -->
-    <dimen name="retro_menu3_menu_item_height">40dp</dimen>
-    <dimen name="retro_menu3_menu_item_padding">8dp</dimen>
-    <dimen name="retro_menu3_menu_item_corner_radius">16dp</dimen>
-    <dimen name="retro_menu3_menu_item_elevation">0dp</dimen>
-    <dimen name="retro_menu3_menu_item_stroke_width">0dp</dimen>
+    <dimen name="rm_menu_item_height">40dp</dimen>
+    <dimen name="rm_menu_item_padding">8dp</dimen>
+    <dimen name="rm_menu_item_corner_radius">16dp</dimen>
+    <dimen name="rm_menu_item_elevation">0dp</dimen>
+    <dimen name="rm_menu_item_stroke_width">0dp</dimen>
     
     <!-- Selection Arrow -->
-    <dimen name="retro_menu3_arrow_margin_start">12dp</dimen>
-    <dimen name="retro_menu3_arrow_margin_end">0dp</dimen>
+    <dimen name="rm_arrow_margin_start">12dp</dimen>
+    <dimen name="rm_arrow_margin_end">0dp</dimen>
     
     <!-- Text Sizes -->
-    <dimen name="retro_menu3_title_text_size">36sp</dimen>
-    <dimen name="retro_menu3_arrow_text_size">22sp</dimen>
-    <dimen name="retro_menu3_menu_item_text_size">22sp</dimen>
-    <dimen name="retro_menu3_info_label_text_size">18sp</dimen>
-    <dimen name="retro_menu3_info_value_text_size">18sp</dimen>
+    <dimen name="rm_title_text_size">36sp</dimen>
+    <dimen name="rm_arrow_text_size">22sp</dimen>
+    <dimen name="rm_menu_item_text_size">22sp</dimen>
+    <dimen name="rm_info_label_text_size">18sp</dimen>
+    <dimen name="rm_info_value_text_size">18sp</dimen>
     
     <!-- Info Margins -->
-    <dimen name="retro_menu3_info_margin_bottom">8dp</dimen>
-    <dimen name="retro_menu3_info_text_margin_bottom">0dp</dimen>
-    <dimen name="retro_menu3_menu_item_margin_bottom">16dp</dimen>
+    <dimen name="rm_info_margin_bottom">8dp</dimen>
+    <dimen name="rm_info_text_margin_bottom">0dp</dimen>
+    <dimen name="rm_menu_item_margin_bottom">16dp</dimen>
     
     <!-- Text Shadow - values must be float without unit -->
-    <item name="retro_menu3_shadow_dx" format="float" type="dimen">4.0</item>
-    <item name="retro_menu3_shadow_dy" format="float" type="dimen">4.0</item>
-    <item name="retro_menu3_shadow_radius" format="float" type="dimen">8.0</item>
+    <item name="rm_shadow_dx" format="float" type="dimen">4.0</item>
+    <item name="rm_shadow_dy" format="float" type="dimen">4.0</item>
+    <item name="rm_shadow_radius" format="float" type="dimen">8.0</item>
     
     <!-- Letter Spacing -->
-    <item name="retro_menu3_title_letter_spacing" format="float" type="dimen">0.05</item>
+    <item name="rm_title_letter_spacing" format="float" type="dimen">0.05</item>
+
+    <!-- Save State Grid Dimensions -->
+    <dimen name="save_slot_width">90dp</dimen>
+    <dimen name="save_slot_height">80dp</dimen>
+    <dimen name="save_slot_margin">4dp</dimen>
+    <dimen name="save_slot_padding">4dp</dimen>
+    <dimen name="save_slot_text_size">10sp</dimen>
+     <!-- Border width for retro menu dialogs -->
+     <dimen name="rm_menu_border_width">2dp</dimen>
 </resources>

@@ -16,17 +16,26 @@
         android:hardwareAccelerated="true"
         android:name=".RevengerApplication"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/config_name"
+        android:label="@string/conf_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
-        <activity android:name=".views.GameActivity"
+        
+        <!-- SplashActivity - Entry point with CRT animation -->
+        <activity android:name=".views.SplashActivity"
             android:exported="true"
-            android:configChanges="keyboardHidden|orientation|screenSize|uiMode">
+            android:theme="@style/Theme.Revenger.Splash"
+            android:configChanges="orientation|screenSize|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        
+        <!-- GameActivity - Main emulator -->
+        <activity android:name=".views.GameActivity"
+            android:exported="false"
+            android:configChanges="keyboardHidden|orientation|screenSize|uiMode">
         </activity>
     </application>
 </manifest>

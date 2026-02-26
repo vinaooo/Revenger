@@ -12,7 +12,7 @@ object MenuConstants {
 }
 
 /**
- * Enum representing different menu modes based on config_menu_mode values. Provides type safety and
+ * Enum representing different menu modes based on conf_menu_mode values. Provides type safety and
  * eliminates magic numbers.
  */
 enum class MenuMode(val value: Int) {

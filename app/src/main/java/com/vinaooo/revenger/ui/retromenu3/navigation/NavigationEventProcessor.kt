@@ -1,12 +1,13 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+import android.util.Log
 import com.vinaooo.revenger.ui.retromenu3.MenuIndices
 
 /**
- * Processador de eventos de navegação.
+ * Navigation event processor.
  *
- * Responsável pela lógica de processamento de eventos e execução de ações de navegação. Remove a
- * complexidade lógica do NavigationController.
+ * Responsible for the logic of processing events and executing navigation actions. Removes the
+ * logical complexity from the NavigationController.
  */
 class NavigationEventProcessor(
         private val stateManager: NavigationStateManager,
@@ -16,63 +17,64 @@ class NavigationEventProcessor(
         private val onMenuClosed: (Int?) -> Unit
 ) {
 
-    /** Rastreia o último botão que causou uma ação (para grace period) */
+    /** Tracks the last button that caused an action (for grace period) */
     private var lastActionButton: Int? = null
 
     companion object {
         private const val TAG = "NavigationEventProcessor"
     }
 
-    /** Processa um evento de navegação. */
+    /** Processes a navigation event. */
     fun processEvent(event: NavigationEvent) {
+        try {
+            Log.d(TAG, "[PROCESS_EVENT] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} event=$event lastAction=$lastActionButton currentMenu=${stateManager.currentMenu} backStack=${fragmentAdapter.getBackStackCount()}")
+        } catch (t: Throwable) {
+            Log.w(TAG, "[PROCESS_EVENT] failed to log debug info", t)
+        }
         when (event) {
             is NavigationEvent.Navigate -> {
                 when (event.direction) {
                     Direction.UP -> navigateUp()
                     Direction.DOWN -> navigateDown()
-                    Direction.LEFT -> {
-                        /* Reservado para uso futuro */
-                    }
-                    Direction.RIGHT -> {
-                        /* Reservado para uso futuro */
-                    }
+                    Direction.LEFT -> navigateLeft()
+                    Direction.RIGHT -> navigateRight()
                 }
             }
             is NavigationEvent.SelectItem -> {
                 selectItem(event.index)
             }
             is NavigationEvent.ActivateSelected -> {
-                android.util.Log.d(
+                Log.d(
                         TAG,
                         "[MENU_EVENT] ActivateSelected: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
                 )
-                lastActionButton = event.keyCode // Salvar botão que ativou
+                lastActionButton = event.keyCode // Save button that activated
                 activateItem()
             }
             is NavigationEvent.NavigateBack -> {
-                android.util.Log.d(
+                Log.d(
                         TAG,
                         "[MENU_EVENT] NavigateBack: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
                 )
-                lastActionButton = event.keyCode // Salvar botão que voltou
+                lastActionButton = event.keyCode // Save button that returned
                 navigateBack()
             }
             is NavigationEvent.OpenMenu -> {
-                android.util.Log.d(TAG, "[MENU_EVENT] OpenMenu: inputSource=${event.inputSource}")
+                Log.d(TAG, "[MENU_EVENT] OpenMenu: inputSource=${event.inputSource}")
                 openMainMenu()
             }
             is NavigationEvent.CloseAllMenus -> {
-                android.util.Log.d(
+                Log.d(
                         TAG,
                         "[MENU_EVENT] CloseAllMenus: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
                 )
-                lastActionButton = event.keyCode // Salvar botão que fechou
+                lastActionButton = event.keyCode // Save button that closed
                 closeAllMenus()
             }
         }
     }
 
-    /** Navega para o item acima (UP). */
+    /** Navigates to the item above (UP). */
     fun navigateUp() {
         // PHASE 3.2: Delegate navigation to fragment to support custom logic
         stateManager.currentFragment?.onNavigateUp()
@@ -83,7 +85,7 @@ class NavigationEventProcessor(
         )
     }
 
-    /** Navega para o item abaixo (DOWN). */
+    /** Navigates to the item below (DOWN). */
     fun navigateDown() {
         // PHASE 3.2: Delegate navigation to fragment to support custom logic
         stateManager.currentFragment?.onNavigateDown()
@@ -94,10 +96,32 @@ class NavigationEventProcessor(
         )
     }
 
-    /** Seleciona um item específico diretamente. */
+    /** Navigate left (LEFT). Used for 2D grid navigation. */
+    fun navigateLeft() {
+        val handled = stateManager.currentFragment?.onNavigateLeft() ?: false
+        if (handled) {
+            // Sync selectedItemIndex with fragment's current selection
+            stateManager.updateSelectedIndex(
+                    stateManager.currentFragment?.getCurrentSelectedIndex() ?: 0
+            )
+        }
+    }
+
+    /** Navigates right (RIGHT). Used for 2D grid navigation. */
+    fun navigateRight() {
+        val handled = stateManager.currentFragment?.onNavigateRight() ?: false
+        if (handled) {
+            // Sync selectedItemIndex with fragment's current selection
+            stateManager.updateSelectedIndex(
+                    stateManager.currentFragment?.getCurrentSelectedIndex() ?: 0
+            )
+        }
+    }
+
+    /** Selects a specific item directly. */
     fun selectItem(index: Int) {
         if (index < 0 || index >= stateManager.currentMenuItemCount) {
-            android.util.Log.w(
+            Log.w(
                     TAG,
                     "Invalid item index: $index (max: ${stateManager.currentMenuItemCount})"
             )
@@ -108,9 +132,9 @@ class NavigationEventProcessor(
         updateSelectionVisual()
     }
 
-    /** Ativa o item atualmente selecionado. */
+    /** Activates the currently selected item. */
     fun activateItem() {
-        android.util.Log.d(
+        Log.d(
                 TAG,
                 "Activate item: index=${stateManager.selectedItemIndex} (menu: ${stateManager.currentMenu})"
         )
@@ -120,7 +144,7 @@ class NavigationEventProcessor(
                     when (stateManager.selectedItemIndex) {
                         MenuIndices.CONTINUE -> {
                             // Continue
-                            android.util.Log.d(TAG, "Continue selected - closing menu")
+                            Log.d(TAG, "Continue selected - closing menu")
                             fragmentAdapter.hideMenu()
                             stateManager.unregisterFragment()
                             eventQueue.clear()
@@ -130,12 +154,12 @@ class NavigationEventProcessor(
                         }
                         MenuIndices.RESET -> {
                             // Reset
-                            android.util.Log.d(TAG, "Reset selected")
+                            Log.d(TAG, "Reset selected")
                             val handled = stateManager.currentFragment?.onConfirm() ?: false
                             if (handled) {
-                                android.util.Log.d(TAG, "Reset handled by fragment")
+                                Log.d(TAG, "Reset handled by fragment")
                             } else {
-                                android.util.Log.w(TAG, "Reset NOT handled by fragment")
+                                Log.w(TAG, "Reset NOT handled by fragment")
                             }
                             return
                         }
@@ -144,7 +168,7 @@ class NavigationEventProcessor(
                         MenuIndices.ABOUT -> MenuType.ABOUT
                         MenuIndices.EXIT -> MenuType.EXIT
                         else -> {
-                            android.util.Log.w(
+                            Log.w(
                                     TAG,
                                     "Unknown menu item index: ${stateManager.selectedItemIndex}"
                             )
@@ -157,38 +181,51 @@ class NavigationEventProcessor(
             stateManager.updateSelectedIndex(0)
             fragmentAdapter.showMenu(targetMenu)
 
-            android.util.Log.d(TAG, "Navigated to submenu: $targetMenu")
+            Log.d(TAG, "Navigated to submenu: $targetMenu")
         } else {
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "Activating item in submenu ${stateManager.currentMenu} at index ${stateManager.selectedItemIndex}"
             )
             val handled = stateManager.currentFragment?.onConfirm() ?: false
             if (handled) {
-                android.util.Log.d(TAG, "Item activation handled by fragment")
+                Log.d(TAG, "Item activation handled by fragment")
             } else {
-                android.util.Log.w(TAG, "Item activation NOT handled by fragment")
+                Log.w(TAG, "Item activation NOT handled by fragment")
             }
         }
     }
 
     /**
-     * Navega para trás.
-     * @return true se navegou para trás, false se já estava no menu principal
+     * Navigate back.
+     * @return true if navigated back, false if already at main menu
      */
     fun navigateBack(): Boolean {
-        android.util.Log.d(TAG, "[NAVIGATE_BACK] Navigate back called")
+        Log.d(TAG, "[NAVIGATE_BACK] Navigate back called")
+
+        // IMPORTANT: First, let the current fragment handle the back event
+        // This allows fragments with dialogs to consume the back event
+        val fragment = stateManager.currentFragment
+        if (fragment != null) {
+            val consumed = fragment.onBack()
+            Log.d(TAG, "[NAVIGATE_BACK] Fragment onBack() returned: $consumed")
+            if (consumed) {
+                // Fragment consumed the event (e.g., closed a dialog)
+                // Don't navigate back in the menu stack
+                return true
+            }
+        }
 
         if (stateManager.currentMenu == MenuType.MAIN && stateManager.isStackEmpty()) {
-            android.util.Log.d(TAG, "[NAVIGATE_BACK] At main menu, closing menu completely")
-            android.util.Log.d(TAG, "[NAVIGATE_BACK] Resetting combo state before menu close")
+            Log.d(TAG, "[NAVIGATE_BACK] At main menu, closing menu completely")
+            Log.d(TAG, "[NAVIGATE_BACK] Resetting combo state before menu close")
             onMenuClosed(lastActionButton)
 
             fragmentAdapter.hideMenu()
             stateManager.unregisterFragment()
             eventQueue.clear()
 
-            android.util.Log.d(TAG, "[NAVIGATE_BACK] Menu closed successfully")
+            Log.d(TAG, "[NAVIGATE_BACK] Menu closed successfully")
             return true
         }
 
@@ -198,13 +235,13 @@ class NavigationEventProcessor(
             stateManager.updateCurrentMenu(previousState.menuType)
             stateManager.updateSelectedIndex(previousState.selectedIndex)
 
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "[NAVIGATE_BACK] Restored state: menu=${stateManager.currentMenu}, index=${stateManager.selectedItemIndex}"
             )
 
             if (stateManager.currentMenu == MenuType.MAIN && stateManager.isStackEmpty()) {
-                android.util.Log.d(
+                Log.d(
                         TAG,
                         "[NAVIGATE_BACK] Returned to main menu, resetting combo state"
                 )
@@ -212,7 +249,7 @@ class NavigationEventProcessor(
             }
 
             val success = fragmentAdapter.navigateBack()
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "[NAVIGATE_BACK] fragmentAdapter.navigateBack() returned: $success"
             )
@@ -221,10 +258,10 @@ class NavigationEventProcessor(
             stateManager.updateCurrentMenu(MenuType.MAIN)
             stateManager.updateSelectedIndex(0)
 
-            android.util.Log.d(TAG, "[NAVIGATE_BACK] Stack empty, setting to main menu")
+            Log.d(TAG, "[NAVIGATE_BACK] Stack empty, setting to main menu")
 
             val success = fragmentAdapter.navigateBack()
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "[NAVIGATE_BACK] fragmentAdapter.navigateBack() returned: $success"
             )
@@ -232,55 +269,55 @@ class NavigationEventProcessor(
         }
     }
 
-    /** Abre o menu principal. */
+    /** Open the main menu. */
     private fun openMainMenu() {
-        android.util.Log.d(TAG, "[MENU_OPEN] Opening main menu")
+        Log.d(TAG, "[MENU_OPEN] Opening main menu")
 
-        android.util.Log.d(TAG, "[MENU_OPEN] Calling onMenuOpenedCallback to pause game")
+        Log.d(TAG, "[MENU_OPEN] Calling onMenuOpenedCallback to pause game")
         onMenuOpened()
-        android.util.Log.d(TAG, "[MENU_OPEN] onMenuOpenedCallback completed")
+        Log.d(TAG, "[MENU_OPEN] onMenuOpenedCallback completed")
 
         stateManager.updateCurrentMenu(MenuType.MAIN)
         stateManager.updateSelectedIndex(0)
         stateManager.clearStack()
 
-        android.util.Log.d(TAG, "[MENU_OPEN] Calling fragmentAdapter.showMenu(MAIN)")
+        Log.d(TAG, "[MENU_OPEN] Calling fragmentAdapter.showMenu(MAIN)")
         fragmentAdapter.showMenu(MenuType.MAIN)
-        android.util.Log.d(TAG, "[MENU_OPEN] Main menu opened successfully")
+        Log.d(TAG, "[MENU_OPEN] Main menu opened successfully")
     }
 
-    /** Fecha todos os menus. */
+    /** Close all menus. */
     private fun closeAllMenus() {
-        android.util.Log.d(TAG, "[MENU_CLOSE] Closing all menus")
-        android.util.Log.d(TAG, "[MENU_CLOSE] lastActionButton: $lastActionButton")
+        Log.d(TAG, "[MENU_CLOSE] Closing all menus")
+        Log.d(TAG, "[MENU_CLOSE] lastActionButton: $lastActionButton")
 
-        android.util.Log.d(TAG, "[MENU_CLOSE] Resetting combo state before menu close")
+        Log.d(TAG, "[MENU_CLOSE] Resetting combo state before menu close")
         onMenuClosed(lastActionButton)
 
         stateManager.updateCurrentMenu(MenuType.MAIN)
         stateManager.updateSelectedIndex(0)
         stateManager.clearStack()
 
-        android.util.Log.d(TAG, "[MENU_CLOSE] Calling fragmentAdapter.hideMenu()")
+        Log.d(TAG, "[MENU_CLOSE] Calling fragmentAdapter.hideMenu()")
         fragmentAdapter.hideMenu()
         stateManager.unregisterFragment()
         eventQueue.clear()
 
-        android.util.Log.d(TAG, "[MENU_CLOSE] All menus closed successfully")
+        Log.d(TAG, "[MENU_CLOSE] All menus closed successfully")
         lastActionButton = null
     }
 
-    /** Atualiza o visual de seleção no fragmento atual. */
+    /** Update the selection visual in the current fragment. */
     fun updateSelectionVisual() {
         if (stateManager.currentFragment == null) {
-            android.util.Log.w(TAG, "updateSelectionVisual: currentFragment is null")
+            Log.w(TAG, "updateSelectionVisual: currentFragment is null")
             return
         }
 
         try {
             stateManager.currentFragment?.setSelectedIndex(stateManager.selectedItemIndex)
         } catch (e: IllegalStateException) {
-            android.util.Log.w(
+            Log.w(
                     TAG,
                     "updateSelectionVisual: fragment detached, clearing reference",
                     e
@@ -289,9 +326,44 @@ class NavigationEventProcessor(
         }
     }
 
+    /**
+     * Navigate to a specific submenu, pushing the current state. Used by fragments to
+     * navigate to submenus while maintaining history.
+     *
+     * @param targetMenu Target menu
+     * @param saveCurrentState Whether to save the current state on the stack (default: true)
+     */
+    fun navigateToSubmenu(targetMenu: MenuType, saveCurrentState: Boolean = true) {
+        Log.d(
+                TAG,
+                "[NAV_TO_SUBMENU] Navigating to $targetMenu from ${stateManager.currentMenu} (saveState=$saveCurrentState)"
+        )
+
+        if (saveCurrentState) {
+            // Salvar estado atual na pilha antes de navegar
+            stateManager.pushCurrentState()
+            Log.d(
+                    TAG,
+                    "[NAV_TO_SUBMENU] Pushed state: menu=${stateManager.currentMenu}, index=${stateManager.selectedItemIndex}, stack size=${stateManager.getStackSize()}"
+            )
+        }
+
+        // Atualizar para o novo menu
+        stateManager.updateCurrentMenu(targetMenu)
+        stateManager.updateSelectedIndex(0)
+
+        // Mostrar o fragment do submenu
+        fragmentAdapter.showMenu(targetMenu)
+
+        Log.d(
+                TAG,
+                "[NAV_TO_SUBMENU] Now at $targetMenu with selection 0, stack size=${stateManager.getStackSize()}"
+        )
+    }
+
     /** Fecha o menu externamente. */
     fun closeMenuExternal(closingButton: Int? = null) {
-        android.util.Log.d(TAG, "[CLOSE_EXTERNAL] Closing menu externally, button: $closingButton")
+        Log.d(TAG, "[CLOSE_EXTERNAL] Closing menu externally, button: $closingButton")
 
         fragmentAdapter.hideMenu()
         stateManager.unregisterFragment()

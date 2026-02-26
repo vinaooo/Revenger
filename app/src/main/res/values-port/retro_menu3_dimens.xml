@@ -3,17 +3,19 @@
     <!-- RetroMenu3 Portrait Optimizations - Simple customization -->
     
     <!-- Essential: Reduce vertical padding for more content space -->
-    <dimen name="retro_menu3_container_padding_vertical">16dp</dimen>
+    <dimen name="rm_container_padding_vertical">16dp</dimen>
     
     <!-- Useful: Adjust title spacing for portrait proportions -->
-    <dimen name="retro_menu3_title_margin_bottom">8dp</dimen>
+    <dimen name="rm_title_margin_bottom">8dp</dimen>
     
     <!-- Optimized fonts for the RetroMenu3 menu in portrait - larger for better readability -->
-    <dimen name="retro_menu3_title_text_size">32sp</dimen>
-    <dimen name="retro_menu3_arrow_text_size">17sp</dimen>
-    <dimen name="retro_menu3_menu_item_text_size">17sp</dimen>
-    <!-- Espaçamento reduzido entre opções do menu em portrait -->
-    <dimen name="retro_menu3_menu_item_height">32dp</dimen>
-    <dimen name="retro_menu3_menu_item_padding">4dp</dimen>
-    <dimen name="retro_menu3_extra_space_height">8dp</dimen>
+    <dimen name="rm_title_text_size">32sp</dimen>
+    <dimen name="rm_arrow_text_size">17sp</dimen>
+    <dimen name="rm_menu_item_text_size">17sp</dimen>
+    <!-- Reduced spacing between menu options in portrait -->
+    <dimen name="rm_menu_item_height">32dp</dimen>
+    <dimen name="rm_menu_item_padding">4dp</dimen>
+    <dimen name="rm_extra_space_height">8dp</dimen>
+    <!-- Keep border width consistent in portrait -->
+    <dimen name="rm_menu_border_width">2dp</dimen>
 </resources>

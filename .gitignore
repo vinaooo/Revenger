@@ -8,8 +8,15 @@
 /captures
 .externalNativeBuild
 .cxx
+# Audio/media files in res/raw
 app/src/main/res/raw/*
-*.so
+
+# ROM files in assets (folder tracked via .gitkeep)
+app/src/main/assets/rom/*
+!app/src/main/assets/rom/.gitkeep
+
+# Downloaded LibRetro cores
+app/src/main/jniLibs/
 
 # Arquivos de backup
 *_backup
@@ -21,20 +28,12 @@ backup_files/themes.xml_backup.xml
 # Configuration backup folder (project root)
 /config_backup
 
-# Testes
-/tests
-*_test
-
-# Documentation (Phase 9.4)
-docs
+# ROMs backup folder (project root)
+/roms_backup
 
 # Performance logs and reports (Phase 9.4)
 performance_*.log
 performance_reports/
-*_test.*
-
-# Documentation
-# /docs
 
 # Scripts
 /scripts
@@ -50,5 +49,8 @@ revenger_debug*
 *log*
 *debug*
 submenu_nav*
-*test*
-temp_apk/
+temp_apk/DEPRECATED_CODE_ANALYSIS.md
+
+# Test and documentation folders (per project instructions)
+/tests
+/docs

@@ -1,7 +1,8 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
-import android.util.Log
+
 import android.view.KeyEvent
+import android.util.Log
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -173,7 +174,7 @@ class KeyboardInputAdapter(
 
                         // V4.2: Event Deduplication - RETORNA FALSE se duplicado (não navega)
                         if (event.eventTime == state.lastProcessedEventTime) {
-                            android.util.Log.d(
+                            Log.d(
                                     TAG,
                                     "[DUPLICATE-EVENT] keyCode=$keyCode, eventTime=${event.eventTime}, SKIPPED"
                             )
@@ -192,7 +193,7 @@ class KeyboardInputAdapter(
                         if (isNewCycle) {
                             // NOVO CICLO - reseta flag
                             state.hasNavigatedInCycle = false
-                            android.util.Log.d(
+                            Log.d(
                                     TAG,
                                     "[CYCLE-START] keyCode=$keyCode, timeSinceLastDown=${timeSinceLastDown}ms → NEW CYCLE"
                             )
@@ -205,12 +206,12 @@ class KeyboardInputAdapter(
                         val allowNav = !state.hasNavigatedInCycle
                         if (allowNav) {
                             state.hasNavigatedInCycle = true
-                            android.util.Log.d(
+                            Log.d(
                                     TAG,
                                     "[NAV-ALLOW] keyCode=$keyCode, cycle=${if (isNewCycle) "new" else "same"}, action=NAVIGATE"
                             )
                         } else {
-                            android.util.Log.d(
+                            Log.d(
                                     TAG,
                                     "[NAV-BLOCK] keyCode=$keyCode, cycle=same, timeSinceLastDown=${timeSinceLastDown}ms, reason=already_navigated"
                             )
@@ -227,28 +228,28 @@ class KeyboardInputAdapter(
             val navigationEvent =
                     when (keyCode) {
                         KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_W -> {
-                            android.util.Log.d(TAG, "[KEY_DOWN] Arrow UP - navigating up")
+                            Log.d(TAG, "[KEY_DOWN] Arrow UP - navigating up")
                             NavigationEvent.Navigate(
                                     direction = Direction.UP,
                                     inputSource = InputSource.KEYBOARD
                             )
                         }
                         KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_S -> {
-                            android.util.Log.d(TAG, "[KEY_DOWN] Arrow DOWN - navigating down")
+                            Log.d(TAG, "[KEY_DOWN] Arrow DOWN - navigating down")
                             NavigationEvent.Navigate(
                                     direction = Direction.DOWN,
                                     inputSource = InputSource.KEYBOARD
                             )
                         }
                         KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_A -> {
-                            android.util.Log.d(TAG, "[KEY_DOWN] Arrow LEFT - navigating left")
+                            Log.d(TAG, "[KEY_DOWN] Arrow LEFT - navigating left")
                             NavigationEvent.Navigate(
                                     direction = Direction.LEFT,
                                     inputSource = InputSource.KEYBOARD
                             )
                         }
                         KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_D -> {
-                            android.util.Log.d(TAG, "[KEY_DOWN] Arrow RIGHT - navigating right")
+                            Log.d(TAG, "[KEY_DOWN] Arrow RIGHT - navigating right")
                             NavigationEvent.Navigate(
                                     direction = Direction.RIGHT,
                                     inputSource = InputSource.KEYBOARD
@@ -266,7 +267,7 @@ class KeyboardInputAdapter(
 
         // PHASE 4.2a: Ignorar eventos de repeat para teclas de ação
         if (!isNavigationKey && event.repeatCount > 0) {
-            android.util.Log.d(
+            Log.d(
                     TAG,
                     "[KEY_DOWN] Ignoring action key repeat for keyCode=$keyCode (repeat=${event.repeatCount})"
             )
@@ -275,10 +276,10 @@ class KeyboardInputAdapter(
 
         // PHASE 4.2a: Suporte para F12 (toggle menu)
         if (keyCode == KeyEvent.KEYCODE_F12) {
-            android.util.Log.d(TAG, "[KEY_DOWN] F12 pressed - toggling menu")
+            Log.d(TAG, "[KEY_DOWN] F12 pressed - toggling menu")
             // Se menu está aberto, fechar tudo
             if (isMenuOpenCallback()) {
-                android.util.Log.d(TAG, "[KEY_DOWN] Menu is open - closing all menus")
+                Log.d(TAG, "[KEY_DOWN] Menu is open - closing all menus")
                 navigationController.handleNavigationEvent(
                         NavigationEvent.CloseAllMenus(
                                 keyCode = keyCode,
@@ -287,7 +288,7 @@ class KeyboardInputAdapter(
                 )
             } else {
                 // Se menu está fechado, abrir
-                android.util.Log.d(TAG, "[KEY_DOWN] Menu is closed - opening menu")
+                Log.d(TAG, "[KEY_DOWN] Menu is closed - opening menu")
                 navigationController.handleNavigationEvent(
                         NavigationEvent.OpenMenu(inputSource = InputSource.KEYBOARD)
                 )
@@ -301,7 +302,7 @@ class KeyboardInputAdapter(
                     KeyEvent.KEYCODE_ENTER,
                     KeyEvent.KEYCODE_DPAD_CENTER,
                     KeyEvent.KEYCODE_SPACE -> {
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[KEY_DOWN] Enter/Space pressed - activating selected"
                         )
@@ -311,7 +312,7 @@ class KeyboardInputAdapter(
                         )
                     }
                     KeyEvent.KEYCODE_ESCAPE -> {
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[KEY_DOWN] Escape pressed - closing all menus (EXIT)"
                         )
@@ -324,14 +325,14 @@ class KeyboardInputAdapter(
                         // FIX ERRO 1: Registrar timestamp do KEY_DOWN para validar KEY_UP futuro
                         actionKeyDownTimestamps[keyCode] = System.currentTimeMillis()
 
-                        android.util.Log.d(TAG, "[KEY_DOWN] Backspace pressed - navigating back")
+                        Log.d(TAG, "[KEY_DOWN] Backspace pressed - navigating back")
                         NavigationEvent.NavigateBack(
                                 keyCode = keyCode,
                                 inputSource = InputSource.KEYBOARD
                         )
                     }
                     KeyEvent.KEYCODE_BACK -> {
-                        android.util.Log.d(TAG, "[KEY_DOWN] Back pressed - navigating back")
+                        Log.d(TAG, "[KEY_DOWN] Back pressed - navigating back")
                         NavigationEvent.NavigateBack(
                                 keyCode = keyCode,
                                 inputSource = InputSource.KEYBOARD
@@ -339,7 +340,7 @@ class KeyboardInputAdapter(
                     }
                     else -> {
                         // Tecla não mapeada - não consumir
-                        android.util.Log.d(TAG, "[KEY_DOWN] Unmapped key: $keyCode")
+                        Log.d(TAG, "[KEY_DOWN] Unmapped key: $keyCode")
                         return false
                     }
                 }
@@ -393,7 +394,7 @@ class KeyboardInputAdapter(
 
                 if (event.eventTime == state.lastProcessedEventTime) {
                     // EVENTO UP DUPLICADO - ignora silenciosamente
-                    android.util.Log.d(
+                    Log.d(
                             TAG,
                             "[DUPLICATE-UP] keyCode=$keyCode, eventTime=${event.eventTime}, SKIPPED"
                     )
@@ -412,12 +413,12 @@ class KeyboardInputAdapter(
                 // Isso previne resetar flags de outros ciclos ativos
                 if (timeSinceLastDown < PRESS_CYCLE_TIMEOUT_MS) {
                     state.hasNavigatedInCycle = false
-                    android.util.Log.d(
+                    Log.d(
                             TAG,
                             "[KEY_UP-RESET] keyCode=$keyCode, timeSinceLastDown=${timeSinceLastDown}ms → CYCLE RESET"
                     )
                 } else {
-                    android.util.Log.d(
+                    Log.d(
                             TAG,
                             "[KEY_UP] keyCode=$keyCode, timeSinceLastDown=${timeSinceLastDown}ms (no reset)"
                     )
@@ -440,12 +441,12 @@ class KeyboardInputAdapter(
         if (keyDownTime != null && (currentTimeForActions - keyDownTime) <= KEY_UP_TIMEOUT_MS) {
             // KEY_UP válido - limpar timestamp
             actionKeyDownTimestamps.remove(keyCode)
-            android.util.Log.d(TAG, "[KEY_UP] Backspace released (matched KEY_DOWN) - processing")
+            Log.d(TAG, "[KEY_UP] Backspace released (matched KEY_DOWN) - processing")
             // Não processar - já foi processado no KEY_DOWN
             return true
         } else if (keyDownTime != null) {
             // KEY_UP órfão (timeout excedido)
-            android.util.Log.w(
+            Log.w(
                     TAG,
                     "🚨 ORPHAN KEY_UP detected for Backspace - timeout exceeded (${currentTimeForActions - keyDownTime}ms)"
             )
@@ -457,7 +458,7 @@ class KeyboardInputAdapter(
         val actionEvent =
                 when (keyCode) {
                     KeyEvent.KEYCODE_DEL -> {
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[KEY_UP-FALLBACK] Backspace released - navigating back"
                         )
@@ -467,14 +468,14 @@ class KeyboardInputAdapter(
                         )
                     }
                     KeyEvent.KEYCODE_BACK -> {
-                        android.util.Log.d(TAG, "[KEY_UP-FALLBACK] Back released - navigating back")
+                        Log.d(TAG, "[KEY_UP-FALLBACK] Back released - navigating back")
                         NavigationEvent.NavigateBack(
                                 keyCode = keyCode,
                                 inputSource = InputSource.KEYBOARD
                         )
                     }
                     KeyEvent.KEYCODE_ESCAPE -> {
-                        android.util.Log.d(
+                        Log.d(
                                 TAG,
                                 "[KEY_UP-FALLBACK] Escape released - closing all menus"
                         )

@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.vinaooo.revenger.retroview.RetroView
 
-/** Controller para gerenciamento dinâmico de shaders em tempo real */
+/** Controller for dynamic real-time shader management */
 class ShaderController(
         private val context: Context,
         private val sharedPreferences: SharedPreferences
@@ -16,57 +16,57 @@ class ShaderController(
         private const val DEFAULT_SHADER = "sharp"
     }
 
-    // Lista de shaders disponíveis
+    // List of available shaders
     val availableShaders = arrayOf("disabled", "sharp", "crt", "lcd")
 
-    // Shader atual
+    // Current shader
     private var currentShader: String = DEFAULT_SHADER
 
-    // Referência ao RetroView para aplicação em tempo real
+    // Reference to RetroView for real-time application
     private var retroView: RetroView? = null
 
     init {
-        // Carregar shader salvo das preferências
+        // Load saved shader from preferences
         currentShader =
                 sharedPreferences.getString(PREF_CURRENT_SHADER, DEFAULT_SHADER) ?: DEFAULT_SHADER
-        Log.d("ShaderController", "Shader inicial carregado: $currentShader")
+        Log.d("ShaderController", "Initial shader loaded: $currentShader")
     }
 
-    /** Verifica se está no modo settings (seleção dinâmica de shader) */
+    /** Checks if we are in settings mode (dynamic shader selection) */
     private fun isSettingsMode(): Boolean {
-        // Como não temos acesso direto ao context aqui, vamos verificar via RetroView
+        // Since we don't have direct context access here, check via RetroView
         return retroView?.isShaderSelectionEnabled() ?: false
     }
 
-    /** Conecta o controller ao RetroView */
+    /** Connects the controller to the RetroView */
     fun connect(retroView: RetroView) {
         this.retroView = retroView
-        // Só aplicar shader se estiver no modo settings
+        // Only apply shader if in settings mode
         if (isSettingsMode()) {
             applyCurrentShader()
         }
-        Log.d("ShaderController", "Conectado ao RetroView")
+        Log.d("ShaderController", "Connected to RetroView")
     }
 
-    /** Define o shader atual */
+    /** Sets the current shader */
     fun setShader(shader: String) {
         if (shader !in availableShaders) {
-            Log.w("ShaderController", "Shader inválido: $shader")
+            Log.w("ShaderController", "Invalid shader: $shader")
             return
         }
 
         currentShader = shader
 
-        // Salvar nas preferências
+        // Save to preferences
         sharedPreferences.edit().putString(PREF_CURRENT_SHADER, shader).apply()
 
-        // Aplicar em tempo real
+        // Apply in real time
         applyCurrentShader()
 
-        Log.d("ShaderController", "Shader alterado para: $shader")
+        Log.d("ShaderController", "Shader changed to: $shader")
     }
 
-    /** Cicla para o próximo shader */
+    /** Cycle to the next shader */
     fun cycleShader(): String {
         val currentIndex = availableShaders.indexOf(currentShader)
         val nextIndex = (currentIndex + 1) % availableShaders.size
@@ -76,10 +76,10 @@ class ShaderController(
         return nextShader
     }
 
-    /** Obtém o shader atual */
+    /** Get the current shader */
     fun getCurrentShader(): String = currentShader
 
-    /** Obtém o nome display do shader atual */
+    /** Get the display name of the current shader */
     fun getCurrentShaderDisplayName(): String {
         return when (currentShader) {
             "disabled" -> "Disabled"
@@ -90,15 +90,15 @@ class ShaderController(
         }
     }
 
-    /** Aplica o shader atual ao RetroView */
+    /** Apply the current shader to the RetroView */
     private fun applyCurrentShader() {
         retroView?.let { rv ->
             rv.dynamicShader = currentShader
-            Log.d("ShaderController", "Shader aplicado em tempo real: $currentShader")
+            Log.d("ShaderController", "Shader applied in real time: $currentShader")
         }
                 ?: Log.w(
                         "ShaderController",
-                        "RetroView não conectado, não foi possível aplicar shader"
+                        "RetroView not connected, could not apply shader"
                 )
     }
 }

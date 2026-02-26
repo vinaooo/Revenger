@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.retroview
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.view.Gravity
@@ -27,20 +26,20 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
     private val resources = context.resources
     private val storage = Storage.getInstance(context)
 
-    // Shader dinâmico para modo "settings"
+    // Dynamic shader for "settings" mode
     private var _dynamicShader: String = "sharp"
     var dynamicShader: String
         get() = _dynamicShader
         set(value) {
             _dynamicShader = value
-            // Aplicar shader em tempo real se estiver no modo settings
+            // Apply shader in real time if in settings mode
             if (isSettingsMode()) {
                 applyShaderInRealtime(value)
             }
         }
 
     private fun isSettingsMode(): Boolean {
-        return context.getString(R.string.config_shader).lowercase() == "settings"
+        return context.getString(R.string.conf_shader).lowercase() == "settings"
     }
 
     /** Public method to check if shader selection is enabled */
@@ -58,7 +57,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                     else -> ShaderConfig.Sharp
                 }
 
-        // Aplicar shader via propriedade do GLRetroView
+        // Apply shader via GLRetroView property
         view.shader = shaderConfig
         Log.i("RetroView", "Shader aplicado em tempo real: $shaderName")
     }
@@ -72,7 +71,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
      * @return ShaderConfig enum value for video rendering
      */
     private fun getShaderConfig(): ShaderConfig {
-        val shaderString = context.getString(R.string.config_shader).lowercase()
+        val shaderString = context.getString(R.string.conf_shader).lowercase()
 
         return when (shaderString) {
             "disabled" -> {
@@ -80,11 +79,11 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 ShaderConfig.Default
             }
             "sharp" -> {
-                Log.i("RetroView", "Shader configurado: Sharp (filtragem bilinear nítida)")
+                Log.i("RetroView", "Shader configured: Sharp (sharp bilinear filtering)")
                 ShaderConfig.Sharp
             }
             "crt" -> {
-                Log.i("RetroView", "Shader configurado: CRT (simulação de monitor CRT)")
+                Log.i("RetroView", "Shader configured: CRT (CRT monitor simulation)")
                 ShaderConfig.CRT
             }
             "lcd" -> {
@@ -96,7 +95,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                         "RetroView",
                         "Shader configurado: Settings (modo dinâmico) - usando: $_dynamicShader"
                 )
-                // Modo settings: usar shader dinâmico
+                // Settings mode: use dynamic shader
                 when (_dynamicShader) {
                     "disabled" -> ShaderConfig.Default
                     "sharp" -> ShaderConfig.Sharp
@@ -108,7 +107,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
             else -> {
                 Log.w(
                         "RetroView",
-                        "Configuração de shader inválida: '$shaderString'. Usando Sharp como fallback."
+                        "Invalid shader configuration: '$shaderString'. Using Sharp as fallback."
                 )
                 ShaderConfig.Sharp
             }
@@ -123,27 +122,27 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 coreFilePath = "libcore.so"
 
                 /* Prepare the ROM bytes */
-                val romName = context.getString(R.string.config_rom)
-                @SuppressLint(
-                        "DiscouragedApi"
-                ) // Reflection necessary to maintain genericity - allows any ROM without
-                // recompilar
-                val romResourceId = resources.getIdentifier(romName, "raw", context.packageName)
+                val romName = context.getString(R.string.conf_rom)
 
-                if (romResourceId == 0) {
-                    throw IllegalArgumentException(
-                            "ROM resource '$romName' not found in raw resources. Check config.xml and ensure the file exists in res/raw/"
-                    )
-                }
+                // Load ROM from assets/rom/ (faster builds — assets bypass AAPT2 processing)
+                val romAssetPath = "rom/$romName"
+                val romInputStream =
+                        try {
+                            context.assets.open(romAssetPath)
+                        } catch (e: java.io.FileNotFoundException) {
+                            throw IllegalArgumentException(
+                                    "ROM '$romName' not found in assets/rom/. Ensure the file exists at app/src/main/assets/rom/$romName"
+                            )
+                        }
 
-                val romInputStream = context.resources.openRawResource(romResourceId)
-                if (resources.getBoolean(R.bool.config_load_bytes)) {
+                val romLoadStartTime = System.currentTimeMillis()
+                if (resources.getBoolean(R.bool.conf_load_bytes)) {
                     if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
                     gameFileBytes = romBytes
                 } else {
-                    if (!storage.rom.exists()) {
-                        storage.rom.outputStream().use { romInputStream.copyTo(it) }
-                    }
+                    // Always overwrite ROM file to ensure latest version is loaded
+                    storage.rom.outputStream().use { romInputStream.copyTo(it) }
+                    Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
 
                     gameFilePath = storage.rom.absolutePath
                 }
@@ -151,15 +150,18 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 shader = getShaderConfig()
                 variables = getCoreVariables()
 
+                val sramLoadStartTime = System.currentTimeMillis()
                 if (storage.sram.exists()) {
                     storage.sram.inputStream().use { saveRAMState = it.readBytes() }
                 }
             }
 
     /** GLRetroView instance itself */
-    val view = GLRetroView(context, retroViewData)
+    val view: GLRetroView
 
     init {
+        view = GLRetroView(context, retroViewData)
+
         val params =
                 FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -201,10 +203,10 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
     /** Parse core variables from config */
     private fun getCoreVariables(): Array<Variable> {
         val variables = arrayListOf<Variable>()
-        val rawVariablesString = context.getString(R.string.config_variables)
+        val rawVariablesString = context.getString(R.string.conf_variables)
         val rawVariables = rawVariablesString.split(",")
 
-        Log.d("RetroView", "Configurando variáveis do core: '$rawVariablesString'")
+        Log.d("RetroView", "Configuring core variables: '$rawVariablesString'")
 
         for (rawVariable in rawVariables) {
             val rawVariableSplit = rawVariable.split("=")
@@ -213,10 +215,10 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
             val key = rawVariableSplit[0].trim()
             val value = rawVariableSplit[1].trim()
             variables.add(Variable(key, value))
-            Log.d("RetroView", "Variável do core configurada: $key = $value")
+            Log.d("RetroView", "Core variable configured: $key = $value")
         }
 
-        Log.d("RetroView", "Total de variáveis do core configuradas: ${variables.size}")
+        Log.d("RetroView", "Total core variables configured: ${variables.size}")
         return variables.toTypedArray()
     }
 }

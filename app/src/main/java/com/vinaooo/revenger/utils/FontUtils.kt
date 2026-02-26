@@ -78,9 +78,9 @@ object FontUtils {
         return tiny5Typeface
     }
 
-    /** Carrega e retorna uma fonte dinâmica de assets/fonts/ baseada no nome fornecido */
+    /** Loads and returns a dynamic font from assets/fonts/ based on the given name */
     fun getDynamicTypeface(context: Context, fontName: String): Typeface? {
-        // Verificar se já temos essa fonte em cache
+        // Check if we already have this font cached
         val cacheKey = "dynamic_$fontName"
         val cachedTypeface = dynamicTypefaces[cacheKey]
         if (cachedTypeface != null) {
@@ -101,10 +101,10 @@ object FontUtils {
         }
     }
 
-    /** Retorna a fonte selecionada baseada na configuração do XML */
+    /** Returns the selected font based on XML configuration */
     fun getSelectedTypeface(context: Context): Typeface? {
         val selectedFont =
-                context.resources.getString(com.vinaooo.revenger.R.string.retro_menu3_font)
+                context.resources.getString(com.vinaooo.revenger.R.string.rm_font)
 
         // Primeiro tentar carregar dinamicamente como arquivo .ttf
         val dynamicTypeface = getDynamicTypeface(context, selectedFont)
@@ -112,7 +112,7 @@ object FontUtils {
             return dynamicTypeface
         }
 
-        // Fallback para opções hardcoded
+        // Fallback to hardcoded options
         return when (selectedFont) {
             "pixelify" -> getPixelifyTypeface(context)
             "micro5" -> getMicro5Typeface(context)
@@ -133,7 +133,7 @@ object FontUtils {
         }
     }
 
-    /** Aplica a fonte selecionada a múltiplos TextViews */
+    /** Applies the selected font to multiple TextViews */
     fun applySelectedFont(context: Context, vararg textViews: android.widget.TextView) {
         val typeface = getSelectedTypeface(context)
         if (typeface != null) {
@@ -149,7 +149,7 @@ object FontUtils {
         }
     }
 
-    /** Aplica a fonte arcade a múltiplos TextViews (para compatibilidade) */
+    /** Applies the arcade font to multiple TextViews (for compatibility) */
     fun applyArcadeFont(context: Context, vararg textViews: android.widget.TextView) {
         val typeface = getArcadeTypeface(context)
         if (typeface != null) {
@@ -157,22 +157,22 @@ object FontUtils {
         }
     }
 
-    /** Aplica capitalização configurada ao texto de um TextView */
+    /** Applies configured capitalization to the text of a TextView */
     fun applyTextCapitalization(context: Context, textView: android.widget.TextView) {
         val capitalizationStyle =
                 context.resources.getInteger(
-                        com.vinaooo.revenger.R.integer.retro_menu3_text_capitalization
+                        com.vinaooo.revenger.R.integer.rm_text_capitalization
                 )
         val originalText = textView.text.toString()
 
         val capitalizedText =
                 when (capitalizationStyle) {
                     1 -> {
-                        // Primeira letra maiúscula - mais robusto
+                        // First letter uppercase - more robust
                         originalText.lowercase().replaceFirstChar { it.uppercase() }
                     }
-                    2 -> originalText.uppercase() // Tudo maiúsculo
-                    else -> originalText // Normal (padrão)
+                    2 -> originalText.uppercase() // All uppercase
+                    else -> originalText // Normal (default)
                 }
 
         if (capitalizedText != originalText) {
@@ -180,24 +180,47 @@ object FontUtils {
         }
     }
 
-    /** Aplica capitalização configurada ao texto de múltiplos TextViews */
+    /** Applies configured capitalization to the text of multiple TextViews */
     fun applyTextCapitalization(context: Context, vararg textViews: android.widget.TextView) {
         textViews.forEach { applyTextCapitalization(context, it) }
     }
 
-    /** Retorna a cor do texto selecionado baseada na configuração do RetroMenu3 */
+    /**
+     * Returns a string already formatted according to the `rm_text_capitalization` setting.
+     * Use em Toasts, hints e em qualquer lugar que construa texto programaticamente.
+     */
+    fun getCapitalizedString(context: Context, resId: Int, vararg formatArgs: Any?): String {
+        val raw = if (formatArgs.isNotEmpty()) {
+            context.resources.getString(resId, *formatArgs)
+        } else {
+            context.resources.getString(resId)
+        }
+
+        val capitalizationStyle =
+                context.resources.getInteger(
+                        com.vinaooo.revenger.R.integer.rm_text_capitalization
+                )
+
+        return when (capitalizationStyle) {
+            1 -> raw.lowercase().replaceFirstChar { it.uppercase() }
+            2 -> raw.uppercase()
+            else -> raw
+        }
+    }
+
+    /** Returns the selected text color based on RetroMenu3 configuration */
     fun getSelectedTextColor(context: Context): Int {
         return androidx.core.content.ContextCompat.getColor(
                 context,
-                com.vinaooo.revenger.R.color.retro_menu3_selected_color
+                com.vinaooo.revenger.R.color.rm_selected_color
         )
     }
 
-    /** Retorna a cor do texto não selecionado baseada na configuração do RetroMenu3 */
+    /** Returns the color of unselected text based on RetroMenu3 configuration */
     fun getUnselectedTextColor(context: Context): Int {
         return androidx.core.content.ContextCompat.getColor(
                 context,
-                com.vinaooo.revenger.R.color.retro_menu3_normal_color
+                com.vinaooo.revenger.R.color.rm_normal_color
         )
     }
 }

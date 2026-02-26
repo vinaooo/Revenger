@@ -1,23 +1,24 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+
 /**
- * Interface para adaptadores de entrada.
+ * Interface for input adapters.
  *
- * Cada tipo de entrada (gamepad, touch, teclado) implementa esta interface para traduzir suas
- * entradas específicas em NavigationEvents unificados.
+ * Each input type (gamepad, touch, keyboard) implements this interface to translate its
+ * specific inputs into unified NavigationEvents.
  *
- * Este padrão permite:
- * - Adicionar novos tipos de entrada facilmente
- * - Manter o core do sistema input-agnostic
- * - Testar cada adaptador isoladamente
- * - Reutilizar lógica de tradução
+ * This pattern allows:
+ * - Adding new input types easily
+ * - Keeping the core of the system input-agnostic
+ * - Testing each adapter in isolation
+ * - Reusing translation logic
  */
 interface InputTranslator {
     /**
-     * Traduz uma entrada específica em um ou mais NavigationEvents.
+     * Translate a specific input into one or more NavigationEvents.
      *
-     * @param input Dados da entrada (tipo depende do adaptador)
-     * @return Lista de NavigationEvents gerados, ou lista vazia se a entrada não for relevante
+     * @param input Input data (type depends on adapter)
+     * @return List of generated NavigationEvents, or empty list if the input is not relevant
      */
     fun translate(input: Any): List<NavigationEvent>
 }

@@ -8,21 +8,21 @@ import android.view.ViewPropertyAnimator
 import androidx.core.util.Pools
 
 /**
- * Otimizador de animações para o sistema de menu RetroMenu3. Usa ViewPropertyAnimator para melhor
- * performance e pools de objetos para reduzir alocações.
+ * Animation optimizer for the RetroMenu3 menu system. Uses ViewPropertyAnimator for better
+ * performance and object pools to reduce allocations.
  */
 object AnimationOptimizer {
 
-    // Pool de AnimatorSet para reduzir alocações
+    // AnimatorSet pool to reduce allocations
     private val animatorSetPool = Pools.SimplePool<AnimatorSet>(4)
 
-    // Pool de ObjectAnimator para reduzir alocações
+    // ObjectAnimator pool to reduce allocations
     private val objectAnimatorPool = Pools.SimplePool<ObjectAnimator>(12)
 
-    // Pool de ViewPropertyAnimator listeners para reduzir alocações
+    // Pool of ViewPropertyAnimator listeners to reduce allocations
     private val animatorListenerPool = Pools.SimplePool<AnimationEndListener>(8)
 
-    /** Animação otimizada usando ViewPropertyAnimator com pool de listeners */
+    /** Optimized animation using ViewPropertyAnimator with listener pool */
     fun animateViewOptimized(
             view: View,
             toAlpha: Float,
@@ -42,7 +42,7 @@ object AnimationOptimizer {
                 .setListener(getAnimationEndListener(view, onEnd))
     }
 
-    /** Animação em lote otimizada usando AnimatorSet pool */
+    /** Optimized batch animation using AnimatorSet pool */
     fun animateViewsBatchOptimized(
             views: Array<View>,
             toAlpha: Float,
@@ -79,7 +79,7 @@ object AnimationOptimizer {
             android.util.Log.d("AnimationOptimizer", "🎬 [BATCH_ANIM]   isShown: ${view.isShown}")
         }
 
-        // Usar ViewPropertyAnimator diretamente - mais confiável que ObjectAnimator
+        // Use ViewPropertyAnimator directly - more reliable than ObjectAnimator
         android.util.Log.d(
                 "AnimationOptimizer",
                 "🎬 [BATCH_ANIM] Using ViewPropertyAnimator approach"
@@ -186,12 +186,12 @@ object AnimationOptimizer {
         )
     }
 
-    /** Obtém AnimatorSet do pool ou cria novo */
+    /** Obtains an AnimatorSet from the pool or creates a new one */
     private fun getAnimatorSet(): AnimatorSet {
         return animatorSetPool.acquire() ?: AnimatorSet()
     }
 
-    /** Obtém ObjectAnimator do pool ou cria novo */
+    /** Obtains an ObjectAnimator from the pool or creates a new one */
     private fun getObjectAnimator(
             target: Any,
             property: String,
@@ -205,7 +205,7 @@ object AnimationOptimizer {
                 ?: ObjectAnimator.ofFloat(target, property, *values)
     }
 
-    /** Obtém listener do pool ou cria novo */
+    /** Obtains a listener from the pool or creates a new one */
     private fun getAnimationEndListener(
             view: View,
             onEnd: (() -> Unit)?
@@ -217,7 +217,7 @@ object AnimationOptimizer {
                 ?: AnimationEndListener(view, onEnd)
     }
 
-    /** Listener reutilizável para animações ViewPropertyAnimator */
+    /** Reusable listener for ViewPropertyAnimator animations */
     private class AnimationEndListener(var view: View? = null, var onEnd: (() -> Unit)? = null) :
             Animator.AnimatorListener {
 
@@ -245,9 +245,9 @@ object AnimationOptimizer {
         override fun onAnimationRepeat(animation: Animator) {}
     }
 
-    /** Limpa os pools quando necessário (chamar no onDestroy da Activity) */
+    /** Clears the pools when needed (call from Activity onDestroy) */
     fun clearPools() {
-        // Não é estritamente necessário, mas ajuda na limpeza de memória
+        // Not strictly necessary, but helps with memory cleanup
         MenuLogger.performance("Animation pools cleared")
     }
 }

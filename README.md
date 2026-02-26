@@ -46,13 +46,20 @@ Here's a diagram of how most Android emulators are configured:
         └── rom3.state
 ```
 
-Here's how Revenger is configured:
+Here's how Revenger is configured with the new multi‑slot system:
 
 ```
 └── Revenger
-    ├── rom
-    ├── save
-    ├── state
+    ├── rom                 # packaged game data
+    ├── save                # SRAM and game-specific files
+    │   ├── slot1.sav       # first save slot
+    │   ├── slot2.sav       # second save slot
+    │   ├── slot3.sav       # third save slot
+    │   └── slotN.sav       # …multiple slots supported
+    ├── state               # save‑state directory (one file per slot)
+    │   ├── slot1.state
+    │   ├── slot2.state
+    │   └── slotN.state
     └── *other system files*
 ```
 
@@ -70,7 +77,7 @@ Here's how Revenger is configured:
 
 # Configuration
 - Edit `app/src/main/res/values/config.xml` and change your configuration
-- Copy your ROM to `app/src/main/res/raw/` (filename should match `config_rom` in config.xml)
+- Place your ROM files in `roms_backup/` at the project root (the build system automatically stages the active ROM based on `conf_rom` in config.xml)
 
 ## Shader Configuration
 Revenger supports configurable video shaders for enhanced visual experience:
@@ -119,41 +126,25 @@ The generated APK will be available at:
 - Debug: `app/build/outputs/apk/debug/app-debug.apk`
 - Release: `app/build/outputs/apk/release/app-universal-release.apk`
 
-**Expected APK size:** ~60MB (includes LibretroDroid cores)
 
-# Autogen Tool
-Revenger has a directory called `autogen` which contains a basic script to batch-generate Revenger packages. To use it, simply navigate to this folder. Place your ROMs in the `input` folder. In this same folder, put a `config.xml` file with your preferred configuration for these ROMs. Ignore the ID and NAME fields, as they will be overwritten. The script also supports nested folders, in which each can contain their own configuration file. Execute the script with `python generate.py`.
+# Recent Updates - RetroMenu3 Refactoring
 
-# Recent Updates - RetroMenu3 Refatoração
+## Refactored Menu System ✅
 
-## Sistema de Menus Refatorado ✅
+Starting with the current version, Revenger features a completely refactored menu system based on **Command Pattern + State Machine**:
 
-A partir da versão atual, o Revenger conta com um sistema de menus completamente refatorado baseado em **Command Pattern + State Machine**:
+### 🏗️ Unified Architecture
+- **Command Pattern**: MenuAction sealed class for type-safe commands
+- **State Machine**: MenuState enum centralizing navigation
+- **Unified Interface**: MenuFragment standardizing menu behavior
+- **MenuManager**: Central coordination of all menus
 
-### 🏗️ Arquitetura Unificada
-- **Command Pattern**: MenuAction sealed class para comandos type-safe
-- **State Machine**: MenuState enum centralizando navegação
-- **Interface Unificada**: MenuFragment padronizando comportamento de menus
-- **MenuManager**: Coordenação central de todos os menus
+### 🎯 Improvements Implemented
+- **Maintainability**: Organized, easy-to-extend code
+- **Performance**: Duplication eliminated (~100 lines reduced)
+- **Testability**: Comprehensive unit tests
+- **Compatibility**: Backward compatibility maintained
 
-### 🎯 Melhorias Implementadas
-- **Manutenibilidade**: Código organizado e fácil de extender
-- **Performance**: Eliminação de duplicação (~100 linhas reduzidas)
-- **Testabilidade**: Testes unitários abrangentes
-- **Compatibilidade**: Backward compatibility mantida
-
-### 📱 Controles de Menu
-- **RetroMenu3**: Ativado com `SELECT + START`
-- **Navegação**: DPAD para navegar, A/B para confirmar/cancelar
-
-### 🧪 Status de Testes
-- ✅ **Unit Tests**: 50 tarefas passando
-- ✅ **Build**: Compilação limpa e rápida
-- ✅ **Runtime**: Inicialização <1 segundo
-- ✅ **Device**: Testado em emulador Android
-
-### 📚 Documentação Técnica
-Consulte `docs/FASE6_FINALIZACAO_TESTES.md` para detalhes completos da refatoração.
 
 ---
 

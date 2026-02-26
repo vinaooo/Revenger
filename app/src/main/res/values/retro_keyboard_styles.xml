@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Retro-styled keyboard styles -->
+<resources>
+
+    <!-- Base style for keyboard keys -->
+    <style name="RetroKeyboardKey">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_margin">1dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/rm_text_color</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/retro_key_background</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:shadowColor">@color/rm_shadow_color</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">1</item>
+    </style>
+
+    <!-- Wide key (for backspace) -->
+    <style name="RetroKeyboardKeyWide" parent="RetroKeyboardKey">
+        <item name="android:layout_weight">1.5</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <!-- Space key -->
+    <style name="RetroKeyboardKeySpace" parent="RetroKeyboardKey">
+        <item name="android:layout_weight">4</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <!-- Action key (OK, Cancel) - same height as regular keys -->
+    <style name="RetroKeyboardKeyAction" parent="RetroKeyboardKey">
+        <item name="android:layout_weight">1</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:background">@drawable/retro_key_action_background</item>
+    </style>
+
+    <!-- Wide action key (OK, Cancel) for bottom row -->
+    <style name="RetroKeyboardKeyActionWide" parent="RetroKeyboardKey">
+        <item name="android:layout_weight">2</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:background">@drawable/retro_key_action_background</item>
+    </style>
+
+</resources>

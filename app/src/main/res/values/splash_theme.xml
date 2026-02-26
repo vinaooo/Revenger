@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base AppCompat theme for SplashActivity - 100% black background with no preview -->
+    <style name="Theme.Revenger.Base" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@drawable/solid_black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowFullscreen">true</item>
+        <!-- Additional colors to ensure black background -->
+        <item name="android:colorPrimary">@android:color/black</item>
+        <item name="android:statusBarColor">@android:color/black</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+    </style>
+    
+    <!-- Theme for splash screen with app icon -->
+    <style name="Theme.Revenger.Splash" parent="Theme.SplashScreen">
+        <!-- Pure black background -->
+        <item name="windowSplashScreenBackground">@android:color/black</item>
+        
+        <!-- App icon on splash -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/black</item>
+        
+        <!-- Theme to apply after splash screen (black background) -->
+        <item name="postSplashScreenTheme">@style/Theme.Revenger.Base</item>
+    </style>
+</resources>

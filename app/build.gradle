@@ -55,12 +55,20 @@ android {
     // buildToolsVersion removido - AGP 8.13.0 usa automaticamente 36.0.0
 
     defaultConfig {
-        applicationId "com.vinaooo.revenger.${getConfigValue('config_id')}"
+        applicationId "com.vinaooo.revenger.${getConfigValue('conf_id')}"
         minSdk = 30                // Android 11 - API Level 30
         targetSdk = 36             // Android 16 - API Level 36
         versionCode 1
         versionName '1.0'
         resConfigs 'en'
+
+        // Filter ABIs based on conf_target_abi
+        def targetAbi = getConfigValue('conf_target_abi')
+        if (targetAbi != 'all') {
+            ndk {
+                abiFilters targetAbi
+            }
+        }
     }
 
     signingConfigs {
@@ -90,6 +98,12 @@ android {
             minifyEnabled = false
             shrinkResources = false
             signingConfig = signingConfigs.release
+        }
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
         }
     }
 
@@ -125,77 +139,152 @@ android {
     }
 }
 
+task prepareRom {
+    doLast {
+        def romName = getConfigValue('conf_rom')
+        def romDir = file("${rootProject.projectDir}/app/src/main/assets/rom")
+        def backupDir = file("${rootProject.projectDir}/roms_backup")
+        backupDir.mkdirs()
+        romDir.mkdirs()
+
+        // 1. Move any non-active ROMs OUT of assets/rom/ → roms_backup/
+        romDir.listFiles()?.each { f ->
+            if (f.name != '.gitkeep' && f.name != romName) {
+                def dest = new File(backupDir, f.name)
+                if (f.renameTo(dest)) {
+                    println "📦 ROM moved to backup: ${f.name}"
+                }
+            }
+        }
+
+        // 2. Move the active ROM IN from roms_backup/ → assets/rom/
+        def activeRomInAssets = new File(romDir, romName)
+        if (!activeRomInAssets.exists()) {
+            def backupRom = new File(backupDir, romName)
+            if (backupRom.exists()) {
+                if (backupRom.renameTo(activeRomInAssets)) {
+                    println "🎮 ROM staged: ${romName} (${String.format('%.1f MB', activeRomInAssets.length() / 1048576.0)})"
+                }
+            } else {
+                throw new GradleException("ROM '$romName' not found in assets/rom/ or roms_backup/. Place your ROM file in app/src/main/assets/rom/")
+            }
+        } else {
+            println "🎮 ROM already staged: ${romName} (${String.format('%.1f MB', activeRomInAssets.length() / 1048576.0)})"
+        }
+    }
+}
+
 task prepareCore {
     doLast {
-        for (abi in ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']) {
+        def coreName = getConfigValue('conf_core')
+        def targetAbi = getConfigValue('conf_target_abi')
+        def allAbis = ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
+        def abisToFetch = (targetAbi == 'all') ? allAbis : [targetAbi]
+        def foundAbis = []
+        def missingAbis = []
+
+        println "Target ABI: ${targetAbi == 'all' ? 'all (universal)' : targetAbi}"
+
+        for (abi in abisToFetch) {
             def jniAbiFolder = file("${rootProject.projectDir}/app/src/main/jniLibs/$abi")
 
             if (jniAbiFolder.exists() && jniAbiFolder.list().length > 0) {
                 println "LibRetro core already exists for $abi, skipping download"
+                foundAbis << abi
                 continue
             }
 
+            def coreUrl = "https://buildbot.libretro.com/nightly/android/latest/$abi/${coreName}_libretro_android.so.zip"
+
+            // Check availability with HEAD request before downloading
+            try {
+                def checkUrl = new URL(coreUrl)
+                def checkConn = (HttpURLConnection) checkUrl.openConnection()
+                checkConn.setRequestMethod("HEAD")
+                checkConn.setConnectTimeout(10000)
+                checkConn.setRequestProperty("User-Agent", "LibRetroDownloader/1.0")
+                def responseCode = checkConn.getResponseCode()
+                checkConn.disconnect()
+
+                if (responseCode == 404) {
+                    println "⚠️  Core '$coreName' not available for $abi (HTTP 404) — skipping"
+                    missingAbis << abi
+                    // Clean up empty folder so it doesn't produce an empty ABI split
+                    if (jniAbiFolder.exists() && (jniAbiFolder.list() == null || jniAbiFolder.list().length == 0)) {
+                        jniAbiFolder.delete()
+                    }
+                    continue
+                } else if (responseCode != 200) {
+                    println "⚠️  Unexpected response for $abi: HTTP $responseCode — skipping"
+                    missingAbis << abi
+                    continue
+                }
+            } catch (Exception e) {
+                println "⚠️  Could not check availability for $abi: ${e.message} — skipping"
+                missingAbis << abi
+                continue
+            }
+
+            // Download the core
             jniAbiFolder.mkdirs()
-            
-            def coreUrl = "https://buildbot.libretro.com/nightly/android/latest/$abi/${getConfigValue('config_core')}_libretro_android.so.zip"
-            def coreName = getConfigValue('config_core')
             def zipFile = new File(jniAbiFolder, "${coreName}_libretro_android.so.zip")
-            
+
             println "Baixando LibRetro core: $coreName para $abi"
-            
-            // Native Java download implementation
+
             try {
                 def url = new URL(coreUrl)
                 def connection = url.openConnection()
-                connection.setConnectTimeout(30000) // 30s
-                connection.setReadTimeout(60000)    // 60s
+                connection.setConnectTimeout(30000)
+                connection.setReadTimeout(60000)
                 connection.setRequestProperty("User-Agent", "LibRetroDownloader/1.0")
-                
+
                 zipFile.withOutputStream { out ->
                     connection.inputStream.withCloseable { input ->
                         out << input
                     }
                 }
-                
+
                 println "Download completed: ${zipFile.length()} bytes"
-                
-                // Extrair ZIP
+
                 copy {
                     from zipTree(zipFile.absolutePath)
                     into jniAbiFolder.absolutePath
                     rename "${coreName}_libretro_android.so", "libcore.so"
                 }
-                
-                // Clean ZIP file
+
                 zipFile.delete()
-                
                 println "Core $coreName successfully extracted for $abi"
-                
+                foundAbis << abi
+
             } catch (Exception e) {
-                println "ERRO no download nativo: ${e.message}"
-                
-                // Fallback: use old method if plugin available
-                try {
-                    download {
-                        src coreUrl
-                        dest jniAbiFolder.absolutePath
-                    }
-                    copy {
-                        from zipTree("${jniAbiFolder.absolutePath}/${coreName}_libretro_android.so.zip")
-                        into jniAbiFolder.absolutePath
-                        rename "${coreName}_libretro_android.so", "libcore.so"
-                    }
-                    delete {
-                        delete "${jniAbiFolder.absolutePath}/${coreName}_libretro_android.so.zip"
-                    }
-                    println "Fallback bem-sucedido para $abi"
-                } catch (Exception e2) {
-                    throw new GradleException("Falha no download e fallback para $abi: ${e2.message}")
+                println "❌ Download failed for $abi: ${e.message}"
+                zipFile.delete()
+                if (jniAbiFolder.exists() && (jniAbiFolder.list() == null || jniAbiFolder.list().length == 0)) {
+                    jniAbiFolder.delete()
                 }
+                missingAbis << abi
             }
+        }
+
+        // Summary
+        println ""
+        println "=========================================================="
+        println "       RESUMO DO DOWNLOAD DE CORES LIBRETRO"
+        println "=========================================================="
+        if (foundAbis) {
+            println "✅ Arquiteturas ENCONTRADAS: ${foundAbis.join(', ')}"
+        }
+        if (missingAbis) {
+            println "❌ Arquiteturas NÃO ENCONTRADAS: ${missingAbis.join(', ')}"
+        }
+        println "=========================================================="
+
+        if (foundAbis.isEmpty()) {
+            throw new GradleException("Core '$coreName' not available for ANY architecture. Build cannot proceed.")
         }
     }
 }
+prepareCore.dependsOn prepareRom
 preBuild.dependsOn prepareCore
 
 dependencies {
@@ -204,6 +293,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
 
     implementation 'androidx.core:core-ktx:1.17.0'
+    implementation 'androidx.core:core-splashscreen:1.0.1'
     implementation 'androidx.appcompat:appcompat:1.7.1'
 
     implementation 'androidx.activity:activity-ktx:1.11.0'
@@ -213,7 +303,7 @@ dependencies {
 
     // RadialGamePad - Updated to 2.0.0 with native Kotlin Flow support
     implementation 'com.github.swordfish90:radialgamepad:2.0.0'
-    implementation 'com.github.swordfish90:libretrodroid:0.12.0'
+    implementation 'com.github.swordfish90:libretrodroid:0.13.1'
 
     // RxJava 3 for new code
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
@@ -224,7 +314,7 @@ dependencies {
 }
 
 dependencies {
-    // Test dependencies
+    // Unit Test dependencies
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:5.12.0'
     testImplementation 'org.mockito:mockito-android:5.12.0'
@@ -234,4 +324,14 @@ dependencies {
     testImplementation 'org.robolectric:robolectric:4.13'
     testImplementation 'io.mockk:mockk:1.13.12'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
+    testImplementation 'androidx.lifecycle:lifecycle-runtime-testing:2.9.4'
+
+    // Instrumentation Test dependencies (androidTest)
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:rules:1.6.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.6.1'
+    androidTestImplementation 'org.mockito:mockito-android:5.12.0'
+    androidTestImplementation 'androidx.fragment:fragment-testing:1.8.5'
+    androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
 }

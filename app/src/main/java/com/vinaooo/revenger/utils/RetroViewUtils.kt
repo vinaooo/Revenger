@@ -19,7 +19,7 @@ class RetroViewUtils(private val activity: Activity) {
     private val storage = Storage.getInstance(activity)
     private val sharedPreferences = activity.getPreferences(Context.MODE_PRIVATE)
     private val fastForwardSpeed =
-            activity.resources.getInteger(R.integer.config_fast_forward_multiplier)
+            activity.resources.getInteger(R.integer.conf_fast_forward_multiplier)
 
     fun restoreEmulatorState(
             retroView: RetroView,

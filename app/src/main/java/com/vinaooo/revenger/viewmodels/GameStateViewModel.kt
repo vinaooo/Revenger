@@ -9,8 +9,8 @@ import com.vinaooo.revenger.retroview.RetroView
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel especializado para gerenciamento do estado do jogo/emulação. Responsável por reset,
- * save/load states, e controle geral do jogo.
+ * ViewModel specialized in managing game/emulation state. Responsible for reset,
+ * save/load states, and general game control.
  */
 class GameStateViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -23,11 +23,11 @@ class GameStateViewModel(application: Application) : AndroidViewModel(applicatio
                     viewModelScope
             )
 
-    // Referências ao RetroView
+    // References to RetroView
     private var retroView: RetroView? = null
     private var retroViewUtils: com.vinaooo.revenger.utils.RetroViewUtils? = null
 
-    // Estado do jogo
+    // Game state
     private var skipNextTempStateLoad = false
 
     fun setRetroView(retroView: RetroView?) {
@@ -38,15 +38,15 @@ class GameStateViewModel(application: Application) : AndroidViewModel(applicatio
         retroViewUtils = utils
     }
 
-    // ========== MÉTODOS DE CONTROLE DO JOGO ==========
+    // ========== GAME CONTROL METHODS ==========
 
     fun resetGame(onComplete: (() -> Unit)? = null) {
         viewModelScope.launch {
             try {
-                // TODO: Implementar lógica de reset do jogo
-                // - Salvar estado temporário se necessário
-                // - Reset do emulador
-                // - Restaurar configurações
+                // TODO: Implement game reset logic
+                // - Save temporary state if needed
+                // - Reset the emulator
+                // - Restore settings
 
                 onComplete?.invoke()
             } catch (e: Exception) {
@@ -57,21 +57,21 @@ class GameStateViewModel(application: Application) : AndroidViewModel(applicatio
 
     @Suppress("UNUSED_PARAMETER")
     fun saveState(slot: Int = 0) {
-        // TODO: Implementar save state
+        // TODO: Implement save state
     }
 
     @Suppress("UNUSED_PARAMETER")
     fun loadState(slot: Int = 0) {
-        // TODO: Implementar load state
+        // TODO: Implement load state
     }
 
     @Suppress("UNUSED_PARAMETER")
     fun hasSaveState(slot: Int = 0): Boolean {
-        // TODO: Verificar se existe save state
+        // TODO: Check if save state exists
         return false
     }
 
-    // ========== MÉTODOS DE CONTROLE DE VELOCIDADE ==========
+    // ========== SPEED CONTROL METHODS ==========
 
     fun restoreGameSpeedFromPreferences() {
         viewModelScope.launch {
@@ -86,12 +86,12 @@ class GameStateViewModel(application: Application) : AndroidViewModel(applicatio
 
     @Suppress("UNUSED_PARAMETER")
     fun setGameSpeed(speed: Int) {
-        // TODO: Implementar configuração da velocidade do jogo
-        // Validar range (1-2 normalmente)
-        // Aplicar no emulador
+        // TODO: Implement game speed configuration
+        // Validate range (normally 1-2)
+        // Apply to emulator
     }
 
-    // ========== MÉTODOS DE UTILITÁRIO ==========
+    // ========== UTILITY METHODS ==========
 
     fun setSkipNextTempStateLoad(skip: Boolean) {
         skipNextTempStateLoad = skip

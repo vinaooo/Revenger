@@ -8,36 +8,37 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.callbacks.ExitListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * Fragment do submenu Exit (Confirmação de Saída).
+ * Exit submenu fragment (Exit confirmation).
  *
- * **Funcionalidades**:
- * - Save & Exit: Salva estado do jogo e sai do emulador
- * - Exit: Sai sem salvar
- * - Back: Cancela e volta ao menu principal
+ * **Features**:
+ * - Save & Exit: save game state and exit emulator
+ * - Exit: leave without saving
+ * - Back: cancel and return to main menu
  *
- * **Arquitetura Multi-Input (Phase 3+)**:
- * - Gamepad: DPAD UP/DOWN navegação, A confirma ação, B cancela
- * - Teclado: Arrow keys navegação, Enter confirma, Backspace cancela
- * - Touch: Toque com highlight + 100ms delay
+ * **Multi-Input Architecture (Phase 3+)**:
+ * - Gamepad: DPAD UP/DOWN navigation, A confirms action, B cancels
+ * - Keyboard: Arrow keys navigation, Enter confirms, Backspace cancels
+ * - Touch: tap with highlight + 100ms delay
  *
- * **Segurança**:
- * - Confirmação explícita antes de sair
- * - Opção de salvar estado antes de encerrar
- * - Cancelamento fácil com botão Back ou B
+ * **Safety**:
+ * - Explicit confirmation before exiting
+ * - Option to save state before quitting
+ * - Easy cancel with Back button or B
  *
  * **Visual**:
- * - Design crítico com cores de atenção (vermelho para Exit)
- * - Material Design 3 consistente
+ * - Critical design using attention colors (red for Exit)
+ * - Consistent Material Design 3
  *
- * **Phase 3.3**: Limpeza de 43 linhas de código legacy.
+ * **Phase 3.3**: cleaned up 43 lines of legacy code.
  *
- * @see MenuFragmentBase Classe base com navegação unificada
- * @see GameActivityViewModel ViewModel para save/exit operations
+ * @see MenuFragmentBase Base class with unified navigation
+ * @see GameActivityViewModel ViewModel for save/exit operations
  */
 class ExitFragment : MenuFragmentBase() {
 
@@ -66,11 +67,6 @@ class ExitFragment : MenuFragmentBase() {
     private lateinit var selectionArrowExitWithoutSave: TextView
     private lateinit var selectionArrowBack: TextView
 
-    // Callback interface
-    interface ExitListener {
-        fun onBackToMainMenu()
-    }
-
     private var exitListener: ExitListener? = null
 
     fun setExitListener(listener: ExitListener) {
@@ -87,6 +83,9 @@ class ExitFragment : MenuFragmentBase() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Apply configurable layout proportions
+        applyLayoutProportions(view)
 
         // Initialize ViewModel
         viewModel = ViewModelProvider(requireActivity())[GameActivityViewModel::class.java]
@@ -159,7 +158,7 @@ class ExitFragment : MenuFragmentBase() {
                 selectionArrowBack
         )
 
-        // Aplicar capitalização configurada aos textos
+        // Apply configured capitalization to texts
         FontUtils.applyTextCapitalization(
                 requireContext(),
                 exitMenuTitle,
@@ -233,33 +232,50 @@ class ExitFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
     }
 
-    /** Confirm current selection - Execute actions DIRECTLY (não usar performClick) */
+    /** Confirm current selection - execute actions DIRECTLY (do not use performClick) */
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[ACTION] Exit menu: CONFIRM on index $selectedIndex")
         when (selectedIndex) {
             0 -> {
-                // Save and Exit - Execute action directly
+                // Save and Exit - Conditional logic based on session slot context
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Save and Exit selected")
-                // REMOVED: NavigationController handles menu dismissal and speed restoration
-                // viewModel.dismissAllMenus()
-                // viewModel.restoreGameSpeedFromPreferences()
-                viewModel.saveStateCentralized(
-                        onComplete = { android.os.Process.killProcess(android.os.Process.myPid()) }
-                )
+
+                val tracker = com.vinaooo.revenger.managers.SessionSlotTracker.getInstance()
+
+                if (tracker.hasSlotContext()) {
+                    // Scenario 1: User already saved/loaded during this session
+                    // Auto-save to the last used slot
+                    val slotNumber = tracker.getLastUsedSlot()!!
+                    android.util.Log.d(TAG, "[ACTION] Auto-saving to last used slot $slotNumber")
+                    performAutoSaveAndExit(slotNumber)
+                } else {
+                    // Scenario 2: No slot context - show save grid for user to choose
+                    android.util.Log.d(TAG, "[ACTION] No slot context - navigating to ExitSaveGrid")
+                    viewModel.navigationController?.navigateToSubmenu(
+                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.EXIT_SAVE_SLOTS
+                    )
+                }
             }
             1 -> {
-                // Exit without Save - Execute action directly
+                // Exit without Save - Execute action with shutdown animation
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Exit without Save selected")
-                // REMOVED: NavigationController handles menu dismissal and speed restoration
-                // viewModel.dismissAllMenus()
-                // viewModel.restoreGameSpeedFromPreferences()
-                android.os.Process.killProcess(android.os.Process.myPid())
+
+                // Fechar menu primeiro
+                viewModel.dismissRetroMenu3()
+
+                // Start shutdown animation
+                (requireActivity() as? com.vinaooo.revenger.views.GameActivity)
+                        ?.startShutdownAnimation {
+                            // When animation finishes, kill the process
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }
             }
             2 -> {
                 // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Exit menu: Back to main menu selected")
-                performBack()
+                // Use NavigationController to navigate back (don't call performBack which returns false)
+                viewModel.navigationController?.navigateBack()
             }
             else ->
                     android.util.Log.w(
@@ -271,19 +287,81 @@ class ExitFragment : MenuFragmentBase() {
 
     /** Back action */
     override fun performBack(): Boolean {
-        android.util.Log.d("ExitFragment", "[BACK] performBack called - navigating to main menu")
+        android.util.Log.d("ExitFragment", "[BACK] performBack called - returning false to allow normal navigation")
 
-        // PHASE 3: Use NavigationController for back navigation
-        android.util.Log.d(
-                "ExitFragment",
-                "[BACK] Using new navigation system - calling viewModel.navigationController.navigateBack()"
-        )
-        val success = viewModel.navigationController?.navigateBack() ?: false
-        android.util.Log.d(
-                "ExitFragment",
-                "[BACK] NavigationController.navigateBack() returned: $success"
-        )
-        return success
+        // Return false to allow NavigationEventProcessor to handle the back navigation normally
+        // This prevents infinite recursion (performBack -> navigateBack -> onBack -> performBack)
+        return false
+    }
+
+    /**
+     * Performs auto-save to the specified slot and then exits the app.
+     *
+     * This is called when the user selects "Save and Exit" and has previously
+     * used a save slot during the current session (via Save State or Load State).
+     *
+     * @param slotNumber The slot to auto-save to (1-9)
+     */
+    private fun performAutoSaveAndExit(slotNumber: Int) {
+        val currentRetroView = viewModel.retroView
+        if (currentRetroView == null) {
+            android.util.Log.e(TAG, "[ACTION] RetroView is null, falling back to legacy save")
+            viewModel.dismissRetroMenu3()
+            viewModel.saveStateCentralized(
+                onComplete = {
+                    (requireActivity() as? com.vinaooo.revenger.views.GameActivity)
+                        ?.startShutdownAnimation {
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }
+                }
+            )
+            return
+        }
+
+        try {
+            // Serialize state from emulator
+            val stateBytes = currentRetroView.view.serializeState()
+
+            // Get cached screenshot
+            val screenshot = viewModel.getCachedScreenshot()
+
+            // Get ROM name from config
+            val romName = try {
+                getString(R.string.conf_name)
+            } catch (e: Exception) {
+                "Unknown Game"
+            }
+
+            // Save to the slot via SaveStateManager
+            val saveStateManager = com.vinaooo.revenger.managers.SaveStateManager.getInstance(requireContext())
+            val success = saveStateManager.saveToSlot(
+                slotNumber = slotNumber,
+                stateBytes = stateBytes,
+                screenshot = screenshot,
+                name = saveStateManager.getSlot(slotNumber).let {
+                    if (it.isEmpty) "Slot $slotNumber" else it.name
+                },
+                romName = romName
+            )
+
+            if (success) {
+                android.util.Log.d(TAG, "[ACTION] Auto-save successful to slot $slotNumber")
+                // Update tracker
+                com.vinaooo.revenger.managers.SessionSlotTracker.getInstance().recordSave(slotNumber)
+            } else {
+                android.util.Log.e(TAG, "[ACTION] Auto-save failed to slot $slotNumber, proceeding with exit")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "[ACTION] Error during auto-save", e)
+        }
+
+        // Dismiss menu and exit regardless of save result
+        viewModel.dismissRetroMenu3()
+
+        (requireActivity() as? com.vinaooo.revenger.views.GameActivity)
+            ?.startShutdownAnimation {
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
     }
 
     /** Update selection visual - specific implementation for ExitFragment */
@@ -293,10 +371,10 @@ class ExitFragment : MenuFragmentBase() {
         // Update each menu item state based on selection
         menuItems.forEachIndexed { index, item ->
             if (index == selectedIndex) {
-                // Item selecionado - usar estado SELECTED do RetroCardView
+                // Selected item – use RetroCardView.State.SELECTED
                 item.setState(RetroCardView.State.SELECTED)
             } else {
-                // Item não selecionado - usar estado NORMAL do RetroCardView
+                // Unselected item – use RetroCardView.State.NORMAL
                 item.setState(RetroCardView.State.NORMAL)
             }
         }
@@ -306,50 +384,50 @@ class ExitFragment : MenuFragmentBase() {
                 if (getCurrentSelectedIndex() == 0)
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_selected_color
+                                R.color.rm_selected_color
                         )
                 else
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_normal_color
+                                R.color.rm_normal_color
                         )
         )
         exitWithoutSaveTitle.setTextColor(
                 if (getCurrentSelectedIndex() == 1)
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_selected_color
+                                R.color.rm_selected_color
                         )
                 else
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_normal_color
+                                R.color.rm_normal_color
                         )
         )
         backTitle.setTextColor(
                 if (getCurrentSelectedIndex() == 2)
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_selected_color
+                                R.color.rm_selected_color
                         )
                 else
                         androidx.core.content.ContextCompat.getColor(
                                 requireContext(),
-                                R.color.retro_menu3_normal_color
+                                R.color.rm_normal_color
                         )
         )
 
         // Control selection arrows colors and visibility
         // FIX: Selected item shows arrow without margin (attached to text)
         // val arrowMarginEnd =
-        // resources.getDimensionPixelSize(R.dimen.retro_menu3_arrow_margin_end)
+        // resources.getDimensionPixelSize(R.dimen.rm_arrow_margin_end)
 
         // Save and Exit
         if (getCurrentSelectedIndex() == 0) {
             selectionArrowSaveAndExit.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowSaveAndExit.visibility = View.VISIBLE
@@ -366,7 +444,7 @@ class ExitFragment : MenuFragmentBase() {
             selectionArrowExitWithoutSave.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowExitWithoutSave.visibility = View.VISIBLE
@@ -383,7 +461,7 @@ class ExitFragment : MenuFragmentBase() {
             selectionArrowBack.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
-                            R.color.retro_menu3_selected_color
+                            R.color.rm_selected_color
                     )
             )
             selectionArrowBack.visibility = View.VISIBLE

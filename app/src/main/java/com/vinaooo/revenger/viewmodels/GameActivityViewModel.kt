@@ -2,9 +2,9 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Activity
 import android.app.Application
-import android.content.pm.ActivityInfo
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.*
 import android.view.KeyEvent
 import android.widget.FrameLayout
@@ -23,6 +23,8 @@ import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.retromenu3.*
+import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
+import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
@@ -30,8 +32,8 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
         AndroidViewModel(application),
-        SettingsMenuFragment.SettingsMenuListener,
-        AboutFragment.AboutListener,
+        SettingsMenuListener,
+        AboutListener,
         MenuManager.MenuManagerListener {
 
     private val resources = application.resources
@@ -40,22 +42,22 @@ class GameActivityViewModel(application: Application) :
     // Using composition pattern to separate concerns
 
     /** Menu management ViewModel */
-    private lateinit var menuViewModel: MenuViewModel
+    private val menuViewModel: MenuViewModel = MenuViewModel(application)
 
     /** Game state management ViewModel */
-    private lateinit var gameStateViewModel: GameStateViewModel
+    private val gameStateViewModel: GameStateViewModel = GameStateViewModel(application)
 
     /** Input management ViewModel */
-    private lateinit var inputViewModel: InputViewModel
+    private val inputViewModel: InputViewModel = InputViewModel(application)
 
     /** Audio management ViewModel */
-    private lateinit var audioViewModel: AudioViewModel
+    private val audioViewModel: AudioViewModel = AudioViewModel(application)
 
     /** Shader management ViewModel */
-    private lateinit var shaderViewModel: ShaderViewModel
+    private val shaderViewModel: ShaderViewModel = ShaderViewModel(application)
 
     /** Speed management ViewModel */
-    private lateinit var speedViewModel: SpeedViewModel
+    private val speedViewModel: SpeedViewModel = SpeedViewModel(application)
 
     /**
      * Navigation controller for multi-input navigation system (Phase 3+). Internal visibility
@@ -116,8 +118,40 @@ class GameActivityViewModel(application: Application) :
     private var exitFragment: ExitFragment? = null
     private var aboutFragment: AboutFragment? = null
 
+    // ===== LOAD PREVIEW OVERLAY =====
+
+    /**
+     * Callback to show/hide the full-screen preview overlay in GameActivity. Set by GameActivity
+     * during initialization, called by fragments on slot selection.
+     */
+    var loadPreviewCallback: ((android.graphics.Bitmap?) -> Unit)? = null
+
+    /**
+     * Show the load preview overlay with the given bitmap. Used when user navigates between slots
+     * in Load State grid.
+     */
+    fun showLoadPreview(bitmap: android.graphics.Bitmap) {
+        loadPreviewCallback?.invoke(bitmap)
+    }
+
+    /**
+     * Hide the load preview overlay. Called when navigating away from Load State or when menu
+     * closes.
+     */
+    fun hideLoadPreview() {
+        loadPreviewCallback?.invoke(null)
+    }
+
+    /**
+     * Get the cached full-screen screenshot (with black bars) for preview overlay. Used when saving
+     * to slot — the full screenshot is saved alongside the cropped one.
+     */
+    fun getCachedFullScreenshot(): android.graphics.Bitmap? {
+        return com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getCachedFullScreenshot()
+    }
+
     // ===== CENTRALIZED STATE MANAGEMENT =====
-    // Estado distribuído migrado para MenuStateManager
+    // Distributed state migrated to MenuStateManager
 
     /** Check if settings menu is active */
     private fun isSettingsMenuActive(): Boolean =
@@ -204,14 +238,15 @@ class GameActivityViewModel(application: Application) :
         menuStateManager.setDismissingAllMenus(dismissing)
     }
 
+    // Centralized Menu State Manager (must be initialized first for MenuManager)
+    private val menuStateManager: com.vinaooo.revenger.ui.retromenu3.MenuStateManager =
+            com.vinaooo.revenger.ui.retromenu3.MenuStateManager()
+
     // Unified Menu Manager for centralized menu navigation
-    private lateinit var menuManager: MenuManager
+    private val menuManager: MenuManager = MenuManager(this, menuStateManager)
 
     /** Get the MenuManager instance */
     fun getMenuManager(): MenuManager = menuManager
-
-    // Centralized Menu State Manager
-    private lateinit var menuStateManager: com.vinaooo.revenger.ui.retromenu3.MenuStateManager
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput(application.applicationContext)
@@ -226,19 +261,7 @@ class GameActivityViewModel(application: Application) :
     private var skipNextTempStateLoad = false
 
     init {
-        // Initialize centralized Menu State Manager
-        menuStateManager = com.vinaooo.revenger.ui.retromenu3.MenuStateManager()
-
-        // Initialize unified Menu Manager
-        menuManager = MenuManager(this, menuStateManager)
-
-        // Initialize specialized ViewModels using composition pattern
-        menuViewModel = MenuViewModel(application)
-        gameStateViewModel = GameStateViewModel(application)
-        inputViewModel = InputViewModel(application)
-        audioViewModel = AudioViewModel(application)
-        shaderViewModel = ShaderViewModel(application)
-        speedViewModel = SpeedViewModel(application)
+        // All ViewModels and managers are now initialized as val at declaration
 
         // Set the callback to check if SELECT+START combo should work
         controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
@@ -286,10 +309,38 @@ class GameActivityViewModel(application: Application) :
 
             // PHASE 3.2b: Configurar callbacks para pausar/resumir o jogo
             navigationController?.onMenuOpenedCallback = {
+                try {
+                    Log.d(
+                            "GameActivityViewModel",
+                            "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} - menu opened callback start"
+                    )
+                    Log.d(
+                            "GameActivityViewModel",
+                            "[ON_MENU_OPENED] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}"
+                    )
+                } catch (t: Throwable) {
+                    Log.w(
+                            "GameActivityViewModel",
+                            "[ON_MENU_OPENED] failed to log fragment manager state",
+                            t
+                    )
+                }
+
+                // Capturar screenshot ANTES de pausar para save states
+                captureScreenshotForSaveState()
                 // Preservar estado do emulador
                 retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
                 // PAUSAR o jogo quando menu abre
                 retroView?.let { speedController?.pause(it.view) }
+
+                try {
+                    Log.d(
+                            "GameActivityViewModel",
+                            "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} - menu opened callback completed"
+                    )
+                } catch (t: Throwable) {
+                    Log.w("GameActivityViewModel", "[ON_MENU_OPENED] failed to log completion", t)
+                }
             }
 
             navigationController?.onMenuClosedCallback = { closingButton: Int? ->
@@ -297,6 +348,22 @@ class GameActivityViewModel(application: Application) :
                         "GameActivityViewModel",
                         "🔥 [ON_MENU_CLOSED_CALLBACK] ===== MENU CLOSED ====="
                 )
+                try {
+                    Log.d(
+                            "GameActivityViewModel",
+                            "🔥 [ON_MENU_CLOSED_CALLBACK] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} closingButton=$closingButton"
+                    )
+                    Log.d(
+                            "GameActivityViewModel",
+                            "🔥 [ON_MENU_CLOSED_CALLBACK] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}"
+                    )
+                } catch (t: Throwable) {
+                    Log.w(
+                            "GameActivityViewModel",
+                            "🔥 [ON_MENU_CLOSED_CALLBACK] failed to log fragment manager state",
+                            t
+                    )
+                }
                 android.util.Log.d(
                         "GameActivityViewModel",
                         "🔥 [ON_MENU_CLOSED_CALLBACK] Timestamp: ${System.currentTimeMillis()}"
@@ -324,14 +391,22 @@ class GameActivityViewModel(application: Application) :
                         "🔥 [ON_MENU_CLOSED_CALLBACK] comboAlreadyTriggered reset, keyLog cleared, debounce updated"
                 )
 
-                // Grace period: Manter interceptação ativa por 200ms após menu fechar
-                // 200ms cobre o delay de ~150ms do hardware entre ACTION_DOWN e ACTION_UP
-                // Identificado via logs: UP chega 150ms depois, 50ms era insuficiente
-                // Bloquear apenas o botão que REALMENTE fechou o menu
+                // Grace period: keep interception active for 200ms after menu closes
+                // 200ms covers the ~150ms hardware delay between ACTION_DOWN and ACTION_UP
+                // Identified via logs: UP arrives 150ms later; 50ms was insufficient
+                // Block only the button that actually closed the menu
                 controllerInput.keepInterceptingButtons(200, closingButton = closingButton)
+
+                // Limpar screenshot cacheado quando menu fecha
+                clearCachedScreenshot()
 
                 // RESUMIR o jogo quando menu fecha - aplicar velocidade salva nas preferences
                 retroView?.let { speedController?.restoreSpeedFromPreferences(it.view) }
+
+                // Hide load preview overlay AFTER game resumes with delay.
+                // The GL surface needs time to render the loaded state frame;
+                // hiding immediately causes a brief flash of the old game frame.
+                Handler(Looper.getMainLooper()).postDelayed({ hideLoadPreview() }, 300)
 
                 android.util.Log.d(
                         "GameActivityViewModel",
@@ -393,6 +468,30 @@ class GameActivityViewModel(application: Application) :
             )
         }
 
+        controllerInput.menuNavigateLeftCallback = {
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                            direction =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.Direction.LEFT,
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
+        }
+
+        controllerInput.menuNavigateRightCallback = {
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                            direction =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.Direction.RIGHT,
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
+        }
+
         controllerInput.menuConfirmCallback = {
             navigationController?.handleNavigationEvent(
                     com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.ActivateSelected(
@@ -415,9 +514,9 @@ class GameActivityViewModel(application: Application) :
         }
 
         // Control when to intercept DPAD for menu
-        // CRITICAL: NÃO verificar isDismissingAllMenus() aqui!
-        // Precisamos continuar interceptando botões mesmo durante o fechamento
-        // para evitar que ACTION_UP vaze para o jogo
+        // CRITICAL: DO NOT check isDismissingAllMenus() here!
+        // We need to keep intercepting buttons even during closing
+        // to prevent ACTION_UP from leaking into the game
         controllerInput.shouldInterceptDpadForMenu = {
             val result = isAnyMenuActive() // Removido: && !isDismissingAllMenus()
             result
@@ -445,7 +544,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Create an instance of the RetroMenu3 overlay (activated by SELECT+START) */
-    fun prepareRetroMenu3(activity: ComponentActivity) {
+    fun prepareRetroMenu3() {
         // Skip if fragment already exists
         if (retroMenu3Fragment != null) {
             return
@@ -465,12 +564,12 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Force recreation of RetroMenu3Fragment (used after configuration changes) */
-    fun recreateRetroMenu3(activity: ComponentActivity) {
+    fun recreateRetroMenu3() {
         // Clean up existing fragment reference
         retroMenu3Fragment = null
 
         // Recreate the fragment
-        prepareRetroMenu3(activity)
+        prepareRetroMenu3()
     }
 
     /** Set menu container reference from activity layout */
@@ -631,7 +730,7 @@ class GameActivityViewModel(application: Application) :
                         exitFragmentActive
         val menuSystemActive = retroMenu3Open || (retroMenu3FragmentExists && hasActiveSubmenu)
 
-        // SIMPLIFICADO: Menu está ativo se qualquer um desses for true
+        // SIMPLIFIED: Menu is active if any of these is true
         val result =
                 retroMenu3Open ||
                         menuSystemActive ||
@@ -713,7 +812,7 @@ class GameActivityViewModel(application: Application) :
         // This ensures FragmentManager properly manages the hierarchy
 
         // Check if there's anything in the back stack before trying to remove
-        val activity = fragment?.activity as? androidx.fragment.app.FragmentActivity
+        val activity = fragment.activity
         if (activity != null) {
             val fragmentManager = activity.supportFragmentManager
             val backStackCount = fragmentManager.backStackEntryCount
@@ -1128,11 +1227,44 @@ class GameActivityViewModel(application: Application) :
         return shaderViewModel.getShaderState()
     }
 
+    // ========== SCREENSHOT CAPTURE FOR SAVE STATES ==========
+
+    /**
+     * Capture screenshot when menu opens. Called from showRetroMenu3() before pausing the game.
+     *
+     * @param onCaptured Optional callback when capture completes
+     */
+    fun captureScreenshotForSaveState(onCaptured: ((Boolean) -> Unit)? = null) {
+        retroView?.view?.let { glRetroView ->
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                com.vinaooo.revenger.utils.ScreenshotCaptureUtil.captureAndCacheScreenshot(
+                        glRetroView,
+                        onCaptured
+                )
+            } else {
+                onCaptured?.invoke(false)
+            }
+        }
+                ?: onCaptured?.invoke(false)
+    }
+
+    /** Get cached screenshot for save operation. Returns null if no screenshot was captured. */
+    fun getCachedScreenshot(): android.graphics.Bitmap? {
+        return com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getCachedScreenshot()
+    }
+
+    /**
+     * Clear cached screenshot when menu closes without saving. Frees memory used by the cached
+     * bitmap.
+     */
+    fun clearCachedScreenshot() {
+        com.vinaooo.revenger.utils.ScreenshotCaptureUtil.clearCachedScreenshot()
+    }
+
     /** Hide the system bars */
-    @Suppress("DEPRECATION")
     fun immersive(window: Window) {
         /* Check if the config permits it */
-        if (!resources.getBoolean(R.bool.config_fullscreen)) return
+        if (!resources.getBoolean(R.bool.conf_fullscreen)) return
 
         with(window.insetsController!!) {
             hide(WindowInsets.Type.systemBars())
@@ -1372,47 +1504,10 @@ class GameActivityViewModel(application: Application) :
 
     /** Set the screen orientation based on the config */
     fun setConfigOrientation(activity: Activity) {
-        val configOrientation = resources.getInteger(R.integer.config_orientation)
-
-        // Verificar preferência de auto-rotate do sistema
-        val accelerometerRotationEnabled =
-                try {
-                    android.provider.Settings.System.getInt(
-                            activity.contentResolver,
-                            android.provider.Settings.System.ACCELEROMETER_ROTATION,
-                            0
-                    ) == 1
-                } catch (e: Exception) {
-                    false
-                }
-
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "setConfigOrientation: config=$configOrientation, autoRotate=$accelerometerRotationEnabled"
-        )
-
-        val orientation =
-                when (configOrientation) {
-                    1 -> ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT // Sempre portrait
-                    2 -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE // Sempre landscape
-                    3 -> {
-                        // Se config é "qualquer orientação", respeitar preferência do SO
-                        if (accelerometerRotationEnabled) {
-                            // Auto-rotate habilitado → permitir rotação livre baseada em sensores
-                            ActivityInfo.SCREEN_ORIENTATION_USER
-                        } else {
-                            // Auto-rotate desabilitado → delegar completamente ao sistema
-                            // UNSPECIFIED permite que o botão manual do sistema funcione
-                            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                        }
-                    }
-                    else -> return
-                }
-
-        activity.requestedOrientation = orientation
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "Applied orientation: ${orientation} (USER=2, USER_PORTRAIT=7, USER_LANDSCAPE=6, UNSPECIFIED=-1)"
+        val configOrientation = resources.getInteger(R.integer.conf_orientation)
+        com.vinaooo.revenger.utils.OrientationManager.applyConfigOrientation(
+                activity,
+                configOrientation
         )
     }
 
@@ -1430,24 +1525,24 @@ class GameActivityViewModel(application: Application) :
 
     /** Check if menu is enabled based on menu mode configs */
     private fun isMenuEnabled(): Boolean {
-        return resources.getBoolean(R.bool.config_menu_mode_back) ||
-                resources.getBoolean(R.bool.config_menu_mode_combo) ||
-                resources.getBoolean(R.bool.config_menu_mode_gamepad)
+        return resources.getBoolean(R.bool.conf_menu_mode_back) ||
+                resources.getBoolean(R.bool.conf_menu_mode_combo) ||
+                resources.getBoolean(R.bool.conf_menu_mode_gamepad)
     }
 
-    /** Check if menu should respond to back button based on config_menu_mode_back */
+    /** Check if menu should respond to back button based on conf_menu_mode_back */
     fun shouldHandleBackButton(): Boolean {
-        return resources.getBoolean(R.bool.config_menu_mode_back)
+        return resources.getBoolean(R.bool.conf_menu_mode_back)
     }
 
-    /** Check if menu should respond to SELECT+START combo based on config_menu_mode_combo */
+    /** Check if menu should respond to SELECT+START combo based on conf_menu_mode_combo */
     fun shouldHandleSelectStartCombo(): Boolean {
-        return resources.getBoolean(R.bool.config_menu_mode_combo)
+        return resources.getBoolean(R.bool.conf_menu_mode_combo)
     }
 
-    /** Check if menu should respond to gamepad menu button based on config_menu_mode_gamepad */
+    /** Check if menu should respond to gamepad menu button based on conf_menu_mode_gamepad */
     fun shouldHandleGamepadMenuButton(): Boolean {
-        return resources.getBoolean(R.bool.config_menu_mode_gamepad)
+        return resources.getBoolean(R.bool.conf_menu_mode_gamepad)
     }
 
     /**

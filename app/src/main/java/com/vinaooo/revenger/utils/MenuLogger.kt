@@ -3,99 +3,99 @@ package com.vinaooo.revenger.utils
 import android.util.Log
 
 /**
- * Utilitário para logs condicionais do sistema de menu RetroMenu3. Permite controlar logs em
- * produção através de flag de debug.
+ * Utility for conditional logging in the RetroMenu3 menu system. Allows controlling
+ * production logs via a debug flag.
  */
 object MenuLogger {
 
     private const val TAG = "RetroMenu3"
 
-    // Flag para controlar logs - usa BuildConfig.DEBUG quando disponível
+    // Flag to control logs - uses BuildConfig.DEBUG when available
     private var isDebugEnabled: Boolean =
             try {
-                // Tenta acessar BuildConfig.DEBUG se disponível
+                // Try to access BuildConfig.DEBUG if available
                 Class.forName("com.vinaooo.revenger.BuildConfig").getField("DEBUG").getBoolean(null)
             } catch (e: Exception) {
-                // Fallback para true se BuildConfig não estiver disponível
+                // Fallback to true if BuildConfig is not available
                 true
             }
 
-    /** Habilita ou desabilita logs de debug */
+    /** Enable or disable debug logging */
     fun setDebugEnabled(enabled: Boolean) {
         isDebugEnabled = enabled
         Log.i(TAG, "[LOGGER] Debug logging ${if (enabled) "enabled" else "disabled"}")
     }
 
-    /** Log de debug condicional */
+    /** Conditional debug log */
     fun d(message: String) {
         if (isDebugEnabled) {
             Log.d(TAG, message)
         }
     }
 
-    /** Log de debug condicional com throwable */
+    /** Conditional debug log with throwable */
     fun d(message: String, throwable: Throwable) {
         if (isDebugEnabled) {
             Log.d(TAG, message, throwable)
         }
     }
 
-    /** Log de informação (sempre ativo) */
+    /** Info log (always active) */
     fun i(message: String) {
         Log.i(TAG, message)
     }
 
-    /** Log de informação com throwable (sempre ativo) */
+    /** Info log with throwable (always active) */
     fun i(message: String, throwable: Throwable) {
         Log.i(TAG, message, throwable)
     }
 
-    /** Log de warning (sempre ativo) */
+    /** Warning log (always active) */
     fun w(message: String) {
         Log.w(TAG, message)
     }
 
-    /** Log de warning com throwable (sempre ativo) */
+    /** Warning log with throwable (always active) */
     fun w(message: String, throwable: Throwable) {
         Log.w(TAG, message, throwable)
     }
 
-    /** Log de erro (sempre ativo) */
+    /** Error log (always active) */
     fun e(message: String) {
         Log.e(TAG, message)
     }
 
-    /** Log de erro com throwable (sempre ativo) */
+    /** Error log with throwable (always active) */
     fun e(message: String, throwable: Throwable) {
         Log.e(TAG, message, throwable)
     }
 
-    /** Log específico para lifecycle events */
+    /** Log specifically for lifecycle events */
     fun lifecycle(message: String) {
         d("[LIFECYCLE] $message")
     }
 
-    /** Log específico para navegação */
+    /** Log specifically for navigation */
     fun navigation(message: String) {
         d("[NAV] $message")
     }
 
-    /** Log específico para ações */
+    /** Log specifically for actions */
     fun action(message: String) {
         d("[ACTION] $message")
     }
 
-    /** Log específico para animações/dismiss */
+    /** Log specifically for animations/dismiss */
     fun animation(message: String) {
         d("[ANIMATION] $message")
     }
 
-    /** Log específico para estado do menu */
+    /** Log specifically for menu state */
     fun state(message: String) {
         d("[STATE] $message")
     }
 
-    /** Log específico para performance */
+    /** Log specifically for performance */
     fun performance(message: String) {
         d("[PERFORMANCE] $message")
     }

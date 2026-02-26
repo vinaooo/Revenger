@@ -1,12 +1,13 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.view.View
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.MenuLogger
 
-/** Interface para controle de animações do menu. */
+/** Interface for controlling menu animations. */
 interface MenuAnimationController {
         fun setMenuViews(menuViews: MenuViews)
         fun animateMenuIn(onComplete: (() -> Unit)? = null)
@@ -17,7 +18,7 @@ interface MenuAnimationController {
 }
 
 /**
- * Implementação do MenuAnimationController. Gerencia animações de entrada/saída do menu usando
+ * Implementation of MenuAnimationController. Manages menu in/out animations using
  * ViewPropertyAnimator.
  */
 class MenuAnimationControllerImpl : MenuAnimationController {
@@ -31,10 +32,10 @@ class MenuAnimationControllerImpl : MenuAnimationController {
         override fun animateMenuIn(onComplete: (() -> Unit)?) {
                 MenuLogger.lifecycle("MenuAnimationController: animateMenuIn START")
 
-                // Configurar estado inicial
+                // Set initial state
                 menuViews.menuContainer.alpha = 0f
 
-                // Animar entrada
+                // Animate in
                 menuViews
                         .menuContainer
                         .animate()
@@ -55,7 +56,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
         override fun animateMenuOut(onComplete: (() -> Unit)?) {
                 MenuLogger.lifecycle("MenuAnimationController: animateMenuOut START")
 
-                // Animar saída
+                // Animate out
                 menuViews
                         .menuContainer
                         .animate()
@@ -94,72 +95,72 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                         if (selectedIndex == MENU_ITEM_CONTINUE)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.continueTitle.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         else
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.continueTitle.context,
-                                        R.color.retro_menu3_normal_color
+                                        R.color.rm_normal_color
                                 )
                 )
                 menuViews.resetTitle.setTextColor(
                         if (selectedIndex == MENU_ITEM_RESET)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.resetTitle.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         else
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.resetTitle.context,
-                                        R.color.retro_menu3_normal_color
+                                        R.color.rm_normal_color
                                 )
                 )
                 menuViews.progressTitle.setTextColor(
                         if (selectedIndex == MENU_ITEM_PROGRESS)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.progressTitle.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         else
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.progressTitle.context,
-                                        R.color.retro_menu3_normal_color
+                                        R.color.rm_normal_color
                                 )
                 )
                 menuViews.settingsTitle.setTextColor(
                         if (selectedIndex == MENU_ITEM_SETTINGS)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.settingsTitle.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         else
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.settingsTitle.context,
-                                        R.color.retro_menu3_normal_color
+                                        R.color.rm_normal_color
                                 )
                 )
                 menuViews.aboutTitle.setTextColor(
                         if (selectedIndex == MENU_ITEM_ABOUT)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.aboutTitle.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         else
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.aboutTitle.context,
-                                        R.color.retro_menu3_normal_color
+                                        R.color.rm_normal_color
                                 )
                 )
                 menuViews.exitTitle.setTextColor(
                         if (selectedIndex == MENU_ITEM_EXIT)
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.exitTitle.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         else
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.exitTitle.context,
-                                        R.color.retro_menu3_normal_color
+                                        R.color.rm_normal_color
                                 )
                 )
 
@@ -169,7 +170,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                         menuViews.selectionArrowContinue.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowContinue.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         )
                         menuViews.selectionArrowContinue.visibility = View.VISIBLE
@@ -182,7 +183,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                         menuViews.selectionArrowReset.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowReset.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         )
                         menuViews.selectionArrowReset.visibility = View.VISIBLE
@@ -195,7 +196,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                         menuViews.selectionArrowProgress.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowProgress.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         )
                         menuViews.selectionArrowProgress.visibility = View.VISIBLE
@@ -208,7 +209,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                         menuViews.selectionArrowSettings.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowSettings.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         )
                         menuViews.selectionArrowSettings.visibility = View.VISIBLE
@@ -221,7 +222,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                         menuViews.selectionArrowAbout.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowAbout.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         )
                         menuViews.selectionArrowAbout.visibility = View.VISIBLE
@@ -234,7 +235,7 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                         menuViews.selectionArrowExit.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
                                         menuViews.selectionArrowExit.context,
-                                        R.color.retro_menu3_selected_color
+                                        R.color.rm_selected_color
                                 )
                         )
                         menuViews.selectionArrowExit.visibility = View.VISIBLE
@@ -254,28 +255,28 @@ class MenuAnimationControllerImpl : MenuAnimationController {
         }
 
         companion object {
-                /** Duração da animação de entrada do menu em milissegundos */
+                /** Duration of the menu entrance animation in milliseconds */
                 const val ANIMATION_DURATION_IN = 300L
 
-                /** Duração da animação de saída do menu em milissegundos */
+                /** Duration of the menu exit animation in milliseconds */
                 const val ANIMATION_DURATION_OUT = 200L
 
-                /** Índice do item Continue no menu */
+                /** Index of the Continue item in the menu */
                 const val MENU_ITEM_CONTINUE = 0
 
-                /** Índice do item Reset no menu */
+                /** Index of the Reset item in the menu */
                 const val MENU_ITEM_RESET = 1
 
-                /** Índice do item Progress no menu */
+                /** Index of the Progress item in the menu */
                 const val MENU_ITEM_PROGRESS = 2
 
-                /** Índice do item Settings no menu */
+                /** Index of the Settings item in the menu */
                 const val MENU_ITEM_SETTINGS = 3
 
-                /** Índice do item About no menu */
+                /** Index of the About item in the menu */
                 const val MENU_ITEM_ABOUT = 4
 
-                /** Índice do item Exit no menu */
+                /** Index of the Exit item in the menu */
                 const val MENU_ITEM_EXIT = 5
         }
 }

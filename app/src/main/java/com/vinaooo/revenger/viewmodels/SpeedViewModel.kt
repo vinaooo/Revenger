@@ -10,8 +10,8 @@ import com.vinaooo.revenger.repositories.SharedPreferencesRepository
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel especializado para gerenciamento de velocidade do jogo. Responsável por controle de
- * fast-forward e velocidade de emulação.
+ * ViewModel specialized in game speed management. Responsible for fast-forward control
+ * and emulation speed.
  */
 class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -25,7 +25,7 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
             )
     private var speedController: SpeedController? = null
 
-    // Estado da velocidade
+    // Speed state
     private var currentSpeed: Int = 1
     private var isFastForwardEnabled: Boolean = false
 
@@ -56,11 +56,11 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // ========== MÉTODOS DE CONTROLE DE VELOCIDADE ==========
+    // ========== SPEED CONTROL METHODS ==========
 
     @Suppress("UNUSED_PARAMETER")
     fun toggleFastForward(retroView: Any? = null): Boolean {
-        // TODO: Implementar toggle fast-forward
+        // TODO: Implement fast-forward toggle
         isFastForwardEnabled = !isFastForwardEnabled
         return isFastForwardEnabled
     }
@@ -70,7 +70,7 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
         // Validar range (normalmente 1-2)
         val validSpeed = speed.coerceIn(1, 2)
 
-        // TODO: Implementar configuração de velocidade no controller
+        // TODO: Implement speed configuration in controller
         currentSpeed = validSpeed
         saveSpeedState()
     }
@@ -133,7 +133,7 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSpeedController(controller: SpeedController) {
         speedController = controller
-        // TODO: Aplicar velocidade atual no controller
+        // TODO: Apply current speed to controller
         // controller.setGameSpeed(currentSpeed)
     }
 }

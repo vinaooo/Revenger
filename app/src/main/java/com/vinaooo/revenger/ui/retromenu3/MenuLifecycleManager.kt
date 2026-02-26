@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.util.Log
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,8 +10,8 @@ import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
- * Interface para gerenciamento do ciclo de vida do RetroMenu3Fragment. Responsável por
- * inicialização, setup e cleanup do fragment.
+ * Interface for managing the lifecycle of the RetroMenu3Fragment. Responsible for
+ * initialization, setup, and cleanup of the fragment.
  */
 interface MenuLifecycleManager {
     fun onCreateView(inflater: LayoutInflater, container: ViewGroup?): View
@@ -20,8 +21,8 @@ interface MenuLifecycleManager {
 }
 
 /**
- * Implementação do MenuLifecycleManager. Coordena a inicialização do menu e delega para os outros
- * managers especializados.
+ * Implementation of MenuLifecycleManager. Coordinates menu initialization and delegates to
+ * other specialized managers.
  */
 class MenuLifecycleManagerImpl(
         private val fragment: RetroMenu3Fragment,
@@ -42,9 +43,13 @@ class MenuLifecycleManagerImpl(
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Iniciando configuração")
+        MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Starting setup")
 
         try {
+            // NEW: Apply configurable layout proportions (10-80-10, 10-70-20, etc)
+            applyConfigurableLayoutProportions(view)
+            MenuLogger.lifecycle("MenuLifecycleManager: Layout proportions applied")
+
             // Use the MenuViewManager instance passed from fragment
             MenuLogger.lifecycle("MenuLifecycleManager: MenuViewManager instance received")
 
@@ -52,7 +57,7 @@ class MenuLifecycleManagerImpl(
             com.vinaooo.revenger.utils.ViewUtils.forceZeroElevationRecursively(view)
             MenuLogger.lifecycle("MenuLifecycleManager: Elevation forced to zero")
 
-            // Inicializar views através do viewInitializer
+            // Initialize views via viewInitializer
             val menuViews = viewInitializer.initializeViews(view)
 
             // ARMAZENAR menuViews NO FRAGMENT
@@ -62,7 +67,7 @@ class MenuLifecycleManagerImpl(
             // Configurar estados iniciais das views
             viewInitializer.configureInitialViewStates(menuViews)
 
-            // Configurar título dinâmico
+            // Configure dynamic title
             viewInitializer.setupDynamicTitle(menuViews)
 
             // Setup MenuViewManager views
@@ -83,7 +88,7 @@ class MenuLifecycleManagerImpl(
             val navigationController = viewModel.navigationController
             viewInitializer.setupClickListeners(menuViews, actionHandler, navigationController)
 
-            // Iniciar animação do menu
+            // Start menu animation
             animationController.animateMenuIn()
             MenuLogger.lifecycle("MenuLifecycleManager: Menu animation started")
 
@@ -92,7 +97,7 @@ class MenuLifecycleManagerImpl(
             stateController.updateSelectionVisuals()
             MenuLogger.lifecycle("MenuLifecycleManager: Selection visual updated")
 
-            MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Configuração concluída")
+            MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Setup completed")
         } catch (e: Exception) {
             MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - ERROR: ${e.message}")
             throw e
@@ -109,27 +114,78 @@ class MenuLifecycleManagerImpl(
         MenuLogger.lifecycle("MenuLifecycleManager: onDestroy START")
 
         // Notify ViewModel that fragment is being destroyed
-        (fragment.getMenuListener() as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)
-                ?.onRetroMenu3FragmentDestroyed()
+        try {
+            val activity = fragment.requireActivity()
+            val viewModel =
+                    androidx.lifecycle.ViewModelProvider(activity)[
+                            com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java]
+            viewModel.onRetroMenu3FragmentDestroyed()
+        } catch (e: Exception) {
+            MenuLogger.e("Error notifying ViewModel of fragment destruction")
+            MenuLogger.e("MenuLifecycleManager", e)
+        }
 
         // Clean up back stack change listener to prevent memory leaks
         // Note: This is handled by SubmenuCoordinator
 
         // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
         try {
-            (fragment.getMenuListener() as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)
-                    ?.let { viewModel ->
-                        // Call clearKeyLog through ViewModel to reset combo state
-                        viewModel.clearControllerKeyLog()
-                    }
+            val activity = fragment.requireActivity()
+            val viewModel =
+                    androidx.lifecycle.ViewModelProvider(activity)[
+                            com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java]
+            // Call clearKeyLog through ViewModel to reset combo state
+            viewModel.clearControllerKeyLog()
         } catch (e: Exception) {
-            android.util.Log.w(
+            Log.w(
                     "MenuLifecycleManager",
                     "Error resetting combo state in onDestroy",
                     e
             )
         }
+    }
+
+    /**
+     * Applies configurable layout proportions to the menu. Automatically detects if the
+     * orientation is portrait or landscape and applies the correct configuration.
+     */
+    private fun applyConfigurableLayoutProportions(view: View) {
+        try {
+            // Apply all proportions (horizontal and vertical)
+            com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig
+                    .applyAllProportionsToMenuLayout(view)
+        } catch (e: Exception) {
+            Log.e("MenuLifecycleManager", "Error applying layout proportions", e)
+        }
+    }
+
+    /**
+     * Finds the main LinearLayout that contains the 3-column structure. Works for RetroMenu3,
+     * SettingsMenu, ProgressMenu, AboutMenu and ExitMenu.
+     */
+    private fun findMainHorizontalLayout(view: View): android.widget.LinearLayout? {
+        // Possible IDs of main containers (direct children of root FrameLayout)
+        // The horizontal LinearLayout is normally the first child of FrameLayout or
+        // is already a menu container (settings_menu_container, etc)
+
+        // Primeiro tenta encontrar o LinearLayout que seja filho direto da FrameLayout raiz
+        if (view is android.widget.FrameLayout) {
+            for (i in 0 until view.childCount) {
+                val child = view.getChildAt(i)
+                if (child is android.widget.LinearLayout) {
+                    val orientation = child.orientation
+                    // If it's a horizontal LinearLayout with 3+ children, it's probably the container
+                    // correto
+                    if (orientation == android.widget.LinearLayout.HORIZONTAL &&
+                                    child.childCount >= 3
+                    ) {
+                        return child
+                    }
+                }
+            }
+        }
 
         MenuLogger.lifecycle("MenuLifecycleManager: onDestroy COMPLETED")
+        return null
     }
 }

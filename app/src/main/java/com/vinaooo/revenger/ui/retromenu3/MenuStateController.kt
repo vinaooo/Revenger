@@ -1,10 +1,10 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+
 import com.vinaooo.revenger.utils.MenuLogger
 
 /**
- * Interface para controle de estado do menu. Gerencia seleção de itens, navegação e estado atual do
- * menu.
+ * Interface for controlling menu state. Manages item selection, navigation, and the current menu state.
  */
 interface MenuStateController {
     fun initializeState(menuViews: MenuViews)
@@ -17,7 +17,7 @@ interface MenuStateController {
     fun updateSelectionVisuals()
 }
 
-/** Implementação do MenuStateController. Gerencia o estado de seleção e navegação do menu. */
+/** Implementation of MenuStateController. Manages menu selection and navigation state. */
 class MenuStateControllerImpl(
         private val fragment: MenuFragmentBase,
         private val animationController: MenuAnimationController
@@ -38,7 +38,7 @@ class MenuStateControllerImpl(
     override fun initializeState(menuViews: MenuViews) {
         MenuLogger.state("MenuStateController: initializeState")
         this.menuViews = menuViews
-        // Estado inicial já é gerenciado pelo MenuFragmentBase
+        // Initial state is already managed by MenuFragmentBase
         updateSelectionVisuals()
     }
 
@@ -124,22 +124,22 @@ class MenuStateControllerImpl(
     }
 
     companion object {
-        /** Índice do item Continue no menu */
+        /** Index of the Continue item in the menu */
         const val MENU_ITEM_CONTINUE = 0
 
-        /** Índice do item Reset no menu */
+        /** Index of the Reset item in the menu */
         const val MENU_ITEM_RESET = 1
 
-        /** Índice do item Progress no menu */
+        /** Index of the Progress item in the menu */
         const val MENU_ITEM_PROGRESS = 2
 
-        /** Índice do item Settings no menu */
+        /** Index of the Settings item in the menu */
         const val MENU_ITEM_SETTINGS = 3
 
-        /** Índice do item About no menu */
+        /** Index of the About item in the menu */
         const val MENU_ITEM_ABOUT = 4
 
-        /** Índice do item Exit no menu */
+        /** Index of the Exit item in the menu */
         const val MENU_ITEM_EXIT = 5
     }
 }

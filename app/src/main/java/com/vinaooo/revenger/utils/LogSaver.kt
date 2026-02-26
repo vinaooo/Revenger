@@ -97,16 +97,28 @@ object LogSaver {
         builder.append("Device Manufacturer: ${Build.MANUFACTURER}\n")
         builder.append("Product Name: ${Build.PRODUCT}\n")
         builder.append("Hardware: ${Build.HARDWARE}\n")
-        builder.append("Serial: ${Build.SERIAL}\n")
+        val serial =
+                try {
+                    Build.getSerial()
+                } catch (e: SecurityException) {
+                    "Unavailable (Permission Required)"
+                }
+        builder.append("Serial: $serial\n")
         builder.append("Board: ${Build.BOARD}\n")
         builder.append("Bootloader: ${Build.BOOTLOADER}\n")
-        builder.append("CPU ABI: ${Build.CPU_ABI}\n")
-        builder.append("CPU ABI2: ${Build.CPU_ABI2}\n")
+        val supportedAbis = Build.SUPPORTED_ABIS.joinToString(", ")
+        builder.append("Supported ABIs: $supportedAbis\n")
 
         // Screen information
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val displayMetrics = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val windowMetrics = windowManager.currentWindowMetrics
+        val displayMetrics =
+                DisplayMetrics().apply {
+                    widthPixels = windowMetrics.bounds.width()
+                    heightPixels = windowMetrics.bounds.height()
+                    density = context.resources.displayMetrics.density
+                    densityDpi = context.resources.displayMetrics.densityDpi
+                }
 
         val width = displayMetrics.widthPixels
         val height = displayMetrics.heightPixels
@@ -145,7 +157,8 @@ object LogSaver {
 
         try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            builder.append("App Version: ${packageInfo.versionName} (${packageInfo.versionCode})\n")
+            val versionCode = packageInfo.longVersionCode
+            builder.append("App Version: ${packageInfo.versionName} ($versionCode)\n")
             builder.append("Package Name: ${context.packageName}\n")
             builder.append(
                     "Build Type: ${if (context.packageName.contains("debug", ignoreCase = true)) "Debug" else "Release"}\n"
@@ -165,10 +178,10 @@ object LogSaver {
             val resources = context.resources
 
             // Settings from config.xml
-            val configId = resources.getString(com.vinaooo.revenger.R.string.config_id)
-            val configName = resources.getString(com.vinaooo.revenger.R.string.config_name)
-            val configCore = resources.getString(com.vinaooo.revenger.R.string.config_core)
-            val configRom = resources.getString(com.vinaooo.revenger.R.string.config_rom)
+            val configId = resources.getString(com.vinaooo.revenger.R.string.conf_id)
+            val configName = resources.getString(com.vinaooo.revenger.R.string.conf_name)
+            val configCore = resources.getString(com.vinaooo.revenger.R.string.conf_core)
+            val configRom = resources.getString(com.vinaooo.revenger.R.string.conf_rom)
 
             builder.append("Game ID: $configId\n")
             builder.append("Game Name: $configName\n")
@@ -243,7 +256,7 @@ object LogSaver {
             val inputStream = process.inputStream
             val logs = inputStream.bufferedReader().use { it.readText() }
 
-            // Filtrar apenas logs relevantes (últimas 1000 linhas para não ficar muito grande)
+            // Filter only relevant logs (last 1000 lines to avoid being too large)
             val lines = logs.lines()
             val relevantLines = lines.takeLast(1000)
 

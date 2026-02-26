@@ -16,7 +16,7 @@ class SpeedController(
 ) {
     // Fast forward speed configured in config.xml
     private val fastForwardSpeed =
-            context.resources.getInteger(R.integer.config_fast_forward_multiplier)
+            context.resources.getInteger(R.integer.conf_fast_forward_multiplier)
 
     /**
      * Toggles between normal speed (1x) and fast forward (configurable)

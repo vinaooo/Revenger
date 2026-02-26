@@ -1,18 +1,18 @@
 package com.vinaooo.revenger
 
 /**
- * Feature flags para controlar features em desenvolvimento.
+ * Feature flags to control development features.
  *
- * **PHASE 5 CLEANUP COMPLETE**: Todas as feature flags foram removidas após validação completa do
- * novo sistema de navegação. O NavigationController está permanentemente habilitado e todos os
- * condicionais foram removidos do codebase.
+ * **PHASE 5 CLEANUP COMPLETE**: All feature flags were removed after full validation of the
+ * new navigation system. The NavigationController is permanently enabled and all conditionals
+ * have been removed from the codebase.
  *
- * Sistema de navegação atual:
- * - NavigationController com suporte unificado para gamepad, touch, teclado
- * - Navegação multi-input sem conflitos
- * - Performance otimizada (debug logs removidos)
+ * Current navigation system:
+ * - NavigationController with unified support for gamepad, touch, keyboard
+ * - Multi-input navigation without conflicts
+ * - Optimized performance (debug logs removed)
  *
- * Este arquivo permanece para futuras expansões se necessário.
+ * This file remains for future expansions if needed.
  */
 object FeatureFlags {
     // All feature flags removed in Phase 5 cleanup

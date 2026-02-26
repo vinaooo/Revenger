@@ -9,8 +9,8 @@ import com.vinaooo.revenger.repositories.SharedPreferencesRepository
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel especializado para gerenciamento de shaders. Responsável por controle de shaders
- * visuais e configurações.
+ * ViewModel specialized in shader management. Responsible for control of visual shaders
+ * and settings.
  */
 class ShaderViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -24,7 +24,7 @@ class ShaderViewModel(application: Application) : AndroidViewModel(application) 
             )
     private var shaderController: ShaderController? = null
 
-    // Estado do shader
+    // Shader state
     private var currentShader: String = "default"
 
     init {
@@ -42,7 +42,7 @@ class ShaderViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // ========== MÉTODOS DE CONTROLE DE SHADER ==========
+    // ========== SHADER CONTROL METHODS ==========
 
     fun toggleShader(): String {
         shaderController?.let { controller ->
@@ -86,7 +86,7 @@ class ShaderViewModel(application: Application) : AndroidViewModel(application) 
 
     fun setShaderController(controller: ShaderController) {
         shaderController = controller
-        // Aplicar shader atual no controller
+        // Apply current shader to controller
         controller.setShader(currentShader)
     }
 }

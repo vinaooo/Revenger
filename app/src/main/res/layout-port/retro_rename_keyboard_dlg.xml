@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Retro-styled rename dialog with embedded keyboard - Portrait version
+     Following rm_portrait_horizontal_proportions: 10%-80%-10% (left-center-right)
+     Vertical proportions applied via MenuLayoutConfig (same as other RetroMenu3 menus)
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialog_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#AA000000"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Horizontal layout matching RetroMenu3 portrait proportions (10%-80%-10%) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Left 10% - Empty Space -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.10" />
+
+        <!-- Center 80% - Dialog Content - height must be match_parent for weights to work -->
+        <LinearLayout
+            android:id="@+id/dialog_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.80"
+            android:orientation="vertical"
+            android:layout_gravity="center"
+            android:paddingVertical="@dimen/rm_container_padding_vertical"
+            android:paddingHorizontal="16dp"
+            android:background="@drawable/retro_menu_border"
+            android:maxHeight="560dp">
+
+            <!-- Dialog Title -->
+            <TextView
+                android:id="@+id/dialog_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/rename_dialog_title"
+                android:textSize="@dimen/rm_title_text_size"
+                android:textColor="@color/rm_text_color"
+                android:textStyle="bold"
+                android:layout_marginStart="@dimen/rm_title_margin_start"
+                android:layout_marginBottom="@dimen/rm_title_margin_bottom"
+                android:paddingStart="@dimen/rm_title_padding_start"
+                android:paddingEnd="@dimen/rm_title_padding_end"
+                android:gravity="start"
+                android:letterSpacing="@dimen/rm_title_letter_spacing"
+                android:includeFontPadding="false"
+                android:shadowColor="@color/rm_shadow_color"
+                android:shadowDx="@dimen/rm_shadow_dx"
+                android:shadowDy="@dimen/rm_shadow_dy"
+                android:shadowRadius="@dimen/rm_shadow_radius" />
+
+            <!-- RetroEditText with block cursor -->
+            <com.vinaooo.revenger.ui.retromenu3.RetroEditText
+                android:id="@+id/rename_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/rm_menu_item_height"
+                android:textSize="@dimen/rm_menu_item_text_size"
+                android:textColor="@color/rm_text_color"
+                android:background="@drawable/retro_input_border"
+                android:paddingHorizontal="@dimen/rm_menu_item_padding"
+                android:gravity="center_vertical"
+                android:maxLines="1" />
+
+            <!-- Keyboard Container - takes remaining space -->
+            <LinearLayout
+                android:id="@+id/keyboard_wrapper"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="@dimen/rm_menu_item_padding"
+                android:orientation="vertical">
+
+                <include
+                    layout="@layout/retro_keyboard"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Right 10% - Empty Space -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.10" />
+
+    </LinearLayout>
+
+</FrameLayout>

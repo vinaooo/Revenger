@@ -1,41 +1,54 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+import android.util.Log
 import android.os.Bundle
 
 /**
- * Tipo de menu no sistema RetroMenu3.
+ * Menu type in the RetroMenu3 system.
  *
- * Representa todos os menus disponíveis na aplicação. Cada menu tem um tipo único que identifica
- * qual fragmento mostrar.
+ * Represents all menus available in the application. Each menu has a unique type that identifies
+ * which fragment to display.
  */
 enum class MenuType {
-    /** Menu principal (Continue, Reset, Progress, Settings, Exit, Save Log) */
+    /** Main menu (Continue, Reset, Progress, Settings, Exit, Save Log) */
     MAIN,
 
-    /** Submenu de configurações (Audio, Shader, Game Speed, Back) */
+    /** Settings submenu (Audio, Shader, Game Speed, Back) */
     SETTINGS,
 
-    /** Submenu de progresso (Load State, Save State, Back) */
+    /** Progress submenu (Load State, Save State, Manage Saves, Back) */
     PROGRESS,
 
-    /** Submenu de saída (Save & Exit, Exit without Save, Back) */
+    /** Exit submenu (Save & Exit, Exit without Save, Back) */
     EXIT,
 
-    /** Submenu sobre/informações */
+    /** About/information submenu */
     ABOUT,
 
-    /** Submenu de variáveis do core LibRetro */
-    CORE_VARIABLES
+    /** LibRetro core variables submenu */
+    CORE_VARIABLES,
+
+    /** Save slots grid (3x3 grid with 9 slots) */
+    SAVE_SLOTS,
+
+    /** Load slots grid (3x3 grid with 9 slots) */
+    LOAD_SLOTS,
+
+    /** Manage slots grid (rename, copy, move, delete) */
+    MANAGE_SAVES,
+
+    /** Save slots grid used during Save and Exit flow */
+    EXIT_SAVE_SLOTS
 }
 
 /**
- * Estado completo de um menu em um momento específico.
+ * Complete state of a menu at a specific moment.
  *
- * Contém toda informação necessária para restaurar um menu exatamente como estava, incluindo após
- * rotação da tela.
+ * Contains all information needed to restore a menu exactly as it was, including after
+ * screen rotation.
  *
- * @property menuType Tipo do menu ativo
- * @property selectedIndex Índice do item selecionado (0-based)
+ * @property menuType Type of the active menu
+ * @property selectedIndex Index of the selected item (0-based)
  */
 data class MenuState(val menuType: MenuType, val selectedIndex: Int = 0) {
     /**
@@ -53,11 +66,11 @@ data class MenuState(val menuType: MenuType, val selectedIndex: Int = 0) {
 
     companion object {
         /**
-         * Deserializa o estado de um Bundle (de onRestoreInstanceState).
+         * Deserializes the state from a Bundle (from onRestoreInstanceState).
          *
-         * @param bundle Bundle contendo o estado salvo
-         * @param prefix Prefixo usado na serialização
-         * @return MenuState restaurado, ou null se o Bundle não contiver dados válidos
+         * @param bundle Bundle containing the saved state
+         * @param prefix Prefix used during serialization
+         * @return Restored MenuState, or null if the Bundle doesn't contain valid data
          */
         fun fromBundle(bundle: Bundle?, prefix: String = "menu_"): MenuState? {
             if (bundle == null) return null
@@ -69,8 +82,8 @@ data class MenuState(val menuType: MenuType, val selectedIndex: Int = 0) {
                 val menuType = MenuType.valueOf(typeString)
                 MenuState(menuType, index)
             } catch (e: IllegalArgumentException) {
-                // MenuType inválido no Bundle
-                android.util.Log.w("NavigationState", "Invalid MenuType in bundle: $typeString")
+                // Invalid MenuType in Bundle
+                Log.w("NavigationState", "Invalid MenuType in bundle: $typeString")
                 null
             }
         }
@@ -78,35 +91,35 @@ data class MenuState(val menuType: MenuType, val selectedIndex: Int = 0) {
 }
 
 /**
- * Pilha de navegação que mantém histórico de menus visitados.
+ * Navigation stack that keeps a history of visited menus.
  *
- * Usado para implementar navegação "para trás" (back navigation). Quando o usuário navega para um
- * submenu, o estado atual é empilhado. Quando o usuário volta, o estado é desempilhado e
- * restaurado.
+ * Used to implement back navigation. When the user navigates to a submenu,
+ * the current state is pushed. When the user goes back, the state is popped
+ * and restored.
  *
- * Exemplo:
+ * Example:
  * ```
- * // Usuário está em MAIN menu
+ * // User is on MAIN menu
  * stack.push(MenuState(MAIN, selectedIndex=0))
- * // Navega para SETTINGS
+ * // Navigate to SETTINGS
  * currentState = MenuState(SETTINGS, 0)
  *
- * // Usuário pressiona Back
- * currentState = stack.pop()  // Volta para MAIN com selectedIndex=0
+ * // User presses Back
+ * currentState = stack.pop()  // Return to MAIN with selectedIndex=0
  * ```
  */
 class NavigationStack {
     private val stack = mutableListOf<MenuState>()
 
-    /** Empilha um estado (quando navegando para frente). */
+    /** Push a state (when navigating forward). */
     fun push(state: MenuState) {
         stack.add(state)
     }
 
     /**
-     * Desempilha um estado (quando navegando para trás).
+     * Pop a state (when navigating backward).
      *
-     * @return MenuState anterior, ou null se a pilha estiver vazia
+     * @return Previous MenuState, or null if the stack is empty
      */
     fun pop(): MenuState? {
         return if (stack.isNotEmpty()) {
@@ -116,21 +129,21 @@ class NavigationStack {
         }
     }
 
-    /** Verifica se a pilha está vazia. */
+    /** Checks if the stack is empty. */
     fun isEmpty(): Boolean = stack.isEmpty()
 
-    /** Retorna o tamanho atual da pilha. */
+    /** Returns the current size of the stack. */
     fun size(): Int = stack.size
 
-    /** Limpa toda a pilha. */
+    /** Clears the entire stack. */
     fun clear() {
         stack.clear()
     }
 
     /**
-     * Olha o topo da pilha sem remover.
+     * Peek at the top of the stack without removing it.
      *
-     * @return MenuState no topo, ou null se a pilha estiver vazia
+     * @return MenuState at the top, or null if the stack is empty
      */
     fun peek(): MenuState? = stack.lastOrNull()
 
@@ -160,7 +173,7 @@ class NavigationStack {
                 val menuType = MenuType.valueOf(typeString)
                 stack.add(MenuState(menuType, index))
             } catch (e: IllegalArgumentException) {
-                android.util.Log.w("NavigationStack", "Invalid MenuType in stack: $typeString")
+                Log.w("NavigationStack", "Invalid MenuType in stack: $typeString")
             }
         }
     }
