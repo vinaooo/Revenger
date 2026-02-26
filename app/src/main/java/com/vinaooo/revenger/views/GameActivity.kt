@@ -1531,9 +1531,7 @@ class GameActivity : FragmentActivity() {
 
                 floatingButton.setOnClickListener {
                         Log.d(TAG, "Floating menu button clicked.")
-                        viewModel.updateMenuState(
-                                com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU
-                        )
+                        viewModel.toggleMainMenu()
                 }
         }
 

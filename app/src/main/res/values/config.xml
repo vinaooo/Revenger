@@ -100,7 +100,7 @@
          "bottom-left" = Show button in bottom left corner
          "bottom-right" = Show button in bottom right corner
     -->
-    <string name="conf_floating_menu_button">bottom-left</string>
+    <string name="conf_floating_menu_button">bottom-right</string>
 
     <!-- Should the left DPAD be replaced with an analog stick? -->
     <bool name="conf_left_analog">false</bool>

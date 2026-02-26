@@ -596,8 +596,36 @@ class GameActivityViewModel(application: Application) :
         gamePadContainerView = container
     }
 
-    // REMOVED: showRetroMenu3() - NavigationController handles menu opening now
-
+    /** Toggles the Retro Menu 3 open/closed state using the NavigationController */
+    fun toggleMainMenu() {
+        if (isAnyMenuActive()) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[MENU_TOGGLE] Closing ALL menus directly with NavigationController via FloatingButton"
+            )
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD // Treat floating button like a
+                            // physical button for behavior
+                            )
+            )
+        } else {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[MENU_TOGGLE] Opening menu via FloatingButton"
+            )
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD // Treat floating button like a
+                            // physical button for behavior
+                            )
+            )
+        }
+    }
     /** Dismiss the RetroMenu3 */
     fun dismissRetroMenu3(onAnimationEnd: (() -> Unit)? = null) {
         android.util.Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Starting")
