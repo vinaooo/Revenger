@@ -77,21 +77,36 @@ class GameActivity : FragmentActivity() {
                 android.util.Log.e("STARTUP_TIMING", "⏱️ [T+0ms] GameActivity.onCreate() START")
 
                 super.onCreate(savedInstanceState)
-                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] super.onCreate() completed")
+                android.util.Log.e(
+                        "STARTUP_TIMING",
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] super.onCreate() completed"
+                )
 
                 // CRITICAL: Apply orientation in TWO steps to eliminate flash:
                 // 1. Force Configuration BEFORE setContentView (chooses correct layout)
                 // 2. Apply requestedOrientation for persistence
                 val configOrientation = resources.getInteger(R.integer.conf_orientation)
-                com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(this, configOrientation)
-                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] forceConfiguration() completed")
+                com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(
+                        this,
+                        configOrientation
+                )
+                android.util.Log.e(
+                        "STARTUP_TIMING",
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] forceConfiguration() completed"
+                )
 
                 viewModel.setConfigOrientation(this)
-                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setConfigOrientation() completed")
+                android.util.Log.e(
+                        "STARTUP_TIMING",
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setConfigOrientation() completed"
+                )
 
                 // Initialize ScreenshotCaptureUtil with context for aspect ratio detection
                 ScreenshotCaptureUtil.setContext(this)
-                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] ScreenshotCaptureUtil.setContext() completed")
+                android.util.Log.e(
+                        "STARTUP_TIMING",
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] ScreenshotCaptureUtil.setContext() completed"
+                )
 
                 // Apply conditional features based on Android version
                 AndroidCompatibility.applyConditionalFeatures()
@@ -100,7 +115,10 @@ class GameActivity : FragmentActivity() {
                 initializeSdk36Features()
 
                 setContentView(R.layout.activity_game)
-                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setContentView() completed")
+                android.util.Log.e(
+                        "STARTUP_TIMING",
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setContentView() completed"
+                )
 
                 // Configure status/navigation bars based on current theme
                 configureSystemBarsForTheme()
@@ -149,9 +167,15 @@ class GameActivity : FragmentActivity() {
                 registerRotationSettingsListener() // Add listener for auto-rotate changes
                 viewModel.updateGamePadVisibility(this, leftContainer, rightContainer)
                 viewModel.setupRetroView(this, retroviewContainer)
-                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupRetroView() completed")
+                android.util.Log.e(
+                        "STARTUP_TIMING",
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupRetroView() completed"
+                )
                 viewModel.setupGamePads(this, leftContainer, rightContainer)
-                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupGamePads() completed")
+                android.util.Log.e(
+                        "STARTUP_TIMING",
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupGamePads() completed"
+                )
 
                 // Force gamepad positioning based on orientation
                 adjustGamePadPositionForOrientation(gamepadContainers)
@@ -159,22 +183,30 @@ class GameActivity : FragmentActivity() {
                 // Reveal gamepads after next frame (when orientation has settled)
                 // This eliminates flash of gamepads in wrong orientation
                 gamePadContainer.post {
-                    gamePadContainer.visibility = android.view.View.VISIBLE
-                    android.util.Log.d(TAG, "GamePads revealed after orientation settled")
+                        gamePadContainer.visibility = android.view.View.VISIBLE
+                        android.util.Log.d(TAG, "GamePads revealed after orientation settled")
                 }
 
                 viewModel.prepareRetroMenu3()
-                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] prepareRetroMenu3() completed")
+                android.util.Log.e(
+                        "STARTUP_TIMING",
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] prepareRetroMenu3() completed"
+                )
                 viewModel.setupMenuCallback(this)
-                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupMenuCallback() completed")
+                android.util.Log.e(
+                        "STARTUP_TIMING",
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupMenuCallback() completed"
+                )
                 viewModel.setMenuContainer(menuContainer)
-                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+${System.currentTimeMillis() - startTime}ms] onCreate() COMPLETE - Total: ${System.currentTimeMillis() - startTime}ms")
+                android.util.Log.e(
+                        "STARTUP_TIMING",
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] onCreate() COMPLETE - Total: ${System.currentTimeMillis() - startTime}ms"
+                )
         }
 
         /**
-         * Registers a listener to monitor changes in the system auto-rotate setting.
-         * When the user toggles auto-rotate in system settings, the app's orientation is
-         * automatically reapplied.
+         * Registers a listener to monitor changes in the system auto-rotate setting. When the user
+         * toggles auto-rotate in system settings, the app's orientation is automatically reapplied.
          */
         private fun registerRotationSettingsListener() {
                 rotationSettingsReceiver =
@@ -212,15 +244,12 @@ class GameActivity : FragmentActivity() {
                         registerReceiver(rotationSettingsReceiver, intentFilter)
                 }
 
-                Log.d(
-                        TAG,
-                        "[ROTATION_LISTENER] BroadcastReceiver registered to monitor changes"
-                )
+                Log.d(TAG, "[ROTATION_LISTENER] BroadcastReceiver registered to monitor changes")
         }
 
         /**
-         * Reapplies orientation configuration when the auto-rotate preference changes. This
-         * allows the app to dynamically respond to system changes.
+         * Reapplies orientation configuration when the auto-rotate preference changes. This allows
+         * the app to dynamically respond to system changes.
          */
         private fun reapplyOrientation() {
                 try {
@@ -269,7 +298,8 @@ class GameActivity : FragmentActivity() {
                                 false
                         }
 
-                // Only reapply orientation if config=1 or 2 (forced) or if config=3 with auto-rotate
+                // Only reapply orientation if config=1 or 2 (forced) or if config=3 with
+                // auto-rotate
                 // ON
                 if (configOrientation != 3 || autoRotateEnabled) {
                         reapplyOrientation()
@@ -281,13 +311,6 @@ class GameActivity : FragmentActivity() {
                 }
 
                 adjustGamePadPositionForOrientation(gamePadContainer)
-
-                // Re-apply game screen viewport configuration for new orientation
-                val isPortrait =
-                        newConfig.orientation ==
-                                android.content.res.Configuration.ORIENTATION_PORTRAIT
-                viewModel.retroView?.applyViewportFromConfig(isPortrait)
-                Log.d(TAG, "Game viewport reapplied for new orientation (portrait=$isPortrait)")
 
                 // CRITICAL FIX: Re-register menu callbacks after rotation to prevent back button
                 // issues
@@ -334,7 +357,8 @@ class GameActivity : FragmentActivity() {
                                         )
 
                                         // CRITICAL FIX: Re-check backstack INSIDE postDelayed
-                                        // The backstack may have changed between the initial check and
+                                        // The backstack may have changed between the initial check
+                                        // and
                                         // execution
                                         // do postDelayed
                                         val currentBackStackCount =
@@ -353,7 +377,8 @@ class GameActivity : FragmentActivity() {
                                         // outdated after BACK
                                         val effectiveState =
                                                 if (hasBackStackNow) {
-                                                        // There is backstack: check which submenu is
+                                                        // There is backstack: check which submenu
+                                                        // is
                                                         // ativo
                                                         // Detectar estado REAL baseado no Fragment
                                                         // visible
@@ -684,7 +709,8 @@ class GameActivity : FragmentActivity() {
                                                                                         // FragmentManager
                                                                                         settingsFragment
                                                                                                 .setSettingsListener(
-                                                                                                        retroMenu3 as SettingsMenuListener
+                                                                                                        retroMenu3 as
+                                                                                                                SettingsMenuListener
                                                                                                 )
                                                                                         Log.d(
                                                                                                 TAG,
@@ -1333,7 +1359,8 @@ class GameActivity : FragmentActivity() {
                         // Maximum space to move the gamepad
                         val maxMovement = availableHeight - containerHeight
 
-                        // Calculate margin: offset 0% = 0px (top), offset 100% = maxMovement (bottom)
+                        // Calculate margin: offset 0% = 0px (top), offset 100% = maxMovement
+                        // (bottom)
                         val topMargin = (maxMovement * offsetPercent / 100.0).toInt()
 
                         val layoutParams = container.layoutParams as FrameLayout.LayoutParams
@@ -1364,6 +1391,44 @@ class GameActivity : FragmentActivity() {
                         val leftHeight = leftContainer.height
                         val rightHeight = rightContainer.height
                         val maxHeight = maxOf(leftHeight, rightHeight)
+
+                        // Debug: measure actual positions and sizes
+                        val leftPos = IntArray(2)
+                        val rightPos = IntArray(2)
+                        leftContainer.getLocationOnScreen(leftPos)
+                        rightContainer.getLocationOnScreen(rightPos)
+                        val screenWidth = resources.displayMetrics.widthPixels
+                        Log.d(TAG, "=== GAMEPAD ALIGNMENT DEBUG ===")
+                        Log.d(TAG, "Screen width: $screenWidth")
+                        Log.d(
+                                TAG,
+                                "LEFT container: x=${leftPos[0]}, width=${leftContainer.width}, height=$leftHeight"
+                        )
+                        Log.d(
+                                TAG,
+                                "RIGHT container: x=${rightPos[0]}, width=${rightContainer.width}, height=$rightHeight"
+                        )
+                        Log.d(TAG, "LEFT margin from left edge: ${leftPos[0]}px")
+                        Log.d(
+                                TAG,
+                                "RIGHT margin from right edge: ${screenWidth - rightPos[0] - rightContainer.width}px"
+                        )
+                        // Check RadialGamePad view sizes
+                        if (leftContainer.childCount > 0) {
+                                val leftPad = leftContainer.getChildAt(0)
+                                Log.d(
+                                        TAG,
+                                        "LEFT pad: width=${leftPad.width}, height=${leftPad.height}, x=${leftPad.x}"
+                                )
+                        }
+                        if (rightContainer.childCount > 0) {
+                                val rightPad = rightContainer.getChildAt(0)
+                                Log.d(
+                                        TAG,
+                                        "RIGHT pad: width=${rightPad.width}, height=${rightPad.height}, x=${rightPad.x}"
+                                )
+                        }
+                        Log.d(TAG, "=== END ALIGNMENT DEBUG ===")
 
                         if (maxHeight > 0) {
                                 Log.d(

@@ -61,7 +61,7 @@
     <bool name="conf_gamepad">true</bool>
 
     <!-- Should we vibrate on touch? -->
-    <bool name="conf_gp_haptic">false</bool>
+    <bool name="conf_gp_haptic">true</bool>
 
     <!-- Allow multiple presses on action buttons (for combos) -->
     <bool name="conf_gp_allow_multiple_presses_action">false</bool>
@@ -89,7 +89,7 @@
     <bool name="conf_show_fake_button_11">false</bool>
 
     <!-- Menu mode for gamepad menu button (☰) -->
-    <bool name="conf_menu_mode_gamepad">true</bool>
+    <bool name="conf_menu_mode_gamepad">false</bool>
 
     <!-- Alternative menu modes (deprecated, use conf_menu_mode instead) -->
     <bool name="conf_menu_mode_back">true</bool>
