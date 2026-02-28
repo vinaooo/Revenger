@@ -144,8 +144,23 @@ def generate_android_icons(img):
         folder = os.path.join(res_dir, f"mipmap-{density}")
         os.makedirs(folder, exist_ok=True)
         
-        # Resize image
-        resized = img.resize(size, Image.Resampling.LANCZOS)
+        # Resize and center-crop to fill the square exactly without margins
+        img_w, img_h = img.size
+        # Legacy icons (48dp base)
+        target_w, target_h = size
+        
+        # Calculate scaling factor to cover the target box completely
+        ratio = max(target_w / img_w, target_h / img_h)
+        new_w = int(img_w * ratio)
+        new_h = int(img_h * ratio)
+        
+        # Resize proportional
+        scaled_img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        
+        # Center crop
+        left = (new_w - target_w) // 2
+        top = (new_h - target_h) // 2
+        resized = scaled_img.crop((left, top, left + target_w, top + target_h))
         
         # Square/original ic_launcher.png
         resized.save(os.path.join(folder, "ic_launcher.png"), "PNG")
@@ -154,7 +169,40 @@ def generate_android_icons(img):
         round_img = make_round_image(resized)
         round_img.save(os.path.join(folder, "ic_launcher_round.png"), "PNG")
         
+        # Adaptive Icon Foregrounds (108dp base, size multiplier 108/48 = 2.25)
+        adaptive_target_w = int(target_w * 2.25)
+        adaptive_target_h = int(target_h * 2.25)
+        ratio_adaptive = max(adaptive_target_w / img_w, adaptive_target_h / img_h)
+        new_w_ad = int(img_w * ratio_adaptive)
+        new_h_ad = int(img_h * ratio_adaptive)
+        
+        scaled_img_ad = img.resize((new_w_ad, new_h_ad), Image.Resampling.LANCZOS)
+        left_ad = (new_w_ad - adaptive_target_w) // 2
+        top_ad = (new_h_ad - adaptive_target_h) // 2
+        resized_ad = scaled_img_ad.crop((left_ad, top_ad, left_ad + adaptive_target_w, top_ad + adaptive_target_h))
+        
+        # Save foreground and background (same image for parallax effect)
+        resized_ad.save(os.path.join(folder, "ic_launcher_foreground.png"), "PNG")
+        resized_ad.save(os.path.join(folder, "ic_launcher_background.png"), "PNG")
+        
         print(f"✅ Generated {density} icons in {folder}")
+
+    # Generate adaptive icon XMLs in mipmap-anydpi-v26
+    anydpi_folder = os.path.join(res_dir, "mipmap-anydpi-v26")
+    os.makedirs(anydpi_folder, exist_ok=True)
+    
+    adaptive_xml = '''<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@mipmap/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>'''
+    
+    with open(os.path.join(anydpi_folder, "ic_launcher.xml"), "w") as f:
+        f.write(adaptive_xml)
+    with open(os.path.join(anydpi_folder, "ic_launcher_round.xml"), "w") as f:
+        f.write(adaptive_xml)
+        
+    print(f"✅ Generated adaptive icon XMLs in {anydpi_folder}")
 
 import argparse
 
