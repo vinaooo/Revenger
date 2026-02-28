@@ -10,7 +10,8 @@ from fetch_smart import fetch_igdb_smart_icon
 from generate_typo import generate_typo_icon
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+# The script is in icons/scripts now, so root is two levels up
+PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 
 # Console icons mapping
 CONSOLE_ICONS = {
@@ -110,7 +111,10 @@ def fetch_console_fallback(platform):
     icon_name = CONSOLE_ICONS.get(platform)
     if not icon_name:
         return None
-    icon_path = os.path.join(SCRIPT_DIR, icon_name)
+        
+    # The console images are now stored in an 'images' directory alongside 'scripts'
+    icons_dir = os.path.dirname(SCRIPT_DIR)
+    icon_path = os.path.join(icons_dir, "images", icon_name)
     if os.path.exists(icon_path):
         try:
             return Image.open(icon_path).convert("RGBA")
@@ -132,11 +136,6 @@ def make_round_image(img):
 def generate_android_icons(img):
     """Generates and saves mipmap icons from the base image."""
     res_dir = os.path.join(PROJECT_ROOT, "app", "src", "main", "res")
-    
-    # Save the base playstore 512x512 icon as well
-    base_icon_path = os.path.join(PROJECT_ROOT, "ic_launcher-playstore.png")
-    img.resize((512, 512), Image.Resampling.LANCZOS).save(base_icon_path, "PNG")
-    print(f"✅ Saved Playstore 512x512 icon: {base_icon_path}")
 
     # Process each density
     for density, size in MIPMAP_SIZES.items():
@@ -155,7 +154,17 @@ def generate_android_icons(img):
         
         print(f"✅ Generated {density} icons in {folder}")
 
+import argparse
+
 def main():
+    parser = argparse.ArgumentParser(description="Master Icon Creation Orchestrator")
+    parser.add_argument("--force", type=int, choices=[1, 2, 3, 4], 
+                        help="Force a specific generation method (1=SGDB, 2=IGDB, 3=Console, 4=Typo)")
+    parser.add_argument("--skip-downloads", action="store_true", 
+                        help="Skip online methods (SGDB, IGDB) and only use local fallbacks")
+    
+    args = parser.parse_args()
+    
     print("🚀 Master Icon Creation Orchestrator")
     
     # Parse config
@@ -169,25 +178,41 @@ def main():
     
     img = None
     
-    # Method 1: SteamGridDB
-    print("🔍 Attempting Method 1: SteamGridDB (fetch_icon)...")
-    img = fetch_sgdb_icon(rom)
-    
-    # Method 2: IGDB Smart Icon
-    if not img:
-        print("🔍 Match not found or failed. Attempting Method 2: IGDB Smart Icon (fetch_smart)...")
-        img = fetch_igdb_smart_icon(platform, rom)
-        
-    # Method 3: Console Fallback
-    if not img:
-        print("🔍 Match not found or failed. Attempting Method 3: Console Default Icon...")
-        img = fetch_console_fallback(platform)
-        
-    # Method 4: Typographical Fallback
-    if not img:
-        print("🔍 Platform icon missing. Attempting Method 4: Typographical Fallback (generate_typo)...")
-        img = generate_typo_icon(rom)
-        
+    if args.force:
+        print(f"⚠️ Forcing Method {args.force}")
+        if args.force == 1:
+            img = fetch_sgdb_icon(rom)
+        elif args.force == 2:
+            img = fetch_igdb_smart_icon(platform, rom)
+        elif args.force == 3:
+            img = fetch_console_fallback(platform)
+        elif args.force == 4:
+            img = generate_typo_icon(rom)
+            
+    else:
+        # Standard cascade
+        if not args.skip_downloads:
+            # Method 1: SteamGridDB
+            print("🔍 Attempting Method 1: SteamGridDB (fetch_icon)...")
+            img = fetch_sgdb_icon(rom)
+            
+            # Method 2: IGDB Smart Icon
+            if not img:
+                print("🔍 Match not found or failed. Attempting Method 2: IGDB Smart Icon (fetch_smart)...")
+                img = fetch_igdb_smart_icon(platform, rom)
+        else:
+            print("⏭️ Skipping online download methods (SGDB, IGDB)...")
+            
+        # Method 3: Console Fallback
+        if not img:
+            print("🔍 Match not found or failed. Attempting Method 3: Console Default Icon...")
+            img = fetch_console_fallback(platform)
+            
+        # Method 4: Typographical Fallback
+        if not img:
+            print("🔍 Platform icon missing. Attempting Method 4: Typographical Fallback (generate_typo)...")
+            img = generate_typo_icon(rom)
+            
     if img:
         print("🎉 Image successfully acquired. Generating Android Mipmaps...")
         generate_android_icons(img)
