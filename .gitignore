@@ -57,3 +57,8 @@ temp_apk/DEPRECATED_CODE_ANALYSIS.md
 
 # Icon Scripts Secrets
 icons/.env
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
