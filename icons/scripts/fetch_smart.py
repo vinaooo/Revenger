@@ -1,19 +1,8 @@
 import os
-import re
 import requests
 from PIL import Image, ImageFilter
 from io import BytesIO
-
-def load_env():
-    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
-    if os.path.exists(env_path):
-        with open(env_path, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#'):
-                    if '=' in line:
-                        key, val = line.split('=', 1)
-                        os.environ[key.strip()] = val.strip().strip("'\"")
+from utils import load_env, clean_rom_name
 
 load_env()
 CLIENT_ID = os.environ.get("IGDB_CLIENT_ID")

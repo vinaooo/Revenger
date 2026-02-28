@@ -57,11 +57,13 @@ MIPMAP_SIZES = {
     "xxxhdpi": (192, 192)
 }
 
-def parse_config_xml():
+def parse_config_xml(config_file_path=None):
     """Parses config.xml to determine core and rom name."""
-    config_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "res", "values", "config.xml")
+    if not config_file_path:
+        config_file_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "res", "values", "config.xml")
+        
     try:
-        tree = ET.parse(config_path)
+        tree = ET.parse(config_file_path)
         root = tree.getroot()
         core = ""
         rom = ""
@@ -72,7 +74,7 @@ def parse_config_xml():
                 rom = elem.text or ""
         return core.strip(), rom.strip()
     except Exception as e:
-        print(f"Error parsing config.xml: {e}")
+        print(f"Error parsing config.xml at {config_file_path}: {e}")
         return "", ""
 
 def determine_platform(core, rom):
@@ -162,13 +164,15 @@ def main():
                         help="Force a specific generation method (1=SGDB, 2=IGDB, 3=Console, 4=Typo)")
     parser.add_argument("--skip-downloads", action="store_true", 
                         help="Skip online methods (SGDB, IGDB) and only use local fallbacks")
+    parser.add_argument("--config", type=str, 
+                        help="Optional absolute path to config.xml. If omitted, assumes default Revenger project structure.")
     
     args = parser.parse_args()
     
     print("🚀 Master Icon Creation Orchestrator")
     
     # Parse config
-    core, rom = parse_config_xml()
+    core, rom = parse_config_xml(args.config)
     if not core or not rom:
         print("❌ Could not determine core or rom from config.xml. Using default values for generation might be needed.")
         sys.exit(1)

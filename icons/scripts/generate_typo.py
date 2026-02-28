@@ -2,6 +2,7 @@ import os
 import re
 import hashlib
 from PIL import Image, ImageDraw, ImageFont
+from utils import clean_rom_name
 
 OUTPUT_SIZE = 512
 
@@ -12,16 +13,12 @@ COLOR_PALETTE = [
     (0x03, 0xA9, 0xF4)
 ]
 
-FONT_PATH = "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf"
+FONT_PATH = os.path.join(os.path.dirname(__file__), "Roboto-Bold.ttf")
+# Fallback to absolute paths if the script folder misses it
+if not os.path.exists(FONT_PATH):
+    FONT_PATH = "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf"
 if not os.path.exists(FONT_PATH):
     FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-
-def clean_rom_name(file_name):
-    name_without_tags = re.sub(r'\([^)]*\)|\[[^\]]*\]', '', file_name)
-    clean_name = name_without_tags.strip()
-    rom_extensions = r'\.(iso|zip|sfc|gba|nds|n64|3ds|bin|cue|sms|nds|gcm)$'
-    clean_name = re.sub(rom_extensions, '', clean_name, flags=re.IGNORECASE).strip()
-    return clean_name
 
 def generate_stable_color(game_name):
     hash_obj = hashlib.md5(game_name.encode('utf-8'))
