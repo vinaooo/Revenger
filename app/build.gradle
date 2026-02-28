@@ -139,7 +139,17 @@ android {
     }
 }
 
+task generateIcons(type: Exec) {
+    def pythonScript = file("${rootProject.projectDir.path}/icons/scripts/master_icon.py")
+    def configFile = file("${rootProject.projectDir.path}/app/src/main/res/values/config.xml")
+    commandLine 'python3', pythonScript.absolutePath, '--config', configFile.absolutePath
+    doFirst {
+        println "🎨 Generating App Icons using python script..."
+    }
+}
+
 task prepareRom {
+    dependsOn generateIcons
     doLast {
         def romName = getConfigValue('conf_rom')
         def romDir = file("${rootProject.projectDir}/app/src/main/assets/rom")

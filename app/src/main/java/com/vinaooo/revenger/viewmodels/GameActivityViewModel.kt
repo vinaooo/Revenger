@@ -333,6 +333,9 @@ class GameActivityViewModel(application: Application) :
                 // PAUSAR o jogo quando menu abre
                 retroView?.let { speedController?.pause(it.view) }
 
+                (activity as? com.vinaooo.revenger.views.GameActivity)
+                        ?.restoreFloatingButtonVisibility()
+
                 try {
                     Log.d(
                             "GameActivityViewModel",
@@ -344,6 +347,9 @@ class GameActivityViewModel(application: Application) :
             }
 
             navigationController?.onMenuClosedCallback = { closingButton: Int? ->
+                (activity as? com.vinaooo.revenger.views.GameActivity)
+                        ?.fadeFloatingButtonImmediately()
+
                 android.util.Log.d(
                         "GameActivityViewModel",
                         "🔥 [ON_MENU_CLOSED_CALLBACK] ===== MENU CLOSED ====="
@@ -596,8 +602,36 @@ class GameActivityViewModel(application: Application) :
         gamePadContainerView = container
     }
 
-    // REMOVED: showRetroMenu3() - NavigationController handles menu opening now
-
+    /** Toggles the Retro Menu 3 open/closed state using the NavigationController */
+    fun toggleMainMenu() {
+        if (isAnyMenuActive()) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[MENU_TOGGLE] Closing ALL menus directly with NavigationController via FloatingButton"
+            )
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD // Treat floating button like a
+                            // physical button for behavior
+                            )
+            )
+        } else {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[MENU_TOGGLE] Opening menu via FloatingButton"
+            )
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD // Treat floating button like a
+                            // physical button for behavior
+                            )
+            )
+        }
+    }
     /** Dismiss the RetroMenu3 */
     fun dismissRetroMenu3(onAnimationEnd: (() -> Unit)? = null) {
         android.util.Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Starting")
@@ -1424,16 +1458,27 @@ class GameActivityViewModel(application: Application) :
         }
     }
 
-    /** Hide the on-screen GamePads */
+    /** Hide the on-screen GamePads and toggle Floating Menu Button if applicable */
     fun updateGamePadVisibility(
             activity: Activity,
             leftContainer: FrameLayout,
-            rightContainer: FrameLayout
+            rightContainer: FrameLayout,
+            floatingButton: android.view.View? = null
     ) {
-        val visibility = if (GamePad.shouldShowGamePads(activity)) View.VISIBLE else View.GONE
+        val shouldShow = com.vinaooo.revenger.gamepad.GamePad.shouldShowGamePads(activity)
+        val visibility = if (shouldShow) android.view.View.VISIBLE else android.view.View.GONE
 
         leftContainer.visibility = visibility
         rightContainer.visibility = visibility
+
+        floatingButton?.let {
+            val configValue = activity.resources.getString(R.string.conf_menu_mode_fab).lowercase()
+            if (configValue != "disabled" && !shouldShow) {
+                it.visibility = android.view.View.VISIBLE
+            } else {
+                it.visibility = android.view.View.GONE
+            }
+        }
     }
 
     /** Process a key event and return the result */

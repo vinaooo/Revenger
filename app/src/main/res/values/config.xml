@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- A unique identifier for the app (no spaces or special characters allowed) -->
-    <string name="conf_id">sonic</string>
+    <string name="conf_id">sonicsms</string>
 
     <!-- The pretty name for the app -->
-    <string name="conf_name">Sonic</string>
+    <string name="conf_name">Sonic the Hedgehog</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="conf_core">smsplus</string>
+    <string name="conf_core">picodrive</string>
     <!-- <string name="conf_core">picodrive</string> -->
     <!-- Snes = snes9x -->
     <!-- megadrive = genesis_plus_gx -->
@@ -16,7 +16,7 @@
     <!-- Master e Mega = picodrive (the best) -->
     
     <!-- rom name (place ROM files in roms_backup/ at project root, staged automatically) -->
-    <string name="conf_rom">sth.sms</string>
+    <string name="conf_rom">Sonic The Hedgehog (USA, Europe, Brazil) (En) (2).sms</string>
 
     <!-- Target ABI: x86, x86_64, armeabi-v7a, arm64-v8a, or all -->
     <string name="conf_target_abi">arm64-v8a</string>
@@ -25,7 +25,7 @@
     <bool name="conf_load_bytes">false</bool>
 
     <!-- Core variables (key=value separated by commas) -->
-    <string name="conf_variables">smsplusgx_hide_left_border=enabled</string>
+    <string name="conf_variables">picodrive_overclk68k=+400%,picodrive_overclksz80=+100%</string>
 
 
     <!-- Fast forward speed multiplier -->
@@ -88,10 +88,16 @@
     <bool name="conf_show_fake_button_10">false</bool>
     <bool name="conf_show_fake_button_11">false</bool>
 
-    <!-- Menu mode for gamepad menu button (☰) -->
+    <!-- Menu modes -->
+    <!-- Floating menu button position
+         "disabled" = Do not show floating button
+         "top-left" = Show button in top left corner
+         "top-right" = Show button in top right corner
+         "bottom-left" = Show button in bottom left corner
+         "bottom-right" = Show button in bottom right corner
+    -->
+    <string name="conf_menu_mode_fab">bottom-right</string>
     <bool name="conf_menu_mode_gamepad">false</bool>
-
-    <!-- Alternative menu modes (deprecated, use conf_menu_mode instead) -->
     <bool name="conf_menu_mode_back">true</bool>
     <bool name="conf_menu_mode_combo">true</bool>
 

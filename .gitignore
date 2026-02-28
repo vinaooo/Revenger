@@ -54,3 +54,6 @@ temp_apk/DEPRECATED_CODE_ANALYSIS.md
 # Test and documentation folders (per project instructions)
 /tests
 /docs
+
+# Icon Scripts Secrets
+icons/.env
