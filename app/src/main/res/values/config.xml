@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- A unique identifier for the app (no spaces or special characters allowed) -->
-    <string name="conf_id">sonic</string>
+    <string name="conf_id">metroid3ds</string>
 
     <!-- The pretty name for the app -->
-    <string name="conf_name">Sonic</string>
+    <string name="conf_name">Metroid Samus Returns</string>
 
     <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
-    <string name="conf_core">smsplus</string>
+    <string name="conf_core">citra</string>
     <!-- <string name="conf_core">picodrive</string> -->
     <!-- Snes = snes9x -->
     <!-- megadrive = genesis_plus_gx -->
@@ -16,7 +16,7 @@
     <!-- Master e Mega = picodrive (the best) -->
     
     <!-- rom name (place ROM files in roms_backup/ at project root, staged automatically) -->
-    <string name="conf_rom">sth.sms</string>
+    <string name="conf_rom">Metroid - Samus Returns (USA) (En,Fr,Es).3ds</string>
 
     <!-- Target ABI: x86, x86_64, armeabi-v7a, arm64-v8a, or all -->
     <string name="conf_target_abi">arm64-v8a</string>
@@ -25,7 +25,7 @@
     <bool name="conf_load_bytes">false</bool>
 
     <!-- Core variables (key=value separated by commas) -->
-    <string name="conf_variables">smsplusgx_hide_left_border=enabled</string>
+    <string name="conf_variables"></string>
 
 
     <!-- Fast forward speed multiplier -->
