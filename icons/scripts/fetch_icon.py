@@ -4,7 +4,19 @@ import requests
 from io import BytesIO
 from PIL import Image
 
-SGDB_API_KEY = "de80a1445d03aae6e3227c2aaf141a4e"
+def load_env():
+    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    if '=' in line:
+                        key, val = line.split('=', 1)
+                        os.environ[key.strip()] = val.strip().strip("'\"")
+
+load_env()
+SGDB_API_KEY = os.environ.get("SGDB_API_KEY")
 
 def limpar_nome_rom(nome_arquivo):
     nome_sem_tags = re.sub(r'\([^)]*\)|\[[^\]]*\]', '', nome_arquivo)

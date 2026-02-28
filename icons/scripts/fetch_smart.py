@@ -1,11 +1,23 @@
+import os
 import re
 import requests
 from PIL import Image, ImageFilter
 from io import BytesIO
 
-CLIENT_ID = "korp114j842iamc7gngvwqvyj9kwfb"
-CLIENT_SECRET = "oe2pplulwfd7jmm6gvumj7x98bw2q8"
+def load_env():
+    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    if '=' in line:
+                        key, val = line.split('=', 1)
+                        os.environ[key.strip()] = val.strip().strip("'\"")
 
+load_env()
+CLIENT_ID = os.environ.get("IGDB_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("IGDB_CLIENT_SECRET")
 PLATAFORMAS_IGDB = {
     "mastersystem": 64, "megadrive": 29, "nes": 18, "snes": 19,
     "n64": 4, "gamecube": 21, "gba": 24, "nds": 20, "3ds": 37,
