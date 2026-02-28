@@ -18,16 +18,16 @@ def load_env():
 load_env()
 SGDB_API_KEY = os.environ.get("SGDB_API_KEY")
 
-def limpar_nome_rom(nome_arquivo):
-    nome_sem_tags = re.sub(r'\([^)]*\)|\[[^\]]*\]', '', nome_arquivo)
-    nome_limpo = nome_sem_tags.strip()
-    extensoes_rom = r'\.(iso|zip|7z|rar|sfc|smc|gba|gbc|gb|nes|n64|z64|v64|rvz|chd|bin|cue|gcm|apk|sms|3ds)$'
-    nome_limpo = re.sub(extensoes_rom, '', nome_limpo, flags=re.IGNORECASE).strip()
-    nome_limpo = nome_limpo.replace(" - ", ": ")
-    return nome_limpo
+def clean_rom_name(file_name):
+    name_without_tags = re.sub(r'\([^)]*\)|\[[^\]]*\]', '', file_name)
+    clean_name = name_without_tags.strip()
+    rom_extensions = r'\.(iso|zip|7z|rar|sfc|smc|gba|gbc|gb|nes|n64|z64|v64|rvz|chd|bin|cue|gcm|apk|sms|3ds)$'
+    clean_name = re.sub(rom_extensions, '', clean_name, flags=re.IGNORECASE).strip()
+    clean_name = clean_name.replace(" - ", ": ")
+    return clean_name
 
-def buscar_sgdb_por_texto(nome_jogo):
-    url = f"https://www.steamgriddb.com/api/v2/search/autocomplete/{nome_jogo}"
+def search_sgdb_by_text(game_name):
+    url = f"https://www.steamgriddb.com/api/v2/search/autocomplete/{game_name}"
     headers = {"Authorization": f"Bearer {SGDB_API_KEY}"}
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
@@ -36,7 +36,7 @@ def buscar_sgdb_por_texto(nome_jogo):
             return data[0]["id"]
     return None
 
-def buscar_icone_steamgriddb(sgdb_id):
+def fetch_steamgriddb_icon(sgdb_id):
     url = f"https://www.steamgriddb.com/api/v2/icons/game/{sgdb_id}?mimes=image/png"
     headers = {"Authorization": f"Bearer {SGDB_API_KEY}"}
     response = requests.get(url, headers=headers)
@@ -48,11 +48,11 @@ def buscar_icone_steamgriddb(sgdb_id):
 
 def fetch_sgdb_icon(rom_name):
     """Fetches the icon from SGDB and returns a PIL Image or None."""
-    nome_limpo = limpar_nome_rom(rom_name)
-    sgdb_id = buscar_sgdb_por_texto(nome_limpo)
+    clean_name = clean_rom_name(rom_name)
+    sgdb_id = search_sgdb_by_text(clean_name)
     if not sgdb_id:
         return None
-    icon_url = buscar_icone_steamgriddb(sgdb_id)
+    icon_url = fetch_steamgriddb_icon(sgdb_id)
     if not icon_url:
         return None
     response = requests.get(icon_url)
