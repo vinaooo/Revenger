@@ -101,7 +101,7 @@
     <bool name="conf_menu_mode_combo">true</bool>
 
     <!-- Should the left DPAD be replaced with an analog stick? -->
-    <bool name="conf_left_analog">false</bool>
+    <bool name="conf_left_analog">true</bool>
 
     <!-- Show performance overlay (FPS, memory, CPU) -->
     <bool name="conf_performance_overlay">false</bool>

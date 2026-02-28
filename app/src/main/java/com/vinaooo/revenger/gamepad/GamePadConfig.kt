@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.view.KeyEvent
 import androidx.core.content.ContextCompat
+import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.radialgamepad.library.config.*
 import com.swordfish.radialgamepad.library.haptics.HapticConfig
 import com.vinaooo.revenger.R
@@ -43,8 +44,8 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                 val BUTTON_F9 = ButtonConfig(id = -9, label = "11")
                 val BUTTON_F10 = ButtonConfig(id = -10, label = "6")
 
-                val LEFT_DPAD = PrimaryDialConfig.Cross(CrossConfig(0))
-                val LEFT_ANALOG = PrimaryDialConfig.Stick(0)
+                val LEFT_DPAD = PrimaryDialConfig.Cross(CrossConfig(GLRetroView.MOTION_SOURCE_DPAD))
+                val LEFT_ANALOG = PrimaryDialConfig.Stick(GLRetroView.MOTION_SOURCE_ANALOG_LEFT)
         }
 
         private val radialGamePadTheme =
