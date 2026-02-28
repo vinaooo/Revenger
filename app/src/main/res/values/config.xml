@@ -25,7 +25,7 @@
     <bool name="conf_load_bytes">false</bool>
 
     <!-- Core variables (key=value separated by commas) -->
-<string name="conf_variables">citra_layout_option=Side by Side,citra_touch_touchscreen=enabled,citra_use_acc_mul=enabled</string>
+    <string name="conf_variables">citra_layout_option=Side by Side,citra_touch_touchscreen=enabled,citra_use_acc_mul=enabled,citra_resolution_factor=3x</string>
 
     <!-- Fast forward speed multiplier -->
     <integer name="conf_fast_forward_multiplier">2</integer>

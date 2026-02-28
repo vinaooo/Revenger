@@ -105,6 +105,23 @@ Set the desired shader in `config.xml`:
 - Use **CRT** for retro gaming experience
 - Use **LCD** for modern aesthetic
 
+# Auto-Generated Icons
+Revenger features an automated script system to generate all required Android app icons (including adaptive icons for Android 8.0+) based on the chosen console/emulator core.
+
+## How it works
+The scripts are located inside the `icons/scripts/` directory:
+1. **`master_icon.py`**: The main controller. It reads your `config.xml` to determine what emulator core is currently configured. It finds the matching console icon, layers it onto a background shape, scales it to 108dp (for adaptive padding) and standard sizes (`mdpi` up to `xxxhdpi`), and outputs them into the `app/src/main/res/` mipmap directories. It also generates the `mipmap-anydpi-v26` XML definitions automatically.
+2. **`generate_typo.py`**: A fallback system that generates a beautifully styled text-based icon if a matching console graphic cannot be found.
+3. **`utils.py`**: Contains shared utility logic like environment loading and name normalization.
+
+To regenerate icons manually, ensure you have Python and `Pillow` installed, and execute:
+```bash
+python3 icons/scripts/master_icon.py
+```
+
+## Icon Assets & References
+The console graphics located in the `icons/images/` directory are officially sourced from the **[Libretro / RetroArch Assets](https://github.com/libretro/retroarch-assets)** repository. We use these clean, monochrome console illustrations to instantly brand the Revenger APK for the specific system it is emulating.
+
 # Building
 Use standard Gradle commands for building:
 
@@ -169,6 +186,11 @@ This project is based on **Ludere** by **tytydraco**:
 - Original repository: https://github.com/tytydraco/Ludere
 - Licensed under GNU GPL v3.0
 - All original copyright notices have been preserved
+
+### Asset Attribution
+Console icons and graphics used for automatically generated app icons (`icons/images/`) are sourced from the **[libretro/retroarch-assets](https://github.com/libretro/retroarch-assets)** repository.
+- **License**: [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)
+- **Authors**: The Libretro Team and contributors. 
 
 ### Contributors
 
