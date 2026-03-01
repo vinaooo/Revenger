@@ -1,113 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Optimal Settings: when true, auto-configure based on ROM extension and platform profile -->
-    <bool name="conf_optimal_settings">false</bool>
+    <!-- ======================================================================
+         OPTIMAL SETTINGS SWITCH
+         When true: gameplay config is loaded from optimal_settings.json
+         When false: gameplay config is loaded from config_manual.xml
+         ====================================================================== -->
+    <bool name="conf_optimal_settings">true</bool>
 
     <!-- Platform identifier (e.g., sms, snes, gba, gb, md, nes, gbc)
          Used as fallback when ROM extension is ambiguous (.bin, .rom)
          Ignored when conf_optimal_settings is false -->
     <string name="conf_platform"></string>
 
-    <!-- A unique identifier for the app (no spaces or special characters allowed) -->
+    <!-- ======================================================================
+         IDENTITY & BUILD SETTINGS
+         These are always read from this file, regardless of optimal_settings.
+         ====================================================================== -->
+
+    <!-- Unique identifier for the app (no spaces or special characters) -->
     <string name="conf_id">sth</string>
 
-    <!-- The pretty name for the app -->
+    <!-- Display name -->
     <string name="conf_name">Não jogar</string>
 
-    <!-- LibRetro core to fetch for this ROM (excluding _libretro_android.so) -->
+    <!-- LibRetro core (excluding _libretro_android.so)
+         Used by Gradle to download the core.
+         When conf_optimal_settings=true this is auto-resolved from the
+         optimal profile; this value serves only as a documentation hint.
+         Snes = snes9x | megadrive = genesis_plus_gx | gb = gambatte
+         master = smsplus | gba = mgba | nes = nestopia -->
     <string name="conf_core">picodrive</string>
-    <!-- <string name="conf_core">picodrive</string> -->
-    <!-- Snes = snes9x -->
-    <!-- megadrive = genesis_plus_gx -->
-    <!-- gb = gambatte -->
-    <!-- master = gearsystem (best performance for Master System) -->
-    <!-- Master e Mega = picodrive (the best) -->
-    
-    <!-- rom name (place ROM files in roms_backup/ at project root, staged automatically) -->
+
+    <!-- ROM filename (placed in roms_backup/ and staged automatically) -->
     <string name="conf_rom">Sonic The Hedgehog (USA, Europe, Brazil) (En) (2).sms</string>
 
     <!-- Target ABI: x86, x86_64, armeabi-v7a, arm64-v8a, or all -->
     <string name="conf_target_abi">arm64-v8a</string>
 
-    <!-- Load ROM directly from memory; larger games should have this disabled -->
+    <!-- Load ROM directly into memory; disable for larger games -->
     <bool name="conf_load_bytes">false</bool>
-
-    <!-- Core variables (key=value separated by commas) -->
-    <string name="conf_variables">picodrive_overclk68k=+400%,picodrive_overclksz80=+100%</string>
-
-    <!-- Fast forward speed multiplier -->
-    <integer name="conf_fast_forward_multiplier">2</integer>
-
-    <!-- Fullscreen mode to hide system bars -->
-    <bool name="conf_fullscreen">true</bool>
-
-    <!-- Orientation modes
-        1: Portrait only (ignores system auto-rotate)
-        2: Landscape only (ignores system auto-rotate)
-        3: Any orientation (respects system auto-rotate setting)
-
-        NOTE: Mode 3 will only rotate if system auto-rotate is enabled.
-              If auto-rotate is disabled, the app stays in current orientation.
-              Modes 1 and 2 always enforce their orientation regardless of system settings.
-              Landscape <-> Portrait transitions can be slow as they rebuild the emulator.
-    -->
-    <integer name="conf_orientation">2</integer>
-
-    <!-- Menu modes
-         Floating menu button position
-         "disabled" = Do not show floating button
-         "top-left" = Show button in top left corner
-         "top-right" = Show button in top right corner
-         "bottom-left" = Show button in bottom left corner
-         "bottom-right" = Show button in bottom right corner -->
-    <string name="conf_menu_mode_fab">bottom-right</string>
-    <bool name="conf_menu_mode_gamepad">true</bool>
-    <bool name="conf_menu_mode_back">true</bool>
-    <bool name="conf_menu_mode_combo">false</bool>
-
-    <!-- Should we display a virtual gamepad? -->
-    <bool name="conf_gamepad">true</bool>
-
-    <!-- Should we vibrate on touch? -->
-    <bool name="conf_gp_haptic">true</bool>
-
-    <!-- Allow multiple presses on action buttons (for combos) -->
-    <bool name="conf_gp_allow_multiple_presses_action">false</bool>
-
-    <!-- GamePad buttons to display -->
-    <bool name="conf_gp_a">true</bool>
-    <bool name="conf_gp_b">true</bool>
-    <bool name="conf_gp_x">false</bool>
-    <bool name="conf_gp_y">false</bool>
-    <bool name="conf_gp_start">true</bool>
-    <bool name="conf_gp_select">true</bool>
-    <bool name="conf_gp_l1">false</bool>
-    <bool name="conf_gp_r1">false</bool>
-    <bool name="conf_gp_l2">false</bool>
-    <bool name="conf_gp_r2">false</bool>
-
-    <!-- Fake buttons (custom mapped buttons) -->
-    <bool name="conf_show_fake_button_0">false</bool>
-    <bool name="conf_show_fake_button_1">false</bool>
-    <bool name="conf_show_fake_button_5">false</bool>
-    <bool name="conf_show_fake_button_6">false</bool>
-    <bool name="conf_show_fake_button_7">false</bool>
-    <bool name="conf_show_fake_button_9">false</bool>
-    <bool name="conf_show_fake_button_10">false</bool>
-    <bool name="conf_show_fake_button_11">false</bool>
-
-    <!-- Should the left DPAD be replaced with an analog stick? -->
-    <bool name="conf_left_analog">false</bool>
-
-    <!-- Show performance overlay (FPS, memory, CPU) -->
-    <bool name="conf_performance_overlay">false</bool>
-
-    <!-- Shader configuration
-        "disabled" = No shader applied
-        "sharp" = Sharp bilinear filtering
-        "crt" = CRT shader
-        "lcd" = LCD shader
-        "settings" = Allow user to select shader in menu
-    -->
-    <string name="conf_shader">settings</string>
 </resources>
