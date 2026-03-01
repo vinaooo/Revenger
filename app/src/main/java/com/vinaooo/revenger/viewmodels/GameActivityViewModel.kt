@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.controllers.AudioController
 import com.vinaooo.revenger.controllers.ShaderController
 import com.vinaooo.revenger.controllers.SpeedController
@@ -37,6 +38,7 @@ class GameActivityViewModel(application: Application) :
         MenuManager.MenuManagerListener {
 
     private val resources = application.resources
+    private val appConfig = RevengerApplication.appConfig
 
     // ===== SPECIALIZED VIEWMODELS =====
     // Using composition pattern to separate concerns
@@ -1308,7 +1310,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Hook the RetroView with the GLRetroView instance */
     fun setupRetroView(activity: ComponentActivity, container: FrameLayout) {
-        retroView = RetroView(activity, viewModelScope)
+        retroView = RetroView(activity, viewModelScope, appConfig)
         retroViewUtils = RetroViewUtils(activity)
 
         // Initialize controllers with the same SharedPreferences that RetroViewUtils uses
@@ -1347,7 +1349,7 @@ class GameActivityViewModel(application: Application) :
     ) {
         val context = getApplication<Application>().applicationContext
 
-        val gamePadConfig = GamePadConfig(context, resources)
+        val gamePadConfig = GamePadConfig(context, appConfig)
         leftGamePad =
                 GamePad(context, gamePadConfig.left) { event: Event ->
                     val intercepted =
@@ -1489,7 +1491,7 @@ class GameActivityViewModel(application: Application) :
             rightContainer: FrameLayout,
             floatingButton: android.view.View? = null
     ) {
-        val shouldShow = com.vinaooo.revenger.gamepad.GamePad.shouldShowGamePads(activity)
+        val shouldShow = com.vinaooo.revenger.gamepad.GamePad.shouldShowGamePads(activity, appConfig)
         val visibility = if (shouldShow) android.view.View.VISIBLE else android.view.View.GONE
 
         leftContainer.visibility = visibility
@@ -1615,7 +1617,7 @@ class GameActivityViewModel(application: Application) :
         val sharedPrefs = activity.getPreferences(android.content.Context.MODE_PRIVATE)
         sharedPreferences = sharedPrefs
         audioController = AudioController(activity.applicationContext, sharedPrefs)
-        speedController = SpeedController(activity.applicationContext, sharedPrefs)
+        speedController = SpeedController(activity.applicationContext, sharedPrefs, appConfig)
         shaderController = ShaderController(activity.applicationContext, sharedPrefs)
 
         // Set controllers in ViewModels

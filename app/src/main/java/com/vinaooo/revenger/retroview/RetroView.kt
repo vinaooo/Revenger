@@ -10,7 +10,7 @@ import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.libretrodroid.GLRetroViewData
 import com.swordfish.libretrodroid.ShaderConfig
 import com.swordfish.libretrodroid.Variable
-import com.vinaooo.revenger.R
+import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.repositories.Storage
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +18,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 
-class RetroView(private val context: Context, private val coroutineScope: CoroutineScope) {
+class RetroView(
+    private val context: Context, 
+    private val coroutineScope: CoroutineScope,
+    private val appConfig: AppConfig
+) {
     companion object {
         var romBytes: ByteArray? = null
     }
@@ -39,7 +43,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
         }
 
     private fun isSettingsMode(): Boolean {
-        return context.getString(R.string.conf_shader).lowercase() == "settings"
+        return appConfig.getShader().lowercase() == "settings"
     }
 
     /** Public method to check if shader selection is enabled */
@@ -71,7 +75,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
      * @return ShaderConfig enum value for video rendering
      */
     private fun getShaderConfig(): ShaderConfig {
-        val shaderString = context.getString(R.string.conf_shader).lowercase()
+        val shaderString = appConfig.getShader().lowercase()
 
         return when (shaderString) {
             "disabled" -> {
@@ -122,7 +126,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 coreFilePath = "libcore.so"
 
                 /* Prepare the ROM bytes */
-                val romName = context.getString(R.string.conf_rom)
+                val romName = appConfig.getRomName()
 
                 // Load ROM from assets/rom/ (faster builds — assets bypass AAPT2 processing)
                 val romAssetPath = "rom/$romName"
@@ -136,7 +140,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                         }
 
                 val romLoadStartTime = System.currentTimeMillis()
-                if (resources.getBoolean(R.bool.conf_load_bytes)) {
+                if (appConfig.getLoadBytes()) {
                     if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
                     gameFileBytes = romBytes
                 } else {
@@ -203,7 +207,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
     /** Parse core variables from config */
     private fun getCoreVariables(): Array<Variable> {
         val variables = arrayListOf<Variable>()
-        val rawVariablesString = context.getString(R.string.conf_variables)
+        val rawVariablesString = appConfig.getVariables()
         val rawVariables = rawVariablesString.split(",")
 
         Log.d("RetroView", "Configuring core variables: '$rawVariablesString'")

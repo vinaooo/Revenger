@@ -2,6 +2,7 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.input.ControllerInput
 
@@ -12,6 +13,7 @@ import com.vinaooo.revenger.input.ControllerInput
 class InputViewModel(application: Application) : AndroidViewModel(application) {
 
     private val controllerInput = ControllerInput(application.applicationContext)
+    private val appConfig = RevengerApplication.appConfig
 
     // References to gamepads
     private var leftGamePad: GamePad? = null
@@ -99,7 +101,7 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
     // ========== VISIBILITY CONTROL METHODS ==========
 
     fun shouldShowGamePads(activity: android.app.Activity): Boolean {
-        return GamePad.shouldShowGamePads(activity)
+        return GamePad.shouldShowGamePads(activity, appConfig)
     }
 
     // ========== LIFECYCLE METHODS ==========

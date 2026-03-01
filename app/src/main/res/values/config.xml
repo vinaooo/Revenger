@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Optimal Settings: when true, auto-configure based on ROM extension and platform profile -->
+    <bool name="conf_optimal_settings">false</bool>
+
+    <!-- Platform identifier (e.g., sms, snes, gba, gb, md, nes, gbc)
+         Used as fallback when ROM extension is ambiguous (.bin, .rom)
+         Ignored when conf_optimal_settings is false -->
+    <string name="conf_platform"></string>
+
     <!-- A unique identifier for the app (no spaces or special characters allowed) -->
     <string name="conf_id">sth</string>
 

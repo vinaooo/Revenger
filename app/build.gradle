@@ -186,7 +186,56 @@ task prepareRom {
 
 task prepareCore {
     doLast {
-        def coreName = getConfigValue('conf_core')
+        // Determine core name: either from config.xml or from optimal settings JSON
+        def coreName
+        def optimalSettingsEnabled = getConfigValue('conf_optimal_settings') == 'true'
+        
+        if (optimalSettingsEnabled) {
+            println "🤖 Optimal Settings enabled - resolving core from platform profile"
+            
+            def jsonFile = file("${rootProject.projectDir}/app/src/main/assets/optimal_settings.json")
+            if (!jsonFile.exists()) {
+                throw new GradleException("optimal_settings.json not found in assets/")
+            }
+            
+            def jsonSlurper = new groovy.json.JsonSlurper()
+            def profiles = jsonSlurper.parse(jsonFile)
+            
+            def platformId = getConfigValue('conf_platform')
+            def romName = getConfigValue('conf_rom')
+            def extension = romName.substring(romName.lastIndexOf('.')).toLowerCase()
+            
+            println "   Platform ID: ${platformId ?: '(not set)'}"
+            println "   ROM: $romName"
+            println "   Extension: $extension"
+            
+            def profile = null
+            
+            // Try explicit platform ID first
+            if (platformId && platformId != '') {
+                profile = profiles.find { it.platform_id == platformId }
+                if (profile) {
+                    println "   ✅ Found profile by platform_id: ${profile.platform_id}"
+                }
+            }
+            
+            // Fall back to extension matching
+            if (!profile) {
+                profile = profiles.find { it.extensions.contains(extension) }
+                if (profile) {
+                    println "   ✅ Found profile by extension: ${profile.platform_id}"
+                } else {
+                    throw new GradleException("No optimal settings profile found for extension '$extension'. Add conf_platform or use manual mode (conf_optimal_settings=false)")
+                }
+            }
+            
+            coreName = profile.core
+            println "   🎯 Selected core: $coreName (from optimal profile)"
+        } else {
+            coreName = getConfigValue('conf_core')
+            println "🛠️  Manual mode - using core from conf_core: $coreName"
+        }
+        
         def targetAbi = getConfigValue('conf_target_abi')
         def allAbis = ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
         def abisToFetch = (targetAbi == 'all') ? allAbis : [targetAbi]

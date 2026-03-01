@@ -12,7 +12,7 @@ import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.radialgamepad.library.RadialGamePad
 import com.swordfish.radialgamepad.library.config.RadialGamePadConfig
 import com.swordfish.radialgamepad.library.event.Event
-import com.vinaooo.revenger.R
+import com.vinaooo.revenger.AppConfig
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -26,9 +26,9 @@ class GamePad(
 
     companion object {
         /** Should the user see the on-screen controls? */
-        fun shouldShowGamePads(activity: Activity): Boolean {
+        fun shouldShowGamePads(activity: Activity, appConfig: AppConfig): Boolean {
             /* Config says we shouldn't use virtual controls */
-            if (!activity.resources.getBoolean(R.bool.conf_gamepad)) return false
+            if (!appConfig.getGamepad()) return false
 
             /* Devices without a touchscreen don't need a GamePad */
             val hasTouchScreen =
