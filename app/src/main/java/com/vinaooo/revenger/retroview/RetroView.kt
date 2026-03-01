@@ -30,25 +30,24 @@ class RetroView(
     private val resources = context.resources
     private val storage = Storage.getInstance(context)
 
-    // Dynamic shader for "settings" mode
-    private var _dynamicShader: String = "sharp"
+    // Dynamic shader is now always available for user selection
+    private var _dynamicShader: String = "disabled"
     var dynamicShader: String
         get() = _dynamicShader
         set(value) {
             _dynamicShader = value
-            // Apply shader in real time if in settings mode
-            if (isSettingsMode()) {
-                applyShaderInRealtime(value)
-            }
+            // Always apply shader in real time (shader selection always enabled)
+            applyShaderInRealtime(value)
         }
 
+    @Deprecated("Shader selection is now always enabled")
     private fun isSettingsMode(): Boolean {
-        return appConfig.getShader().lowercase() == "settings"
+        return true
     }
 
-    /** Public method to check if shader selection is enabled */
+    /** Public method to check if shader selection is enabled - always true now */
     fun isShaderSelectionEnabled(): Boolean {
-        return isSettingsMode()
+        return true
     }
 
     private fun applyShaderInRealtime(shaderName: String) {
@@ -94,25 +93,8 @@ class RetroView(
                 Log.i("RetroView", "Shader configurado: LCD (efeito de matriz LCD)")
                 ShaderConfig.LCD
             }
-            "settings" -> {
-                Log.i(
-                        "RetroView",
-                        "Shader configurado: Settings (modo dinâmico) - usando: $_dynamicShader"
-                )
-                // Settings mode: use dynamic shader
-                when (_dynamicShader) {
-                    "disabled" -> ShaderConfig.Default
-                    "sharp" -> ShaderConfig.Sharp
-                    "crt" -> ShaderConfig.CRT
-                    "lcd" -> ShaderConfig.LCD
-                    else -> ShaderConfig.Sharp
-                }
-            }
             else -> {
-                Log.w(
-                        "RetroView",
-                        "Invalid shader configuration: '$shaderString'. Using Sharp as fallback."
-                )
+                Log.w("RetroView", "Invalid shader configuration: '$shaderString'. Using Sharp as fallback.")
                 ShaderConfig.Sharp
             }
         }

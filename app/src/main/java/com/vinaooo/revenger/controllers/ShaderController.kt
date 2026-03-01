@@ -13,7 +13,7 @@ class ShaderController(
 
     companion object {
         private const val PREF_CURRENT_SHADER = "current_shader"
-        private const val DEFAULT_SHADER = "sharp"
+        private const val DEFAULT_SHADER = "disabled"
     }
 
     // List of available shaders
@@ -32,26 +32,27 @@ class ShaderController(
         Log.d("ShaderController", "Initial shader loaded: $currentShader")
     }
 
-    /** Checks if we are in settings mode (dynamic shader selection) */
+    /** Shader selection is now always available (no longer conditional) */
+    @Deprecated("Shader selection is always enabled")
     private fun isSettingsMode(): Boolean {
-        // Since we don't have direct context access here, check via RetroView
-        return retroView?.isShaderSelectionEnabled() ?: false
+        return true
     }
 
     /** Connects the controller to the RetroView */
     fun connect(retroView: RetroView) {
         this.retroView = retroView
-        // Only apply shader if in settings mode
-        if (isSettingsMode()) {
-            applyCurrentShader()
-        }
+        // Always apply shader (dynamic shader selection always enabled)
+        applyCurrentShader()
         Log.d("ShaderController", "Connected to RetroView")
     }
 
     /** Sets the current shader */
     fun setShader(shader: String) {
         if (shader !in availableShaders) {
-            Log.w("ShaderController", "Invalid shader: $shader")
+            Log.w("ShaderController", "Invalid shader: $shader, falling back to default")
+            currentShader = DEFAULT_SHADER
+            sharedPreferences.edit().putString(PREF_CURRENT_SHADER, DEFAULT_SHADER).apply()
+            applyCurrentShader()
             return
         }
 

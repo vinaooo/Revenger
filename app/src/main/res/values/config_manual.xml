@@ -91,11 +91,11 @@
 
     <!-- Shader
          "disabled" = No shader
-         "sharp"    = Sharp bilinear filtering (recommended default)
+         "sharp"    = Sharp bilinear filtering
          "crt"      = CRT monitor simulation
          "lcd"      = LCD matrix effect
-         "settings" = Let the user choose in-game via the Settings menu -->
-    <string name="conf_shader">settings</string>
+         Shader selection is always available in the Settings menu for dynamic changes. -->
+    <string name="conf_shader">disabled</string>
 
     <!-- ======================================================================
          DEBUG
