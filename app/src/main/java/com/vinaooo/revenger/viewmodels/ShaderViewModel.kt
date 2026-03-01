@@ -1,6 +1,7 @@
 package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.vinaooo.revenger.controllers.ShaderController
@@ -86,7 +87,9 @@ class ShaderViewModel(application: Application) : AndroidViewModel(application) 
 
     fun setShaderController(controller: ShaderController) {
         shaderController = controller
-        // Apply current shader to controller
-        controller.setShader(currentShader)
+        // Sync ViewModel state from controller (which already loaded the correct default
+        // from AppConfig/optimal_settings or user's saved preference)
+        currentShader = controller.getCurrentShader()
+        Log.d("ShaderViewModel", "Synced shader from controller: $currentShader")
     }
 }

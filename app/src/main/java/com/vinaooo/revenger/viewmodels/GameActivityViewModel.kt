@@ -1618,7 +1618,7 @@ class GameActivityViewModel(application: Application) :
         sharedPreferences = sharedPrefs
         audioController = AudioController(activity.applicationContext, sharedPrefs)
         speedController = SpeedController(activity.applicationContext, sharedPrefs, appConfig)
-        shaderController = ShaderController(activity.applicationContext, sharedPrefs)
+        shaderController = ShaderController(activity.applicationContext, sharedPrefs, appConfig)
 
         // Set controllers in ViewModels
         audioController?.let { audioViewModel.setAudioController(it) }

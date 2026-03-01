@@ -3,12 +3,14 @@ package com.vinaooo.revenger.controllers
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.retroview.RetroView
 
 /** Controller for dynamic real-time shader management */
 class ShaderController(
         private val context: Context,
-        private val sharedPreferences: SharedPreferences
+        private val sharedPreferences: SharedPreferences,
+        private val appConfig: AppConfig
 ) {
 
     companion object {
@@ -26,10 +28,19 @@ class ShaderController(
     private var retroView: RetroView? = null
 
     init {
-        // Load saved shader from preferences
-        currentShader =
-                sharedPreferences.getString(PREF_CURRENT_SHADER, DEFAULT_SHADER) ?: DEFAULT_SHADER
-        Log.d("ShaderController", "Initial shader loaded: $currentShader")
+        // Use AppConfig.getShader() (from optimal_settings.json or config.xml) as the default
+        // Only use the saved SharedPreferences value if the user has explicitly changed it before
+        val configDefault = appConfig.getShader().lowercase()
+        val effectiveDefault = if (configDefault in availableShaders) configDefault else DEFAULT_SHADER
+
+        currentShader = if (sharedPreferences.contains(PREF_CURRENT_SHADER)) {
+            // User has saved a preference before — use it
+            sharedPreferences.getString(PREF_CURRENT_SHADER, effectiveDefault) ?: effectiveDefault
+        } else {
+            // First run — use optimal settings / config.xml value
+            effectiveDefault
+        }
+        Log.d("ShaderController", "Initial shader loaded: $currentShader (config default: $effectiveDefault)")
     }
 
     /** Shader selection is now always available (no longer conditional) */
