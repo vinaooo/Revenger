@@ -11,20 +11,6 @@ object MenuConstants {
     const val ALPHA_ANIMATION_END = 1f
 }
 
-/**
- * Enum representing different menu modes based on conf_menu_mode values. Provides type safety and
- * eliminates magic numbers.
- */
-enum class MenuMode(val value: Int) {
-    DISABLED(0),
-    BACK_BUTTON_ONLY(1),
-    SELECT_START_COMBO_ONLY(2),
-    BOTH_BACK_AND_COMBO(3);
-
-    companion object {
-        fun fromValue(value: Int) = values().find { it.value == value } ?: DISABLED
-    }
-}
 
 /**
  * Enum representing available shader types with their display names and configurations. Provides

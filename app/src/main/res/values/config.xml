@@ -45,29 +45,17 @@
     -->
     <integer name="conf_orientation">2</integer>
 
-    <!-- Menu display modes
-        0: No menu (disabled)
-        1: Menu only via back button
-        2: Menu only via SELECT + START combo (virtual and physical)
-        3: Menu via both back button and SELECT + START combo
-
-        NOTE: Mode 0 disables all menu functionality,
-              use with caution!
-    -->
-    <integer name="conf_menu_mode">3</integer>
-
-    <!-- Menu modes -->
-    <!-- Floating menu button position
+    <!-- Menu modes
+         Floating menu button position
          "disabled" = Do not show floating button
          "top-left" = Show button in top left corner
          "top-right" = Show button in top right corner
          "bottom-left" = Show button in bottom left corner
-         "bottom-right" = Show button in bottom right corner
-    -->
+         "bottom-right" = Show button in bottom right corner -->
     <string name="conf_menu_mode_fab">bottom-right</string>
     <bool name="conf_menu_mode_gamepad">true</bool>
     <bool name="conf_menu_mode_back">true</bool>
-    <bool name="conf_menu_mode_combo">true</bool>
+    <bool name="conf_menu_mode_combo">false</bool>
 
     <!-- Should we display a virtual gamepad? -->
     <bool name="conf_gamepad">true</bool>
@@ -81,12 +69,12 @@
     <!-- GamePad buttons to display -->
     <bool name="conf_gp_a">true</bool>
     <bool name="conf_gp_b">true</bool>
-    <bool name="conf_gp_x">true</bool>
-    <bool name="conf_gp_y">true</bool>
+    <bool name="conf_gp_x">false</bool>
+    <bool name="conf_gp_y">false</bool>
     <bool name="conf_gp_start">true</bool>
     <bool name="conf_gp_select">true</bool>
-    <bool name="conf_gp_l1">true</bool>
-    <bool name="conf_gp_r1">true</bool>
+    <bool name="conf_gp_l1">false</bool>
+    <bool name="conf_gp_r1">false</bool>
     <bool name="conf_gp_l2">false</bool>
     <bool name="conf_gp_r2">false</bool>
 

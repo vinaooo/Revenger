@@ -1592,13 +1592,6 @@ class GameActivityViewModel(application: Application) :
                 retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
     }
 
-    /** Check if menu is enabled based on menu mode configs */
-    private fun isMenuEnabled(): Boolean {
-        return resources.getBoolean(R.bool.conf_menu_mode_back) ||
-                resources.getBoolean(R.bool.conf_menu_mode_combo) ||
-                resources.getBoolean(R.bool.conf_menu_mode_gamepad)
-    }
-
     /** Check if menu should respond to back button based on conf_menu_mode_back */
     fun shouldHandleBackButton(): Boolean {
         return resources.getBoolean(R.bool.conf_menu_mode_back)
