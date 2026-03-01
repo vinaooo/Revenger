@@ -49,13 +49,34 @@ def getConfigValue = { String id ->
     }
 }
 
+/**
+ * Generates a unique app identifier from conf_name and conf_core.
+ * Converts both strings to lowercase, removes special characters,
+ * and combines them with an underscore.
+ * 
+ * Example: "Sonic The Hedgehog" + "picodrive" -> "sonic_the_hedgehog_picodrive"
+ */
+def generateConfigId = { String name, String core ->
+    def cleanName = name.toLowerCase()
+        .replaceAll(/[^a-z0-9]+/, '_')
+        .replaceAll(/^_+|_+$/, '')
+    
+    def cleanCore = core.toLowerCase()
+        .replaceAll(/[^a-z0-9]+/, '_')
+        .replaceAll(/^_+|_+$/, '')
+    
+    def generatedId = "${cleanName}_${cleanCore}"
+    println "generateConfigId('$name', '$core') = '$generatedId'"
+    return generatedId
+}
+
 android {
     namespace = 'com.vinaooo.revenger'
     compileSdk = 36               // Android 16 - API Level 36
     // buildToolsVersion removido - AGP 8.13.0 usa automaticamente 36.0.0
 
     defaultConfig {
-        applicationId "com.vinaooo.revenger.${getConfigValue('conf_id')}"
+        applicationId "com.vinaooo.revenger.${generateConfigId(getConfigValue('conf_name'), getConfigValue('conf_core'))}"
         minSdk = 30                // Android 11 - API Level 30
         targetSdk = 36             // Android 16 - API Level 36
         versionCode 1
@@ -186,7 +207,56 @@ task prepareRom {
 
 task prepareCore {
     doLast {
-        def coreName = getConfigValue('conf_core')
+        // Determine core name: either from config.xml or from optimal settings JSON
+        def coreName
+        def optimalSettingsEnabled = getConfigValue('conf_optimal_settings') == 'true'
+        
+        if (optimalSettingsEnabled) {
+            println "🤖 Optimal Settings enabled - resolving core from platform profile"
+            
+            def jsonFile = file("${rootProject.projectDir}/app/src/main/assets/optimal_settings.json")
+            if (!jsonFile.exists()) {
+                throw new GradleException("optimal_settings.json not found in assets/")
+            }
+            
+            def jsonSlurper = new groovy.json.JsonSlurper()
+            def profiles = jsonSlurper.parse(jsonFile)
+            
+            def platformId = getConfigValue('conf_platform')
+            def romName = getConfigValue('conf_rom')
+            def extension = romName.substring(romName.lastIndexOf('.')).toLowerCase()
+            
+            println "   Platform ID: ${platformId ?: '(not set)'}"
+            println "   ROM: $romName"
+            println "   Extension: $extension"
+            
+            def profile = null
+            
+            // Try explicit platform ID first
+            if (platformId && platformId != '') {
+                profile = profiles.find { it.platform_id == platformId }
+                if (profile) {
+                    println "   ✅ Found profile by platform_id: ${profile.platform_id}"
+                }
+            }
+            
+            // Fall back to extension matching
+            if (!profile) {
+                profile = profiles.find { it.extensions.contains(extension) }
+                if (profile) {
+                    println "   ✅ Found profile by extension: ${profile.platform_id}"
+                } else {
+                    throw new GradleException("No optimal settings profile found for extension '$extension'. Add conf_platform or use manual mode (conf_optimal_settings=false)")
+                }
+            }
+            
+            coreName = profile.core
+            println "   🎯 Selected core: $coreName (from optimal profile)"
+        } else {
+            coreName = getConfigValue('conf_core')
+            println "🛠️  Manual mode - using core from conf_core: $coreName"
+        }
+        
         def targetAbi = getConfigValue('conf_target_abi')
         def allAbis = ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
         def abisToFetch = (targetAbi == 'all') ? allAbis : [targetAbi]

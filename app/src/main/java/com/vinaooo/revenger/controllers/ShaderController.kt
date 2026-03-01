@@ -3,17 +3,19 @@ package com.vinaooo.revenger.controllers
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.retroview.RetroView
 
 /** Controller for dynamic real-time shader management */
 class ShaderController(
         private val context: Context,
-        private val sharedPreferences: SharedPreferences
+        private val sharedPreferences: SharedPreferences,
+        private val appConfig: AppConfig
 ) {
 
     companion object {
         private const val PREF_CURRENT_SHADER = "current_shader"
-        private const val DEFAULT_SHADER = "sharp"
+        private const val DEFAULT_SHADER = "disabled"
     }
 
     // List of available shaders
@@ -26,32 +28,42 @@ class ShaderController(
     private var retroView: RetroView? = null
 
     init {
-        // Load saved shader from preferences
-        currentShader =
-                sharedPreferences.getString(PREF_CURRENT_SHADER, DEFAULT_SHADER) ?: DEFAULT_SHADER
-        Log.d("ShaderController", "Initial shader loaded: $currentShader")
+        // Use AppConfig.getShader() (from optimal_settings.json or config.xml) as the default
+        // Only use the saved SharedPreferences value if the user has explicitly changed it before
+        val configDefault = appConfig.getShader().lowercase()
+        val effectiveDefault = if (configDefault in availableShaders) configDefault else DEFAULT_SHADER
+
+        currentShader = if (sharedPreferences.contains(PREF_CURRENT_SHADER)) {
+            // User has saved a preference before — use it
+            sharedPreferences.getString(PREF_CURRENT_SHADER, effectiveDefault) ?: effectiveDefault
+        } else {
+            // First run — use optimal settings / config.xml value
+            effectiveDefault
+        }
+        Log.d("ShaderController", "Initial shader loaded: $currentShader (config default: $effectiveDefault)")
     }
 
-    /** Checks if we are in settings mode (dynamic shader selection) */
+    /** Shader selection is now always available (no longer conditional) */
+    @Deprecated("Shader selection is always enabled")
     private fun isSettingsMode(): Boolean {
-        // Since we don't have direct context access here, check via RetroView
-        return retroView?.isShaderSelectionEnabled() ?: false
+        return true
     }
 
     /** Connects the controller to the RetroView */
     fun connect(retroView: RetroView) {
         this.retroView = retroView
-        // Only apply shader if in settings mode
-        if (isSettingsMode()) {
-            applyCurrentShader()
-        }
+        // Always apply shader (dynamic shader selection always enabled)
+        applyCurrentShader()
         Log.d("ShaderController", "Connected to RetroView")
     }
 
     /** Sets the current shader */
     fun setShader(shader: String) {
         if (shader !in availableShaders) {
-            Log.w("ShaderController", "Invalid shader: $shader")
+            Log.w("ShaderController", "Invalid shader: $shader, falling back to default")
+            currentShader = DEFAULT_SHADER
+            sharedPreferences.edit().putString(PREF_CURRENT_SHADER, DEFAULT_SHADER).apply()
+            applyCurrentShader()
             return
         }
 

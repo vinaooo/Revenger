@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.gamepad.GamePadAlignmentManager
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.privacy.EnhancedPrivacyManager
@@ -32,6 +33,7 @@ class GameActivity : FragmentActivity() {
         private lateinit var menuContainer: FrameLayout
         private lateinit var loadPreviewOverlay: android.widget.ImageView
         private val viewModel: GameActivityViewModel by viewModels()
+        private val appConfig by lazy { RevengerApplication.appConfig }
 
         // GamePad alignment manager for vertical offset
         private lateinit var alignmentManager: GamePadAlignmentManager
@@ -1538,7 +1540,7 @@ class GameActivity : FragmentActivity() {
 
                 floatingButton.layoutParams = layoutParams
                 val shouldShowGamePads =
-                        com.vinaooo.revenger.gamepad.GamePad.shouldShowGamePads(this)
+                        com.vinaooo.revenger.gamepad.GamePad.shouldShowGamePads(this, appConfig)
                 floatingButton.visibility =
                         if (!shouldShowGamePads) android.view.View.VISIBLE
                         else android.view.View.GONE

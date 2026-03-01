@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ======================================================================
+         MANUAL SETTINGS (conf_optimal_settings = false)
+         These values are read by AppConfig when the optimal settings system is
+         disabled. When conf_optimal_settings is true, all tags below are
+         ignored — the equivalent values come from optimal_settings.json.
+         ====================================================================== -->
+
+    <!-- Core variables passed verbatim to the LibRetro core (key=value,key=value) -->
+    <string name="conf_variables">picodrive_overclk68k=+400%,picodrive_overclksz80=+100%</string>
+
+    <!-- Fast forward speed multiplier -->
+    <integer name="conf_fast_forward_multiplier">2</integer>
+
+    <!-- Fullscreen mode — hides system bars -->
+    <bool name="conf_fullscreen">true</bool>
+
+    <!-- Orientation
+         1 = Portrait only   (ignores system auto-rotate)
+         2 = Landscape only  (ignores system auto-rotate)
+         3 = Auto            (respects system auto-rotate setting) -->
+    <integer name="conf_orientation">2</integer>
+
+    <!-- ======================================================================
+         MENU MODES
+         ====================================================================== -->
+
+    <!-- Floating action button position for menu access
+         "disabled" | "top-left" | "top-right" | "bottom-left" | "bottom-right" -->
+    <string name="conf_menu_mode_fab">bottom-right</string>
+
+    <!-- Open menu via the START button on the virtual gamepad -->
+    <bool name="conf_menu_mode_gamepad">true</bool>
+
+    <!-- Open menu via the Android back button / gesture -->
+    <bool name="conf_menu_mode_back">true</bool>
+
+    <!-- Open menu via SELECT + START combo (virtual and physical) -->
+    <bool name="conf_menu_mode_combo">false</bool>
+
+    <!-- ======================================================================
+         VIRTUAL GAMEPAD
+         ====================================================================== -->
+
+    <!-- Show the virtual on-screen gamepad -->
+    <bool name="conf_gamepad">true</bool>
+
+    <!-- Vibrate on touch -->
+    <bool name="conf_gp_haptic">true</bool>
+
+    <!-- Allow multiple simultaneous presses on action buttons (useful for combos) -->
+    <bool name="conf_gp_allow_multiple_presses_action">false</bool>
+
+    <!-- == Action buttons == -->
+    <bool name="conf_gp_a">true</bool>
+    <bool name="conf_gp_b">true</bool>
+    <bool name="conf_gp_x">false</bool>
+    <bool name="conf_gp_y">false</bool>
+
+    <!-- == System buttons == -->
+    <bool name="conf_gp_start">true</bool>
+    <bool name="conf_gp_select">true</bool>
+
+    <!-- == Shoulder buttons == -->
+    <bool name="conf_gp_l1">false</bool>
+    <bool name="conf_gp_r1">false</bool>
+    <bool name="conf_gp_l2">false</bool>
+    <bool name="conf_gp_r2">false</bool>
+
+    <!-- Replace left D-pad with an analog stick -->
+    <bool name="conf_left_analog">false</bool>
+
+    <!-- ======================================================================
+         FAKE / CUSTOM BUTTONS
+         Always read from this file even when optimal settings is on.
+         These map to special in-game functions or custom inputs.
+         ====================================================================== -->
+    <bool name="conf_show_fake_button_0">false</bool>
+    <bool name="conf_show_fake_button_1">false</bool>
+    <bool name="conf_show_fake_button_5">false</bool>
+    <bool name="conf_show_fake_button_6">false</bool>
+    <bool name="conf_show_fake_button_7">false</bool>
+    <bool name="conf_show_fake_button_9">false</bool>
+    <bool name="conf_show_fake_button_10">false</bool>
+    <bool name="conf_show_fake_button_11">false</bool>
+
+    <!-- ======================================================================
+         VIDEO
+         ====================================================================== -->
+
+    <!-- Shader
+         "disabled" = No shader
+         "sharp"    = Sharp bilinear filtering
+         "crt"      = CRT monitor simulation
+         "lcd"      = LCD matrix effect
+         Shader selection is always available in the Settings menu for dynamic changes. -->
+    <string name="conf_shader">disabled</string>
+
+    <!-- ======================================================================
+         DEBUG
+         ====================================================================== -->
+
+    <!-- Overlay showing real-time FPS, CPU and memory usage -->
+    <bool name="conf_performance_overlay">false</bool>
+
+</resources>

@@ -79,6 +79,36 @@ Here's how Revenger is configured with the new multi‑slot system:
 - Edit `app/src/main/res/values/config.xml` and change your configuration
 - Place your ROM files in `roms_backup/` at the project root (the build system automatically stages the active ROM based on `conf_rom` in config.xml)
 
+## Optimal Settings System
+
+Revenger now supports an **optimal settings mode** that automatically configures the emulator based on the platform of the ROM. When enabled, the APK chooses the best LibRetro core, gamepad layout, orientation, shaders and other preferences by inspecting the ROM extension (or an explicit `conf_platform` tag). This eliminates manual tweaking and makes packaging one‑tap ready games trivial.
+
+### Enabling
+Add the following tags in `app/src/main/res/values/config.xml`:
+
+```xml
+<bool name="conf_optimal_settings">true</bool>
+<string name="conf_platform"/><!-- optional, used when extension is ambiguous -->
+```
+
+`conf_optimal_settings` is a **build‑time flag**. When `false` (the default) Revenger behaves exactly as before, using values directly from `config.xml`.
+
+### How it works
+1. On build, the Gradle `prepareCore` task reads the optimal settings JSON (`app/src/main/assets/optimal_settings.json`).
+2. It resolves a profile by `conf_platform` or ROM filename extension and selects the corresponding core for download.
+3. At runtime, an `AppConfig` facade returns either the original config.xml values or overrides from the profile. All components (RetroView, GamePad, controllers, etc.) query `AppConfig` instead of resources directly.
+
+### Supported platforms
+The JSON currently includes profiles for: **Master System (sms/gg)**, **Mega Drive (md)**, **Super Nintendo (snes)**, **Game Boy/Color (gb/gbc)**, **Game Boy Advance (gba)** and **NES (nes)**. Adding new platforms is as simple as editing the JSON and optionally adjusting aspect ratio mappings.
+
+### Benefits
+- ✅ One‑tap packaging – just install and play
+- ✅ Optimized core and variable presets per system
+- ✅ Build‑time validation prevents incorrect cores
+- 🚫 Zero impact when disabled (legacy configs still work)
+
+For full details see [docs/optimal_settings.md](docs/optimal_settings.md).
+
 ## Shader Configuration
 Revenger supports configurable video shaders for enhanced visual experience:
 

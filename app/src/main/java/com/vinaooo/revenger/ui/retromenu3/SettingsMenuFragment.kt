@@ -129,19 +129,11 @@ class SettingsMenuFragment : MenuFragmentBase() {
         gameSpeedSettings = view.findViewById(R.id.settings_game_speed)
         backSettings = view.findViewById(R.id.settings_back)
 
-        // Check if shader selection is enabled (conf_shader == "settings")
-        val isShaderSelectionEnabled = isShaderSelectionEnabled()
+        // Shader selection is now always available
+        shaderSettings.visibility = View.VISIBLE
 
-        // Conditionally show/hide shader settings based on config
-        shaderSettings.visibility = if (isShaderSelectionEnabled) View.VISIBLE else View.GONE
-
-        // Initialize ordered list of menu items (dynamic based on shader visibility)
-        menuItems =
-                if (isShaderSelectionEnabled) {
-                    listOf(soundSettings, shaderSettings, gameSpeedSettings, backSettings)
-                } else {
-                    listOf(soundSettings, gameSpeedSettings, backSettings)
-                }
+        // Initialize ordered list of menu items (shader always included)
+        menuItems = listOf(soundSettings, shaderSettings, gameSpeedSettings, backSettings)
 
         // Configure RetroCardView to use transparent background for selected state (not yellow)
         soundSettings.setUseBackgroundColor(false)
@@ -179,10 +171,10 @@ class SettingsMenuFragment : MenuFragmentBase() {
         )
     }
 
-    /** Check if shader selection is enabled based on conf_shader setting */
+    /** Shader selection is always enabled (legacy method kept for compatibility) */
+    @Deprecated("Shader selection is now always enabled")
     private fun isShaderSelectionEnabled(): Boolean {
-        val configShader = resources.getString(R.string.conf_shader)
-        return configShader == "settings"
+        return true
     }
 
     private fun setupClickListeners() {
@@ -275,34 +267,33 @@ class SettingsMenuFragment : MenuFragmentBase() {
     /** Confirm current selection - execute actions DIRECTLY (do not use performClick) */
     override fun performConfirm() {
         val selectedIndex = getCurrentSelectedIndex()
-        val isShaderEnabled = isShaderSelectionEnabled()
         android.util.Log.d(
                 TAG,
-                "[ACTION] Settings menu: CONFIRM on index $selectedIndex (shader enabled: $isShaderEnabled)"
+                "[ACTION] Settings menu: CONFIRM on index $selectedIndex"
         )
 
-        when {
-            selectedIndex == 0 -> {
+        when (selectedIndex) {
+            0 -> {
                 // Sound toggle - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Settings menu: Sound toggle selected")
                 val currentAudioState = viewModel.getAudioState()
                 viewModel.setAudioEnabled(!currentAudioState)
                 updateMenuState()
             }
-            selectedIndex == 1 && isShaderEnabled -> {
+            1 -> {
                 // Shader toggle - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Settings menu: Shader toggle selected")
                 viewModel.onToggleShader()
                 updateMenuState()
             }
-            (selectedIndex == 1 && !isShaderEnabled) || (selectedIndex == 2 && isShaderEnabled) -> {
+            2 -> {
                 // Game speed toggle - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Settings menu: Game speed toggle selected")
                 val currentFastForwardState = viewModel.getFastForwardState()
                 viewModel.setFastForwardEnabled(!currentFastForwardState)
                 updateMenuState()
             }
-            (selectedIndex == 2 && !isShaderEnabled) || (selectedIndex == 3 && isShaderEnabled) -> {
+            3 -> {
                 // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Settings menu: Back to main menu selected")
                 // Use NavigationController to navigate back (don't call performBack which returns false)
@@ -325,7 +316,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     /** Update selection visual - specific implementation for SettingsMenuFragment */
     override fun updateSelectionVisualInternal() {
-        val isShaderEnabled = isShaderSelectionEnabled()
         val selectedIndex = getCurrentSelectedIndex()
 
         // Update each menu item state based on selection
@@ -339,7 +329,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
             }
         }
 
-        // Control text colors based on selection (dynamic based on shader visibility)
+        // Control text colors based on selection (shader always available)
         soundTitle.setTextColor(
                 if (selectedIndex == 0)
                         androidx.core.content.ContextCompat.getColor(
@@ -353,75 +343,46 @@ class SettingsMenuFragment : MenuFragmentBase() {
                         )
         )
 
-        if (isShaderEnabled) {
-            shaderTitle.setTextColor(
-                    if (selectedIndex == 1)
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_selected_color
-                            )
-                    else
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_normal_color
-                            )
-            )
-            gameSpeedTitle.setTextColor(
-                    if (selectedIndex == 2)
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_selected_color
-                            )
-                    else
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_normal_color
-                            )
-            )
-            backTitle.setTextColor(
-                    if (selectedIndex == 3)
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_selected_color
-                            )
-                    else
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_normal_color
-                            )
-            )
-        } else {
-            gameSpeedTitle.setTextColor(
-                    if (selectedIndex == 1)
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_selected_color
-                            )
-                    else
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_normal_color
-                            )
-            )
-            backTitle.setTextColor(
-                    if (selectedIndex == 2)
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_selected_color
-                            )
-                    else
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_normal_color
-                            )
-            )
-        }
+        shaderTitle.setTextColor(
+                if (selectedIndex == 1)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.rm_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.rm_normal_color
+                        )
+        )
+
+        gameSpeedTitle.setTextColor(
+                if (selectedIndex == 2)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.rm_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.rm_normal_color
+                        )
+        )
+
+        backTitle.setTextColor(
+                if (selectedIndex == 3)
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.rm_selected_color
+                        )
+                else
+                        androidx.core.content.ContextCompat.getColor(
+                                requireContext(),
+                                R.color.rm_normal_color
+                        )
+        )
 
         // Control selection arrows colors and visibility
-        // FIX: Selected item shows arrow without margin (attached to text)
-        // val arrowMarginEnd =
-        // resources.getDimensionPixelSize(R.dimen.rm_arrow_margin_end)
-
         // Sound
         if (selectedIndex == 0) {
             selectionArrowSound.setTextColor(
@@ -439,8 +400,8 @@ class SettingsMenuFragment : MenuFragmentBase() {
             selectionArrowSound.visibility = View.GONE
         }
 
-        // Shader (only if enabled)
-        if (isShaderEnabled && selectedIndex == 1) {
+        // Shader (always available)
+        if (selectedIndex == 1) {
             selectionArrowShader.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
@@ -457,8 +418,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
         }
 
         // Game Speed
-        val gameSpeedIndex = if (isShaderEnabled) 2 else 1
-        if (selectedIndex == gameSpeedIndex) {
+        if (selectedIndex == 2) {
             selectionArrowGameSpeed.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
@@ -475,8 +435,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
         }
 
         // Back
-        val backIndex = if (isShaderEnabled) 3 else 2
-        if (selectedIndex == backIndex) {
+        if (selectedIndex == 3) {
             selectionArrowBack.setTextColor(
                     androidx.core.content.ContextCompat.getColor(
                             requireContext(),
@@ -554,42 +513,25 @@ class SettingsMenuFragment : MenuFragmentBase() {
     // ===== MenuFragmentBase Abstract Methods Implementation =====
 
     override fun getMenuItems(): List<MenuItem> {
-        val isShaderEnabled = isShaderSelectionEnabled()
-
-        return if (isShaderEnabled) {
-            listOf(
-                    MenuItem(
-                            "sound",
-                            getString(R.string.settings_audio),
-                            action = MenuAction.TOGGLE_AUDIO
-                    ),
-                    MenuItem(
-                            "shader",
-                            getString(R.string.settings_shader),
-                            action = MenuAction.TOGGLE_SHADER
-                    ),
-                    MenuItem(
-                            "speed",
-                            getString(R.string.menu_fast_forward),
-                            action = MenuAction.TOGGLE_SPEED
-                    ),
-                    MenuItem("back", getString(R.string.settings_back), action = MenuAction.BACK)
-            )
-        } else {
-            listOf(
-                    MenuItem(
-                            "sound",
-                            getString(R.string.settings_audio),
-                            action = MenuAction.TOGGLE_AUDIO
-                    ),
-                    MenuItem(
-                            "speed",
-                            getString(R.string.menu_fast_forward),
-                            action = MenuAction.TOGGLE_SPEED
-                    ),
-                    MenuItem("back", getString(R.string.settings_back), action = MenuAction.BACK)
-            )
-        }
+        // Shader selection is now always available
+        return listOf(
+                MenuItem(
+                        "sound",
+                        getString(R.string.settings_audio),
+                        action = MenuAction.TOGGLE_AUDIO
+                ),
+                MenuItem(
+                        "shader",
+                        getString(R.string.settings_shader),
+                        action = MenuAction.TOGGLE_SHADER
+                ),
+                MenuItem(
+                        "speed",
+                        getString(R.string.menu_fast_forward),
+                        action = MenuAction.TOGGLE_SPEED
+                ),
+                MenuItem("back", getString(R.string.settings_back), action = MenuAction.BACK)
+        )
     }
 
     override fun onMenuItemSelected(item: MenuItem) {
