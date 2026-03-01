@@ -17,9 +17,6 @@
          These are always read from this file, regardless of optimal_settings.
          ====================================================================== -->
 
-    <!-- Unique identifier for the app (no spaces or special characters) -->
-    <string name="conf_id">sth</string>
-
     <!-- Display name -->
     <string name="conf_name">Não jogar</string>
 

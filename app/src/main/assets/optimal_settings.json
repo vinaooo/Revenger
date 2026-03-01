@@ -27,7 +27,7 @@
         "conf_gp_l2": false,
         "conf_gp_r2": false,
         "conf_left_analog": false,
-        "conf_shader": "settings",
+        "conf_shader": "crt",
         "conf_performance_overlay": false
     },
     {

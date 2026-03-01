@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.vinaooo.revenger.models.OptimalSettingsProfile
 import com.vinaooo.revenger.repositories.OptimalSettingsRepository
+import com.vinaooo.revenger.utils.ConfigIdGenerator
 
 /**
  * Centralized application configuration facade.
@@ -51,7 +52,10 @@ class AppConfig(private val context: Context) {
 
     // ========== Identity settings (always from config.xml) ==========
 
-    fun getId(): String = resources.getString(R.string.conf_id)
+    fun getId(): String = ConfigIdGenerator.generate(
+        resources.getString(R.string.conf_name),
+        getCore()
+    )
 
     fun getName(): String = resources.getString(R.string.conf_name)
 
