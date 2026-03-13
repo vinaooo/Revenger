@@ -16,7 +16,7 @@ import com.vinaooo.revenger.R
  * Goal: Ensure that the centers of LEFT and RIGHT GamePads are always horizontally
  * aligned, even when they have different secondary button configurations.
  */
-class GamePadAlignmentManager(private val resources: Resources) {
+class GamePadAlignmentManager(private val context: android.content.Context) {
 
     companion object {
         private const val TAG = "GamePadAlignmentManager"
@@ -123,8 +123,9 @@ class GamePadAlignmentManager(private val resources: Resources) {
      */
     fun validateOffsets(): Pair<Boolean, String> {
         return try {
-            val portraitOffset = resources.getInteger(R.integer.gp_offset_portrait)
-            val landscapeOffset = resources.getInteger(R.integer.gp_offset_landscape)
+            val config = com.vinaooo.revenger.repositories.GamepadConfigRepository.getInstance(context).get()
+            val portraitOffset = config.offsets.portraitPercent
+            val landscapeOffset = config.offsets.landscapePercent
 
             val portraitValid = portraitOffset in 0..100
             val landscapeValid = landscapeOffset in 0..100

@@ -1,6 +1,6 @@
 {
   "identity": {
-    "optimal_settings": true,
+    "optimal_settings": false,
     "platform": "",
     "name": "Não jogar",
     "core": "picodrive",

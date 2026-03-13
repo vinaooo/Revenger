@@ -1,0 +1,13 @@
+{
+  "colors": {
+    "button_color": "#88ffffff",
+    "pressed_color": "#66ffffff"
+  },
+  "dimensions": {
+    "padding_vertical_dp": 20
+  },
+  "offsets": {
+    "portrait_percent": 100,
+    "landscape_percent": 50
+  }
+}

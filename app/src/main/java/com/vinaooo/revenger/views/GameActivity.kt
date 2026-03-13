@@ -148,7 +148,7 @@ class GameActivity : FragmentActivity() {
                 gamePadContainer = gamepadContainers
 
                 // Initialize GamePad alignment manager
-                alignmentManager = GamePadAlignmentManager(resources)
+                alignmentManager = GamePadAlignmentManager(this)
                 val (offsetsValid, errorMsg) = alignmentManager.validateOffsets()
                 if (!offsetsValid) {
                         Log.w(TAG, "GamePad offset validation error: $errorMsg")
@@ -1312,7 +1312,7 @@ class GameActivity : FragmentActivity() {
          */
         private fun applyPortraitOffset(container: android.widget.LinearLayout) {
                 try {
-                        val offsetPercent = resources.getInteger(R.integer.gp_offset_portrait)
+                        val offsetPercent = com.vinaooo.revenger.repositories.GamepadConfigRepository.getInstance(this).get().offsets.portraitPercent
 
                         // Use parent height (FrameLayout) minus container height to
                         // calculate available space
@@ -1354,7 +1354,7 @@ class GameActivity : FragmentActivity() {
          */
         private fun applyLandscapeOffset(container: android.widget.LinearLayout) {
                 try {
-                        val offsetPercent = resources.getInteger(R.integer.gp_offset_landscape)
+                        val offsetPercent = com.vinaooo.revenger.repositories.GamepadConfigRepository.getInstance(this).get().offsets.landscapePercent
 
                         // Use parent height (FrameLayout) minus container height to
                         // calculate available space
