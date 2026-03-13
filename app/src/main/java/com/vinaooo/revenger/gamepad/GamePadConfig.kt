@@ -51,8 +51,8 @@ class GamePadConfig(context: Context, private val appConfig: AppConfig) {
         private val radialGamePadTheme =
                 RadialGamePadTheme(
                         textColor = ContextCompat.getColor(context, android.R.color.white),
-                        normalColor = ContextCompat.getColor(context, R.color.gp_button_color),
-                        pressedColor = ContextCompat.getColor(context, R.color.gp_pressed_color)
+                        normalColor = android.graphics.Color.parseColor(appConfig.gamePadConfigModel.gp_button_color),
+                        pressedColor = android.graphics.Color.parseColor(appConfig.gamePadConfigModel.gp_pressed_color)
                 )
 
         private fun getActionButtonsInOrder(): List<ButtonConfig> {

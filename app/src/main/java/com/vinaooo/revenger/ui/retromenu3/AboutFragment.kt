@@ -243,13 +243,13 @@ class AboutFragment : MenuFragmentBase() {
 
         // ROM name from config - combine label and value
         val romLabel = resources.getString(R.string.about_rom_name)
-        val romName = resources.getString(R.string.conf_rom)
+        val romName = com.vinaooo.revenger.RevengerApplication.appConfig.getRomName()
         romNameInfo.text = "$romLabel $romName"
         applyConfiguredCapitalization(romNameInfo)
 
         // Core name from config - combine label and value
         val coreLabel = resources.getString(R.string.about_core_name)
-        val coreName = resources.getString(R.string.conf_core)
+        val coreName = com.vinaooo.revenger.RevengerApplication.appConfig.getCore()
         coreNameInfo.text = "$coreLabel $coreName"
         applyConfiguredCapitalization(coreNameInfo)
     }

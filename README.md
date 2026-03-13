@@ -76,7 +76,7 @@ Here's how Revenger is configured with the new multi‑slot system:
 - [LibRetro](http://buildbot.libretro.com/nightly/): Emulator cores for Android
 
 # Configuration
-- Edit `app/src/main/res/values/config.xml` and change your configuration
+- Edit `app/src/main/assets/config/config.json` and change your configuration
 - Place your ROM files in `roms_backup/` at the project root (the build system automatically stages the active ROM based on `conf_rom` in config.xml)
 
 ## Optimal Settings System
@@ -84,7 +84,7 @@ Here's how Revenger is configured with the new multi‑slot system:
 Revenger now supports an **optimal settings mode** that automatically configures the emulator based on the platform of the ROM. When enabled, the APK chooses the best LibRetro core, gamepad layout, orientation, shaders and other preferences by inspecting the ROM extension (or an explicit `conf_platform` tag). This eliminates manual tweaking and makes packaging one‑tap ready games trivial.
 
 ### Enabling
-Add the following tags in `app/src/main/res/values/config.xml`:
+Add the following tags in `app/src/main/assets/config/config.json`:
 
 ```xml
 <bool name="conf_optimal_settings">true</bool>

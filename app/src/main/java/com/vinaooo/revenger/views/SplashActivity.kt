@@ -45,7 +45,7 @@ class SplashActivity : AppCompatActivity() {
 
         // CRITICAL: Apply orientation IMMEDIATELY after super.onCreate()
         // to avoid incorrect orientation flash
-        val configOrientation = resources.getInteger(R.integer.conf_orientation)
+        val configOrientation = com.vinaooo.revenger.RevengerApplication.appConfig.getOrientation()
         OrientationManager.applyConfigOrientation(this, configOrientation)
 
         Log.d(TAG, "SplashActivity created - orientation: $configOrientation")
@@ -128,7 +128,7 @@ class SplashActivity : AppCompatActivity() {
 
         // Reapply forced orientation to keep conf_orientation authoritative
         // Ensures physical orientation changes do not interfere with animation
-        val configOrientation = resources.getInteger(R.integer.conf_orientation)
+        val configOrientation = com.vinaooo.revenger.RevengerApplication.appConfig.getOrientation()
         OrientationManager.applyConfigOrientation(this, configOrientation)
         Log.d(TAG, "Configuration changed - orientation reapplied: $configOrientation")
     }

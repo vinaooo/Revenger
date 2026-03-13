@@ -57,25 +57,24 @@ MIPMAP_SIZES = {
     "xxxhdpi": (192, 192)
 }
 
+import json
 def parse_config_xml(config_file_path=None):
-    """Parses config.xml to determine core and rom name."""
+    """Parses config.json to determine core and rom name."""
     if not config_file_path:
-        config_file_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "res", "values", "config.xml")
+        config_file_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "assets", "config", "config.json")
         
     try:
-        tree = ET.parse(config_file_path)
-        root = tree.getroot()
-        core = ""
-        rom = ""
-        for elem in root.findall("string"):
-            if elem.attrib.get("name") == "conf_core":
-                core = elem.text or ""
-            elif elem.attrib.get("name") == "conf_rom":
-                rom = elem.text or ""
-        return core.strip(), rom.strip()
+        with open(config_file_path, 'r', encoding='utf-8') as f:
+            config_data = json.load(f)
+        
+        core_value = config_data.get('conf_core', "")
+        rom_value = config_data.get('conf_rom', "")
+        
+        return core_value.strip(), rom_value.strip()
     except Exception as e:
-        print(f"Error parsing config.xml at {config_file_path}: {e}")
+        print(f"Error parsing config.json at {config_file_path}: {e}")
         return "", ""
+
 
 def determine_platform(core, rom):
     """Determines the platform from the ROM extension or libretro core."""

@@ -1,0 +1,9 @@
+{
+    "conf_optimal_settings": false,
+    "conf_platform": "",
+    "conf_name": "Não jogar 2",
+    "conf_core": "picodrive",
+    "conf_rom": "Sonic The Hedgehog (USA, Europe, Brazil) (En) (2).sms",
+    "conf_target_abi": "arm64-v8a",
+    "conf_load_bytes": false
+}

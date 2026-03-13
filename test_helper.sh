@@ -37,7 +37,7 @@ print_info() {
 
 # Read config_id from config.xml
 get_config_id() {
-    local config_id=$(grep -oP '(?<=<string name="config_id">)[^<]+' app/src/main/res/values/config.xml 2>/dev/null)
+    local config_id=$(jq -r '(?<=<string name="config_id">)[^<]+' app/src/main/assets/config/config.json 2>/dev/null)
     if [ -z "$config_id" ]; then
         print_error "Could not read config_id from config.xml"
         exit 1
@@ -108,7 +108,7 @@ check_environment() {
     fi
     
     # Check ROM configured
-    local rom=$(grep -oP '(?<=<string name="config_rom">)[^<]+' app/src/main/res/values/config.xml 2>/dev/null)
+    local rom=$(jq -r '(?<=<string name="config_rom">)[^<]+' app/src/main/assets/config/config.json 2>/dev/null)
     if [ -n "$rom" ]; then
         print_success "ROM configured: $rom"
     else

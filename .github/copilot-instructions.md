@@ -5,7 +5,7 @@ Revenger is a LibRetro-powered ROM packager for portable Android emulation. It p
 
 ## Architecture Overview
 - **Single-Package Philosophy**: ROM + LibRetro core + config = one APK (no external ROM importing)
-- **Configuration-Driven**: All app behavior controlled via `app/src/main/res/values/config.xml`
+- **Configuration-Driven**: All app behavior controlled via `app/src/main/assets/config/config.json`
 - **Dynamic Core Loading**: LibRetro cores downloaded during build from buildbot.libretro.com
 - **MVVM Architecture**: Kotlin-based with ViewModels, LiveData, and modern Android patterns
 
@@ -30,7 +30,7 @@ Revenger is a LibRetro-powered ROM packager for portable Android emulation. It p
 ```
 
 ### Configuration Setup
-1. Edit `app/src/main/res/values/config.xml`:
+1. Edit `app/src/main/assets/config/config.json`:
    - `config_id`: Unique app identifier (no spaces/special chars)
    - `config_core`: LibRetro core name (gambatte, bsnes, genesis_plus_gx, smsplus)
    - `config_rom`: ROM filename in `res/raw/` (without extension)

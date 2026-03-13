@@ -10,42 +10,21 @@ plugins {
  */
 def getConfigValue = { String id ->
     try {
-        def configFile = file("${rootProject.projectDir.path}/app/src/main/res/values/config.xml")
+        def configFile = file("${rootProject.projectDir.path}/app/src/main/assets/config/config.json")
+        def manualFile = file("${rootProject.projectDir.path}/app/src/main/assets/config/config_manual.json")
         
-        if (!configFile.exists()) {
-            throw new GradleException("Configuration file not found: ${configFile.absolutePath}")
+        if (configFile.exists()) {
+            def json = new groovy.json.JsonSlurper().parseText(configFile.text)
+            if (json.containsKey(id)) return json[id].toString()
+        }
+        if (manualFile.exists()) {
+            def manualJson = new groovy.json.JsonSlurper().parseText(manualFile.text)
+            if (manualJson.containsKey(id)) return manualJson[id].toString()
         }
         
-        def parser = new XmlParser()
-        def resources = parser.parse(configFile)
-        
-        // Buscar por string elements
-        def stringElement = resources.string.find { element ->
-            element.@name.equals(id)
-        }
-        
-        if (stringElement != null) {
-            def value = stringElement.text()
-            println "getConfigValue($id) = '$value'"
-            return value
-        }
-        
-        // Buscar por bool elements  
-        def boolElement = resources.bool.find { element ->
-            element.@name.equals(id)
-        }
-        
-        if (boolElement != null) {
-            def value = boolElement.text()
-            println "getConfigValue($id) = '$value' (boolean)"
-            return value
-        }
-        
-        // Not found
-        throw new GradleException("Configuration '$id' not found in config.xml file")
-        
+        throw new GradleException("Configuration '" + id + "' not found in config.json files")
     } catch (Exception e) {
-        throw new GradleException("Error reading configuration '$id': ${e.message}", e)
+        throw new GradleException("Error reading configuration '" + id + "': " + e.message, e)
     }
 }
 
@@ -82,6 +61,9 @@ android {
         versionCode 1
         versionName '1.0'
         resConfigs 'en'
+
+        // Dynamically inject the app name to satisfy AndroidManifest.xml
+        resValue "string", "conf_name", "\"${getConfigValue('conf_name')}\""
 
         // Filter ABIs based on conf_target_abi
         def targetAbi = getConfigValue('conf_target_abi')
@@ -162,7 +144,7 @@ android {
 
 task generateIcons(type: Exec) {
     def pythonScript = file("${rootProject.projectDir.path}/icons/scripts/master_icon.py")
-    def configFile = file("${rootProject.projectDir.path}/app/src/main/res/values/config.xml")
+    def configFile = file("${rootProject.projectDir.path}/app/src/main/assets/config/config.json")
     commandLine 'python3', pythonScript.absolutePath, '--config', configFile.absolutePath
     doFirst {
         println "🎨 Generating App Icons using python script..."
@@ -368,6 +350,7 @@ prepareCore.dependsOn prepareRom
 preBuild.dependsOn prepareCore
 
 dependencies {
+    implementation "com.google.code.gson:gson:2.10.1"
     implementation files('libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
@@ -394,6 +377,7 @@ dependencies {
 }
 
 dependencies {
+    implementation "com.google.code.gson:gson:2.10.1"
     // Unit Test dependencies
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:5.12.0'

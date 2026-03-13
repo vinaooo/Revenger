@@ -87,7 +87,7 @@ class GameActivity : FragmentActivity() {
                 // CRITICAL: Apply orientation in TWO steps to eliminate flash:
                 // 1. Force Configuration BEFORE setContentView (chooses correct layout)
                 // 2. Apply requestedOrientation for persistence
-                val configOrientation = resources.getInteger(R.integer.conf_orientation)
+                val configOrientation = appConfig.getOrientation()
                 com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(
                         this,
                         configOrientation
@@ -148,7 +148,7 @@ class GameActivity : FragmentActivity() {
                 gamePadContainer = gamepadContainers
 
                 // Initialize GamePad alignment manager
-                alignmentManager = GamePadAlignmentManager(resources)
+                alignmentManager = GamePadAlignmentManager(appConfig)
                 val (offsetsValid, errorMsg) = alignmentManager.validateOffsets()
                 if (!offsetsValid) {
                         Log.w(TAG, "GamePad offset validation error: $errorMsg")
@@ -296,7 +296,7 @@ class GameActivity : FragmentActivity() {
 
                 // Check if we should reprocess orientation
                 // DO NOT reprocess when config=3 and auto-rotate=OFF (to allow manual button)
-                val configOrientation = resources.getInteger(R.integer.conf_orientation)
+                val configOrientation = appConfig.getOrientation()
                 val autoRotateEnabled =
                         try {
                                 android.provider.Settings.System.getInt(
@@ -1312,7 +1312,7 @@ class GameActivity : FragmentActivity() {
          */
         private fun applyPortraitOffset(container: android.widget.LinearLayout) {
                 try {
-                        val offsetPercent = resources.getInteger(R.integer.gp_offset_portrait)
+                        val offsetPercent = appConfig.gamePadConfigModel.gp_offset_portrait
 
                         // Use parent height (FrameLayout) minus container height to
                         // calculate available space
@@ -1354,7 +1354,7 @@ class GameActivity : FragmentActivity() {
          */
         private fun applyLandscapeOffset(container: android.widget.LinearLayout) {
                 try {
-                        val offsetPercent = resources.getInteger(R.integer.gp_offset_landscape)
+                        val offsetPercent = appConfig.gamePadConfigModel.gp_offset_landscape
 
                         // Use parent height (FrameLayout) minus container height to
                         // calculate available space
