@@ -1,6 +1,7 @@
 import os
 import sys
 import xml.etree.ElementTree as ET
+import json
 from PIL import Image, ImageDraw
 from pathlib import Path
 
@@ -57,24 +58,19 @@ MIPMAP_SIZES = {
     "xxxhdpi": (192, 192)
 }
 
-def parse_config_xml(config_file_path=None):
-    """Parses config.xml to determine core and rom name."""
+def parse_config(config_file_path=None):
+    """Parses config.json to determine core and rom name."""
     if not config_file_path:
-        config_file_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "res", "values", "config.xml")
+        config_file_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "assets", "config.json")
         
     try:
-        tree = ET.parse(config_file_path)
-        root = tree.getroot()
-        core = ""
-        rom = ""
-        for elem in root.findall("string"):
-            if elem.attrib.get("name") == "conf_core":
-                core = elem.text or ""
-            elif elem.attrib.get("name") == "conf_rom":
-                rom = elem.text or ""
+        with open(config_file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        core = data.get("identity", {}).get("core", "")
+        rom = data.get("identity", {}).get("rom", "")
         return core.strip(), rom.strip()
     except Exception as e:
-        print(f"Error parsing config.xml at {config_file_path}: {e}")
+        print(f"Error parsing config at {config_file_path}: {e}")
         return "", ""
 
 def determine_platform(core, rom):
@@ -220,9 +216,9 @@ def main():
     print("🚀 Master Icon Creation Orchestrator")
     
     # Parse config
-    core, rom = parse_config_xml(args.config)
+    core, rom = parse_config(args.config)
     if not core or not rom:
-        print("❌ Could not determine core or rom from config.xml. Using default values for generation might be needed.")
+        print("❌ Could not determine core or rom from config.json. Using default values for generation might be needed.")
         sys.exit(1)
         
     platform = determine_platform(core, rom)

@@ -1,0 +1,47 @@
+{
+  "identity": {
+    "optimal_settings": true,
+    "platform": "",
+    "name": "Não jogar",
+    "core": "picodrive",
+    "rom": "Sonic The Hedgehog (USA, Europe, Brazil) (En) (2).sms",
+    "target_abi": "arm64-v8a",
+    "load_bytes": false
+  },
+  "manual_settings": {
+    "variables": "picodrive_overclk68k=+400%,picodrive_overclksz80=+100%",
+    "fast_forward_multiplier": 2,
+    "fullscreen": true,
+    "orientation": 2,
+    "shader": "disabled",
+    "menu_mode_fab": "bottom-right",
+    "menu_mode_gamepad": true,
+    "menu_mode_back": true,
+    "menu_mode_combo": false,
+    "gamepad": true,
+    "gp_haptic": true,
+    "gp_allow_multiple_presses_action": false,
+    "gp_a": true,
+    "gp_b": true,
+    "gp_x": false,
+    "gp_y": false,
+    "gp_start": true,
+    "gp_select": true,
+    "gp_l1": false,
+    "gp_r1": false,
+    "gp_l2": false,
+    "gp_r2": false,
+    "left_analog": false,
+    "performance_overlay": false
+  },
+  "fake_buttons": {
+    "show_0": false,
+    "show_1": false,
+    "show_5": false,
+    "show_6": false,
+    "show_7": false,
+    "show_9": false,
+    "show_10": false,
+    "show_11": false
+  }
+}

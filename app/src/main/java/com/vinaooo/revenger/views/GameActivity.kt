@@ -87,7 +87,7 @@ class GameActivity : FragmentActivity() {
                 // CRITICAL: Apply orientation in TWO steps to eliminate flash:
                 // 1. Force Configuration BEFORE setContentView (chooses correct layout)
                 // 2. Apply requestedOrientation for persistence
-                val configOrientation = resources.getInteger(R.integer.conf_orientation)
+                val configOrientation = com.vinaooo.revenger.repositories.ConfigRepository.getInstance(this).get().manualSettings.orientation
                 com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(
                         this,
                         configOrientation
@@ -296,7 +296,7 @@ class GameActivity : FragmentActivity() {
 
                 // Check if we should reprocess orientation
                 // DO NOT reprocess when config=3 and auto-rotate=OFF (to allow manual button)
-                val configOrientation = resources.getInteger(R.integer.conf_orientation)
+                val configOrientation = com.vinaooo.revenger.repositories.ConfigRepository.getInstance(this).get().manualSettings.orientation
                 val autoRotateEnabled =
                         try {
                                 android.provider.Settings.System.getInt(
@@ -1506,7 +1506,7 @@ class GameActivity : FragmentActivity() {
         /** Set up the floating menu button config and listener */
         private fun setupFloatingMenuButton() {
                 val floatingButton = findViewById<android.widget.Button>(R.id.floating_menu_button)
-                val configValue = resources.getString(R.string.conf_menu_mode_fab).lowercase()
+                val configValue = appConfig.getMenuModeFab().lowercase()
 
                 if (configValue == "disabled") {
                         floatingButton.visibility = android.view.View.GONE

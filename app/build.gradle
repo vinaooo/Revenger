@@ -5,44 +5,52 @@ plugins {
 }
 
 /**
- * Modern function for reading XML configurations
- * Replaces configValue with better error handling and logging
+ * Modern function for reading configurations from config.json
+ * Replaces XML-based configValue with JSON parsing
  */
 def getConfigValue = { String id ->
     try {
-        def configFile = file("${rootProject.projectDir.path}/app/src/main/res/values/config.xml")
+        def configFile = file("${rootProject.projectDir.path}/app/src/main/assets/config.json")
         
         if (!configFile.exists()) {
             throw new GradleException("Configuration file not found: ${configFile.absolutePath}")
         }
         
-        def parser = new XmlParser()
-        def resources = parser.parse(configFile)
+        def jsonSlurper = new groovy.json.JsonSlurper()
+        def config = jsonSlurper.parse(configFile)
         
-        // Buscar por string elements
-        def stringElement = resources.string.find { element ->
-            element.@name.equals(id)
+        // Map legacy conf_* keys to JSON paths
+        def value = null
+        switch (id) {
+            // Identity section
+            case 'conf_name': value = config.identity.name; break
+            case 'conf_core': value = config.identity.core; break
+            case 'conf_rom': value = config.identity.rom; break
+            case 'conf_target_abi': value = config.identity.target_abi; break
+            case 'conf_load_bytes': value = config.identity.load_bytes?.toString(); break
+            case 'conf_optimal_settings': value = config.identity.optimal_settings?.toString(); break
+            case 'conf_platform': value = config.identity.platform; break
+            
+            // Manual settings section
+            case 'conf_fast_forward_multiplier': value = config.manual_settings.fast_forward_multiplier?.toString(); break
+            case 'conf_fullscreen': value = config.manual_settings.fullscreen?.toString(); break
+            case 'conf_orientation': value = config.manual_settings.orientation?.toString(); break
+            case 'conf_shader': value = config.manual_settings.shader; break
+            case 'conf_variables': value = config.manual_settings.variables; break
+            case 'conf_menu_mode_fab': value = config.manual_settings.menu_mode_fab; break
+            case 'conf_menu_mode_gamepad': value = config.manual_settings.menu_mode_gamepad?.toString(); break
+            case 'conf_menu_mode_back': value = config.manual_settings.menu_mode_back?.toString(); break
+            case 'conf_menu_mode_combo': value = config.manual_settings.menu_mode_combo?.toString(); break
+            case 'conf_gamepad': value = config.manual_settings.gamepad?.toString(); break
+            case 'conf_performance_overlay': value = config.manual_settings.performance_overlay?.toString(); break
         }
         
-        if (stringElement != null) {
-            def value = stringElement.text()
+        if (value != null) {
             println "getConfigValue($id) = '$value'"
             return value
         }
         
-        // Buscar por bool elements  
-        def boolElement = resources.bool.find { element ->
-            element.@name.equals(id)
-        }
-        
-        if (boolElement != null) {
-            def value = boolElement.text()
-            println "getConfigValue($id) = '$value' (boolean)"
-            return value
-        }
-        
-        // Not found
-        throw new GradleException("Configuration '$id' not found in config.xml file")
+        throw new GradleException("Configuration '$id' not found in config.json")
         
     } catch (Exception e) {
         throw new GradleException("Error reading configuration '$id': ${e.message}", e)
@@ -162,7 +170,7 @@ android {
 
 task generateIcons(type: Exec) {
     def pythonScript = file("${rootProject.projectDir.path}/icons/scripts/master_icon.py")
-    def configFile = file("${rootProject.projectDir.path}/app/src/main/res/values/config.xml")
+    def configFile = file("${rootProject.projectDir.path}/app/src/main/assets/config.json")
     commandLine 'python3', pythonScript.absolutePath, '--config', configFile.absolutePath
     doFirst {
         println "🎨 Generating App Icons using python script..."
@@ -391,6 +399,9 @@ dependencies {
     
     // Phase 9.4: SDK 36 Features - REMOVED: Material Design Components (replaced with RetroCardView)
     // implementation 'com.google.android.material:material:1.13.0'
+
+    // Gson - JSON parsing for config.json
+    implementation 'com.google.code.gson:gson:2.11.0'
 }
 
 dependencies {

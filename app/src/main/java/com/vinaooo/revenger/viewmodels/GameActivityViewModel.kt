@@ -1300,7 +1300,7 @@ class GameActivityViewModel(application: Application) :
     /** Hide the system bars */
     fun immersive(window: Window) {
         /* Check if the config permits it */
-        if (!resources.getBoolean(R.bool.conf_fullscreen)) return
+        if (!appConfig.getFullscreen()) return
 
         with(window.insetsController!!) {
             hide(WindowInsets.Type.systemBars())
@@ -1498,7 +1498,7 @@ class GameActivityViewModel(application: Application) :
         rightContainer.visibility = visibility
 
         floatingButton?.let {
-            val configValue = activity.resources.getString(R.string.conf_menu_mode_fab).lowercase()
+            val configValue = appConfig.getMenuModeFab().lowercase()
             if (configValue != "disabled" && !shouldShow) {
                 it.visibility = android.view.View.VISIBLE
             } else {
@@ -1575,7 +1575,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Set the screen orientation based on the config */
     fun setConfigOrientation(activity: Activity) {
-        val configOrientation = resources.getInteger(R.integer.conf_orientation)
+        val configOrientation = appConfig.getOrientation()
         com.vinaooo.revenger.utils.OrientationManager.applyConfigOrientation(
                 activity,
                 configOrientation
@@ -1596,17 +1596,17 @@ class GameActivityViewModel(application: Application) :
 
     /** Check if menu should respond to back button based on conf_menu_mode_back */
     fun shouldHandleBackButton(): Boolean {
-        return resources.getBoolean(R.bool.conf_menu_mode_back)
+        return appConfig.getMenuModeBack()
     }
 
     /** Check if menu should respond to SELECT+START combo based on conf_menu_mode_combo */
     fun shouldHandleSelectStartCombo(): Boolean {
-        return resources.getBoolean(R.bool.conf_menu_mode_combo)
+        return appConfig.getMenuModeCombo()
     }
 
     /** Check if menu should respond to gamepad menu button based on conf_menu_mode_gamepad */
     fun shouldHandleGamepadMenuButton(): Boolean {
-        return resources.getBoolean(R.bool.conf_menu_mode_gamepad)
+        return appConfig.getMenuModeGamepad()
     }
 
     /**

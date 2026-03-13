@@ -191,7 +191,7 @@ class MenuViewInitializerImpl(private val fragment: Fragment) : MenuViewInitiali
         val titleStyle = fragment.resources.getInteger(R.integer.rm_title_style)
         val titleText =
                 when (titleStyle) {
-                    1 -> fragment.resources.getString(R.string.conf_name)
+                    1 -> com.vinaooo.revenger.repositories.ConfigRepository.getInstance(fragment.requireContext()).get().identity.name
                     else -> fragment.resources.getString(R.string.rm_title)
                 }
 

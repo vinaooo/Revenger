@@ -11,6 +11,7 @@ import com.vinaooo.revenger.ui.retromenu3.callbacks.SaveSlotsListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import android.util.Log
+import com.vinaooo.revenger.repositories.ConfigRepository
 
 /**
  * Fragment for saving game state to one of 9 slots.
@@ -408,7 +409,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             // Get ROM name from config
             val romName =
                     try {
-                        getString(R.string.conf_name)
+                        ConfigRepository.getInstance(requireContext()).get().identity.name
                     } catch (e: Exception) {
                         "Unknown Game"
                     }

@@ -11,6 +11,7 @@ import com.vinaooo.revenger.R
 import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
+import com.vinaooo.revenger.repositories.ConfigRepository
 
 /**
  * Submenu fragment for About (Information).
@@ -243,13 +244,14 @@ class AboutFragment : MenuFragmentBase() {
 
         // ROM name from config - combine label and value
         val romLabel = resources.getString(R.string.about_rom_name)
-        val romName = resources.getString(R.string.conf_rom)
+        val configRepo = ConfigRepository.getInstance(requireContext())
+        val romName = configRepo.get().identity.rom
         romNameInfo.text = "$romLabel $romName"
         applyConfiguredCapitalization(romNameInfo)
 
         // Core name from config - combine label and value
         val coreLabel = resources.getString(R.string.about_core_name)
-        val coreName = resources.getString(R.string.conf_core)
+        val coreName = configRepo.get().identity.core
         coreNameInfo.text = "$coreLabel $coreName"
         applyConfiguredCapitalization(coreNameInfo)
     }

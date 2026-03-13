@@ -11,6 +11,7 @@ import com.vinaooo.revenger.managers.SessionSlotTracker
 import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
+import com.vinaooo.revenger.repositories.ConfigRepository
 
 /**
  * Fragment for saving game state during the "Save and Exit" flow.
@@ -446,7 +447,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
 
             // Get ROM name from config
             val romName = try {
-                getString(R.string.conf_name)
+                ConfigRepository.getInstance(requireContext()).get().identity.name
             } catch (e: Exception) {
                 "Unknown Game"
             }

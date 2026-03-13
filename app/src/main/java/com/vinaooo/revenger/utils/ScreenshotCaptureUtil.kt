@@ -183,7 +183,7 @@ object ScreenshotCaptureUtil {
             val gameAspectRatio = try {
                 val context = cachedContext
                 if (context != null) {
-                    val coreName = context.getString(R.string.conf_core)
+                    val coreName = com.vinaooo.revenger.repositories.ConfigRepository.getInstance(context).get().identity.core
                     val aspectRatio = getAspectRatioForCore(coreName)
                     Log.d(TAG, "Core: $coreName, Aspect ratio: $aspectRatio")
                     aspectRatio

@@ -177,10 +177,11 @@ object LogSaver {
         try {
             val resources = context.resources
 
-            // Settings from config.xml
-            val configName = resources.getString(com.vinaooo.revenger.R.string.conf_name)
-            val configCore = resources.getString(com.vinaooo.revenger.R.string.conf_core)
-            val configRom = resources.getString(com.vinaooo.revenger.R.string.conf_rom)
+            // Settings from config.json
+            val configRepo = com.vinaooo.revenger.repositories.ConfigRepository.getInstance(context)
+            val configName = configRepo.get().identity.name
+            val configCore = configRepo.get().identity.core
+            val configRom = configRepo.get().identity.rom
 
             val configId = ConfigIdGenerator.generate(configName, configCore)
 
