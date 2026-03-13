@@ -8,5 +8,11 @@
     "files.exclude": {
         "**/build": true,
         "**/.gradle": true
+    },
+    "chat.tools.terminal.autoApprove": {
+        "git rev-parse": true,
+        "((git": true,
+        "git fetch": true,
+        "git rev-list": true
     }
 }
