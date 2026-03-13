@@ -10,7 +10,7 @@
 - [x] Get user approval on plan
 
 ## Execution (after approval)
-- [x] Phase 1: Config files → JSON
+- [ ] Phase 1: Config files → JSON
 - [ ] Phase 2: Gamepad config → JSON
 - [ ] Phase 3: RetroMenu3 config → JSON
 - [ ] Phase 4: RetroMenu3 strings → JSON
