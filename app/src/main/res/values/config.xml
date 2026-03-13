@@ -5,7 +5,7 @@
          When true: gameplay config is loaded from optimal_settings.json
          When false: gameplay config is loaded from config_manual.xml
          ====================================================================== -->
-    <bool name="conf_optimal_settings">true</bool>
+    <bool name="conf_optimal_settings">false</bool>
 
     <!-- Platform identifier (e.g., sms, snes, gba, gb, md, nes, gbc)
          Used as fallback when ROM extension is ambiguous (.bin, .rom)

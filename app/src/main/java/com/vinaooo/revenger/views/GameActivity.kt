@@ -1506,7 +1506,7 @@ class GameActivity : FragmentActivity() {
         /** Set up the floating menu button config and listener */
         private fun setupFloatingMenuButton() {
                 val floatingButton = findViewById<android.widget.Button>(R.id.floating_menu_button)
-                val configValue = resources.getString(R.string.conf_menu_mode_fab).lowercase()
+                val configValue = appConfig.getMenuModeFab().lowercase()
 
                 if (configValue == "disabled") {
                         floatingButton.visibility = android.view.View.GONE

@@ -25,34 +25,64 @@ class GamePad(
     val pad = RadialGamePad(padConfig, 0f, context)
 
     companion object {
+    private const val TAG = "GamePad"
+
         /** Should the user see the on-screen controls? */
         fun shouldShowGamePads(activity: Activity, appConfig: AppConfig): Boolean {
             /* Config says we shouldn't use virtual controls */
-            if (!appConfig.getGamepad()) return false
+        if (!appConfig.getGamepad()) {
+        android.util.Log.d(TAG, "Virtual gamepad disabled by AppConfig")
+        return false
+        }
 
             /* Devices without a touchscreen don't need a GamePad */
             val hasTouchScreen =
                     activity.packageManager?.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)
-            if (hasTouchScreen == null || !hasTouchScreen) return false
+        if (hasTouchScreen == null || !hasTouchScreen) {
+        android.util.Log.d(TAG, "Virtual gamepad hidden: touchscreen feature missing")
+        return false
+        }
 
             /* Fetch the current display that the game is running on */
             val currentDisplayId = activity.display!!.displayId
 
             /* Are we presenting this screen on a TV or display? */
             val dm = activity.getSystemService(Service.DISPLAY_SERVICE) as DisplayManager
-            if (dm.getDisplay(currentDisplayId).flags and Display.FLAG_PRESENTATION ==
-                            Display.FLAG_PRESENTATION
+        val currentDisplay = dm.getDisplay(currentDisplayId)
+            val isPresentationDisplay =
+                currentDisplay.displayId != Display.DEFAULT_DISPLAY &&
+                    (currentDisplay.flags and Display.FLAG_PRESENTATION ==
+                        Display.FLAG_PRESENTATION)
+            if (isPresentationDisplay) {
+            android.util.Log.d(
+                TAG,
+                "Virtual gamepad hidden: running on presentation display ${currentDisplay.displayId}"
             )
-                    return false
+            return false
+            }
 
             /* If a GamePad is connected, we definitely don't need touch controls */
             for (id in InputDevice.getDeviceIds()) {
-                InputDevice.getDevice(id)?.apply {
-                    if (sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD)
-                            return false
+        InputDevice.getDevice(id)?.apply {
+            val hasGamepadSource = supportsSource(InputDevice.SOURCE_GAMEPAD)
+            val hasJoystickSource = supportsSource(InputDevice.SOURCE_JOYSTICK)
+
+            android.util.Log.d(
+                TAG,
+                "Input device: id=$id, name=$name, virtual=$isVirtual, sources=0x${sources.toString(16)}, gamepad=$hasGamepadSource, joystick=$hasJoystickSource"
+            )
+
+            if (!isVirtual && (hasGamepadSource || hasJoystickSource)) {
+                android.util.Log.d(
+                    TAG,
+                    "Virtual gamepad hidden: external controller detected ($name)"
+                )
+                return false
+            }
                 }
             }
 
+        android.util.Log.d(TAG, "Virtual gamepad visible: no blockers detected")
             return true
         }
     }
@@ -72,7 +102,7 @@ class GamePad(
                 val actionName =
                         if (event.action == android.view.KeyEvent.ACTION_DOWN) "DOWN" else "UP"
                 android.util.Log.d(
-                        "GamePad",
+                    TAG,
                         "🎮 RadialGamePad event received: $buttonName $actionName (BEFORE callback)"
                 )
 
@@ -80,7 +110,7 @@ class GamePad(
                 val intercepted = onButtonEvent?.invoke(event) ?: false
 
                 android.util.Log.d(
-                        "GamePad",
+                    TAG,
                         "🎮 Callback returned: intercepted=$intercepted (will ${if (intercepted) "BLOCK" else "SEND"} to core)"
                 )
 
