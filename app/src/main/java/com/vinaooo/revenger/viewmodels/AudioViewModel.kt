@@ -57,13 +57,11 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     // ========== AUDIO CONTROL METHODS ==========
 
-    @Suppress("UNUSED_PARAMETER")
     fun toggleAudio(retroView: Any?): Boolean {
         _eventFlow.value = AudioEvent.ToggleAudio(retroView)
         return isAudioEnabled
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun setAudioEnabled(retroView: Any?, enabled: Boolean) {
         isAudioEnabled = enabled
 

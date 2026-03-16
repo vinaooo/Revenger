@@ -62,12 +62,10 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
 
     // ========== GAMEPAD METHODS ==========
 
-    @Suppress("UNUSED_PARAMETER")
     fun setupGamePads(
             activity: androidx.fragment.app.FragmentActivity,
             leftContainer: android.widget.FrameLayout,
-            rightContainer: android.widget.FrameLayout,
-            onGamePadCreated: (GamePad, Boolean) -> Unit
+            rightContainer: android.widget.FrameLayout
     ) {
         _eventFlow.value = InputEvent.SetupGamePads(activity, leftContainer, rightContainer)
     }

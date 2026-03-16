@@ -18,19 +18,17 @@ class LibRetroDownloader {
         /** Main para ser chamado pelo Gradle */
         @JvmStatic
         fun main(args: Array<String>) {
-            require(args.size == 3) { "Uso: LibRetroDownloader <url> <destDir> <coreName>" }
+            require(args.size >= 2) { "Uso: LibRetroDownloader <url> <destDir>" }
 
-            val success = downloadAndExtractCore(args[0], File(args[1]), args[2])
+            val success = downloadAndExtractCore(args[0], File(args[1]))
             System.exit(if (success) 0 else 1)
         }
 
         /** Baixa e extrai um core LibRetro */
         @JvmStatic
-        @Suppress("UNUSED_PARAMETER")
         fun downloadAndExtractCore(
                 coreUrl: String,
-                destinationDir: File,
-                coreName: String
+                destinationDir: File
         ): Boolean {
             return try {
                 // Create directory if it doesn't exist

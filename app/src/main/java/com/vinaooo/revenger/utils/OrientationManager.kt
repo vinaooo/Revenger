@@ -75,7 +75,6 @@ object OrientationManager {
      * @param activity Activity where the configuration should be applied
      * @param configOrientation Value of conf_orientation (1, 2, or 3)
      */
-    @Suppress("DEPRECATION")
     fun forceConfigurationBeforeSetContent(activity: Activity, configOrientation: Int) {
         // For mode 3 (any orientation), do not force anything - let Android decide
         if (configOrientation == 3) {
@@ -103,13 +102,11 @@ object OrientationManager {
         }
 
         // Force the orientation in the configuration
-        // NOTE: This method is deprecated but it is the only way to ensure
-        // that setContentView() chooses the correct layout immediately
+        // NOTE: Use applyOverrideConfiguration instead of the deprecated updateConfiguration
         val newConfig = Configuration(currentConfig)
         newConfig.orientation = desiredOrientation
         
-        @Suppress("DEPRECATION")
-        activity.resources.updateConfiguration(newConfig, activity.resources.displayMetrics)
+        activity.applyOverrideConfiguration(newConfig)
         
         Log.d(TAG, "Configuration forced: orientation=$desiredOrientation (before setContentView)")
     }

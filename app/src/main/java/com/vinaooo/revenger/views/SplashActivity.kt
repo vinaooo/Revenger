@@ -116,11 +116,10 @@ class SplashActivity : AppCompatActivity() {
         Log.d(TAG, "Starting GameActivity")
 
         val intent = Intent(this, GameActivity::class.java)
-        startActivity(intent)
-        finish()
-
         // No transition - fade out already occurred in Phase 3
-        @Suppress("DEPRECATION") overridePendingTransition(0, 0)
+        val options = androidx.core.app.ActivityOptionsCompat.makeCustomAnimation(this, 0, 0)
+        startActivity(intent, options.toBundle())
+        finish()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

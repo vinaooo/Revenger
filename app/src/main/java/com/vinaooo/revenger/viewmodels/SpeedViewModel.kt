@@ -72,14 +72,12 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
     // ========== SPEED CONTROL METHODS ==========
 
-    @Suppress("UNUSED_PARAMETER")
     fun toggleFastForward(retroView: Any? = null): Boolean {
         _eventFlow.value = SpeedEvent.ToggleFastForward(retroView)
         isFastForwardEnabled = !isFastForwardEnabled
         return isFastForwardEnabled
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun setGameSpeed(speed: Int) {
         // Validar range (normalmente 1-2)
         val validSpeed = speed.coerceIn(1, 2)
@@ -119,7 +117,6 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
     // ========== SETTERS ==========
 
-    @Suppress("UNUSED_PARAMETER")
     fun enableFastForward(retroView: Any? = null) {
         isFastForwardEnabled = true
 
@@ -132,7 +129,6 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
         saveFastForwardState()
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun disableFastForward(retroView: Any? = null) {
         isFastForwardEnabled = false
 

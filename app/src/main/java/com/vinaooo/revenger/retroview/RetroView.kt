@@ -217,8 +217,6 @@ class RetroView(
     }
 
     fun destroy() {
-        if (view != null) {
-            view.onDestroy()
-        }
+        view.onDestroy()
     }
 }

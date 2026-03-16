@@ -68,17 +68,14 @@ class GameStateViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun saveState(slot: Int = 0) {
         _eventFlow.value = GameStateEvent.SaveState(slot)
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun loadState(slot: Int = 0) {
         _eventFlow.value = GameStateEvent.LoadState(slot)
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun hasSaveState(slot: Int = 0): Boolean {
         _eventFlow.value = GameStateEvent.CheckSaveState(slot)
         return false
@@ -97,7 +94,6 @@ class GameStateViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun setGameSpeed(speed: Int) {
         _eventFlow.value = GameStateEvent.SetGameSpeed(speed)
     }
