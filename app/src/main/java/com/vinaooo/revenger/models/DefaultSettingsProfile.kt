@@ -5,7 +5,7 @@ import org.json.JSONObject
 
 /**
  * Platform-specific optimal configuration profile.
- * Used when conf_default_settings is enabled to auto-configure
+ * Used when default_settings is enabled to auto-configure
  * emulator settings based on ROM extension or explicit platform ID.
  */
 data class DefaultSettingsProfile(
@@ -52,30 +52,30 @@ data class DefaultSettingsProfile(
                 platformId = json.getString("platform_id"),
                 extensions = extensions,
                 core = json.getString("core"),
-                confVariables = json.getString("conf_variables"),
-                confFastForwardMultiplier = json.getInt("conf_fast_forward_multiplier"),
-                confFullscreen = json.getBoolean("conf_fullscreen"),
-                confOrientation = json.getInt("conf_orientation"),
-                confMenuModeFab = json.getString("conf_menu_mode_fab"),
-                confMenuModeGamepad = json.getBoolean("conf_menu_mode_gamepad"),
-                confMenuModeBack = json.getBoolean("conf_menu_mode_back"),
-                confMenuModeCombo = json.getBoolean("conf_menu_mode_combo"),
-                confGamepad = json.getBoolean("conf_gamepad"),
-                confGpHaptic = json.getBoolean("conf_gp_haptic"),
-                confGpAllowMultiplePressesAction = json.getBoolean("conf_gp_allow_multiple_presses_action"),
-                confGpA = json.getBoolean("conf_gp_a"),
-                confGpB = json.getBoolean("conf_gp_b"),
-                confGpX = json.getBoolean("conf_gp_x"),
-                confGpY = json.getBoolean("conf_gp_y"),
-                confGpStart = json.getBoolean("conf_gp_start"),
-                confGpSelect = json.getBoolean("conf_gp_select"),
-                confGpL1 = json.getBoolean("conf_gp_l1"),
-                confGpR1 = json.getBoolean("conf_gp_r1"),
-                confGpL2 = json.getBoolean("conf_gp_l2"),
-                confGpR2 = json.getBoolean("conf_gp_r2"),
-                confLeftAnalog = json.getBoolean("conf_left_analog"),
-                confShader = json.getString("conf_shader"),
-                confPerformanceOverlay = json.getBoolean("conf_performance_overlay")
+                confVariables = json.getString("variables"),
+                confFastForwardMultiplier = json.getInt("fast_forward_multiplier"),
+                confFullscreen = json.getBoolean("fullscreen"),
+                confOrientation = json.getInt("orientation"),
+                confMenuModeFab = json.getString("menu_mode_fab"),
+                confMenuModeGamepad = json.getBoolean("menu_mode_gamepad"),
+                confMenuModeBack = json.getBoolean("menu_mode_back"),
+                confMenuModeCombo = json.getBoolean("menu_mode_combo"),
+                confGamepad = json.getBoolean("gamepad"),
+                confGpHaptic = json.getBoolean("gp_haptic"),
+                confGpAllowMultiplePressesAction = json.getBoolean("gp_allow_multiple_presses_action"),
+                confGpA = json.getBoolean("gp_a"),
+                confGpB = json.getBoolean("gp_b"),
+                confGpX = json.getBoolean("gp_x"),
+                confGpY = json.getBoolean("gp_y"),
+                confGpStart = json.getBoolean("gp_start"),
+                confGpSelect = json.getBoolean("gp_select"),
+                confGpL1 = json.getBoolean("gp_l1"),
+                confGpR1 = json.getBoolean("gp_r1"),
+                confGpL2 = json.getBoolean("gp_l2"),
+                confGpR2 = json.getBoolean("gp_r2"),
+                confLeftAnalog = json.getBoolean("left_analog"),
+                confShader = json.getString("shader"),
+                confPerformanceOverlay = json.getBoolean("performance_overlay")
             )
         }
 

@@ -9,47 +9,47 @@ import com.vinaooo.revenger.utils.ConfigIdGenerator
 import java.io.InputStreamReader
 
 data class BaseConfig(
-    val conf_default_settings: Boolean = false,
-    val conf_platform: String = "",
-    val conf_name: String = "Revenger",
-    val conf_rom: String = "",
-    val conf_target_abi: String = ""
+    val default_settings: Boolean = false,
+    val platform: String = "",
+    val name: String = "Revenger",
+    val rom: String = "",
+    val target_abi: String = ""
 )
 
 data class ManualConfig(
-    val conf_core: String = "",
-    val conf_variables: String = "",
-    val conf_fast_forward_multiplier: Int = 1,
-    val conf_fullscreen: Boolean = true,
-    val conf_orientation: Int = 0,
-    val conf_menu_mode_fab: String = "",
-    val conf_menu_mode_gamepad: Boolean = false,
-    val conf_menu_mode_back: Boolean = false,
-    val conf_menu_mode_combo: Boolean = false,
-    val conf_gamepad: Boolean = true,
-    val conf_gp_haptic: Boolean = true,
-    val conf_gp_allow_multiple_presses_action: Boolean = false,
-    val conf_gp_a: Boolean = true,
-    val conf_gp_b: Boolean = true,
-    val conf_gp_x: Boolean = false,
-    val conf_gp_y: Boolean = false,
-    val conf_gp_start: Boolean = true,
-    val conf_gp_select: Boolean = true,
-    val conf_gp_l1: Boolean = false,
-    val conf_gp_r1: Boolean = false,
-    val conf_gp_l2: Boolean = false,
-    val conf_gp_r2: Boolean = false,
-    val conf_left_analog: Boolean = false,
-    val conf_show_fake_button_0: Boolean = false,
-    val conf_show_fake_button_1: Boolean = false,
-    val conf_show_fake_button_5: Boolean = false,
-    val conf_show_fake_button_6: Boolean = false,
-    val conf_show_fake_button_7: Boolean = false,
-    val conf_show_fake_button_9: Boolean = false,
-    val conf_show_fake_button_10: Boolean = false,
-    val conf_show_fake_button_11: Boolean = false,
-    val conf_shader: String = "",
-    val conf_performance_overlay: Boolean = false
+    val core: String = "",
+    val variables: String = "",
+    val fast_forward_multiplier: Int = 1,
+    val fullscreen: Boolean = true,
+    val orientation: Int = 0,
+    val menu_mode_fab: String = "",
+    val menu_mode_gamepad: Boolean = false,
+    val menu_mode_back: Boolean = false,
+    val menu_mode_combo: Boolean = false,
+    val gamepad: Boolean = true,
+    val gp_haptic: Boolean = true,
+    val gp_allow_multiple_presses_action: Boolean = false,
+    val gp_a: Boolean = true,
+    val gp_b: Boolean = true,
+    val gp_x: Boolean = false,
+    val gp_y: Boolean = false,
+    val gp_start: Boolean = true,
+    val gp_select: Boolean = true,
+    val gp_l1: Boolean = false,
+    val gp_r1: Boolean = false,
+    val gp_l2: Boolean = false,
+    val gp_r2: Boolean = false,
+    val left_analog: Boolean = false,
+    val show_fake_button_0: Boolean = false,
+    val show_fake_button_1: Boolean = false,
+    val show_fake_button_5: Boolean = false,
+    val show_fake_button_6: Boolean = false,
+    val show_fake_button_7: Boolean = false,
+    val show_fake_button_9: Boolean = false,
+    val show_fake_button_10: Boolean = false,
+    val show_fake_button_11: Boolean = false,
+    val shader: String = "",
+    val performance_overlay: Boolean = false
 )
 
 data class GamePadAssetsConfig(
@@ -116,65 +116,65 @@ class AppConfig(private val context: Context) {
     // ========== Identity settings (always from config.json) ==========
 
     fun getId(): String = ConfigIdGenerator.generate(getName(), getCore())
-    fun getName(): String = baseConfig.conf_name.takeIf { it.isNotEmpty() } ?: "Revenger"
-    fun getRomName(): String = baseConfig.conf_rom
-    fun getTargetAbi(): String = baseConfig.conf_target_abi
-    private fun getPlatformId(): String = baseConfig.conf_platform
+    fun getName(): String = baseConfig.name.takeIf { it.isNotEmpty() } ?: "Revenger"
+    fun getRomName(): String = baseConfig.rom
+    fun getTargetAbi(): String = baseConfig.target_abi
+    private fun getPlatformId(): String = baseConfig.platform
 
     // ========== Core and variables (default profile overrides) ==========
 
-    fun getCore(): String = profile?.core ?: manualConfig.conf_core
-    fun getVariables(): String = profile?.confVariables ?: manualConfig.conf_variables
+    fun getCore(): String = profile?.core ?: manualConfig.core
+    fun getVariables(): String = profile?.confVariables ?: manualConfig.variables
 
     // ========== Performance settings (default profile overrides) ==========
 
-    fun getFastForwardMultiplier(): Int = profile?.confFastForwardMultiplier ?: manualConfig.conf_fast_forward_multiplier
+    fun getFastForwardMultiplier(): Int = profile?.confFastForwardMultiplier ?: manualConfig.fast_forward_multiplier
 
     // ========== Display settings (default profile overrides) ==========
 
-    fun getFullscreen(): Boolean = profile?.confFullscreen ?: manualConfig.conf_fullscreen
-    fun getOrientation(): Int = profile?.confOrientation ?: manualConfig.conf_orientation
-    fun getShader(): String = profile?.confShader ?: manualConfig.conf_shader
+    fun getFullscreen(): Boolean = profile?.confFullscreen ?: manualConfig.fullscreen
+    fun getOrientation(): Int = profile?.confOrientation ?: manualConfig.orientation
+    fun getShader(): String = profile?.confShader ?: manualConfig.shader
 
     // ========== Menu settings (default profile overrides) ==========
 
-    fun getMenuModeFab(): String = profile?.confMenuModeFab ?: manualConfig.conf_menu_mode_fab
-    fun getMenuModeGamepad(): Boolean = profile?.confMenuModeGamepad ?: manualConfig.conf_menu_mode_gamepad
-    fun getMenuModeBack(): Boolean = profile?.confMenuModeBack ?: manualConfig.conf_menu_mode_back
-    fun getMenuModeCombo(): Boolean = profile?.confMenuModeCombo ?: manualConfig.conf_menu_mode_combo
+    fun getMenuModeFab(): String = profile?.confMenuModeFab ?: manualConfig.menu_mode_fab
+    fun getMenuModeGamepad(): Boolean = profile?.confMenuModeGamepad ?: manualConfig.menu_mode_gamepad
+    fun getMenuModeBack(): Boolean = profile?.confMenuModeBack ?: manualConfig.menu_mode_back
+    fun getMenuModeCombo(): Boolean = profile?.confMenuModeCombo ?: manualConfig.menu_mode_combo
 
     // ========== Gamepad settings (default profile overrides) ==========
 
-    fun getGamepad(): Boolean = profile?.confGamepad ?: manualConfig.conf_gamepad
-    fun getGpHaptic(): Boolean = profile?.confGpHaptic ?: manualConfig.conf_gp_haptic
-    fun getGpAllowMultiplePressesAction(): Boolean = profile?.confGpAllowMultiplePressesAction ?: manualConfig.conf_gp_allow_multiple_presses_action
+    fun getGamepad(): Boolean = profile?.confGamepad ?: manualConfig.gamepad
+    fun getGpHaptic(): Boolean = profile?.confGpHaptic ?: manualConfig.gp_haptic
+    fun getGpAllowMultiplePressesAction(): Boolean = profile?.confGpAllowMultiplePressesAction ?: manualConfig.gp_allow_multiple_presses_action
     
-    fun getGpA(): Boolean = profile?.confGpA ?: manualConfig.conf_gp_a
-    fun getGpB(): Boolean = profile?.confGpB ?: manualConfig.conf_gp_b
-    fun getGpX(): Boolean = profile?.confGpX ?: manualConfig.conf_gp_x
-    fun getGpY(): Boolean = profile?.confGpY ?: manualConfig.conf_gp_y
-    fun getGpStart(): Boolean = profile?.confGpStart ?: manualConfig.conf_gp_start
-    fun getGpSelect(): Boolean = profile?.confGpSelect ?: manualConfig.conf_gp_select
-    fun getGpL1(): Boolean = profile?.confGpL1 ?: manualConfig.conf_gp_l1
-    fun getGpR1(): Boolean = profile?.confGpR1 ?: manualConfig.conf_gp_r1
-    fun getGpL2(): Boolean = profile?.confGpL2 ?: manualConfig.conf_gp_l2
-    fun getGpR2(): Boolean = profile?.confGpR2 ?: manualConfig.conf_gp_r2
-    fun getLeftAnalog(): Boolean = profile?.confLeftAnalog ?: manualConfig.conf_left_analog
+    fun getGpA(): Boolean = profile?.confGpA ?: manualConfig.gp_a
+    fun getGpB(): Boolean = profile?.confGpB ?: manualConfig.gp_b
+    fun getGpX(): Boolean = profile?.confGpX ?: manualConfig.gp_x
+    fun getGpY(): Boolean = profile?.confGpY ?: manualConfig.gp_y
+    fun getGpStart(): Boolean = profile?.confGpStart ?: manualConfig.gp_start
+    fun getGpSelect(): Boolean = profile?.confGpSelect ?: manualConfig.gp_select
+    fun getGpL1(): Boolean = profile?.confGpL1 ?: manualConfig.gp_l1
+    fun getGpR1(): Boolean = profile?.confGpR1 ?: manualConfig.gp_r1
+    fun getGpL2(): Boolean = profile?.confGpL2 ?: manualConfig.gp_l2
+    fun getGpR2(): Boolean = profile?.confGpR2 ?: manualConfig.gp_r2
+    fun getLeftAnalog(): Boolean = profile?.confLeftAnalog ?: manualConfig.left_analog
 
     // ========== Debug settings (default profile overrides) ==========
 
-    fun getPerformanceOverlay(): Boolean = profile?.confPerformanceOverlay ?: manualConfig.conf_performance_overlay
+    fun getPerformanceOverlay(): Boolean = profile?.confPerformanceOverlay ?: manualConfig.performance_overlay
 
     // ========== Fake buttons (always from manualConfig, not in default profiles) ==========
 
-    fun getShowFakeButton0(): Boolean = manualConfig.conf_show_fake_button_0
-    fun getShowFakeButton1(): Boolean = manualConfig.conf_show_fake_button_1
-    fun getShowFakeButton5(): Boolean = manualConfig.conf_show_fake_button_5
-    fun getShowFakeButton6(): Boolean = manualConfig.conf_show_fake_button_6
-    fun getShowFakeButton7(): Boolean = manualConfig.conf_show_fake_button_7
-    fun getShowFakeButton9(): Boolean = manualConfig.conf_show_fake_button_9
-    fun getShowFakeButton10(): Boolean = manualConfig.conf_show_fake_button_10
-    fun getShowFakeButton11(): Boolean = manualConfig.conf_show_fake_button_11
+    fun getShowFakeButton0(): Boolean = manualConfig.show_fake_button_0
+    fun getShowFakeButton1(): Boolean = manualConfig.show_fake_button_1
+    fun getShowFakeButton5(): Boolean = manualConfig.show_fake_button_5
+    fun getShowFakeButton6(): Boolean = manualConfig.show_fake_button_6
+    fun getShowFakeButton7(): Boolean = manualConfig.show_fake_button_7
+    fun getShowFakeButton9(): Boolean = manualConfig.show_fake_button_9
+    fun getShowFakeButton10(): Boolean = manualConfig.show_fake_button_10
+    fun getShowFakeButton11(): Boolean = manualConfig.show_fake_button_11
 
     // ========== Utility methods ==========
 
@@ -187,6 +187,6 @@ class AppConfig(private val context: Context) {
         }
     }
 
-    fun isDefaultMode(): Boolean = baseConfig.conf_default_settings
+    fun isDefaultMode(): Boolean = baseConfig.default_settings
     fun getResolvedProfile(): DefaultSettingsProfile? = profile
 }

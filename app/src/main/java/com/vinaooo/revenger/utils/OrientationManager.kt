@@ -9,9 +9,9 @@ import android.util.Log
  * OrientationManager - Centralizes screen orientation application logic
  *
  * Purpose: Ensure that both SplashActivity and GameActivity apply the same
- * orientation logic based on conf_orientation from config.xml
+ * orientation logic based on orientation from config.xml
  *
- * conf_orientation values:
+ * orientation values:
  * - 1: Portrait only
  * - 2: Landscape only
  * - 3: Any orientation (respects system auto-rotate)
@@ -20,10 +20,10 @@ object OrientationManager {
     private const val TAG = "OrientationManager"
 
     /**
-     * Applies the configured screen orientation based on conf_orientation
+     * Applies the configured screen orientation based on orientation
      *
      * @param activity Activity where orientation should be applied
-     * @param configOrientation Value of conf_orientation (1, 2, or 3)
+     * @param configOrientation Value of orientation (1, 2, or 3)
      */
     fun applyConfigOrientation(activity: Activity, configOrientation: Int) {
         // Check system auto-rotate preference
@@ -58,7 +58,7 @@ object OrientationManager {
                 }
             }
             else -> {
-                Log.w(TAG, "Invalid conf_orientation value: $configOrientation")
+                Log.w(TAG, "Invalid orientation value: $configOrientation")
                 return
             }
         }
@@ -73,7 +73,7 @@ object OrientationManager {
      * without an incorrect orientation flash
      *
      * @param activity Activity where the configuration should be applied
-     * @param configOrientation Value of conf_orientation (1, 2, or 3)
+     * @param configOrientation Value of orientation (1, 2, or 3)
      */
     fun forceConfigurationBeforeSetContent(activity: Activity, configOrientation: Int) {
         // For mode 3 (any orientation), do not force anything - let Android decide
@@ -87,7 +87,7 @@ object OrientationManager {
             1 -> Configuration.ORIENTATION_PORTRAIT
             2 -> Configuration.ORIENTATION_LANDSCAPE
             else -> {
-                Log.w(TAG, "Invalid conf_orientation: $configOrientation")
+                Log.w(TAG, "Invalid orientation: $configOrientation")
                 return
             }
         }

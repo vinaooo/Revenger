@@ -77,25 +77,25 @@ Here's how Revenger is configured with the new multi‑slot system:
 
 # Configuration
 - Edit `app/src/main/assets/config/config.json` and change your configuration
-- Place your ROM files in `roms_backup/` at the project root (the build system automatically stages the active ROM based on `conf_rom` in config.xml)
+- Place your ROM files in `roms_backup/` at the project root (the build system automatically stages the active ROM based on `rom` in config.xml)
 
 ## Default Settings System
 
-Revenger now supports an **default settings mode** that automatically configures the emulator based on the platform of the ROM. When enabled, the APK chooses the best LibRetro core, gamepad layout, orientation, shaders and other preferences by inspecting the ROM extension (or an explicit `conf_platform` tag). This eliminates manual tweaking and makes packaging one‑tap ready games trivial.
+Revenger now supports an **default settings mode** that automatically configures the emulator based on the platform of the ROM. When enabled, the APK chooses the best LibRetro core, gamepad layout, orientation, shaders and other preferences by inspecting the ROM extension (or an explicit `platform` tag). This eliminates manual tweaking and makes packaging one‑tap ready games trivial.
 
 ### Enabling
 Add the following tags in `app/src/main/assets/config/config.json`:
 
 ```xml
-<bool name="conf_default_settings">true</bool>
-<string name="conf_platform"/><!-- optional, used when extension is ambiguous -->
+<bool name="default_settings">true</bool>
+<string name="platform"/><!-- optional, used when extension is ambiguous -->
 ```
 
-`conf_default_settings` is a **build‑time flag**. When `false` (the default) Revenger behaves exactly as before, using values directly from `config.xml`.
+`default_settings` is a **build‑time flag**. When `false` (the default) Revenger behaves exactly as before, using values directly from `config.xml`.
 
 ### How it works
 1. On build, the Gradle `prepareCore` task reads the default settings JSON (`app/src/main/assets/default_settings.json`).
-2. It resolves a profile by `conf_platform` or ROM filename extension and selects the corresponding core for download.
+2. It resolves a profile by `platform` or ROM filename extension and selects the corresponding core for download.
 3. At runtime, an `AppConfig` facade returns either the original config.xml values or overrides from the profile. All components (RetroView, GamePad, controllers, etc.) query `AppConfig` instead of resources directly.
 
 ### Supported platforms

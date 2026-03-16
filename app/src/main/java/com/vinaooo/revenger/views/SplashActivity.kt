@@ -125,7 +125,7 @@ class SplashActivity : AppCompatActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
-        // Reapply forced orientation to keep conf_orientation authoritative
+        // Reapply forced orientation to keep orientation authoritative
         // Ensures physical orientation changes do not interfere with animation
         val configOrientation = com.vinaooo.revenger.RevengerApplication.appConfig.getOrientation()
         OrientationManager.applyConfigOrientation(this, configOrientation)

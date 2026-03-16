@@ -32,10 +32,10 @@ def getConfigValue = { String id ->
  * Validates default settings platform. Fails build early if configuration is incorrect.
  */
 def validateDefaultPlatform = { ->
-    def isDefault = getConfigValue('conf_default_settings') == 'true'
+    def isDefault = getConfigValue('default_settings') == 'true'
     if (!isDefault) return
 
-    def platform = getConfigValue('conf_platform')
+    def platform = getConfigValue('platform')
     if (platform == null || platform.trim().isEmpty()) {
         def defaultSettingsFile = file("${rootProject.projectDir.path}/app/src/main/assets/default_settings.json")
         def availablePlatforms = []
@@ -51,7 +51,7 @@ def validateDefaultPlatform = { ->
         }
         
         def platformsMsg = availablePlatforms.isEmpty() ? "" : "\n\nAvailable platforms to choose from:\n- " + availablePlatforms.join("\n- ")
-        throw new GradleException("❌ BUILD FAILED: 'conf_default_settings' is true, but 'conf_platform' is empty!\n" +
+        throw new GradleException("❌ BUILD FAILED: 'default_settings' is true, but 'platform' is empty!\n" +
             "When using default settings, you must specify the platform ID to avoid generic extension collisions (like .bin or .iso)." +
             platformsMsg)
     }
@@ -61,7 +61,7 @@ def validateDefaultPlatform = { ->
 validateDefaultPlatform()
 
 /**
- * Generates a unique app identifier from conf_name and conf_core.
+ * Generates a unique app identifier from name and core.
  * Converts both strings to lowercase, removes special characters,
  * and combines them with an underscore.
  * 
@@ -85,14 +85,14 @@ def generateConfigId = { String name, String core ->
  * Evaluates which core to use across the entire build by checking optimal config first
  */
 def getResolvedCore = { ->
-    def defaultSettingsEnabled = getConfigValue('conf_default_settings') == 'true'
+    def defaultSettingsEnabled = getConfigValue('default_settings') == 'true'
     if (defaultSettingsEnabled) {
         def jsonFile = file("${rootProject.projectDir.path}/app/src/main/assets/default_settings.json")
         if (jsonFile.exists()) {
             def jsonSlurper = new groovy.json.JsonSlurper()
             def profiles = jsonSlurper.parseText(jsonFile.text)
-            def platformId = getConfigValue('conf_platform')
-            def romName = getConfigValue('conf_rom')
+            def platformId = getConfigValue('platform')
+            def romName = getConfigValue('rom')
             def extension = romName.contains('.') ? romName.substring(romName.lastIndexOf('.')).toLowerCase() : ''
             
             def profile = null
@@ -107,7 +107,7 @@ def getResolvedCore = { ->
             }
         }
     }
-    return getConfigValue('conf_core')
+    return getConfigValue('core')
 }
 
 android {
@@ -116,7 +116,7 @@ android {
     // buildToolsVersion removed - AGP 8.13.0 uses 36.0.0 automatically
 
     defaultConfig {
-        applicationId "com.vinaooo.revenger.${generateConfigId(getConfigValue('conf_name'), getResolvedCore())}"
+        applicationId "com.vinaooo.revenger.${generateConfigId(getConfigValue('name'), getResolvedCore())}"
         minSdk = 30                // Android 11 - API Level 30
         targetSdk = 36             // Android 16 - API Level 36
         versionCode 1
@@ -124,10 +124,10 @@ android {
         resConfigs 'en'
 
         // Dynamically inject the app name to satisfy AndroidManifest.xml
-        resValue "string", "conf_name", "\"${getConfigValue('conf_name')}\""
+        resValue "string", "name", "\"${getConfigValue('name')}\""
 
-        // Filter ABIs based on conf_target_abi
-        def targetAbi = getConfigValue('conf_target_abi')
+        // Filter ABIs based on target_abi
+        def targetAbi = getConfigValue('target_abi')
         if (targetAbi != 'all') {
             ndk {
                 abiFilters targetAbi
@@ -221,7 +221,7 @@ task generateIcons(type: Exec) {
 task prepareRom {
     dependsOn generateIcons
     doLast {
-        def romName = getConfigValue('conf_rom')
+        def romName = getConfigValue('rom')
         def romDir = file("${rootProject.projectDir}/app/src/main/assets/rom")
         def backupDir = file("${rootProject.projectDir}/roms_backup")
         backupDir.mkdirs()
@@ -258,7 +258,7 @@ task prepareCore {
     doLast {
         // Determine core name: either from config.xml or from default settings JSON
         def coreName
-        def defaultSettingsEnabled = getConfigValue('conf_default_settings') == 'true'
+        def defaultSettingsEnabled = getConfigValue('default_settings') == 'true'
         
         if (defaultSettingsEnabled) {
             println "🤖 Default Settings enabled - resolving core from platform profile"
@@ -271,8 +271,8 @@ task prepareCore {
             def jsonSlurper = new groovy.json.JsonSlurper()
             def profiles = jsonSlurper.parse(jsonFile)
             
-            def platformId = getConfigValue('conf_platform')
-            def romName = getConfigValue('conf_rom')
+            def platformId = getConfigValue('platform')
+            def romName = getConfigValue('rom')
             def extension = romName.substring(romName.lastIndexOf('.')).toLowerCase()
             
             println "   Platform ID: ${platformId ?: '(not set)'}"
@@ -295,18 +295,18 @@ task prepareCore {
                 if (profile) {
                     println "   ✅ Found profile by extension: ${profile.platform_id}"
                 } else {
-                    throw new GradleException("No default settings profile found for extension '$extension'. Add conf_platform or use manual mode (conf_default_settings=false)")
+                    throw new GradleException("No default settings profile found for extension '$extension'. Add platform or use manual mode (default_settings=false)")
                 }
             }
             
             coreName = profile.core
             println "   🎯 Selected core: $coreName (from default profile)"
         } else {
-            coreName = getConfigValue('conf_core')
-            println "🛠️  Manual mode - using core from conf_core: $coreName"
+            coreName = getConfigValue('core')
+            println "🛠️  Manual mode - using core from core: $coreName"
         }
         
-        def targetAbi = getConfigValue('conf_target_abi')
+        def targetAbi = getConfigValue('target_abi')
         def allAbis = ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
         def abisToFetch = (targetAbi == 'all') ? allAbis : [targetAbi]
         def foundAbis = []
