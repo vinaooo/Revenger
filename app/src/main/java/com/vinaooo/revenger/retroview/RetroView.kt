@@ -121,7 +121,6 @@ class RetroView(
                             )
                         }
 
-                val romLoadStartTime = System.currentTimeMillis()
                 if (appConfig.getLoadBytes()) {
                     if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
                     gameFileBytes = romBytes
@@ -136,7 +135,6 @@ class RetroView(
                 shader = getShaderConfig()
                 variables = getCoreVariables()
 
-                val sramLoadStartTime = System.currentTimeMillis()
                 if (storage.sram.exists()) {
                     storage.sram.inputStream().use { saveRAMState = it.readBytes() }
                 }

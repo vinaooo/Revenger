@@ -143,8 +143,8 @@ android {
     }
 
     lint {
-        abortOnError false
-        disable 'Aligned16KB'
+        abortOnError = false
+        disable += ['Aligned16KB']
     }
 }
 

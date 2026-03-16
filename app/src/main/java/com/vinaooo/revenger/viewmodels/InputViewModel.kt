@@ -46,7 +46,6 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
             _eventFlow.value = InputEvent.HandleSelectStartCombo
             true
         }
-            true
         controllerInput.selectStartComboCallback = { selectStartComboCallback?.invoke() }
     }
 

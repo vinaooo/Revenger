@@ -17,7 +17,7 @@ class AudioRoutingManager(
 
         audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
             .setAudioAttributes(audioAttributes)
-            .setOnAudioFocusChangeListener { focusChange ->
+            .setOnAudioFocusChangeListener { _ ->
                 // Handle focus change if needed
             }
             .build()
