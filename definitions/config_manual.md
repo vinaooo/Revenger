@@ -14,10 +14,10 @@ Settings used when `default_settings` is false.
 ## Virtual Gamepad
 - `gamepad`: (Boolean) Show virtual gamepad.
 - `gp_haptic`: (Boolean) Vibrate on touch.
-- `gp_allow_multiple_presses_action`: (Boolean) Allow multiple simultaneous presses.
-- Actions: `gp_a`, `gp_b`, `gp_x`, `gp_y` - (Boolean).
-- System: `gp_start`, `gp_select` - (Boolean).
-- Shoulders: `gp_l1`, `gp_r1`, `gp_l2`, `gp_r2` - (Boolean).
+- `button_allow_multiple_presses_action`: (Boolean) Allow multiple simultaneous presses.
+- Actions: `button_a`, `button_b`, `button_x`, `button_y` - (Boolean).
+- System: `button_start`, `button_select` - (Boolean).
+- Shoulders: `button_l1`, `button_r1`, `button_l2`, `button_r2` - (Boolean).
 - `left_analog`: (Boolean) Replace left D-pad with analog stick.
 
 ## Fake Buttons

@@ -28,17 +28,17 @@ data class ManualConfig(
     val menu_mode_combo: Boolean = false,
     val gamepad: Boolean = true,
     val gp_haptic: Boolean = true,
-    val gp_allow_multiple_presses_action: Boolean = false,
-    val gp_a: Boolean = true,
-    val gp_b: Boolean = true,
-    val gp_x: Boolean = false,
-    val gp_y: Boolean = false,
-    val gp_start: Boolean = true,
-    val gp_select: Boolean = true,
-    val gp_l1: Boolean = false,
-    val gp_r1: Boolean = false,
-    val gp_l2: Boolean = false,
-    val gp_r2: Boolean = false,
+    val button_allow_multiple_presses_action: Boolean = false,
+    val button_a: Boolean = true,
+    val button_b: Boolean = true,
+    val button_x: Boolean = false,
+    val button_y: Boolean = false,
+    val button_start: Boolean = true,
+    val button_select: Boolean = true,
+    val button_l1: Boolean = false,
+    val button_r1: Boolean = false,
+    val button_l2: Boolean = false,
+    val button_r2: Boolean = false,
     val left_analog: Boolean = false,
     val show_fake_button_0: Boolean = false,
     val show_fake_button_1: Boolean = false,
@@ -53,7 +53,7 @@ data class ManualConfig(
 )
 
 data class GamePadAssetsConfig(
-    val gp_button_color: String = "#88ffffff",
+    val button_button_color: String = "#88ffffff",
     val gp_pressed_color: String = "#66ffffff",
     val gp_padding_vertical: String = "20dp",
     val gp_offset_portrait: Int = 100,
@@ -147,18 +147,18 @@ class AppConfig(private val context: Context) {
 
     fun getGamepad(): Boolean = profile?.confGamepad ?: manualConfig.gamepad
     fun getGpHaptic(): Boolean = profile?.confGpHaptic ?: manualConfig.gp_haptic
-    fun getGpAllowMultiplePressesAction(): Boolean = profile?.confGpAllowMultiplePressesAction ?: manualConfig.gp_allow_multiple_presses_action
+    fun getButtonAllowMultiplePressesAction(): Boolean = profile?.confButtonAllowMultiplePressesAction ?: manualConfig.button_allow_multiple_presses_action
     
-    fun getGpA(): Boolean = profile?.confGpA ?: manualConfig.gp_a
-    fun getGpB(): Boolean = profile?.confGpB ?: manualConfig.gp_b
-    fun getGpX(): Boolean = profile?.confGpX ?: manualConfig.gp_x
-    fun getGpY(): Boolean = profile?.confGpY ?: manualConfig.gp_y
-    fun getGpStart(): Boolean = profile?.confGpStart ?: manualConfig.gp_start
-    fun getGpSelect(): Boolean = profile?.confGpSelect ?: manualConfig.gp_select
-    fun getGpL1(): Boolean = profile?.confGpL1 ?: manualConfig.gp_l1
-    fun getGpR1(): Boolean = profile?.confGpR1 ?: manualConfig.gp_r1
-    fun getGpL2(): Boolean = profile?.confGpL2 ?: manualConfig.gp_l2
-    fun getGpR2(): Boolean = profile?.confGpR2 ?: manualConfig.gp_r2
+    fun getButtonA(): Boolean = profile?.confButtonA ?: manualConfig.button_a
+    fun getButtonB(): Boolean = profile?.confButtonB ?: manualConfig.button_b
+    fun getButtonX(): Boolean = profile?.confButtonX ?: manualConfig.button_x
+    fun getButtonY(): Boolean = profile?.confButtonY ?: manualConfig.button_y
+    fun getButtonStart(): Boolean = profile?.confButtonStart ?: manualConfig.button_start
+    fun getButtonSelect(): Boolean = profile?.confButtonSelect ?: manualConfig.button_select
+    fun getButtonL1(): Boolean = profile?.confButtonL1 ?: manualConfig.button_l1
+    fun getButtonR1(): Boolean = profile?.confButtonR1 ?: manualConfig.button_r1
+    fun getButtonL2(): Boolean = profile?.confButtonL2 ?: manualConfig.button_l2
+    fun getButtonR2(): Boolean = profile?.confButtonR2 ?: manualConfig.button_r2
     fun getLeftAnalog(): Boolean = profile?.confLeftAnalog ?: manualConfig.left_analog
 
     // ========== Debug settings (default profile overrides) ==========
