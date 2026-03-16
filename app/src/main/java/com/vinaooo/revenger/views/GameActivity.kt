@@ -84,25 +84,17 @@ class GameActivity : FragmentActivity() {
                 )
                 android.util.Log.e("STARTUP_TIMING", "⏱️ [T+0ms] GameActivity.onCreate() START")
 
+                // CRITICAL: Apply orientation in TWO steps to eliminate flash:
+                // 1. Force Configuration BEFORE super.onCreate() (chooses correct layout)
+                // 2. Apply requestedOrientation for persistence
+                val configOrientation = appConfig.getOrientation()
+                com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(this, configOrientation)
+
                 super.onCreate(savedInstanceState)
 
                 val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
                 audioRoutingManager = AudioRoutingManager(audioManager)
                 audioRoutingManager.requestFocus()
-
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] super.onCreate() completed"
-                )
-
-                // CRITICAL: Apply orientation in TWO steps to eliminate flash:
-                // 1. Force Configuration BEFORE setContentView (chooses correct layout)
-                // 2. Apply requestedOrientation for persistence
-                val configOrientation = appConfig.getOrientation()
-                com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(
-                        this,
-                        configOrientation
-                )
                 android.util.Log.e(
                         "STARTUP_TIMING",
                         "⏱️ [T+${System.currentTimeMillis() - startTime}ms] forceConfiguration() completed"

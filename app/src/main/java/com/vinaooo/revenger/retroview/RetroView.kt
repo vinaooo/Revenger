@@ -23,10 +23,6 @@ class RetroView(
     private val coroutineScope: CoroutineScope,
     private val appConfig: AppConfig
 ) {
-    companion object {
-        var romBytes: ByteArray? = null
-    }
-
     private val resources = context.resources
     private val storage = Storage.getInstance(context)
 
@@ -121,16 +117,11 @@ class RetroView(
                             )
                         }
 
-                if (appConfig.getLoadBytes()) {
-                    if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
-                    gameFileBytes = romBytes
-                } else {
-                    // Always overwrite ROM file to ensure latest version is loaded
-                    storage.rom.outputStream().use { romInputStream.copyTo(it) }
-                    Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
+                // Always overwrite ROM file to storage to ensure latest version is loaded
+                storage.rom.outputStream().use { romInputStream.copyTo(it) }
+                Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
 
-                    gameFilePath = storage.rom.absolutePath
-                }
+                gameFilePath = storage.rom.absolutePath
 
                 shader = getShaderConfig()
                 variables = getCoreVariables()

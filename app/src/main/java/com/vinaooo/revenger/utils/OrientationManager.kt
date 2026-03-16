@@ -92,22 +92,15 @@ object OrientationManager {
             }
         }
 
-        // Get current configuration and create a modified copy
-        val currentConfig = activity.resources.configuration
-        
-        // Check if it's already in the correct orientation
-        if (currentConfig.orientation == desiredOrientation) {
-            Log.d(TAG, "Configuration already correct: $desiredOrientation")
-            return
-        }
-
-        // Force the orientation in the configuration
-        // NOTE: Use applyOverrideConfiguration instead of the deprecated updateConfiguration
-        val newConfig = Configuration(currentConfig)
+        // Create a configuration with only the properties to override
+        val newConfig = Configuration()
         newConfig.orientation = desiredOrientation
         
-        activity.applyOverrideConfiguration(newConfig)
-        
-        Log.d(TAG, "Configuration forced: orientation=$desiredOrientation (before setContentView)")
+        try {
+            activity.applyOverrideConfiguration(newConfig)
+            Log.d(TAG, "Configuration forced: orientation=$desiredOrientation (before setContentView)")
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "Cannot apply config override: getResources() already called", e)
+        }
     }
 }

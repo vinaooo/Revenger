@@ -14,8 +14,7 @@ data class BaseConfig(
     val conf_name: String = "Revenger",
     val conf_core: String = "",
     val conf_rom: String = "",
-    val conf_target_abi: String = "",
-    val conf_load_bytes: Boolean = false
+    val conf_target_abi: String = ""
 )
 
 data class ManualConfig(
@@ -120,7 +119,6 @@ class AppConfig(private val context: Context) {
     fun getName(): String = baseConfig.conf_name.takeIf { it.isNotEmpty() } ?: "Revenger"
     fun getRomName(): String = baseConfig.conf_rom
     fun getTargetAbi(): String = baseConfig.conf_target_abi
-    fun getLoadBytes(): Boolean = baseConfig.conf_load_bytes
     private fun getPlatformId(): String = baseConfig.conf_platform
 
     // ========== Core and variables (optimal profile overrides) ==========
