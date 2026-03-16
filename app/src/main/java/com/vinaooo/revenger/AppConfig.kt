@@ -40,14 +40,14 @@ data class ManualConfig(
     val button_l2: Boolean = false,
     val button_r2: Boolean = false,
     val left_analog: Boolean = false,
-    val show_fake_button_0: Boolean = false,
-    val show_fake_button_1: Boolean = false,
-    val show_fake_button_5: Boolean = false,
-    val show_fake_button_6: Boolean = false,
-    val show_fake_button_7: Boolean = false,
-    val show_fake_button_9: Boolean = false,
-    val show_fake_button_10: Boolean = false,
-    val show_fake_button_11: Boolean = false,
+    val fake_button_0: Boolean = false,
+    val fake_button_1: Boolean = false,
+    val fake_button_5: Boolean = false,
+    val fake_button_6: Boolean = false,
+    val fake_button_7: Boolean = false,
+    val fake_button_9: Boolean = false,
+    val fake_button_10: Boolean = false,
+    val fake_button_11: Boolean = false,
     val shader: String = "",
     val performance_overlay: Boolean = false
 )
@@ -167,14 +167,14 @@ class AppConfig(private val context: Context) {
 
     // ========== Fake buttons (always from manualConfig, not in default profiles) ==========
 
-    fun getShowFakeButton0(): Boolean = manualConfig.show_fake_button_0
-    fun getShowFakeButton1(): Boolean = manualConfig.show_fake_button_1
-    fun getShowFakeButton5(): Boolean = manualConfig.show_fake_button_5
-    fun getShowFakeButton6(): Boolean = manualConfig.show_fake_button_6
-    fun getShowFakeButton7(): Boolean = manualConfig.show_fake_button_7
-    fun getShowFakeButton9(): Boolean = manualConfig.show_fake_button_9
-    fun getShowFakeButton10(): Boolean = manualConfig.show_fake_button_10
-    fun getShowFakeButton11(): Boolean = manualConfig.show_fake_button_11
+    fun getFakeButton0(): Boolean = manualConfig.fake_button_0
+    fun getFakeButton1(): Boolean = manualConfig.fake_button_1
+    fun getFakeButton5(): Boolean = manualConfig.fake_button_5
+    fun getFakeButton6(): Boolean = manualConfig.fake_button_6
+    fun getFakeButton7(): Boolean = manualConfig.fake_button_7
+    fun getFakeButton9(): Boolean = manualConfig.fake_button_9
+    fun getFakeButton10(): Boolean = manualConfig.fake_button_10
+    fun getFakeButton11(): Boolean = manualConfig.fake_button_11
 
     // ========== Utility methods ==========
 

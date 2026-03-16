@@ -21,7 +21,7 @@ Settings used when `default_settings` is false.
 - `left_analog`: (Boolean) Replace left D-pad with analog stick.
 
 ## Fake Buttons
-- `show_fake_button_X`: (Boolean) Maps to in-game functions.
+- `fake_button_X`: (Boolean) Maps to in-game functions.
 
 ## Video & Debug
 - `shader`: (String) Shader type.

@@ -117,25 +117,25 @@ class GamePadConfig(context: Context, private val appConfig: AppConfig) {
         // --- RIGHT side button definitions (index → button, isVisible) ---
         private val rightButtons =
                 mapOf(
-                        0 to Pair(BUTTON_F1, appConfig.getShowFakeButton0()),
-                        1 to Pair(BUTTON_F2, appConfig.getShowFakeButton1()),
+                        0 to Pair(BUTTON_F1, appConfig.getFakeButton0()),
+                        1 to Pair(BUTTON_F2, appConfig.getFakeButton1()),
                         2 to Pair(BUTTON_R1, appConfig.getButtonR1()),
                         3 to Pair(BUTTON_R2, appConfig.getButtonR2()),
                         4 to Pair(BUTTON_START, appConfig.getButtonStart()),
-                        5 to Pair(BUTTON_F4, appConfig.getShowFakeButton5()),
-                        6 to Pair(BUTTON_F10, appConfig.getShowFakeButton6()),
-                        7 to Pair(BUTTON_F5, appConfig.getShowFakeButton7()),
+                        5 to Pair(BUTTON_F4, appConfig.getFakeButton5()),
+                        6 to Pair(BUTTON_F10, appConfig.getFakeButton6()),
+                        7 to Pair(BUTTON_F5, appConfig.getFakeButton7()),
                         8 to Pair(BUTTON_F6, appConfig.getMenuModeGamepad()),
-                        9 to Pair(BUTTON_F7, appConfig.getShowFakeButton9()),
+                        9 to Pair(BUTTON_F7, appConfig.getFakeButton9()),
                         10 to
                                 Pair(
                                         BUTTON_F8,
-                                        appConfig.getShowFakeButton10()
+                                        appConfig.getFakeButton10()
                                 ),
                         11 to
                                 Pair(
                                         BUTTON_F9,
-                                        appConfig.getShowFakeButton11()
+                                        appConfig.getFakeButton11()
                                 ),
                 )
 
