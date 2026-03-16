@@ -14,7 +14,7 @@
         "conf_menu_mode_back": true,
         "conf_menu_mode_combo": false,
         "conf_gamepad": true,
-        "conf_gp_haptic": true,
+        "conf_gp_haptic": false,
         "conf_gp_allow_multiple_presses_action": false,
         "conf_gp_a": true,
         "conf_gp_b": true,
@@ -27,7 +27,7 @@
         "conf_gp_l2": false,
         "conf_gp_r2": false,
         "conf_left_analog": false,
-        "conf_shader": "lcd",
+        "conf_shader": "disabled",
         "conf_performance_overlay": false
     },
     {
@@ -45,7 +45,7 @@
         "conf_menu_mode_back": true,
         "conf_menu_mode_combo": false,
         "conf_gamepad": true,
-        "conf_gp_haptic": true,
+        "conf_gp_haptic": false,
         "conf_gp_allow_multiple_presses_action": false,
         "conf_gp_a": true,
         "conf_gp_b": true,
@@ -58,7 +58,7 @@
         "conf_gp_l2": false,
         "conf_gp_r2": false,
         "conf_left_analog": false,
-        "conf_shader": "sharp",
+        "conf_shader": "disabled",
         "conf_performance_overlay": false
     },
     {
@@ -77,7 +77,7 @@
         "conf_menu_mode_back": true,
         "conf_menu_mode_combo": false,
         "conf_gamepad": true,
-        "conf_gp_haptic": true,
+        "conf_gp_haptic": false,
         "conf_gp_allow_multiple_presses_action": false,
         "conf_gp_a": true,
         "conf_gp_b": true,
@@ -90,7 +90,7 @@
         "conf_gp_l2": false,
         "conf_gp_r2": false,
         "conf_left_analog": false,
-        "conf_shader": "sharp",
+        "conf_shader": "disabled",
         "conf_performance_overlay": false
     },
     {
@@ -107,7 +107,7 @@
         "conf_menu_mode_fab": "bottom-right",
         "conf_menu_mode_gamepad": true,
         "conf_menu_mode_back": true,
-        "conf_menu_mode_combo": false,
+        "conf_menu_mode_combo": true,
         "conf_gamepad": true,
         "conf_gp_haptic": false,
         "conf_gp_allow_multiple_presses_action": false,
@@ -122,7 +122,7 @@
         "conf_gp_l2": false,
         "conf_gp_r2": false,
         "conf_left_analog": false,
-        "conf_shader": "sharp",
+        "conf_shader": "disabled",
         "conf_performance_overlay": false
     },
     {
@@ -140,7 +140,7 @@
         "conf_menu_mode_back": true,
         "conf_menu_mode_combo": false,
         "conf_gamepad": true,
-        "conf_gp_haptic": true,
+        "conf_gp_haptic": false,
         "conf_gp_allow_multiple_presses_action": false,
         "conf_gp_a": true,
         "conf_gp_b": true,
@@ -153,7 +153,7 @@
         "conf_gp_l2": false,
         "conf_gp_r2": false,
         "conf_left_analog": false,
-        "conf_shader": "lcd",
+        "conf_shader": "disabled",
         "conf_performance_overlay": false
     },
     {
@@ -171,7 +171,7 @@
         "conf_menu_mode_back": true,
         "conf_menu_mode_combo": false,
         "conf_gamepad": true,
-        "conf_gp_haptic": true,
+        "conf_gp_haptic": false,
         "conf_gp_allow_multiple_presses_action": false,
         "conf_gp_a": true,
         "conf_gp_b": true,
@@ -184,7 +184,7 @@
         "conf_gp_l2": false,
         "conf_gp_r2": false,
         "conf_left_analog": false,
-        "conf_shader": "lcd",
+        "conf_shader": "disabled",
         "conf_performance_overlay": false
     },
     {
@@ -200,9 +200,9 @@
         "conf_menu_mode_fab": "bottom-right",
         "conf_menu_mode_gamepad": true,
         "conf_menu_mode_back": true,
-        "conf_menu_mode_combo": false,
+        "conf_menu_mode_combo": true,
         "conf_gamepad": true,
-        "conf_gp_haptic": true,
+        "conf_gp_haptic": false,
         "conf_gp_allow_multiple_presses_action": false,
         "conf_gp_a": true,
         "conf_gp_b": true,
@@ -215,7 +215,7 @@
         "conf_gp_l2": false,
         "conf_gp_r2": false,
         "conf_left_analog": false,
-        "conf_shader": "sharp",
+        "conf_shader": "disabled",
         "conf_performance_overlay": false
     },
     {
@@ -247,6 +247,38 @@
         "conf_gp_r2": false,
         "conf_left_analog": false,
         "conf_shader": "sharp",
+        "conf_performance_overlay": false
+    },
+    {
+        "platform_id": "3ds",
+        "extensions": [
+            ".3ds",
+            ".cia"
+        ],
+        "core": "citra",
+        "conf_variables": "citra_layout_option=Side by Side,citra_touch_touchscreen=enabled,citra_use_acc_mul=enabled,citra_resolution_factor=3x",
+        "conf_fast_forward_multiplier": 2,
+        "conf_fullscreen": true,
+        "conf_orientation": 3,
+        "conf_menu_mode_fab": "bottom-right",
+        "conf_menu_mode_gamepad": true,
+        "conf_menu_mode_back": true,
+        "conf_menu_mode_combo": true,
+        "conf_gamepad": true,
+        "conf_gp_haptic": true,
+        "conf_gp_allow_multiple_presses_action": false,
+        "conf_gp_a": true,
+        "conf_gp_b": true,
+        "conf_gp_x": true,
+        "conf_gp_y": true,
+        "conf_gp_start": true,
+        "conf_gp_select": true,
+        "conf_gp_l1": true,
+        "conf_gp_r1": true,
+        "conf_gp_l2": false,
+        "conf_gp_r2": false,
+        "conf_left_analog": true,
+        "conf_shader": "disabled",
         "conf_performance_overlay": false
     }
 ]

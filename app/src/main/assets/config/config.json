@@ -1,6 +1,6 @@
 {
-    "conf_optimal_settings": false,
-    "conf_platform": "",
+    "conf_optimal_settings": true,
+    "conf_platform": "sms",
     "conf_name": "Não jogar 2",
     "conf_core": "picodrive",
     "conf_rom": "Sonic The Hedgehog (USA, Europe, Brazil) (En) (2).sms",

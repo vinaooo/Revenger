@@ -29,6 +29,38 @@ def getConfigValue = { String id ->
 }
 
 /**
+ * Validates optimal settings platform. Fails build early if configuration is incorrect.
+ */
+def validateOptimalPlatform = { ->
+    def isOptimal = getConfigValue('conf_optimal_settings') == 'true'
+    if (!isOptimal) return
+
+    def platform = getConfigValue('conf_platform')
+    if (platform == null || platform.trim().isEmpty()) {
+        def optimalSettingsFile = file("${rootProject.projectDir.path}/app/src/main/assets/optimal_settings.json")
+        def availablePlatforms = []
+        
+        if (optimalSettingsFile.exists()) {
+            def jsonSlurper = new groovy.json.JsonSlurper()
+            def profiles = jsonSlurper.parseText(optimalSettingsFile.text)
+            profiles.each { profile ->
+                if (profile.platform_id) {
+                    availablePlatforms.add(profile.platform_id)
+                }
+            }
+        }
+        
+        def platformsMsg = availablePlatforms.isEmpty() ? "" : "\n\nAvailable platforms to choose from:\n- " + availablePlatforms.join("\n- ")
+        throw new GradleException("❌ BUILD FAILED: 'conf_optimal_settings' is true, but 'conf_platform' is empty!\n" +
+            "When using optimal settings, you must specify the platform ID to avoid generic extension collisions (like .bin or .iso)." +
+            platformsMsg)
+    }
+}
+
+// Run validation during Gradle configuration phase
+validateOptimalPlatform()
+
+/**
  * Generates a unique app identifier from conf_name and conf_core.
  * Converts both strings to lowercase, removes special characters,
  * and combines them with an underscore.
