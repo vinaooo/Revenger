@@ -5,12 +5,25 @@ import androidx.lifecycle.AndroidViewModel
 import com.vinaooo.revenger.ui.retromenu3.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * ViewModel specialized in menu management. Responsible for all logic related to
  * menus, submenus, and navigation.
  */
 class MenuViewModel(application: Application) : AndroidViewModel(application) {
+
+    sealed class MenuEvent {
+        object Idle : MenuEvent()
+        data class ShowRetroMenu3(val activity: androidx.fragment.app.FragmentActivity) : MenuEvent()
+        object DismissRetroMenu3 : MenuEvent()
+        object DismissAllMenus : MenuEvent()
+        object ClearControllerInputState : MenuEvent()
+    }
+
+    private val _eventFlow = MutableStateFlow<MenuEvent>(MenuEvent.Idle)
+    val eventFlow: StateFlow<MenuEvent> = _eventFlow.asStateFlow()
+
 
     // Menu state with StateFlow for reactivity
     private val menuStateManager = MenuStateManager { newState -> _menuState.value = newState }
@@ -65,19 +78,18 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
     // ========== MENU CONTROL METHODS ==========
 
     fun showRetroMenu3(activity: androidx.fragment.app.FragmentActivity) {
-        // TODO: Implement full logic for showing menu
-        // Por enquanto, delegar para o estado
+        _eventFlow.value = MenuEvent.ShowRetroMenu3(activity)
         menuStateManager.setRetroMenu3Open(true)
     }
 
     fun dismissRetroMenu3() {
         menuStateManager.setRetroMenu3Open(false)
-        // TODO: Implement menu closing logic
+        _eventFlow.value = MenuEvent.DismissRetroMenu3
     }
 
     fun dismissAllMenus() {
         menuStateManager.setDismissingAllMenus(true)
-        // TODO: Implement logic to close all menus
+        _eventFlow.value = MenuEvent.DismissAllMenus
     }
 
     fun updateMenuState(newState: MenuState) {
@@ -85,7 +97,7 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun clearControllerInputState() {
-        // TODO: Implement clearing of controller input state
+        _eventFlow.value = MenuEvent.ClearControllerInputState
     }
 
     // ========== STATE CHECK METHODS ==========

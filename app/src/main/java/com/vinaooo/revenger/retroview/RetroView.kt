@@ -207,4 +207,18 @@ class RetroView(
         Log.d("RetroView", "Total core variables configured: ${variables.size}")
         return variables.toTypedArray()
     }
+
+    fun resume() {
+        view.onResume()
+    }
+
+    fun pause() {
+        view.onPause()
+    }
+
+    fun destroy() {
+        if (view != null) {
+            view.onDestroy()
+        }
+    }
 }

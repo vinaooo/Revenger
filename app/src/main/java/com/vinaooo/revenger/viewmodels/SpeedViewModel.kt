@@ -2,6 +2,9 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.viewModelScope
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.controllers.SpeedController
@@ -14,6 +17,17 @@ import kotlinx.coroutines.launch
  * and emulation speed.
  */
 class SpeedViewModel(application: Application) : AndroidViewModel(application) {
+
+    sealed class SpeedEvent {
+        object Idle : SpeedEvent()
+        data class ToggleFastForward(val retroView: Any?) : SpeedEvent()
+        data class SetGameSpeed(val speed: Int) : SpeedEvent()
+        data class ApplySpeedToController(val controller: SpeedController) : SpeedEvent()
+    }
+
+    private val _eventFlow = MutableStateFlow<SpeedEvent>(SpeedEvent.Idle)
+    val eventFlow: StateFlow<SpeedEvent> = _eventFlow.asStateFlow()
+
 
     private val preferencesRepository: PreferencesRepository =
             SharedPreferencesRepository(
@@ -60,7 +74,7 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
     @Suppress("UNUSED_PARAMETER")
     fun toggleFastForward(retroView: Any? = null): Boolean {
-        // TODO: Implement fast-forward toggle
+        _eventFlow.value = SpeedEvent.ToggleFastForward(retroView)
         isFastForwardEnabled = !isFastForwardEnabled
         return isFastForwardEnabled
     }
@@ -70,7 +84,7 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
         // Validar range (normalmente 1-2)
         val validSpeed = speed.coerceIn(1, 2)
 
-        // TODO: Implement speed configuration in controller
+        _eventFlow.value = SpeedEvent.SetGameSpeed(validSpeed)
         currentSpeed = validSpeed
         saveSpeedState()
     }
@@ -133,7 +147,6 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSpeedController(controller: SpeedController) {
         speedController = controller
-        // TODO: Apply current speed to controller
-        // controller.setGameSpeed(currentSpeed)
+        _eventFlow.value = SpeedEvent.ApplySpeedToController(controller)
     }
 }

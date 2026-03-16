@@ -1,3 +1,5 @@
+import logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 import os
 import sys
 import xml.etree.ElementTree as ET
@@ -72,7 +74,7 @@ def parse_config_xml(config_file_path=None):
         
         return core_value.strip(), rom_value.strip()
     except Exception as e:
-        print(f"Error parsing config.json at {config_file_path}: {e}")
+        logging.error(f"Error parsing config.json at {config_file_path}: {e}")
         return "", ""
 
 
@@ -184,7 +186,7 @@ def generate_android_icons(img):
         resized_ad.save(os.path.join(folder, "ic_launcher_foreground.png"), "PNG")
         resized_ad.save(os.path.join(folder, "ic_launcher_background.png"), "PNG")
         
-        print(f"✅ Generated {density} icons in {folder}")
+        logging.info(f"✅ Generated {density} icons in {folder}")
 
     # Generate adaptive icon XMLs in mipmap-anydpi-v26
     anydpi_folder = os.path.join(res_dir, "mipmap-anydpi-v26")
@@ -201,7 +203,7 @@ def generate_android_icons(img):
     with open(os.path.join(anydpi_folder, "ic_launcher_round.xml"), "w") as f:
         f.write(adaptive_xml)
         
-    print(f"✅ Generated adaptive icon XMLs in {anydpi_folder}")
+    logging.info(f"✅ Generated adaptive icon XMLs in {anydpi_folder}")
 
 import argparse
 
@@ -216,21 +218,21 @@ def main():
     
     args = parser.parse_args()
     
-    print("🚀 Master Icon Creation Orchestrator")
+    logging.info("🚀 Master Icon Creation Orchestrator")
     
     # Parse config
     core, rom = parse_config_xml(args.config)
     if not core or not rom:
-        print("❌ Could not determine core or rom from config.xml. Using default values for generation might be needed.")
+        logging.error("❌ Could not determine core or rom from config.xml. Using default values for generation might be needed.")
         sys.exit(1)
         
     platform = determine_platform(core, rom)
-    print(f"🎮 Determined Platform: {platform} (Core: {core}, ROM: {rom})")
+    logging.info(f"🎮 Determined Platform: {platform} (Core: {core}, ROM: {rom})")
     
     img = None
     
     if args.force:
-        print(f"⚠️ Forcing Method {args.force}")
+        logging.warning(f"⚠️ Forcing Method {args.force}")
         if args.force == 1:
             img = fetch_sgdb_icon(rom)
         elif args.force == 2:
@@ -244,32 +246,32 @@ def main():
         # Standard cascade
         if not args.skip_downloads:
             # Method 1: SteamGridDB
-            print("🔍 Attempting Method 1: SteamGridDB (fetch_icon)...")
+            logging.info("🔍 Attempting Method 1: SteamGridDB (fetch_icon)...")
             img = fetch_sgdb_icon(rom)
             
             # Method 2: IGDB Smart Icon
             if not img:
-                print("🔍 Match not found or failed. Attempting Method 2: IGDB Smart Icon (fetch_smart)...")
+                logging.info("🔍 Match not found or failed. Attempting Method 2: IGDB Smart Icon (fetch_smart)...")
                 img = fetch_igdb_smart_icon(platform, rom)
         else:
-            print("⏭️ Skipping online download methods (SGDB, IGDB)...")
+            logging.info("⏭️ Skipping online download methods (SGDB, IGDB)...")
             
         # Method 3: Console Fallback
         if not img:
-            print("🔍 Match not found or failed. Attempting Method 3: Console Default Icon...")
+            logging.info("🔍 Match not found or failed. Attempting Method 3: Console Default Icon...")
             img = fetch_console_fallback(platform)
             
         # Method 4: Typographical Fallback
         if not img:
-            print("🔍 Platform icon missing. Attempting Method 4: Typographical Fallback (generate_typo)...")
+            logging.info("🔍 Platform icon missing. Attempting Method 4: Typographical Fallback (generate_typo)...")
             img = generate_typo_icon(rom)
             
     if img:
-        print("🎉 Image successfully acquired. Generating Android Mipmaps...")
+        logging.info("🎉 Image successfully acquired. Generating Android Mipmaps...")
         generate_android_icons(img)
-        print("✅ Process complete!")
+        logging.info("✅ Process complete!")
     else:
-        print("❌ All methods failed. Could not generate icon.")
+        logging.error("❌ All methods failed. Could not generate icon.")
 
 if __name__ == "__main__":
     main()

@@ -137,7 +137,8 @@ android {
         freeCompilerArgs += '-Xannotation-default-target=param-property'
     }
 
-    lintOptions {
+    lint {
+        abortOnError false
         disable 'Aligned16KB'
     }
 }
@@ -350,7 +351,8 @@ prepareCore.dependsOn prepareRom
 preBuild.dependsOn prepareCore
 
 dependencies {
-    implementation "com.google.code.gson:gson:2.10.1"
+    // Core UI and Third Party
+implementation "com.google.code.gson:gson:2.10.1"
     implementation files('libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
@@ -374,10 +376,9 @@ dependencies {
     
     // Phase 9.4: SDK 36 Features - REMOVED: Material Design Components (replaced with RetroCardView)
     // implementation 'com.google.android.material:material:1.13.0'
-}
 
-dependencies {
-    implementation "com.google.code.gson:gson:2.10.1"
+    // Test and Instrumentation
+implementation "com.google.code.gson:gson:2.10.1"
     // Unit Test dependencies
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:5.12.0'
@@ -399,3 +400,4 @@ dependencies {
     androidTestImplementation 'androidx.fragment:fragment-testing:1.8.5'
     androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
 }
+

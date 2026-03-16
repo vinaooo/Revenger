@@ -2,6 +2,10 @@ package com.vinaooo.revenger.views
 
 import android.content.pm.PackageManager
 import android.hardware.input.InputManager
+import com.vinaooo.revenger.managers.GameLifecycleObserver
+import com.vinaooo.revenger.managers.AudioRoutingManager
+import android.media.AudioManager
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -32,6 +36,8 @@ class GameActivity : FragmentActivity() {
         private lateinit var retroviewContainer: FrameLayout
         private lateinit var menuContainer: FrameLayout
         private lateinit var loadPreviewOverlay: android.widget.ImageView
+        private lateinit var audioRoutingManager: AudioRoutingManager
+        private lateinit var gameLifecycleObserver: GameLifecycleObserver
         private val viewModel: GameActivityViewModel by viewModels()
         private val appConfig by lazy { RevengerApplication.appConfig }
 
@@ -79,6 +85,11 @@ class GameActivity : FragmentActivity() {
                 android.util.Log.e("STARTUP_TIMING", "⏱️ [T+0ms] GameActivity.onCreate() START")
 
                 super.onCreate(savedInstanceState)
+
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                audioRoutingManager = AudioRoutingManager(audioManager)
+                audioRoutingManager.requestFocus()
+
                 android.util.Log.e(
                         "STARTUP_TIMING",
                         "⏱️ [T+${System.currentTimeMillis() - startTime}ms] super.onCreate() completed"
@@ -1220,6 +1231,7 @@ class GameActivity : FragmentActivity() {
                 // Clean up view model
                 viewModel.dispose()
                 viewModel.detachRetroView(this)
+                if (::audioRoutingManager.isInitialized) audioRoutingManager.abandonFocus()
                 super.onDestroy()
         }
 
