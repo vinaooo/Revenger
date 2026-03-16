@@ -52,7 +52,7 @@ def generateConfigId = { String name, String core ->
 android {
     namespace = 'com.vinaooo.revenger'
     compileSdk = 36               // Android 16 - API Level 36
-    // buildToolsVersion removido - AGP 8.13.0 usa automaticamente 36.0.0
+    // buildToolsVersion removed - AGP 8.13.0 uses 36.0.0 automatically
 
     defaultConfig {
         applicationId "com.vinaooo.revenger.${generateConfigId(getConfigValue('conf_name'), getConfigValue('conf_core'))}"
@@ -297,7 +297,7 @@ task prepareCore {
             jniAbiFolder.mkdirs()
             def zipFile = new File(jniAbiFolder, "${coreName}_libretro_android.so.zip")
 
-            println "Baixando LibRetro core: $coreName para $abi"
+            println "Downloading LibRetro core: $coreName for $abi"
 
             try {
                 def url = new URL(coreUrl)
@@ -337,13 +337,13 @@ task prepareCore {
         // Summary
         println ""
         println "=========================================================="
-        println "       RESUMO DO DOWNLOAD DE CORES LIBRETRO"
+        println "       LIBRETRO CORE DOWNLOAD SUMMARY       "
         println "=========================================================="
         if (foundAbis) {
-            println "✅ Arquiteturas ENCONTRADAS: ${foundAbis.join(', ')}"
+            println "✅ FOUND Architectures: ${foundAbis.join(', ')}"
         }
         if (missingAbis) {
-            println "❌ Arquiteturas NÃO ENCONTRADAS: ${missingAbis.join(', ')}"
+            println "❌ MISSING Architectures: ${missingAbis.join(', ')}"
         }
         println "=========================================================="
 

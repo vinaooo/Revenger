@@ -15,16 +15,16 @@ class LibRetroDownloader {
         private const val CONNECT_TIMEOUT = 30000 // 30s
         private const val READ_TIMEOUT = 60000 // 60s
 
-        /** Main para ser chamado pelo Gradle */
+        /** Main to be called by Gradle */
         @JvmStatic
         fun main(args: Array<String>) {
-            require(args.size >= 2) { "Uso: LibRetroDownloader <url> <destDir>" }
+            require(args.size >= 2) { "Usage: LibRetroDownloader <url> <destDir>" }
 
             val success = downloadAndExtractCore(args[0], File(args[1]))
             System.exit(if (success) 0 else 1)
         }
 
-        /** Baixa e extrai um core LibRetro */
+        /** Downloads and extracts a LibRetro core */
         @JvmStatic
         fun downloadAndExtractCore(
                 coreUrl: String,
