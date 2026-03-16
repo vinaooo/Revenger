@@ -5,10 +5,10 @@ import org.json.JSONObject
 
 /**
  * Platform-specific optimal configuration profile.
- * Used when conf_optimal_settings is enabled to auto-configure
+ * Used when conf_default_settings is enabled to auto-configure
  * emulator settings based on ROM extension or explicit platform ID.
  */
-data class OptimalSettingsProfile(
+data class DefaultSettingsProfile(
     val platformId: String,
     val extensions: List<String>,
     val core: String,
@@ -41,14 +41,14 @@ data class OptimalSettingsProfile(
         /**
          * Parse a single profile from JSON object
          */
-        fun fromJson(json: JSONObject): OptimalSettingsProfile {
+        fun fromJson(json: JSONObject): DefaultSettingsProfile {
             val extensionArray = json.getJSONArray("extensions")
             val extensions = mutableListOf<String>()
             for (i in 0 until extensionArray.length()) {
                 extensions.add(extensionArray.getString(i))
             }
 
-            return OptimalSettingsProfile(
+            return DefaultSettingsProfile(
                 platformId = json.getString("platform_id"),
                 extensions = extensions,
                 core = json.getString("core"),
@@ -82,8 +82,8 @@ data class OptimalSettingsProfile(
         /**
          * Parse all profiles from JSON array
          */
-        fun parseProfiles(jsonArray: JSONArray): List<OptimalSettingsProfile> {
-            val profiles = mutableListOf<OptimalSettingsProfile>()
+        fun parseProfiles(jsonArray: JSONArray): List<DefaultSettingsProfile> {
+            val profiles = mutableListOf<DefaultSettingsProfile>()
             for (i in 0 until jsonArray.length()) {
                 profiles.add(fromJson(jsonArray.getJSONObject(i)))
             }

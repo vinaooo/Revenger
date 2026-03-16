@@ -2,21 +2,21 @@ package com.vinaooo.revenger.repositories
 
 import android.content.Context
 import android.util.Log
-import com.vinaooo.revenger.models.OptimalSettingsProfile
+import com.vinaooo.revenger.models.DefaultSettingsProfile
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 /**
  * Repository for accessing optimal platform configuration profiles.
- * Loads and caches platform profiles from assets/optimal_settings.json.
+ * Loads and caches platform profiles from assets/default_settings.json.
  * Follows the singleton pattern consistent with Storage.kt.
  */
-object OptimalSettingsRepository {
-    private const val TAG = "OptimalSettingsRepo"
-    private const val ASSET_FILE = "optimal_settings.json"
+object DefaultSettingsRepository {
+    private const val TAG = "DefaultSettingsRepo"
+    private const val ASSET_FILE = "default_settings.json"
 
-    private var profiles: List<OptimalSettingsProfile>? = null
+    private var profiles: List<DefaultSettingsProfile>? = null
 
     /**
      * Initialize and load profiles from assets.
@@ -31,10 +31,10 @@ object OptimalSettingsRepository {
         try {
             val jsonString = loadJsonFromAssets(context)
             val jsonArray = JSONArray(jsonString)
-            profiles = OptimalSettingsProfile.parseProfiles(jsonArray)
+            profiles = DefaultSettingsProfile.parseProfiles(jsonArray)
             Log.d(TAG, "Loaded ${profiles!!.size} platform profiles")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to load optimal settings", e)
+            Log.e(TAG, "Failed to load default settings", e)
             profiles = emptyList()
         }
     }
@@ -49,7 +49,7 @@ object OptimalSettingsRepository {
      * @param extension ROM file extension with dot (e.g., ".sms", ".sfc")
      * @return Matching profile or null if not found
      */
-    fun findProfile(platformId: String?, extension: String): OptimalSettingsProfile? {
+    fun findProfile(platformId: String?, extension: String): DefaultSettingsProfile? {
         val profileList = profiles ?: run {
             Log.w(TAG, "Profiles not initialized, call initialize() first")
             return null

@@ -29,20 +29,20 @@ def getConfigValue = { String id ->
 }
 
 /**
- * Validates default settings platform. Fails build early if configuration is incorrect.
+ * Validates optimal settings platform. Fails build early if configuration is incorrect.
  */
-def validateDefaultPlatform = { ->
-    def isDefault = getConfigValue('conf_default_settings') == 'true'
-    if (!isDefault) return
+def validateOptimalPlatform = { ->
+    def isOptimal = getConfigValue('conf_optimal_settings') == 'true'
+    if (!isOptimal) return
 
     def platform = getConfigValue('conf_platform')
     if (platform == null || platform.trim().isEmpty()) {
-        def defaultSettingsFile = file("${rootProject.projectDir.path}/app/src/main/assets/default_settings.json")
+        def optimalSettingsFile = file("${rootProject.projectDir.path}/app/src/main/assets/optimal_settings.json")
         def availablePlatforms = []
         
-        if (defaultSettingsFile.exists()) {
+        if (optimalSettingsFile.exists()) {
             def jsonSlurper = new groovy.json.JsonSlurper()
-            def profiles = jsonSlurper.parseText(defaultSettingsFile.text)
+            def profiles = jsonSlurper.parseText(optimalSettingsFile.text)
             profiles.each { profile ->
                 if (profile.platform_id) {
                     availablePlatforms.add(profile.platform_id)
@@ -51,14 +51,14 @@ def validateDefaultPlatform = { ->
         }
         
         def platformsMsg = availablePlatforms.isEmpty() ? "" : "\n\nAvailable platforms to choose from:\n- " + availablePlatforms.join("\n- ")
-        throw new GradleException("❌ BUILD FAILED: 'conf_default_settings' is true, but 'conf_platform' is empty!\n" +
-            "When using default settings, you must specify the platform ID to avoid generic extension collisions (like .bin or .iso)." +
+        throw new GradleException("❌ BUILD FAILED: 'conf_optimal_settings' is true, but 'conf_platform' is empty!\n" +
+            "When using optimal settings, you must specify the platform ID to avoid generic extension collisions (like .bin or .iso)." +
             platformsMsg)
     }
 }
 
 // Run validation during Gradle configuration phase
-validateDefaultPlatform()
+validateOptimalPlatform()
 
 /**
  * Generates a unique app identifier from conf_name and conf_core.
@@ -81,42 +81,13 @@ def generateConfigId = { String name, String core ->
     return generatedId
 }
 
-/**
- * Evaluates which core to use across the entire build by checking optimal config first
- */
-def getResolvedCore = { ->
-    def defaultSettingsEnabled = getConfigValue('conf_default_settings') == 'true'
-    if (defaultSettingsEnabled) {
-        def jsonFile = file("${rootProject.projectDir.path}/app/src/main/assets/default_settings.json")
-        if (jsonFile.exists()) {
-            def jsonSlurper = new groovy.json.JsonSlurper()
-            def profiles = jsonSlurper.parseText(jsonFile.text)
-            def platformId = getConfigValue('conf_platform')
-            def romName = getConfigValue('conf_rom')
-            def extension = romName.contains('.') ? romName.substring(romName.lastIndexOf('.')).toLowerCase() : ''
-            
-            def profile = null
-            if (platformId != null && !platformId.trim().isEmpty()) {
-                profile = profiles.find { it.platform_id == platformId }
-            }
-            if (!profile) {
-                profile = profiles.find { it.extensions.contains(extension) }
-            }
-            if (profile && profile.core) {
-                return profile.core
-            }
-        }
-    }
-    return getConfigValue('conf_core')
-}
-
 android {
     namespace = 'com.vinaooo.revenger'
     compileSdk = 36               // Android 16 - API Level 36
     // buildToolsVersion removed - AGP 8.13.0 uses 36.0.0 automatically
 
     defaultConfig {
-        applicationId "com.vinaooo.revenger.${generateConfigId(getConfigValue('conf_name'), getResolvedCore())}"
+        applicationId "com.vinaooo.revenger.${generateConfigId(getConfigValue('conf_name'), getConfigValue('conf_core'))}"
         minSdk = 30                // Android 11 - API Level 30
         targetSdk = 36             // Android 16 - API Level 36
         versionCode 1
@@ -256,16 +227,16 @@ task prepareRom {
 
 task prepareCore {
     doLast {
-        // Determine core name: either from config.xml or from default settings JSON
+        // Determine core name: either from config.xml or from optimal settings JSON
         def coreName
-        def defaultSettingsEnabled = getConfigValue('conf_default_settings') == 'true'
+        def optimalSettingsEnabled = getConfigValue('conf_optimal_settings') == 'true'
         
-        if (defaultSettingsEnabled) {
-            println "🤖 Default Settings enabled - resolving core from platform profile"
+        if (optimalSettingsEnabled) {
+            println "🤖 Optimal Settings enabled - resolving core from platform profile"
             
-            def jsonFile = file("${rootProject.projectDir}/app/src/main/assets/default_settings.json")
+            def jsonFile = file("${rootProject.projectDir}/app/src/main/assets/optimal_settings.json")
             if (!jsonFile.exists()) {
-                throw new GradleException("default_settings.json not found in assets/")
+                throw new GradleException("optimal_settings.json not found in assets/")
             }
             
             def jsonSlurper = new groovy.json.JsonSlurper()
@@ -295,12 +266,12 @@ task prepareCore {
                 if (profile) {
                     println "   ✅ Found profile by extension: ${profile.platform_id}"
                 } else {
-                    throw new GradleException("No default settings profile found for extension '$extension'. Add conf_platform or use manual mode (conf_default_settings=false)")
+                    throw new GradleException("No optimal settings profile found for extension '$extension'. Add conf_platform or use manual mode (conf_optimal_settings=false)")
                 }
             }
             
             coreName = profile.core
-            println "   🎯 Selected core: $coreName (from default profile)"
+            println "   🎯 Selected core: $coreName (from optimal profile)"
         } else {
             coreName = getConfigValue('conf_core')
             println "🛠️  Manual mode - using core from conf_core: $coreName"
@@ -327,143 +298,3 @@ task prepareCore {
 
             // Check availability with HEAD request before downloading
             try {
-                def checkUrl = new URL(coreUrl)
-                def checkConn = (HttpURLConnection) checkUrl.openConnection()
-                checkConn.setRequestMethod("HEAD")
-                checkConn.setConnectTimeout(10000)
-                checkConn.setRequestProperty("User-Agent", "LibRetroDownloader/1.0")
-                def responseCode = checkConn.getResponseCode()
-                checkConn.disconnect()
-
-                if (responseCode == 404) {
-                    println "⚠️  Core '$coreName' not available for $abi (HTTP 404) — skipping"
-                    missingAbis << abi
-                    // Clean up empty folder so it doesn't produce an empty ABI split
-                    if (jniAbiFolder.exists() && (jniAbiFolder.list() == null || jniAbiFolder.list().length == 0)) {
-                        jniAbiFolder.delete()
-                    }
-                    continue
-                } else if (responseCode != 200) {
-                    println "⚠️  Unexpected response for $abi: HTTP $responseCode — skipping"
-                    missingAbis << abi
-                    continue
-                }
-            } catch (Exception e) {
-                println "⚠️  Could not check availability for $abi: ${e.message} — skipping"
-                missingAbis << abi
-                continue
-            }
-
-            // Download the core
-            jniAbiFolder.mkdirs()
-            def zipFile = new File(jniAbiFolder, "${coreName}_libretro_android.so.zip")
-
-            println "Downloading LibRetro core: $coreName for $abi"
-
-            try {
-                def url = new URL(coreUrl)
-                def connection = url.openConnection()
-                connection.setConnectTimeout(30000)
-                connection.setReadTimeout(60000)
-                connection.setRequestProperty("User-Agent", "LibRetroDownloader/1.0")
-
-                zipFile.withOutputStream { out ->
-                    connection.inputStream.withCloseable { input ->
-                        out << input
-                    }
-                }
-
-                println "Download completed: ${zipFile.length()} bytes"
-
-                copy {
-                    from zipTree(zipFile.absolutePath)
-                    into jniAbiFolder.absolutePath
-                    rename "${coreName}_libretro_android.so", "libcore.so"
-                }
-
-                zipFile.delete()
-                println "Core $coreName successfully extracted for $abi"
-                foundAbis << abi
-
-            } catch (Exception e) {
-                println "❌ Download failed for $abi: ${e.message}"
-                zipFile.delete()
-                if (jniAbiFolder.exists() && (jniAbiFolder.list() == null || jniAbiFolder.list().length == 0)) {
-                    jniAbiFolder.delete()
-                }
-                missingAbis << abi
-            }
-        }
-
-        // Summary
-        println ""
-        println "=========================================================="
-        println "       LIBRETRO CORE DOWNLOAD SUMMARY       "
-        println "=========================================================="
-        if (foundAbis) {
-            println "✅ FOUND Architectures: ${foundAbis.join(', ')}"
-        }
-        if (missingAbis) {
-            println "❌ MISSING Architectures: ${missingAbis.join(', ')}"
-        }
-        println "=========================================================="
-
-        if (foundAbis.isEmpty()) {
-            throw new GradleException("Core '$coreName' not available for ANY architecture. Build cannot proceed.")
-        }
-    }
-}
-prepareCore.dependsOn prepareRom
-preBuild.dependsOn prepareCore
-
-dependencies {
-    // Core UI and Third Party
-implementation "com.google.code.gson:gson:2.10.1"
-    implementation files('libs')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
-
-    implementation 'androidx.core:core-ktx:1.17.0'
-    implementation 'androidx.core:core-splashscreen:1.0.1'
-    implementation 'androidx.appcompat:appcompat:1.7.1'
-
-    implementation 'androidx.activity:activity-ktx:1.11.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.4'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.4'
-
-    // RadialGamePad - Updated to 2.0.0 with native Kotlin Flow support
-    implementation 'com.github.swordfish90:radialgamepad:2.0.0'
-    implementation 'com.github.swordfish90:libretrodroid:0.13.1'
-
-    // RxJava 3 for new code
-    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
-    implementation 'io.reactivex.rxjava3:rxjava:3.1.12'
-    
-    // Phase 9.4: SDK 36 Features - REMOVED: Material Design Components (replaced with RetroCardView)
-    // implementation 'com.google.android.material:material:1.13.0'
-
-    // Test and Instrumentation
-implementation "com.google.code.gson:gson:2.10.1"
-    // Unit Test dependencies
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-core:5.12.0'
-    testImplementation 'org.mockito:mockito-android:5.12.0'
-    testImplementation 'androidx.test:core:1.6.1'
-    testImplementation 'androidx.test.ext:junit:1.2.1'
-    testImplementation 'androidx.fragment:fragment-testing:1.8.5'
-    testImplementation 'org.robolectric:robolectric:4.13'
-    testImplementation 'io.mockk:mockk:1.13.12'
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
-    testImplementation 'androidx.lifecycle:lifecycle-runtime-testing:2.9.4'
-
-    // Instrumentation Test dependencies (androidTest)
-    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-    androidTestImplementation 'androidx.test:rules:1.6.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.6.1'
-    androidTestImplementation 'org.mockito:mockito-android:5.12.0'
-    androidTestImplementation 'androidx.fragment:fragment-testing:1.8.5'
-    androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
-}
-

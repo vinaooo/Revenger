@@ -68,10 +68,36 @@ def parse_config_xml(config_file_path=None):
     try:
         with open(config_file_path, 'r', encoding='utf-8') as f:
             config_data = json.load(f)
+            
+        manual_file_path = os.path.join(os.path.dirname(config_file_path), "config_manual.json")
+        if os.path.exists(manual_file_path):
+            with open(manual_file_path, 'r', encoding='utf-8') as f:
+                manual_data = json.load(f)
+                config_data.update(manual_data)
         
         core_value = config_data.get('conf_core', "")
-        rom_value = config_data.get('conf_rom', "")
         
+        if config_data.get('conf_default_settings', False):
+            # Try to grab core from optimal_settings
+            platform_id = config_data.get('conf_platform', "")
+            rom_value = config_data.get('conf_rom', "")
+            ext = "." + rom_value.split('.')[-1].lower() if '.' in rom_value else ''
+            
+            default_file_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "assets", "default_settings.json")
+            if os.path.exists(default_file_path):
+                with open(default_file_path, 'r', encoding='utf-8') as f:
+                    default_data = json.load(f)
+                    
+                profile = None
+                if platform_id:
+                    profile = next((p for p in default_data if p.get('platform_id') == platform_id), None)
+                if not profile:
+                    profile = next((p for p in default_data if ext in p.get('extensions', [])), None)
+                    
+                if profile and profile.get('core'):
+                    core_value = profile.get('core')
+        
+        rom_value = config_data.get('conf_rom', "")
         return core_value.strip(), rom_value.strip()
     except Exception as e:
         logging.error(f"Error parsing config.json at {config_file_path}: {e}")

@@ -3,21 +3,21 @@ package com.vinaooo.revenger
 import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
-import com.vinaooo.revenger.models.OptimalSettingsProfile
-import com.vinaooo.revenger.repositories.OptimalSettingsRepository
+import com.vinaooo.revenger.models.DefaultSettingsProfile
+import com.vinaooo.revenger.repositories.DefaultSettingsRepository
 import com.vinaooo.revenger.utils.ConfigIdGenerator
 import java.io.InputStreamReader
 
 data class BaseConfig(
-    val conf_optimal_settings: Boolean = false,
+    val conf_default_settings: Boolean = false,
     val conf_platform: String = "",
     val conf_name: String = "Revenger",
-    val conf_core: String = "",
     val conf_rom: String = "",
     val conf_target_abi: String = ""
 )
 
 data class ManualConfig(
+    val conf_core: String = "",
     val conf_variables: String = "",
     val conf_fast_forward_multiplier: Int = 1,
     val conf_fullscreen: Boolean = true,
@@ -62,7 +62,7 @@ data class GamePadAssetsConfig(
 
 /**
  * Centralized application configuration facade.
- * Provides unified access to both static config.xml values and dynamic optimal settings.
+ * Provides unified access to both static config.xml values and dynamic default settings.
  */
 class AppConfig(private val context: Context) {
     private val TAG = "AppConfig"
@@ -91,22 +91,22 @@ class AppConfig(private val context: Context) {
         }
     }
 
-    private val profile: OptimalSettingsProfile? by lazy {
-        if (!isOptimalMode()) {
+    private val profile: DefaultSettingsProfile? by lazy {
+        if (!isDefaultMode()) {
             null
         } else {
             val platformId = getPlatformId()
             val romName = getRomName()
             val extension = extractExtension(romName)
             
-            Log.d(TAG, "Resolving optimal profile: platformId=$platformId, extension=$extension")
+            Log.d(TAG, "Resolving default profile: platformId=$platformId, extension=$extension")
             
-            val resolvedProfile = OptimalSettingsRepository.findProfile(platformId, extension)
+            val resolvedProfile = DefaultSettingsRepository.findProfile(platformId, extension)
             
             if (resolvedProfile == null) {
-                Log.w(TAG, "No optimal profile found, falling back to assets config")
+                Log.w(TAG, "No default profile found, falling back to assets config")
             } else {
-                Log.i(TAG, "Using optimal profile: ${resolvedProfile.platformId} (core: ${resolvedProfile.core})")
+                Log.i(TAG, "Using default profile: ${resolvedProfile.platformId} (core: ${resolvedProfile.core})")
             }
             
             resolvedProfile
@@ -121,29 +121,29 @@ class AppConfig(private val context: Context) {
     fun getTargetAbi(): String = baseConfig.conf_target_abi
     private fun getPlatformId(): String = baseConfig.conf_platform
 
-    // ========== Core and variables (optimal profile overrides) ==========
+    // ========== Core and variables (default profile overrides) ==========
 
-    fun getCore(): String = profile?.core ?: baseConfig.conf_core
+    fun getCore(): String = profile?.core ?: manualConfig.conf_core
     fun getVariables(): String = profile?.confVariables ?: manualConfig.conf_variables
 
-    // ========== Performance settings (optimal profile overrides) ==========
+    // ========== Performance settings (default profile overrides) ==========
 
     fun getFastForwardMultiplier(): Int = profile?.confFastForwardMultiplier ?: manualConfig.conf_fast_forward_multiplier
 
-    // ========== Display settings (optimal profile overrides) ==========
+    // ========== Display settings (default profile overrides) ==========
 
     fun getFullscreen(): Boolean = profile?.confFullscreen ?: manualConfig.conf_fullscreen
     fun getOrientation(): Int = profile?.confOrientation ?: manualConfig.conf_orientation
     fun getShader(): String = profile?.confShader ?: manualConfig.conf_shader
 
-    // ========== Menu settings (optimal profile overrides) ==========
+    // ========== Menu settings (default profile overrides) ==========
 
     fun getMenuModeFab(): String = profile?.confMenuModeFab ?: manualConfig.conf_menu_mode_fab
     fun getMenuModeGamepad(): Boolean = profile?.confMenuModeGamepad ?: manualConfig.conf_menu_mode_gamepad
     fun getMenuModeBack(): Boolean = profile?.confMenuModeBack ?: manualConfig.conf_menu_mode_back
     fun getMenuModeCombo(): Boolean = profile?.confMenuModeCombo ?: manualConfig.conf_menu_mode_combo
 
-    // ========== Gamepad settings (optimal profile overrides) ==========
+    // ========== Gamepad settings (default profile overrides) ==========
 
     fun getGamepad(): Boolean = profile?.confGamepad ?: manualConfig.conf_gamepad
     fun getGpHaptic(): Boolean = profile?.confGpHaptic ?: manualConfig.conf_gp_haptic
@@ -161,11 +161,11 @@ class AppConfig(private val context: Context) {
     fun getGpR2(): Boolean = profile?.confGpR2 ?: manualConfig.conf_gp_r2
     fun getLeftAnalog(): Boolean = profile?.confLeftAnalog ?: manualConfig.conf_left_analog
 
-    // ========== Debug settings (optimal profile overrides) ==========
+    // ========== Debug settings (default profile overrides) ==========
 
     fun getPerformanceOverlay(): Boolean = profile?.confPerformanceOverlay ?: manualConfig.conf_performance_overlay
 
-    // ========== Fake buttons (always from manualConfig, not in optimal profiles) ==========
+    // ========== Fake buttons (always from manualConfig, not in default profiles) ==========
 
     fun getShowFakeButton0(): Boolean = manualConfig.conf_show_fake_button_0
     fun getShowFakeButton1(): Boolean = manualConfig.conf_show_fake_button_1
@@ -187,6 +187,6 @@ class AppConfig(private val context: Context) {
         }
     }
 
-    fun isOptimalMode(): Boolean = baseConfig.conf_optimal_settings
-    fun getResolvedProfile(): OptimalSettingsProfile? = profile
+    fun isDefaultMode(): Boolean = baseConfig.conf_default_settings
+    fun getResolvedProfile(): DefaultSettingsProfile? = profile
 }

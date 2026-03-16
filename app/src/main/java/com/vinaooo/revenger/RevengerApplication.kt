@@ -1,7 +1,7 @@
 package com.vinaooo.revenger
 
 import android.app.Application
-import com.vinaooo.revenger.repositories.OptimalSettingsRepository
+import com.vinaooo.revenger.repositories.DefaultSettingsRepository
 
 class RevengerApplication : Application() {
 
@@ -14,8 +14,8 @@ class RevengerApplication : Application() {
         super.onCreate()
         // Dynamic theme is now handled automatically by Material 3 theme inheritance
 
-        // Initialize optimal settings repository
-        OptimalSettingsRepository.initialize(this)
+        // Initialize default settings repository
+        DefaultSettingsRepository.initialize(this)
 
         // Initialize application config facade
         appConfig = AppConfig(this)

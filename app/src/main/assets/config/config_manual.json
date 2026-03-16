@@ -1,4 +1,5 @@
 {
+    "conf_core": "picodrive",
     "conf_variables": "picodrive_overclk68k=+400%,picodrive_overclksz80=+100%",
     "conf_fast_forward_multiplier": 2,
     "conf_fullscreen": true,

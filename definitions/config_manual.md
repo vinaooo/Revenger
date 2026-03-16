@@ -1,5 +1,5 @@
 # Config Manual JSON structure
-Settings used when `conf_optimal_settings` is false.
+Settings used when `conf_default_settings` is false.
 - `conf_variables`: (String) Core variables passed verbatim to the LibRetro core.
 - `conf_fast_forward_multiplier`: (Integer) Fast forward speed multiplier.
 - `conf_fullscreen`: (Boolean) Fullscreen mode.
