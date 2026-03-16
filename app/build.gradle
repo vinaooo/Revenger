@@ -110,6 +110,11 @@ android {
         }
     }
 
+    sourceSets {
+        test.java.srcDirs += ["${projectDir}/../tests"]
+    }
+
+
     splits {
         abi {
             enable = false
