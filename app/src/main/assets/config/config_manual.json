@@ -5,7 +5,7 @@
     "shader": "crt",
     "fast_forward_multiplier": 2,
     "fullscreen": true,
-    "orientation": 2,
+    "orientation": "landscape",
     "gamepad": true,
     "gp_haptic": true,
     "gp_allow_multiple_presses_action": false,

@@ -21,7 +21,7 @@ data class ManualConfig(
     val variables: String = "",
     val fast_forward_multiplier: Int = 1,
     val fullscreen: Boolean = true,
-    val orientation: Int = 0,
+    val orientation: String = "landscape",
     val menu_mode: String = "",
     val gamepad: Boolean = true,
     val gp_haptic: Boolean = true,
@@ -130,7 +130,7 @@ class AppConfig(private val context: Context) {
     // ========== Display settings (default profile overrides) ==========
 
     fun getFullscreen(): Boolean = profile?.confFullscreen ?: manualConfig.fullscreen
-    fun getOrientation(): Int = profile?.confOrientation ?: manualConfig.orientation
+    fun getOrientation(): String = profile?.confOrientation ?: manualConfig.orientation
     fun getShader(): String = profile?.confShader ?: manualConfig.shader
 
     // ========== Menu settings (default profile overrides) ==========

@@ -3,7 +3,7 @@ Settings used when `default_settings` is false.
 - `variables`: (String) Core variables passed verbatim to the LibRetro core.
 - `fast_forward_multiplier`: (Integer) Fast forward speed multiplier.
 - `fullscreen`: (Boolean) Fullscreen mode.
-- `orientation`: (Integer) 1 = Portrait only, 2 = Landscape only, 3 = Auto.
+- `orientation`: (String) "portrait" = Portrait only, "landscape" = Landscape only, "auto" = Any orientation (respects system auto-rotate).
 
 ## Menu Modes
 - `menu_mode`: (String) Comma-separated list defining how the menu can be opened. The order of words does not matter.

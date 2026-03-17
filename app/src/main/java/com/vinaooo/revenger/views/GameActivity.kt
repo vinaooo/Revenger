@@ -314,7 +314,7 @@ class GameActivity : FragmentActivity() {
                 // Only reapply orientation if config=1 or 2 (forced) or if config=3 with
                 // auto-rotate
                 // ON
-                if (configOrientation != 3 || autoRotateEnabled) {
+                if (configOrientation != "auto" || autoRotateEnabled) {
                         reapplyOrientation()
                 } else {
                         Log.d(

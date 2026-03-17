@@ -25,7 +25,7 @@ object OrientationManager {
      * @param activity Activity where orientation should be applied
      * @param configOrientation Value of orientation (1, 2, or 3)
      */
-    fun applyConfigOrientation(activity: Activity, configOrientation: Int) {
+    fun applyConfigOrientation(activity: Activity, configOrientation: String) {
         // Check system auto-rotate preference
         val accelerometerRotationEnabled = try {
             android.provider.Settings.System.getInt(
@@ -43,10 +43,10 @@ object OrientationManager {
             "applyConfigOrientation: config=$configOrientation, autoRotate=$accelerometerRotationEnabled"
         )
 
-        val orientation = when (configOrientation) {
-            1 -> ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT // Sempre portrait
-            2 -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE // Sempre landscape
-            3 -> {
+        val orientation = when (configOrientation.lowercase()) {
+            "portrait" -> ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT // Sempre portrait
+            "landscape" -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE // Sempre landscape
+            "auto" -> {
                 // If config is "any orientation", respect OS preference
                 if (accelerometerRotationEnabled) {
                     // Auto-rotate enabled → allow free rotation based on sensors
@@ -75,17 +75,17 @@ object OrientationManager {
      * @param activity Activity where the configuration should be applied
      * @param configOrientation Value of orientation (1, 2, or 3)
      */
-    fun forceConfigurationBeforeSetContent(activity: Activity, configOrientation: Int) {
-        // For mode 3 (any orientation), do not force anything - let Android decide
-        if (configOrientation == 3) {
+    fun forceConfigurationBeforeSetContent(activity: Activity, configOrientation: String) {
+        // For auto mode, do not force anything - let Android decide
+        if (configOrientation.lowercase() == "auto") {
             Log.d(TAG, "Mode 3 (any orientation) - skipping configuration force")
             return
         }
 
         // Determine the desired orientation
-        val desiredOrientation = when (configOrientation) {
-            1 -> Configuration.ORIENTATION_PORTRAIT
-            2 -> Configuration.ORIENTATION_LANDSCAPE
+        val desiredOrientation = when (configOrientation.lowercase()) {
+            "portrait" -> Configuration.ORIENTATION_PORTRAIT
+            "landscape" -> Configuration.ORIENTATION_LANDSCAPE
             else -> {
                 Log.w(TAG, "Invalid orientation: $configOrientation")
                 return
