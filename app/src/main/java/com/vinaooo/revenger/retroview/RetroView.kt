@@ -53,6 +53,9 @@ class RetroView(
                     "sharp" -> ShaderConfig.Sharp
                     "crt" -> ShaderConfig.CRT
                     "lcd" -> ShaderConfig.LCD
+                    "cut" -> ShaderConfig.CUT()
+                    "cut2" -> ShaderConfig.CUT2()
+                    "cut3" -> ShaderConfig.CUT3()
                     else -> ShaderConfig.Sharp
                 }
 
@@ -88,6 +91,18 @@ class RetroView(
             "lcd" -> {
                 Log.i("RetroView", "Shader configurado: LCD (efeito de matriz LCD)")
                 ShaderConfig.LCD
+            }
+            "cut" -> {
+                Log.i("RetroView", "Shader configurado: CUT (Upsampling Filter 1)")
+                ShaderConfig.CUT()
+            }
+            "cut2" -> {
+                Log.i("RetroView", "Shader configurado: CUT2 (Upsampling Filter 2)")
+                ShaderConfig.CUT2()
+            }
+            "cut3" -> {
+                Log.i("RetroView", "Shader configurado: CUT3 (Upsampling Filter 3)")
+                ShaderConfig.CUT3()
             }
             else -> {
                 Log.w("RetroView", "Invalid shader configuration: '$shaderString'. Using Sharp as fallback.")
