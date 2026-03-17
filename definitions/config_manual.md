@@ -6,10 +6,11 @@ Settings used when `default_settings` is false.
 - `orientation`: (Integer) 1 = Portrait only, 2 = Landscape only, 3 = Auto.
 
 ## Menu Modes
-- `menu_mode_fab`: (String) Floating action button position.
-- `menu_mode_gamepad`: (Boolean) Open menu via START button.
-- `menu_mode_back`: (Boolean) Open menu via Android back button.
-- `menu_mode_combo`: (Boolean) Open menu via SELECT + START combo.
+- `menu_mode`: (String) Comma-separated list defining how the menu can be opened. The order of words does not matter.
+  - Can include any combination of: `gamepad`, `back`, `combo`. 
+  - To configure the floating action button (FAB) position, append `fab=` followed by one of the 4 quadrants: `fab=bottom-right`, `fab=bottom-left`, `fab=top-right`, or `fab=top-left`.
+  - To hide the FAB entirely, simply omit `fab=` from the string.
+  - Example: `gamepad,back,combo,fab=bottom-right`
 
 ## Virtual Gamepad
 - `gamepad`: (Boolean) Show virtual gamepad.

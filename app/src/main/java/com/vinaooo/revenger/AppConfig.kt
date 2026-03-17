@@ -22,10 +22,7 @@ data class ManualConfig(
     val fast_forward_multiplier: Int = 1,
     val fullscreen: Boolean = true,
     val orientation: Int = 0,
-    val menu_mode_fab: String = "",
-    val menu_mode_gamepad: Boolean = false,
-    val menu_mode_back: Boolean = false,
-    val menu_mode_combo: Boolean = false,
+    val menu_mode: String = "",
     val gamepad: Boolean = true,
     val gp_haptic: Boolean = true,
     val button_allow_multiple_presses_action: Boolean = false,
@@ -138,10 +135,26 @@ class AppConfig(private val context: Context) {
 
     // ========== Menu settings (default profile overrides) ==========
 
-    fun getMenuModeFab(): String = profile?.confMenuModeFab ?: manualConfig.menu_mode_fab
-    fun getMenuModeGamepad(): Boolean = profile?.confMenuModeGamepad ?: manualConfig.menu_mode_gamepad
-    fun getMenuModeBack(): Boolean = profile?.confMenuModeBack ?: manualConfig.menu_mode_back
-    fun getMenuModeCombo(): Boolean = profile?.confMenuModeCombo ?: manualConfig.menu_mode_combo
+    fun getMenuModeFab(): String {
+        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
+        val match = Regex("fab=([\\w-]+)").find(mode)
+        return match?.groups?.get(1)?.value ?: ""
+    }
+    fun getMenuModeGamepad(): Boolean {
+        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
+        val modes = mode.split(",").map { it.trim() }
+        return modes.contains("gamepad")
+    }
+    fun getMenuModeBack(): Boolean {
+        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
+        val modes = mode.split(",").map { it.trim() }
+        return modes.contains("back")
+    }
+    fun getMenuModeCombo(): Boolean {
+        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
+        val modes = mode.split(",").map { it.trim() }
+        return modes.contains("combo")
+    }
 
     // ========== Gamepad settings (default profile overrides) ==========
 
