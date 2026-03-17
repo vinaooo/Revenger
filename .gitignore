@@ -62,3 +62,9 @@ icons/.env
 __pycache__/
 *.pyc
 *.pyo
+
+# IDEs and Tools
+/.vscode
+/.kotlin
+/.github
+/.idea/*
