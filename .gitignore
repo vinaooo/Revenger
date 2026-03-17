@@ -68,3 +68,6 @@ __pycache__/
 /.kotlin
 /.github
 /.idea/*
+
+# Python Virtual Environment
+/venv/
