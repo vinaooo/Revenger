@@ -1262,6 +1262,10 @@ class GameActivityViewModel(application: Application) :
     fun getShaderState(): String {
         return shaderViewModel.getShaderState()
     }
+    
+    fun getShaderDisplayName(): String {
+        return shaderViewModel.getCurrentShaderDisplayName()
+    }
 
     // ========== SCREENSHOT CAPTURE FOR SAVE STATES ==========
 

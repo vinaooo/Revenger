@@ -53,9 +53,9 @@ class RetroView(
                     "sharp" -> ShaderConfig.Sharp
                     "crt" -> ShaderConfig.CRT
                     "lcd" -> ShaderConfig.LCD
-                    "cut" -> ShaderConfig.CUT()
-                    "cut2" -> ShaderConfig.CUT2()
-                    "cut3" -> ShaderConfig.CUT3()
+                    "upscale1" -> ShaderConfig.CUT()
+                    "upscale2" -> ShaderConfig.CUT2()
+                    "upscale3" -> ShaderConfig.CUT3()
                     else -> ShaderConfig.Sharp
                 }
 
@@ -92,15 +92,15 @@ class RetroView(
                 Log.i("RetroView", "Shader configurado: LCD (efeito de matriz LCD)")
                 ShaderConfig.LCD
             }
-            "cut" -> {
+            "upscale1" -> {
                 Log.i("RetroView", "Shader configurado: CUT (Upsampling Filter 1)")
                 ShaderConfig.CUT()
             }
-            "cut2" -> {
+            "upscale2" -> {
                 Log.i("RetroView", "Shader configurado: CUT2 (Upsampling Filter 2)")
                 ShaderConfig.CUT2()
             }
-            "cut3" -> {
+            "upscale3" -> {
                 Log.i("RetroView", "Shader configurado: CUT3 (Upsampling Filter 3)")
                 ShaderConfig.CUT3()
             }

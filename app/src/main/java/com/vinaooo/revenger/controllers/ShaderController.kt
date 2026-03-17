@@ -19,7 +19,7 @@ class ShaderController(
     }
 
     // List of available shaders
-    val availableShaders = arrayOf("disabled", "sharp", "crt", "lcd", "cut", "cut2", "cut3")
+    val availableShaders = arrayOf("disabled", "sharp", "crt", "lcd", "upscale1", "upscale2", "upscale3")
 
     // Current shader
     private var currentShader: String = DEFAULT_SHADER
@@ -98,9 +98,9 @@ class ShaderController(
             "sharp" -> "Sharp"
             "crt" -> "CRT"
             "lcd" -> "LCD"
-            "cut" -> "Upscale 1"
-            "cut2" -> "Upscale 2"
-            "cut3" -> "Upscale 3"
+            "upscale1" -> "Upscale 1"
+            "upscale2" -> "Upscale 2"
+            "upscale3" -> "Upscale 3"
             else -> "Unknown"
         }
     }
