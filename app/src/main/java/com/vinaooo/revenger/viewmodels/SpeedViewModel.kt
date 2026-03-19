@@ -2,6 +2,9 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.viewModelScope
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.controllers.SpeedController
@@ -14,6 +17,17 @@ import kotlinx.coroutines.launch
  * and emulation speed.
  */
 class SpeedViewModel(application: Application) : AndroidViewModel(application) {
+
+    sealed class SpeedEvent {
+        object Idle : SpeedEvent()
+        data class ToggleFastForward(val retroView: Any?) : SpeedEvent()
+        data class SetGameSpeed(val speed: Int) : SpeedEvent()
+        data class ApplySpeedToController(val controller: SpeedController) : SpeedEvent()
+    }
+
+    private val _eventFlow = MutableStateFlow<SpeedEvent>(SpeedEvent.Idle)
+    val eventFlow: StateFlow<SpeedEvent> = _eventFlow.asStateFlow()
+
 
     private val preferencesRepository: PreferencesRepository =
             SharedPreferencesRepository(
@@ -58,19 +72,17 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
     // ========== SPEED CONTROL METHODS ==========
 
-    @Suppress("UNUSED_PARAMETER")
     fun toggleFastForward(retroView: Any? = null): Boolean {
-        // TODO: Implement fast-forward toggle
+        _eventFlow.value = SpeedEvent.ToggleFastForward(retroView)
         isFastForwardEnabled = !isFastForwardEnabled
         return isFastForwardEnabled
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun setGameSpeed(speed: Int) {
         // Validar range (normalmente 1-2)
         val validSpeed = speed.coerceIn(1, 2)
 
-        // TODO: Implement speed configuration in controller
+        _eventFlow.value = SpeedEvent.SetGameSpeed(validSpeed)
         currentSpeed = validSpeed
         saveSpeedState()
     }
@@ -105,7 +117,6 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
     // ========== SETTERS ==========
 
-    @Suppress("UNUSED_PARAMETER")
     fun enableFastForward(retroView: Any? = null) {
         isFastForwardEnabled = true
 
@@ -118,7 +129,6 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
         saveFastForwardState()
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun disableFastForward(retroView: Any? = null) {
         isFastForwardEnabled = false
 
@@ -133,7 +143,6 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSpeedController(controller: SpeedController) {
         speedController = controller
-        // TODO: Apply current speed to controller
-        // controller.setGameSpeed(currentSpeed)
+        _eventFlow.value = SpeedEvent.ApplySpeedToController(controller)
     }
 }

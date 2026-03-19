@@ -19,7 +19,7 @@ class ShaderController(
     }
 
     // List of available shaders
-    val availableShaders = arrayOf("disabled", "sharp", "crt", "lcd")
+    val availableShaders = arrayOf("disabled", "sharp", "crt", "lcd", "upscale1", "upscale2", "upscale3")
 
     // Current shader
     private var currentShader: String = DEFAULT_SHADER
@@ -28,7 +28,7 @@ class ShaderController(
     private var retroView: RetroView? = null
 
     init {
-        // Use AppConfig.getShader() (from optimal_settings.json or config.xml) as the default
+        // Use AppConfig.getShader() (from default_settings.json or config.xml) as the default
         // Only use the saved SharedPreferences value if the user has explicitly changed it before
         val configDefault = appConfig.getShader().lowercase()
         val effectiveDefault = if (configDefault in availableShaders) configDefault else DEFAULT_SHADER
@@ -37,7 +37,7 @@ class ShaderController(
             // User has saved a preference before — use it
             sharedPreferences.getString(PREF_CURRENT_SHADER, effectiveDefault) ?: effectiveDefault
         } else {
-            // First run — use optimal settings / config.xml value
+            // First run — use default settings / config.xml value
             effectiveDefault
         }
         Log.d("ShaderController", "Initial shader loaded: $currentShader (config default: $effectiveDefault)")
@@ -98,6 +98,9 @@ class ShaderController(
             "sharp" -> "Sharp"
             "crt" -> "CRT"
             "lcd" -> "LCD"
+            "upscale1" -> "Upscale 1"
+            "upscale2" -> "Upscale 2"
+            "upscale3" -> "Upscale 3"
             else -> "Unknown"
         }
     }

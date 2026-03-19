@@ -1,0 +1,7 @@
+{
+    "gp_button_color": "#88ffffff",
+    "gp_pressed_color": "#66ffffff",
+    "gp_padding_vertical": "20dp",
+    "gp_offset_portrait": 100,
+    "gp_offset_landscape": 50
+}

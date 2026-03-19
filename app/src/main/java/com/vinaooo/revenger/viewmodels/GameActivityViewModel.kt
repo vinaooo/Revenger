@@ -1262,6 +1262,10 @@ class GameActivityViewModel(application: Application) :
     fun getShaderState(): String {
         return shaderViewModel.getShaderState()
     }
+    
+    fun getShaderDisplayName(): String {
+        return shaderViewModel.getCurrentShaderDisplayName()
+    }
 
     // ========== SCREENSHOT CAPTURE FOR SAVE STATES ==========
 
@@ -1595,17 +1599,17 @@ class GameActivityViewModel(application: Application) :
                 retroView?.let { retroViewUtils?.preserveEmulatorState(it) }
     }
 
-    /** Check if menu should respond to back button based on conf_menu_mode_back */
+    /** Check if menu should respond to back button based on menu_mode_back */
     fun shouldHandleBackButton(): Boolean {
         return appConfig.getMenuModeBack()
     }
 
-    /** Check if menu should respond to SELECT+START combo based on conf_menu_mode_combo */
+    /** Check if menu should respond to SELECT+START combo based on menu_mode_combo */
     fun shouldHandleSelectStartCombo(): Boolean {
         return appConfig.getMenuModeCombo()
     }
 
-    /** Check if menu should respond to gamepad menu button based on conf_menu_mode_gamepad */
+    /** Check if menu should respond to gamepad menu button based on menu_mode_gamepad */
     fun shouldHandleGamepadMenuButton(): Boolean {
         return appConfig.getMenuModeGamepad()
     }

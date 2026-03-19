@@ -2,6 +2,9 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.viewModelScope
 import com.vinaooo.revenger.repositories.PreferencesRepository
 import com.vinaooo.revenger.repositories.SharedPreferencesRepository
@@ -13,6 +16,19 @@ import kotlinx.coroutines.launch
  * save/load states, and general game control.
  */
 class GameStateViewModel(application: Application) : AndroidViewModel(application) {
+
+    sealed class GameStateEvent {
+        object Idle : GameStateEvent()
+        object ResetGame : GameStateEvent()
+        data class SaveState(val slot: Int) : GameStateEvent()
+        data class LoadState(val slot: Int) : GameStateEvent()
+        data class CheckSaveState(val slot: Int) : GameStateEvent()
+        data class SetGameSpeed(val speed: Int) : GameStateEvent()
+    }
+
+    private val _eventFlow = MutableStateFlow<GameStateEvent>(GameStateEvent.Idle)
+    val eventFlow: StateFlow<GameStateEvent> = _eventFlow.asStateFlow()
+
 
     private val preferencesRepository: PreferencesRepository =
             SharedPreferencesRepository(
@@ -43,10 +59,7 @@ class GameStateViewModel(application: Application) : AndroidViewModel(applicatio
     fun resetGame(onComplete: (() -> Unit)? = null) {
         viewModelScope.launch {
             try {
-                // TODO: Implement game reset logic
-                // - Save temporary state if needed
-                // - Reset the emulator
-                // - Restore settings
+                _eventFlow.value = GameStateEvent.ResetGame
 
                 onComplete?.invoke()
             } catch (e: Exception) {
@@ -55,19 +68,16 @@ class GameStateViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun saveState(slot: Int = 0) {
-        // TODO: Implement save state
+        _eventFlow.value = GameStateEvent.SaveState(slot)
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun loadState(slot: Int = 0) {
-        // TODO: Implement load state
+        _eventFlow.value = GameStateEvent.LoadState(slot)
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun hasSaveState(slot: Int = 0): Boolean {
-        // TODO: Check if save state exists
+        _eventFlow.value = GameStateEvent.CheckSaveState(slot)
         return false
     }
 
@@ -84,11 +94,8 @@ class GameStateViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun setGameSpeed(speed: Int) {
-        // TODO: Implement game speed configuration
-        // Validate range (normally 1-2)
-        // Apply to emulator
+        _eventFlow.value = GameStateEvent.SetGameSpeed(speed)
     }
 
     // ========== UTILITY METHODS ==========

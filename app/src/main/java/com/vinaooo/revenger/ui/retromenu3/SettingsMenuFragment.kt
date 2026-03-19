@@ -217,7 +217,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
     private fun updateMenuState() {
         val isAudioEnabled = viewModel.getAudioState()
         val isFastForwardEnabled = viewModel.getFastForwardState()
-        val currentShader = viewModel.getShaderState()
+        val currentShader = viewModel.getShaderDisplayName()
 
         // Update sound title
         soundTitle.text = getString(if (isAudioEnabled) R.string.audio_on else R.string.audio_off)

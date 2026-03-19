@@ -23,10 +23,6 @@ class RetroView(
     private val coroutineScope: CoroutineScope,
     private val appConfig: AppConfig
 ) {
-    companion object {
-        var romBytes: ByteArray? = null
-    }
-
     private val resources = context.resources
     private val storage = Storage.getInstance(context)
 
@@ -57,6 +53,9 @@ class RetroView(
                     "sharp" -> ShaderConfig.Sharp
                     "crt" -> ShaderConfig.CRT
                     "lcd" -> ShaderConfig.LCD
+                    "upscale1" -> ShaderConfig.CUT()
+                    "upscale2" -> ShaderConfig.CUT2()
+                    "upscale3" -> ShaderConfig.CUT3()
                     else -> ShaderConfig.Sharp
                 }
 
@@ -93,6 +92,18 @@ class RetroView(
                 Log.i("RetroView", "Shader configurado: LCD (efeito de matriz LCD)")
                 ShaderConfig.LCD
             }
+            "upscale1" -> {
+                Log.i("RetroView", "Shader configurado: CUT (Upsampling Filter 1)")
+                ShaderConfig.CUT()
+            }
+            "upscale2" -> {
+                Log.i("RetroView", "Shader configurado: CUT2 (Upsampling Filter 2)")
+                ShaderConfig.CUT2()
+            }
+            "upscale3" -> {
+                Log.i("RetroView", "Shader configurado: CUT3 (Upsampling Filter 3)")
+                ShaderConfig.CUT3()
+            }
             else -> {
                 Log.w("RetroView", "Invalid shader configuration: '$shaderString'. Using Sharp as fallback.")
                 ShaderConfig.Sharp
@@ -121,22 +132,15 @@ class RetroView(
                             )
                         }
 
-                val romLoadStartTime = System.currentTimeMillis()
-                if (appConfig.getLoadBytes()) {
-                    if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
-                    gameFileBytes = romBytes
-                } else {
-                    // Always overwrite ROM file to ensure latest version is loaded
-                    storage.rom.outputStream().use { romInputStream.copyTo(it) }
-                    Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
+                // Always overwrite ROM file to storage to ensure latest version is loaded
+                storage.rom.outputStream().use { romInputStream.copyTo(it) }
+                Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
 
-                    gameFilePath = storage.rom.absolutePath
-                }
+                gameFilePath = storage.rom.absolutePath
 
                 shader = getShaderConfig()
                 variables = getCoreVariables()
 
-                val sramLoadStartTime = System.currentTimeMillis()
                 if (storage.sram.exists()) {
                     storage.sram.inputStream().use { saveRAMState = it.readBytes() }
                 }
@@ -206,5 +210,17 @@ class RetroView(
 
         Log.d("RetroView", "Total core variables configured: ${variables.size}")
         return variables.toTypedArray()
+    }
+
+    fun resume() {
+        view.onResume()
+    }
+
+    fun pause() {
+        view.onPause()
+    }
+
+    fun destroy() {
+        view.onDestroy()
     }
 }

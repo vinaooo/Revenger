@@ -10,47 +10,58 @@ plugins {
  */
 def getConfigValue = { String id ->
     try {
-        def configFile = file("${rootProject.projectDir.path}/app/src/main/res/values/config.xml")
+        def configFile = file("${rootProject.projectDir.path}/app/src/main/assets/config/config.json")
+        def manualFile = file("${rootProject.projectDir.path}/app/src/main/assets/config/config_manual.json")
         
-        if (!configFile.exists()) {
-            throw new GradleException("Configuration file not found: ${configFile.absolutePath}")
+        if (configFile.exists()) {
+            def json = new groovy.json.JsonSlurper().parseText(configFile.text)
+            if (json.containsKey(id)) return json[id].toString()
+        }
+        if (manualFile.exists()) {
+            def manualJson = new groovy.json.JsonSlurper().parseText(manualFile.text)
+            if (manualJson.containsKey(id)) return manualJson[id].toString()
         }
         
-        def parser = new XmlParser()
-        def resources = parser.parse(configFile)
-        
-        // Buscar por string elements
-        def stringElement = resources.string.find { element ->
-            element.@name.equals(id)
-        }
-        
-        if (stringElement != null) {
-            def value = stringElement.text()
-            println "getConfigValue($id) = '$value'"
-            return value
-        }
-        
-        // Buscar por bool elements  
-        def boolElement = resources.bool.find { element ->
-            element.@name.equals(id)
-        }
-        
-        if (boolElement != null) {
-            def value = boolElement.text()
-            println "getConfigValue($id) = '$value' (boolean)"
-            return value
-        }
-        
-        // Not found
-        throw new GradleException("Configuration '$id' not found in config.xml file")
-        
+        throw new GradleException("Configuration '" + id + "' not found in config.json files")
     } catch (Exception e) {
-        throw new GradleException("Error reading configuration '$id': ${e.message}", e)
+        throw new GradleException("Error reading configuration '" + id + "': " + e.message, e)
     }
 }
 
 /**
- * Generates a unique app identifier from conf_name and conf_core.
+ * Validates default settings platform. Fails build early if configuration is incorrect.
+ */
+def validateDefaultPlatform = { ->
+    def isDefault = getConfigValue('default_settings') == 'true'
+    if (!isDefault) return
+
+    def platform = getConfigValue('platform')
+    if (platform == null || platform.trim().isEmpty()) {
+        def defaultSettingsFile = file("${rootProject.projectDir.path}/app/src/main/assets/default_settings.json")
+        def availablePlatforms = []
+        
+        if (defaultSettingsFile.exists()) {
+            def jsonSlurper = new groovy.json.JsonSlurper()
+            def profiles = jsonSlurper.parseText(defaultSettingsFile.text)
+            profiles.each { profile ->
+                if (profile.platform_id) {
+                    availablePlatforms.add(profile.platform_id)
+                }
+            }
+        }
+        
+        def platformsMsg = availablePlatforms.isEmpty() ? "" : "\n\nAvailable platforms to choose from:\n- " + availablePlatforms.join("\n- ")
+        throw new GradleException("❌ BUILD FAILED: 'default_settings' is true, but 'platform' is empty!\n" +
+            "When using default settings, you must specify the platform ID to avoid generic extension collisions (like .bin or .iso)." +
+            platformsMsg)
+    }
+}
+
+// Run validation during Gradle configuration phase
+validateDefaultPlatform()
+
+/**
+ * Generates a unique app identifier from name and core.
  * Converts both strings to lowercase, removes special characters,
  * and combines them with an underscore.
  * 
@@ -70,21 +81,53 @@ def generateConfigId = { String name, String core ->
     return generatedId
 }
 
+/**
+ * Evaluates which core to use across the entire build by checking optimal config first
+ */
+def getResolvedCore = { ->
+    def defaultSettingsEnabled = getConfigValue('default_settings') == 'true'
+    if (defaultSettingsEnabled) {
+        def jsonFile = file("${rootProject.projectDir.path}/app/src/main/assets/default_settings.json")
+        if (jsonFile.exists()) {
+            def jsonSlurper = new groovy.json.JsonSlurper()
+            def profiles = jsonSlurper.parseText(jsonFile.text)
+            def platformId = getConfigValue('platform')
+            def romName = getConfigValue('rom')
+            def extension = romName.contains('.') ? romName.substring(romName.lastIndexOf('.')).toLowerCase() : ''
+            
+            def profile = null
+            if (platformId != null && !platformId.trim().isEmpty()) {
+                profile = profiles.find { it.platform_id == platformId }
+            }
+            if (!profile) {
+                profile = profiles.find { it.extensions.contains(extension) }
+            }
+            if (profile && profile.core) {
+                return profile.core
+            }
+        }
+    }
+    return getConfigValue('core')
+}
+
 android {
     namespace = 'com.vinaooo.revenger'
     compileSdk = 36               // Android 16 - API Level 36
-    // buildToolsVersion removido - AGP 8.13.0 usa automaticamente 36.0.0
+    // buildToolsVersion removed - AGP 8.13.0 uses 36.0.0 automatically
 
     defaultConfig {
-        applicationId "com.vinaooo.revenger.${generateConfigId(getConfigValue('conf_name'), getConfigValue('conf_core'))}"
+        applicationId "com.vinaooo.revenger.${generateConfigId(getConfigValue('name'), getResolvedCore())}"
         minSdk = 30                // Android 11 - API Level 30
         targetSdk = 36             // Android 16 - API Level 36
         versionCode 1
         versionName '1.0'
         resConfigs 'en'
 
-        // Filter ABIs based on conf_target_abi
-        def targetAbi = getConfigValue('conf_target_abi')
+        // Dynamically inject the app name to satisfy AndroidManifest.xml
+        resValue "string", "name", "\"${getConfigValue('name')}\""
+
+        // Filter ABIs based on target_abi
+        def targetAbi = getConfigValue('target_abi')
         if (targetAbi != 'all') {
             ndk {
                 abiFilters targetAbi
@@ -128,6 +171,11 @@ android {
         }
     }
 
+    sourceSets {
+        test.java.srcDirs += ["${projectDir}/../tests"]
+    }
+
+
     splits {
         abi {
             enable = false
@@ -155,14 +203,15 @@ android {
         freeCompilerArgs += '-Xannotation-default-target=param-property'
     }
 
-    lintOptions {
-        disable 'Aligned16KB'
+    lint {
+        abortOnError = false
+        disable += ['Aligned16KB']
     }
 }
 
 task generateIcons(type: Exec) {
     def pythonScript = file("${rootProject.projectDir.path}/icons/scripts/master_icon.py")
-    def configFile = file("${rootProject.projectDir.path}/app/src/main/res/values/config.xml")
+    def configFile = file("${rootProject.projectDir.path}/app/src/main/assets/config/config.json")
     commandLine 'python3', pythonScript.absolutePath, '--config', configFile.absolutePath
     doFirst {
         println "🎨 Generating App Icons using python script..."
@@ -172,7 +221,7 @@ task generateIcons(type: Exec) {
 task prepareRom {
     dependsOn generateIcons
     doLast {
-        def romName = getConfigValue('conf_rom')
+        def romName = getConfigValue('rom')
         def romDir = file("${rootProject.projectDir}/app/src/main/assets/rom")
         def backupDir = file("${rootProject.projectDir}/roms_backup")
         backupDir.mkdirs()
@@ -207,23 +256,23 @@ task prepareRom {
 
 task prepareCore {
     doLast {
-        // Determine core name: either from config.xml or from optimal settings JSON
+        // Determine core name: either from config.xml or from default settings JSON
         def coreName
-        def optimalSettingsEnabled = getConfigValue('conf_optimal_settings') == 'true'
+        def defaultSettingsEnabled = getConfigValue('default_settings') == 'true'
         
-        if (optimalSettingsEnabled) {
-            println "🤖 Optimal Settings enabled - resolving core from platform profile"
+        if (defaultSettingsEnabled) {
+            println "🤖 Default Settings enabled - resolving core from platform profile"
             
-            def jsonFile = file("${rootProject.projectDir}/app/src/main/assets/optimal_settings.json")
+            def jsonFile = file("${rootProject.projectDir}/app/src/main/assets/default_settings.json")
             if (!jsonFile.exists()) {
-                throw new GradleException("optimal_settings.json not found in assets/")
+                throw new GradleException("default_settings.json not found in assets/")
             }
             
             def jsonSlurper = new groovy.json.JsonSlurper()
             def profiles = jsonSlurper.parse(jsonFile)
             
-            def platformId = getConfigValue('conf_platform')
-            def romName = getConfigValue('conf_rom')
+            def platformId = getConfigValue('platform')
+            def romName = getConfigValue('rom')
             def extension = romName.substring(romName.lastIndexOf('.')).toLowerCase()
             
             println "   Platform ID: ${platformId ?: '(not set)'}"
@@ -246,18 +295,18 @@ task prepareCore {
                 if (profile) {
                     println "   ✅ Found profile by extension: ${profile.platform_id}"
                 } else {
-                    throw new GradleException("No optimal settings profile found for extension '$extension'. Add conf_platform or use manual mode (conf_optimal_settings=false)")
+                    throw new GradleException("No default settings profile found for extension '$extension'. Add platform or use manual mode (default_settings=false)")
                 }
             }
             
             coreName = profile.core
-            println "   🎯 Selected core: $coreName (from optimal profile)"
+            println "   🎯 Selected core: $coreName (from default profile)"
         } else {
-            coreName = getConfigValue('conf_core')
-            println "🛠️  Manual mode - using core from conf_core: $coreName"
+            coreName = getConfigValue('core')
+            println "🛠️  Manual mode - using core from core: $coreName"
         }
         
-        def targetAbi = getConfigValue('conf_target_abi')
+        def targetAbi = getConfigValue('target_abi')
         def allAbis = ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
         def abisToFetch = (targetAbi == 'all') ? allAbis : [targetAbi]
         def foundAbis = []
@@ -309,7 +358,7 @@ task prepareCore {
             jniAbiFolder.mkdirs()
             def zipFile = new File(jniAbiFolder, "${coreName}_libretro_android.so.zip")
 
-            println "Baixando LibRetro core: $coreName para $abi"
+            println "Downloading LibRetro core: $coreName for $abi"
 
             try {
                 def url = new URL(coreUrl)
@@ -349,13 +398,13 @@ task prepareCore {
         // Summary
         println ""
         println "=========================================================="
-        println "       RESUMO DO DOWNLOAD DE CORES LIBRETRO"
+        println "       LIBRETRO CORE DOWNLOAD SUMMARY       "
         println "=========================================================="
         if (foundAbis) {
-            println "✅ Arquiteturas ENCONTRADAS: ${foundAbis.join(', ')}"
+            println "✅ FOUND Architectures: ${foundAbis.join(', ')}"
         }
         if (missingAbis) {
-            println "❌ Arquiteturas NÃO ENCONTRADAS: ${missingAbis.join(', ')}"
+            println "❌ MISSING Architectures: ${missingAbis.join(', ')}"
         }
         println "=========================================================="
 
@@ -368,6 +417,8 @@ prepareCore.dependsOn prepareRom
 preBuild.dependsOn prepareCore
 
 dependencies {
+    // Core UI and Third Party
+implementation "com.google.code.gson:gson:2.10.1"
     implementation files('libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
@@ -391,9 +442,9 @@ dependencies {
     
     // Phase 9.4: SDK 36 Features - REMOVED: Material Design Components (replaced with RetroCardView)
     // implementation 'com.google.android.material:material:1.13.0'
-}
 
-dependencies {
+    // Test and Instrumentation
+implementation "com.google.code.gson:gson:2.10.1"
     // Unit Test dependencies
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:5.12.0'
@@ -415,3 +466,4 @@ dependencies {
     androidTestImplementation 'androidx.fragment:fragment-testing:1.8.5'
     androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
 }
+

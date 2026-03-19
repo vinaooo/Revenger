@@ -2,6 +2,9 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.viewModelScope
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.controllers.AudioController
@@ -14,6 +17,15 @@ import kotlinx.coroutines.launch
  * audio settings.
  */
 class AudioViewModel(application: Application) : AndroidViewModel(application) {
+
+    sealed class AudioEvent {
+        object Idle : AudioEvent()
+        data class ToggleAudio(val retroView: Any?) : AudioEvent()
+    }
+
+    private val _eventFlow = MutableStateFlow<AudioEvent>(AudioEvent.Idle)
+    val eventFlow: StateFlow<AudioEvent> = _eventFlow.asStateFlow()
+
 
     private val preferencesRepository: PreferencesRepository =
             SharedPreferencesRepository(
@@ -45,13 +57,11 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     // ========== AUDIO CONTROL METHODS ==========
 
-    @Suppress("UNUSED_PARAMETER")
     fun toggleAudio(retroView: Any?): Boolean {
-        // TODO: Implement audio toggle
+        _eventFlow.value = AudioEvent.ToggleAudio(retroView)
         return isAudioEnabled
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun setAudioEnabled(retroView: Any?, enabled: Boolean) {
         isAudioEnabled = enabled
 

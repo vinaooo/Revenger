@@ -327,7 +327,7 @@ class ExitFragment : MenuFragmentBase() {
 
             // Get ROM name from config
             val romName = try {
-                getString(R.string.conf_name)
+                getString(R.string.name)
             } catch (e: Exception) {
                 "Unknown Game"
             }

@@ -51,16 +51,16 @@ class GamePadConfig(context: Context, private val appConfig: AppConfig) {
         private val radialGamePadTheme =
                 RadialGamePadTheme(
                         textColor = ContextCompat.getColor(context, android.R.color.white),
-                        normalColor = ContextCompat.getColor(context, R.color.gp_button_color),
-                        pressedColor = ContextCompat.getColor(context, R.color.gp_pressed_color)
+                        normalColor = android.graphics.Color.parseColor(appConfig.gamePadConfigModel.button_button_color),
+                        pressedColor = android.graphics.Color.parseColor(appConfig.gamePadConfigModel.gp_pressed_color)
                 )
 
         private fun getActionButtonsInOrder(): List<ButtonConfig> {
                 return listOfNotNull( // ordem antihoraria
-                        BUTTON_B.takeIf { appConfig.getGpB() }, // Right (3h)
-                        BUTTON_Y.takeIf { appConfig.getGpY() }, // Top (12h)
-                        BUTTON_X.takeIf { appConfig.getGpX() }, // Left (9h)
-                        BUTTON_A.takeIf { appConfig.getGpA() } // Bottom (6h)
+                        BUTTON_B.takeIf { appConfig.getButtonB() }, // Right (3h)
+                        BUTTON_Y.takeIf { appConfig.getButtonY() }, // Top (12h)
+                        BUTTON_X.takeIf { appConfig.getButtonX() }, // Left (9h)
+                        BUTTON_A.takeIf { appConfig.getButtonA() } // Bottom (6h)
                 )
         }
 
@@ -109,33 +109,33 @@ class GamePadConfig(context: Context, private val appConfig: AppConfig) {
         // --- LEFT side button definitions (index → button, isVisible) ---
         private val leftButtons =
                 mapOf(
-                        2 to Pair(BUTTON_SELECT, appConfig.getGpSelect()),
-                        3 to Pair(BUTTON_L2, appConfig.getGpL2()),
-                        4 to Pair(BUTTON_L1, appConfig.getGpL1()),
+                        2 to Pair(BUTTON_SELECT, appConfig.getButtonSelect()),
+                        3 to Pair(BUTTON_L2, appConfig.getButtonL2()),
+                        4 to Pair(BUTTON_L1, appConfig.getButtonL1()),
                 )
 
         // --- RIGHT side button definitions (index → button, isVisible) ---
         private val rightButtons =
                 mapOf(
-                        0 to Pair(BUTTON_F1, appConfig.getShowFakeButton0()),
-                        1 to Pair(BUTTON_F2, appConfig.getShowFakeButton1()),
-                        2 to Pair(BUTTON_R1, appConfig.getGpR1()),
-                        3 to Pair(BUTTON_R2, appConfig.getGpR2()),
-                        4 to Pair(BUTTON_START, appConfig.getGpStart()),
-                        5 to Pair(BUTTON_F4, appConfig.getShowFakeButton5()),
-                        6 to Pair(BUTTON_F10, appConfig.getShowFakeButton6()),
-                        7 to Pair(BUTTON_F5, appConfig.getShowFakeButton7()),
+                        0 to Pair(BUTTON_F1, appConfig.getFakeButton0()),
+                        1 to Pair(BUTTON_F2, appConfig.getFakeButton1()),
+                        2 to Pair(BUTTON_R1, appConfig.getButtonR1()),
+                        3 to Pair(BUTTON_R2, appConfig.getButtonR2()),
+                        4 to Pair(BUTTON_START, appConfig.getButtonStart()),
+                        5 to Pair(BUTTON_F4, appConfig.getFakeButton5()),
+                        6 to Pair(BUTTON_F10, appConfig.getFakeButton6()),
+                        7 to Pair(BUTTON_F5, appConfig.getFakeButton7()),
                         8 to Pair(BUTTON_F6, appConfig.getMenuModeGamepad()),
-                        9 to Pair(BUTTON_F7, appConfig.getShowFakeButton9()),
+                        9 to Pair(BUTTON_F7, appConfig.getFakeButton9()),
                         10 to
                                 Pair(
                                         BUTTON_F8,
-                                        appConfig.getShowFakeButton10()
+                                        appConfig.getFakeButton10()
                                 ),
                         11 to
                                 Pair(
                                         BUTTON_F9,
-                                        appConfig.getShowFakeButton11()
+                                        appConfig.getFakeButton11()
                                 ),
                 )
 
@@ -201,7 +201,7 @@ class GamePadConfig(context: Context, private val appConfig: AppConfig) {
                                 PrimaryDialConfig.PrimaryButtons(
                                         dials = getActionButtonsInOrder(),
                                         allowMultiplePressesSingleFinger =
-                                                appConfig.getGpAllowMultiplePressesAction()
+                                                appConfig.getButtonAllowMultiplePressesAction()
                                 ),
                         secondaryDials = buildSecondaryDials(rightButtons)
                 )

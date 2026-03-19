@@ -1,3 +1,5 @@
+import logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 import os
 import sys
 import xml.etree.ElementTree as ET
@@ -57,25 +59,50 @@ MIPMAP_SIZES = {
     "xxxhdpi": (192, 192)
 }
 
+import json
 def parse_config_xml(config_file_path=None):
-    """Parses config.xml to determine core and rom name."""
+    """Parses config.json to determine core and rom name."""
     if not config_file_path:
-        config_file_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "res", "values", "config.xml")
+        config_file_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "assets", "config", "config.json")
         
     try:
-        tree = ET.parse(config_file_path)
-        root = tree.getroot()
-        core = ""
-        rom = ""
-        for elem in root.findall("string"):
-            if elem.attrib.get("name") == "conf_core":
-                core = elem.text or ""
-            elif elem.attrib.get("name") == "conf_rom":
-                rom = elem.text or ""
-        return core.strip(), rom.strip()
+        with open(config_file_path, 'r', encoding='utf-8') as f:
+            config_data = json.load(f)
+            
+        manual_file_path = os.path.join(os.path.dirname(config_file_path), "config_manual.json")
+        if os.path.exists(manual_file_path):
+            with open(manual_file_path, 'r', encoding='utf-8') as f:
+                manual_data = json.load(f)
+                config_data.update(manual_data)
+        
+        core_value = config_data.get('core', "")
+        
+        if config_data.get('default_settings', False):
+            # Try to grab core from optimal_settings
+            platform_id = config_data.get('platform', "")
+            rom_value = config_data.get('rom', "")
+            ext = "." + rom_value.split('.')[-1].lower() if '.' in rom_value else ''
+            
+            default_file_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "assets", "default_settings.json")
+            if os.path.exists(default_file_path):
+                with open(default_file_path, 'r', encoding='utf-8') as f:
+                    default_data = json.load(f)
+                    
+                profile = None
+                if platform_id:
+                    profile = next((p for p in default_data if p.get('platform_id') == platform_id), None)
+                if not profile:
+                    profile = next((p for p in default_data if ext in p.get('extensions', [])), None)
+                    
+                if profile and profile.get('core'):
+                    core_value = profile.get('core')
+        
+        rom_value = config_data.get('rom', "")
+        return core_value.strip(), rom_value.strip()
     except Exception as e:
-        print(f"Error parsing config.xml at {config_file_path}: {e}")
+        logging.error(f"Error parsing config.json at {config_file_path}: {e}")
         return "", ""
+
 
 def determine_platform(core, rom):
     """Determines the platform from the ROM extension or libretro core."""
@@ -185,7 +212,7 @@ def generate_android_icons(img):
         resized_ad.save(os.path.join(folder, "ic_launcher_foreground.png"), "PNG")
         resized_ad.save(os.path.join(folder, "ic_launcher_background.png"), "PNG")
         
-        print(f"✅ Generated {density} icons in {folder}")
+        logging.info(f"✅ Generated {density} icons in {folder}")
 
     # Generate adaptive icon XMLs in mipmap-anydpi-v26
     anydpi_folder = os.path.join(res_dir, "mipmap-anydpi-v26")
@@ -202,7 +229,7 @@ def generate_android_icons(img):
     with open(os.path.join(anydpi_folder, "ic_launcher_round.xml"), "w") as f:
         f.write(adaptive_xml)
         
-    print(f"✅ Generated adaptive icon XMLs in {anydpi_folder}")
+    logging.info(f"✅ Generated adaptive icon XMLs in {anydpi_folder}")
 
 import argparse
 
@@ -217,21 +244,21 @@ def main():
     
     args = parser.parse_args()
     
-    print("🚀 Master Icon Creation Orchestrator")
+    logging.info("🚀 Master Icon Creation Orchestrator")
     
     # Parse config
     core, rom = parse_config_xml(args.config)
     if not core or not rom:
-        print("❌ Could not determine core or rom from config.xml. Using default values for generation might be needed.")
+        logging.error("❌ Could not determine core or rom from config.xml. Using default values for generation might be needed.")
         sys.exit(1)
         
     platform = determine_platform(core, rom)
-    print(f"🎮 Determined Platform: {platform} (Core: {core}, ROM: {rom})")
+    logging.info(f"🎮 Determined Platform: {platform} (Core: {core}, ROM: {rom})")
     
     img = None
     
     if args.force:
-        print(f"⚠️ Forcing Method {args.force}")
+        logging.warning(f"⚠️ Forcing Method {args.force}")
         if args.force == 1:
             img = fetch_sgdb_icon(rom)
         elif args.force == 2:
@@ -245,32 +272,32 @@ def main():
         # Standard cascade
         if not args.skip_downloads:
             # Method 1: SteamGridDB
-            print("🔍 Attempting Method 1: SteamGridDB (fetch_icon)...")
+            logging.info("🔍 Attempting Method 1: SteamGridDB (fetch_icon)...")
             img = fetch_sgdb_icon(rom)
             
             # Method 2: IGDB Smart Icon
             if not img:
-                print("🔍 Match not found or failed. Attempting Method 2: IGDB Smart Icon (fetch_smart)...")
+                logging.info("🔍 Match not found or failed. Attempting Method 2: IGDB Smart Icon (fetch_smart)...")
                 img = fetch_igdb_smart_icon(platform, rom)
         else:
-            print("⏭️ Skipping online download methods (SGDB, IGDB)...")
+            logging.info("⏭️ Skipping online download methods (SGDB, IGDB)...")
             
         # Method 3: Console Fallback
         if not img:
-            print("🔍 Match not found or failed. Attempting Method 3: Console Default Icon...")
+            logging.info("🔍 Match not found or failed. Attempting Method 3: Console Default Icon...")
             img = fetch_console_fallback(platform)
             
         # Method 4: Typographical Fallback
         if not img:
-            print("🔍 Platform icon missing. Attempting Method 4: Typographical Fallback (generate_typo)...")
+            logging.info("🔍 Platform icon missing. Attempting Method 4: Typographical Fallback (generate_typo)...")
             img = generate_typo_icon(rom)
             
     if img:
-        print("🎉 Image successfully acquired. Generating Android Mipmaps...")
+        logging.info("🎉 Image successfully acquired. Generating Android Mipmaps...")
         generate_android_icons(img)
-        print("✅ Process complete!")
+        logging.info("✅ Process complete!")
     else:
-        print("❌ All methods failed. Could not generate icon.")
+        logging.error("❌ All methods failed. Could not generate icon.")
 
 if __name__ == "__main__":
     main()

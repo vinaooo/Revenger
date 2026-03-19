@@ -2,6 +2,10 @@ package com.vinaooo.revenger.views
 
 import android.content.pm.PackageManager
 import android.hardware.input.InputManager
+import com.vinaooo.revenger.managers.GameLifecycleObserver
+import com.vinaooo.revenger.managers.AudioRoutingManager
+import android.media.AudioManager
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -32,6 +36,8 @@ class GameActivity : FragmentActivity() {
         private lateinit var retroviewContainer: FrameLayout
         private lateinit var menuContainer: FrameLayout
         private lateinit var loadPreviewOverlay: android.widget.ImageView
+        private lateinit var audioRoutingManager: AudioRoutingManager
+        private lateinit var gameLifecycleObserver: GameLifecycleObserver
         private val viewModel: GameActivityViewModel by viewModels()
         private val appConfig by lazy { RevengerApplication.appConfig }
 
@@ -78,20 +84,17 @@ class GameActivity : FragmentActivity() {
                 )
                 android.util.Log.e("STARTUP_TIMING", "⏱️ [T+0ms] GameActivity.onCreate() START")
 
-                super.onCreate(savedInstanceState)
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] super.onCreate() completed"
-                )
-
                 // CRITICAL: Apply orientation in TWO steps to eliminate flash:
-                // 1. Force Configuration BEFORE setContentView (chooses correct layout)
+                // 1. Force Configuration BEFORE super.onCreate() (chooses correct layout)
                 // 2. Apply requestedOrientation for persistence
-                val configOrientation = resources.getInteger(R.integer.conf_orientation)
-                com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(
-                        this,
-                        configOrientation
-                )
+                val configOrientation = appConfig.getOrientation()
+                com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(this, configOrientation)
+
+                super.onCreate(savedInstanceState)
+
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                audioRoutingManager = AudioRoutingManager(audioManager)
+                audioRoutingManager.requestFocus()
                 android.util.Log.e(
                         "STARTUP_TIMING",
                         "⏱️ [T+${System.currentTimeMillis() - startTime}ms] forceConfiguration() completed"
@@ -148,7 +151,7 @@ class GameActivity : FragmentActivity() {
                 gamePadContainer = gamepadContainers
 
                 // Initialize GamePad alignment manager
-                alignmentManager = GamePadAlignmentManager(resources)
+                alignmentManager = GamePadAlignmentManager(appConfig)
                 val (offsetsValid, errorMsg) = alignmentManager.validateOffsets()
                 if (!offsetsValid) {
                         Log.w(TAG, "GamePad offset validation error: $errorMsg")
@@ -296,7 +299,7 @@ class GameActivity : FragmentActivity() {
 
                 // Check if we should reprocess orientation
                 // DO NOT reprocess when config=3 and auto-rotate=OFF (to allow manual button)
-                val configOrientation = resources.getInteger(R.integer.conf_orientation)
+                val configOrientation = appConfig.getOrientation()
                 val autoRotateEnabled =
                         try {
                                 android.provider.Settings.System.getInt(
@@ -311,7 +314,7 @@ class GameActivity : FragmentActivity() {
                 // Only reapply orientation if config=1 or 2 (forced) or if config=3 with
                 // auto-rotate
                 // ON
-                if (configOrientation != 3 || autoRotateEnabled) {
+                if (configOrientation != "auto" || autoRotateEnabled) {
                         reapplyOrientation()
                 } else {
                         Log.d(
@@ -1220,6 +1223,7 @@ class GameActivity : FragmentActivity() {
                 // Clean up view model
                 viewModel.dispose()
                 viewModel.detachRetroView(this)
+                if (::audioRoutingManager.isInitialized) audioRoutingManager.abandonFocus()
                 super.onDestroy()
         }
 
@@ -1312,7 +1316,7 @@ class GameActivity : FragmentActivity() {
          */
         private fun applyPortraitOffset(container: android.widget.LinearLayout) {
                 try {
-                        val offsetPercent = resources.getInteger(R.integer.gp_offset_portrait)
+                        val offsetPercent = appConfig.gamePadConfigModel.gp_offset_portrait
 
                         // Use parent height (FrameLayout) minus container height to
                         // calculate available space
@@ -1354,7 +1358,7 @@ class GameActivity : FragmentActivity() {
          */
         private fun applyLandscapeOffset(container: android.widget.LinearLayout) {
                 try {
-                        val offsetPercent = resources.getInteger(R.integer.gp_offset_landscape)
+                        val offsetPercent = appConfig.gamePadConfigModel.gp_offset_landscape
 
                         // Use parent height (FrameLayout) minus container height to
                         // calculate available space

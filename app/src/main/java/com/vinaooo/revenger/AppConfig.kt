@@ -2,201 +2,195 @@ package com.vinaooo.revenger
 
 import android.content.Context
 import android.util.Log
-import com.vinaooo.revenger.models.OptimalSettingsProfile
-import com.vinaooo.revenger.repositories.OptimalSettingsRepository
+import com.google.gson.Gson
+import com.vinaooo.revenger.models.DefaultSettingsProfile
+import com.vinaooo.revenger.repositories.DefaultSettingsRepository
 import com.vinaooo.revenger.utils.ConfigIdGenerator
+import java.io.InputStreamReader
+
+data class BaseConfig(
+    val default_settings: Boolean = false,
+    val platform: String = "",
+    val name: String = "Revenger",
+    val rom: String = "",
+    val target_abi: String = ""
+)
+
+data class ManualConfig(
+    val core: String = "",
+    val variables: String = "",
+    val fast_forward_multiplier: Int = 1,
+    val fullscreen: Boolean = true,
+    val orientation: String = "landscape",
+    val menu_mode: String = "",
+    val gamepad: Boolean = true,
+    val gp_haptic: Boolean = true,
+    val button_allow_multiple_presses_action: Boolean = false,
+    val button_a: Boolean = true,
+    val button_b: Boolean = true,
+    val button_x: Boolean = false,
+    val button_y: Boolean = false,
+    val button_start: Boolean = true,
+    val button_select: Boolean = true,
+    val button_l1: Boolean = false,
+    val button_r1: Boolean = false,
+    val button_l2: Boolean = false,
+    val button_r2: Boolean = false,
+    val left_analog: Boolean = false,
+    val fake_button_0: Boolean = false,
+    val fake_button_1: Boolean = false,
+    val fake_button_5: Boolean = false,
+    val fake_button_6: Boolean = false,
+    val fake_button_7: Boolean = false,
+    val fake_button_9: Boolean = false,
+    val fake_button_10: Boolean = false,
+    val fake_button_11: Boolean = false,
+    val shader: String = "",
+    val performance_overlay: Boolean = false
+)
+
+data class GamePadAssetsConfig(
+    val button_button_color: String = "#88ffffff",
+    val gp_pressed_color: String = "#66ffffff",
+    val gp_padding_vertical: String = "20dp",
+    val gp_offset_portrait: Int = 100,
+    val gp_offset_landscape: Int = 50
+)
 
 /**
  * Centralized application configuration facade.
- * Provides unified access to both static config.xml values and dynamic optimal settings.
- * 
- * When conf_optimal_settings = false:
- *   All methods delegate to config.xml values
- * 
- * When conf_optimal_settings = true:
- *   Platform-specific settings are loaded from optimal_settings.json based on:
- *   1. conf_platform (explicit platform ID)
- *   2. conf_rom extension (automatic detection)
- *   
- * Identity/build settings (id, name, rom, target_abi, load_bytes) are always from config.xml.
+ * Provides unified access to both static config.xml values and dynamic default settings.
  */
 class AppConfig(private val context: Context) {
     private val TAG = "AppConfig"
-    private val resources = context.resources
+    
+    private val baseConfig: BaseConfig
+    private val manualConfig: ManualConfig
+    val gamePadConfigModel: GamePadAssetsConfig
 
-    private val optimalSettingsEnabled: Boolean by lazy {
-        resources.getBoolean(R.bool.conf_optimal_settings)
+    init {
+        val gson = Gson()
+        baseConfig = loadJsonAsset("config/config.json", BaseConfig::class.java, gson) ?: BaseConfig()
+        manualConfig = loadJsonAsset("config/config_manual.json", ManualConfig::class.java, gson) ?: ManualConfig()
+        gamePadConfigModel = loadJsonAsset("config/gamepad.json", GamePadAssetsConfig::class.java, gson) ?: GamePadAssetsConfig()
     }
 
-    private val profile: OptimalSettingsProfile? by lazy {
-        if (!optimalSettingsEnabled) {
+    private fun <T> loadJsonAsset(path: String, type: Class<T>, gson: Gson): T? {
+        return try {
+            context.assets.open(path).use { inputStream ->
+                InputStreamReader(inputStream).use { reader ->
+                    gson.fromJson(reader, type)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to load config from $path: ${e.message}")
+            null
+        }
+    }
+
+    private val profile: DefaultSettingsProfile? by lazy {
+        if (!isDefaultMode()) {
             null
         } else {
             val platformId = getPlatformId()
             val romName = getRomName()
             val extension = extractExtension(romName)
             
-            Log.d(TAG, "Resolving optimal profile: platformId=$platformId, extension=$extension")
+            Log.d(TAG, "Resolving default profile: platformId=$platformId, extension=$extension")
             
-            val resolvedProfile = OptimalSettingsRepository.findProfile(platformId, extension)
+            val resolvedProfile = DefaultSettingsRepository.findProfile(platformId, extension)
             
             if (resolvedProfile == null) {
-                Log.w(TAG, "No optimal profile found, falling back to config.xml")
+                Log.w(TAG, "No default profile found, falling back to assets config")
             } else {
-                Log.i(TAG, "Using optimal profile: ${resolvedProfile.platformId} (core: ${resolvedProfile.core})")
+                Log.i(TAG, "Using default profile: ${resolvedProfile.platformId} (core: ${resolvedProfile.core})")
             }
             
             resolvedProfile
         }
     }
 
-    // ========== Identity settings (always from config.xml) ==========
+    // ========== Identity settings (always from config.json) ==========
 
-    fun getId(): String = ConfigIdGenerator.generate(
-        resources.getString(R.string.conf_name),
-        getCore()
-    )
+    fun getId(): String = ConfigIdGenerator.generate(getName(), getCore())
+    fun getName(): String = baseConfig.name.takeIf { it.isNotEmpty() } ?: "Revenger"
+    fun getRomName(): String = baseConfig.rom
+    fun getTargetAbi(): String = baseConfig.target_abi
+    private fun getPlatformId(): String = baseConfig.platform
 
-    fun getName(): String = resources.getString(R.string.conf_name)
+    // ========== Core and variables (default profile overrides) ==========
 
-    fun getRomName(): String = resources.getString(R.string.conf_rom)
+    fun getCore(): String = profile?.core ?: manualConfig.core
+    fun getVariables(): String = profile?.confVariables ?: manualConfig.variables
 
-    fun getTargetAbi(): String = resources.getString(R.string.conf_target_abi)
+    // ========== Performance settings (default profile overrides) ==========
 
-    fun getLoadBytes(): Boolean = resources.getBoolean(R.bool.conf_load_bytes)
+    fun getFastForwardMultiplier(): Int = profile?.confFastForwardMultiplier ?: manualConfig.fast_forward_multiplier
 
-    private fun getPlatformId(): String = resources.getString(R.string.conf_platform)
+    // ========== Display settings (default profile overrides) ==========
 
-    // ========== Core and variables (optimal profile overrides) ==========
+    fun getFullscreen(): Boolean = profile?.confFullscreen ?: manualConfig.fullscreen
+    fun getOrientation(): String = profile?.confOrientation ?: manualConfig.orientation
+    fun getShader(): String = profile?.confShader ?: manualConfig.shader
 
-    fun getCore(): String {
-        return profile?.core ?: resources.getString(R.string.conf_core)
-    }
-
-    fun getVariables(): String {
-        return profile?.confVariables ?: resources.getString(R.string.conf_variables)
-    }
-
-    // ========== Performance settings (optimal profile overrides) ==========
-
-    fun getFastForwardMultiplier(): Int {
-        return profile?.confFastForwardMultiplier ?: resources.getInteger(R.integer.conf_fast_forward_multiplier)
-    }
-
-    // ========== Display settings (optimal profile overrides) ==========
-
-    fun getFullscreen(): Boolean {
-        return profile?.confFullscreen ?: resources.getBoolean(R.bool.conf_fullscreen)
-    }
-
-    fun getOrientation(): Int {
-        return profile?.confOrientation ?: resources.getInteger(R.integer.conf_orientation)
-    }
-
-    fun getShader(): String {
-        return profile?.confShader ?: resources.getString(R.string.conf_shader)
-    }
-
-    // ========== Menu settings (optimal profile overrides) ==========
+    // ========== Menu settings (default profile overrides) ==========
 
     fun getMenuModeFab(): String {
-        return profile?.confMenuModeFab ?: resources.getString(R.string.conf_menu_mode_fab)
+        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
+        val match = Regex("fab=([\\w-]+)").find(mode)
+        return match?.groups?.get(1)?.value ?: ""
     }
-
     fun getMenuModeGamepad(): Boolean {
-        return profile?.confMenuModeGamepad ?: resources.getBoolean(R.bool.conf_menu_mode_gamepad)
+        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
+        val modes = mode.split(",").map { it.trim() }
+        return modes.contains("gamepad")
     }
-
     fun getMenuModeBack(): Boolean {
-        return profile?.confMenuModeBack ?: resources.getBoolean(R.bool.conf_menu_mode_back)
+        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
+        val modes = mode.split(",").map { it.trim() }
+        return modes.contains("back")
     }
-
     fun getMenuModeCombo(): Boolean {
-        return profile?.confMenuModeCombo ?: resources.getBoolean(R.bool.conf_menu_mode_combo)
+        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
+        val modes = mode.split(",").map { it.trim() }
+        return modes.contains("combo")
     }
 
-    // ========== Gamepad settings (optimal profile overrides) ==========
+    // ========== Gamepad settings (default profile overrides) ==========
 
-    fun getGamepad(): Boolean {
-        return profile?.confGamepad ?: resources.getBoolean(R.bool.conf_gamepad)
-    }
+    fun getGamepad(): Boolean = profile?.confGamepad ?: manualConfig.gamepad
+    fun getGpHaptic(): Boolean = profile?.confGpHaptic ?: manualConfig.gp_haptic
+    fun getButtonAllowMultiplePressesAction(): Boolean = profile?.confButtonAllowMultiplePressesAction ?: manualConfig.button_allow_multiple_presses_action
+    
+    fun getButtonA(): Boolean = profile?.confButtonA ?: manualConfig.button_a
+    fun getButtonB(): Boolean = profile?.confButtonB ?: manualConfig.button_b
+    fun getButtonX(): Boolean = profile?.confButtonX ?: manualConfig.button_x
+    fun getButtonY(): Boolean = profile?.confButtonY ?: manualConfig.button_y
+    fun getButtonStart(): Boolean = profile?.confButtonStart ?: manualConfig.button_start
+    fun getButtonSelect(): Boolean = profile?.confButtonSelect ?: manualConfig.button_select
+    fun getButtonL1(): Boolean = profile?.confButtonL1 ?: manualConfig.button_l1
+    fun getButtonR1(): Boolean = profile?.confButtonR1 ?: manualConfig.button_r1
+    fun getButtonL2(): Boolean = profile?.confButtonL2 ?: manualConfig.button_l2
+    fun getButtonR2(): Boolean = profile?.confButtonR2 ?: manualConfig.button_r2
+    fun getLeftAnalog(): Boolean = profile?.confLeftAnalog ?: manualConfig.left_analog
 
-    fun getGpHaptic(): Boolean {
-        return profile?.confGpHaptic ?: resources.getBoolean(R.bool.conf_gp_haptic)
-    }
+    // ========== Debug settings (default profile overrides) ==========
 
-    fun getGpAllowMultiplePressesAction(): Boolean {
-        return profile?.confGpAllowMultiplePressesAction 
-            ?: resources.getBoolean(R.bool.conf_gp_allow_multiple_presses_action)
-    }
+    fun getPerformanceOverlay(): Boolean = profile?.confPerformanceOverlay ?: manualConfig.performance_overlay
 
-    fun getGpA(): Boolean {
-        return profile?.confGpA ?: resources.getBoolean(R.bool.conf_gp_a)
-    }
+    // ========== Fake buttons (always from manualConfig, not in default profiles) ==========
 
-    fun getGpB(): Boolean {
-        return profile?.confGpB ?: resources.getBoolean(R.bool.conf_gp_b)
-    }
-
-    fun getGpX(): Boolean {
-        return profile?.confGpX ?: resources.getBoolean(R.bool.conf_gp_x)
-    }
-
-    fun getGpY(): Boolean {
-        return profile?.confGpY ?: resources.getBoolean(R.bool.conf_gp_y)
-    }
-
-    fun getGpStart(): Boolean {
-        return profile?.confGpStart ?: resources.getBoolean(R.bool.conf_gp_start)
-    }
-
-    fun getGpSelect(): Boolean {
-        return profile?.confGpSelect ?: resources.getBoolean(R.bool.conf_gp_select)
-    }
-
-    fun getGpL1(): Boolean {
-        return profile?.confGpL1 ?: resources.getBoolean(R.bool.conf_gp_l1)
-    }
-
-    fun getGpR1(): Boolean {
-        return profile?.confGpR1 ?: resources.getBoolean(R.bool.conf_gp_r1)
-    }
-
-    fun getGpL2(): Boolean {
-        return profile?.confGpL2 ?: resources.getBoolean(R.bool.conf_gp_l2)
-    }
-
-    fun getGpR2(): Boolean {
-        return profile?.confGpR2 ?: resources.getBoolean(R.bool.conf_gp_r2)
-    }
-
-    fun getLeftAnalog(): Boolean {
-        return profile?.confLeftAnalog ?: resources.getBoolean(R.bool.conf_left_analog)
-    }
-
-    // ========== Debug settings (optimal profile overrides) ==========
-
-    fun getPerformanceOverlay(): Boolean {
-        return profile?.confPerformanceOverlay ?: resources.getBoolean(R.bool.conf_performance_overlay)
-    }
-
-    // ========== Fake buttons (always from config.xml, not in optimal profiles) ==========
-
-    fun getShowFakeButton0(): Boolean = resources.getBoolean(R.bool.conf_show_fake_button_0)
-    fun getShowFakeButton1(): Boolean = resources.getBoolean(R.bool.conf_show_fake_button_1)
-    fun getShowFakeButton5(): Boolean = resources.getBoolean(R.bool.conf_show_fake_button_5)
-    fun getShowFakeButton6(): Boolean = resources.getBoolean(R.bool.conf_show_fake_button_6)
-    fun getShowFakeButton7(): Boolean = resources.getBoolean(R.bool.conf_show_fake_button_7)
-    fun getShowFakeButton9(): Boolean = resources.getBoolean(R.bool.conf_show_fake_button_9)
-    fun getShowFakeButton10(): Boolean = resources.getBoolean(R.bool.conf_show_fake_button_10)
-    fun getShowFakeButton11(): Boolean = resources.getBoolean(R.bool.conf_show_fake_button_11)
+    fun getFakeButton0(): Boolean = manualConfig.fake_button_0
+    fun getFakeButton1(): Boolean = manualConfig.fake_button_1
+    fun getFakeButton5(): Boolean = manualConfig.fake_button_5
+    fun getFakeButton6(): Boolean = manualConfig.fake_button_6
+    fun getFakeButton7(): Boolean = manualConfig.fake_button_7
+    fun getFakeButton9(): Boolean = manualConfig.fake_button_9
+    fun getFakeButton10(): Boolean = manualConfig.fake_button_10
+    fun getFakeButton11(): Boolean = manualConfig.fake_button_11
 
     // ========== Utility methods ==========
 
-    /**
-     * Extract file extension from ROM filename.
-     * Handles cases with or without extension.
-     */
     private fun extractExtension(filename: String): String {
         val lastDot = filename.lastIndexOf('.')
         return if (lastDot >= 0) {
@@ -206,13 +200,6 @@ class AppConfig(private val context: Context) {
         }
     }
 
-    /**
-     * Check if optimal settings mode is enabled
-     */
-    fun isOptimalMode(): Boolean = optimalSettingsEnabled
-
-    /**
-     * Get the resolved profile (for debugging)
-     */
-    fun getResolvedProfile(): OptimalSettingsProfile? = profile
+    fun isDefaultMode(): Boolean = baseConfig.default_settings
+    fun getResolvedProfile(): DefaultSettingsProfile? = profile
 }

@@ -1,0 +1,7 @@
+{
+    "default_settings": true,
+    "platform": "sms",
+    "name": "Não jogar 2",
+    "rom": "Sonic The Hedgehog (USA, Europe, Brazil) (En) (2).sms",
+    "target_abi": "arm64-v8a"
+}
