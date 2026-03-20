@@ -1649,8 +1649,10 @@ class GameActivity : FragmentActivity() {
         // Picture-in-Picture Mode
         private fun getGameAspectRatio(): android.util.Rational {
                 return try {
-                        val width = retroviewContainer.width
-                        val height = retroviewContainer.height
+                        val retroView = viewModel.retroView?.view
+                        val width = retroView?.width?.takeIf { it > 0 } ?: retroviewContainer.width
+                        val height = retroView?.height?.takeIf { it > 0 } ?: retroviewContainer.height
+                        
                         if (width > 0 && height > 0) {
                                 val rational = android.util.Rational(width, height)
                                 val floatValue = rational.toFloat()
@@ -1667,29 +1669,37 @@ class GameActivity : FragmentActivity() {
                 }
         }
 
+        private fun getGameBounds(): android.graphics.Rect? {
+                val retroView = viewModel.retroView?.view ?: return null
+                if (retroView.width == 0 || retroView.height == 0) return null
+                val rect = android.graphics.Rect()
+                retroView.getGlobalVisibleRect(rect)
+                return if (rect.isEmpty) null else rect
+        }
+
         private fun enterPiPMode() {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                        val params = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                                android.app.PictureInPictureParams.Builder()
-                                        .setAspectRatio(getGameAspectRatio())
-                                        .setAutoEnterEnabled(false)
-                                        .build()
-                        } else {
-                                android.app.PictureInPictureParams.Builder()
-                                        .setAspectRatio(getGameAspectRatio())
-                                        .build()
+                        val builder = android.app.PictureInPictureParams.Builder()
+                                .setAspectRatio(getGameAspectRatio())
+                        
+                        getGameBounds()?.let { builder.setSourceRectHint(it) }
+
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                                builder.setAutoEnterEnabled(false)
                         }
-                        enterPictureInPictureMode(params)
+                        enterPictureInPictureMode(builder.build())
                 }
         }
 
         private fun updatePictureInPictureParams() {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                        val params = android.app.PictureInPictureParams.Builder()
+                        val builder = android.app.PictureInPictureParams.Builder()
                                 .setAspectRatio(getGameAspectRatio())
                                 .setAutoEnterEnabled(true)
-                                .build()
-                        setPictureInPictureParams(params)
+                                
+                        getGameBounds()?.let { builder.setSourceRectHint(it) }
+                        
+                        setPictureInPictureParams(builder.build())
                 }
         }
 
