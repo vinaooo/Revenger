@@ -132,6 +132,9 @@ class GameActivity : FragmentActivity() {
                 leftContainer = findViewById(R.id.left_container)
                 rightContainer = findViewById(R.id.right_container)
                 retroviewContainer = findViewById(R.id.retroview_container)
+                retroviewContainer.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+                        updatePictureInPictureParams()
+                }
                 menuContainer = findViewById(R.id.menu_container)
                 loadPreviewOverlay = findViewById(R.id.load_preview_overlay)
 
@@ -1178,9 +1181,20 @@ class GameActivity : FragmentActivity() {
                                                                         )
                                                         )
                                         } else {
-                                                // Use default back button behavior
-                                                isEnabled = false
-                                                onBackPressedDispatcher.onBackPressed()
+                                                // Trigger PiP mode if supported
+                                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                                        try {
+                                                                enterPiPMode()
+                                                        } catch (e: Exception) {
+                                                                Log.e(TAG, "Failed to enter PiP mode from back button", e)
+                                                                isEnabled = false
+                                                                onBackPressedDispatcher.onBackPressed()
+                                                        }
+                                                } else {
+                                                        // Use default back button behavior
+                                                        isEnabled = false
+                                                        onBackPressedDispatcher.onBackPressed()
+                                                }
                                         }
                                 }
                         }
@@ -1632,6 +1646,87 @@ class GameActivity : FragmentActivity() {
         }
 
         /** Starts reverse CRT animation (shutdown) and invokes a callback when finished */
+        // Picture-in-Picture Mode
+        private fun getGameAspectRatio(): android.util.Rational {
+                return try {
+                        val width = retroviewContainer.width
+                        val height = retroviewContainer.height
+                        if (width > 0 && height > 0) {
+                                val rational = android.util.Rational(width, height)
+                                val floatValue = rational.toFloat()
+                                when {
+                                        floatValue > 2.39f -> android.util.Rational(239, 100)
+                                        floatValue < 1 / 2.39f -> android.util.Rational(100, 239)
+                                        else -> rational
+                                }
+                        } else {
+                                android.util.Rational(4, 3)
+                        }
+                } catch (e: Exception) {
+                        android.util.Rational(4, 3)
+                }
+        }
+
+        private fun enterPiPMode() {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        val params = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                                android.app.PictureInPictureParams.Builder()
+                                        .setAspectRatio(getGameAspectRatio())
+                                        .setAutoEnterEnabled(false)
+                                        .build()
+                        } else {
+                                android.app.PictureInPictureParams.Builder()
+                                        .setAspectRatio(getGameAspectRatio())
+                                        .build()
+                        }
+                        enterPictureInPictureMode(params)
+                }
+        }
+
+        private fun updatePictureInPictureParams() {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                        val params = android.app.PictureInPictureParams.Builder()
+                                .setAspectRatio(getGameAspectRatio())
+                                .setAutoEnterEnabled(true)
+                                .build()
+                        setPictureInPictureParams(params)
+                }
+        }
+
+        override fun onUserLeaveHint() {
+                super.onUserLeaveHint()
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
+                        try {
+                                enterPiPMode()
+                        } catch (e: Exception) {
+                                Log.e(TAG, "Failed to enter PiP mode", e)
+                        }
+                }
+        }
+
+        override fun onPictureInPictureModeChanged(
+                isInPictureInPictureMode: Boolean,
+                newConfig: android.content.res.Configuration
+        ) {
+                super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+                
+                if (isInPictureInPictureMode) {
+                        // Hide UI
+                        leftContainer.visibility = android.view.View.GONE
+                        rightContainer.visibility = android.view.View.GONE
+                        menuContainer.visibility = android.view.View.GONE
+                        
+                        viewModel.pauseEmulationForPiP()
+                } else {
+                        // Show UI
+                        leftContainer.visibility = android.view.View.VISIBLE
+                        rightContainer.visibility = android.view.View.VISIBLE
+                        menuContainer.visibility = android.view.View.VISIBLE
+                        
+                        viewModel.resumeEmulationFromPiP()
+                }
+        }
+
         fun startShutdownAnimation(onComplete: () -> Unit) {
                 Log.d(TAG, "Starting shutdown animation")
 

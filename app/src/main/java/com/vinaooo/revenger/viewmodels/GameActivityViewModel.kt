@@ -1674,6 +1674,14 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Ativa fast forward usando controller modular */
+    fun pauseEmulationForPiP() {
+        retroView?.let { speedController?.pause(it.view) }
+    }
+
+    fun resumeEmulationFromPiP() {
+        retroView?.let { speedController?.restoreSpeedFromPreferences(it.view) }
+    }
+
     fun enableFastForward() {
         speedViewModel.enableFastForward(retroView?.view)
     }

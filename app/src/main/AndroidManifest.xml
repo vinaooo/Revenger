@@ -36,7 +36,8 @@
         <!-- GameActivity - Main emulator -->
         <activity android:name=".views.GameActivity"
             android:exported="false"
-            android:configChanges="keyboardHidden|orientation|screenSize|uiMode">
+            android:supportsPictureInPicture="true"
+            android:configChanges="keyboardHidden|orientation|screenSize|uiMode|smallestScreenSize|screenLayout">
         </activity>
     </application>
 </manifest>
