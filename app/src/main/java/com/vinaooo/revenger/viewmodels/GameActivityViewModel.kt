@@ -1675,11 +1675,33 @@ class GameActivityViewModel(application: Application) :
 
     /** Ativa fast forward usando controller modular */
     fun pauseEmulationForPiP() {
-        retroView?.let { speedController?.pause(it.view) }
+        retroView?.let {
+            val currentSpeed = it.view.frameSpeed
+            android.util.Log.d(
+                "GameActivityViewModel",
+                "[PIP_DIAG][pauseEmulationForPiP] before frameSpeed=$currentSpeed"
+            )
+            speedController?.pause(it.view)
+            android.util.Log.d(
+                "GameActivityViewModel",
+                "[PIP_DIAG][pauseEmulationForPiP] after frameSpeed=${it.view.frameSpeed}"
+            )
+        }
     }
 
     fun resumeEmulationFromPiP() {
-        retroView?.let { speedController?.restoreSpeedFromPreferences(it.view) }
+        retroView?.let {
+            val currentSpeed = it.view.frameSpeed
+            android.util.Log.d(
+                "GameActivityViewModel",
+                "[PIP_DIAG][resumeEmulationFromPiP] before frameSpeed=$currentSpeed"
+            )
+            speedController?.restoreSpeedFromPreferences(it.view)
+            android.util.Log.d(
+                "GameActivityViewModel",
+                "[PIP_DIAG][resumeEmulationFromPiP] after frameSpeed=${it.view.frameSpeed}"
+            )
+        }
     }
 
     fun enableFastForward() {

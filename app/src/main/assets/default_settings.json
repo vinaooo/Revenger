@@ -6,7 +6,7 @@
         ],
         "core": "picodrive",
         "variables": "picodrive_overclk68k=+400%,picodrive_overclksz80=+100%",
-        "menu_mode": "gamepad,back,fab=bottom-right",
+        "menu_mode": "gamepad,fab=bottom-right",
         "orientation": "landscape",
         "shader": "upscale1",
         "fast_forward_multiplier": 2,

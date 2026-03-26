@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -46,6 +47,7 @@ class GameActivity : FragmentActivity() {
 
         // Performance monitoring
         private var frameStartTime = 0L
+        private var pipDiagnosticSession = 0
 
         // GamePad container reference for orientation changes
         private lateinit var gamePadContainer: android.widget.LinearLayout
@@ -184,6 +186,7 @@ class GameActivity : FragmentActivity() {
                         "STARTUP_TIMING",
                         "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupRetroView() completed"
                 )
+                attachPiPDiagnosticLayoutListener()
                 viewModel.setupGamePads(this, leftContainer, rightContainer)
                 android.util.Log.e(
                         "STARTUP_TIMING",
@@ -299,6 +302,7 @@ class GameActivity : FragmentActivity() {
         override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
                 super.onConfigurationChanged(newConfig)
                 Log.d(TAG, "Configuration changed - orientation=${newConfig.orientation}")
+                logPiPState("onConfigurationChanged")
 
                 // Check if we should reprocess orientation
                 // DO NOT reprocess when config=3 and auto-rotate=OFF (to allow manual button)
@@ -1242,13 +1246,41 @@ class GameActivity : FragmentActivity() {
         }
 
         override fun onPause() {
+                val frameSpeed = viewModel.retroView?.view?.frameSpeed
+                Log.d(
+                        TAG,
+                        "[PIP_DIAG][lifecycle] onPause isInPiP=$isInPictureInPictureMode frameSpeed=$frameSpeed"
+                )
                 viewModel.preserveState()
                 super.onPause()
         }
 
+        override fun onStart() {
+                super.onStart()
+                val frameSpeed = viewModel.retroView?.view?.frameSpeed
+                Log.d(
+                        TAG,
+                        "[PIP_DIAG][lifecycle] onStart isInPiP=$isInPictureInPictureMode frameSpeed=$frameSpeed"
+                )
+        }
+
         override fun onResume() {
                 super.onResume()
+                val frameSpeed = viewModel.retroView?.view?.frameSpeed
+                Log.d(
+                        TAG,
+                        "[PIP_DIAG][lifecycle] onResume isInPiP=$isInPictureInPictureMode frameSpeed=$frameSpeed"
+                )
                 frameStartTime = System.nanoTime()
+        }
+
+        override fun onStop() {
+                val frameSpeed = viewModel.retroView?.view?.frameSpeed
+                Log.d(
+                        TAG,
+                        "[PIP_DIAG][lifecycle] onStop isInPiP=$isInPictureInPictureMode frameSpeed=$frameSpeed"
+                )
+                super.onStop()
         }
 
         override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -1647,14 +1679,84 @@ class GameActivity : FragmentActivity() {
 
         /** Starts reverse CRT animation (shutdown) and invokes a callback when finished */
         // Picture-in-Picture Mode
+        private fun getExpectedGameAspectRatio(): Float {
+                return when (appConfig.getCore().lowercase()) {
+                        "gambatte",
+                        "sameboy",
+                        "gearboy" -> 10f / 9f
+                        "gpsp", "vba-m", "meteor" -> 3f / 2f
+                        else -> 4f / 3f
+                }
+        }
+
+        private fun getLayoutSizeString(view: android.view.View?): String {
+                if (view == null) return "null"
+                return "${view.width}x${view.height}"
+        }
+
+        private fun getLocationString(view: android.view.View?): String {
+                if (view == null) return "null"
+                val location = IntArray(2)
+                view.getLocationInWindow(location)
+                return "(${location[0]},${location[1]})"
+        }
+
+        private fun logPiPState(stage: String) {
+                val retroView = viewModel.retroView?.view
+                val retroParams = retroView?.layoutParams as? FrameLayout.LayoutParams
+                val bounds = getGameBounds()
+                val ratio = getGameAspectRatio()
+                val frameSpeed = retroView?.frameSpeed
+
+                Log.d(
+                        TAG,
+                        "[PIP_DIAG][$pipDiagnosticSession][$stage] isInPiP=$isInPictureInPictureMode " +
+                                "orientation=${resources.configuration.orientation} " +
+                                "containerSize=${getLayoutSizeString(retroviewContainer)} containerLoc=${getLocationString(retroviewContainer)} " +
+                                "retroSize=${getLayoutSizeString(retroView)} retroLoc=${getLocationString(retroView)} " +
+                                "retroLp=${retroParams?.width}x${retroParams?.height} gravity=${retroParams?.gravity} " +
+                                "aspect=${ratio.numerator}:${ratio.denominator}(${ratio.toFloat()}) expected=${getExpectedGameAspectRatio()} " +
+                                "bounds=$bounds frameSpeed=$frameSpeed"
+                )
+        }
+
+        private fun schedulePiPPostEntryProbes() {
+                val handler = android.os.Handler(android.os.Looper.getMainLooper())
+                val delays = listOf(60L, 200L, 500L, 1000L)
+                for (delay in delays) {
+                        handler.postDelayed({ logPiPState("post-enter-${delay}ms") }, delay)
+                }
+        }
+
+        private fun attachPiPDiagnosticLayoutListener() {
+                val retroView = viewModel.retroView?.view ?: return
+                retroView.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+                        if (!isInPictureInPictureMode) return@addOnLayoutChangeListener
+                        Log.d(
+                                TAG,
+                                "[PIP_DIAG][$pipDiagnosticSession][retro-layout] new=${right - left}x${bottom - top} old=${oldRight - oldLeft}x${oldBottom - oldTop}"
+                        )
+                        logPiPState("retro-layout-change")
+                }
+        }
+
         private fun getGameAspectRatio(): android.util.Rational {
                 return try {
+                        val expectedAspectRatio = getExpectedGameAspectRatio()
                         val retroView = viewModel.retroView?.view
                         val width = retroView?.width?.takeIf { it > 0 } ?: retroviewContainer.width
                         val height = retroView?.height?.takeIf { it > 0 } ?: retroviewContainer.height
                         
                         if (width > 0 && height > 0) {
-                                val rational = android.util.Rational(width, height)
+                                val measuredAspectRatio = width.toFloat() / height.toFloat()
+                                val targetAspectRatio =
+                                        if (kotlin.math.abs(measuredAspectRatio - expectedAspectRatio) <= 0.25f) {
+                                                measuredAspectRatio
+                                        } else {
+                                                expectedAspectRatio
+                                        }
+                                val scaledNumerator = (targetAspectRatio * 10_000).toInt().coerceAtLeast(1)
+                                val rational = android.util.Rational(scaledNumerator, 10_000)
                                 val floatValue = rational.toFloat()
                                 when {
                                         floatValue > 2.39f -> android.util.Rational(239, 100)
@@ -1662,7 +1764,8 @@ class GameActivity : FragmentActivity() {
                                         else -> rational
                                 }
                         } else {
-                                android.util.Rational(4, 3)
+                                val scaledNumerator = (expectedAspectRatio * 10_000).toInt().coerceAtLeast(1)
+                                android.util.Rational(scaledNumerator, 10_000)
                         }
                 } catch (e: Exception) {
                         android.util.Rational(4, 3)
@@ -1670,15 +1773,65 @@ class GameActivity : FragmentActivity() {
         }
 
         private fun getGameBounds(): android.graphics.Rect? {
-                val retroView = viewModel.retroView?.view ?: return null
-                if (retroView.width == 0 || retroView.height == 0) return null
                 val rect = android.graphics.Rect()
-                retroView.getGlobalVisibleRect(rect)
+                if (!retroviewContainer.getGlobalVisibleRect(rect) || rect.isEmpty) return null
+
+                val containerWidth = rect.width()
+                val containerHeight = rect.height()
+                if (containerWidth <= 0 || containerHeight <= 0) return null
+
+                val targetAspect = getGameAspectRatio().toFloat()
+                val containerAspect = containerWidth.toFloat() / containerHeight.toFloat()
+
+                val gameWidth: Int
+                val gameHeight: Int
+                if (targetAspect > containerAspect) {
+                        gameWidth = containerWidth
+                        gameHeight = (containerWidth / targetAspect).toInt().coerceAtLeast(1)
+                } else {
+                        gameHeight = containerHeight
+                        gameWidth = (containerHeight * targetAspect).toInt().coerceAtLeast(1)
+                }
+
+                val offsetX = (containerWidth - gameWidth) / 2
+                val offsetY = (containerHeight - gameHeight) / 2
+
+                rect.set(
+                        rect.left + offsetX,
+                        rect.top + offsetY,
+                        rect.left + offsetX + gameWidth,
+                        rect.top + offsetY + gameHeight,
+                )
+
                 return if (rect.isEmpty) null else rect
+        }
+
+        private fun updateRetroViewLayoutForPiP(isInPiP: Boolean) {
+                val retroView = viewModel.retroView?.view ?: return
+                logPiPState("layout-before-$isInPiP")
+                val currentParams = retroView.layoutParams as? FrameLayout.LayoutParams
+                val params = currentParams ?: FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                )
+
+                if (isInPiP) {
+                        params.width = ViewGroup.LayoutParams.MATCH_PARENT
+                        params.height = ViewGroup.LayoutParams.MATCH_PARENT
+                } else {
+                        params.width = ViewGroup.LayoutParams.WRAP_CONTENT
+                        params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                }
+                params.gravity = android.view.Gravity.CENTER
+
+                retroView.layoutParams = params
+                retroView.requestLayout()
+                logPiPState("layout-after-$isInPiP")
         }
 
         private fun enterPiPMode() {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        logPiPState("enter-request")
                         val builder = android.app.PictureInPictureParams.Builder()
                                 .setAspectRatio(getGameAspectRatio())
                         
@@ -1687,12 +1840,16 @@ class GameActivity : FragmentActivity() {
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
                                 builder.setAutoEnterEnabled(false)
                         }
-                        enterPictureInPictureMode(builder.build())
+                        val entered = enterPictureInPictureMode(builder.build())
+                        Log.d(TAG, "[PIP_DIAG][$pipDiagnosticSession][enter-result] success=$entered")
                 }
         }
 
         private fun updatePictureInPictureParams() {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                        if (isInPictureInPictureMode) return
+                        logPiPState("params-update-request")
+                        
                         val builder = android.app.PictureInPictureParams.Builder()
                                 .setAspectRatio(getGameAspectRatio())
                                 .setAutoEnterEnabled(true)
@@ -1705,6 +1862,7 @@ class GameActivity : FragmentActivity() {
 
         override fun onUserLeaveHint() {
                 super.onUserLeaveHint()
+                logPiPState("onUserLeaveHint")
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
                         try {
                                 enterPiPMode()
@@ -1719,21 +1877,32 @@ class GameActivity : FragmentActivity() {
                 newConfig: android.content.res.Configuration
         ) {
                 super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+                pipDiagnosticSession += 1
+                logPiPState("mode-changed-start=$isInPictureInPictureMode")
                 
                 if (isInPictureInPictureMode) {
+                        updateRetroViewLayoutForPiP(true)
+
                         // Hide UI
                         leftContainer.visibility = android.view.View.GONE
                         rightContainer.visibility = android.view.View.GONE
                         menuContainer.visibility = android.view.View.GONE
-                        
-                        viewModel.pauseEmulationForPiP()
+
+                        viewModel.retroView?.view?.frameSpeed = 1
+                        Log.d(TAG, "[PIP_DIAG] PiP diagnostic mode: pause disabled, forcing frameSpeed=1")
+                        logPiPState("mode-changed-after-pause")
+                        schedulePiPPostEntryProbes()
                 } else {
+                        updateRetroViewLayoutForPiP(false)
+
                         // Show UI
                         leftContainer.visibility = android.view.View.VISIBLE
                         rightContainer.visibility = android.view.View.VISIBLE
                         menuContainer.visibility = android.view.View.VISIBLE
-                        
-                        viewModel.resumeEmulationFromPiP()
+
+                        viewModel.retroView?.view?.frameSpeed = 1
+                        Log.d(TAG, "[PIP_DIAG] PiP diagnostic mode: resume bypassed, frameSpeed kept at 1")
+                        logPiPState("mode-changed-after-resume")
                 }
         }
 
