@@ -1237,6 +1237,17 @@ class GameActivity : FragmentActivity() {
                 frameStartTime = System.nanoTime()
         }
 
+        override fun onUserLeaveHint() {
+                super.onUserLeaveHint()
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        try {
+                                enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().build())
+                        } catch (e: Exception) {
+                                Log.e(TAG, "[PIP] Failed to enter Picture-in-Picture mode", e)
+                        }
+                }
+        }
+
         override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
                 // Record frame time for performance monitoring
                 recordFrameTime()
