@@ -60,8 +60,8 @@ class NavigationEventProcessor(
                 navigateBack()
             }
             is NavigationEvent.OpenMenu -> {
-                Log.d(TAG, "[MENU_EVENT] OpenMenu: inputSource=${event.inputSource}")
-                openMainMenu()
+                Log.d(TAG, "[MENU_EVENT] OpenMenu: inputSource=${event.inputSource}, targetMenu=${event.targetMenu}")
+                openMainMenu(event.targetMenu)
             }
             is NavigationEvent.CloseAllMenus -> {
                 Log.d(
@@ -269,21 +269,21 @@ class NavigationEventProcessor(
         }
     }
 
-    /** Open the main menu. */
-    private fun openMainMenu() {
-        Log.d(TAG, "[MENU_OPEN] Opening main menu")
+    /** Open the menu at a specific target (defaults to MAIN). */
+    private fun openMainMenu(targetMenu: MenuType = MenuType.MAIN) {
+        Log.d(TAG, "[MENU_OPEN] Opening menu, target: $targetMenu")
 
         Log.d(TAG, "[MENU_OPEN] Calling onMenuOpenedCallback to pause game")
         onMenuOpened()
         Log.d(TAG, "[MENU_OPEN] onMenuOpenedCallback completed")
 
-        stateManager.updateCurrentMenu(MenuType.MAIN)
+        stateManager.updateCurrentMenu(targetMenu)
         stateManager.updateSelectedIndex(0)
         stateManager.clearStack()
 
-        Log.d(TAG, "[MENU_OPEN] Calling fragmentAdapter.showMenu(MAIN)")
-        fragmentAdapter.showMenu(MenuType.MAIN)
-        Log.d(TAG, "[MENU_OPEN] Main menu opened successfully")
+        Log.d(TAG, "[MENU_OPEN] Calling fragmentAdapter.showMenu($targetMenu)")
+        fragmentAdapter.showMenu(targetMenu)
+        Log.d(TAG, "[MENU_OPEN] Menu opened successfully")
     }
 
     /** Close all menus. */

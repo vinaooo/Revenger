@@ -1,5 +1,14 @@
 package com.vinaooo.revenger.views
 
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
+import android.app.PendingIntent
+import android.app.RemoteAction
+import android.graphics.drawable.Icon
+import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
+import com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
 import android.content.pm.PackageManager
 import android.hardware.input.InputManager
 import com.vinaooo.revenger.managers.GameLifecycleObserver
@@ -30,6 +39,56 @@ class GameActivity : FragmentActivity() {
 
         companion object {
                 private const val TAG = "GameActivity"
+                private const val ACTION_PIP_QUICK_SAVE = "com.vinaooo.revenger.PIP_QUICK_SAVE"
+                private const val ACTION_PIP_SAVE = "com.vinaooo.revenger.PIP_SAVE"
+        }
+        private val pipBroadcastReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                        when (intent?.action) {
+                                ACTION_PIP_QUICK_SAVE -> {
+                                        Thread {
+                                                try {
+                                                        val tracker = com.vinaooo.revenger.managers.SessionSlotTracker.getInstance()
+                                                        val slotNumber = tracker.getLastUsedSlot() ?: 1
+                                                        val currentRetroView = viewModel.retroView
+                                                        if (currentRetroView != null) {
+                                                                val stateBytes = currentRetroView.view.serializeState()
+                                                                val bitmap = (pipOverlay.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                                                                val romName = getString(R.string.name)
+
+                                                                val saveManager = com.vinaooo.revenger.managers.SaveStateManager.getInstance(applicationContext)
+                                                                val slotData = saveManager.getSlot(slotNumber)
+                                                                saveManager.saveToSlot(
+                                                                        slotNumber = slotNumber,
+                                                                        stateBytes = stateBytes,
+                                                                        screenshot = bitmap,
+                                                                        name = if (slotData.isEmpty) "Slot $slotNumber" else slotData.name,
+                                                                        romName = romName
+                                                                )
+                                                                tracker.recordSave(slotNumber)
+                                                        } else {
+                                                                viewModel.saveStateCentralized()
+                                                        }
+                                                } catch (e: Exception) {
+                                                        Log.e(TAG, "Error in PIP quick save", e)
+                                                } finally {
+                                                        runOnUiThread {
+                                                                finishAndRemoveTask()
+                                                        }
+                                                }
+                                        }.start()
+                                }
+                                ACTION_PIP_SAVE -> {
+                                        val reorderIntent = Intent(this@GameActivity, GameActivity::class.java).apply {
+                                                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                                        }
+                                        startActivity(reorderIntent)
+                                        viewModel.navigationController?.handleNavigationEvent(
+                                                NavigationEvent.OpenMenu(inputSource = InputSource.TOUCH, targetMenu = MenuType.EXIT_SAVE_SLOTS)
+                                        )
+                                }
+                        }
+                }
         }
         private lateinit var leftContainer: FrameLayout
         private lateinit var rightContainer: FrameLayout
@@ -1267,6 +1326,31 @@ class GameActivity : FragmentActivity() {
                                                 builder.setAspectRatio(ratio)
                                         }
                                 }
+
+                                // Adicionar botões (RemoteActions) ao PiP
+                                val quickSaveIntent = PendingIntent.getBroadcast(
+                                        this, 0, Intent(ACTION_PIP_QUICK_SAVE).apply { setPackage(packageName) },
+                                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                                )
+                                val quickSaveAction = RemoteAction(
+                                        Icon.createWithResource(this, R.drawable.ic_save_24),
+                                        "Quick Save",
+                                        "Quick Save",
+                                        quickSaveIntent
+                                )
+
+                                val saveIntent = PendingIntent.getBroadcast(
+                                        this, 1, Intent(ACTION_PIP_SAVE).apply { setPackage(packageName) },
+                                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                                )
+                                val saveAction = RemoteAction(
+                                        Icon.createWithResource(this, R.drawable.ic_empty_slot),
+                                        "Save and Exit",
+                                        "Save and Exit",
+                                        saveIntent
+                                )
+                                
+                                builder.setActions(listOf(quickSaveAction, saveAction))
                                 
                                 enterPictureInPictureMode(builder.build())
                         } catch (e: Exception) {
@@ -1285,11 +1369,31 @@ class GameActivity : FragmentActivity() {
                 val floatingBtn = findViewById<android.view.View>(R.id.floating_menu_button)
                 
                 if (isInPictureInPictureMode) {
+                        // Registrar receiver de botoes do PiP
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                registerReceiver(pipBroadcastReceiver, IntentFilter().apply {
+                                        addAction(ACTION_PIP_QUICK_SAVE)
+                                        addAction(ACTION_PIP_SAVE)
+                                }, Context.RECEIVER_NOT_EXPORTED)
+                        } else {
+                                registerReceiver(pipBroadcastReceiver, IntentFilter().apply {
+                                        addAction(ACTION_PIP_QUICK_SAVE)
+                                        addAction(ACTION_PIP_SAVE)
+                                })
+                        }
+                        
                         // Esconder controles e menu
                         containers?.visibility = android.view.View.INVISIBLE // Invisível para que as dimensões não quebrem
                         floatingBtn?.visibility = android.view.View.GONE
                         menuContainer.visibility = android.view.View.GONE
                 } else {
+                        // Desregistrar receiver
+                        try {
+                                unregisterReceiver(pipBroadcastReceiver)
+                        } catch (e: Exception) {
+                                Log.e(TAG, "Error unregistering pip receiver", e)
+                        }
+                        
                         // Limpar overlay de imagem
                         pipOverlay.visibility = android.view.View.GONE
                         pipOverlay.setImageDrawable(null)
