@@ -21,6 +21,16 @@
         android:scaleType="fitXY"
         android:visibility="gone"
         android:importantForAccessibility="no" />
+
+    <!-- Layer 1.6: PiP Overlay -->
+    <ImageView
+        android:id="@+id/pip_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:background="@android:color/black"
+        android:visibility="gone"
+        android:importantForAccessibility="no" />
     
     <!-- Layer 2: Menu Container (Middle - Conditionally visible) -->
     <!-- This container will hold RetroMenu3Fragment and its submenus -->

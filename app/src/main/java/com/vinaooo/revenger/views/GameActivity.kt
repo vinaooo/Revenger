@@ -36,6 +36,7 @@ class GameActivity : FragmentActivity() {
         private lateinit var retroviewContainer: FrameLayout
         private lateinit var menuContainer: FrameLayout
         private lateinit var loadPreviewOverlay: android.widget.ImageView
+        private lateinit var pipOverlay: android.widget.ImageView
         private lateinit var audioRoutingManager: AudioRoutingManager
         private lateinit var gameLifecycleObserver: GameLifecycleObserver
         private val viewModel: GameActivityViewModel by viewModels()
@@ -134,6 +135,7 @@ class GameActivity : FragmentActivity() {
                 retroviewContainer = findViewById(R.id.retroview_container)
                 menuContainer = findViewById(R.id.menu_container)
                 loadPreviewOverlay = findViewById(R.id.load_preview_overlay)
+                pipOverlay = findViewById(R.id.pip_overlay)
 
                 // Setup load preview overlay callback
                 viewModel.loadPreviewCallback = { bitmap ->
@@ -1241,10 +1243,63 @@ class GameActivity : FragmentActivity() {
                 super.onUserLeaveHint()
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                         try {
-                                enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().build())
+                                viewModel.retroView?.view?.let { glView ->
+                                        // Capturar tela antes do GL surface pausar ou ser destruída
+                                        ScreenshotCaptureUtil.captureFullScreen(glView) { bitmap ->
+                                                if (bitmap != null) {
+                                                        runOnUiThread {
+                                                                pipOverlay.setImageBitmap(bitmap)
+                                                                pipOverlay.visibility = android.view.View.VISIBLE
+                                                        }
+                                                }
+                                        }
+                                }
+                                
+                                val builder = android.app.PictureInPictureParams.Builder()
+                                
+                                // Otimizar a janela PIP para usar a exata proporção do jogo
+                                val width = retroviewContainer.width
+                                val height = retroviewContainer.height
+                                if (width > 0 && height > 0) {
+                                        // O Android limita o aspect ratio do PiP entre 2.39:1 e 1:2.39
+                                        val ratio = android.util.Rational(width, height)
+                                        if (ratio.toFloat() in 0.418f..2.39f) {
+                                                builder.setAspectRatio(ratio)
+                                        }
+                                }
+                                
+                                enterPictureInPictureMode(builder.build())
                         } catch (e: Exception) {
                                 Log.e(TAG, "[PIP] Failed to enter Picture-in-Picture mode", e)
                         }
+                }
+        }
+
+        override fun onPictureInPictureModeChanged(
+                isInPictureInPictureMode: Boolean,
+                newConfig: android.content.res.Configuration
+        ) {
+                super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+                
+                val containers = findViewById<android.view.View>(R.id.containers)
+                val floatingBtn = findViewById<android.view.View>(R.id.floating_menu_button)
+                
+                if (isInPictureInPictureMode) {
+                        // Esconder controles e menu
+                        containers?.visibility = android.view.View.INVISIBLE // Invisível para que as dimensões não quebrem
+                        floatingBtn?.visibility = android.view.View.GONE
+                        menuContainer.visibility = android.view.View.GONE
+                } else {
+                        // Limpar overlay de imagem
+                        pipOverlay.visibility = android.view.View.GONE
+                        pipOverlay.setImageDrawable(null)
+                        
+                        // Retornar os itens visíveis
+                        containers?.visibility = android.view.View.VISIBLE
+                        
+                        // Restauramos a renderização dependendo da configuração?
+                        // O floating button costuma ter uma lógica de fade
+                        menuContainer.visibility = android.view.View.VISIBLE
                 }
         }
 
