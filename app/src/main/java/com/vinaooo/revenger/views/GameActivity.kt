@@ -1241,7 +1241,7 @@ class GameActivity : FragmentActivity() {
 
         override fun onUserLeaveHint() {
                 super.onUserLeaveHint()
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                if (appConfig.isPipEnabled() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                         try {
                                 viewModel.retroView?.view?.let { glView ->
                                         // Capturar tela antes do GL surface pausar ou ser destruída

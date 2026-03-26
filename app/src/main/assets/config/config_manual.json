@@ -6,6 +6,7 @@
     "shader": "lcd",
     "fast_forward_multiplier": 2,
     "fullscreen": true,
+    "enable_pip": false,
     "gamepad": true,
     "gp_haptic": true,
     "button_allow_multiple_presses_action": false,
