@@ -429,6 +429,13 @@ class GameActivity : FragmentActivity() {
                                                 TAG,
                                                 "[ORIENTATION] 🔄 Inside postDelayed - starting fragment recreation"
                                         )
+                                        
+                                        // CRITICAL: Double check if menu was dismissed during the delay
+                                        val currentVisibleFragment = fragmentManager.findFragmentById(R.id.menu_container)
+                                        if (currentVisibleFragment == null || !currentVisibleFragment.isAdded || !viewModel.isAnyMenuActive()) {
+                                                Log.d(TAG, "[ORIENTATION] ⏭️ Fragment dismissed during rotation delay, aborting recreation")
+                                                return@postDelayed
+                                        }
 
                                         // CRITICAL FIX: Re-check backstack INSIDE postDelayed
                                         // The backstack may have changed between the initial check
@@ -461,7 +468,11 @@ class GameActivity : FragmentActivity() {
                                                                         is com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment,
                                                                         is com.vinaooo.revenger.ui.retromenu3.ProgressFragment,
                                                                         is com.vinaooo.revenger.ui.retromenu3.AboutFragment,
-                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitFragment ->
+                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitFragment,
+                                                                        is com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment,
+                                                                        is com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment,
+                                                                        is com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment,
+                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment ->
                                                                                 true
                                                                         else -> false
                                                                 }
@@ -500,6 +511,30 @@ class GameActivity : FragmentActivity() {
                                                                                         .retromenu3
                                                                                         .MenuState
                                                                                         .EXIT_MENU
+                                                                        is com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment ->
+                                                                                com.vinaooo.revenger
+                                                                                        .ui
+                                                                                        .retromenu3
+                                                                                        .MenuState
+                                                                                        .SAVE_SLOTS_MENU
+                                                                        is com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment ->
+                                                                                com.vinaooo.revenger
+                                                                                        .ui
+                                                                                        .retromenu3
+                                                                                        .MenuState
+                                                                                        .LOAD_SLOTS_MENU
+                                                                        is com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment ->
+                                                                                com.vinaooo.revenger
+                                                                                        .ui
+                                                                                        .retromenu3
+                                                                                        .MenuState
+                                                                                        .MANAGE_SAVES_MENU
+                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment ->
+                                                                                com.vinaooo.revenger
+                                                                                        .ui
+                                                                                        .retromenu3
+                                                                                        .MenuState
+                                                                                        .EXIT_SAVE_SLOTS_MENU
                                                                         else -> currentState
                                                                 }
                                                         } else {
@@ -567,7 +602,43 @@ class GameActivity : FragmentActivity() {
                                                                         "[ORIENTATION] 📋 Submenu ativo: EXIT"
                                                                 )
                                                                 com.vinaooo.revenger.ui.retromenu3
-                                                                        .ExitFragment()
+                                                                        .ExitFragment.newInstance()
+                                                        }
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .SAVE_SLOTS_MENU -> {
+                                                                Log.d(
+                                                                        TAG,
+                                                                        "[ORIENTATION] 📋 Submenu ativo: SAVE_SLOTS"
+                                                                )
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .SaveSlotsFragment.newInstance()
+                                                        }
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .LOAD_SLOTS_MENU -> {
+                                                                Log.d(
+                                                                        TAG,
+                                                                        "[ORIENTATION] 📋 Submenu ativo: LOAD_SLOTS"
+                                                                )
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .LoadSlotsFragment.newInstance()
+                                                        }
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .MANAGE_SAVES_MENU -> {
+                                                                Log.d(
+                                                                        TAG,
+                                                                        "[ORIENTATION] 📋 Submenu ativo: MANAGE_SAVES"
+                                                                )
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .ManageSavesFragment.newInstance()
+                                                        }
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .EXIT_SAVE_SLOTS_MENU -> {
+                                                                Log.d(
+                                                                        TAG,
+                                                                        "[ORIENTATION] 📋 Submenu ativo: EXIT_SAVE_SLOTS"
+                                                                )
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .ExitSaveGridFragment.newInstance()
                                                         }
                                                 }
 
@@ -991,6 +1062,14 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                         .navigation
                                                                                                                                                         .MenuType
                                                                                                                                                         .EXIT
+                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.SAVE_SLOTS_MENU ->
+                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.SAVE_SLOTS
+                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.LOAD_SLOTS_MENU ->
+                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.LOAD_SLOTS
+                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.MANAGE_SAVES_MENU ->
+                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MANAGE_SAVES
+                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_SAVE_SLOTS_MENU ->
+                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.EXIT_SAVE_SLOTS
                                                                                                                                 }
                                                                                                                         viewModel
                                                                                                                                 .navigationController
@@ -1300,6 +1379,13 @@ class GameActivity : FragmentActivity() {
 
         override fun onUserLeaveHint() {
                 super.onUserLeaveHint()
+                
+                // Dismiss menu if open before entering PiP
+                if (viewModel.isAnyMenuActive()) {
+                        Log.d(TAG, "[PIP] Closing active menu before entering PiP")
+                        viewModel.dismissRetroMenu3()
+                }
+                
                 if (appConfig.isPipEnabled() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                         try {
                                 viewModel.retroView?.view?.let { glView ->

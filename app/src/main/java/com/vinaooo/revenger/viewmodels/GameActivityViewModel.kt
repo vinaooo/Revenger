@@ -642,7 +642,15 @@ class GameActivityViewModel(application: Application) :
                 "[DISMISS_MAIN] dismissRetroMenu3: isRetroMenu3Open before dismiss: ${isRetroMenu3Open()}"
         )
 
-        retroMenu3Fragment?.dismissMenuPublic(onAnimationEnd)
+        retroMenu3Fragment?.dismissMenuPublic {
+            // Ensure NavigationController is synchronized and its state is reset
+            navigationController?.closeMenuExternal()
+            
+            // Explicitly tell MenuManager that we are closed
+            menuStateManager.setRetroMenu3Open(false)
+            
+            onAnimationEnd?.invoke()
+        }
 
         // CRITICAL: Add small delay before clearing keyLog to ensure fragment is fully removed
         // This prevents comboAlreadyTriggered from staying true when menu closes
@@ -1766,6 +1774,7 @@ class GameActivityViewModel(application: Application) :
                             com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU ->
                                     dismissAboutMenu()
                             com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> dismissExit()
+                            else -> { }
                         }
                     }
                     is com.vinaooo.revenger.ui.retromenu3.MenuAction.NAVIGATE -> {
@@ -1814,6 +1823,7 @@ class GameActivityViewModel(application: Application) :
                     com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
                         activateExitMenu()
                     }
+                    else -> {}
                 }
 
                 // Deactivate previous menu if it was a submenu

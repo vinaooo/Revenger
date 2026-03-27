@@ -98,7 +98,11 @@ enum class MenuState {
     PROGRESS_MENU,
     SETTINGS_MENU,
     ABOUT_MENU,
-    EXIT_MENU
+    EXIT_MENU,
+    SAVE_SLOTS_MENU,
+    LOAD_SLOTS_MENU,
+    MANAGE_SAVES_MENU,
+    EXIT_SAVE_SLOTS_MENU
 }
 
 /**

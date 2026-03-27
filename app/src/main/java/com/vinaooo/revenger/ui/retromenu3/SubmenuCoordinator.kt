@@ -297,6 +297,9 @@ class SubmenuCoordinator(
             MenuState.MAIN_MENU -> {
                 Log.w(TAG, "openSubmenu called with MAIN_MENU - this should not happen")
             }
+            else -> {
+                Log.w(TAG, "Unhandled submenu type (perhaps managed by NavigationController?): $submenuType")
+            }
         }
 
         Log.d(TAG, "✅ openSubmenu called successfully")

@@ -232,15 +232,21 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
             try {
                 fragmentManager.beginTransaction().remove(currentFragment).commitAllowingStateLoss()
                 Log.d(TAG, "[HIDE] Menu remove requested for fragment=${currentFragment.javaClass.simpleName}")
-
-                // Verify state after transaction (best-effort)
-                val foundAfter = fragmentManager.findFragmentById(MENU_CONTAINER_ID)
-                Log.d(TAG, "[HIDE] After remove: fragmentById=${foundAfter?.javaClass?.simpleName} backStack=${fragmentManager.backStackEntryCount}")
             } catch (t: Throwable) {
                 Log.e(TAG, "[HIDE] Exception while removing fragment", t)
             }
         } else {
             Log.w(TAG, "[HIDE] No menu to hide (currentFragment=null or not added)")
+        }
+
+        // Catch the case where backstack wasn't cleared
+        if (fragmentManager.backStackEntryCount > 0) {
+            try {
+                Log.d(TAG, "[HIDE] Clearing remaining backstack items: ${fragmentManager.backStackEntryCount}")
+                fragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+            } catch (t: Throwable) {
+                Log.e(TAG, "[HIDE] Exception while clearing backstack", t)
+            }
         }
     }
 
