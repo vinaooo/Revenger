@@ -165,9 +165,6 @@ class KeyboardInputAdapter(
                 return true // Consumir mas não processar repeat
             }
             // V4.5: GLOBAL_STATE_LOCK (static companion) - Garante thread-safety REAL
-            // CRITICAL: Lock DEVE ser companion object para funcionar entre múltiplas instâncias
-            // TODO o código de decisão DEVE estar dentro do withLock
-            // Usar return@withLock (não return!) para manter lock ativo
             val shouldNavigate =
                     GLOBAL_STATE_LOCK.withLock {
                         val state = pressCycleStates.getOrPut(keyCode) { PressCycleState() }

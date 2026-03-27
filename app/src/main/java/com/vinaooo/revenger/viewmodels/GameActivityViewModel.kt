@@ -1277,12 +1277,21 @@ class GameActivityViewModel(application: Application) :
 
     // ========== SCREENSHOT CAPTURE FOR SAVE STATES ==========
 
+    /** Property to skip next screenshot. Used by PiP. */
+    var suppressNextScreenshotCapture: Boolean = false
+
     /**
      * Capture screenshot when menu opens. Called from showRetroMenu3() before pausing the game.
      *
      * @param onCaptured Optional callback when capture completes
      */
     fun captureScreenshotForSaveState(onCaptured: ((Boolean) -> Unit)? = null) {
+        if (suppressNextScreenshotCapture) {
+            suppressNextScreenshotCapture = false
+            onCaptured?.invoke(true)
+            return
+        }
+
         retroView?.view?.let { glRetroView ->
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 com.vinaooo.revenger.utils.ScreenshotCaptureUtil.captureAndCacheScreenshot(

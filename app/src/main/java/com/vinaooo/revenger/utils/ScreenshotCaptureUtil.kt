@@ -462,6 +462,16 @@ object ScreenshotCaptureUtil {
         return cachedScreenshot
     }
 
+    /** Manually inject bitmaps. Useful for PiP. */
+    fun setManualScreenshots(screenshot: Bitmap?, fullScreenshot: Bitmap?) {
+        synchronized(this) {
+            cachedScreenshot?.recycle()
+            cachedScreenshot = screenshot
+            cachedFullScreenshot?.recycle()
+            cachedFullScreenshot = fullScreenshot
+        }
+    }
+
     /** Get the cached full-screen screenshot (with black bars) for preview overlay. */
     fun getCachedFullScreenshot(): Bitmap? {
         return cachedFullScreenshot

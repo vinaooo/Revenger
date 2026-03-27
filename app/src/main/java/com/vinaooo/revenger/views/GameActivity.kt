@@ -79,6 +79,14 @@ class GameActivity : FragmentActivity() {
                                         }.start()
                                 }
                                 ACTION_PIP_SAVE -> {
+                                        val bitmap = (pipOverlay.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                                        if (bitmap != null) {
+                                                val config = bitmap.config ?: android.graphics.Bitmap.Config.ARGB_8888
+                                                val bitmapCopy = bitmap.copy(config, true)
+                                                com.vinaooo.revenger.utils.ScreenshotCaptureUtil.setManualScreenshots(bitmapCopy, bitmapCopy)
+                                                viewModel.suppressNextScreenshotCapture = true
+                                        }
+
                                         val reorderIntent = Intent(this@GameActivity, GameActivity::class.java).apply {
                                                 flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
                                         }
