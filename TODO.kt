@@ -1,6 +1,7 @@
 // Use this file with TODO Tree VScode extension
 
-// TODO:
+// TODO: Continuar com icones
+// TODO: escolher icone pela qualidade/resolução no modo automatico.
 
 // FIXME: Menu navigation with analogic
 
