@@ -7,8 +7,8 @@ from PIL import Image, ImageDraw
 from pathlib import Path
 
 # Import the refactored modules
-from fetch_icon import fetch_sgdb_icon
-from fetch_smart import fetch_igdb_smart_icon
+from fetch_icon import fetch_sgdb_icon, fetch_sgdb_multiple_icons
+from fetch_smart import fetch_igdb_smart_icon, fetch_igdb_multiple_covers
 from generate_typo import generate_typo_icon
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -239,6 +239,10 @@ def main():
                         help="Force a specific generation method (1=SGDB, 2=IGDB, 3=Console, 4=Typo)")
     parser.add_argument("--skip-downloads", action="store_true", 
                         help="Skip online methods (SGDB, IGDB) and only use local fallbacks")
+    parser.add_argument("--interactive", "-i", action="store_true", 
+                        help="Prompt the user to choose between multiple search results")
+    parser.add_argument("--gui-web", action="store_true", 
+                        help="Start a local web server to pick the icon from ALL generators entirely graphically.")
     parser.add_argument("--config", type=str, 
                         help="Optional absolute path to config.xml. If omitted, assumes default Revenger project structure.")
     
@@ -257,12 +261,63 @@ def main():
     
     img = None
     
-    if args.force:
+    # -----------------------------------------------------------------
+    # CACHE/OVERRIDE CHECK
+    # Se NÃO estamos na gui-web, verificar se o dev escolheu uma override para ESSA rom
+    # -----------------------------------------------------------------
+    if not args.gui_web:
+        override_dir = os.path.join(PROJECT_ROOT, "icons", ".cache")
+        override_path = os.path.join(override_dir, "custom_override_icon.png")
+        rom_lock_path = os.path.join(override_dir, "last_rom.txt")
+        
+        if os.path.exists(override_path) and os.path.exists(rom_lock_path):
+            with open(rom_lock_path, 'r', encoding='utf-8') as f:
+                locked_rom = f.read().strip()
+                
+            if locked_rom == rom:
+                logging.info(f"🔒 Found manual Web Interface override icon for {rom}. Skipping auto-scraping!")
+                img = Image.open(override_path).convert("RGBA")
+                
+                # Vai direto para o gerador de mipmap e mata a branch atual
+                generate_android_icons(img)
+                logging.info("✅ Process complete (Using Cached Override)!")
+                return
+            else:
+                logging.info("♻️ Locked ROM is different from current ROM. Dropping obsolete icon cache.")
+                try: 
+                    os.remove(override_path)
+                    os.remove(rom_lock_path)
+                except: 
+                    pass
+
+    if args.gui_web:
+        logging.info("🚀 [WEB GUI] Launching interactive showcase... Fetching all possible variations.")
+        from web_gui import start_web_picker
+        
+        # Coletar em paralelo/rápido de todos os geradores
+        print("  -> Searching SteamGridDB...")
+        sgdb_imgs = fetch_sgdb_multiple_icons(rom, limit=5)
+        print(f"  -> Searching IGDB for {platform}...")
+        igdb_imgs = fetch_igdb_multiple_covers(platform, rom, limit=5)
+        print("  -> Generating Local Fallbacks...")
+        console_img = fetch_console_fallback(platform)
+        typo_img = generate_typo_icon(rom)
+        
+        ctx = {
+            "sgdb": sgdb_imgs,
+            "igdb": igdb_imgs,
+            "console": console_img,
+            "typo": typo_img
+        }
+        
+        img = start_web_picker(ctx)
+        
+    elif args.force:
         logging.warning(f"⚠️ Forcing Method {args.force}")
         if args.force == 1:
-            img = fetch_sgdb_icon(rom)
+            img = fetch_sgdb_icon(rom, interactive=args.interactive)
         elif args.force == 2:
-            img = fetch_igdb_smart_icon(platform, rom)
+            img = fetch_igdb_smart_icon(platform, rom, interactive=args.interactive)
         elif args.force == 3:
             img = fetch_console_fallback(platform)
         elif args.force == 4:
@@ -273,12 +328,12 @@ def main():
         if not args.skip_downloads:
             # Method 1: SteamGridDB
             logging.info("🔍 Attempting Method 1: SteamGridDB (fetch_icon)...")
-            img = fetch_sgdb_icon(rom)
+            img = fetch_sgdb_icon(rom, interactive=args.interactive)
             
             # Method 2: IGDB Smart Icon
             if not img:
                 logging.info("🔍 Match not found or failed. Attempting Method 2: IGDB Smart Icon (fetch_smart)...")
-                img = fetch_igdb_smart_icon(platform, rom)
+                img = fetch_igdb_smart_icon(platform, rom, interactive=args.interactive)
         else:
             logging.info("⏭️ Skipping online download methods (SGDB, IGDB)...")
             
@@ -292,7 +347,17 @@ def main():
             logging.info("🔍 Platform icon missing. Attempting Method 4: Typographical Fallback (generate_typo)...")
             img = generate_typo_icon(rom)
             
-    if img:
+    if img:        # Quando rodando via --gui-web, antes de fechar salva o lock (cópia crua na pasta icons)
+        if args.gui_web:
+            override_dir = os.path.join(PROJECT_ROOT, "icons", ".cache")
+            os.makedirs(override_dir, exist_ok=True)
+            override_path = os.path.join(override_dir, "custom_override_icon.png")
+            rom_lock_path = os.path.join(override_dir, "last_rom.txt")
+            
+            img.save(override_path, "PNG")
+            with open(rom_lock_path, 'w', encoding='utf-8') as f:
+                f.write(rom)
+            logging.info(f"🔒 Custom interactively selected icon saved as override lock for ROM: {rom}")
         logging.info("🎉 Image successfully acquired. Generating Android Mipmaps...")
         generate_android_icons(img)
         logging.info("✅ Process complete!")

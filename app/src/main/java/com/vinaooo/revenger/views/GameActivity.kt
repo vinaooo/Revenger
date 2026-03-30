@@ -1383,6 +1383,19 @@ class GameActivity : FragmentActivity() {
         override fun onResume() {
                 super.onResume()
                 frameStartTime = System.nanoTime()
+
+                // Cleanup estrito do PiP quando a Activity retorna à tela cheia
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        try {
+                                if (!isInPictureInPictureMode && pipOverlay.visibility == android.view.View.VISIBLE) {
+                                        Log.d(TAG, "[PIP] Cleaning stuck PiP overlay in onResume")
+                                        pipOverlay.visibility = android.view.View.GONE
+                                        pipOverlay.setImageDrawable(null)
+                                }
+                        } catch (e: Exception) {
+                                Log.e(TAG, "[PIP] Error checking PiP state in onResume", e)
+                        }
+                }
         }
 
         override fun onUserLeaveHint() {
@@ -1398,7 +1411,7 @@ class GameActivity : FragmentActivity() {
                         try {
                                 viewModel.retroView?.view?.let { glView ->
                                         // Capturar tela antes do GL surface pausar ou ser destruída
-                                        ScreenshotCaptureUtil.captureFullScreen(glView) { bitmap ->
+                                        ScreenshotCaptureUtil.captureGameScreen(glView) { bitmap ->
                                                 if (bitmap != null) {
                                                         runOnUiThread {
                                                                 pipOverlay.setImageBitmap(bitmap)
@@ -1410,14 +1423,25 @@ class GameActivity : FragmentActivity() {
                                 
                                 val builder = android.app.PictureInPictureParams.Builder()
                                 
-                                // Otimizar a janela PIP para usar a exata proporção do jogo
-                                val width = retroviewContainer.width
-                                val height = retroviewContainer.height
-                                if (width > 0 && height > 0) {
-                                        // O Android limita o aspect ratio do PiP entre 2.39:1 e 1:2.39
-                                        val ratio = android.util.Rational(width, height)
-                                        if (ratio.toFloat() in 0.418f..2.39f) {
-                                                builder.setAspectRatio(ratio)
+                                // Otimizar a janela PIP para usar a exata proporção da plataforma
+                                val platformId = appConfig.getPlatformId()
+                                val pipProfile = com.vinaooo.revenger.repositories.PipConfigRepository.getProfile(platformId)
+                                
+                                val ratioW = pipProfile.ratioW
+                                val ratioH = pipProfile.ratioH
+                                val ratio = android.util.Rational(ratioW, ratioH)
+                                
+                                // O Android limita o aspect ratio do PiP entre 2.39:1 e 1:2.39
+                                if (ratio.toFloat() in 0.418f..2.39f) {
+                                        builder.setAspectRatio(ratio)
+                                } else {
+                                        val width = retroviewContainer.width
+                                        val height = retroviewContainer.height
+                                        if (width > 0 && height > 0) {
+                                                val fallbackRatio = android.util.Rational(width, height)
+                                                if (fallbackRatio.toFloat() in 0.418f..2.39f) {
+                                                        builder.setAspectRatio(fallbackRatio)
+                                                }
                                         }
                                 }
 
@@ -1446,9 +1470,18 @@ class GameActivity : FragmentActivity() {
                                 
                                 builder.setActions(listOf(quickSaveAction, saveAction))
                                 
-                                enterPictureInPictureMode(builder.build())
+                                val entered = enterPictureInPictureMode(builder.build())
+                                if (!entered) {
+                                        Log.w(TAG, "[PIP] OS rejected Picture-in-Picture request, clearing overlay")
+                                        pipOverlay.visibility = android.view.View.GONE
+                                        pipOverlay.setImageDrawable(null)
+                                }
                         } catch (e: Exception) {
                                 Log.e(TAG, "[PIP] Failed to enter Picture-in-Picture mode", e)
+                                runOnUiThread {
+                                        pipOverlay.visibility = android.view.View.GONE
+                                        pipOverlay.setImageDrawable(null)
+                                }
                         }
                 }
         }

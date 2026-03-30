@@ -179,13 +179,14 @@ object ScreenshotCaptureUtil {
                 return
             }
 
-            // Get game aspect ratio based on the core name from config
+            // Get game aspect ratio based on the platform config (matching PiP ratio)
             val gameAspectRatio = try {
                 val context = cachedContext
                 if (context != null) {
-                    val coreName = com.vinaooo.revenger.RevengerApplication.appConfig.getCore()
-                    val aspectRatio = getAspectRatioForCore(coreName)
-                    Log.d(TAG, "Core: $coreName, Aspect ratio: $aspectRatio")
+                    val platformId = com.vinaooo.revenger.RevengerApplication.appConfig.getPlatformId()
+                    val pipProfile = com.vinaooo.revenger.repositories.PipConfigRepository.getProfile(platformId)
+                    val aspectRatio = pipProfile.ratioW.toFloat() / pipProfile.ratioH.toFloat()
+                    Log.d(TAG, "Platform: $platformId, Aspect ratio: $aspectRatio")
                     aspectRatio
                 } else {
                     Log.w(TAG, "Context not set, using default aspect ratio")

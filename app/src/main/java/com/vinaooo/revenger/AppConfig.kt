@@ -117,7 +117,7 @@ class AppConfig(private val context: Context) {
     fun getName(): String = baseConfig.name.takeIf { it.isNotEmpty() } ?: "Revenger"
     fun getRomName(): String = baseConfig.rom
     fun getTargetAbi(): String = baseConfig.target_abi
-    private fun getPlatformId(): String = baseConfig.platform
+    fun getPlatformId(): String = baseConfig.platform
 
     // ========== Core and variables (default profile overrides) ==========
 

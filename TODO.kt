@@ -1,6 +1,6 @@
 // Use this file with TODO Tree VScode extension
 
-// TODO: corrigir imagem ausente quando salva a partir do menu via PiP
+// TODO:
 
 // FIXME: Menu navigation with analogic
 
