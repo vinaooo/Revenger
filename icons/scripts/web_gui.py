@@ -33,7 +33,7 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         ctx = self.server.context
         
-        html = """
+        html = '''
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -41,153 +41,167 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Revenger Icon Picker</title>
             <style>
-                html, body { height: 100%; margin: 0; padding: 0; box-sizing: border-box; }
                 body { 
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                    background-color: #121212; 
-                    color: #ffffff; 
-                    text-align: center; 
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                    background-color: #161618; 
+                    color: #e0e0e0; 
+                    margin: 0;
+                    display: flex;
+                    height: 100vh;
+                    overflow: hidden;
+                }
+                
+                .sidebar {
+                    width: 260px;
+                    background-color: #1e1e21;
+                    padding: 30px 20px;
                     display: flex;
                     flex-direction: column;
-                    padding: 10px 20px;
+                    gap: 15px;
+                    border-right: 1px solid #2a2a2d;
+                    box-sizing: border-box;
+                    flex-shrink: 0;
+                    z-index: 10;
+                    box-shadow: 2px 0 8px rgba(0,0,0,0.2);
                 }
-                .header-area { flex-shrink: 0; }
-                h1 { margin: 10px 0 5px 0; font-size: 24px; }
-                h3 { color: #aaaaaa; margin-top: 5px; margin-bottom: 15px; font-weight: 300; font-size: 16px; }
+                
+                .header-container {
+                    margin-bottom: 20px;
+                }
+                
+                h1 { color: #ffffff; margin: 0 0 8px 0; font-size: 22px; line-height: 1.2; }
+                h3 { color: #999999; margin: 0; font-weight: normal; font-size: 14px; line-height: 1.4; }
+                
+                .menu-item {
+                    background-color: transparent;
+                    color: #b3b3b3;
+                    border: none;
+                    padding: 12px 16px;
+                    font-size: 15px;
+                    font-weight: 500;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+                    gap: 12px;
+                    width: 100%;
+                    box-sizing: border-box;
+                    text-align: left;
+                }
+                .menu-item:hover { 
+                    background-color: rgba(255, 255, 255, 0.08); 
+                    color: #ffffff; 
+                }
+                .menu-item.danger { 
+                    margin-top: auto; 
+                }
+                .menu-item.danger:hover { 
+                    background-color: rgba(255, 77, 77, 0.15); 
+                    color: #ff6666; 
+                }
+                .menu-item.primary { 
+                    color: #b3b3b3; 
+                }
+                .menu-item.primary:hover { 
+                    background-color: rgba(100, 160, 255, 0.15); 
+                    color: #99c2ff; 
+                }
                 
                 .main-content {
-                    display: flex;
-                    flex-direction: row;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                    align-items: stretch;
-                    gap: 15px;
                     flex-grow: 1;
-                    min-height: 0;
-                }
-
-                .section { 
-                    flex: 1 1 300px;
-                    display: flex;
-                    flex-direction: column;
-                    background-color: #1a1a1a;
-                    border-radius: 12px;
-                    padding: 10px;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-                }
-                
-                .section-title { 
-                    font-size: 18px; 
-                    border-bottom: 1px solid #333; 
-                    padding-bottom: 8px; 
-                    margin-bottom: 12px; 
-                    font-weight: bold;
-                    color: #e0e0e0;
-                }
-                
-                .grid { 
-                    display: flex; 
-                    flex-wrap: wrap; 
-                    justify-content: center; 
-                    gap: 10px; 
                     overflow-y: auto;
-                    align-content: flex-start;
-                    flex-grow: 1;
-                    /* Shrink scrollbar */
-                    scrollbar-width: thin;
-                    scrollbar-color: #555 #1a1a1a;
+                    padding: 10px 40px 60px 40px;
+                    box-sizing: border-box;
                 }
                 
+                .section { margin-top: 30px; text-align: left; max-width: 1050px; margin-left: auto; margin-right: auto;}
+                .section-title { font-size: 18px; color: #ececec; font-weight: 600; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; padding-left: 5px;}
+                .grid { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 20px; }
+                @media (max-width: 1100px) {
+                    .grid { justify-content: center; }
+                }
+                @media (max-width: 768px) {
+                    body { flex-direction: column; height: auto; overflow: auto; }
+                    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #2a2a2d; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+                    .menu-item.danger { margin-top: 0; }
+                    .main-content { padding: 20px; overflow-y: visible; }
+                }
                 
-                
-                .card:hover { transform: scale(1.05); background-color: #2a2a2a; border-color: #4CAF50; }
-                .card span { display: block; font-size: 12px; font-weight: bold; color: #ddd; margin-top: auto; }
-
                 .card { 
-                    background-color: #222; 
-                    border-radius: 10px; 
-                    padding: 10px; 
+                    background-color: #1e1e21; 
+                    border-radius: 12px; 
+                    padding: 16px; 
                     cursor: pointer; 
-                    transition: transform 0.2s, background-color 0.2s; 
-                    border: 2px solid transparent; 
-                    width: calc(33% - 15px);
-                    min-width: 220px;
-                    max-width: 270px;
+                    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s; 
+                    border: 1px solid #2a2a2d;
+                    width: calc(33.333% - 20px);
+                    min-width: 240px;
+                    max-width: 280px;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
+                    box-sizing: border-box;
                 }
-
+                .card:hover { 
+                    background-color: #27272b; 
+                    transform: translateY(-4px); 
+                    border-color: #444;
+                    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+                }
+                .card > span { display: block; font-size: 14px; margin-top: 15px; font-weight: 600; color: #ececec; }
+                .card .resolution { font-size: 12px; color: #888; margin-top: 6px; font-weight: normal; }
+                
                 .preview-container {
                     display: flex;
                     justify-content: space-around;
                     width: 100%;
-                    gap: 8px;
-                    margin-bottom: 10px;
+                    gap: 10px;
                 }
                 .icon-preview {
-                    width: 60px;
-                    height: 60px;
+                    width: 64px;
+                    height: 64px;
                     position: relative;
-                    overflow: hidden;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
-                    border: 1px solid #444;
+                    background-color: #0b0b0c;
+                    border: 1px solid #333;
                 }
                 .icon-preview.legacy-sq { border-radius: 12px; overflow: hidden; }
                 .icon-preview.legacy-round { border-radius: 50%; overflow: hidden; }
-                .icon-preview.adaptive { border-radius: 16px; background-color: #333; }
+                .icon-preview.adaptive { border-radius: 14px; border: none; background-color: #222; }
                 
-                /* Legacy Normal image */
                 .img-full { width: 100%; height: 100%; object-fit: contain; }
-                
-                /* Adaptive simulate Background Blur */
                 .bg-blur {
                     position: absolute;
                     top: -10%; left: -10%; width: 120%; height: 120%;
                     object-fit: cover;
                     filter: blur(4px) brightness(0.6);
-                    z-index: 1;
                 }
-                /* Safe Zone foreground logo */
                 .fg-safe {
                     position: absolute;
                     top: 16%; left: 16%; width: 68%; height: 68%;
                     object-fit: contain;
                     z-index: 2;
-                    filter: drop-shadow(0px 3px 4px rgba(0,0,0,0.9));
+                    filter: drop-shadow(0px 3px 4px rgba(0,0,0,0.7));
                 }
-                
-                .upload-btn { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-                .upload-btn:hover { background-color: #45a049; }
                 #customFile { display: none; }
-                
-                .upload-section { 
-                    background-color: #1e1e1e; 
-                    padding: 15px; 
-                    border-radius: 12px; 
-                    border: 1px dashed #555; 
-                    margin-top: 15px;
-                    flex-shrink: 0;
-                }
-                
-                .upload-controls {
-                    display: flex; 
-                    gap: 10px; 
-                    justify-content: center; 
-                    flex-wrap: wrap;
-                    margin-top: 10px;
-                }
             </style>
         </head>
         <body>
-            <div class="header-area">
-                <h1>📦 Interactive Icon Selector</h1>
-                <h3>Choose the primary artwork for the APK build</h3>
+            <div class="sidebar">
+                <div class="header-container">
+                    <h1>Icon Selector</h1>
+                    <h3>Choose the primary artwork for the APK build</h3>
+                </div>
+                
+                <input type="file" id="customFile" accept="image/*" onchange="uploadImage()">
+                <button class="menu-item primary" onclick="document.getElementById('customFile').click()">📤 Upload Local File</button>
+                <button class="menu-item" onclick="clearOverride()">🔄 Restore Auto-Scraping</button>
+                <button class="menu-item danger" onclick="cancelProcess()">❌ Cancel & Close</button>
             </div>
             
             <div class="main-content">
-        """
-
+'''
         # SteamGridDB Section
         if ctx.get("sgdb"):
             html += '<div class="section"><div class="section-title">Direct Matches (SGDB)</div><div class="grid">'
@@ -209,10 +223,10 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
                         </div>
                     </div>
                     <span>Option {i+1}</span>
-                    <span style="font-size: 11px; color: #888; font-weight: normal; margin-top: 4px;">{w}x{h}</span>
+                    <span class="resolution">{w}x{h}</span>
                 </div>'''
             html += '</div></div>'
-            
+        
         # IGDB Smart Covers Section
         if ctx.get("igdb"):
             html += '<div class="section"><div class="section-title">Smart Compositions (IGDB)</div><div class="grid">'
@@ -234,10 +248,10 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
                         </div>
                     </div>
                     <span>Smart Cover {i+1}</span>
-                    <span style="font-size: 11px; color: #888; font-weight: normal; margin-top: 4px;">{w}x{h}</span>
+                    <span class="resolution">{w}x{h}</span>
                 </div>'''
             html += '</div></div>'
-            
+
         # Fallbacks Section
         html += '<div class="section"><div class="section-title">Local Fallbacks</div><div class="grid">'
         if ctx.get("console"):
@@ -258,7 +272,7 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
                     </div>
                 </div>
                 <span>Default Console</span>
-                <span style="font-size: 11px; color: #888; font-weight: normal; margin-top: 4px;">{w}x{h}</span>
+                <span class="resolution">{w}x{h}</span>
             </div>'''
         if ctx.get("typo"):
             b64 = image_to_base64(ctx["typo"])
@@ -278,27 +292,13 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
                     </div>
                 </div>
                 <span>Custom Typography</span>
-                <span style="font-size: 11px; color: #888; font-weight: normal; margin-top: 4px;">{w}x{h}</span>
+                <span class="resolution">{w}x{h}</span>
             </div>'''
         html += '</div></div>'
-        
-        html += '</div>' # End main-content
-        
-        # Upload Section
-        html += '''
-        <div class="upload-section">
-            <div class="section-title" style="border:none; margin-bottom:0; font-size: 16px;">None of these look good?</div>
-            <input type="file" id="customFile" accept="image/*" onchange="uploadImage()">
-            <div class="upload-controls">
-                <button class="upload-btn" onclick="document.getElementById('customFile').click()">📤 Upload Local File (Square)</button>
-                <button class="upload-btn" style="background-color: #555;" onclick="cancelProcess()">❌ Cancel & Close</button>
-                <button class="upload-btn" style="background-color: #f44336;" onclick="clearOverride()">🔄 Restore Auto-Scraping</button>
-            </div>
-        </div>
-        '''
 
         # Javascript interactions
         html += '''
+            </div>
             <script>
                 async function selectImage(group, index) {
                     document.body.innerHTML = "<h2 style='margin-top: 100px; color: #4CAF50;'>⏳ Processing selected icon...</h2><p>You can now close this tab and return to the terminal.</p>";
@@ -347,7 +347,7 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
         </body>
         </html>
         '''
-        
+
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
