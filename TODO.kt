@@ -5,10 +5,14 @@
 // TODO: Criar um shader fake de crt para o menu
 // TODO: Usar a capa como imagem para o PiP opcionalmente
 // TODO: Usar a imagem de capa para TV
-// TODO: 
+// TODO: Relogio, bateria, wif e dados no menu
+// TODO: Estatisticas do jogo
+// TODO: Analógico funcionando em jogos sem suporte a ele
+// TODO: Menu de inicio
+// TODO: IA para tradução
 
 
-// FIXME:
+// FIXME: Melhorar navegação via teclado
 
 // [ ]: Fazer
 // [x]: Feito
