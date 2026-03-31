@@ -312,40 +312,57 @@ def main():
         
         img = start_web_picker(ctx)
         
-    elif args.force:
-        logging.warning(f"⚠️ Forcing Method {args.force}")
-        if args.force == 1:
-            img = fetch_sgdb_icon(rom, interactive=args.interactive)
-        elif args.force == 2:
-            img = fetch_igdb_smart_icon(platform, rom, interactive=args.interactive)
-        elif args.force == 3:
-            img = fetch_console_fallback(platform)
-        elif args.force == 4:
-            img = generate_typo_icon(rom)
+        if img == "CANCEL":
+            logging.info("⏹️ User cancelled the operation via Web GUI. Exiting gracefully without further modifications.")
+            sys.exit(0)
+
+        if img == "CLEAR_OVERRIDE":
+            logging.info("🗑️ Restore Auto-Scraping requested! Clearing manual override lock...")
+            override_dir = os.path.join(PROJECT_ROOT, "icons", ".cache")
+            override_path = os.path.join(override_dir, "custom_override_icon.png")
+            rom_lock_path = os.path.join(override_dir, "last_rom.txt")
+            if os.path.exists(override_path): os.remove(override_path)
+            if os.path.exists(rom_lock_path): os.remove(rom_lock_path)
             
-    else:
-        # Standard cascade
-        if not args.skip_downloads:
-            # Method 1: SteamGridDB
-            logging.info("🔍 Attempting Method 1: SteamGridDB (fetch_icon)...")
-            img = fetch_sgdb_icon(rom, interactive=args.interactive)
-            
-            # Method 2: IGDB Smart Icon
-            if not img:
-                logging.info("🔍 Match not found or failed. Attempting Method 2: IGDB Smart Icon (fetch_smart)...")
+            # Switch modes so the standard cascade runs immediately below
+            args.gui_web = False
+            img = None
+
+    if not args.gui_web and not img:
+        if args.force:
+            logging.warning(f"⚠️ Forcing Method {args.force}")
+            if args.force == 1:
+                img = fetch_sgdb_icon(rom, interactive=args.interactive)
+            elif args.force == 2:
                 img = fetch_igdb_smart_icon(platform, rom, interactive=args.interactive)
+            elif args.force == 3:
+                img = fetch_console_fallback(platform)
+            elif args.force == 4:
+                img = generate_typo_icon(rom)
+                
         else:
-            logging.info("⏭️ Skipping online download methods (SGDB, IGDB)...")
-            
-        # Method 3: Console Fallback
-        if not img:
-            logging.info("🔍 Match not found or failed. Attempting Method 3: Console Default Icon...")
-            img = fetch_console_fallback(platform)
-            
-        # Method 4: Typographical Fallback
-        if not img:
-            logging.info("🔍 Platform icon missing. Attempting Method 4: Typographical Fallback (generate_typo)...")
-            img = generate_typo_icon(rom)
+            # Standard cascade
+            if not args.skip_downloads:
+                # Method 1: SteamGridDB
+                logging.info("🔍 Attempting Method 1: SteamGridDB (fetch_icon)...")
+                img = fetch_sgdb_icon(rom, interactive=args.interactive)
+                
+                # Method 2: IGDB Smart Icon
+                if not img:
+                    logging.info("🔍 Match not found or failed. Attempting Method 2: IGDB Smart Icon (fetch_smart)...")
+                    img = fetch_igdb_smart_icon(platform, rom, interactive=args.interactive)
+            else:
+                logging.info("⏭️ Skipping online download methods (SGDB, IGDB)...")
+                
+            # Method 3: Console Fallback
+            if not img:
+                logging.info("🔍 Match not found or failed. Attempting Method 3: Console Default Icon...")
+                img = fetch_console_fallback(platform)
+                
+            # Method 4: Typographical Fallback
+            if not img:
+                logging.info("🔍 Platform icon missing. Attempting Method 4: Typographical Fallback (generate_typo)...")
+                img = generate_typo_icon(rom)
             
     if img:        # Quando rodando via --gui-web, antes de fechar salva o lock (cópia crua na pasta icons)
         if args.gui_web:

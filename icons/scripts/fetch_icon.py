@@ -30,7 +30,7 @@ def fetch_steamgriddb_icon(sgdb_id, interactive=False):
                 print("\n[SteamGridDB] Multiple icons found:")
                 limit = min(5, len(data))
                 for i in range(limit):
-                    print(f"  [{i+1}] {data[i]['url']}")
+                    print(f"  [{i+1}] {data[i]['url']} ({data[i].get('width', '?')}x{data[i].get('height', '?')})")
                 while True:
                     choice = input(f"Select an icon (1-{limit}) or 's' to skip SGDB: ").strip().lower()
                     if choice == 's':
@@ -41,7 +41,16 @@ def fetch_steamgriddb_icon(sgdb_id, interactive=False):
                             return data[idx]["url"]
                     print("Invalid choice, try again.")
             else:
-                return data[0]["url"]
+                # Verificando a resolução, se a primeira não servir, pula para a próxima
+                for item in data:
+                    w = item.get("width", 0)
+                    h = item.get("height", 0)
+                    if w >= 256 and h >= 256:
+                        logging.info(f"    [SGDB] ✅ Auto-selected compatible icon: {w}x{h}")
+                        return item["url"]
+                
+                logging.warning("    [SGDB] ❌ Nenhuma opção com resolução adequada (>=256x256) encontrada. Pulando SGDB...")
+                return None
     return None
 
 def fetch_sgdb_multiple_icons(rom_name, limit=5):
