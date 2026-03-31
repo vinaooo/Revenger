@@ -1,11 +1,14 @@
 // Use this file with TODO Tree VScode extension
 
-// TODO: escolher icone pela qualidade/resolução no modo automatico.
-// TODO: opção para voltar a geração automatica
+// TODO: Menu navigation with analogic
+// TODO: Usar capa do jogo como fundo de menu
+// TODO: Criar um shader fake de crt para o menu
+// TODO: Usar a capa como imagem para o PiP opcionalmente
+// TODO: Usar a imagem de capa para TV
+// TODO: 
 
 
-// FIXME: icone de Console está fora de enquadramento
-// FIXME: Menu navigation with analogic
+// FIXME:
 
 // [ ]: Fazer
 // [x]: Feito
