@@ -2,6 +2,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 import os
 import requests
+import re
 from PIL import Image, ImageFilter
 from io import BytesIO
 from utils import load_env, clean_rom_name
@@ -21,15 +22,39 @@ def get_token():
     })
     return res.json().get("access_token") if res.status_code == 200 else None
 
-def fetch_igdb_cover(name, platform, token):
+def fetch_igdb_cover(name, platform, token, interactive=False):
     p_id = IGDB_PLATFORMS.get(platform.lower())
     headers = {"Client-ID": CLIENT_ID, "Authorization": f"Bearer {token}"}
-    body = f'search "{name}"; fields name, cover.url; where platforms = ({p_id}); limit 1;'
+    body = f'search "{name}"; fields name, cover.url; where platforms = ({p_id}); limit 5;'
     res = requests.post("https://api.igdb.com/v4/games", headers=headers, data=body)
     if res.status_code == 200 and res.json():
-        data = res.json()[0]
-        if "cover" in data:
-            return "https:" + data["cover"]["url"].replace("t_thumb", "t_1080p"), data["name"]
+        results = res.json()
+        if not results:
+            return None, None
+            
+        if interactive:
+            print("\n[IGDB] Multiple covers found:")
+            valid_results = [r for r in results if "cover" in r]
+            limit = len(valid_results)
+            if limit == 0:
+                return None, None
+            for i in range(limit):
+                url = "https:" + valid_results[i]["cover"]["url"].replace("t_thumb", "t_1080p")
+                print(f"  [{i+1}] {valid_results[i]['name']} - {url}")
+            while True:
+                choice = input(f"Select a cover (1-{limit}) or 's' to skip IGDB: ").strip().lower()
+                if choice == 's':
+                    return None, None
+                if choice.isdigit():
+                    idx = int(choice) - 1
+                    if 0 <= idx < limit:
+                        url = "https:" + valid_results[idx]["cover"]["url"].replace("t_thumb", "t_1080p")
+                        return url, valid_results[idx]["name"]
+                print("Invalid choice, try again.")
+        else:
+            data = results[0]
+            if "cover" in data:
+                return "https:" + data["cover"]["url"].replace("t_thumb", "t_1080p"), data["name"]
     return None, None
 
 def generate_smart_icon_image(content):
@@ -61,7 +86,38 @@ def generate_smart_icon_image(content):
     background.paste(resized_cover, (pos_x, pos_y), resized_cover)
     return background
 
-def fetch_igdb_smart_icon(platform, rom_name):
+def fetch_igdb_multiple_covers(platform, rom_name, limit=5):
+    """Busca em lote as capas do IGDB e processa gerando ícones Smart (PIL Image)"""
+    import re
+    clean_name = re.sub(r'\([^)]*\)|\[[^\]]*\]', '', rom_name).strip()
+    clean_name = re.sub(r'\.(iso|zip|sfc|gba|nds|n64|3ds|bin|cue|sms|nds|gcm)$', '', clean_name, flags=re.IGNORECASE).strip()
+    
+    images = []
+    if platform.lower() not in IGDB_PLATFORMS:
+        return images
+        
+    token = get_token()
+    if token:
+        p_id = IGDB_PLATFORMS.get(platform.lower())
+        headers = {"Client-ID": CLIENT_ID, "Authorization": f"Bearer {token}"}
+        body = f'search "{clean_name}"; fields name, cover.url; where platforms = ({p_id}); limit {limit};'
+        res = requests.post("https://api.igdb.com/v4/games", headers=headers, data=body)
+        
+        if res.status_code == 200 and res.json():
+            results = res.json()
+            for r in results:
+                if "cover" in r:
+                    url = "https:" + r["cover"]["url"].replace("t_thumb", "t_1080p")
+                    try:
+                        resp = requests.get(url, timeout=5)
+                        if resp.status_code == 200:
+                            img = generate_smart_icon_image(resp.content)
+                            images.append(img)
+                    except Exception as e:
+                        logging.debug(f"Erro processando cover IGDB {url}: {e}")
+    return images
+
+def fetch_igdb_smart_icon(platform, rom_name, interactive=False):
     """Fetches the cover from IGDB and generates a smart icon, returning a PIL Image or None."""
     clean_name = re.sub(r'\([^)]*\)|\[[^\]]*\]', '', rom_name).strip()
     clean_name = re.sub(r'\.(iso|zip|sfc|gba|nds|n64|3ds|bin|cue|sms|nds|gcm)$', '', clean_name, flags=re.IGNORECASE).strip()
@@ -71,7 +127,7 @@ def fetch_igdb_smart_icon(platform, rom_name):
         
     token = get_token()
     if token:
-        url, officially_named = fetch_igdb_cover(clean_name, platform, token)
+        url, officially_named = fetch_igdb_cover(clean_name, platform, token, interactive)
         if url:
             try:
                 img_data = requests.get(url).content

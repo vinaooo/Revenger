@@ -16,6 +16,9 @@ class RevengerApplication : Application() {
 
         // Initialize default settings repository
         DefaultSettingsRepository.initialize(this)
+        
+        // Initialize PiP aspect ratio configurations
+        com.vinaooo.revenger.repositories.PipConfigRepository.initialize(this)
 
         // Initialize application config facade
         appConfig = AppConfig(this)

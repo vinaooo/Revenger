@@ -1,5 +1,14 @@
 package com.vinaooo.revenger.views
 
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
+import android.app.PendingIntent
+import android.app.RemoteAction
+import android.graphics.drawable.Icon
+import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
+import com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
 import android.content.pm.PackageManager
 import android.hardware.input.InputManager
 import com.vinaooo.revenger.managers.GameLifecycleObserver
@@ -30,12 +39,71 @@ class GameActivity : FragmentActivity() {
 
         companion object {
                 private const val TAG = "GameActivity"
+                private const val ACTION_PIP_QUICK_SAVE = "com.vinaooo.revenger.PIP_QUICK_SAVE"
+                private const val ACTION_PIP_SAVE = "com.vinaooo.revenger.PIP_SAVE"
+        }
+        private val pipBroadcastReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                        when (intent?.action) {
+                                ACTION_PIP_QUICK_SAVE -> {
+                                        Thread {
+                                                try {
+                                                        val tracker = com.vinaooo.revenger.managers.SessionSlotTracker.getInstance()
+                                                        val slotNumber = tracker.getLastUsedSlot() ?: 1
+                                                        val currentRetroView = viewModel.retroView
+                                                        if (currentRetroView != null) {
+                                                                val stateBytes = currentRetroView.view.serializeState()
+                                                                val bitmap = (pipOverlay.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                                                                val romName = getString(R.string.name)
+
+                                                                val saveManager = com.vinaooo.revenger.managers.SaveStateManager.getInstance(applicationContext)
+                                                                val slotData = saveManager.getSlot(slotNumber)
+                                                                saveManager.saveToSlot(
+                                                                        slotNumber = slotNumber,
+                                                                        stateBytes = stateBytes,
+                                                                        screenshot = bitmap,
+                                                                        name = if (slotData.isEmpty) "Slot $slotNumber" else slotData.name,
+                                                                        romName = romName
+                                                                )
+                                                                tracker.recordSave(slotNumber)
+                                                        } else {
+                                                                viewModel.saveStateCentralized()
+                                                        }
+                                                } catch (e: Exception) {
+                                                        Log.e(TAG, "Error in PIP quick save", e)
+                                                } finally {
+                                                        runOnUiThread {
+                                                                finishAndRemoveTask()
+                                                        }
+                                                }
+                                        }.start()
+                                }
+                                ACTION_PIP_SAVE -> {
+                                        val bitmap = (pipOverlay.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                                        if (bitmap != null) {
+                                                val config = bitmap.config ?: android.graphics.Bitmap.Config.ARGB_8888
+                                                val bitmapCopy = bitmap.copy(config, true)
+                                                com.vinaooo.revenger.utils.ScreenshotCaptureUtil.setManualScreenshots(bitmapCopy, bitmapCopy)
+                                                viewModel.suppressNextScreenshotCapture = true
+                                        }
+
+                                        val reorderIntent = Intent(this@GameActivity, GameActivity::class.java).apply {
+                                                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                                        }
+                                        startActivity(reorderIntent)
+                                        viewModel.navigationController?.handleNavigationEvent(
+                                                NavigationEvent.OpenMenu(inputSource = InputSource.TOUCH, targetMenu = MenuType.EXIT_SAVE_SLOTS)
+                                        )
+                                }
+                        }
+                }
         }
         private lateinit var leftContainer: FrameLayout
         private lateinit var rightContainer: FrameLayout
         private lateinit var retroviewContainer: FrameLayout
         private lateinit var menuContainer: FrameLayout
         private lateinit var loadPreviewOverlay: android.widget.ImageView
+        private lateinit var pipOverlay: android.widget.ImageView
         private lateinit var audioRoutingManager: AudioRoutingManager
         private lateinit var gameLifecycleObserver: GameLifecycleObserver
         private val viewModel: GameActivityViewModel by viewModels()
@@ -134,6 +202,7 @@ class GameActivity : FragmentActivity() {
                 retroviewContainer = findViewById(R.id.retroview_container)
                 menuContainer = findViewById(R.id.menu_container)
                 loadPreviewOverlay = findViewById(R.id.load_preview_overlay)
+                pipOverlay = findViewById(R.id.pip_overlay)
 
                 // Setup load preview overlay callback
                 viewModel.loadPreviewCallback = { bitmap ->
@@ -368,6 +437,13 @@ class GameActivity : FragmentActivity() {
                                                 TAG,
                                                 "[ORIENTATION] 🔄 Inside postDelayed - starting fragment recreation"
                                         )
+                                        
+                                        // CRITICAL: Double check if menu was dismissed during the delay
+                                        val currentVisibleFragment = fragmentManager.findFragmentById(R.id.menu_container)
+                                        if (currentVisibleFragment == null || !currentVisibleFragment.isAdded || !viewModel.isAnyMenuActive()) {
+                                                Log.d(TAG, "[ORIENTATION] ⏭️ Fragment dismissed during rotation delay, aborting recreation")
+                                                return@postDelayed
+                                        }
 
                                         // CRITICAL FIX: Re-check backstack INSIDE postDelayed
                                         // The backstack may have changed between the initial check
@@ -400,7 +476,11 @@ class GameActivity : FragmentActivity() {
                                                                         is com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment,
                                                                         is com.vinaooo.revenger.ui.retromenu3.ProgressFragment,
                                                                         is com.vinaooo.revenger.ui.retromenu3.AboutFragment,
-                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitFragment ->
+                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitFragment,
+                                                                        is com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment,
+                                                                        is com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment,
+                                                                        is com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment,
+                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment ->
                                                                                 true
                                                                         else -> false
                                                                 }
@@ -439,6 +519,30 @@ class GameActivity : FragmentActivity() {
                                                                                         .retromenu3
                                                                                         .MenuState
                                                                                         .EXIT_MENU
+                                                                        is com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment ->
+                                                                                com.vinaooo.revenger
+                                                                                        .ui
+                                                                                        .retromenu3
+                                                                                        .MenuState
+                                                                                        .SAVE_SLOTS_MENU
+                                                                        is com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment ->
+                                                                                com.vinaooo.revenger
+                                                                                        .ui
+                                                                                        .retromenu3
+                                                                                        .MenuState
+                                                                                        .LOAD_SLOTS_MENU
+                                                                        is com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment ->
+                                                                                com.vinaooo.revenger
+                                                                                        .ui
+                                                                                        .retromenu3
+                                                                                        .MenuState
+                                                                                        .MANAGE_SAVES_MENU
+                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment ->
+                                                                                com.vinaooo.revenger
+                                                                                        .ui
+                                                                                        .retromenu3
+                                                                                        .MenuState
+                                                                                        .EXIT_SAVE_SLOTS_MENU
                                                                         else -> currentState
                                                                 }
                                                         } else {
@@ -506,7 +610,43 @@ class GameActivity : FragmentActivity() {
                                                                         "[ORIENTATION] 📋 Submenu ativo: EXIT"
                                                                 )
                                                                 com.vinaooo.revenger.ui.retromenu3
-                                                                        .ExitFragment()
+                                                                        .ExitFragment.newInstance()
+                                                        }
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .SAVE_SLOTS_MENU -> {
+                                                                Log.d(
+                                                                        TAG,
+                                                                        "[ORIENTATION] 📋 Submenu ativo: SAVE_SLOTS"
+                                                                )
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .SaveSlotsFragment.newInstance()
+                                                        }
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .LOAD_SLOTS_MENU -> {
+                                                                Log.d(
+                                                                        TAG,
+                                                                        "[ORIENTATION] 📋 Submenu ativo: LOAD_SLOTS"
+                                                                )
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .LoadSlotsFragment.newInstance()
+                                                        }
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .MANAGE_SAVES_MENU -> {
+                                                                Log.d(
+                                                                        TAG,
+                                                                        "[ORIENTATION] 📋 Submenu ativo: MANAGE_SAVES"
+                                                                )
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .ManageSavesFragment.newInstance()
+                                                        }
+                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
+                                                                .EXIT_SAVE_SLOTS_MENU -> {
+                                                                Log.d(
+                                                                        TAG,
+                                                                        "[ORIENTATION] 📋 Submenu ativo: EXIT_SAVE_SLOTS"
+                                                                )
+                                                                com.vinaooo.revenger.ui.retromenu3
+                                                                        .ExitSaveGridFragment.newInstance()
                                                         }
                                                 }
 
@@ -930,6 +1070,14 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                         .navigation
                                                                                                                                                         .MenuType
                                                                                                                                                         .EXIT
+                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.SAVE_SLOTS_MENU ->
+                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.SAVE_SLOTS
+                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.LOAD_SLOTS_MENU ->
+                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.LOAD_SLOTS
+                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.MANAGE_SAVES_MENU ->
+                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MANAGE_SAVES
+                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_SAVE_SLOTS_MENU ->
+                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.EXIT_SAVE_SLOTS
                                                                                                                                 }
                                                                                                                         viewModel
                                                                                                                                 .navigationController
@@ -1235,6 +1383,155 @@ class GameActivity : FragmentActivity() {
         override fun onResume() {
                 super.onResume()
                 frameStartTime = System.nanoTime()
+
+                // Cleanup estrito do PiP quando a Activity retorna à tela cheia
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        try {
+                                if (!isInPictureInPictureMode && pipOverlay.visibility == android.view.View.VISIBLE) {
+                                        Log.d(TAG, "[PIP] Cleaning stuck PiP overlay in onResume")
+                                        pipOverlay.visibility = android.view.View.GONE
+                                        pipOverlay.setImageDrawable(null)
+                                }
+                        } catch (e: Exception) {
+                                Log.e(TAG, "[PIP] Error checking PiP state in onResume", e)
+                        }
+                }
+        }
+
+        override fun onUserLeaveHint() {
+                super.onUserLeaveHint()
+                
+                // Dismiss menu if open before entering PiP
+                if (viewModel.isAnyMenuActive()) {
+                        Log.d(TAG, "[PIP] Closing active menu before entering PiP")
+                        viewModel.dismissRetroMenu3()
+                }
+                
+                if (appConfig.isPipEnabled() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        try {
+                                viewModel.retroView?.view?.let { glView ->
+                                        // Capturar tela antes do GL surface pausar ou ser destruída
+                                        ScreenshotCaptureUtil.captureGameScreen(glView) { bitmap ->
+                                                if (bitmap != null) {
+                                                        runOnUiThread {
+                                                                pipOverlay.setImageBitmap(bitmap)
+                                                                pipOverlay.visibility = android.view.View.VISIBLE
+                                                        }
+                                                }
+                                        }
+                                }
+                                
+                                val builder = android.app.PictureInPictureParams.Builder()
+                                
+                                // Otimizar a janela PIP para usar a exata proporção da plataforma
+                                val platformId = appConfig.getPlatformId()
+                                val pipProfile = com.vinaooo.revenger.repositories.PipConfigRepository.getProfile(platformId)
+                                
+                                val ratioW = pipProfile.ratioW
+                                val ratioH = pipProfile.ratioH
+                                val ratio = android.util.Rational(ratioW, ratioH)
+                                
+                                // O Android limita o aspect ratio do PiP entre 2.39:1 e 1:2.39
+                                if (ratio.toFloat() in 0.418f..2.39f) {
+                                        builder.setAspectRatio(ratio)
+                                } else {
+                                        val width = retroviewContainer.width
+                                        val height = retroviewContainer.height
+                                        if (width > 0 && height > 0) {
+                                                val fallbackRatio = android.util.Rational(width, height)
+                                                if (fallbackRatio.toFloat() in 0.418f..2.39f) {
+                                                        builder.setAspectRatio(fallbackRatio)
+                                                }
+                                        }
+                                }
+
+                                // Adicionar botões (RemoteActions) ao PiP
+                                val quickSaveIntent = PendingIntent.getBroadcast(
+                                        this, 0, Intent(ACTION_PIP_QUICK_SAVE).apply { setPackage(packageName) },
+                                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                                )
+                                val quickSaveAction = RemoteAction(
+                                        Icon.createWithResource(this, R.drawable.ic_save_24),
+                                        "Quick Save",
+                                        "Quick Save",
+                                        quickSaveIntent
+                                )
+
+                                val saveIntent = PendingIntent.getBroadcast(
+                                        this, 1, Intent(ACTION_PIP_SAVE).apply { setPackage(packageName) },
+                                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                                )
+                                val saveAction = RemoteAction(
+                                        Icon.createWithResource(this, R.drawable.ic_empty_slot),
+                                        "Save and Exit",
+                                        "Save and Exit",
+                                        saveIntent
+                                )
+                                
+                                builder.setActions(listOf(quickSaveAction, saveAction))
+                                
+                                val entered = enterPictureInPictureMode(builder.build())
+                                if (!entered) {
+                                        Log.w(TAG, "[PIP] OS rejected Picture-in-Picture request, clearing overlay")
+                                        pipOverlay.visibility = android.view.View.GONE
+                                        pipOverlay.setImageDrawable(null)
+                                }
+                        } catch (e: Exception) {
+                                Log.e(TAG, "[PIP] Failed to enter Picture-in-Picture mode", e)
+                                runOnUiThread {
+                                        pipOverlay.visibility = android.view.View.GONE
+                                        pipOverlay.setImageDrawable(null)
+                                }
+                        }
+                }
+        }
+
+        override fun onPictureInPictureModeChanged(
+                isInPictureInPictureMode: Boolean,
+                newConfig: android.content.res.Configuration
+        ) {
+                super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+                
+                val containers = findViewById<android.view.View>(R.id.containers)
+                val floatingBtn = findViewById<android.view.View>(R.id.floating_menu_button)
+                
+                if (isInPictureInPictureMode) {
+                        // Registrar receiver de botoes do PiP
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                registerReceiver(pipBroadcastReceiver, IntentFilter().apply {
+                                        addAction(ACTION_PIP_QUICK_SAVE)
+                                        addAction(ACTION_PIP_SAVE)
+                                }, Context.RECEIVER_NOT_EXPORTED)
+                        } else {
+                                registerReceiver(pipBroadcastReceiver, IntentFilter().apply {
+                                        addAction(ACTION_PIP_QUICK_SAVE)
+                                        addAction(ACTION_PIP_SAVE)
+                                })
+                        }
+                        
+                        // Esconder controles e menu
+                        containers?.visibility = android.view.View.INVISIBLE // Invisível para que as dimensões não quebrem
+                        floatingBtn?.visibility = android.view.View.GONE
+                        menuContainer.visibility = android.view.View.GONE
+                } else {
+                        // Desregistrar receiver
+                        try {
+                                unregisterReceiver(pipBroadcastReceiver)
+                        } catch (e: Exception) {
+                                Log.e(TAG, "Error unregistering pip receiver", e)
+                        }
+                        
+                        // Limpar overlay de imagem
+                        pipOverlay.visibility = android.view.View.GONE
+                        pipOverlay.setImageDrawable(null)
+                        
+                        // Retornar os itens visíveis
+                        containers?.visibility = android.view.View.VISIBLE
+                        
+                        // Restauramos a renderização dependendo da configuração?
+                        // O floating button costuma ter uma lógica de fade
+                        menuContainer.visibility = android.view.View.VISIBLE
+                }
         }
 
         override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {

@@ -91,3 +91,7 @@ ehthumbs.db
 ehthumbs_vista.db
 *.stackdump
 [Dd]esktop.ini
+icons/.cache/
+
+# Dynamically generated Android launcher icons
+app/src/main/res/mipmap-*/ic_launcher*.png

@@ -136,18 +136,30 @@ Set the desired shader in `config.xml`:
 - Use **LCD** for modern aesthetic
 
 # Auto-Generated Icons
-Revenger features an automated script system to generate all required Android app icons (including adaptive icons for Android 8.0+) based on the chosen console/emulator core.
+Revenger features an automated script system to generate all required Android app icons (including adaptive icons for Android 8.0+) based on the chosen console/emulator core. The build system pulls incredible game artworks from internet APIs automatically to create a compelling standard for the standalone games.
 
 ## How it works
 The scripts are located inside the `icons/scripts/` directory:
-1. **`master_icon.py`**: The main controller. It reads your `config.xml` to determine what emulator core is currently configured. It finds the matching console icon, layers it onto a background shape, scales it to 108dp (for adaptive padding) and standard sizes (`mdpi` up to `xxxhdpi`), and outputs them into the `app/src/main/res/` mipmap directories. It also generates the `mipmap-anydpi-v26` XML definitions automatically.
-2. **`generate_typo.py`**: A fallback system that generates a beautifully styled text-based icon if a matching console graphic cannot be found.
-3. **`utils.py`**: Contains shared utility logic like environment loading and name normalization.
+1. **`master_icon.py`**: The main controller. It reads your `config.xml` to determine what emulator core is currently configured and fetches relevant artworks. It handles the whole pipeline until outputs are put into the `app/src/main/res/` mipmap directories, and generates the `mipmap-anydpi-v26` XML definitions automatically.
+2. **`fetch_icon.py`** & **`fetch_smart.py`**: Modules dealing with SteamGridDB and IGDB respectively to grab high-quality gaming arts dynamically.
+3. **`generate_typo.py`**: A fallback system that generates a beautifully styled text-based icon if an internet connection is dead or game couldn't be parsed.
+4. **`utils.py`**: Contains shared utility logic like environment loading and name normalization.
 
-To regenerate icons manually, ensure you have Python and `Pillow` installed, and execute:
+To regenerate icons manually via CLI, ensure you have Python and `Pillow` installed, and execute:
 ```bash
 python3 icons/scripts/master_icon.py
 ```
+
+## Interactive Icon Picker
+Sometimes the automated scraping engine might make a poor choice (e.g. downloading a weirdly cropped image, or picking an unrelated match). Revenger now comes with a **Web GUI Picker** built for exactly this scenario!
+
+If the compiled icon looks bad, simply run this helper script from the root folder:
+```bash
+./pick_icon.sh
+```
+Once triggered, it runs a parallel sweep downloading up to 5 variations from SteamGridDB, 5 variants from IGDB (applying the blur effect natively to mimic the smart icon overlay) and bundles everything up into a clean, lightweight HTML page on your browser. 
+
+You just need to click on the artwork you prefer (or upload a custom image), and the module handles cropping, formatting, and forcing it into your project folder. Future Gradle builds will instantly start using your curated pick!
 
 ## Icon Assets & References
 The console graphics located in the `icons/images/` directory are officially sourced from the **[Libretro / RetroArch Assets](https://github.com/libretro/retroarch-assets)** repository. We use these clean, monochrome console illustrations to instantly brand the Revenger APK for the specific system it is emulating.

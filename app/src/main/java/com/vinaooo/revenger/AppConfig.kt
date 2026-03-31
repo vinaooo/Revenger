@@ -21,6 +21,7 @@ data class ManualConfig(
     val variables: String = "",
     val fast_forward_multiplier: Int = 1,
     val fullscreen: Boolean = true,
+    val enable_pip: Boolean = true,
     val orientation: String = "landscape",
     val menu_mode: String = "",
     val gamepad: Boolean = true,
@@ -116,7 +117,7 @@ class AppConfig(private val context: Context) {
     fun getName(): String = baseConfig.name.takeIf { it.isNotEmpty() } ?: "Revenger"
     fun getRomName(): String = baseConfig.rom
     fun getTargetAbi(): String = baseConfig.target_abi
-    private fun getPlatformId(): String = baseConfig.platform
+    fun getPlatformId(): String = baseConfig.platform
 
     // ========== Core and variables (default profile overrides) ==========
 
@@ -130,6 +131,7 @@ class AppConfig(private val context: Context) {
     // ========== Display settings (default profile overrides) ==========
 
     fun getFullscreen(): Boolean = profile?.confFullscreen ?: manualConfig.fullscreen
+    fun isPipEnabled(): Boolean = profile?.confEnablePip ?: manualConfig.enable_pip
     fun getOrientation(): String = profile?.confOrientation ?: manualConfig.orientation
     fun getShader(): String = profile?.confShader ?: manualConfig.shader
 

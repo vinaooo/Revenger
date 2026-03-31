@@ -79,8 +79,11 @@ sealed class NavigationEvent {
          * Examples:
          * - User presses SELECT+START → OpenMenu
          * - User presses START (while in game) → OpenMenu
+         * 
+         * @param targetMenu Specific menu to open (defaults to MAIN)
          */
         data class OpenMenu(
+                val targetMenu: MenuType = MenuType.MAIN,
                 override val timestamp: Long = System.currentTimeMillis(),
                 override val inputSource: InputSource
         ) : NavigationEvent()
