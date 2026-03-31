@@ -151,6 +151,40 @@ def fetch_console_fallback(platform):
             return None
     return None
 
+def make_perfect_square(img):
+    """Pads image into a perfect square by mirroring/blurring edges without distortion."""
+    w, h = img.size
+    if w == h:
+        return img
+    
+    size = max(w, h)
+    
+    # Resize heavily to fill canvas and apply heavy blur for a seamless background
+    from PIL import ImageFilter
+    bg = img.resize((size, size), Image.Resampling.LANCZOS)
+    bg = bg.filter(ImageFilter.GaussianBlur(radius=15))
+    
+    paste_x = (size - w) // 2
+    paste_y = (size - h) // 2
+    
+    final_img = Image.new("RGBA", (size, size))
+    final_img.paste(bg, (0, 0))
+    final_img.paste(img, (paste_x, paste_y), img if img.mode == 'RGBA' else None)
+    
+    return final_img
+
+def make_squircle_image(img, radius=0.15):
+    """Masks a square image into a squircle (rounded corners) for legacy squares."""
+    size = img.size
+    mask = Image.new('L', size, 0)
+    draw = ImageDraw.Draw(mask)
+    rad = int(size[0] * radius)
+    draw.rounded_rectangle((0, 0) + size, radius=rad, fill=255)
+    
+    round_img = Image.new('RGBA', size)
+    round_img.paste(img, (0, 0), mask=mask)
+    return round_img
+
 def make_round_image(img):
     """Masks an Image into a circle."""
     size = img.size
@@ -166,51 +200,71 @@ def generate_android_icons(img):
     """Generates and saves mipmap icons from the base image."""
     res_dir = os.path.join(PROJECT_ROOT, "app", "src", "main", "res")
 
+    # Assegura que todas as imagens enviadas ao Android são rigorosamente Quadrados Perfeitos e Preenchidos
+    img = make_perfect_square(img)
+    img_w, img_h = img.size
+
     # Process each density
     for density, size in MIPMAP_SIZES.items():
         folder = os.path.join(res_dir, f"mipmap-{density}")
         os.makedirs(folder, exist_ok=True)
         
-        # Resize and center-crop to fill the square exactly without margins
-        img_w, img_h = img.size
-        # Legacy icons (48dp base)
+        # Como o img já é um quadrado perfeito, escalar não precisa mais da matemática complexa de crop:
         target_w, target_h = size
+        scaled_img = img.resize((target_w, target_h), Image.Resampling.LANCZOS)
         
-        # Calculate scaling factor to cover the target box completely
-        ratio = max(target_w / img_w, target_h / img_h)
-        new_w = int(img_w * ratio)
-        new_h = int(img_h * ratio)
+        # 1. Square Legacy (agora com um suave "Squircle / Rounded Corners" de margem 15% como pedido)
+        square_img = make_squircle_image(scaled_img, radius=0.15)
+        square_img.save(os.path.join(folder, "ic_launcher.png"), "PNG")
         
-        # Resize proportional
-        scaled_img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-        
-        # Center crop
-        left = (new_w - target_w) // 2
-        top = (new_h - target_h) // 2
-        resized = scaled_img.crop((left, top, left + target_w, top + target_h))
-        
-        # Square/original ic_launcher.png
-        resized.save(os.path.join(folder, "ic_launcher.png"), "PNG")
-        
-        # Round ic_launcher_round.png
-        round_img = make_round_image(resized)
+        # 2. Round Legacy (Círculo de bordas perfeitas - 100% de raio sobre a imagem padronizada)
+        round_img = make_round_image(scaled_img)
         round_img.save(os.path.join(folder, "ic_launcher_round.png"), "PNG")
         
         # Adaptive Icon Foregrounds (108dp base, size multiplier 108/48 = 2.25)
+        # However, to prevent zooming/clipping by OEM mask systems, the actual 
+        # logo needs to fit within the Safe Zone (~66% of the 108dp).
         adaptive_target_w = int(target_w * 2.25)
         adaptive_target_h = int(target_h * 2.25)
-        ratio_adaptive = max(adaptive_target_w / img_w, adaptive_target_h / img_h)
-        new_w_ad = int(img_w * ratio_adaptive)
-        new_h_ad = int(img_h * ratio_adaptive)
         
-        scaled_img_ad = img.resize((new_w_ad, new_h_ad), Image.Resampling.LANCZOS)
-        left_ad = (new_w_ad - adaptive_target_w) // 2
-        top_ad = (new_h_ad - adaptive_target_h) // 2
-        resized_ad = scaled_img_ad.crop((left_ad, top_ad, left_ad + adaptive_target_w, top_ad + adaptive_target_h))
+        # 1. Safe zone width (approx 66-70% of total adaptive width)
+        safe_zone_w = int(adaptive_target_w * 0.68)
+        safe_zone_h = int(adaptive_target_h * 0.68)
         
-        # Save foreground and background (same image for parallax effect)
-        resized_ad.save(os.path.join(folder, "ic_launcher_foreground.png"), "PNG")
-        resized_ad.save(os.path.join(folder, "ic_launcher_background.png"), "PNG")
+        # 2. Scale image precisely to fit inside Safe Zone
+        ratio_safe = min(safe_zone_w / img_w, safe_zone_h / img_h)
+        new_w_safe = int(img_w * ratio_safe)
+        new_h_safe = int(img_h * ratio_safe)
+        scaled_img_safe = img.resize((new_w_safe, new_h_safe), Image.Resampling.LANCZOS)
+        
+        # 3. Create full blank 108dp (Adaptive) canvas
+        canvas_foreground = Image.new("RGBA", (adaptive_target_w, adaptive_target_h), (0, 0, 0, 0))
+        canvas_background = Image.new("RGBA", (adaptive_target_w, adaptive_target_h), (30, 30, 30, 255))
+        
+        # 4. Paste safe image exactly in the center of the adaptive canvas
+        paste_x = (adaptive_target_w - new_w_safe) // 2
+        paste_y = (adaptive_target_h - new_h_safe) // 2
+        
+        # O foreground terá o logo centralizado respeitando o Safe Zone
+        canvas_foreground.paste(scaled_img_safe, (paste_x, paste_y), scaled_img_safe)
+        # O background pode ser também o logo com muito blur esticado até as bordas pra ficar bonito,
+        # ou apenas a cor sólida (no caso, estamos esticando do jeito antigo só para fundo ou usando cor).
+        # Para ser estéticamente agradável e simular o blur parallax
+        ratio_bg = max(adaptive_target_w / img_w, adaptive_target_h / img_h)
+        bg_w_ad = int(img_w * ratio_bg)
+        bg_h_ad = int(img_h * ratio_bg)
+        scaled_bg = img.resize((bg_w_ad, bg_h_ad), Image.Resampling.LANCZOS)
+        l_ad = (bg_w_ad - adaptive_target_w) // 2
+        t_ad = (bg_h_ad - adaptive_target_h) // 2
+        cropped_bg = scaled_bg.crop((l_ad, t_ad, l_ad + adaptive_target_w, t_ad + adaptive_target_h))
+        # Aplica desfoque profundo para servir de fundo parallax se a logo não preencher bordas
+        from PIL import ImageFilter
+        frozen_bg = cropped_bg.filter(ImageFilter.GaussianBlur(radius=8))
+        canvas_background.paste(frozen_bg, (0,0), frozen_bg)
+        
+        # Save foreground and background
+        canvas_foreground.save(os.path.join(folder, "ic_launcher_foreground.png"), "PNG")
+        canvas_background.save(os.path.join(folder, "ic_launcher_background.png"), "PNG")
         
         logging.info(f"✅ Generated {density} icons in {folder}")
 
@@ -303,9 +357,13 @@ def main():
         console_img = fetch_console_fallback(platform)
         typo_img = generate_typo_icon(rom)
         
+        # Padding prévio para a Web GUI mostrar o quadrado perfeito + blur nas prévias transparentes
+        if console_img: console_img = make_perfect_square(console_img)
+        if typo_img: typo_img = make_perfect_square(typo_img)
+        
         ctx = {
-            "sgdb": sgdb_imgs,
-            "igdb": igdb_imgs,
+            "sgdb": [make_perfect_square(i) for i in sgdb_imgs] if sgdb_imgs else [],
+            "igdb": [make_perfect_square(i) for i in igdb_imgs] if igdb_imgs else [],
             "console": console_img,
             "typo": typo_img
         }

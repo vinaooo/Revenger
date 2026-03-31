@@ -45,11 +45,13 @@ def fetch_steamgriddb_icon(sgdb_id, interactive=False):
                 for item in data:
                     w = item.get("width", 0)
                     h = item.get("height", 0)
-                    if w >= 256 and h >= 256:
-                        logging.info(f"    [SGDB] ✅ Auto-selected compatible icon: {w}x{h}")
-                        return item["url"]
+                    if w > 0 and h > 0:
+                        ratio = min(w, h) / max(w, h)
+                        if ratio >= 0.80 and w >= 256 and h >= 256:
+                            logging.info(f"    [SGDB] ✅ Auto-selected compatible icon: {w}x{h} (Ratio: {ratio*100:.0f}%)")
+                            return item["url"]
                 
-                logging.warning("    [SGDB] ❌ Nenhuma opção com resolução adequada (>=256x256) encontrada. Pulando SGDB...")
+                logging.warning("    [SGDB] ❌ Nenhuma opção com quadrado sólido (>=80% prop) e resolução (>=256x256) encontrada. Pulando SGDB...")
                 return None
     return None
 
@@ -67,7 +69,18 @@ def fetch_sgdb_multiple_icons(rom_name, limit=5):
     
     if response.status_code == 200:
         data = response.json().get("data", [])
-        for item in data[:limit]:
+        
+        # Filtra previamente para manter apenas opções com proporção >= 80% e que não sejam absurdamente pequenas.
+        valid_data = []
+        for item in data:
+            w = item.get("width", 0)
+            h = item.get("height", 0)
+            if w > 0 and h > 0:
+                ratio = min(w, h) / max(w, h)
+                if ratio >= 0.80:
+                    valid_data.append(item)
+                    
+        for item in valid_data[:limit]:
             try:
                 r = requests.get(item["url"], timeout=5)
                 if r.status_code == 200:

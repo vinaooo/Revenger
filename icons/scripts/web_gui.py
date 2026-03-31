@@ -98,23 +98,64 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
                     scrollbar-color: #555 #1a1a1a;
                 }
                 
+                
+                
+                .card:hover { transform: scale(1.05); background-color: #2a2a2a; border-color: #4CAF50; }
+                .card span { display: block; font-size: 12px; font-weight: bold; color: #ddd; margin-top: auto; }
+
                 .card { 
                     background-color: #222; 
                     border-radius: 10px; 
-                    padding: 8px; 
+                    padding: 10px; 
                     cursor: pointer; 
                     transition: transform 0.2s, background-color 0.2s; 
                     border: 2px solid transparent; 
                     width: calc(33% - 15px);
-                    min-width: 90px;
-                    max-width: 140px;
+                    min-width: 220px;
+                    max-width: 270px;
                     display: flex;
                     flex-direction: column;
+                    align-items: center;
                 }
+
+                .preview-container {
+                    display: flex;
+                    justify-content: space-around;
+                    width: 100%;
+                    gap: 8px;
+                    margin-bottom: 10px;
+                }
+                .icon-preview {
+                    width: 60px;
+                    height: 60px;
+                    position: relative;
+                    overflow: hidden;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+                    border: 1px solid #444;
+                }
+                .icon-preview.legacy-sq { border-radius: 12px; overflow: hidden; }
+                .icon-preview.legacy-round { border-radius: 50%; overflow: hidden; }
+                .icon-preview.adaptive { border-radius: 16px; background-color: #333; }
                 
-                .card:hover { transform: scale(1.05); background-color: #2a2a2a; border-color: #4CAF50; }
-                .card img { width: 100%; border-radius: 6px; margin-bottom: 6px; aspect-ratio: 1/1; object-fit: cover; }
-                .card span { display: block; font-size: 12px; font-weight: bold; color: #ddd; margin-top: auto; }
+                /* Legacy Normal image */
+                .img-full { width: 100%; height: 100%; object-fit: contain; }
+                
+                /* Adaptive simulate Background Blur */
+                .bg-blur {
+                    position: absolute;
+                    top: -10%; left: -10%; width: 120%; height: 120%;
+                    object-fit: cover;
+                    filter: blur(4px) brightness(0.6);
+                    z-index: 1;
+                }
+                /* Safe Zone foreground logo */
+                .fg-safe {
+                    position: absolute;
+                    top: 16%; left: 16%; width: 68%; height: 68%;
+                    object-fit: contain;
+                    z-index: 2;
+                    filter: drop-shadow(0px 3px 4px rgba(0,0,0,0.9));
+                }
                 
                 .upload-btn { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
                 .upload-btn:hover { background-color: #45a049; }
@@ -155,7 +196,18 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
                 w, h = img.size
                 html += f'''
                 <div class="card" onclick="selectImage('sgdb', {i})">
-                    <img src="data:image/png;base64,{b64}" alt="SGDB">
+                    <div class="preview-container">
+                        <div class="icon-preview legacy-sq" title="Legacy Square">
+                            <img class="img-full" src="data:image/png;base64,{b64}">
+                        </div>
+                        <div class="icon-preview legacy-round" title="Legacy Round">
+                            <img class="img-full" src="data:image/png;base64,{b64}">
+                        </div>
+                        <div class="icon-preview adaptive" title="Adaptive Parallax">
+                            <img class="bg-blur" src="data:image/png;base64,{b64}">
+                            <img class="fg-safe" src="data:image/png;base64,{b64}">
+                        </div>
+                    </div>
                     <span>Option {i+1}</span>
                     <span style="font-size: 11px; color: #888; font-weight: normal; margin-top: 4px;">{w}x{h}</span>
                 </div>'''
@@ -169,7 +221,18 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
                 w, h = img.size
                 html += f'''
                 <div class="card" onclick="selectImage('igdb', {i})">
-                    <img src="data:image/png;base64,{b64}" alt="IGDB">
+                    <div class="preview-container">
+                        <div class="icon-preview legacy-sq" title="Legacy Square">
+                            <img class="img-full" src="data:image/png;base64,{b64}">
+                        </div>
+                        <div class="icon-preview legacy-round" title="Legacy Round">
+                            <img class="img-full" src="data:image/png;base64,{b64}">
+                        </div>
+                        <div class="icon-preview adaptive" title="Adaptive Parallax">
+                            <img class="bg-blur" src="data:image/png;base64,{b64}">
+                            <img class="fg-safe" src="data:image/png;base64,{b64}">
+                        </div>
+                    </div>
                     <span>Smart Cover {i+1}</span>
                     <span style="font-size: 11px; color: #888; font-weight: normal; margin-top: 4px;">{w}x{h}</span>
                 </div>'''
@@ -182,7 +245,18 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
             w, h = ctx["console"].size
             html += f'''
             <div class="card" onclick="selectImage('console', 0)">
-                <img src="data:image/png;base64,{b64}" alt="Console">
+                <div class="preview-container">
+                    <div class="icon-preview legacy-sq" title="Legacy Square">
+                        <img class="img-full" src="data:image/png;base64,{b64}">
+                    </div>
+                    <div class="icon-preview legacy-round" title="Legacy Round">
+                        <img class="img-full" src="data:image/png;base64,{b64}">
+                    </div>
+                    <div class="icon-preview adaptive" title="Adaptive Parallax">
+                        <img class="bg-blur" src="data:image/png;base64,{b64}">
+                        <img class="fg-safe" src="data:image/png;base64,{b64}">
+                    </div>
+                </div>
                 <span>Default Console</span>
                 <span style="font-size: 11px; color: #888; font-weight: normal; margin-top: 4px;">{w}x{h}</span>
             </div>'''
@@ -191,7 +265,18 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
             w, h = ctx["typo"].size
             html += f'''
             <div class="card" onclick="selectImage('typo', 0)">
-                <img src="data:image/png;base64,{b64}" alt="Typo">
+                <div class="preview-container">
+                    <div class="icon-preview legacy-sq" title="Legacy Square">
+                        <img class="img-full" src="data:image/png;base64,{b64}">
+                    </div>
+                    <div class="icon-preview legacy-round" title="Legacy Round">
+                        <img class="img-full" src="data:image/png;base64,{b64}">
+                    </div>
+                    <div class="icon-preview adaptive" title="Adaptive Parallax">
+                        <img class="bg-blur" src="data:image/png;base64,{b64}">
+                        <img class="fg-safe" src="data:image/png;base64,{b64}">
+                    </div>
+                </div>
                 <span>Custom Typography</span>
                 <span style="font-size: 11px; color: #888; font-weight: normal; margin-top: 4px;">{w}x{h}</span>
             </div>'''
