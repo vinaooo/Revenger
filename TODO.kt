@@ -8,6 +8,7 @@
 // TODO: Analógico funcionando em jogos sem suporte a ele
 // TODO: Usar a imagem de capa para TV
 // TODO: Backup zip
+// TODO: Ajustar animação CRT
 // TODO: IA para tradução
 // TODO: Rodar a partir de container Docker
 
