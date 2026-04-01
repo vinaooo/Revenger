@@ -254,6 +254,29 @@ task prepareRom {
     }
 }
 
+task cleanupRom {
+    doLast {
+        def romName = getConfigValue('rom')
+        def romDir = file("${rootProject.projectDir}/app/src/main/assets/rom")
+        def backupDir = file("${rootProject.projectDir}/roms_backup")
+        backupDir.mkdirs()
+        
+        def activeRomInAssets = new File(romDir, romName)
+        if (activeRomInAssets.exists()) {
+            def dest = new File(backupDir, romName)
+            if (activeRomInAssets.renameTo(dest)) {
+                println "🧹 ROM moved back to backup: ${romName}"
+            }
+        }
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name.startsWith('assemble') || task.name.startsWith('bundle') || task.name.startsWith('install')) {
+        task.finalizedBy cleanupRom
+    }
+}
+
 task prepareCore {
     doLast {
         // Determine core name: either from config.xml or from default settings JSON

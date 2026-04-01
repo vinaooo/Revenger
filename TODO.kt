@@ -1,6 +1,5 @@
 // Use this file with TODO Tree VScode extension
 
-// TODO: Menu navigation with analogic
 // TODO: Criar um shader fake de crt para o menu
 // TODO: Relogio, bateria, wifi e dados no menu
 // TODO: Estatisticas do jogo
@@ -9,6 +8,7 @@
 // TODO: Analógico funcionando em jogos sem suporte a ele
 // TODO: Usar a imagem de capa para TV
 // TODO: Backup zip
+// TODO: Ajustar animação CRT
 // TODO: IA para tradução
 // TODO: Rodar a partir de container Docker
 
