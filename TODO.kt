@@ -1,15 +1,16 @@
 // Use this file with TODO Tree VScode extension
 
 // TODO: Menu navigation with analogic
-// TODO: Usar capa do jogo como fundo de menu
 // TODO: Criar um shader fake de crt para o menu
-// TODO: Usar a capa como imagem para o PiP opcionalmente
-// TODO: Usar a imagem de capa para TV
-// TODO: Relogio, bateria, wif e dados no menu
+// TODO: Relogio, bateria, wifi e dados no menu
 // TODO: Estatisticas do jogo
-// TODO: Analógico funcionando em jogos sem suporte a ele
 // TODO: Menu de inicio
+// TODO: Usar capa do jogo como fundo de menu e opcionalmente o PiP
+// TODO: Analógico funcionando em jogos sem suporte a ele
+// TODO: Usar a imagem de capa para TV
+// TODO: Backup zip
 // TODO: IA para tradução
+// TODO: Rodar a partir de container Docker
 
 // FIXME: Melhorar navegação via teclado
 
