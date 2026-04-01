@@ -1,5 +1,6 @@
 // Use this file with TODO Tree VScode extension
 
+// TODO: About -> Core variables
 // TODO: Criar um shader fake de crt para o menu
 // TODO: Relogio, bateria, wifi e dados no menu
 // TODO: Estatisticas do jogo
