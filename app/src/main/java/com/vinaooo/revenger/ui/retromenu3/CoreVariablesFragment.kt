@@ -159,21 +159,18 @@ class CoreVariablesFragment : MenuFragmentBase() {
     }
 
     override fun performBack(): Boolean {
-        goBack()
-        return true
+        // Return false to let NavigationEventProcessor handle the back navigation
+        // Don't call navigateBack() here as it causes infinite recursion
+        return false
     }
 
     private fun handleItemClick(index: Int) {
         // Last index is back button
         if (index == cardViews.size - 1) {
-            goBack()
+            viewModel.navigationController?.navigateBack()
         } else {
             // handle variable click
         }
-    }
-
-    private fun goBack() {
-        viewModel.navigationController?.navigateBack()
     }
 
     override fun updateSelectionVisualInternal() {
