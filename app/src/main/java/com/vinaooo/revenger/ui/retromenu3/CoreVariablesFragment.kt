@@ -187,11 +187,22 @@ class CoreVariablesFragment : MenuFragmentBase() {
 
         arrowViews.forEachIndexed { index, arrow ->
             val isSelected = index == selectedIndex
-            arrow.visibility = if (isSelected) View.VISIBLE else View.GONE
+            arrow.visibility = if (isSelected) android.view.View.VISIBLE else android.view.View.GONE
             arrow.setTextColor(
                 if (isSelected) androidx.core.content.ContextCompat.getColor(context, R.color.rm_selected_color)
                 else androidx.core.content.ContextCompat.getColor(context, R.color.rm_normal_color)
             )
+        }
+
+        // Handle auto-scroll to make the selected item visible
+        if (cardViews.isNotEmpty() && selectedIndex in cardViews.indices) {
+            val selectedCard = cardViews[selectedIndex]
+            view?.findViewById<android.widget.ScrollView>(R.id.core_variables_scroll)?.let { scrollView ->
+                scrollView.post {
+                    val scrollY = selectedCard.top - (scrollView.height - selectedCard.height) / 2
+                    scrollView.smoothScrollTo(0, scrollY.coerceAtLeast(0))
+                }
+            }
         }
     }
 
