@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="@color/rm_background"
+    android:fitsSystemWindows="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="@dimen/rm_menu_item_padding">
+
+        <!-- Left 25% - Empty Space -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="@dimen/rm_side_space_weight" />
+
+        <!-- Center 50% - Menu Content -->
+        <LinearLayout
+            android:id="@+id/variables_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="@dimen/rm_center_content_weight"
+            android:orientation="vertical"
+            android:paddingVertical="@dimen/rm_container_padding_vertical">
+
+            <!-- Menu Title -->
+            <TextView
+                android:id="@+id/core_variables_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/core_variables_menu_title"
+                android:textSize="@dimen/rm_title_text_size"
+                android:textColor="@color/rm_text_color"
+                android:textStyle="bold"
+                android:layout_marginStart="@dimen/rm_title_margin_start"
+                android:layout_marginBottom="@dimen/rm_title_margin_bottom"
+                android:paddingStart="@dimen/rm_title_padding_start"
+                android:paddingEnd="@dimen/rm_title_padding_end"
+                android:gravity="start"
+                android:letterSpacing="@dimen/rm_title_letter_spacing"
+                android:includeFontPadding="false"
+                android:shadowColor="@color/rm_shadow_color"
+                android:shadowDx="@dimen/rm_shadow_dx"
+                android:shadowDy="@dimen/rm_shadow_dy"
+                android:shadowRadius="@dimen/rm_shadow_radius" />
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:fillViewport="false"
+                android:overScrollMode="never"
+                android:scrollbars="none"
+                android:fadeScrollbars="false"
+                android:clipToPadding="false">
+                <LinearLayout
+                    android:id="@+id/core_variables_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Items will be injected here dynamically -->
+                    
+                    <!-- Back -->
+                    <com.vinaooo.revenger.ui.retromenu3.RetroCardView
+                        android:id="@+id/variable_back"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/rm_menu_item_height"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="@dimen/rm_menu_item_padding">
+
+                        <TextView
+                            android:id="@+id/selection_arrow_back"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/rm_selection_arrow"
+                            android:textSize="@dimen/rm_arrow_text_size"
+                            android:textColor="@color/rm_text_color"
+                            android:visibility="gone"
+                            android:padding="0dp"
+                            android:includeFontPadding="false"
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
+
+                        <TextView
+                            android:id="@+id/back_title"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/about_back"
+                            android:textSize="@dimen/rm_menu_item_text_size"
+                            android:textColor="@color/rm_text_color"
+                            android:includeFontPadding="false"
+                            android:shadowColor="@color/rm_shadow_color"
+                            android:shadowDx="@dimen/rm_shadow_dx"
+                            android:shadowDy="@dimen/rm_shadow_dy"
+                            android:shadowRadius="@dimen/rm_shadow_radius" />
+                    </com.vinaooo.revenger.ui.retromenu3.RetroCardView>
+                    
+                    <!-- Extra space for last item -->
+                    <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/rm_extra_space_height" />
+
+                </LinearLayout>
+            </ScrollView>
+        </LinearLayout>
+
+        <!-- Right 25% - Empty Space -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="@dimen/rm_side_space_weight" />
+
+    </LinearLayout>
+</FrameLayout>

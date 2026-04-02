@@ -82,7 +82,8 @@ sealed class MenuEvent {
  * - `PROGRESS_MENU`: Submenu de save/load states
  * - `SETTINGS_MENU`: Submenu de configurações (Audio, Shader, Speed)
  * - `ABOUT_MENU`: Submenu de informações sobre ROM/Core
- * - `EXIT_MENU`: Submenu de confirmação de saída (Save & Exit, Exit, Back)
+ * - `EXIT_MENU,
+        CORE_VARIABLES_MENU`: Submenu de confirmação de saída (Save & Exit, Exit, Back)
  *
  * **Transições**:
  * ```
@@ -99,6 +100,7 @@ enum class MenuState {
     SETTINGS_MENU,
     ABOUT_MENU,
     EXIT_MENU,
+        CORE_VARIABLES_MENU,
     SAVE_SLOTS_MENU,
     LOAD_SLOTS_MENU,
     MANAGE_SAVES_MENU,
@@ -122,7 +124,8 @@ data class MenuSystemState(
         SETTINGS_MENU,
         PROGRESS_MENU,
         ABOUT_MENU,
-        EXIT_MENU
+        EXIT_MENU,
+        CORE_VARIABLES_MENU
     }
 
     /** Check if any menu is currently active */

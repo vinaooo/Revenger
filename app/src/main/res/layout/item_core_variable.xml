@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.vinaooo.revenger.ui.retromenu3.RetroCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/variable_item_card"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/rm_menu_item_height"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="@dimen/rm_menu_item_padding">
+
+    <TextView
+        android:id="@+id/selection_arrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/rm_selection_arrow"
+        android:textSize="@dimen/rm_arrow_text_size"
+        android:textColor="@color/rm_text_color"
+        android:visibility="gone"
+        android:padding="0dp"
+        android:includeFontPadding="false"
+        android:shadowColor="@color/rm_shadow_color"
+        android:shadowDx="@dimen/rm_shadow_dx"
+        android:shadowDy="@dimen/rm_shadow_dy"
+        android:shadowRadius="@dimen/rm_shadow_radius" />
+
+    <TextView
+        android:id="@+id/item_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text=""
+        android:textSize="@dimen/rm_menu_item_text_size"
+        android:textColor="@color/rm_text_color"
+        android:includeFontPadding="false"
+        android:shadowColor="@color/rm_shadow_color"
+        android:shadowDx="@dimen/rm_shadow_dx"
+        android:shadowDy="@dimen/rm_shadow_dy"
+        android:shadowRadius="@dimen/rm_shadow_radius" />
+
+</com.vinaooo.revenger.ui.retromenu3.RetroCardView>

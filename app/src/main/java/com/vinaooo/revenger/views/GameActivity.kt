@@ -648,6 +648,7 @@ class GameActivity : FragmentActivity() {
                                                                 com.vinaooo.revenger.ui.retromenu3
                                                                         .ExitSaveGridFragment.newInstance()
                                                         }
+else -> com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment()
                                                 }
 
                                         // NOTE: NavigationController syncState will be
@@ -1078,6 +1079,7 @@ class GameActivity : FragmentActivity() {
                                                                                                                                                 com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MANAGE_SAVES
                                                                                                                                         com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_SAVE_SLOTS_MENU ->
                                                                                                                                                 com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.EXIT_SAVE_SLOTS
+else -> com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MAIN
                                                                                                                                 }
                                                                                                                         viewModel
                                                                                                                                 .navigationController
