@@ -265,6 +265,22 @@ class NavigationEventProcessor(
                     TAG,
                     "[NAVIGATE_BACK] fragmentAdapter.navigateBack() returned: $success"
             )
+
+            // A submenu opened directly as the root (no parent on the stack — e.g. the PiP
+            // "Save and Exit" grid) has now been popped and nothing is left. Close the menu
+            // fully so listeners run, mirroring the MAIN + empty-stack branch above —
+            // otherwise onMenuClosed() never fires and the game stays paused.
+            if (fragmentAdapter.getBackStackCount() == 0) {
+                Log.d(TAG, "[NAVIGATE_BACK] Menu fully closed via rootless path — notifying close")
+                onMenuClosed(lastActionButton)
+                fragmentAdapter.hideMenu()
+                stateManager.unregisterFragment()
+                eventQueue.clear()
+                lastActionButton = null
+                // The back press WAS handled (menu closed), even though fragmentAdapter
+                // returns false for an already-empty back stack.
+                return true
+            }
             return success
         }
     }
