@@ -277,6 +277,9 @@ class NavigationEventProcessor(
                 stateManager.unregisterFragment()
                 eventQueue.clear()
                 lastActionButton = null
+                // The back press WAS handled (menu closed), even though fragmentAdapter
+                // returns false for an already-empty back stack.
+                return true
             }
             return success
         }

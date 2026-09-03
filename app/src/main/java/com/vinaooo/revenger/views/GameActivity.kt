@@ -1581,11 +1581,20 @@ else -> com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MAIN
                 }
 
                 lifecycleScope.launch {
-                        // Wait (bounded) until the emulator has stepped at least once post-resume,
-                        // so serializeState() below does not block on a still-paused GL thread.
-                        withTimeoutOrNull(PIP_QUICK_SAVE_FRAME_TIMEOUT_MS) {
+                        // Wait (bounded) until the emulator has stepped at least once post-resume.
+                        // serializeState() runs on the GL thread via a no-timeout latch, so if the
+                        // emulator never resumes we must NOT call it — abort the save instead of
+                        // hanging the app forever.
+                        val emulatorResumed = withTimeoutOrNull(PIP_QUICK_SAVE_FRAME_TIMEOUT_MS) {
                                 retroView.view.getGLRetroEvents()
                                         .first { it == GLRetroView.GLRetroEvents.FrameRendered }
+                                true
+                        } == true
+
+                        if (!emulatorResumed) {
+                                Log.w(TAG, "[PIP] Quick save aborted: emulator did not resume in time")
+                                finishAndRemoveTask()
+                                return@launch
                         }
 
                         Thread {
