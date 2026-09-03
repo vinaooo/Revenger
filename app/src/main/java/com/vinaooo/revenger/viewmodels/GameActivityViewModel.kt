@@ -13,6 +13,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.RevengerApplication
@@ -427,10 +429,15 @@ class GameActivityViewModel(application: Application) :
                 // RESUMIR o jogo quando menu fecha - aplicar velocidade salva nas preferences
                 retroView?.let { speedController?.restoreSpeedFromPreferences(it.view) }
 
-                // Hide load preview overlay AFTER game resumes with delay.
-                // The GL surface needs time to render the loaded state frame;
-                // hiding immediately causes a brief flash of the old game frame.
-                Handler(Looper.getMainLooper()).postDelayed({ hideLoadPreview() }, 300)
+                // Hide load preview overlay AFTER game resumes and the first new frame is rendered
+                retroView?.view?.getGLRetroEvents()?.let { events ->
+                    viewModelScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                        events.first { it == com.swordfish.libretrodroid.GLRetroView.GLRetroEvents.FrameRendered }
+                        hideLoadPreview()
+                    }
+                } ?: run {
+                    hideLoadPreview()
+                }
 
                 android.util.Log.d(
                         "GameActivityViewModel",

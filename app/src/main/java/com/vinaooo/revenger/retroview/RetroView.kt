@@ -151,6 +151,7 @@ class RetroView(
 
     init {
         view = GLRetroView(context, retroViewData)
+        view.preserveEGLContextOnPause = true
 
         val params =
                 FrameLayout.LayoutParams(
