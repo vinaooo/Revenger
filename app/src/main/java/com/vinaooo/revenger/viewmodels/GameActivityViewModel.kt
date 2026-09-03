@@ -13,6 +13,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.RevengerApplication
@@ -119,6 +121,7 @@ class GameActivityViewModel(application: Application) :
     private var progressFragment: ProgressFragment? = null
     private var exitFragment: ExitFragment? = null
     private var aboutFragment: AboutFragment? = null
+    private var coreVariablesFragment: com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment? = null
 
     // ===== LOAD PREVIEW OVERLAY =====
 
@@ -232,6 +235,21 @@ class GameActivityViewModel(application: Application) :
     private fun deactivateAboutMenu() {
         menuStateManager.deactivateMenu(
                 com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
+        )
+    }
+
+
+    /** Activate core variables menu */
+    private fun activateCoreVariablesMenu() {
+        menuStateManager.activateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.CORE_VARIABLES_MENU
+        )
+    }
+
+    /** Deactivate core variables menu */
+    private fun deactivateCoreVariablesMenu() {
+        menuStateManager.deactivateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.CORE_VARIABLES_MENU
         )
     }
 
@@ -411,10 +429,15 @@ class GameActivityViewModel(application: Application) :
                 // RESUMIR o jogo quando menu fecha - aplicar velocidade salva nas preferences
                 retroView?.let { speedController?.restoreSpeedFromPreferences(it.view) }
 
-                // Hide load preview overlay AFTER game resumes with delay.
-                // The GL surface needs time to render the loaded state frame;
-                // hiding immediately causes a brief flash of the old game frame.
-                Handler(Looper.getMainLooper()).postDelayed({ hideLoadPreview() }, 300)
+                // Hide load preview overlay AFTER game resumes and the first new frame is rendered
+                retroView?.view?.getGLRetroEvents()?.let { events ->
+                    viewModelScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                        events.first { it == com.swordfish.libretrodroid.GLRetroView.GLRetroEvents.FrameRendered }
+                        hideLoadPreview()
+                    }
+                } ?: run {
+                    hideLoadPreview()
+                }
 
                 android.util.Log.d(
                         "GameActivityViewModel",
@@ -748,6 +771,7 @@ class GameActivityViewModel(application: Application) :
         // CRITICAL FIX: Remove isResumed requirement - isAdded is enough
         // This eliminates the race condition where Fragment is visible but not yet resumed
         val aboutFragmentActive = aboutFragment != null && aboutFragment?.isAdded == true
+        val coreVariablesFragmentActive = coreVariablesFragment != null && coreVariablesFragment?.isAdded == true
         val settingsFragmentActive =
                 settingsMenuFragment != null && settingsMenuFragment?.isAdded == true
         val progressFragmentActive = progressFragment != null && progressFragment?.isAdded == true
@@ -771,6 +795,8 @@ class GameActivityViewModel(application: Application) :
                 settingsFragmentActive ||
                         progressFragmentActive ||
                         aboutFragmentActive ||
+                        coreVariablesFragmentActive ||
+                        coreVariablesFragmentActive ||
                         exitFragmentActive
         val menuSystemActive = retroMenu3Open || (retroMenu3FragmentExists && hasActiveSubmenu)
 
@@ -781,6 +807,8 @@ class GameActivityViewModel(application: Application) :
                         settingsFragmentActive ||
                         progressFragmentActive ||
                         aboutFragmentActive ||
+                        coreVariablesFragmentActive ||
+                        coreVariablesFragmentActive ||
                         exitFragmentActive ||
                         forceMainMenuActive
 
@@ -804,6 +832,14 @@ class GameActivityViewModel(application: Application) :
         android.util.Log.d(
                 "GameActivityViewModel",
                 "[ACTIVE]   🎯 menuSystemActive=$menuSystemActive"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   📋 aboutFragmentActive=$aboutFragmentActive (ref=${aboutFragment != null}, added=${aboutFragment?.isAdded}, resumed=${aboutFragment?.isResumed})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   📋 coreVariablesFragmentActive=$coreVariablesFragmentActive (ref=${coreVariablesFragment != null}, added=${coreVariablesFragment?.isAdded}, resumed=${coreVariablesFragment?.isResumed})"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
@@ -962,6 +998,17 @@ class GameActivityViewModel(application: Application) :
             aboutFragment = null
             deactivateAboutMenu()
             // Navigate back to main menu when dismissing About submenu
+            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
+        }
+    }
+
+
+    /** Dismiss the Core Variables submenu */
+    fun dismissCoreVariablesMenu() {
+        dismissSubmenuFragment(coreVariablesFragment, "CoreVariables") {
+            coreVariablesFragment = null
+            deactivateCoreVariablesMenu()
+            // Navigate back to main menu when dismissing CoreVariables submenu
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
         }
     }

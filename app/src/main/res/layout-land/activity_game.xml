@@ -18,7 +18,8 @@
         android:id="@+id/load_preview_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitXY"
+        android:background="@android:color/black"
+        android:scaleType="fitCenter"
         android:visibility="gone"
         android:importantForAccessibility="no" />
 

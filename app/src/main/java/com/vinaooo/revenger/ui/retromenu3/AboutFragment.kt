@@ -42,6 +42,7 @@ class AboutFragment : MenuFragmentBase() {
 
     // Menu item views
     private lateinit var aboutContainer: LinearLayout
+    private lateinit var coreVariablesCard: RetroCardView
     private lateinit var backAbout: RetroCardView
 
     // Menu title
@@ -53,9 +54,11 @@ class AboutFragment : MenuFragmentBase() {
     private lateinit var coreNameInfo: TextView
 
     // Menu option titles for color control
+    private lateinit var coreVariablesTitle: TextView
     private lateinit var backTitle: TextView
 
     // Selection arrows
+    private lateinit var selectionArrowCoreVariables: TextView
     private lateinit var selectionArrowBack: TextView
 
     // Ordered list of menu items for navigation
@@ -119,18 +122,22 @@ class AboutFragment : MenuFragmentBase() {
         coreNameInfo = view.findViewById(R.id.core_name_info)
 
         // Menu items
+        coreVariablesCard = view.findViewById(R.id.about_core_variables)
         backAbout = view.findViewById(R.id.about_back)
 
         // Initialize ordered list of menu items
-        menuItems = listOf(backAbout)
+        menuItems = listOf(coreVariablesCard, backAbout)
 
         // Configure RetroCardView to use transparent background for selected state (not yellow)
+        coreVariablesCard.setUseBackgroundColor(false)
         backAbout.setUseBackgroundColor(false)
 
         // Initialize menu option titles
+        coreVariablesTitle = view.findViewById(R.id.core_variables_title)
         backTitle = view.findViewById(R.id.back_title)
 
         // Initialize selection arrows
+        selectionArrowCoreVariables = view.findViewById(R.id.selection_arrow_core_variables)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
         // Set first item as selected
@@ -143,6 +150,8 @@ class AboutFragment : MenuFragmentBase() {
                 projectNameInfo,
                 romNameInfo,
                 coreNameInfo,
+                coreVariablesTitle,
+                selectionArrowCoreVariables,
                 backTitle,
                 selectionArrowBack
         )
@@ -196,6 +205,7 @@ class AboutFragment : MenuFragmentBase() {
         }
 
         // Apply capitalization to menu button titles
+        applyConfiguredCapitalization(coreVariablesTitle)
         applyConfiguredCapitalization(backTitle)
 
         // DEBUG: Log info views after all processing
@@ -203,12 +213,14 @@ class AboutFragment : MenuFragmentBase() {
         android.util.Log.d(TAG, "[DEBUG] projectNameInfo: '${projectNameInfo.text}'")
         android.util.Log.d(TAG, "[DEBUG] romNameInfo: '${romNameInfo.text}'")
         android.util.Log.d(TAG, "[DEBUG] coreNameInfo: '${coreNameInfo.text}'")
+        android.util.Log.d(TAG, "[DEBUG] coreVariablesTitle: '${coreVariablesTitle.text}'")
         android.util.Log.d(TAG, "[DEBUG] backTitle: '${backTitle.text}'")
 
         // Force layout update to ensure text rendering is correct
         projectNameInfo.invalidate()
         romNameInfo.invalidate()
         coreNameInfo.invalidate()
+        coreVariablesTitle.invalidate()
         backTitle.invalidate()
     }
 
@@ -323,6 +335,11 @@ class AboutFragment : MenuFragmentBase() {
 
         when (selectedIndex) {
             0 -> {
+                // Core Variables
+                android.util.Log.d(TAG, "[ACTION] About menu: Core Variables selected")
+                viewModel.navigationController?.navigateToSubmenu(com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.CORE_VARIABLES)
+            }
+            1 -> {
                 // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] About menu: Back to main menu selected")
                 // Use NavigationController to navigate back (don't call performBack which returns false)
@@ -350,7 +367,7 @@ class AboutFragment : MenuFragmentBase() {
         val context = requireContext()
 
         // Update title colors
-        val titles = arrayOf(backTitle)
+        val titles = arrayOf(coreVariablesTitle, backTitle)
         titles.forEachIndexed { index, title ->
             val isSelected = index == selectedIndex
             title.setTextColor(
@@ -368,7 +385,7 @@ class AboutFragment : MenuFragmentBase() {
         }
 
         // Update arrow visibility and color
-        val arrows = arrayOf(selectionArrowBack)
+        val arrows = arrayOf(selectionArrowCoreVariables, selectionArrowBack)
         arrows.forEachIndexed { index, arrow ->
             val isSelected = index == selectedIndex
             arrow.visibility = if (isSelected) View.VISIBLE else View.GONE
@@ -389,6 +406,7 @@ class AboutFragment : MenuFragmentBase() {
 
     override fun getMenuItems(): List<MenuItem> {
         return listOf(
+                MenuItem("core_variables", resources.getString(R.string.about_core_variables), action = MenuAction.NONE),
                 MenuItem("back", resources.getString(R.string.about_back), action = MenuAction.BACK)
         )
     }
