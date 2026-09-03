@@ -37,6 +37,7 @@
         <activity android:name=".views.GameActivity"
             android:exported="false"
             android:supportsPictureInPicture="true"
+            android:resizeableActivity="true"
             android:configChanges="keyboardHidden|orientation|screenSize|uiMode|screenLayout|smallestScreenSize">
         </activity>
     </application>

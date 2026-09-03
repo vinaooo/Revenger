@@ -423,6 +423,9 @@ class GameActivityViewModel(application: Application) :
                 // Block only the button that actually closed the menu
                 controllerInput.keepInterceptingButtons(200, closingButton = closingButton)
 
+                // Keep the freshest known frame as the PiP still before dropping the menu caches.
+                com.vinaooo.revenger.utils.ScreenshotCaptureUtil.promoteCachedFullToPipFrame()
+
                 // Limpar screenshot cacheado quando menu fecha
                 clearCachedScreenshot()
 
@@ -1345,6 +1348,8 @@ class GameActivityViewModel(application: Application) :
                         glRetroView,
                         onCaptured
                 )
+                // Menu-open is a clean pause point with a valid surface — refresh the PiP still too.
+                com.vinaooo.revenger.utils.ScreenshotCaptureUtil.capturePipFrame(glRetroView, force = true)
             } else {
                 onCaptured?.invoke(false)
             }
