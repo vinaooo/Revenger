@@ -2,6 +2,7 @@ plugins {
     id('com.android.application')
     id('kotlin-android')
     id 'io.gitlab.arturbosch.detekt' version '1.23.6'
+    id 'org.jetbrains.kotlinx.kover' version '0.9.9'
 }
 
 /**
@@ -206,6 +207,25 @@ android {
     lint {
         abortOnError = false
         disable += ['Aligned16KB']
+    }
+}
+
+// Report-only coverage, scoped to the debug variant only (skip building/testing release
+// just to measure coverage). No koverVerify gate: no baseline exists yet.
+kover {
+    reports {
+        // Generated ViewBinding classes carry no hand-written logic; excluding them
+        // keeps the coverage denominator meaningful.
+        filters {
+            excludes {
+                classes("com.vinaooo.revenger.databinding.*")
+            }
+        }
+        variant("debug") {
+            html {
+                onCheck = false
+            }
+        }
     }
 }
 
@@ -438,6 +458,12 @@ task prepareCore {
 }
 prepareCore.dependsOn prepareRom
 preBuild.dependsOn prepareCore
+
+// Allows unit tests to run without a staged ROM, downloaded core, or generated icons
+// (e.g. on a clean checkout / CI, where roms_backup/ and jniLibs/ are empty).
+tasks.matching { it.name in ['prepareRom', 'prepareCore', 'generateIcons', 'cleanupRom'] }.configureEach {
+    onlyIf { !project.hasProperty('skipAssetStaging') }
+}
 
 dependencies {
     // Core UI and Third Party
