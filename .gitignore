@@ -51,8 +51,7 @@ revenger_debug*
 submenu_nav*
 temp_apk/DEPRECATED_CODE_ANALYSIS.md
 
-# Test and documentation folders (per project instructions)
-/tests
+# Documentation folder (per project instructions)
 /docs
 
 # Icon Scripts Secrets
