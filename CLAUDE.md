@@ -21,9 +21,12 @@ Tests — **unit test sources live in `tests/` at the repo root**, wired in via 
 
 ```bash
 ./gradlew testDebugUnitTest                                              # all unit tests (Robolectric/MockK/Mockito)
+./gradlew testDebugUnitTest -PskipAssetStaging                           # same, without a staged ROM/core/icons (clean checkout / CI)
 ./gradlew testDebugUnitTest --tests "com.vinaooo.revenger.models.SaveSlotData_test"
 ./gradlew connectedDebugAndroidTest                                      # instrumented tests, needs a device
 ```
+
+**Every change must include tests.** Adding a class or method → add tests for it. Fixing a bug → add a regression test that fails without the fix. Changing existing behavior → update the tests that cover it. If the code you're touching has no test yet, write one as part of the change instead of deferring it — see `definitions/Code.md` for testing conventions and patterns (mocking Android framework classes, resetting stateful singletons between tests, etc.).
 
 Static analysis: `./gradlew detekt` (config: `detekt.yml`; use `detektMain` for type‑resolution variants). Android lint has `abortOnError = false`.
 
@@ -73,7 +76,7 @@ Command Pattern + State Machine. Navigable by touch D‑pad, physical gamepad, a
 - **No Material Design / Material You / Material Components** — deliberate and enforced. UI uses the custom `RetroCardView` with pixel/arcade styling. Do not reintroduce `com.google.android.material`.
 - **No `print` / `println`** — use `android.util.Log` or the project's `MenuLogger`.
 - PascalCase classes, camelCase members, KDoc on public APIs. Prefer composition and small focused managers. Keep immutable state objects where practical.
-- Preserve public fragment/ViewModel contracts (backward compatibility is a stated rule). New manager/navigation classes need unit + integration tests.
+- Preserve public fragment/ViewModel contracts (backward compatibility is a stated rule). **Every change must include tests** — new classes get tests, bug fixes get a regression test, behavior changes get their existing tests updated. New manager/navigation classes specifically need both unit and integration tests.
 - **Never name specific games, companies, consoles, or brands** in code, comments, commit messages, PR descriptions, docs, or test data — not even the one currently configured. Use neutral terms: "the game", "the ROM", "the platform", "the core", "an 8‑bit console". The configured title/ROM/platform values live only in `config.json` / `default_settings.json`; refer to them by config key (`name`, `rom`, `platform`), never quote the value.
 
 ## Reference docs

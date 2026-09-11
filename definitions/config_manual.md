@@ -27,3 +27,5 @@ Settings used when `default_settings` is false.
 ## Video & Debug
 - `shader`: (String) Shader type.
 - `performance_overlay`: (Boolean) FPS overlay.
+
+Changes to how these keys are parsed or merged (`AppConfig`, `ManualConfig`, `menu_mode` parsing) need test coverage — see `tests/AppConfig_test.kt` and the testing policy in `CLAUDE.md` / `definitions/Code.md`.
