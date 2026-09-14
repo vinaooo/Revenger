@@ -16,22 +16,40 @@ IGDB_PLATFORMS = {
     "ps1": 7, "ps2": 8, "psp": 38
 }
 
+def _safe_json(response):
+    """Parses a response body as JSON, treating a non-JSON body (rate limiting,
+    a proxy/WAF challenge page, a transient upstream error, ...) as "no data"
+    instead of letting the caller crash on an unhandled exception."""
+    try:
+        return response.json()
+    except ValueError:
+        logging.warning(f"    [IGDB] ⚠️ Non-JSON response (status {response.status_code}), treating as no data.")
+        return None
+
 def get_token():
-    res = requests.post("https://id.twitch.tv/oauth2/token", params={
-        "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET, "grant_type": "client_credentials"
-    })
-    return res.json().get("access_token") if res.status_code == 200 else None
+    try:
+        res = requests.post("https://id.twitch.tv/oauth2/token", params={
+            "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET, "grant_type": "client_credentials"
+        }, timeout=10)
+    except requests.exceptions.RequestException as e:
+        logging.warning(f"    [IGDB] ⚠️ Request failed: {e}")
+        return None
+    if res.status_code != 200:
+        return None
+    data = _safe_json(res)
+    return data.get("access_token") if data else None
 
 def fetch_igdb_cover(name, platform, token, interactive=False):
     p_id = IGDB_PLATFORMS.get(platform.lower())
     headers = {"Client-ID": CLIENT_ID, "Authorization": f"Bearer {token}"}
     body = f'search "{name}"; fields name, cover.url; where platforms = ({p_id}); limit 5;'
-    res = requests.post("https://api.igdb.com/v4/games", headers=headers, data=body)
-    if res.status_code == 200 and res.json():
-        results = res.json()
-        if not results:
-            return None, None
-            
+    try:
+        res = requests.post("https://api.igdb.com/v4/games", headers=headers, data=body, timeout=10)
+    except requests.exceptions.RequestException as e:
+        logging.warning(f"    [IGDB] ⚠️ Request failed: {e}")
+        return None, None
+    results = _safe_json(res) if res.status_code == 200 else None
+    if results:
         if interactive:
             print("\n[IGDB] Multiple covers found:")
             valid_results = [r for r in results if "cover" in r]
@@ -101,10 +119,14 @@ def fetch_igdb_multiple_covers(platform, rom_name, limit=5):
         p_id = IGDB_PLATFORMS.get(platform.lower())
         headers = {"Client-ID": CLIENT_ID, "Authorization": f"Bearer {token}"}
         body = f'search "{clean_name}"; fields name, cover.url; where platforms = ({p_id}); limit {limit};'
-        res = requests.post("https://api.igdb.com/v4/games", headers=headers, data=body)
-        
-        if res.status_code == 200 and res.json():
-            results = res.json()
+        try:
+            res = requests.post("https://api.igdb.com/v4/games", headers=headers, data=body, timeout=10)
+        except requests.exceptions.RequestException as e:
+            logging.warning(f"    [IGDB] ⚠️ Request failed: {e}")
+            res = None
+
+        results = _safe_json(res) if res is not None and res.status_code == 200 else None
+        if results:
             for r in results:
                 if "cover" in r:
                     url = "https:" + r["cover"]["url"].replace("t_thumb", "t_1080p")
