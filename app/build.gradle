@@ -123,6 +123,7 @@ android {
         versionCode 1
         versionName '1.0'
         resConfigs 'en'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // Dynamically inject the app name to satisfy AndroidManifest.xml
         resValue "string", "name", "\"${getConfigValue('name')}\""
@@ -292,7 +293,11 @@ task cleanupRom {
 }
 
 tasks.whenTaskAdded { task ->
-    if (task.name.startsWith('assemble') || task.name.startsWith('bundle') || task.name.startsWith('install')) {
+    // Excludes AGP-internal tasks like bundleDebugClassesToCompileJar/bundleDebugClassesToRuntimeJar,
+    // which also start with "bundle" but run during every compile (not just AAB bundling) and would
+    // otherwise finalize cleanupRom before mergeDebugAssets/packageDebug ever consume the staged ROM.
+    if ((task.name.startsWith('assemble') || task.name.startsWith('bundle') || task.name.startsWith('install'))
+            && !task.name.contains('Classes')) {
         task.finalizedBy cleanupRom
     }
 }
