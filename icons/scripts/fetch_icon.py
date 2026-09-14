@@ -4,17 +4,32 @@ import os
 import requests
 from io import BytesIO
 from PIL import Image
+from urllib.parse import quote
 from utils import load_env, clean_rom_name
 
 load_env()
 SGDB_API_KEY = os.environ.get("SGDB_API_KEY")
 
+def _safe_json(response):
+    """Parses a response body as JSON, treating a non-JSON body (rate limiting,
+    a proxy/WAF challenge page, a transient upstream error, ...) as "no data"
+    instead of letting the caller crash on an unhandled exception."""
+    try:
+        return response.json()
+    except ValueError:
+        logging.warning(f"    [SGDB] ⚠️ Non-JSON response (status {response.status_code}), treating as no data.")
+        return {}
+
 def search_sgdb_by_text(game_name):
-    url = f"https://www.steamgriddb.com/api/v2/search/autocomplete/{game_name}"
+    url = f"https://www.steamgriddb.com/api/v2/search/autocomplete/{quote(game_name, safe='')}"
     headers = {"Authorization": f"Bearer {SGDB_API_KEY}"}
-    response = requests.get(url, headers=headers)
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+    except requests.exceptions.RequestException as e:
+        logging.warning(f"    [SGDB] ⚠️ Request failed: {e}")
+        return None
     if response.status_code == 200:
-        data = response.json().get("data", [])
+        data = _safe_json(response).get("data", [])
         if data:
             return data[0]["id"]
     return None
@@ -22,9 +37,13 @@ def search_sgdb_by_text(game_name):
 def fetch_steamgriddb_icon(sgdb_id, interactive=False):
     url = f"https://www.steamgriddb.com/api/v2/icons/game/{sgdb_id}?mimes=image/png"
     headers = {"Authorization": f"Bearer {SGDB_API_KEY}"}
-    response = requests.get(url, headers=headers)
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+    except requests.exceptions.RequestException as e:
+        logging.warning(f"    [SGDB] ⚠️ Request failed: {e}")
+        return None
     if response.status_code == 200:
-        data = response.json().get("data", [])
+        data = _safe_json(response).get("data", [])
         if data:
             if interactive:
                 print("\n[SteamGridDB] Multiple icons found:")
@@ -65,11 +84,15 @@ def fetch_sgdb_multiple_icons(rom_name, limit=5):
         
     url = f"https://www.steamgriddb.com/api/v2/icons/game/{sgdb_id}?mimes=image/png"
     headers = {"Authorization": f"Bearer {SGDB_API_KEY}"}
-    response = requests.get(url, headers=headers)
-    
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+    except requests.exceptions.RequestException as e:
+        logging.warning(f"    [SGDB] ⚠️ Request failed: {e}")
+        return images
+
     if response.status_code == 200:
-        data = response.json().get("data", [])
-        
+        data = _safe_json(response).get("data", [])
+
         # Filtra previamente para manter apenas opções com proporção >= 80% e que não sejam absurdamente pequenas.
         valid_data = []
         for item in data:
@@ -99,7 +122,11 @@ def fetch_sgdb_icon(rom_name, interactive=False):
     icon_url = fetch_steamgriddb_icon(sgdb_id, interactive)
     if not icon_url:
         return None
-    response = requests.get(icon_url)
+    try:
+        response = requests.get(icon_url, timeout=10)
+    except requests.exceptions.RequestException as e:
+        logging.warning(f"    [SGDB] ⚠️ Request failed: {e}")
+        return None
     if response.status_code == 200:
         try:
             return Image.open(BytesIO(response.content)).convert("RGBA")
