@@ -3,8 +3,6 @@ package com.vinaooo.revenger.ui.retromenu3
 import android.view.View
 import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
-import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
-import io.mockk.mockk
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -15,10 +13,6 @@ import org.robolectric.annotation.Config
 
 /**
  * Robolectric tests for SettingsMenuFragment, following the pattern proven by MenuIntegration_test.
- *
- * Note: onDestroy() casts the listener to GameActivityViewModel to reset combo state; since
- * these tests inject a plain mock (not the real ViewModel), that branch is a no-op here by
- * design - it is not asserted as covered.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
@@ -36,7 +30,6 @@ class SettingsMenuFragment_test {
         activity.setContentView(container)
 
         fragment = SettingsMenuFragment.newInstance()
-        fragment.setSettingsListener(mockk<SettingsMenuListener>(relaxed = true))
         activity.supportFragmentManager
                 .beginTransaction()
                 .add(container.id, fragment, "settings")
@@ -92,7 +85,7 @@ class SettingsMenuFragment_test {
     }
 
     @Test
-    fun `fragment pode ser destruido sem lancar excecao mesmo com listener mock`() {
+    fun `fragment pode ser destruido sem lancar excecao`() {
         try {
             activity.supportFragmentManager.beginTransaction().remove(fragment).commitNow()
             assertTrue(true)

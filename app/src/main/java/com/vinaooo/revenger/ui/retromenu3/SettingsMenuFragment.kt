@@ -9,7 +9,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -67,12 +66,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
     private lateinit var selectionArrowShader: TextView
     private lateinit var selectionArrowGameSpeed: TextView
     private lateinit var selectionArrowBack: TextView
-
-    private var settingsListener: SettingsMenuListener? = null
-
-    fun setSettingsListener(listener: SettingsMenuListener) {
-        this.settingsListener = listener
-    }
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -490,24 +483,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
     /** Public method to dismiss the menu from outside */
     fun dismissMenuPublic() {
         dismissMenu()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // Ensure that comboAlreadyTriggered is reset when the fragment is destroyed
-        try {
-            (settingsListener as? com.vinaooo.revenger.viewmodels.GameActivityViewModel)?.let {
-                    viewModel ->
-                // Call clearKeyLog through ViewModel to reset combo state
-                viewModel.clearControllerKeyLog()
-            }
-        } catch (e: Exception) {
-            android.util.Log.w(
-                    "SettingsMenuFragment",
-                    "Error resetting combo state in onDestroy",
-                    e
-            )
-        }
     }
 
     // ===== MenuFragmentBase Abstract Methods Implementation =====

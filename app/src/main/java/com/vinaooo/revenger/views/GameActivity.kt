@@ -34,7 +34,6 @@ import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.gamepad.GamePadAlignmentManager
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.privacy.EnhancedPrivacyManager
-import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.utils.AndroidCompatibility
 import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -851,50 +850,7 @@ else -> com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment()
                                                                                 "[ORIENTATION] 🎯 MenuStateManager updated to state: $effectiveState"
                                                                         )
 
-                                                                        // 2. CRITICAL:
-                                                                        // Configure
-                                                                        // listener BEFORE
-                                                                        // adding Fragment
-                                                                        // This ensures
-                                                                        // click listeners
-                                                                        // work
-                                                                        // correctly after
-                                                                        // rotation
-                                                                        when (effectiveState) {
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .MenuState
-                                                                                        .SETTINGS_MENU -> {
-                                                                                        val settingsFragment =
-                                                                                                newFragment as
-                                                                                                        com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
-                                                                                        // Configure
-                                                                                        // listener
-                                                                                        // BEFORE
-                                                                                        // adding
-                                                                                        // to
-                                                                                        // FragmentManager
-                                                                                        settingsFragment
-                                                                                                .setSettingsListener(
-                                                                                                        retroMenu3 as
-                                                                                                                SettingsMenuListener
-                                                                                                )
-                                                                                        Log.d(
-                                                                                                TAG,
-                                                                                                "[ORIENTATION] 🔧 SettingsMenuFragment listener configured BEFORE adding"
-                                                                                        )
-                                                                                }
-                                                                                else -> {
-                                                                                        // Other
-                                                                                        // fragments
-                                                                                        // don't
-                                                                                        // need
-                                                                                        // pre-configuration
-                                                                                }
-                                                                        }
-
-                                                                        // 3. Aguardar e
+                                                                        // 2. Aguardar e
                                                                         // adicionar submenu
                                                                         // no topo
                                                                         // (COM backstack)

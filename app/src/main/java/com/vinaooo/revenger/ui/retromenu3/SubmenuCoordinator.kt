@@ -4,9 +4,6 @@ package com.vinaooo.revenger.ui.retromenu3
 import androidx.fragment.app.Fragment
 import android.util.Log
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.ui.retromenu3.callbacks.ProgressListener
-import com.vinaooo.revenger.ui.retromenu3.callbacks.ExitListener
-import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -310,9 +307,6 @@ class SubmenuCoordinator(
         try {
             Log.e(TAG, "[DEBUG] showSettingsSubmenu - Creating SettingsMenuFragment")
             val settingsFragment = SettingsMenuFragment.newInstance()
-            settingsFragment.setSettingsListener(
-                    fragment as SettingsMenuListener
-            )
 
             // First add the submenu (but invisible initially)
             fragment.parentFragmentManager
@@ -384,7 +378,6 @@ class SubmenuCoordinator(
         try {
             Log.e(TAG, "[DEBUG] showProgressSubmenu - Creating ProgressFragment")
             val progressFragment = ProgressFragment.newInstance()
-            progressFragment.setProgressListener(fragment as ProgressListener)
 
             // First add the submenu (but invisible initially)
             fragment.parentFragmentManager
@@ -420,7 +413,6 @@ class SubmenuCoordinator(
         try {
             Log.e(TAG, "[DEBUG] showExitSubmenu - Creating ExitFragment")
             val exitFragment = ExitFragment.newInstance()
-            exitFragment.setExitListener(fragment as ExitListener)
 
             // First add the submenu (but invisible initially)
             fragment.parentFragmentManager

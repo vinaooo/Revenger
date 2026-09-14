@@ -8,7 +8,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.ui.retromenu3.callbacks.ExitListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -66,12 +65,6 @@ class ExitFragment : MenuFragmentBase() {
     private lateinit var selectionArrowSaveAndExit: TextView
     private lateinit var selectionArrowExitWithoutSave: TextView
     private lateinit var selectionArrowBack: TextView
-
-    private var exitListener: ExitListener? = null
-
-    fun setExitListener(listener: ExitListener) {
-        this.exitListener = listener
-    }
 
     override fun onCreateView(
             inflater: LayoutInflater,

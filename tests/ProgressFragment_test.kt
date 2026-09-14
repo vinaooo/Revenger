@@ -3,8 +3,6 @@ package com.vinaooo.revenger.ui.retromenu3
 import android.view.View
 import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
-import com.vinaooo.revenger.ui.retromenu3.callbacks.ProgressListener
-import io.mockk.mockk
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -32,7 +30,6 @@ class ProgressFragment_test {
         activity.setContentView(container)
 
         fragment = ProgressFragment.newInstance()
-        fragment.setProgressListener(mockk<ProgressListener>(relaxed = true))
         activity.supportFragmentManager
                 .beginTransaction()
                 .add(container.id, fragment, "progress")
