@@ -101,40 +101,79 @@ class ControllerInput(private val context: Context) {
                 }
         }
 
+        /**
+         * Bundles all of this class's external callbacks/predicates (see
+         * [ControllerInputCallbacks]). Each field below is exposed as a delegate
+         * property reading/writing through this instance, so existing external
+         * assignment call sites (`controllerInput.someCallback = { ... }`) keep
+         * compiling and behaving unchanged.
+         */
+        var callbacks: ControllerInputCallbacks = ControllerInputCallbacks()
+
         /** The callback for when the user inputs the menu key-combination */
-        var menuCallback: () -> Unit = {}
+        var menuCallback: () -> Unit
+                get() = callbacks.menuCallback
+                set(value) { callbacks = callbacks.copy(menuCallback = value) }
 
         /** The callback for when the user inputs the SELECT+START combo (RetroMenu3) */
-        var selectStartComboCallback: () -> Unit = {}
+        var selectStartComboCallback: () -> Unit
+                get() = callbacks.selectStartComboCallback
+                set(value) { callbacks = callbacks.copy(selectStartComboCallback = value) }
 
         /** The callback for when the user presses START alone (to close RetroMenu3) */
-        var startButtonCallback: () -> Unit = {}
+        var startButtonCallback: () -> Unit
+                get() = callbacks.startButtonCallback
+                set(value) { callbacks = callbacks.copy(startButtonCallback = value) }
 
         /** Function to check if SELECT+START combo should trigger menu */
-        var shouldHandleSelectStartCombo: () -> Boolean = { true }
+        var shouldHandleSelectStartCombo: () -> Boolean
+                get() = callbacks.shouldHandleSelectStartCombo
+                set(value) { callbacks = callbacks.copy(shouldHandleSelectStartCombo = value) }
 
         /** Function to check if START button alone should trigger callback */
-        var shouldHandleStartButton: () -> Boolean = { false }
+        var shouldHandleStartButton: () -> Boolean
+                get() = callbacks.shouldHandleStartButton
+                set(value) { callbacks = callbacks.copy(shouldHandleStartButton = value) }
 
         /** Function to check if gamepad menu button should trigger menu */
-        var shouldHandleGamepadMenuButton: () -> Boolean = { false }
+        var shouldHandleGamepadMenuButton: () -> Boolean
+                get() = callbacks.shouldHandleGamepadMenuButton
+                set(value) { callbacks = callbacks.copy(shouldHandleGamepadMenuButton = value) }
 
         /** The callback for when the user presses the gamepad menu button */
-        var gamepadMenuButtonCallback: () -> Unit = {}
+        var gamepadMenuButtonCallback: () -> Unit
+                get() = callbacks.gamepadMenuButtonCallback
+                set(value) { callbacks = callbacks.copy(gamepadMenuButtonCallback = value) }
 
         /** Function to check if devemos bloquear TODOS os inputs do gamepad */
-        var shouldBlockAllGamepadInput: () -> Boolean = { false }
+        var shouldBlockAllGamepadInput: () -> Boolean
+                get() = callbacks.shouldBlockAllGamepadInput
+                set(value) { callbacks = callbacks.copy(shouldBlockAllGamepadInput = value) }
 
         /** Function to check if RetroMenu3 is currently open */
-        var isRetroMenu3Open: () -> Boolean = { false }
+        var isRetroMenu3Open: () -> Boolean
+                get() = callbacks.isRetroMenu3Open
+                set(value) { callbacks = callbacks.copy(isRetroMenu3Open = value) }
 
         /** Callbacks for RetroMenu3 navigation */
-        var menuNavigateUpCallback: () -> Unit = {}
-        var menuNavigateDownCallback: () -> Unit = {}
-        var menuNavigateLeftCallback: () -> Unit = {}
-        var menuNavigateRightCallback: () -> Unit = {}
-        var menuConfirmCallback: () -> Unit = {}
-        var menuBackCallback: () -> Unit = {}
+        var menuNavigateUpCallback: () -> Unit
+                get() = callbacks.menuNavigateUpCallback
+                set(value) { callbacks = callbacks.copy(menuNavigateUpCallback = value) }
+        var menuNavigateDownCallback: () -> Unit
+                get() = callbacks.menuNavigateDownCallback
+                set(value) { callbacks = callbacks.copy(menuNavigateDownCallback = value) }
+        var menuNavigateLeftCallback: () -> Unit
+                get() = callbacks.menuNavigateLeftCallback
+                set(value) { callbacks = callbacks.copy(menuNavigateLeftCallback = value) }
+        var menuNavigateRightCallback: () -> Unit
+                get() = callbacks.menuNavigateRightCallback
+                set(value) { callbacks = callbacks.copy(menuNavigateRightCallback = value) }
+        var menuConfirmCallback: () -> Unit
+                get() = callbacks.menuConfirmCallback
+                set(value) { callbacks = callbacks.copy(menuConfirmCallback = value) }
+        var menuBackCallback: () -> Unit
+                get() = callbacks.menuBackCallback
+                set(value) { callbacks = callbacks.copy(menuBackCallback = value) }
 
         // Debouncing timestamps for menu callbacks to prevent rapid successive calls
         private var lastMenuBackCallbackTime: Long = 0
@@ -238,7 +277,9 @@ class ControllerInput(private val context: Context) {
         }
 
         /** Function to check if we should intercept DPAD for menu */
-        var shouldInterceptDpadForMenu: () -> Boolean = { false }
+        var shouldInterceptDpadForMenu: () -> Boolean
+                get() = callbacks.shouldInterceptDpadForMenu
+                set(value) { callbacks = callbacks.copy(shouldInterceptDpadForMenu = value) }
 
         /**
          * Flag to keep interception active for a period after menu closes. This prevents
@@ -291,7 +332,9 @@ class ControllerInput(private val context: Context) {
          * Function to check if it's safe to execute menu callbacks (no critical operations in
          * progress)
          */
-        var isMenuOperationSafe: () -> Boolean = { true }
+        var isMenuOperationSafe: () -> Boolean
+                get() = callbacks.isMenuOperationSafe
+                set(value) { callbacks = callbacks.copy(isMenuOperationSafe = value) }
 
         /**
          * Check for single-trigger directional input
