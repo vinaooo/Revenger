@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.RevengerApplication
+import com.vinaooo.revenger.controllers.FloatingMenuButtonController
 import com.vinaooo.revenger.gamepad.GamePadAlignmentManager
 import com.vinaooo.revenger.gamepad.GamePadLayoutAdjuster
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
@@ -102,6 +103,14 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
 
         // Adjusts virtual gamepad position/size/symmetry on orientation changes
         private val gamePadLayoutAdjuster = GamePadLayoutAdjuster()
+
+        // Owns the floating menu button's config/visibility/fade behavior.
+        private val floatingMenuButtonController by lazy {
+                FloatingMenuButtonController(
+                        findViewById(R.id.floating_menu_button),
+                        viewModel
+                )
+        }
         private var isPipEntryRequested = false
 
         // Set when the user taps "Quick Save" in the PiP window. serializeState() cannot run while
@@ -273,7 +282,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 gamePadLayoutAdjuster.adjustPositionForOrientation(gamepadContainers)
 
                 // Setup Floating Menu Button
-                setupFloatingMenuButton()
+                floatingMenuButtonController.setup()
 
                 // Reveal gamepads after next frame (when orientation has settled)
                 // This eliminates flash of gamepads in wrong orientation
@@ -1478,108 +1487,17 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
         override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
                 // Record frame time for performance monitoring
                 recordFrameTime()
-                triggerFloatingButtonFade()
+                floatingMenuButtonController.triggerFade()
                 maybeCapturePipFrame()
 
                 return viewModel.processKeyEvent(keyCode, event) ?: super.onKeyDown(keyCode, event)
         }
 
-        private var floatingButtonFadeHandler: android.os.Handler? = null
-        private var floatingButtonFadeRunnable: Runnable? = null
+        override fun restoreFloatingButtonVisibility() =
+                floatingMenuButtonController.restoreFloatingButtonVisibility()
 
-        /** Set up the floating menu button config and listener */
-        private fun setupFloatingMenuButton() {
-                val floatingButton = findViewById<android.widget.Button>(R.id.floating_menu_button)
-                val configValue = appConfig.getMenuModeFab().lowercase()
-
-                if (configValue == "disabled") {
-                        floatingButton.visibility = android.view.View.GONE
-                        return
-                }
-
-                val layoutParams = floatingButton.layoutParams as FrameLayout.LayoutParams
-
-                when (configValue) {
-                        "top-left" ->
-                                layoutParams.gravity =
-                                        android.view.Gravity.TOP or android.view.Gravity.START
-                        "top-right" ->
-                                layoutParams.gravity =
-                                        android.view.Gravity.TOP or android.view.Gravity.END
-                        "bottom-left" ->
-                                layoutParams.gravity =
-                                        android.view.Gravity.BOTTOM or android.view.Gravity.START
-                        "bottom-right" ->
-                                layoutParams.gravity =
-                                        android.view.Gravity.BOTTOM or android.view.Gravity.END
-                        else -> {
-                                Log.w(
-                                        TAG,
-                                        "Unknown floating menu button config: $configValue. Disabling floating button."
-                                )
-                                floatingButton.visibility = android.view.View.GONE
-                                return
-                        }
-                }
-
-                floatingButton.layoutParams = layoutParams
-                val shouldShowGamePads =
-                        com.vinaooo.revenger.gamepad.GamePad.shouldShowGamePads(this, appConfig)
-                floatingButton.visibility =
-                        if (!shouldShowGamePads) android.view.View.VISIBLE
-                        else android.view.View.GONE
-
-                floatingButton.setOnClickListener {
-                        Log.d(TAG, "Floating menu button clicked.")
-                        viewModel.toggleMainMenu()
-                }
-
-                // Setup fade handler
-                floatingButtonFadeHandler = android.os.Handler(android.os.Looper.getMainLooper())
-                floatingButtonFadeRunnable = Runnable {
-                        floatingButton.animate().alpha(1.0f).setDuration(500).start()
-                }
-        }
-
-        private fun triggerFloatingButtonFade() {
-                if (viewModel.isAnyMenuActive()) return
-
-                val floatingButton =
-                        findViewById<android.widget.Button>(R.id.floating_menu_button) ?: return
-                if (floatingButton.visibility != android.view.View.VISIBLE) return
-
-                // Fade button to 30% alpha
-                floatingButton.animate().alpha(0.3f).setDuration(200).start()
-
-                // Cancel any pending restorative fades, and schedule a new one in 10s
-                floatingButtonFadeRunnable?.let { runnable ->
-                        floatingButtonFadeHandler?.removeCallbacks(runnable)
-                        floatingButtonFadeHandler?.postDelayed(runnable, 10000)
-                }
-        }
-
-        override fun restoreFloatingButtonVisibility() {
-                val floatingButton =
-                        findViewById<android.widget.Button>(R.id.floating_menu_button) ?: return
-                if (floatingButton.visibility != android.view.View.VISIBLE) return
-
-                floatingButtonFadeRunnable?.let { runnable ->
-                        floatingButtonFadeHandler?.removeCallbacks(runnable)
-                }
-                floatingButton.animate().alpha(1.0f).setDuration(200).start()
-        }
-
-        override fun fadeFloatingButtonImmediately() {
-                val floatingButton =
-                        findViewById<android.widget.Button>(R.id.floating_menu_button) ?: return
-                if (floatingButton.visibility != android.view.View.VISIBLE) return
-
-                floatingButton.animate().alpha(0.3f).setDuration(200).start()
-                floatingButtonFadeRunnable?.let { runnable ->
-                        floatingButtonFadeHandler?.removeCallbacks(runnable)
-                        floatingButtonFadeHandler?.postDelayed(runnable, 10000)
-                }
-        }
+        override fun fadeFloatingButtonImmediately() =
+                floatingMenuButtonController.fadeFloatingButtonImmediately()
 
         override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
                 return viewModel.processKeyEvent(keyCode, event) ?: super.onKeyUp(keyCode, event)
@@ -1588,7 +1506,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
         override fun onGenericMotionEvent(event: MotionEvent): Boolean {
                 // Record frame time for performance monitoring
                 recordFrameTime()
-                triggerFloatingButtonFade()
+                floatingMenuButtonController.triggerFade()
                 maybeCapturePipFrame()
 
                 return viewModel.processMotionEvent(event) ?: super.onGenericMotionEvent(event)
