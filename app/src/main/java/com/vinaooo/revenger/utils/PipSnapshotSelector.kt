@@ -9,16 +9,24 @@ import android.graphics.Bitmap
 object PipSnapshotSelector {
 
     /**
-     * Returns the first non-null, non-recycled bitmap produced by [suppliers], evaluated in
-     * order. Suppliers are called lazily — a supplier is only invoked once every earlier one
-     * has been tried and missed, and evaluation stops as soon as one produces a usable bitmap.
-     * A bitmap that is recycled is treated as a miss and evaluation continues with the next
-     * supplier. Returns null if every supplier misses.
+     * Returns the bitmap to use for the PiP overlay, matching the exact semantics of the
+     * original `?:` fallback chain this replaces: [suppliers] are evaluated lazily, in order,
+     * and evaluation stops as soon as one produces a **non-null** result — that first non-null
+     * result is the chosen candidate, and later suppliers are never invoked, regardless of
+     * whether the candidate turns out to be usable.
+     *
+     * The chosen candidate is then checked for recycled-ness exactly once: if it is recycled,
+     * the overall result is null (no snapshot to show) — this does NOT fall through to try any
+     * other supplier, because the original chain never re-evaluated its `?:` selection once
+     * made. Returns null if every supplier returns null, or if the one non-null candidate found
+     * is recycled.
      */
     fun select(vararg suppliers: () -> Bitmap?): Bitmap? {
         for (supplier in suppliers) {
             val bitmap = supplier()
-            if (bitmap != null && !bitmap.isRecycled) return bitmap
+            if (bitmap != null) {
+                return if (!bitmap.isRecycled) bitmap else null
+            }
         }
         return null
     }

@@ -56,22 +56,41 @@ class PipSnapshotSelector_test {
     }
 
     @Test
-    fun `first supplier returns a recycled bitmap - falls through to next supplier`() {
+    fun `chosen non-null candidate is recycled - result is null, no fallthrough to next supplier`() {
+        // Matches the original ?: chain: it short-circuits on the first non-null value, then
+        // checks isRecycled ONCE on that single chosen candidate. A recycled candidate does not
+        // send evaluation back to try another supplier - the overall result is simply null.
         val recycled = validBitmap().apply { recycle() }
-        val expected = validBitmap()
+        var nextSupplierCalled = false
 
-        val result = PipSnapshotSelector.select({ recycled }, { expected })
+        val result = PipSnapshotSelector.select(
+            { recycled },
+            {
+                nextSupplierCalled = true
+                validBitmap()
+            }
+        )
 
         assertTrue(recycled.isRecycled)
-        assertEquals(expected, result)
+        assertNull(result)
+        assertFalse(nextSupplierCalled)
     }
 
     @Test
-    fun `all suppliers return recycled or null bitmaps - result is null`() {
+    fun `a later non-null candidate is recycled - result is null, no fallthrough past it either`() {
         val recycled = validBitmap().apply { recycle() }
+        var thirdSupplierCalled = false
 
-        val result = PipSnapshotSelector.select({ null }, { recycled }, { null })
+        val result = PipSnapshotSelector.select(
+            { null },
+            { recycled },
+            {
+                thirdSupplierCalled = true
+                validBitmap()
+            }
+        )
 
         assertNull(result)
+        assertFalse(thirdSupplierCalled)
     }
 }
