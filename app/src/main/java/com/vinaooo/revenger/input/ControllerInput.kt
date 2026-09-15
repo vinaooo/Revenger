@@ -527,6 +527,85 @@ class ControllerInput(private val context: Context) {
                 }
         }
 
+        /**
+         * Handles BUTTON_A-as-menu-confirm interception, shared by [processGamePadButtonEvent]
+         * and [processKeyEvent]. Returns true if this call intercepted the event (caller should
+         * return true immediately); false if [keyCode]/[action] don't match (caller should
+         * continue its own logic).
+         */
+        private fun interceptButtonAConfirm(keyCode: Int, action: Int): Boolean {
+                if (keyCode != KeyEvent.KEYCODE_BUTTON_A || !shouldInterceptDpadForMenu()) {
+                        return false
+                }
+
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🔴 BUTTON_A intercepted - shouldInterceptDpadForMenu()=true"
+                )
+                if (action == KeyEvent.ACTION_DOWN) {
+                        android.util.Log.d("ControllerInput", "   → Executing menuConfirmCallback")
+                        // NOTE: We do NOT block A here because it does not always close the menu
+                        // Blocking will be done in onMenuClosedCallback
+                        executeMenuCallback(menuConfirmCallback, lastMenuConfirmCallbackTime) {
+                                lastMenuConfirmCallbackTime = it
+                        }
+                }
+                // CRITICAL: Consume BOTH ACTION_DOWN and ACTION_UP so ACTION_UP doesn't leak to
+                // the core
+                return true
+        }
+
+        /**
+         * Tracks [keyLog] membership and resets [comboAlreadyTriggered] once both combo buttons
+         * are released, shared by [processGamePadButtonEvent] and [processKeyEvent]. Returns true
+         * if this was a repeated ACTION_DOWN that should be swallowed (caller should return true
+         * immediately without further processing this key).
+         */
+        private fun trackKeyLogAndComboReset(keyCode: Int, action: Int): Boolean {
+                when (action) {
+                        KeyEvent.ACTION_DOWN -> {
+                                val wasAlreadyPressed = keyLog.contains(keyCode)
+                                keyLog.add(keyCode)
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "⬇️  ACTION_DOWN: keyCode=$keyCode, wasAlreadyPressed=$wasAlreadyPressed, keyLog=$keyLog"
+                                )
+
+                                // If the button was already pressed, don't check combo again
+                                if (wasAlreadyPressed) {
+                                        android.util.Log.d(
+                                                "ControllerInput",
+                                                "   🔴 BLOCKED - Button was already pressed (repeat)"
+                                        )
+                                        return true
+                                }
+                        }
+                        KeyEvent.ACTION_UP -> {
+                                keyLog.remove(keyCode)
+                                android.util.Log.d(
+                                        "ControllerInput",
+                                        "⬆️  ACTION_UP: keyCode=$keyCode, keyLog=$keyLog"
+                                )
+
+                                // Reset combo flag ONLY when BOTH combo buttons are released
+                                if ((keyCode == KeyEvent.KEYCODE_BUTTON_START ||
+                                                keyCode == KeyEvent.KEYCODE_BUTTON_SELECT) &&
+                                                !keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
+                                                !keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)
+                                ) {
+                                        if (comboAlreadyTriggered) {
+                                                android.util.Log.d(
+                                                        "ControllerInput",
+                                                        "BOTH combo buttons released, resetting comboAlreadyTriggered"
+                                                )
+                                        }
+                                        comboAlreadyTriggered = false
+                                }
+                        }
+                }
+                return false
+        }
+
         fun processGamePadButtonEvent(keyCode: Int, action: Int): Boolean {
                 val keyName =
                         when (keyCode) {
@@ -545,30 +624,11 @@ class ControllerInput(private val context: Context) {
 
                 // INTERCEPT BUTTON A for confirmation when menu is open
                 // During grace period, DO NOT block A (only open menu blocks)
-                val menuActiveForA = shouldInterceptDpadForMenu()
-                val shouldInterceptA = keyCode == KeyEvent.KEYCODE_BUTTON_A && menuActiveForA
-                if (shouldInterceptA) {
-                        android.util.Log.d(
-                                "ControllerInput",
-                                "🔴 BUTTON_A intercepted - shouldInterceptDpadForMenu()=true"
-                        )
-                        if (action == KeyEvent.ACTION_DOWN) {
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "   → Executing menuConfirmCallback"
-                                )
-                                // NOTE: We do NOT block A here because it does not always close the menu
-                                // Blocking will be done in onMenuClosedCallback
-                                executeMenuCallback(
-                                        menuConfirmCallback,
-                                        lastMenuConfirmCallbackTime
-                                ) { lastMenuConfirmCallbackTime = it }
-                        }
+                if (interceptButtonAConfirm(keyCode, action)) {
                         android.util.Log.d(
                                 "ControllerInput",
                                 "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                         )
-                        // CRITICAL: Consumir TANTO ACTION_DOWN quanto ACTION_UP
                         return true // Event intercepted - don't send to core
                 }
 
@@ -670,57 +730,12 @@ class ControllerInput(private val context: Context) {
                 }
 
                 /* Keep track of user input events */
-                when (action) {
-                        KeyEvent.ACTION_DOWN -> {
-                                val wasAlreadyPressed = keyLog.contains(keyCode)
-                                keyLog.add(keyCode)
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "⬇️  ACTION_DOWN: keyCode=$keyCode ($keyName)"
-                                )
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "   wasAlreadyPressed: $wasAlreadyPressed"
-                                )
-                                android.util.Log.d("ControllerInput", "   keyLog BEFORE: $keyLog")
-
-                                // If the button was already pressed, don't check combo again
-                                if (wasAlreadyPressed) {
-                                        android.util.Log.d(
-                                                "ControllerInput",
-                                                "   🔴 BLOCKED - Button was already pressed (repeat)"
-                                        )
-                                        android.util.Log.d(
-                                                "ControllerInput",
-                                                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                                        )
-                                        return true // Event intercepted (repeated press)
-                                }
-                                android.util.Log.d("ControllerInput", "   ✅ Button added to keyLog")
-                        }
-                        KeyEvent.ACTION_UP -> {
-                                keyLog.remove(keyCode)
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "⬆️  ACTION_UP: keyCode=$keyCode ($keyName), keyLog AFTER: $keyLog"
-                                )
-
-                                // Reset combo flag ONLY when BOTH combo buttons are released
-                                if ((keyCode == KeyEvent.KEYCODE_BUTTON_START ||
-                                                keyCode == KeyEvent.KEYCODE_BUTTON_SELECT) &&
-                                                !keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
-                                                !keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)
-                                ) {
-
-                                        if (comboAlreadyTriggered) {
-                                                android.util.Log.d(
-                                                        "ControllerInput",
-                                                        "BOTH combo buttons released (GamePad), resetting comboAlreadyTriggered"
-                                                )
-                                        }
-                                        comboAlreadyTriggered = false
-                                }
-                        }
+                if (trackKeyLogAndComboReset(keyCode, action)) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                        )
+                        return true // Event intercepted (repeated press)
                 }
 
                 checkMenuKeyCombo()
@@ -814,19 +829,7 @@ class ControllerInput(private val context: Context) {
 
                 // INTERCEPT BUTTON A for confirmation when menu is open
                 // During grace period, DO NOT block A (only open menu blocks)
-                if (keyCode == KeyEvent.KEYCODE_BUTTON_A && shouldInterceptDpadForMenu()) {
-                        if (event.action == KeyEvent.ACTION_DOWN) {
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "BUTTON_A intercepted for menu confirmation"
-                                )
-                                executeMenuCallback(
-                                        menuConfirmCallback,
-                                        lastMenuConfirmCallbackTime
-                                ) { lastMenuConfirmCallbackTime = it }
-                        }
-                        // CRITICAL: Bloquear TANTO ACTION_DOWN quanto ACTION_UP
-                        // Isso impede que o ACTION_UP vaze para o jogo
+                if (interceptButtonAConfirm(keyCode, event.action)) {
                         return true // Consume the event, don't send to core
                 }
 
@@ -955,59 +958,8 @@ class ControllerInput(private val context: Context) {
                 val port = getPort(event)
 
                 /* Keep track of user input events */
-                when (event.action) {
-                        KeyEvent.ACTION_DOWN -> {
-                                val wasAlreadyPressed = keyLog.contains(keyCode)
-                                val keyName =
-                                        when (keyCode) {
-                                                KeyEvent.KEYCODE_BUTTON_START -> "START"
-                                                KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
-                                                else -> keyCode.toString()
-                                        }
-                                keyLog.add(keyCode)
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "⬇️ ACTION_DOWN: $keyName ($keyCode), wasAlreadyPressed: $wasAlreadyPressed, keyLog: $keyLog"
-                                )
-
-                                // If the button was already pressed, don't check combo again
-                                if (wasAlreadyPressed) {
-                                        android.util.Log.d(
-                                                "ControllerInput",
-                                                "   ⚠️ Ignoring repeated ACTION_DOWN for $keyName"
-                                        )
-                                        return true // Ignore repeated event
-                                }
-                        }
-                        KeyEvent.ACTION_UP -> {
-                                val keyName =
-                                        when (keyCode) {
-                                                KeyEvent.KEYCODE_BUTTON_START -> "START"
-                                                KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
-                                                else -> keyCode.toString()
-                                        }
-                                keyLog.remove(keyCode)
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "⬆️ ACTION_UP: $keyName ($keyCode), keyLog: $keyLog"
-                                )
-
-                                // Reset combo flag ONLY when BOTH combo buttons are released
-                                if ((keyCode == KeyEvent.KEYCODE_BUTTON_START ||
-                                                keyCode == KeyEvent.KEYCODE_BUTTON_SELECT) &&
-                                                !keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
-                                                !keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)
-                                ) {
-
-                                        if (comboAlreadyTriggered) {
-                                                android.util.Log.d(
-                                                        "ControllerInput",
-                                                        "   ✅ BOTH combo buttons released (normal flow), resetting comboAlreadyTriggered"
-                                                )
-                                        }
-                                        comboAlreadyTriggered = false
-                                }
-                        }
+                if (trackKeyLogAndComboReset(keyCode, event.action)) {
+                        return true // Ignore repeated event
                 }
 
                 checkMenuKeyCombo()
