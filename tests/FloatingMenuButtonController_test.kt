@@ -8,9 +8,12 @@ import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.RevengerApplication
+import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import io.mockk.verify
 import java.time.Duration
 import org.junit.After
@@ -76,6 +79,7 @@ class FloatingMenuButtonController_test {
     @After
     fun tearDown() {
         setRevengerAppConfig(null)
+        unmockkObject(GamePad)
     }
 
     private fun newController() = FloatingMenuButtonController(floatingButton, viewModel)
@@ -156,13 +160,23 @@ class FloatingMenuButtonController_test {
         assertEquals(View.VISIBLE, floatingButton.visibility)
     }
 
-    // Note: the "shouldShowGamePads() == true -> button GONE" branch is not exercised here.
-    // GamePad.shouldShowGamePads() calls `activity.display` once past the `getGamepad()` guard,
-    // and Robolectric's ContextImpl.getDisplay() shadow throws UnsupportedOperationException for
-    // a Robolectric.buildActivity(...)-built FragmentActivity ("Tried to obtain display from a
-    // Context not associated with one"), regardless of activity lifecycle state. That branch's
-    // own logic is already covered by GamePad_test.kt (which sidesteps this by mocking `Activity`
-    // directly instead of using a real one) -- this controller only reads the boolean it returns.
+    @Test
+    fun `setup esconde o botao quando GamePad shouldShowGamePads retorna true`() {
+        // GamePad.shouldShowGamePads() itself needs `activity.display`, which Robolectric's
+        // ContextImpl.getDisplay() shadow can't provide for a Robolectric.buildActivity(...)
+        // FragmentActivity. Sidestep that entirely (same fix GameActivityViewModel_test.kt uses
+        // for ScreenshotCaptureUtil, and GamePad_test.kt itself uses for InputDevice) by mocking
+        // the GamePad companion object outright: this isolates FloatingMenuButtonController's own
+        // branching (GONE when shouldShowGamePads() is true) from GamePad's internal display
+        // access, which is already exercised by GamePad_test.kt.
+        seedAppConfig(menuModeFab = "bottom-right", gamepadEnabled = true)
+        mockkObject(GamePad)
+        every { GamePad.shouldShowGamePads(any(), any()) } returns true
+
+        newController().setup()
+
+        assertEquals(View.GONE, floatingButton.visibility)
+    }
 
     // --- setup(): click listener ---
 

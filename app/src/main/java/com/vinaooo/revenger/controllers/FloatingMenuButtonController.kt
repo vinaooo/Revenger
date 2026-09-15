@@ -78,6 +78,10 @@ class FloatingMenuButtonController(
         fadeRunnable = Runnable { floatingButton.animate().alpha(1.0f).setDuration(500).start() }
     }
 
+    /**
+     * Fades the button to 30% alpha on user input (unless a menu is active or it's already
+     * hidden), and schedules a restore back to full opacity in 10s of inactivity.
+     */
     fun triggerFade() {
         if (viewModel.isAnyMenuActive()) return
         if (floatingButton.visibility != View.VISIBLE) return
