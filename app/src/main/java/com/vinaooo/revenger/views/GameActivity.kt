@@ -1485,12 +1485,13 @@ else -> com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MAIN
          * sources; only leaves the overlay hidden if nothing at all is available.
          */
         private fun showPipOverlaySnapshotIfAvailable() {
-                val snapshot =
-                        ScreenshotCaptureUtil.getPipFrame()
-                                ?: ScreenshotCaptureUtil.getCachedFullScreenshot()
-                                ?: ScreenshotCaptureUtil.getCachedScreenshot()
-                                ?: lastSlotScreenshotOrNull()
-                if (snapshot != null && !snapshot.isRecycled) {
+                val snapshot = com.vinaooo.revenger.utils.PipSnapshotSelector.select(
+                        { ScreenshotCaptureUtil.getPipFrame() },
+                        { ScreenshotCaptureUtil.getCachedFullScreenshot() },
+                        { ScreenshotCaptureUtil.getCachedScreenshot() },
+                        { lastSlotScreenshotOrNull() }
+                )
+                if (snapshot != null) {
                         pipOverlay.setImageBitmap(snapshot)
                         pipOverlay.visibility = android.view.View.VISIBLE
                         Log.d(TAG, "[PIP] PiP overlay snapshot displayed")
