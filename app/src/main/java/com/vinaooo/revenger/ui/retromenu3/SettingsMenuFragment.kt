@@ -310,139 +310,54 @@ class SettingsMenuFragment : MenuFragmentBase() {
     /** Update selection visual - specific implementation for SettingsMenuFragment */
     override fun updateSelectionVisualInternal() {
         val selectedIndex = getCurrentSelectedIndex()
+        val selectedColor =
+                androidx.core.content.ContextCompat.getColor(
+                        requireContext(),
+                        R.color.rm_selected_color
+                )
+        val normalColor =
+                androidx.core.content.ContextCompat.getColor(
+                        requireContext(),
+                        R.color.rm_normal_color
+                )
 
         // Update each menu item state based on selection
-        menuItems.forEachIndexed { index, item ->
-            if (index == selectedIndex) {
-                // Selected item – use RetroCardView.State.SELECTED
-                item.setState(RetroCardView.State.SELECTED)
-            } else {
-                // Unselected item – use RetroCardView.State.NORMAL
-                item.setState(RetroCardView.State.NORMAL)
-            }
-        }
+        applySelectionVisuals(
+                items = menuItems,
+                selectedIndex = selectedIndex,
+                onSelected = { it.setState(RetroCardView.State.SELECTED) },
+                onUnselected = { it.setState(RetroCardView.State.NORMAL) }
+        )
 
         // Control text colors based on selection (shader always available)
-        soundTitle.setTextColor(
-                if (selectedIndex == 0)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_selected_color
-                        )
-                else
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_normal_color
-                        )
+        applySelectionVisuals(
+                items = listOf(soundTitle, shaderTitle, gameSpeedTitle, backTitle),
+                selectedIndex = selectedIndex,
+                onSelected = { it.setTextColor(selectedColor) },
+                onUnselected = { it.setTextColor(normalColor) }
         )
 
-        shaderTitle.setTextColor(
-                if (selectedIndex == 1)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_selected_color
-                        )
-                else
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_normal_color
-                        )
+        // Control selection arrows: selected arrow shows with zero margin (attached to
+        // text); unselected arrow is hidden.
+        applySelectionVisuals(
+                items =
+                        listOf(
+                                selectionArrowSound,
+                                selectionArrowShader,
+                                selectionArrowGameSpeed,
+                                selectionArrowBack
+                        ),
+                selectedIndex = selectedIndex,
+                onSelected = { arrow ->
+                    arrow.setTextColor(selectedColor)
+                    arrow.visibility = View.VISIBLE
+                    (arrow.layoutParams as LinearLayout.LayoutParams).apply {
+                        marginStart = 0 // No space before the arrow
+                        marginEnd = 0 // Force zero margin after arrow - attached to text
+                    }
+                },
+                onUnselected = { it.visibility = View.GONE }
         )
-
-        gameSpeedTitle.setTextColor(
-                if (selectedIndex == 2)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_selected_color
-                        )
-                else
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_normal_color
-                        )
-        )
-
-        backTitle.setTextColor(
-                if (selectedIndex == 3)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_selected_color
-                        )
-                else
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_normal_color
-                        )
-        )
-
-        // Control selection arrows colors and visibility
-        // Sound
-        if (selectedIndex == 0) {
-            selectionArrowSound.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowSound.visibility = View.VISIBLE
-            (selectionArrowSound.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
-                marginEnd = 0 // Force zero margin after arrow - attached to text
-            }
-        } else {
-            selectionArrowSound.visibility = View.GONE
-        }
-
-        // Shader (always available)
-        if (selectedIndex == 1) {
-            selectionArrowShader.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowShader.visibility = View.VISIBLE
-            (selectionArrowShader.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
-                marginEnd = 0 // Force zero margin after arrow - attached to text
-            }
-        } else {
-            selectionArrowShader.visibility = View.GONE
-        }
-
-        // Game Speed
-        if (selectedIndex == 2) {
-            selectionArrowGameSpeed.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowGameSpeed.visibility = View.VISIBLE
-            (selectionArrowGameSpeed.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
-                marginEnd = 0 // Force zero margin after arrow - attached to text
-            }
-        } else {
-            selectionArrowGameSpeed.visibility = View.GONE
-        }
-
-        // Back
-        if (selectedIndex == 3) {
-            selectionArrowBack.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowBack.visibility = View.VISIBLE
-            (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
-                marginEnd = 0 // Force zero margin after arrow - attached to text
-            }
-        } else {
-            selectionArrowBack.visibility = View.GONE
-        }
 
         // Force layout update
         settingsMenuContainer.requestLayout()

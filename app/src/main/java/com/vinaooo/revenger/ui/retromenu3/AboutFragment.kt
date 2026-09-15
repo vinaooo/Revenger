@@ -365,43 +365,32 @@ class AboutFragment : MenuFragmentBase() {
     override fun updateSelectionVisualInternal() {
         val selectedIndex = getCurrentSelectedIndex()
         val context = requireContext()
+        val selectedColor =
+                androidx.core.content.ContextCompat.getColor(context, R.color.rm_selected_color)
+        val normalColor =
+                androidx.core.content.ContextCompat.getColor(context, R.color.rm_normal_color)
 
         // Update title colors
-        val titles = arrayOf(coreVariablesTitle, backTitle)
-        titles.forEachIndexed { index, title ->
-            val isSelected = index == selectedIndex
-            title.setTextColor(
-                    if (isSelected)
-                            androidx.core.content.ContextCompat.getColor(
-                                    context,
-                                    R.color.rm_selected_color
-                            )
-                    else
-                            androidx.core.content.ContextCompat.getColor(
-                                    context,
-                                    R.color.rm_normal_color
-                            )
-            )
-        }
+        applySelectionVisuals(
+                items = listOf(coreVariablesTitle, backTitle),
+                selectedIndex = selectedIndex,
+                onSelected = { it.setTextColor(selectedColor) },
+                onUnselected = { it.setTextColor(normalColor) }
+        )
 
         // Update arrow visibility and color
-        val arrows = arrayOf(selectionArrowCoreVariables, selectionArrowBack)
-        arrows.forEachIndexed { index, arrow ->
-            val isSelected = index == selectedIndex
-            arrow.visibility = if (isSelected) View.VISIBLE else View.GONE
-            arrow.setTextColor(
-                    if (isSelected)
-                            androidx.core.content.ContextCompat.getColor(
-                                    context,
-                                    R.color.rm_selected_color
-                            )
-                    else
-                            androidx.core.content.ContextCompat.getColor(
-                                    context,
-                                    R.color.rm_normal_color
-                            )
-            )
-        }
+        applySelectionVisuals(
+                items = listOf(selectionArrowCoreVariables, selectionArrowBack),
+                selectedIndex = selectedIndex,
+                onSelected = {
+                    it.visibility = View.VISIBLE
+                    it.setTextColor(selectedColor)
+                },
+                onUnselected = {
+                    it.visibility = View.GONE
+                    it.setTextColor(normalColor)
+                }
+        )
     }
 
     override fun getMenuItems(): List<MenuItem> {

@@ -1,6 +1,7 @@
 package com.vinaooo.revenger.ui.retromenu3
 
 import android.util.Log
+import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.viewmodels.InputViewModel
@@ -173,6 +174,31 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     protected fun resetSelection() {
         _currentSelectedIndex = 0
         updateSelectionVisualInternal()
+    }
+
+    /**
+     * Applies per-item selected/unselected visuals to a fixed list of item views.
+     *
+     * Iterates [items] and invokes [onSelected] for the view at [selectedIndex] and
+     * [onUnselected] for every other view. This replaces the iterate-and-branch loop that
+     * subclasses previously duplicated in each `updateSelectionVisualInternal()` override;
+     * subclasses keep their own selected/unselected visual treatment (color, glow, scale,
+     * margins, etc.) in the lambdas passed here.
+     *
+     * @param items the menu item views, in display order
+     * @param selectedIndex the currently selected index
+     * @param onSelected applied to the view at [selectedIndex]
+     * @param onUnselected applied to every other view
+     */
+    protected fun <T : View> applySelectionVisuals(
+            items: List<T>,
+            selectedIndex: Int,
+            onSelected: (T) -> Unit,
+            onUnselected: (T) -> Unit
+    ) {
+        items.forEachIndexed { index, item ->
+            if (index == selectedIndex) onSelected(item) else onUnselected(item)
+        }
     }
 
     /**

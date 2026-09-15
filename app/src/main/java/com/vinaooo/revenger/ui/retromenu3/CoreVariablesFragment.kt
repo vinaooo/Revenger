@@ -176,23 +176,30 @@ class CoreVariablesFragment : MenuFragmentBase() {
     override fun updateSelectionVisualInternal() {
         val selectedIndex = getCurrentSelectedIndex()
         val context = requireContext()
+        val selectedColor =
+            androidx.core.content.ContextCompat.getColor(context, R.color.rm_selected_color)
+        val normalColor =
+            androidx.core.content.ContextCompat.getColor(context, R.color.rm_normal_color)
 
-        titleViews.forEachIndexed { index, title ->
-            val isSelected = index == selectedIndex
-            title.setTextColor(
-                if (isSelected) androidx.core.content.ContextCompat.getColor(context, R.color.rm_selected_color)
-                else androidx.core.content.ContextCompat.getColor(context, R.color.rm_normal_color)
-            )
-        }
+        applySelectionVisuals(
+            items = titleViews,
+            selectedIndex = selectedIndex,
+            onSelected = { it.setTextColor(selectedColor) },
+            onUnselected = { it.setTextColor(normalColor) }
+        )
 
-        arrowViews.forEachIndexed { index, arrow ->
-            val isSelected = index == selectedIndex
-            arrow.visibility = if (isSelected) android.view.View.VISIBLE else android.view.View.GONE
-            arrow.setTextColor(
-                if (isSelected) androidx.core.content.ContextCompat.getColor(context, R.color.rm_selected_color)
-                else androidx.core.content.ContextCompat.getColor(context, R.color.rm_normal_color)
-            )
-        }
+        applySelectionVisuals(
+            items = arrowViews,
+            selectedIndex = selectedIndex,
+            onSelected = {
+                it.visibility = android.view.View.VISIBLE
+                it.setTextColor(selectedColor)
+            },
+            onUnselected = {
+                it.visibility = android.view.View.GONE
+                it.setTextColor(normalColor)
+            }
+        )
 
         // Handle auto-scroll to make the selected item visible
         if (cardViews.isNotEmpty() && selectedIndex in cardViews.indices) {
