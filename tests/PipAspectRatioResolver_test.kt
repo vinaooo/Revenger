@@ -74,7 +74,10 @@ class PipAspectRatioResolver_test {
 
     @Test
     fun `platform ratio exactly at the minimum boundary is included`() {
-        // 209/500 == 0.418f exactly.
+        // 209/500 == 0.418f exactly - pin the float value itself so this test actually
+        // exercises the boundary rather than merely landing near it.
+        assertEquals(0.418f, Rational(209, 500).toFloat(), 0f)
+
         val result = PipAspectRatioResolver.resolve(
             ratioW = 209,
             ratioH = 500,
@@ -87,7 +90,10 @@ class PipAspectRatioResolver_test {
 
     @Test
     fun `platform ratio exactly at the maximum boundary is included`() {
-        // 239/100 == 2.39f exactly.
+        // 239/100 == 2.39f exactly - pin the float value itself so this test actually
+        // exercises the boundary rather than merely landing near it.
+        assertEquals(2.39f, Rational(239, 100).toFloat(), 0f)
+
         val result = PipAspectRatioResolver.resolve(
             ratioW = 239,
             ratioH = 100,
