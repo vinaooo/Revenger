@@ -26,12 +26,15 @@ object PipAspectRatioResolver {
         containerHeight: Int
     ): Rational? {
         val primary = Rational(ratioW, ratioH)
-        if (primary.toFloat() in MIN_RATIO..MAX_RATIO) return primary
+        if (isInAllowedRange(primary)) return primary
 
-        if (containerWidth > 0 && containerHeight > 0) {
-            val fallback = Rational(containerWidth, containerHeight)
-            if (fallback.toFloat() in MIN_RATIO..MAX_RATIO) return fallback
-        }
-        return null
+        val fallback = containerRatioOrNull(containerWidth, containerHeight)
+        return fallback?.takeIf { isInAllowedRange(it) }
     }
+
+    private fun isInAllowedRange(ratio: Rational): Boolean =
+        ratio.toFloat() in MIN_RATIO..MAX_RATIO
+
+    private fun containerRatioOrNull(width: Int, height: Int): Rational? =
+        if (width > 0 && height > 0) Rational(width, height) else null
 }
