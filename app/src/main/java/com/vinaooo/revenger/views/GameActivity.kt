@@ -585,7 +585,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
          */
         private fun createFragmentForRotationState(
                 effectiveState: com.vinaooo.revenger.ui.retromenu3.MenuState
-        ): androidx.fragment.app.Fragment =
+        ): com.vinaooo.revenger.ui.retromenu3.MenuFragmentBase =
                 when (effectiveState) {
                         com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU -> {
                                 Log.d(TAG, "[ORIENTATION] 📋 Menu principal ativo")
@@ -634,7 +634,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
          */
         private fun rebuildMenuHierarchyAfterRotation(
                 effectiveState: com.vinaooo.revenger.ui.retromenu3.MenuState,
-                newFragment: androidx.fragment.app.Fragment,
+                newFragment: com.vinaooo.revenger.ui.retromenu3.MenuFragmentBase,
                 isMainMenu: Boolean
         ) {
                 Log.d(TAG, "[ORIENTATION] 📋 Recriando hierarquia: isMainMenu=$isMainMenu")
@@ -703,7 +703,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
          */
         private fun rebuildSubmenuStackAfterRotation(
                 effectiveState: com.vinaooo.revenger.ui.retromenu3.MenuState,
-                newFragment: androidx.fragment.app.Fragment
+                newFragment: com.vinaooo.revenger.ui.retromenu3.MenuFragmentBase
         ) {
                 val fragmentManager = supportFragmentManager
 
@@ -742,7 +742,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
          */
         private fun addSubmenuOnTopAfterRotation(
                 effectiveState: com.vinaooo.revenger.ui.retromenu3.MenuState,
-                newFragment: androidx.fragment.app.Fragment
+                newFragment: com.vinaooo.revenger.ui.retromenu3.MenuFragmentBase
         ) {
                 val fragmentManager = supportFragmentManager
 
@@ -781,7 +781,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
          */
         private fun registerSubmenuAndSyncNavigationAfterRotation(
                 effectiveState: com.vinaooo.revenger.ui.retromenu3.MenuState,
-                newFragment: androidx.fragment.app.Fragment
+                newFragment: com.vinaooo.revenger.ui.retromenu3.MenuFragmentBase
         ) {
                 when (effectiveState) {
                         com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> {
