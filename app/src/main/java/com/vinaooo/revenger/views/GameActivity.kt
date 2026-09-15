@@ -479,98 +479,15 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                         // The visible Fragment may be temporarily
                                         // outdated after BACK
                                         val effectiveState =
-                                                if (hasBackStackNow) {
-                                                        // There is backstack: check which submenu
-                                                        // is
-                                                        // ativo
-                                                        // Detectar estado REAL baseado no Fragment
-                                                        // visible
-                                                        val actualIsSubmenu =
-                                                                when (visibleFragment) {
-                                                                        is com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment,
-                                                                        is com.vinaooo.revenger.ui.retromenu3.ProgressFragment,
-                                                                        is com.vinaooo.revenger.ui.retromenu3.AboutFragment,
-                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitFragment,
-                                                                        is com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment,
-                                                                        is com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment,
-                                                                        is com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment,
-                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment ->
-                                                                                true
-                                                                        else -> false
-                                                                }
-
-                                                        Log.d(
-                                                                TAG,
-                                                                "[ORIENTATION] Backstack presente - detectando submenu: $actualIsSubmenu"
+                                                com.vinaooo.revenger.views.menu
+                                                        .RotationMenuStateResolver
+                                                        .resolve(
+                                                                visibleFragment =
+                                                                        visibleFragment,
+                                                                hasBackStack =
+                                                                        hasBackStackNow,
+                                                                currentState = currentState
                                                         )
-
-                                                        // Use state based on the visible Fragment
-                                                        // se houver
-                                                        // submenu
-                                                        if (actualIsSubmenu) {
-                                                                when (visibleFragment) {
-                                                                        is com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment ->
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .MenuState
-                                                                                        .SETTINGS_MENU
-                                                                        is com.vinaooo.revenger.ui.retromenu3.ProgressFragment ->
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .MenuState
-                                                                                        .PROGRESS_MENU
-                                                                        is com.vinaooo.revenger.ui.retromenu3.AboutFragment ->
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .MenuState
-                                                                                        .ABOUT_MENU
-                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitFragment ->
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .MenuState
-                                                                                        .EXIT_MENU
-                                                                        is com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment ->
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .MenuState
-                                                                                        .SAVE_SLOTS_MENU
-                                                                        is com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment ->
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .MenuState
-                                                                                        .LOAD_SLOTS_MENU
-                                                                        is com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment ->
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .MenuState
-                                                                                        .MANAGE_SAVES_MENU
-                                                                        is com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment ->
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .MenuState
-                                                                                        .EXIT_SAVE_SLOTS_MENU
-                                                                        else -> currentState
-                                                                }
-                                                        } else {
-                                                                currentState
-                                                        }
-                                                } else {
-                                                        // Backstack vazio: SEMPRE usar MAIN_MENU
-                                                        Log.d(
-                                                                TAG,
-                                                                "[ORIENTATION] ⚠️ Backstack empty - forcing MAIN_MENU (currentState was: $currentState)"
-                                                        )
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .MAIN_MENU
-                                                }
 
                                         Log.d(
                                                 TAG,
