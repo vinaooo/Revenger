@@ -444,643 +444,458 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 Log.d(TAG, "[ORIENTATION] ✅ Menu fragment found, proceeding with recreation")
 
                 // Wait for system to complete rotation
+                scheduleMenuRecreationAfterRotation(visibleFragment, hasBackStack, currentState)
+        }
+
+        /**
+         * Step 0 of the rotation menu-recreation chain: wait for the system to finish processing
+         * the rotation before touching the fragment hierarchy.
+         *
+         * @param visibleFragment the menu fragment that was in the container when the configuration
+         *   change arrived. Captured *before* the delay on purpose: the state resolution below is
+         *   based on what was showing when the rotation started, not on what is showing 250ms later.
+         * @param hasBackStack backstack presence as observed when the configuration change arrived.
+         * @param currentState the menu manager's state as captured when the configuration change
+         *   arrived.
+         */
+        private fun scheduleMenuRecreationAfterRotation(
+                visibleFragment: androidx.fragment.app.Fragment,
+                hasBackStack: Boolean,
+                currentState: com.vinaooo.revenger.ui.retromenu3.MenuState
+        ) {
                 android.os.Handler(android.os.Looper.getMainLooper())
                         .postDelayed(
                                 {
-                                        Log.d(
-                                                TAG,
-                                                "[ORIENTATION] 🔄 Inside postDelayed - starting fragment recreation"
-                                        )
-                                        
-                                        // CRITICAL: Double check if menu was dismissed during the delay
-                                        val currentVisibleFragment = fragmentManager.findFragmentById(R.id.menu_container)
-                                        if (currentVisibleFragment == null || !currentVisibleFragment.isAdded || !viewModel.isAnyMenuActive()) {
-                                                Log.d(TAG, "[ORIENTATION] ⏭️ Fragment dismissed during rotation delay, aborting recreation")
-                                                return@postDelayed
-                                        }
-
-                                        // CRITICAL FIX: Re-check backstack INSIDE postDelayed
-                                        // The backstack may have changed between the initial check
-                                        // and
-                                        // execution
-                                        // do postDelayed
-                                        val currentBackStackCount =
-                                                fragmentManager.backStackEntryCount
-                                        val hasBackStackNow = currentBackStackCount > 0
-
-                                        Log.d(
-                                                TAG,
-                                                "[ORIENTATION] ⚠️ RE-CHECKING backstack: initial=$hasBackStack, now=$hasBackStackNow"
-                                        )
-
-                                        // CRITICAL FIX: Prioritize backstack over the visible
-                                        // Fragment
-                                        // If backstack is empty, ALWAYS use MAIN_MENU
-                                        // The visible Fragment may be temporarily
-                                        // outdated after BACK
-                                        val effectiveState =
-                                                com.vinaooo.revenger.views.menu
-                                                        .RotationMenuStateResolver
-                                                        .resolve(
-                                                                visibleFragment =
-                                                                        visibleFragment,
-                                                                hasBackStack =
-                                                                        hasBackStackNow,
-                                                                currentState = currentState
-                                                        )
-
-                                        Log.d(
-                                                TAG,
-                                                "[ORIENTATION] Estado efetivo: $effectiveState (original: $currentState)"
-                                        )
-
-                                        // Criar instância do Fragment correto baseado no estado
-                                        // efetivo
-                                        val newFragment =
-                                                when (effectiveState) {
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .MAIN_MENU -> {
-                                                                Log.d(
-                                                                        TAG,
-                                                                        "[ORIENTATION] 📋 Menu principal ativo"
-                                                                )
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .RetroMenu3Fragment()
-                                                        }
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .SETTINGS_MENU -> {
-                                                                Log.d(
-                                                                        TAG,
-                                                                        "[ORIENTATION] 📋 Submenu ativo: SETTINGS"
-                                                                )
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .SettingsMenuFragment()
-                                                        }
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .PROGRESS_MENU -> {
-                                                                Log.d(
-                                                                        TAG,
-                                                                        "[ORIENTATION] 📋 Submenu ativo: PROGRESS"
-                                                                )
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .ProgressFragment()
-                                                        }
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .ABOUT_MENU -> {
-                                                                Log.d(
-                                                                        TAG,
-                                                                        "[ORIENTATION] 📋 Submenu ativo: ABOUT"
-                                                                )
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .AboutFragment()
-                                                        }
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .EXIT_MENU -> {
-                                                                Log.d(
-                                                                        TAG,
-                                                                        "[ORIENTATION] 📋 Submenu ativo: EXIT"
-                                                                )
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .ExitFragment.newInstance()
-                                                        }
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .SAVE_SLOTS_MENU -> {
-                                                                Log.d(
-                                                                        TAG,
-                                                                        "[ORIENTATION] 📋 Submenu ativo: SAVE_SLOTS"
-                                                                )
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .SaveSlotsFragment.newInstance()
-                                                        }
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .LOAD_SLOTS_MENU -> {
-                                                                Log.d(
-                                                                        TAG,
-                                                                        "[ORIENTATION] 📋 Submenu ativo: LOAD_SLOTS"
-                                                                )
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .LoadSlotsFragment.newInstance()
-                                                        }
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .MANAGE_SAVES_MENU -> {
-                                                                Log.d(
-                                                                        TAG,
-                                                                        "[ORIENTATION] 📋 Submenu ativo: MANAGE_SAVES"
-                                                                )
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .ManageSavesFragment.newInstance()
-                                                        }
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .EXIT_SAVE_SLOTS_MENU -> {
-                                                                Log.d(
-                                                                        TAG,
-                                                                        "[ORIENTATION] 📋 Submenu ativo: EXIT_SAVE_SLOTS"
-                                                                )
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .ExitSaveGridFragment.newInstance()
-                                                        }
-else -> com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment()
-                                                }
-
-                                        // NOTE: NavigationController syncState will be
-                                        // called AFTER all fragments
-                                        // to be created and registered (in postDelayed after
-                                        // registrar submenu).
-                                        // Isso evita que registerFragment() sobrescreva o
-                                        // estado.
-
-                                        val isMainMenu =
-                                                effectiveState ==
-                                                        com.vinaooo.revenger.ui.retromenu3.MenuState
-                                                                .MAIN_MENU
-
-                                        // Limpar COMPLETAMENTE o backstack antes de recriar
-                                        Log.d(
-                                                TAG,
-                                                "[ORIENTATION] 🗑️ Limpando backstack (count=${fragmentManager.backStackEntryCount})"
-                                        )
-                                        fragmentManager.popBackStack(
-                                                null,
-                                                androidx.fragment.app.FragmentManager
-                                                        .POP_BACK_STACK_INCLUSIVE
-                                        )
-
-                                        // Remover qualquer Fragment que esteja no container
-                                        fragmentManager.findFragmentById(R.id.menu_container)
-                                                ?.let { existingFragment ->
-                                                        Log.d(
-                                                                TAG,
-                                                                "[ORIENTATION] 🗑️ Removendo fragment existente: ${existingFragment::class.java.simpleName}"
-                                                        )
-                                                        fragmentManager
-                                                                .beginTransaction()
-                                                                .remove(existingFragment)
-                                                                .commitNowAllowingStateLoss()
-                                                }
-
-                                        // Aguardar limpeza completa
-                                        android.os.Handler(android.os.Looper.getMainLooper())
-                                                .postDelayed(
-                                                        {
-                                                                // Use the backstack state
-                                                                // from BEFORE cleanup
-                                                                // (hasBackStackNow)
-                                                                // We cleared the backstack
-                                                                // above, so checking
-                                                                // it now would always be 0
-                                                                Log.d(
-                                                                        TAG,
-                                                                        "[ORIENTATION] 📋 Recriando hierarquia: isMainMenu=$isMainMenu"
-                                                                )
-
-                                                                if (isMainMenu) {
-                                                                        // MAIN_MENU
-                                                                        // sozinho:
-                                                                        // adicionar sem
-                                                                        // backstack
-                                                                        // Create NEW
-                                                                        // RetroMenu3Fragment
-                                                                        val mainMenuFragment =
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .RetroMenu3Fragment()
-
-                                                                        Log.d(
-                                                                                TAG,
-                                                                                "[ORIENTATION] ➕ Adicionando RetroMenu3Fragment"
-                                                                        )
-                                                                        val transaction =
-                                                                                fragmentManager
-                                                                                        .beginTransaction()
-                                                                                        .replace(
-                                                                                                R.id.menu_container,
-                                                                                                mainMenuFragment,
-                                                                                                "RetroMenu3Fragment"
-                                                                                        )
-
-                                                                        transaction.runOnCommit {
-                                                                                Log.d(
-                                                                                        TAG,
-                                                                                        "[ORIENTATION] 🔄 Main menu committed, updating reference"
-                                                                                )
-
-                                                                                // Atualizar
-                                                                                // referência do
-                                                                                // RetroMenu3Fragment no ViewModel
-                                                                                viewModel
-                                                                                        .updateRetroMenu3FragmentReference(
-                                                                                                mainMenuFragment
-                                                                                        )
-                                                                                Log.d(
-                                                                                        TAG,
-                                                                                        "[ORIENTATION] 📋 RetroMenu3Fragment reference updated"
-                                                                                )
-
-                                                                                // Restaurar foco
-                                                                                android.os.Handler(
-                                                                                                android.os
-                                                                                                        .Looper
-                                                                                                        .getMainLooper()
-                                                                                        )
-                                                                                        .postDelayed(
-                                                                                                {
-                                                                                                        val firstItem =
-                                                                                                                findViewById<
-                                                                                                                        android.view.View>(
-                                                                                                                        R.id.menu_continue
-                                                                                                                )
-                                                                                                        if (firstItem !=
-                                                                                                                        null &&
-                                                                                                                        firstItem
-                                                                                                                                .isFocusable
-                                                                                                        ) {
-                                                                                                                firstItem
-                                                                                                                        .requestFocus()
-                                                                                                                Log.d(
-                                                                                                                        TAG,
-                                                                                                                        "[ORIENTATION] 🎮 Foco restaurado no menu principal"
-                                                                                                                )
-                                                                                                        }
-                                                                                                },
-                                                                                                500
-                                                                                        )
-                                                                        }
-
-                                                                        transaction.commit()
-                                                                } else {
-                                                                        // SUBMENU:
-                                                                        // precisamos
-                                                                        // recriar TODA a
-                                                                        // pilha
-                                                                        // (base + topo)
-                                                                        Log.d(
-                                                                                TAG,
-                                                                                "[ORIENTATION] ➕ Recriando pilha: RetroMenu3 (base) + Submenu (topo)"
-                                                                        )
-
-                                                                        // 1. Adicionar
-                                                                        // RetroMenu3Fragment na
-                                                                        // base
-                                                                        // (sem backstack)
-                                                                        val retroMenu3 =
-                                                                                com.vinaooo.revenger
-                                                                                        .ui
-                                                                                        .retromenu3
-                                                                                        .RetroMenu3Fragment()
-                                                                        fragmentManager
-                                                                                .beginTransaction()
-                                                                                .replace(
-                                                                                        R.id.menu_container,
-                                                                                        retroMenu3,
-                                                                                        "RetroMenu3Fragment"
-                                                                                )
-                                                                                .commitNowAllowingStateLoss()
-
-                                                                        // Atualizar
-                                                                        // referência no
-                                                                        // ViewModel
-                                                                        viewModel
-                                                                                .updateRetroMenu3FragmentReference(
-                                                                                        retroMenu3
-                                                                                )
-                                                                        Log.d(
-                                                                                TAG,
-                                                                                "[ORIENTATION] 📋 Base RetroMenu3Fragment created and registered"
-                                                                        )
-
-                                                                        // CRITICAL: Update
-                                                                        // MenuStateManager
-                                                                        // to the
-                                                                        // submenu state
-                                                                        // This ensures
-                                                                        // getCurrentFragment()
-                                                                        // returns
-                                                                        // the correct
-                                                                        // Fragment
-                                                                        viewModel
-                                                                                .getMenuManager()
-                                                                                .navigateToState(
-                                                                                        effectiveState
-                                                                                )
-                                                                        Log.d(
-                                                                                TAG,
-                                                                                "[ORIENTATION] 🎯 MenuStateManager updated to state: $effectiveState"
-                                                                        )
-
-                                                                        // 2. Aguardar e
-                                                                        // adicionar submenu
-                                                                        // no topo
-                                                                        // (COM backstack)
-                                                                        android.os.Handler(
-                                                                                        android.os
-                                                                                                .Looper
-                                                                                                .getMainLooper()
-                                                                                )
-                                                                                .postDelayed(
-                                                                                        {
-                                                                                                val submenuTag =
-                                                                                                        newFragment::class
-                                                                                                                .java
-                                                                                                                .simpleName
-                                                                                                Log.d(
-                                                                                                        TAG,
-                                                                                                        "[ORIENTATION] ➕ Adding submenu on top: $submenuTag"
-                                                                                                )
-
-                                                                                                fragmentManager
-                                                                                                        .beginTransaction()
-                                                                                                        .replace(
-                                                                                                                R.id.menu_container,
-                                                                                                                newFragment,
-                                                                                                                submenuTag
-                                                                                                        )
-                                                                                                        .addToBackStack(
-                                                                                                                submenuTag
-                                                                                                        )
-                                                                                                        .commit()
-
-                                                                                                // CRITICAL: Register
-                                                                                                // submenu in ViewModel
-                                                                                                // (listener already
-                                                                                                // configured)
-                                                                                                android.os
-                                                                                                        .Handler(
-                                                                                                                android.os
-                                                                                                                        .Looper
-                                                                                                                        .getMainLooper()
-                                                                                                        )
-                                                                                                        .postDelayed(
-                                                                                                                {
-                                                                                                                        when (effectiveState
-                                                                                                                        ) {
-                                                                                                                                com.vinaooo
-                                                                                                                                        .revenger
-                                                                                                                                        .ui
-                                                                                                                                        .retromenu3
-                                                                                                                                        .MenuState
-                                                                                                                                        .SETTINGS_MENU -> {
-                                                                                                                                        val settingsFragment =
-                                                                                                                                                newFragment as
-                                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
-                                                                                                                                        // Use lightweight registration for rotation (doesn't activate state)
-                                                                                                                                        viewModel
-                                                                                                                                                .registerSettingsMenuFragmentForRotation(
-                                                                                                                                                        settingsFragment
-                                                                                                                                                )
-                                                                                                                                        Log.d(
-                                                                                                                                                TAG,
-                                                                                                                                                "[ORIENTATION] 📋 SettingsMenuFragment registered (rotation)"
-                                                                                                                                        )
-                                                                                                                                }
-                                                                                                                                com.vinaooo
-                                                                                                                                        .revenger
-                                                                                                                                        .ui
-                                                                                                                                        .retromenu3
-                                                                                                                                        .MenuState
-                                                                                                                                        .PROGRESS_MENU -> {
-                                                                                                                                        viewModel
-                                                                                                                                                .registerProgressFragmentForRotation(
-                                                                                                                                                        newFragment as
-                                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.ProgressFragment
-                                                                                                                                                )
-                                                                                                                                        Log.d(
-                                                                                                                                                TAG,
-                                                                                                                                                "[ORIENTATION] 📋 ProgressFragment registered (rotation)"
-                                                                                                                                        )
-                                                                                                                                }
-                                                                                                                                com.vinaooo
-                                                                                                                                        .revenger
-                                                                                                                                        .ui
-                                                                                                                                        .retromenu3
-                                                                                                                                        .MenuState
-                                                                                                                                        .ABOUT_MENU -> {
-                                                                                                                                        viewModel
-                                                                                                                                                .registerAboutFragmentForRotation(
-                                                                                                                                                        newFragment as
-                                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.AboutFragment
-                                                                                                                                                )
-                                                                                                                                        Log.d(
-                                                                                                                                                TAG,
-                                                                                                                                                "[ORIENTATION] 📋 AboutFragment registered (rotation)"
-                                                                                                                                        )
-                                                                                                                                }
-                                                                                                                                com.vinaooo
-                                                                                                                                        .revenger
-                                                                                                                                        .ui
-                                                                                                                                        .retromenu3
-                                                                                                                                        .MenuState
-                                                                                                                                        .EXIT_MENU -> {
-                                                                                                                                        viewModel
-                                                                                                                                                .registerExitFragmentForRotation(
-                                                                                                                                                        newFragment as
-                                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.ExitFragment
-                                                                                                                                                )
-                                                                                                                                        Log.d(
-                                                                                                                                                TAG,
-                                                                                                                                                "[ORIENTATION] 📋 ExitFragment registered (rotation)"
-                                                                                                                                        )
-                                                                                                                                }
-                                                                                                                                else -> {
-                                                                                                                                        Log.w(
-                                                                                                                                                TAG,
-                                                                                                                                                "[ORIENTATION] ⚠️ Unknown state, submenu not registered"
-                                                                                                                                        )
-                                                                                                                                }
-                                                                                                                        }
-
-                                                                                                                        // CRITICAL: Synchronize NavigationController state AFTER all fragments
-                                                                                                                        // to be created and registered. This prevents registerFragment() from overwriting state.
-                                                                                                                        val navMenuTypeForSync =
-                                                                                                                                when (effectiveState
-                                                                                                                                ) {
-                                                                                                                                        com.vinaooo
-                                                                                                                                                .revenger
-                                                                                                                                                .ui
-                                                                                                                                                .retromenu3
-                                                                                                                                                .MenuState
-                                                                                                                                                .MAIN_MENU ->
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .navigation
-                                                                                                                                                        .MenuType
-                                                                                                                                                        .MAIN
-                                                                                                                                        com.vinaooo
-                                                                                                                                                .revenger
-                                                                                                                                                .ui
-                                                                                                                                                .retromenu3
-                                                                                                                                                .MenuState
-                                                                                                                                                .SETTINGS_MENU ->
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .navigation
-                                                                                                                                                        .MenuType
-                                                                                                                                                        .SETTINGS
-                                                                                                                                        com.vinaooo
-                                                                                                                                                .revenger
-                                                                                                                                                .ui
-                                                                                                                                                .retromenu3
-                                                                                                                                                .MenuState
-                                                                                                                                                .PROGRESS_MENU ->
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .navigation
-                                                                                                                                                        .MenuType
-                                                                                                                                                        .PROGRESS
-                                                                                                                                        com.vinaooo
-                                                                                                                                                .revenger
-                                                                                                                                                .ui
-                                                                                                                                                .retromenu3
-                                                                                                                                                .MenuState
-                                                                                                                                                .ABOUT_MENU ->
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .navigation
-                                                                                                                                                        .MenuType
-                                                                                                                                                        .ABOUT
-                                                                                                                                        com.vinaooo
-                                                                                                                                                .revenger
-                                                                                                                                                .ui
-                                                                                                                                                .retromenu3
-                                                                                                                                                .MenuState
-                                                                                                                                                .EXIT_MENU ->
-                                                                                                                                                com.vinaooo
-                                                                                                                                                        .revenger
-                                                                                                                                                        .ui
-                                                                                                                                                        .retromenu3
-                                                                                                                                                        .navigation
-                                                                                                                                                        .MenuType
-                                                                                                                                                        .EXIT
-                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.SAVE_SLOTS_MENU ->
-                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.SAVE_SLOTS
-                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.LOAD_SLOTS_MENU ->
-                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.LOAD_SLOTS
-                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.MANAGE_SAVES_MENU ->
-                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MANAGE_SAVES
-                                                                                                                                        com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_SAVE_SLOTS_MENU ->
-                                                                                                                                                com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.EXIT_SAVE_SLOTS
-else -> com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MAIN
-                                                                                                                                }
-                                                                                                                        viewModel
-                                                                                                                                .navigationController
-                                                                                                                                ?.syncState(
-                                                                                                                                        menuType =
-                                                                                                                                                navMenuTypeForSync,
-                                                                                                                                        selectedIndex =
-                                                                                                                                                0,
-                                                                                                                                        clearStack =
-                                                                                                                                                false // Do not clear stack because backstack has already been rebuilt
-                                                                                                                                )
-                                                                                                                        Log.d(
-                                                                                                                                TAG,
-                                                                                                                                "[ORIENTATION] 🔄 NavigationController syncState chamado: $navMenuTypeForSync"
-                                                                                                                        )
-                                                                                                                },
-                                                                                                                100
-                                                                                                        ) // Aguardar
-                                                                                                // Fragment
-                                                                                                // ser
-                                                                                                // adicionado
-                                                                                                // antes de
-                                                                                                // registrar
-
-                                                                                                // Restaurar foco no
-                                                                                                // submenu
-                                                                                                android.os
-                                                                                                        .Handler(
-                                                                                                                android.os
-                                                                                                                        .Looper
-                                                                                                                        .getMainLooper()
-                                                                                                        )
-                                                                                                        .postDelayed(
-                                                                                                                {
-                                                                                                                        val firstFocusableId =
-                                                                                                                                when (effectiveState
-                                                                                                                                ) {
-                                                                                                                                        com.vinaooo
-                                                                                                                                                .revenger
-                                                                                                                                                .ui
-                                                                                                                                                .retromenu3
-                                                                                                                                                .MenuState
-                                                                                                                                                .SETTINGS_MENU ->
-                                                                                                                                                R.id.settings_sound
-                                                                                                                                        com.vinaooo
-                                                                                                                                                .revenger
-                                                                                                                                                .ui
-                                                                                                                                                .retromenu3
-                                                                                                                                                .MenuState
-                                                                                                                                                .PROGRESS_MENU ->
-                                                                                                                                                R.id.progress_load_state
-                                                                                                                                        com.vinaooo
-                                                                                                                                                .revenger
-                                                                                                                                                .ui
-                                                                                                                                                .retromenu3
-                                                                                                                                                .MenuState
-                                                                                                                                                .ABOUT_MENU ->
-                                                                                                                                                R.id.about_back
-                                                                                                                                        com.vinaooo
-                                                                                                                                                .revenger
-                                                                                                                                                .ui
-                                                                                                                                                .retromenu3
-                                                                                                                                                .MenuState
-                                                                                                                                                .EXIT_MENU ->
-                                                                                                                                                R.id.exit_menu_option_a
-                                                                                                                                        else ->
-                                                                                                                                                null
-                                                                                                                                }
-
-                                                                                                                        if (firstFocusableId !=
-                                                                                                                                        null
-                                                                                                                        ) {
-                                                                                                                                val firstItem =
-                                                                                                                                        findViewById<
-                                                                                                                                                android.view.View>(
-                                                                                                                                                firstFocusableId
-                                                                                                                                        )
-                                                                                                                                if (firstItem !=
-                                                                                                                                                null &&
-                                                                                                                                                firstItem
-                                                                                                                                                        .isFocusable
-                                                                                                                                ) {
-                                                                                                                                        firstItem
-                                                                                                                                                .requestFocus()
-                                                                                                                                        Log.d(
-                                                                                                                                                TAG,
-                                                                                                                                                "[ORIENTATION] 🎮 Foco restaurado no submenu"
-                                                                                                                                        )
-                                                                                                                                }
-                                                                                                                        }
-                                                                                                                },
-                                                                                                                600
-                                                                                                        )
-                                                                                        },
-                                                                                        150
-                                                                                ) // Delay
-                                                                        // para
-                                                                        // garantir que
-                                                                        // RetroMenu3 foi
-                                                                        // completamente
-                                                                        // adicionado
-                                                                }
-                                                        },
-                                                        100
-                                                )
-
-                                        Log.d(
-                                                TAG,
-                                                "[ORIENTATION] ====== ORIENTATION CHECK COMPLETED ======"
+                                        recreateMenuAfterRotation(
+                                                visibleFragment,
+                                                hasBackStack,
+                                                currentState
                                         )
                                 },
                                 250
                         ) // Delay to ensure the system finished processing rotation
+        }
+
+        /**
+         * Step 1: decide what to rebuild, build the replacement fragment, and tear down the old
+         * hierarchy. Schedules [rebuildMenuHierarchyAfterRotation] to do the rebuilding once the
+         * teardown has settled.
+         */
+        private fun recreateMenuAfterRotation(
+                visibleFragment: androidx.fragment.app.Fragment,
+                hasBackStack: Boolean,
+                currentState: com.vinaooo.revenger.ui.retromenu3.MenuState
+        ) {
+                Log.d(TAG, "[ORIENTATION] 🔄 Inside postDelayed - starting fragment recreation")
+
+                val fragmentManager = supportFragmentManager
+
+                // CRITICAL: Double check if menu was dismissed during the delay
+                val currentVisibleFragment = fragmentManager.findFragmentById(R.id.menu_container)
+                if (currentVisibleFragment == null ||
+                                !currentVisibleFragment.isAdded ||
+                                !viewModel.isAnyMenuActive()
+                ) {
+                        Log.d(
+                                TAG,
+                                "[ORIENTATION] ⏭️ Fragment dismissed during rotation delay, aborting recreation"
+                        )
+                        return
+                }
+
+                // CRITICAL FIX: Re-check backstack INSIDE postDelayed
+                // The backstack may have changed between the initial check and execution
+                // do postDelayed
+                val currentBackStackCount = fragmentManager.backStackEntryCount
+                val hasBackStackNow = currentBackStackCount > 0
+
+                Log.d(
+                        TAG,
+                        "[ORIENTATION] ⚠️ RE-CHECKING backstack: initial=$hasBackStack, now=$hasBackStackNow"
+                )
+
+                // CRITICAL FIX: Prioritize backstack over the visible Fragment
+                // If backstack is empty, ALWAYS use MAIN_MENU
+                // The visible Fragment may be temporarily outdated after BACK
+                val effectiveState =
+                        com.vinaooo.revenger.views.menu.RotationMenuStateResolver.resolve(
+                                visibleFragment = visibleFragment,
+                                hasBackStack = hasBackStackNow,
+                                currentState = currentState
+                        )
+
+                Log.d(
+                        TAG,
+                        "[ORIENTATION] Estado efetivo: $effectiveState (original: $currentState)"
+                )
+
+                // Criar instância do Fragment correto baseado no estado efetivo
+                val newFragment = createFragmentForRotationState(effectiveState)
+
+                // NOTE: NavigationController syncState will be called AFTER all fragments
+                // to be created and registered (in postDelayed after registrar submenu).
+                // Isso evita que registerFragment() sobrescreva o estado.
+
+                val isMainMenu =
+                        effectiveState == com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU
+
+                // Limpar COMPLETAMENTE o backstack antes de recriar
+                Log.d(
+                        TAG,
+                        "[ORIENTATION] 🗑️ Limpando backstack (count=${fragmentManager.backStackEntryCount})"
+                )
+                fragmentManager.popBackStack(
+                        null,
+                        androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+                )
+
+                // Remover qualquer Fragment que esteja no container
+                fragmentManager.findFragmentById(R.id.menu_container)?.let { existingFragment ->
+                        Log.d(
+                                TAG,
+                                "[ORIENTATION] 🗑️ Removendo fragment existente: ${existingFragment::class.java.simpleName}"
+                        )
+                        fragmentManager
+                                .beginTransaction()
+                                .remove(existingFragment)
+                                .commitNowAllowingStateLoss()
+                }
+
+                // Aguardar limpeza completa
+                android.os.Handler(android.os.Looper.getMainLooper())
+                        .postDelayed(
+                                {
+                                        rebuildMenuHierarchyAfterRotation(
+                                                effectiveState,
+                                                newFragment,
+                                                isMainMenu
+                                        )
+                                },
+                                100
+                        )
+
+                Log.d(TAG, "[ORIENTATION] ====== ORIENTATION CHECK COMPLETED ======")
+        }
+
+        /**
+         * Instantiates the fragment the rotation should rebuild for [effectiveState].
+         *
+         * Note this enumerates a different set of states than the registration and focus-restore
+         * steps further down the chain; those gaps are pre-existing and deliberately unchanged.
+         */
+        private fun createFragmentForRotationState(
+                effectiveState: com.vinaooo.revenger.ui.retromenu3.MenuState
+        ): androidx.fragment.app.Fragment =
+                when (effectiveState) {
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU -> {
+                                Log.d(TAG, "[ORIENTATION] 📋 Menu principal ativo")
+                                com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment()
+                        }
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> {
+                                Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: SETTINGS")
+                                com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment()
+                        }
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> {
+                                Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: PROGRESS")
+                                com.vinaooo.revenger.ui.retromenu3.ProgressFragment()
+                        }
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> {
+                                Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: ABOUT")
+                                com.vinaooo.revenger.ui.retromenu3.AboutFragment()
+                        }
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
+                                Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: EXIT")
+                                com.vinaooo.revenger.ui.retromenu3.ExitFragment.newInstance()
+                        }
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.SAVE_SLOTS_MENU -> {
+                                Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: SAVE_SLOTS")
+                                com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment.newInstance()
+                        }
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.LOAD_SLOTS_MENU -> {
+                                Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: LOAD_SLOTS")
+                                com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment.newInstance()
+                        }
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.MANAGE_SAVES_MENU -> {
+                                Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: MANAGE_SAVES")
+                                com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment.newInstance()
+                        }
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_SAVE_SLOTS_MENU -> {
+                                Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: EXIT_SAVE_SLOTS")
+                                com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment.newInstance()
+                        }
+                        else -> com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment()
+                }
+
+        /**
+         * Step 2: rebuild the hierarchy once the old one has been torn down.
+         *
+         * Uses the backstack state captured BEFORE cleanup (via [isMainMenu]); checking it now would
+         * always read 0, because the backstack was cleared in the previous step.
+         */
+        private fun rebuildMenuHierarchyAfterRotation(
+                effectiveState: com.vinaooo.revenger.ui.retromenu3.MenuState,
+                newFragment: androidx.fragment.app.Fragment,
+                isMainMenu: Boolean
+        ) {
+                Log.d(TAG, "[ORIENTATION] 📋 Recriando hierarquia: isMainMenu=$isMainMenu")
+
+                if (isMainMenu) {
+                        rebuildMainMenuAfterRotation()
+                } else {
+                        rebuildSubmenuStackAfterRotation(effectiveState, newFragment)
+                }
+        }
+
+        /**
+         * Main-menu branch of step 2: MAIN_MENU sozinho, adicionado sem backstack.
+         *
+         * Committed asynchronously with [androidx.fragment.app.FragmentTransaction.commit], with the
+         * ViewModel reference update and focus restore hung off `runOnCommit`. The submenu branch
+         * commits synchronously instead; that difference is deliberate.
+         */
+        private fun rebuildMainMenuAfterRotation() {
+                val fragmentManager = supportFragmentManager
+
+                // Create NEW RetroMenu3Fragment
+                val mainMenuFragment = com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment()
+
+                Log.d(TAG, "[ORIENTATION] ➕ Adicionando RetroMenu3Fragment")
+                val transaction =
+                        fragmentManager
+                                .beginTransaction()
+                                .replace(
+                                        R.id.menu_container,
+                                        mainMenuFragment,
+                                        "RetroMenu3Fragment"
+                                )
+
+                transaction.runOnCommit {
+                        Log.d(TAG, "[ORIENTATION] 🔄 Main menu committed, updating reference")
+
+                        // Atualizar referência do RetroMenu3Fragment no ViewModel
+                        viewModel.updateRetroMenu3FragmentReference(mainMenuFragment)
+                        Log.d(TAG, "[ORIENTATION] 📋 RetroMenu3Fragment reference updated")
+
+                        // Restaurar foco
+                        android.os.Handler(android.os.Looper.getMainLooper())
+                                .postDelayed({ restoreMainMenuFocusAfterRotation() }, 500)
+                }
+
+                transaction.commit()
+        }
+
+        /** Terminal step of the main-menu branch: restore focus to the first menu entry. */
+        private fun restoreMainMenuFocusAfterRotation() {
+                val firstItem = findViewById<android.view.View>(R.id.menu_continue)
+                if (firstItem != null && firstItem.isFocusable) {
+                        firstItem.requestFocus()
+                        Log.d(TAG, "[ORIENTATION] 🎮 Foco restaurado no menu principal")
+                }
+        }
+
+        /**
+         * Submenu branch of step 2: precisamos recriar TODA a pilha (base + topo).
+         *
+         * The base menu is committed synchronously
+         * ([androidx.fragment.app.FragmentTransaction.commitNowAllowingStateLoss]), unlike the
+         * main-menu branch, and `navigateToState` fires here — before the submenu fragment on top
+         * exists — so that `getCurrentFragment()` resolves correctly for the steps that follow.
+         */
+        private fun rebuildSubmenuStackAfterRotation(
+                effectiveState: com.vinaooo.revenger.ui.retromenu3.MenuState,
+                newFragment: androidx.fragment.app.Fragment
+        ) {
+                val fragmentManager = supportFragmentManager
+
+                Log.d(TAG, "[ORIENTATION] ➕ Recriando pilha: RetroMenu3 (base) + Submenu (topo)")
+
+                // 1. Adicionar RetroMenu3Fragment na base (sem backstack)
+                val retroMenu3 = com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment()
+                fragmentManager
+                        .beginTransaction()
+                        .replace(R.id.menu_container, retroMenu3, "RetroMenu3Fragment")
+                        .commitNowAllowingStateLoss()
+
+                // Atualizar referência no ViewModel
+                viewModel.updateRetroMenu3FragmentReference(retroMenu3)
+                Log.d(TAG, "[ORIENTATION] 📋 Base RetroMenu3Fragment created and registered")
+
+                // CRITICAL: Update MenuStateManager to the submenu state
+                // This ensures getCurrentFragment() returns the correct Fragment
+                viewModel.getMenuManager().navigateToState(effectiveState)
+                Log.d(TAG, "[ORIENTATION] 🎯 MenuStateManager updated to state: $effectiveState")
+
+                // 2. Aguardar e adicionar submenu no topo (COM backstack)
+                android.os.Handler(android.os.Looper.getMainLooper())
+                        .postDelayed(
+                                { addSubmenuOnTopAfterRotation(effectiveState, newFragment) },
+                                150
+                        ) // Delay para garantir que RetroMenu3 foi completamente adicionado
+        }
+
+        /**
+         * Step 3 of the submenu branch: put the submenu back on top, with a backstack entry.
+         *
+         * Schedules the two terminal steps as SIBLINGS, not nested: registration/sync runs at +100ms
+         * and focus restore at +600ms, both measured from here. Nesting the focus restore inside the
+         * registration callback would push it out to +700ms.
+         */
+        private fun addSubmenuOnTopAfterRotation(
+                effectiveState: com.vinaooo.revenger.ui.retromenu3.MenuState,
+                newFragment: androidx.fragment.app.Fragment
+        ) {
+                val fragmentManager = supportFragmentManager
+
+                val submenuTag = newFragment::class.java.simpleName
+                Log.d(TAG, "[ORIENTATION] ➕ Adding submenu on top: $submenuTag")
+
+                fragmentManager
+                        .beginTransaction()
+                        .replace(R.id.menu_container, newFragment, submenuTag)
+                        .addToBackStack(submenuTag)
+                        .commit()
+
+                // CRITICAL: Register submenu in ViewModel (listener already configured)
+                android.os.Handler(android.os.Looper.getMainLooper())
+                        .postDelayed(
+                                {
+                                        registerSubmenuAndSyncNavigationAfterRotation(
+                                                effectiveState,
+                                                newFragment
+                                        )
+                                },
+                                100
+                        ) // Aguardar Fragment ser adicionado antes de registrar
+
+                // Restaurar foco no submenu
+                android.os.Handler(android.os.Looper.getMainLooper())
+                        .postDelayed({ restoreSubmenuFocusAfterRotation(effectiveState) }, 600)
+        }
+
+        /**
+         * Step 4 of the submenu branch: register the rebuilt submenu with the ViewModel and
+         * synchronize the NavigationController.
+         *
+         * Only four of the eight submenu states have a registration call; the other four fall
+         * through to a warning. That gap is pre-existing and deliberately left alone here.
+         */
+        private fun registerSubmenuAndSyncNavigationAfterRotation(
+                effectiveState: com.vinaooo.revenger.ui.retromenu3.MenuState,
+                newFragment: androidx.fragment.app.Fragment
+        ) {
+                when (effectiveState) {
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> {
+                                val settingsFragment =
+                                        newFragment as
+                                                com.vinaooo.revenger.ui.retromenu3
+                                                        .SettingsMenuFragment
+                                // Use lightweight registration for rotation (doesn't activate state)
+                                viewModel.registerSettingsMenuFragmentForRotation(settingsFragment)
+                                Log.d(
+                                        TAG,
+                                        "[ORIENTATION] 📋 SettingsMenuFragment registered (rotation)"
+                                )
+                        }
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> {
+                                viewModel.registerProgressFragmentForRotation(
+                                        newFragment as
+                                                com.vinaooo.revenger.ui.retromenu3.ProgressFragment
+                                )
+                                Log.d(TAG, "[ORIENTATION] 📋 ProgressFragment registered (rotation)")
+                        }
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> {
+                                viewModel.registerAboutFragmentForRotation(
+                                        newFragment as
+                                                com.vinaooo.revenger.ui.retromenu3.AboutFragment
+                                )
+                                Log.d(TAG, "[ORIENTATION] 📋 AboutFragment registered (rotation)")
+                        }
+                        com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
+                                viewModel.registerExitFragmentForRotation(
+                                        newFragment as
+                                                com.vinaooo.revenger.ui.retromenu3.ExitFragment
+                                )
+                                Log.d(TAG, "[ORIENTATION] 📋 ExitFragment registered (rotation)")
+                        }
+                        else -> {
+                                Log.w(TAG, "[ORIENTATION] ⚠️ Unknown state, submenu not registered")
+                        }
+                }
+
+                // CRITICAL: Synchronize NavigationController state AFTER all fragments
+                // to be created and registered. This prevents registerFragment() from overwriting
+                // state.
+                val navMenuTypeForSync =
+                        when (effectiveState) {
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU ->
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MAIN
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU ->
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
+                                                .SETTINGS
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU ->
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
+                                                .PROGRESS
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU ->
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.ABOUT
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU ->
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.EXIT
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.SAVE_SLOTS_MENU ->
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
+                                                .SAVE_SLOTS
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.LOAD_SLOTS_MENU ->
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
+                                                .LOAD_SLOTS
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.MANAGE_SAVES_MENU ->
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
+                                                .MANAGE_SAVES
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_SAVE_SLOTS_MENU ->
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
+                                                .EXIT_SAVE_SLOTS
+                                else ->
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MAIN
+                        }
+                viewModel.navigationController?.syncState(
+                        menuType = navMenuTypeForSync,
+                        selectedIndex = 0,
+                        clearStack =
+                                false // Do not clear stack because backstack has already been
+                        // rebuilt
+                )
+                Log.d(
+                        TAG,
+                        "[ORIENTATION] 🔄 NavigationController syncState chamado: $navMenuTypeForSync"
+                )
+        }
+
+        /**
+         * Terminal step of the submenu branch: restore focus to the submenu's first focusable view.
+         *
+         * Only four of the eight submenu states map to a view id; the other four get `null` and no
+         * focus is restored. That gap is pre-existing and deliberately left alone here.
+         */
+        private fun restoreSubmenuFocusAfterRotation(
+                effectiveState: com.vinaooo.revenger.ui.retromenu3.MenuState
+        ) {
+                val firstFocusableId =
+                        when (effectiveState) {
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU ->
+                                        R.id.settings_sound
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU ->
+                                        R.id.progress_load_state
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU ->
+                                        R.id.about_back
+                                com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU ->
+                                        R.id.exit_menu_option_a
+                                else -> null
+                        }
+
+                if (firstFocusableId != null) {
+                        val firstItem = findViewById<android.view.View>(firstFocusableId)
+                        if (firstItem != null && firstItem.isFocusable) {
+                                firstItem.requestFocus()
+                                Log.d(TAG, "[ORIENTATION] 🎮 Foco restaurado no submenu")
+                        }
+                }
         }
 
         /**
