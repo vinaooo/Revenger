@@ -2,8 +2,6 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Activity
 import android.app.Application
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.*
 import android.view.KeyEvent
@@ -31,6 +29,7 @@ import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
+import com.vinaooo.revenger.viewmodels.menu.SaveLoadOrchestrator
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
@@ -91,6 +90,8 @@ class GameActivityViewModel(application: Application) :
             field = value
             // FUTURE: gameStateViewModel.setRetroViewUtils(value)
         }
+
+    private val saveLoadOrchestrator = SaveLoadOrchestrator()
 
     // Legacy references for backward compatibility
     private var leftGamePad: GamePad? = null
@@ -1302,25 +1303,9 @@ class GameActivityViewModel(application: Application) :
      * during load, without sending signals to core
      */
     fun loadStateCentralized(onComplete: (() -> Unit)? = null) {
-        val currentRetroView = retroView
-        val utils = retroViewUtils
-
-        if (currentRetroView?.frameRendered?.value != true || utils == null) {
-            onComplete?.invoke()
-            return
+        if (saveLoadOrchestrator.loadState(retroView, retroViewUtils, onComplete)) {
+            skipNextTempStateLoad = true
         }
-
-        if (utils.hasSaveState() != true) {
-            onComplete?.invoke()
-            return
-        }
-
-        val savedFrameSpeed = currentRetroView.view.frameSpeed
-        currentRetroView.view.frameSpeed = 1
-        utils.loadState(currentRetroView)
-        currentRetroView.view.frameSpeed = savedFrameSpeed
-        skipNextTempStateLoad = true
-        onComplete?.invoke()
     }
 
     /**
@@ -1328,32 +1313,7 @@ class GameActivityViewModel(application: Application) :
      * that could cause timing issues
      */
     fun saveStateCentralized(onComplete: (() -> Unit)? = null, keepPaused: Boolean = false) {
-        val currentRetroView = retroView
-        val utils = retroViewUtils
-
-        if (currentRetroView == null || utils == null) {
-            onComplete?.invoke()
-            return
-        }
-
-        val savedFrameSpeed = currentRetroView.view.frameSpeed
-        if (savedFrameSpeed == 0 && !keepPaused) {
-            // Only temporarily unpause if not explicitly keeping paused (menu context)
-            currentRetroView.view.frameSpeed = 1
-            Handler(Looper.getMainLooper())
-                    .postDelayed(
-                            {
-                                utils.saveState(currentRetroView)
-                                currentRetroView.view.frameSpeed = savedFrameSpeed
-                                onComplete?.invoke()
-                            },
-                            200
-                    )
-        } else {
-            // Keep current frameSpeed (including 0 for paused state in menu)
-            utils.saveState(currentRetroView)
-            onComplete?.invoke()
-        }
+        saveLoadOrchestrator.saveState(retroView, retroViewUtils, keepPaused, onComplete)
     }
 
     /**
@@ -1361,8 +1321,7 @@ class GameActivityViewModel(application: Application) :
      * restarts the game from the beginning
      */
     fun resetGameCentralized(onComplete: (() -> Unit)? = null) {
-        retroView?.view?.reset()
-        onComplete?.invoke()
+        saveLoadOrchestrator.resetGame(retroView, onComplete)
     }
 
     /** Check if save state exists for UI state management */
