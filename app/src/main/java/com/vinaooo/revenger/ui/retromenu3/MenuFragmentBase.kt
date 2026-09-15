@@ -202,6 +202,28 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     }
 
     /**
+     * Indexed variant of [applySelectionVisuals] for fragments whose per-item visual treatment
+     * needs the item's index (e.g. to derive a 1-based slot number, or to look up related state
+     * keyed by position). Behaves identically otherwise: [onSelected] is invoked for the item at
+     * [selectedIndex], [onUnselected] for every other item, both receiving the item's index.
+     *
+     * @param items the menu item views, in display order
+     * @param selectedIndex the currently selected index
+     * @param onSelected applied to the view at [selectedIndex], with its index
+     * @param onUnselected applied to every other view, with its index
+     */
+    protected fun <T : View> applySelectionVisuals(
+            items: List<T>,
+            selectedIndex: Int,
+            onSelected: (T, Int) -> Unit,
+            onUnselected: (T, Int) -> Unit
+    ) {
+        items.forEachIndexed { index, item ->
+            if (index == selectedIndex) onSelected(item, index) else onUnselected(item, index)
+        }
+    }
+
+    /**
      * Applies configurable layout proportions to the menu (horizontal and vertical). Should be
      * called in onViewCreated of submenus.
      *
