@@ -1,9 +1,12 @@
 package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
+import android.os.Looper
 import android.view.KeyEvent
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.MutableLiveData
 import androidx.test.core.app.ApplicationProvider
+import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.controllers.SpeedController
@@ -18,6 +21,7 @@ import com.vinaooo.revenger.ui.retromenu3.MenuStateManager
 import com.vinaooo.revenger.ui.retromenu3.MenuSystemState
 import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+import com.vinaooo.revenger.utils.RetroViewUtils
 import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
 import io.mockk.Called
 import io.mockk.Runs
@@ -38,6 +42,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 /**
@@ -384,5 +389,214 @@ class GameActivityViewModel_test {
         assertFalse(isMenuTypeActive(MenuSystemState.MenuType.ABOUT_MENU))
         verify { menuViewModelMock wasNot Called }
         verify(exactly = 1) { menuManagerMock.registerFragment(MenuState.ABOUT_MENU, fragment) }
+    }
+
+    // ===== Characterization tests for loadStateCentralized / saveStateCentralized /
+    // resetGameCentralized =====
+    //
+    // Written BEFORE extracting these three methods into SaveLoadOrchestrator, to pin down:
+    // every early-return guard, the exact frame-speed save/restore sequence around the actual
+    // load/save, the postDelayed(200)-based unpause used only when saving a paused emulator that
+    // isn't explicitly being kept paused, and that `skipNextTempStateLoad` is only ever set when a
+    // load really happened.
+
+    /**
+     * Builds a mocked [RetroView] whose [RetroView.frameRendered] value and `view.frameSpeed` are
+     * pinned to the given values, plus the mocked [GLRetroView] backing `view`, so tests can
+     * verify frame-speed mutations and state save/load calls against one stable instance.
+     */
+    private fun mockRetroView(
+            frameRendered: Boolean?,
+            frameSpeed: Int
+    ): Pair<RetroView, GLRetroView> {
+        val glRetroView = mockk<GLRetroView>(relaxed = true)
+        every { glRetroView.frameSpeed } returns frameSpeed
+        val retroView = mockk<RetroView>(relaxed = true)
+        every { retroView.view } returns glRetroView
+        every { retroView.frameRendered } returns MutableLiveData(frameRendered)
+        return retroView to glRetroView
+    }
+
+    /** Injects a mocked [RetroViewUtils] into the private `retroViewUtils` field. */
+    private fun mockRetroViewUtils(hasSaveState: Boolean = true): RetroViewUtils {
+        val utils = mockk<RetroViewUtils>(relaxed = true)
+        every { utils.hasSaveState() } returns hasSaveState
+        setPrivateField(viewModel, "retroViewUtils", utils)
+        return utils
+    }
+
+    // --- loadStateCentralized: no-op guard paths ---
+
+    @Test
+    fun `loadStateCentralized nao faz nada quando retroView e nulo`() {
+        viewModel.retroView = null
+        val utils = mockRetroViewUtils(hasSaveState = true)
+
+        var completed = false
+        viewModel.loadStateCentralized { completed = true }
+
+        assertTrue(completed)
+        verify(exactly = 0) { utils.loadState(any()) }
+        assertFalse(getPrivateField<Boolean>(viewModel, "skipNextTempStateLoad"))
+    }
+
+    @Test
+    fun `loadStateCentralized nao faz nada quando frameRendered nao e true`() {
+        val (retroView, glRetroView) = mockRetroView(frameRendered = false, frameSpeed = 1)
+        viewModel.retroView = retroView
+        val utils = mockRetroViewUtils(hasSaveState = true)
+
+        var completed = false
+        viewModel.loadStateCentralized { completed = true }
+
+        assertTrue(completed)
+        verify(exactly = 0) { utils.loadState(any()) }
+        verify(exactly = 0) { glRetroView.frameSpeed = any() }
+        assertFalse(getPrivateField<Boolean>(viewModel, "skipNextTempStateLoad"))
+    }
+
+    @Test
+    fun `loadStateCentralized nao faz nada quando retroViewUtils e nulo`() {
+        val (retroView, _) = mockRetroView(frameRendered = true, frameSpeed = 1)
+        viewModel.retroView = retroView
+        setPrivateField<RetroViewUtils?>(viewModel, "retroViewUtils", null)
+
+        var completed = false
+        viewModel.loadStateCentralized { completed = true }
+
+        assertTrue(completed)
+        assertFalse(getPrivateField<Boolean>(viewModel, "skipNextTempStateLoad"))
+    }
+
+    @Test
+    fun `loadStateCentralized nao faz nada quando nao ha save state`() {
+        val (retroView, glRetroView) = mockRetroView(frameRendered = true, frameSpeed = 1)
+        viewModel.retroView = retroView
+        val utils = mockRetroViewUtils(hasSaveState = false)
+
+        var completed = false
+        viewModel.loadStateCentralized { completed = true }
+
+        assertTrue(completed)
+        verify(exactly = 0) { utils.loadState(any()) }
+        verify(exactly = 0) { glRetroView.frameSpeed = any() }
+        assertFalse(getPrivateField<Boolean>(viewModel, "skipNextTempStateLoad"))
+    }
+
+    // --- loadStateCentralized: the real load path ---
+
+    @Test
+    fun `loadStateCentralized com save state disponivel despausa carrega e restaura o frameSpeed em ordem`() {
+        val (retroView, glRetroView) = mockRetroView(frameRendered = true, frameSpeed = 3)
+        viewModel.retroView = retroView
+        val utils = mockRetroViewUtils(hasSaveState = true)
+
+        var completed = false
+        viewModel.loadStateCentralized { completed = true }
+
+        verifyOrder {
+            glRetroView.frameSpeed = 1
+            utils.loadState(retroView)
+            glRetroView.frameSpeed = 3
+        }
+        assertTrue(completed)
+        assertTrue(getPrivateField<Boolean>(viewModel, "skipNextTempStateLoad"))
+    }
+
+    // --- saveStateCentralized: paused emulator, not explicitly kept paused -> delayed save ---
+
+    @Test
+    fun `saveStateCentralized com emulador pausado e keepPaused false despausa salva apos 200ms e restaura o pause`() {
+        val (retroView, glRetroView) = mockRetroView(frameRendered = true, frameSpeed = 0)
+        viewModel.retroView = retroView
+        val utils = mockRetroViewUtils()
+
+        var completed = false
+        viewModel.saveStateCentralized(onComplete = { completed = true }, keepPaused = false)
+
+        // Unpausing happens synchronously; the actual save + re-pause are still pending on the
+        // main looper's delayed message queue (Robolectric's paused scheduler does not run them
+        // until the looper is explicitly idled).
+        verify { glRetroView.frameSpeed = 1 }
+        verify(exactly = 0) { utils.saveState(any()) }
+        verify(exactly = 0) { glRetroView.frameSpeed = 0 }
+        assertFalse(completed)
+
+        // idle() alone only runs tasks already due; the save/restore runnable is scheduled 200ms
+        // in the future, so the main looper's virtual clock must be advanced past that point.
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200))
+
+        verifyOrder {
+            glRetroView.frameSpeed = 1
+            utils.saveState(retroView)
+            glRetroView.frameSpeed = 0
+        }
+        assertTrue(completed)
+    }
+
+    // --- saveStateCentralized: immediate paths (no delay, no frame-speed manipulation) ---
+
+    @Test
+    fun `saveStateCentralized com keepPaused true salva imediatamente sem tocar no frameSpeed`() {
+        val (retroView, glRetroView) = mockRetroView(frameRendered = true, frameSpeed = 0)
+        viewModel.retroView = retroView
+        val utils = mockRetroViewUtils()
+
+        var completed = false
+        viewModel.saveStateCentralized(onComplete = { completed = true }, keepPaused = true)
+
+        verify(exactly = 1) { utils.saveState(retroView) }
+        verify(exactly = 0) { glRetroView.frameSpeed = any() }
+        assertTrue(completed)
+    }
+
+    @Test
+    fun `saveStateCentralized com frameSpeed diferente de zero salva imediatamente sem tocar no frameSpeed`() {
+        val (retroView, glRetroView) = mockRetroView(frameRendered = true, frameSpeed = 1)
+        viewModel.retroView = retroView
+        val utils = mockRetroViewUtils()
+
+        var completed = false
+        viewModel.saveStateCentralized(onComplete = { completed = true }, keepPaused = false)
+
+        verify(exactly = 1) { utils.saveState(retroView) }
+        verify(exactly = 0) { glRetroView.frameSpeed = any() }
+        assertTrue(completed)
+    }
+
+    @Test
+    fun `saveStateCentralized nao faz nada quando retroView e nulo mas ainda chama onComplete`() {
+        viewModel.retroView = null
+        val utils = mockRetroViewUtils()
+
+        var completed = false
+        viewModel.saveStateCentralized(onComplete = { completed = true })
+
+        assertTrue(completed)
+        verify(exactly = 0) { utils.saveState(any()) }
+    }
+
+    // --- resetGameCentralized ---
+
+    @Test
+    fun `resetGameCentralized chama reset na view e invoca onComplete`() {
+        val (retroView, glRetroView) = mockRetroView(frameRendered = true, frameSpeed = 1)
+        viewModel.retroView = retroView
+
+        var completed = false
+        viewModel.resetGameCentralized { completed = true }
+
+        verify(exactly = 1) { glRetroView.reset() }
+        assertTrue(completed)
+    }
+
+    @Test
+    fun `resetGameCentralized com retroView nulo nao quebra e ainda invoca onComplete`() {
+        viewModel.retroView = null
+
+        var completed = false
+        viewModel.resetGameCentralized { completed = true }
+
+        assertTrue(completed)
     }
 }
