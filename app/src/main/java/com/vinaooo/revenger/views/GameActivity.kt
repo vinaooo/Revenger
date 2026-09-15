@@ -36,10 +36,11 @@ import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.privacy.EnhancedPrivacyManager
 import com.vinaooo.revenger.utils.AndroidCompatibility
 import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
+import com.vinaooo.revenger.viewmodels.FloatingButtonVisibilityHost
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** Main game activity for the emulator Phase 9.4: Enhanced with SDK 36 features */
-class GameActivity : FragmentActivity() {
+class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
 
         companion object {
                 private const val TAG = "GameActivity"
@@ -2080,7 +2081,7 @@ else -> com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MAIN
                 }
         }
 
-        fun restoreFloatingButtonVisibility() {
+        override fun restoreFloatingButtonVisibility() {
                 val floatingButton =
                         findViewById<android.widget.Button>(R.id.floating_menu_button) ?: return
                 if (floatingButton.visibility != android.view.View.VISIBLE) return
@@ -2091,7 +2092,7 @@ else -> com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MAIN
                 floatingButton.animate().alpha(1.0f).setDuration(200).start()
         }
 
-        fun fadeFloatingButtonImmediately() {
+        override fun fadeFloatingButtonImmediately() {
                 val floatingButton =
                         findViewById<android.widget.Button>(R.id.floating_menu_button) ?: return
                 if (floatingButton.visibility != android.view.View.VISIBLE) return

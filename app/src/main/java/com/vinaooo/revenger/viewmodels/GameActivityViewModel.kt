@@ -353,8 +353,7 @@ class GameActivityViewModel(application: Application) :
                 // PAUSAR o jogo quando menu abre
                 retroView?.let { speedController?.pause(it.view) }
 
-                (activity as? com.vinaooo.revenger.views.GameActivity)
-                        ?.restoreFloatingButtonVisibility()
+                (activity as? FloatingButtonVisibilityHost)?.restoreFloatingButtonVisibility()
 
                 try {
                     Log.d(
@@ -367,8 +366,7 @@ class GameActivityViewModel(application: Application) :
             }
 
             navigationController?.onMenuClosedCallback = { closingButton: Int? ->
-                (activity as? com.vinaooo.revenger.views.GameActivity)
-                        ?.fadeFloatingButtonImmediately()
+                (activity as? FloatingButtonVisibilityHost)?.fadeFloatingButtonImmediately()
 
                 android.util.Log.d(
                         "GameActivityViewModel",
