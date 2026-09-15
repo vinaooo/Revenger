@@ -289,7 +289,7 @@ class RetroMenu3Fragment :
                 super.onSaveInstanceState(outState)
 
                 val currentState = viewModel.getMenuManager().getCurrentState()
-                android.util.Log.d("RetroMenu3", "[SAVE_STATE] 🗄 Saving state: $currentState")
+                android.util.Log.d("RetroMenu3", "onSaveInstanceState: saving state $currentState")
                 outState.putString("SUBMENU_STATE", currentState.name)
         }
 
@@ -299,10 +299,6 @@ class RetroMenu3Fragment :
 
                 if (savedInstanceState != null) {
                         val savedStateName = savedInstanceState.getString("SUBMENU_STATE")
-                        android.util.Log.d(
-                                "RetroMenu3",
-                                "[RESTORE_STATE] 📦 Saved state found: $savedStateName"
-                        )
 
                         if (savedStateName != null) {
                                 val savedState = MenuState.valueOf(savedStateName)
@@ -313,7 +309,7 @@ class RetroMenu3Fragment :
                                                 if (savedState != MenuState.MAIN_MENU && isAdded) {
                                                         android.util.Log.d(
                                                                 "RetroMenu3",
-                                                                "[RESTORE_STATE] ✅ Reabrindo submenu: $savedState"
+                                                                "onViewStateRestored: reopening submenu $savedState"
                                                         )
                                                         submenuCoordinator.openSubmenu(savedState)
                                                 }
@@ -450,7 +446,7 @@ class RetroMenu3Fragment :
                 if (backStackCount > 0) {
                         android.util.Log.d(
                                 "RetroMenu3Fragment",
-                                "[PERFORM_BACK] 📚 Submenu active, closing submenu"
+                                "performBack: submenu active, closing it"
                         )
                         try {
                                 submenuCoordinator.closeCurrentSubmenu()
@@ -506,32 +502,14 @@ class RetroMenu3Fragment :
 
         /** Make main menu visible again (when submenu is closed) */
         fun showMainMenu(preserveSelection: Boolean = false) {
-                android.util.Log.d(
-                        TAG,
-                        "[SHOW_MAIN_MENU] 📺 ========== SHOW MAIN MENU START =========="
-                )
-                android.util.Log.d(TAG, "[SHOW_MAIN_MENU] 📊 preserveSelection=$preserveSelection")
-                android.util.Log.d(
-                        TAG,
-                        "[SHOW_MAIN_MENU] 📊 currentState=${viewModel.getMenuManager().getCurrentState()}"
-                )
+                android.util.Log.d(TAG, "showMainMenu: preserveSelection=$preserveSelection")
 
                 // Delegate view visibility to MenuViewManager
-                android.util.Log.d(
-                        TAG,
-                        "[SHOW_MAIN_MENU] 🎨 Calling menuViewManager.showMainMenu($preserveSelection)"
-                )
                 menuViewManager.showMainMenu(preserveSelection)
 
                 // Reset to first option when showing main menu, unless preserving selection
                 if (!preserveSelection) {
-                        android.util.Log.d(
-                                TAG,
-                                "[SHOW_MAIN_MENU] 🎯 Resetting to first option (index 0)"
-                        )
                         setSelectedIndex(0)
-                } else {
-                        android.util.Log.d(TAG, "[SHOW_MAIN_MENU] 🎯 Preserving current selection")
                 }
 
                 // Update menu state (including audio) when returning from submenu
@@ -541,19 +519,8 @@ class RetroMenu3Fragment :
                 // Only update if we're not preserving selection (which means selection was already
                 // set)
                 if (!preserveSelection) {
-                        val currentIndex = getCurrentSelectedIndex()
-                        android.util.Log.d(
-                                TAG,
-                                "[SHOW_MAIN_MENU] 🎨 Updating selection visual for index: $currentIndex"
-                        )
-                        getAnimationController().updateSelectionVisual(currentIndex)
+                        getAnimationController().updateSelectionVisual(getCurrentSelectedIndex())
                 }
-
-                android.util.Log.d(TAG, "[SHOW_MAIN_MENU] ✅ Show main menu completed")
-                android.util.Log.d(
-                        TAG,
-                        "[SHOW_MAIN_MENU] 📺 ========== SHOW MAIN MENU END =========="
-                )
 
                 // Layout will be updated automatically when properties change
         }
@@ -618,10 +585,9 @@ class RetroMenu3Fragment :
 
         // IMPLEMENTATION OF SUBMENU INTERFACES
         override fun onBackToMainMenu() {
-                android.util.Log.d(TAG, "[LISTENER] 🔔 onBackToMainMenu called - closing submenu")
+                android.util.Log.d(TAG, "onBackToMainMenu: closing submenu")
                 // Fechar submenu e voltar ao menu principal
                 submenuCoordinator.closeCurrentSubmenu()
-                android.util.Log.d(TAG, "[LISTENER] 🔔 onBackToMainMenu completed")
         }
 
         override fun onAboutBackToMainMenu() {

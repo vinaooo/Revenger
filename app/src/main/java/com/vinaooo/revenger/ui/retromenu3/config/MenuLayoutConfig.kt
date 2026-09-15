@@ -82,7 +82,7 @@ object MenuLayoutConfig {
                             rightWeight = rightPercent / 100f
                     )
 
-            Log.d(TAG, "✅ Proporções parseadas com sucesso: $proportions")
+            Log.d(TAG, "Proporções parseadas com sucesso: $proportions")
             proportions
         } catch (e: NumberFormatException) {
             Log.e(TAG, "❌ Erro ao parsear proporções: $proportionsString", e)
@@ -131,7 +131,7 @@ object MenuLayoutConfig {
             // Requisitar layout novamente para aplicar os pesos
             parentLayout.requestLayout()
 
-            Log.d(TAG, "✅ Proporções aplicadas ao layout: $proportions")
+            Log.d(TAG, "Proporções aplicadas ao layout: $proportions")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Erro ao aplicar proporções de layout", e)
         }
@@ -160,7 +160,7 @@ object MenuLayoutConfig {
             if (proportions != null) {
                 Log.d(
                         TAG,
-                        "✅ Proporções obtidas para ${if (isPortrait) "PORTRAIT" else "LANDSCAPE"}: $proportions"
+                        "Proporções obtidas para ${if (isPortrait) "PORTRAIT" else "LANDSCAPE"}: $proportions"
                 )
             }
             proportions
@@ -177,10 +177,7 @@ object MenuLayoutConfig {
      * @param view A view raiz do menu (FrameLayout ou similar)
      */
     fun applyProportionsToMenuLayout(view: View) {
-        Log.d(
-                TAG,
-                "🚀 applyProportionsToMenuLayout CALLED for ${view::class.simpleName} (id: ${view.id})"
-        )
+        Log.d(TAG, "applyProportionsToMenuLayout: applying to ${view::class.simpleName}")
         try {
             // Obter proporções baseado na orientação
             val proportions = getConfiguredProportions(view)
@@ -198,7 +195,6 @@ object MenuLayoutConfig {
 
             // Aplicar as proporções
             applyLayoutProportions(mainLayout, proportions)
-            Log.d(TAG, "✅ Proportions applied successfully!")
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao aplicar proporções ao menu layout", e)
         }
@@ -208,33 +204,18 @@ object MenuLayoutConfig {
     private fun findMainHorizontalLayout(view: View): android.widget.LinearLayout? {
         // Se for FrameLayout, procura um LinearLayout filho horizontal
         if (view is android.widget.FrameLayout) {
-            Log.d(
-                    TAG,
-                    "🔍 findMainHorizontalLayout: view is FrameLayout with ${view.childCount} children"
-            )
             for (i in 0 until view.childCount) {
                 val child = view.getChildAt(i)
-                Log.d(TAG, "🔍 Child[$i]: ${child::class.simpleName}")
                 if (child is android.widget.LinearLayout) {
                     val orientation = child.orientation
-                    Log.d(
-                            TAG,
-                            "🔍 LinearLayout orientation=${if (orientation == android.widget.LinearLayout.HORIZONTAL) "HORIZONTAL" else "VERTICAL"}, childCount=${child.childCount}"
-                    )
                     // Se for LinearLayout horizontal com 3+ filhos, é o container correto
                     if (orientation == android.widget.LinearLayout.HORIZONTAL &&
                                     child.childCount >= 3
                     ) {
-                        Log.d(TAG, "✅ Found main horizontal layout!")
                         return child
                     }
                 }
             }
-        } else {
-            Log.d(
-                    TAG,
-                    "⚠️ findMainHorizontalLayout: view is ${view::class.simpleName}, not FrameLayout"
-            )
         }
 
         Log.w(TAG, "❌ findMainHorizontalLayout: no matching layout found")
@@ -282,7 +263,7 @@ object MenuLayoutConfig {
                             bottomWeight = bottomPercent / 100f
                     )
 
-            Log.d(TAG, "✅ Proporções verticais parseadas com sucesso: $proportions")
+            Log.d(TAG, "Proporções verticais parseadas com sucesso: $proportions")
             proportions
         } catch (e: NumberFormatException) {
             Log.e(TAG, "❌ Erro ao parsear proporções verticais: $proportionsString", e)
@@ -313,7 +294,7 @@ object MenuLayoutConfig {
             if (proportions != null) {
                 Log.d(
                         TAG,
-                        "✅ Proporções verticais obtidas para ${if (isPortrait) "PORTRAIT" else "LANDSCAPE"}: $proportions"
+                        "Proporções verticais obtidas para ${if (isPortrait) "PORTRAIT" else "LANDSCAPE"}: $proportions"
                 )
             }
             proportions
@@ -415,7 +396,7 @@ object MenuLayoutConfig {
             // Adicionar o wrapper de volta no parent na mesma posição
             parentLinearLayout.addView(verticalWrapper, containerIndex)
 
-            Log.d(TAG, "✅ Proporções verticais aplicadas com sucesso: $proportions")
+            Log.d(TAG, "Proporções verticais aplicadas com sucesso: $proportions")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Erro ao aplicar proporções verticais", e)
         }
@@ -553,7 +534,7 @@ object MenuLayoutConfig {
             // Adicionar o wrapper de volta no parent na mesma posição
             parentLinearLayout.addView(verticalWrapper, containerIndex)
 
-            Log.d(TAG, "✅ Posição vertical do dialog aplicada: top=${(proportions.topWeight * 100).toInt()}%")
+            Log.d(TAG, "Posição vertical do dialog aplicada: top=${(proportions.topWeight * 100).toInt()}%")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Erro ao aplicar posição vertical do dialog", e)
         }
