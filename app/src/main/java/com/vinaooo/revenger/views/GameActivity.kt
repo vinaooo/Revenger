@@ -1589,22 +1589,11 @@ else -> com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MAIN
                 val platformId = appConfig.getPlatformId()
                 val pipProfile = com.vinaooo.revenger.repositories.PipConfigRepository.getProfile(platformId)
                 
-                val ratioW = pipProfile.ratioW
-                val ratioH = pipProfile.ratioH
-                val ratio = android.util.Rational(ratioW, ratioH)
-                
-                // O Android limita o aspect ratio do PiP entre 2.39:1 e 1:2.39
-                if (ratio.toFloat() in 0.418f..2.39f) {
-                        builder.setAspectRatio(ratio)
-                } else {
-                        val width = retroviewContainer.width
-                        val height = retroviewContainer.height
-                        if (width > 0 && height > 0) {
-                                val fallbackRatio = android.util.Rational(width, height)
-                                if (fallbackRatio.toFloat() in 0.418f..2.39f) {
-                                        builder.setAspectRatio(fallbackRatio)
-                                }
-                        }
+                val resolvedRatio = com.vinaooo.revenger.utils.PipAspectRatioResolver.resolve(
+                        pipProfile.ratioW, pipProfile.ratioH, retroviewContainer.width, retroviewContainer.height
+                )
+                if (resolvedRatio != null) {
+                        builder.setAspectRatio(resolvedRatio)
                 }
 
                 // Source rect hint: where the PiP window animates from/to. Without it the
