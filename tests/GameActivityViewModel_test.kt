@@ -10,7 +10,16 @@ import com.vinaooo.revenger.controllers.SpeedController
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.input.ControllerInputCallbacks
 import com.vinaooo.revenger.retroview.RetroView
+import com.vinaooo.revenger.ui.retromenu3.AboutFragment
+import com.vinaooo.revenger.ui.retromenu3.ExitFragment
+import com.vinaooo.revenger.ui.retromenu3.MenuManager
+import com.vinaooo.revenger.ui.retromenu3.MenuState
+import com.vinaooo.revenger.ui.retromenu3.MenuStateManager
+import com.vinaooo.revenger.ui.retromenu3.MenuSystemState
+import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
+import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
 import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
+import io.mockk.Called
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -18,6 +27,7 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.spyk
 import io.mockk.unmockkObject
+import io.mockk.verify
 import io.mockk.verifyOrder
 import org.junit.After
 import org.junit.Assert.assertFalse
@@ -64,6 +74,40 @@ class GameActivityViewModel_test {
         val field = target.javaClass.getDeclaredField(fieldName)
         field.isAccessible = true
         @Suppress("UNCHECKED_CAST") return field.get(target) as T
+    }
+
+    /**
+     * Replaces the real (private) `menuViewModel` field with a relaxed mock, so the
+     * register-fragment tests below can assert `verify(exactly = ...)` on it instead of relying
+     * on an observable side effect -- `MenuViewModel.registerXFragment` only assigns a private
+     * field on `MenuViewModel` that is never read back anywhere, so there is no such side effect
+     * to assert on.
+     */
+    private fun mockMenuViewModel(): MenuViewModel {
+        val mock = mockk<MenuViewModel>(relaxed = true)
+        setPrivateField(viewModel, "menuViewModel", mock)
+        return mock
+    }
+
+    /**
+     * Replaces the real (private) `menuManager` field with a relaxed mock, so the register-
+     * fragment tests below can assert `registerFragment(state, fragment)` was invoked for the
+     * correct [MenuState] without depending on [MenuManager]'s internal fragment map.
+     */
+    private fun mockMenuManager(): MenuManager {
+        val mock = mockk<MenuManager>(relaxed = true)
+        setPrivateField(viewModel, "menuManager", mock)
+        return mock
+    }
+
+    /**
+     * Reads whether [menuType] is active via the REAL (untouched) private `menuStateManager`
+     * field. This is the observable side effect of `activateXMenu()`/`deactivateXMenu()`, used to
+     * pin down exactly which of the register methods call `activateXMenu()` and which don't.
+     */
+    private fun isMenuTypeActive(menuType: MenuSystemState.MenuType): Boolean {
+        val menuStateManager = getPrivateField<MenuStateManager>(viewModel, "menuStateManager")
+        return menuStateManager.isMenuActive(menuType)
     }
 
     @Before
@@ -198,5 +242,147 @@ class GameActivityViewModel_test {
 
         // Dead field, never assigned anywhere -- must stay at the class's own default.
         assertSame(defaults.menuCallback, callbacks.menuCallback)
+    }
+
+    // ===== Characterization tests for the 10 registerXFragment[ForRotation] methods =====
+    //
+    // Written BEFORE consolidating them into a single `registerSubmenuFragment` helper, to pin
+    // down the real (and non-uniform) per-method combination of:
+    //   (a) setting the fragment field,
+    //   (b) calling `menuViewModel.registerXFragment(fragment)`,
+    //   (c) calling `activateXMenu()`,
+    //   (d) calling `menuManager.registerFragment(MenuState.X, fragment)`.
+    // `menuViewModel` and `menuManager` are swapped for relaxed mocks (via the same
+    // reflection-based field injection used elsewhere in this file) because
+    // `MenuViewModel.registerXFragment` only assigns a private field that's never read back --
+    // there is no other observable side effect to assert on. `activateXMenu()`'s effect IS
+    // observable through the real (untouched) `menuStateManager` field, so that one is checked
+    // directly instead of being mocked.
+
+    @Test
+    fun `registerSettingsMenuFragment define o fragmento, notifica o menuViewModel, ativa o menu e registra no menuManager`() {
+        val menuViewModelMock = mockMenuViewModel()
+        val menuManagerMock = mockMenuManager()
+        val fragment = mockk<SettingsMenuFragment>(relaxed = true)
+
+        viewModel.registerSettingsMenuFragment(fragment)
+
+        assertTrue(viewModel.isSettingsMenuOpen())
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+        verify(exactly = 1) { menuViewModelMock.registerSettingsMenuFragment(fragment) }
+        verify(exactly = 1) { menuManagerMock.registerFragment(MenuState.SETTINGS_MENU, fragment) }
+    }
+
+    /**
+     * Pinning test: unlike Progress/Exit's rotation variants, Settings' rotation variant calls
+     * NEITHER `menuViewModel.registerSettingsMenuFragment` NOR `activateSettingsMenu()`.
+     */
+    @Test
+    fun `registerSettingsMenuFragmentForRotation define o fragmento mas NAO notifica o menuViewModel nem ativa o menu`() {
+        val menuViewModelMock = mockMenuViewModel()
+        val menuManagerMock = mockMenuManager()
+        val fragment = mockk<SettingsMenuFragment>(relaxed = true)
+
+        viewModel.registerSettingsMenuFragmentForRotation(fragment)
+
+        assertTrue(viewModel.isSettingsMenuOpen())
+        assertFalse(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+        verify(exactly = 0) { menuViewModelMock.registerSettingsMenuFragment(any()) }
+        verify(exactly = 1) { menuManagerMock.registerFragment(MenuState.SETTINGS_MENU, fragment) }
+    }
+
+    @Test
+    fun `registerProgressFragment define o fragmento, notifica o menuViewModel, ativa o menu e registra no menuManager`() {
+        val menuViewModelMock = mockMenuViewModel()
+        val menuManagerMock = mockMenuManager()
+        val fragment = mockk<ProgressFragment>(relaxed = true)
+
+        viewModel.registerProgressFragment(fragment)
+
+        assertTrue(viewModel.isProgressMenuOpen())
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.PROGRESS_MENU))
+        verify(exactly = 1) { menuViewModelMock.registerProgressFragment(fragment) }
+        verify(exactly = 1) { menuManagerMock.registerFragment(MenuState.PROGRESS_MENU, fragment) }
+    }
+
+    /**
+     * Pinning test: unlike Settings' rotation variant, Progress' rotation variant DOES still call
+     * `menuViewModel.registerProgressFragment` -- it just skips `activateProgressMenu()`. This is
+     * the asymmetry most likely to be silently "fixed away" by an over-eager refactor.
+     */
+    @Test
+    fun `registerProgressFragmentForRotation define o fragmento e notifica o menuViewModel mas NAO ativa o menu`() {
+        val menuViewModelMock = mockMenuViewModel()
+        val menuManagerMock = mockMenuManager()
+        val fragment = mockk<ProgressFragment>(relaxed = true)
+
+        viewModel.registerProgressFragmentForRotation(fragment)
+
+        assertTrue(viewModel.isProgressMenuOpen())
+        assertFalse(isMenuTypeActive(MenuSystemState.MenuType.PROGRESS_MENU))
+        verify(exactly = 1) { menuViewModelMock.registerProgressFragment(fragment) }
+        verify(exactly = 1) { menuManagerMock.registerFragment(MenuState.PROGRESS_MENU, fragment) }
+    }
+
+    @Test
+    fun `registerExitFragment define o fragmento, notifica o menuViewModel, ativa o menu e registra no menuManager`() {
+        val menuViewModelMock = mockMenuViewModel()
+        val menuManagerMock = mockMenuManager()
+        val fragment = mockk<ExitFragment>(relaxed = true)
+
+        viewModel.registerExitFragment(fragment)
+
+        assertTrue(viewModel.isExitMenuOpen())
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.EXIT_MENU))
+        verify(exactly = 1) { menuViewModelMock.registerExitFragment(fragment) }
+        verify(exactly = 1) { menuManagerMock.registerFragment(MenuState.EXIT_MENU, fragment) }
+    }
+
+    /** Pinning test: Exit's rotation variant also still calls `menuViewModel`, like Progress'. */
+    @Test
+    fun `registerExitFragmentForRotation define o fragmento e notifica o menuViewModel mas NAO ativa o menu`() {
+        val menuViewModelMock = mockMenuViewModel()
+        val menuManagerMock = mockMenuManager()
+        val fragment = mockk<ExitFragment>(relaxed = true)
+
+        viewModel.registerExitFragmentForRotation(fragment)
+
+        assertTrue(viewModel.isExitMenuOpen())
+        assertFalse(isMenuTypeActive(MenuSystemState.MenuType.EXIT_MENU))
+        verify(exactly = 1) { menuViewModelMock.registerExitFragment(fragment) }
+        verify(exactly = 1) { menuManagerMock.registerFragment(MenuState.EXIT_MENU, fragment) }
+    }
+
+    /**
+     * Pinning test: About never calls `menuViewModel` at all (it has no `registerAboutFragment`
+     * method on `MenuViewModel` to begin with), in either variant -- but its plain variant DOES
+     * still call `activateAboutMenu()`.
+     */
+    @Test
+    fun `registerAboutFragment define o fragmento e ativa o menu mas NUNCA chama o menuViewModel`() {
+        val menuViewModelMock = mockMenuViewModel()
+        val menuManagerMock = mockMenuManager()
+        val fragment = mockk<AboutFragment>(relaxed = true)
+
+        viewModel.registerAboutFragment(fragment)
+
+        assertSame(fragment, getPrivateField<AboutFragment?>(viewModel, "aboutFragment"))
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.ABOUT_MENU))
+        verify { menuViewModelMock wasNot Called }
+        verify(exactly = 1) { menuManagerMock.registerFragment(MenuState.ABOUT_MENU, fragment) }
+    }
+
+    @Test
+    fun `registerAboutFragmentForRotation define o fragmento mas NAO ativa o menu nem chama o menuViewModel`() {
+        val menuViewModelMock = mockMenuViewModel()
+        val menuManagerMock = mockMenuManager()
+        val fragment = mockk<AboutFragment>(relaxed = true)
+
+        viewModel.registerAboutFragmentForRotation(fragment)
+
+        assertSame(fragment, getPrivateField<AboutFragment?>(viewModel, "aboutFragment"))
+        assertFalse(isMenuTypeActive(MenuSystemState.MenuType.ABOUT_MENU))
+        verify { menuViewModelMock wasNot Called }
+        verify(exactly = 1) { menuManagerMock.registerFragment(MenuState.ABOUT_MENU, fragment) }
     }
 }
