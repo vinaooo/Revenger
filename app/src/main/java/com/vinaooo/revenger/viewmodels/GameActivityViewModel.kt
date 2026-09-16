@@ -856,7 +856,6 @@ class GameActivityViewModel(application: Application) :
                         progressFragmentActive ||
                         aboutFragmentActive ||
                         coreVariablesFragmentActive ||
-                        coreVariablesFragmentActive ||
                         exitFragmentActive
         val menuSystemActive = retroMenu3Open || (retroMenu3FragmentExists && hasActiveSubmenu)
 
@@ -867,7 +866,6 @@ class GameActivityViewModel(application: Application) :
                         settingsFragmentActive ||
                         progressFragmentActive ||
                         aboutFragmentActive ||
-                        coreVariablesFragmentActive ||
                         coreVariablesFragmentActive ||
                         exitFragmentActive ||
                         forceMainMenuActive
@@ -891,19 +889,11 @@ class GameActivityViewModel(application: Application) :
         )
         android.util.Log.d(
                 "GameActivityViewModel",
-                "[ACTIVE]   🎯 menuSystemActive=$menuSystemActive"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
                 "[ACTIVE]   📋 aboutFragmentActive=$aboutFragmentActive (ref=${aboutFragment != null}, added=${aboutFragment?.isAdded}, resumed=${aboutFragment?.isResumed})"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
                 "[ACTIVE]   📋 coreVariablesFragmentActive=$coreVariablesFragmentActive (ref=${coreVariablesFragment != null}, added=${coreVariablesFragment?.isAdded}, resumed=${coreVariablesFragment?.isResumed})"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[ACTIVE]   📋 aboutFragmentActive=$aboutFragmentActive (ref=${aboutFragment != null}, added=${aboutFragment?.isAdded}, resumed=${aboutFragment?.isResumed})"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
@@ -1996,6 +1986,10 @@ class GameActivityViewModel(application: Application) :
 
         // Dispose RxJava subscriptions to prevent memory leaks
         compositeDisposable.dispose()
+
+        // Cancel a save-state restore that might still be pending (see saveState()'s 200ms
+        // delayed restore) so it doesn't fire later against a torn-down RetroView.
+        saveLoadOrchestrator.cancelPendingSave()
 
         // Clear fragment references to prevent memory leaks
         retroMenu3Fragment = null

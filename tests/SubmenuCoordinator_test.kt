@@ -228,6 +228,35 @@ class SubmenuCoordinator_test {
         assertEquals(0, restoredIndex)
     }
 
+    // Regression test: restoreMainMenuSelection() chains two nested postDelayed(50ms) callbacks
+    // with no way to cancel them. cancelPendingRestoration() (called from
+    // RetroMenu3Fragment.onDestroyView()) must stop both from firing later against a fragment
+    // whose view is already gone -- simulated here by cancelling right after the pop, before
+    // idling the looper past either delay.
+    @Test
+    fun `cancelPendingRestoration impede os callbacks pendentes de restauracao de disparar`() {
+        seedOpenSubmenuOnBackStack()
+        menuManager.navigateToState(MenuState.PROGRESS_MENU)
+        val coordinator = newCoordinator()
+        coordinator.setupBackStackListener()
+
+        activity.supportFragmentManager.popBackStack()
+        activity.supportFragmentManager.executePendingTransactions()
+
+        coordinator.cancelPendingRestoration()
+        idle()
+
+        assertEquals(emptyList<Boolean>(), showMainMenuCalls)
+        verify(inverse = true) { animationController.updateSelectionVisual(any()) }
+    }
+
+    @Test
+    fun `cancelPendingRestoration sem nenhuma restauracao pendente nao lanca excecao`() {
+        val coordinator = newCoordinator()
+
+        coordinator.cancelPendingRestoration()
+    }
+
     @Test
     fun `restauracao a partir de SETTINGS_MENU desregistra o SettingsMenuFragment antes de voltar ao MAIN_MENU`() {
         seedOpenSubmenuOnBackStack()

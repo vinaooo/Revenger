@@ -99,12 +99,7 @@ class CoreVariablesFragment : MenuFragmentBase() {
         cardViews.clear()
         arrowViews.clear()
         titleViews.clear()
-        
-        // Remove prior dynamic items if any (keeping back button)
-        val childCount = coreVariablesList.childCount
-        // We injected them above the back button, but we should be careful.
-        // Actually, the back button is at the bottom, so let's just clear cardViews list, then re-inflate.
-        
+
         val vars = com.vinaooo.revenger.RevengerApplication.appConfig.getVariables()?.split(",") ?: emptyList()
         val inflater = LayoutInflater.from(requireContext())
         var insertIndex = 0

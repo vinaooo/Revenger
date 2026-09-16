@@ -86,6 +86,22 @@ class SubmenuCoordinator(
     private var setSelectedIndexCallback: ((Int) -> Unit)? = null
     private var getCurrentSelectedIndexCallback: (() -> Int)? = null
 
+    // Pending postDelayed callbacks from restoreMainMenuSelection(), tracked so they can be
+    // cancelled on teardown instead of firing later against a destroyed fragment view.
+    private var pendingRestoreShowMenu: Runnable? = null
+    private var pendingRestoreUpdateVisual: Runnable? = null
+
+    /**
+     * Cancels any restoreMainMenuSelection() callback still pending on the fragment's view
+     * Handler. Call from the owning fragment's onDestroyView().
+     */
+    fun cancelPendingRestoration() {
+        pendingRestoreShowMenu?.let { fragment.view?.removeCallbacks(it) }
+        pendingRestoreUpdateVisual?.let { fragment.view?.removeCallbacks(it) }
+        pendingRestoreShowMenu = null
+        pendingRestoreUpdateVisual = null
+    }
+
     private fun restoreMainMenuSelection() {
         if (!hasSubmenuOpen || isRestoringSelection) {
             Log.d(
@@ -131,8 +147,10 @@ class SubmenuCoordinator(
         isRestoringSelection = false
 
         // WAIT A MOMENT TO ENSURE setSelectedIndex IS PROCESSED
-        fragment.view?.postDelayed(
-                {
+        val showMenuRunnable =
+                Runnable {
+                    pendingRestoreShowMenu = null
+
                     // SHOW THE MAIN MENU AGAIN WITH PRESERVED SELECTION
                     // ONLY if we are returning to MAIN_MENU, not to submenus
                     if (targetState == MenuState.MAIN_MENU) {
@@ -140,17 +158,18 @@ class SubmenuCoordinator(
                     }
 
                     // WAIT ANOTHER MOMENT TO ENSURE THE MENU WAS SHOWN
-                    fragment.view?.postDelayed(
-                            {
+                    val updateVisualRunnable =
+                            Runnable {
+                                pendingRestoreUpdateVisual = null
                                 // UPDATE ARROW VISUAL AFTER RESTORING STATE
                                 val currentIndex = getCurrentSelectedIndexCallback?.invoke() ?: 0
                                 animationController?.updateSelectionVisual(currentIndex)
-                            },
-                            50
-                    )
-                },
-                50
-        )
+                            }
+                    pendingRestoreUpdateVisual = updateVisualRunnable
+                    fragment.view?.postDelayed(updateVisualRunnable, 50)
+                }
+        pendingRestoreShowMenu = showMenuRunnable
+        fragment.view?.postDelayed(showMenuRunnable, 50)
     }
 
     fun setCallbacks(

@@ -126,10 +126,15 @@ class GameLifecycleObserverTest {
         verify(exactly = 0) { retroView.resume() }
     }
 
+    // Regression test: retroView.view is registered directly as its own lifecycle observer
+    // (GameActivityViewModel.setupRetroView) and owns core teardown via its own
+    // ON_DESTROY-annotated method. GameLifecycleObserver must NOT also forward onDestroy to
+    // retroView.destroy(), or wiring this observer into the real Activity lifecycle (fixed
+    // alongside this test) would call view.onDestroy() twice for the same lifecycle event.
     @Test
-    fun `onDestroy libera os recursos do core`() {
+    fun `onDestroy nao chama retroView-destroy (evita destruicao dupla do core)`() {
         observer.onDestroy(activity)
 
-        verify { retroView.destroy() }
+        verify(exactly = 0) { retroView.destroy() }
     }
 }

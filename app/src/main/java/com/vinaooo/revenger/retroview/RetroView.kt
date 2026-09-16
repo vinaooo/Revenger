@@ -133,7 +133,9 @@ class RetroView(
                         }
 
                 // Always overwrite ROM file to storage to ensure latest version is loaded
-                storage.rom.outputStream().use { romInputStream.copyTo(it) }
+                romInputStream.use { input ->
+                    storage.rom.outputStream().use { output -> input.copyTo(output) }
+                }
                 Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
 
                 gameFilePath = storage.rom.absolutePath
@@ -200,8 +202,15 @@ class RetroView(
         Log.d("RetroView", "Configuring core variables: '$rawVariablesString'")
 
         for (rawVariable in rawVariables) {
-            val rawVariableSplit = rawVariable.split("=")
-            if (rawVariableSplit.size != 2) continue
+            // limit = 2 so a value that itself contains "=" (e.g. a base64-encoded core
+            // option) is kept intact instead of being silently dropped.
+            val rawVariableSplit = rawVariable.split("=", limit = 2)
+            if (rawVariableSplit.size != 2) {
+                if (rawVariable.isNotBlank()) {
+                    Log.w("RetroView", "Skipping malformed core variable entry: '$rawVariable'")
+                }
+                continue
+            }
 
             val key = rawVariableSplit[0].trim()
             val value = rawVariableSplit[1].trim()

@@ -280,6 +280,13 @@ class RetroMenu3Fragment :
                         "[NAVIGATION] Fragment will be unregistered by next fragment"
                 )
 
+                // Cancel any restoreMainMenuSelection() postDelayed callbacks still pending --
+                // otherwise fast navigation or a rotation mid-restore can fire them against a
+                // fragment whose view is already gone.
+                if (::submenuCoordinator.isInitialized) {
+                        submenuCoordinator.cancelPendingRestoration()
+                }
+
                 super.onDestroyView()
                 android.util.Log.d("RetroMenu3", "[LIFECYCLE] onDestroyView COMPLETED")
         }

@@ -13,6 +13,11 @@ package com.vinaooo.revenger.managers
  * - Provide last-used slot context for auto-save decisions
  * - Clear tracking state when session ends
  *
+ * All public methods are `@Synchronized`: PiP's quick-save flow records saves from a
+ * background `Thread` concurrently with main-thread save/load operations, and
+ * [lastUsedSlotNumber]/[lastOperationType] must be updated together so a reader never observes
+ * one field from one operation and the other from a different, racing one.
+ *
  * @see SaveStateManager For persistent slot management
  */
 class SessionSlotTracker private constructor() {
@@ -67,6 +72,7 @@ class SessionSlotTracker private constructor() {
      *
      * @param slotNumber The slot number (1-9) where the save was written
      */
+    @Synchronized
     fun recordSave(slotNumber: Int) {
         require(slotNumber in 1..SaveStateManager.TOTAL_SLOTS) {
             "Slot number must be between 1 and ${SaveStateManager.TOTAL_SLOTS}"
@@ -81,6 +87,7 @@ class SessionSlotTracker private constructor() {
      *
      * @param slotNumber The slot number (1-9) from which the state was loaded
      */
+    @Synchronized
     fun recordLoad(slotNumber: Int) {
         require(slotNumber in 1..SaveStateManager.TOTAL_SLOTS) {
             "Slot number must be between 1 and ${SaveStateManager.TOTAL_SLOTS}"
@@ -95,6 +102,7 @@ class SessionSlotTracker private constructor() {
      *
      * @return The slot number (1-9) or null if no slot was used
      */
+    @Synchronized
     fun getLastUsedSlot(): Int? = lastUsedSlotNumber
 
     /**
@@ -102,6 +110,7 @@ class SessionSlotTracker private constructor() {
      *
      * @return The operation type or null if no operation was performed
      */
+    @Synchronized
     fun getLastOperationType(): OperationType? = lastOperationType
 
     /**
@@ -109,11 +118,13 @@ class SessionSlotTracker private constructor() {
      *
      * @return true if a save or load was performed during this session
      */
+    @Synchronized
     fun hasSlotContext(): Boolean = lastUsedSlotNumber != null
 
     /**
      * Clear all tracking state. Call when starting a new session.
      */
+    @Synchronized
     fun clear() {
         lastUsedSlotNumber = null
         lastOperationType = null

@@ -112,4 +112,14 @@ class FloatingMenuButtonController(
             fadeHandler?.postDelayed(runnable, 10000)
         }
     }
+
+    /**
+     * Cancels a pending restorative fade, if any. Call from the host Activity's teardown (e.g.
+     * onDestroy()) -- without this, a fade triggered shortly before destruction keeps this
+     * controller's Runnable (which closes over [floatingButton]) alive on the main Handler for
+     * up to 10s after the Activity is gone.
+     */
+    fun dispose() {
+        fadeRunnable?.let { runnable -> fadeHandler?.removeCallbacks(runnable) }
+    }
 }

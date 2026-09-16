@@ -254,15 +254,17 @@ class GamePadLayoutAdjuster {
         val centerView = container.getChildAt(1) // The View in the middle
 
         // Adjust weights
-        val leftParams =
-                leftContainer.layoutParams as android.widget.LinearLayout.LayoutParams
-        leftParams.weight = gamePadWeight
-        leftContainer.layoutParams = leftParams
+        leftContainer?.let {
+            val leftParams = it.layoutParams as android.widget.LinearLayout.LayoutParams
+            leftParams.weight = gamePadWeight
+            it.layoutParams = leftParams
+        }
 
-        val rightParams =
-                rightContainer.layoutParams as android.widget.LinearLayout.LayoutParams
-        rightParams.weight = gamePadWeight
-        rightContainer.layoutParams = rightParams
+        rightContainer?.let {
+            val rightParams = it.layoutParams as android.widget.LinearLayout.LayoutParams
+            rightParams.weight = gamePadWeight
+            it.layoutParams = rightParams
+        }
 
         if (centerView != null) {
             val centerParams =
