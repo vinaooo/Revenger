@@ -22,6 +22,18 @@ import com.vinaooo.revenger.R
 object MenuLayoutConfig {
     private const val TAG = "MenuLayoutConfig"
 
+    // A proportions string is 3 two-digit percentages concatenated, e.g. "XXYYZZ".
+    private const val PROPORTIONS_STRING_LENGTH = 6
+
+    // Char index where the 3rd two-digit segment starts (and the 2nd one ends) in that string.
+    private const val PROPORTIONS_SEGMENT_BOUNDARY = 4
+
+    // The 3 percentages parsed from a proportions string must add up to this.
+    private const val PERCENTAGE_SCALE = 100
+
+    // A valid 3-column [Space, Content, Space] layout needs at least this many children.
+    private const val MIN_LAYOUT_CHILD_COUNT = 3
+
     /** Representa as proporções de layout horizontal (esquerda, centro, direita) */
     data class LayoutProportions(
             val leftWeight: Float,
@@ -29,7 +41,7 @@ object MenuLayoutConfig {
             val rightWeight: Float
     ) {
         override fun toString(): String =
-                "LayoutProportions(left=${(leftWeight * 100).toInt()}%, center=${(centerWeight * 100).toInt()}%, right=${(rightWeight * 100).toInt()}%)"
+                "LayoutProportions(left=${(leftWeight * PERCENTAGE_SCALE).toInt()}%, center=${(centerWeight * PERCENTAGE_SCALE).toInt()}%, right=${(rightWeight * PERCENTAGE_SCALE).toInt()}%)"
     }
 
     /** Representa as proporções de layout vertical (topo, conteúdo, abaixo) */
@@ -39,7 +51,7 @@ object MenuLayoutConfig {
             val bottomWeight: Float
     ) {
         override fun toString(): String =
-                "VerticalProportions(top=${(topWeight * 100).toInt()}%, content=${(contentWeight * 100).toInt()}%, bottom=${(bottomWeight * 100).toInt()}%)"
+                "VerticalProportions(top=${(topWeight * PERCENTAGE_SCALE).toInt()}%, content=${(contentWeight * PERCENTAGE_SCALE).toInt()}%, bottom=${(bottomWeight * PERCENTAGE_SCALE).toInt()}%)"
     }
 
     /**
@@ -51,7 +63,7 @@ object MenuLayoutConfig {
     fun parseLayoutProportions(proportionsString: String): LayoutProportions? {
         return try {
             // Validar comprimento
-            if (proportionsString.length != 6) {
+            if (proportionsString.length != PROPORTIONS_STRING_LENGTH) {
                 Log.e(
                         TAG,
                         "❌ Formato inválido: esperado 6 dígitos, recebido ${proportionsString.length}"
@@ -61,12 +73,12 @@ object MenuLayoutConfig {
 
             // Extrair os valores
             val leftPercent = proportionsString.substring(0, 2).toInt()
-            val centerPercent = proportionsString.substring(2, 4).toInt()
-            val rightPercent = proportionsString.substring(4, 6).toInt()
+            val centerPercent = proportionsString.substring(2, PROPORTIONS_SEGMENT_BOUNDARY).toInt()
+            val rightPercent = proportionsString.substring(PROPORTIONS_SEGMENT_BOUNDARY, PROPORTIONS_STRING_LENGTH).toInt()
 
             // Validar soma = 100%
             val total = leftPercent + centerPercent + rightPercent
-            if (total != 100) {
+            if (total != PERCENTAGE_SCALE) {
                 Log.e(
                         TAG,
                         "❌ Soma das proporções inválida: $leftPercent + $centerPercent + $rightPercent = $total (esperado 100)"
@@ -102,7 +114,7 @@ object MenuLayoutConfig {
     ) {
         try {
             val childCount = parentLayout.childCount
-            if (childCount < 3) {
+            if (childCount < MIN_LAYOUT_CHILD_COUNT) {
                 Log.w(TAG, "⚠️ LinearLayout tem menos de 3 filhos, esperado: Space, Content, Space")
                 return
             }
@@ -210,7 +222,7 @@ object MenuLayoutConfig {
                     val orientation = child.orientation
                     // Se for LinearLayout horizontal com 3+ filhos, é o container correto
                     if (orientation == android.widget.LinearLayout.HORIZONTAL &&
-                                    child.childCount >= 3
+                                    child.childCount >= MIN_LAYOUT_CHILD_COUNT
                     ) {
                         return child
                     }
@@ -232,7 +244,7 @@ object MenuLayoutConfig {
     fun parseVerticalProportions(proportionsString: String): VerticalProportions? {
         return try {
             // Validar comprimento
-            if (proportionsString.length != 6) {
+            if (proportionsString.length != PROPORTIONS_STRING_LENGTH) {
                 Log.e(
                         TAG,
                         "❌ Formato inválido: esperado 6 dígitos, recebido ${proportionsString.length}"
@@ -242,12 +254,12 @@ object MenuLayoutConfig {
 
             // Extrair os valores
             val topPercent = proportionsString.substring(0, 2).toInt()
-            val contentPercent = proportionsString.substring(2, 4).toInt()
-            val bottomPercent = proportionsString.substring(4, 6).toInt()
+            val contentPercent = proportionsString.substring(2, PROPORTIONS_SEGMENT_BOUNDARY).toInt()
+            val bottomPercent = proportionsString.substring(PROPORTIONS_SEGMENT_BOUNDARY, PROPORTIONS_STRING_LENGTH).toInt()
 
             // Validar soma = 100%
             val total = topPercent + contentPercent + bottomPercent
-            if (total != 100) {
+            if (total != PERCENTAGE_SCALE) {
                 Log.e(
                         TAG,
                         "❌ Soma das proporções inválida: $topPercent + $contentPercent + $bottomPercent = $total (esperado 100)"
@@ -534,7 +546,10 @@ object MenuLayoutConfig {
             // Adicionar o wrapper de volta no parent na mesma posição
             parentLinearLayout.addView(verticalWrapper, containerIndex)
 
-            Log.d(TAG, "Posição vertical do dialog aplicada: top=${(proportions.topWeight * 100).toInt()}%")
+            Log.d(
+                    TAG,
+                    "Posição vertical do dialog aplicada: top=${(proportions.topWeight * PERCENTAGE_SCALE).toInt()}%"
+            )
         } catch (e: Exception) {
             Log.e(TAG, "❌ Erro ao aplicar posição vertical do dialog", e)
         }

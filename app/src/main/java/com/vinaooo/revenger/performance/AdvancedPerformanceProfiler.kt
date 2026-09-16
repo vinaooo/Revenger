@@ -29,6 +29,38 @@ object AdvancedPerformanceProfiler {
     private const val HYPOTHETICAL_THERMAL_STATE = "NORMAL"
     private const val HYPOTHETICAL_FRAME_PACING = 95.0
 
+    // SDK level gating the "advanced" (Android 16+) profiling path
+    private const val ANDROID_16_API_LEVEL = 36
+
+    // Bytes -> kilobytes -> megabytes conversion factor
+    private const val BYTES_PER_KILOBYTE = 1024
+
+    // Multiplier to convert a used/max memory ratio into a percentage
+    private const val PERCENTAGE_MULTIPLIER = 100.0
+
+    // Time unit conversions used by the frame-timing math below
+    private const val NANOS_PER_MILLISECOND = 1_000_000.0
+    private const val MILLISECONDS_PER_SECOND = 1000.0
+    private const val TARGET_FPS = 60.0
+
+    // Smoothing factor for the emulator FPS moving average (higher = reacts faster to changes)
+    private const val FPS_SMOOTHING_FACTOR = 0.1
+
+    // Checkpoint cadence: every Nth monitoring interval, reserved for future periodic work
+    private const val CHECKPOINT_INTERVAL_MULTIPLIER = 5
+
+    // Debug overlay update cadence
+    private const val DEBUG_OVERLAY_UPDATE_INTERVAL_MS = 500L
+
+    // Debug overlay appearance
+    private const val DEBUG_OVERLAY_TEXT_SIZE_SP = 14f
+    private const val DEBUG_OVERLAY_PADDING_HORIZONTAL_PX = 20
+    private const val DEBUG_OVERLAY_PADDING_VERTICAL_PX = 12
+    private const val DEBUG_OVERLAY_MARGIN_PX = 32
+    private const val DEBUG_OVERLAY_TOP_MARGIN_PX = 150
+    private const val DEBUG_OVERLAY_ELEVATION_PX = 10f
+    private const val DEBUG_OVERLAY_CORNER_RADIUS_PX = 8f
+
     // Frame timing for emulator FPS calculation
     private var lastFrameTime = 0L
     private var frameCount = 0
@@ -66,7 +98,7 @@ object AdvancedPerformanceProfiler {
     }
 
     /** Android 16+: Advanced performance profiling */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun startAdvancedProfiling(context: Context) {
         // Enhanced GPU profiling
         startEnhancedGpuProfiling()
@@ -122,8 +154,9 @@ object AdvancedPerformanceProfiler {
 
         // Basic metrics available on all versions
         val memoryInfo = getMemoryInfo(context)
-        performanceData["memory_used_mb"] = memoryInfo.used / 1024 / 1024
-        performanceData["memory_available_mb"] = memoryInfo.available / 1024 / 1024
+        performanceData["memory_used_mb"] = memoryInfo.used / BYTES_PER_KILOBYTE / BYTES_PER_KILOBYTE
+        performanceData["memory_available_mb"] =
+                memoryInfo.available / BYTES_PER_KILOBYTE / BYTES_PER_KILOBYTE
 
         val cpuUsage = getCpuUsage()
         performanceData["cpu_usage_percent"] = cpuUsage
@@ -146,31 +179,31 @@ object AdvancedPerformanceProfiler {
 
         performanceData["timestamp"] = timestamp
 
-        if (timestamp % (MONITORING_INTERVAL_MS * 5) == 0L) {
+        if (timestamp % (MONITORING_INTERVAL_MS * CHECKPOINT_INTERVAL_MULTIPLIER) == 0L) {
             // Checkpoint maintained for future monitoring integrations without logs
         }
     }
 
     /** Enhanced GPU profiling for Android 16 */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun startEnhancedGpuProfiling() {
         // Hypothetical advanced GPU profiling APIs
     }
 
     /** Advanced memory profiling for Android 16 */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun startAdvancedMemoryProfiling() {
         // Hypothetical advanced memory profiling APIs
     }
 
     /** CPU thermal monitoring for Android 16 */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun startThermalMonitoring() {
         // Hypothetical thermal monitoring APIs
     }
 
     /** Frame pacing analysis for Android 16 */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun startFramePacingAnalysis() {
         // Hypothetical frame pacing APIs
     }
@@ -191,7 +224,7 @@ object AdvancedPerformanceProfiler {
     }
 
     /** Collect advanced metrics for Android 16 */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun collectAdvancedMetrics() {
         // Hypothetical advanced metrics collection
         performanceData["gpu_utilization"] = HYPOTHETICAL_GPU_UTILIZATION
@@ -226,13 +259,14 @@ object AdvancedPerformanceProfiler {
         val maxMemory = runtime.maxMemory()
 
         // This is a simplified estimation
-        return (usedMemory.toDouble() / maxMemory.toDouble()) * 100.0
+        return (usedMemory.toDouble() / maxMemory.toDouble()) * PERCENTAGE_MULTIPLIER
     }
 
     /** Get current frame statistics */
     fun getFrameStats(): FrameStats {
         synchronized(frameTimeData) {
-            val frameTimesMs = frameTimeData.map { it / 1_000_000.0 } // Convert to milliseconds
+            val frameTimesMs =
+                    frameTimeData.map { it / NANOS_PER_MILLISECOND } // Convert to milliseconds
             val averageFrameTimeMs = if (frameTimesMs.isNotEmpty()) frameTimesMs.average() else 0.0
 
             // Use emulator FPS if available, otherwise calculate from frame times
@@ -240,11 +274,12 @@ object AdvancedPerformanceProfiler {
                     if (emulatorFps > 0) {
                         emulatorFps
                     } else {
-                        if (averageFrameTimeMs > 0) 1000.0 / averageFrameTimeMs else 0.0
+                        if (averageFrameTimeMs > 0) MILLISECONDS_PER_SECOND / averageFrameTimeMs
+                        else 0.0
                     }
 
             // Count dropped frames (frames that took longer than 16.67ms for 60fps)
-            val targetFrameTimeMs = 1000.0 / 60.0 // 16.67ms for 60fps
+            val targetFrameTimeMs = MILLISECONDS_PER_SECOND / TARGET_FPS // 16.67ms for 60fps
             val droppedFrames = frameTimesMs.count { it > targetFrameTimeMs }
 
             return FrameStats(fps, averageFrameTimeMs, droppedFrames)
@@ -272,10 +307,10 @@ object AdvancedPerformanceProfiler {
         frameCount++
 
         if (lastFrameTime > 0) {
-            val frameTimeMs = (currentTime - lastFrameTime) / 1_000_000.0
+            val frameTimeMs = (currentTime - lastFrameTime) / NANOS_PER_MILLISECOND
             // Calculate FPS based on recent frames (simple moving average)
-            val alpha = 0.1 // Smoothing factor
-            val instantFps = 1000.0 / frameTimeMs
+            val alpha = FPS_SMOOTHING_FACTOR
+            val instantFps = MILLISECONDS_PER_SECOND / frameTimeMs
             emulatorFps = emulatorFps * (1 - alpha) + instantFps * alpha
         }
 
@@ -310,8 +345,14 @@ object AdvancedPerformanceProfiler {
                                     android.graphics.Color.parseColor("#CC000000")
                             ) // More opaque
                             setTextColor(android.graphics.Color.YELLOW) // More visible color
-                            textSize = 14f // Larger font
-                            setPadding(20, 12, 20, 12) // Bigger padding
+                            textSize = DEBUG_OVERLAY_TEXT_SIZE_SP // Larger font
+                            // Bigger padding
+                            setPadding(
+                                    DEBUG_OVERLAY_PADDING_HORIZONTAL_PX,
+                                    DEBUG_OVERLAY_PADDING_VERTICAL_PX,
+                                    DEBUG_OVERLAY_PADDING_HORIZONTAL_PX,
+                                    DEBUG_OVERLAY_PADDING_VERTICAL_PX
+                            )
                             text = "Initializing FPS overlay..."
                             layoutParams =
                                     android.widget.FrameLayout.LayoutParams(
@@ -324,17 +365,23 @@ object AdvancedPerformanceProfiler {
                                                 gravity =
                                                         android.view.Gravity.TOP or
                                                                 android.view.Gravity.START
-                                                setMargins(32, 150, 32, 32) // Larger margins
+                                                // Larger margins
+                                                setMargins(
+                                                        DEBUG_OVERLAY_MARGIN_PX,
+                                                        DEBUG_OVERLAY_TOP_MARGIN_PX,
+                                                        DEBUG_OVERLAY_MARGIN_PX,
+                                                        DEBUG_OVERLAY_MARGIN_PX
+                                                )
                                             }
                             // Garantir que fique na frente
-                            elevation = 10f
+                            elevation = DEBUG_OVERLAY_ELEVATION_PX
                             bringToFront()
                             // Adicionar borda
                             background =
                                     android.graphics.drawable.GradientDrawable().apply {
                                         setColor(android.graphics.Color.parseColor("#CC000000"))
                                         setStroke(2, android.graphics.Color.YELLOW)
-                                        cornerRadius = 8f
+                                        cornerRadius = DEBUG_OVERLAY_CORNER_RADIUS_PX
                                     }
                             // Garantir visibilidade
                             visibility = android.view.View.VISIBLE
@@ -402,7 +449,8 @@ object AdvancedPerformanceProfiler {
                                     "PerformanceProfiler",
                                     "Overlay text updated: $debugText"
                             )
-                            handler.postDelayed(this, 500) // Update every 500ms
+                            // Update every DEBUG_OVERLAY_UPDATE_INTERVAL_MS
+                            handler.postDelayed(this, DEBUG_OVERLAY_UPDATE_INTERVAL_MS)
                         } else {
                             android.util.Log.d(
                                     "PerformanceProfiler",
