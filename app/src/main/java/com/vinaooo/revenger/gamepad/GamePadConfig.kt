@@ -72,34 +72,6 @@ class GamePadConfig(context: Context, private val appConfig: AppConfig) {
                 )
         }
 
-        /**
-         * Helper: returns a SingleButton at the given index if the condition is true, otherwise
-         * returns an Empty dial at the same index to preserve socket layout. This guarantees both
-         * sides always occupy the same socket positions, keeping their bounding boxes identical and
-         * centers perfectly aligned.
-         */
-        private fun buttonOrEmpty(
-                index: Int,
-                buttonConfig: ButtonConfig,
-                visible: Boolean
-        ): SecondaryDialConfig {
-                return if (visible) {
-                        SecondaryDialConfig.SingleButton(
-                                index = index,
-                                scale = 1f,
-                                distance = 0f,
-                                buttonConfig = buttonConfig
-                        )
-                } else {
-                        SecondaryDialConfig.Empty(
-                                index = index,
-                                spread = 1,
-                                scale = 1f,
-                                distance = 0f
-                        )
-                }
-        }
-
         // ===================================================================
         // ALIGNMENT STRATEGY:
         // 1. Build each side's button map: index → (ButtonConfig, visible?)

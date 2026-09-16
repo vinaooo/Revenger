@@ -167,7 +167,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
             // Phase 3: Vertical expansion + scanlines (PHASE_2_END to 1.0)
             else -> {
-                drawExpansionPhase(canvas, centerX, centerY)
+                drawExpansionPhase(canvas, centerY)
             }
         }
     }
@@ -298,7 +298,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     }
 
     /** Phase 3: Draw vertical expansion + scanlines with fade-out (or fade-in if reverse) */
-    private fun drawExpansionPhase(canvas: Canvas, centerX: Float, centerY: Float) {
+    private fun drawExpansionPhase(canvas: Canvas, centerY: Float) {
         // Normalizar progress para esta fase (0.0 - 1.0)
         val phaseProgress = (progress - PHASE_2_END) / (1f - PHASE_2_END)
 

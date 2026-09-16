@@ -15,13 +15,8 @@ import kotlinx.coroutines.withContext
 class MenuActionHandler(
         private val fragment: Fragment,
         private val viewModel: GameActivityViewModel,
-        private val viewManager: MenuViewManager,
         private val submenuCoordinator: SubmenuCoordinator
 ) {
-
-        companion object {
-                private const val TAG = "MenuActionHandler"
-        }
 
         /** Executes a menu action based on MenuAction */
         fun executeAction(action: MenuAction) {

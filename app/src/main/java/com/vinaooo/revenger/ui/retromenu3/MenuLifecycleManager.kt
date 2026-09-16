@@ -31,7 +31,6 @@ class MenuLifecycleManagerImpl(
         private val animationController: MenuAnimationController,
         private val inputHandler: MenuInputHandler,
         private val stateController: MenuStateController,
-        private val callbackManager: MenuCallbackManager,
         private val menuViewManager: MenuViewManager,
         private val actionHandler: MenuActionHandler
 ) : MenuLifecycleManager {
@@ -157,35 +156,5 @@ class MenuLifecycleManagerImpl(
         } catch (e: Exception) {
             Log.e("MenuLifecycleManager", "Error applying layout proportions", e)
         }
-    }
-
-    /**
-     * Finds the main LinearLayout that contains the 3-column structure. Works for RetroMenu3,
-     * SettingsMenu, ProgressMenu, AboutMenu and ExitMenu.
-     */
-    private fun findMainHorizontalLayout(view: View): android.widget.LinearLayout? {
-        // Possible IDs of main containers (direct children of root FrameLayout)
-        // The horizontal LinearLayout is normally the first child of FrameLayout or
-        // is already a menu container (settings_menu_container, etc)
-
-        // Primeiro tenta encontrar o LinearLayout que seja filho direto da FrameLayout raiz
-        if (view is android.widget.FrameLayout) {
-            for (i in 0 until view.childCount) {
-                val child = view.getChildAt(i)
-                if (child is android.widget.LinearLayout) {
-                    val orientation = child.orientation
-                    // If it's a horizontal LinearLayout with 3+ children, it's probably the container
-                    // correto
-                    if (orientation == android.widget.LinearLayout.HORIZONTAL &&
-                                    child.childCount >= 3
-                    ) {
-                        return child
-                    }
-                }
-            }
-        }
-
-        MenuLogger.lifecycle("MenuLifecycleManager: onDestroy COMPLETED")
-        return null
     }
 }

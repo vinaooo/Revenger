@@ -42,8 +42,6 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
         _menuState = MutableStateFlow(menuStateManager.currentState)
     }
 
-    private var menuManager: MenuManager? = null
-
     // References to fragments (kept for compatibility)
     private var retroMenu3Fragment: RetroMenu3Fragment? = null
     private var settingsMenuFragment: SettingsMenuFragment? = null

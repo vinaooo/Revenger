@@ -56,9 +56,6 @@ class GameActivityViewModel(application: Application) :
     /** Menu management ViewModel */
     private val menuViewModel: MenuViewModel = MenuViewModel(application)
 
-    /** Game state management ViewModel */
-    private val gameStateViewModel: GameStateViewModel = GameStateViewModel(application)
-
     /** Input management ViewModel */
     private val inputViewModel: InputViewModel = InputViewModel(application)
 
@@ -168,30 +165,6 @@ class GameActivityViewModel(application: Application) :
     // ===== CENTRALIZED STATE MANAGEMENT =====
     // Distributed state migrated to MenuStateManager
 
-    /** Check if settings menu is active */
-    private fun isSettingsMenuActive(): Boolean =
-            menuStateManager.isMenuActive(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
-            )
-
-    /** Check if progress menu is active */
-    private fun isProgressActive(): Boolean =
-            menuStateManager.isMenuActive(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU
-            )
-
-    /** Check if exit menu is active */
-    private fun isExitActive(): Boolean =
-            menuStateManager.isMenuActive(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
-            )
-
-    /** Check if about menu is active */
-    private fun isAboutActive(): Boolean =
-            menuStateManager.isMenuActive(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
-            )
-
     /** Activate settings menu */
     private fun activateSettingsMenu() {
         menuStateManager.activateMenu(
@@ -249,13 +222,6 @@ class GameActivityViewModel(application: Application) :
     }
 
 
-    /** Activate core variables menu */
-    private fun activateCoreVariablesMenu() {
-        menuStateManager.activateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.CORE_VARIABLES_MENU
-        )
-    }
-
     /** Deactivate core variables menu */
     private fun deactivateCoreVariablesMenu() {
         menuStateManager.deactivateMenu(
@@ -279,7 +245,7 @@ class GameActivityViewModel(application: Application) :
     fun getMenuManager(): MenuManager = menuManager
 
     private var compositeDisposable = CompositeDisposable()
-    private val controllerInput = ControllerInput(application.applicationContext)
+    private val controllerInput = ControllerInput()
 
     // Controllers modulares
     private var audioController: AudioController? = null
@@ -1752,7 +1718,7 @@ class GameActivityViewModel(application: Application) :
         sharedPreferences = sharedPrefs
         audioController = AudioController(activity.applicationContext, sharedPrefs)
         speedController = SpeedController(activity.applicationContext, sharedPrefs, appConfig)
-        shaderController = ShaderController(activity.applicationContext, sharedPrefs, appConfig)
+        shaderController = ShaderController(sharedPrefs, appConfig)
 
         // Set controllers in ViewModels
         audioController?.let { audioViewModel.setAudioController(it) }
