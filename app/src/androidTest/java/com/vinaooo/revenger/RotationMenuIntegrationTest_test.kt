@@ -173,7 +173,7 @@ class RotationMenuIntegrationTest {
         // Poll for the rebuilt hierarchy, then let everything settle and re-assert, so a
         // transient intermediate state cannot be mistaken for the final one.
         var rebuilt: Fragment? = null
-        repeat(POLL_ATTEMPTS) {
+        for (attempt in 0 until POLL_ATTEMPTS) {
             val fragment = containerFragment()
             if (fragment != null &&
                             fragment.javaClass == expectedType &&
@@ -181,7 +181,7 @@ class RotationMenuIntegrationTest {
                             backStackCount() == 1
             ) {
                 rebuilt = fragment
-                return@repeat
+                break
             }
             Thread.sleep(POLL_INTERVAL_MS)
         }

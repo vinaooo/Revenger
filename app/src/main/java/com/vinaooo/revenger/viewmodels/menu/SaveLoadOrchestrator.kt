@@ -6,7 +6,7 @@ import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.utils.RetroViewUtils
 
 /**
- * Centralizes save/load/reset orchestration for [GameActivityViewModel] around the emulator's
+ * Centralizes save/load/reset orchestration for `GameActivityViewModel` around the emulator's
  * frame-speed state. Takes [RetroView]/[RetroViewUtils] by value on each call rather than owning
  * them, so it carries no ViewModel-lifecycle state of its own.
  */
