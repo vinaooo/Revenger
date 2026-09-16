@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.ui.retromenu3
 
-import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.vinaooo.revenger.utils.MenuLogger
@@ -39,151 +38,37 @@ class MenuActionHandler(
 
         /** Executes the continue game action */
         private fun executeContinue() {
-                Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] ===== STARTING CONTINUE ====="
-                )
-                Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] Timestamp: ${System.currentTimeMillis()}"
-                )
-                Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] Fragment isAdded: ${fragment.isAdded}"
-                )
-                Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] Fragment isVisible: ${fragment.isVisible}"
-                )
-
                 MenuLogger.action("🎮 Continue game - closing menu")
 
-                Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_CONTINUE] Calling dismissMenuPublic() with callback"
-                )
                 // Close menu first using the public method with callback
                 (fragment as? RetroMenu3Fragment)?.dismissMenuPublic {
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] Animation completed - now restoring game speed"
-                        )
-
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] Calling closeMenuExternal() to properly close menu and reset state"
-                        )
                         // Properly close menu through NavigationController to trigger
                         // onMenuClosedCallback
                         viewModel.navigationController?.closeMenuExternal()
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] closeMenuExternal() completed - comboAlreadyTriggered should be reset now"
-                        )
 
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] REMOVED: restoreGameSpeedFromPreferences() - NavigationController handles speed restoration"
-                        )
                         // REMOVED: NavigationController handles speed restoration
                         // viewModel.restoreGameSpeedFromPreferences()
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] Speed restoration handled by NavigationController"
-                        )
-
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] ===== CONTINUE COMPLETED ====="
-                        )
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_CONTINUE] Final Timestamp: ${System.currentTimeMillis()}"
-                        )
                 }
         }
 
         /** Executes the game reset action */
         private fun executeReset() {
-                Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] ===== STARTING RESET ====="
-                )
-                Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] Timestamp: ${System.currentTimeMillis()}"
-                )
-                Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] Fragment isAdded: ${fragment.isAdded}"
-                )
-                Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] Fragment isVisible: ${fragment.isVisible}"
-                )
-
                 MenuLogger.action("🔄 Reset game - closing menu and resetting")
 
-                Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] Calling dismissMenuPublic() with callback"
-                )
                 // FIX: Set game speed to normal (1) before closing menu, since reset should start
                 // fresh
-                Log.d(
-                        "MenuActionHandler",
-                        "🔥 [EXECUTE_RESET] Setting speed to normal (1) for fresh game start"
-                )
                 viewModel.setGameSpeed(1)
                 // Close menu first using the public method with callback
                 (fragment as? RetroMenu3Fragment)?.dismissMenuPublic {
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] Animation completed - now resetting game"
-                        )
-
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] Calling closeMenuExternal() to properly close menu and reset state"
-                        )
                         // Properly close menu through NavigationController to trigger
                         // onMenuClosedCallback
                         viewModel.navigationController?.closeMenuExternal()
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] closeMenuExternal() completed"
-                        )
 
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] REMOVED: restoreGameSpeedFromPreferences() - NavigationController handles speed restoration"
-                        )
                         // REMOVED: NavigationController handles speed restoration
                         // viewModel.restoreGameSpeedFromPreferences()
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] Speed restoration handled by NavigationController"
-                        )
 
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] Calling resetGameCentralized()"
-                        )
                         // Apply reset function
                         viewModel.resetGameCentralized()
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] resetGameCentralized() completed"
-                        )
-
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] ===== RESET COMPLETED ====="
-                        )
-                        Log.d(
-                                "MenuActionHandler",
-                                "🔥 [EXECUTE_RESET] Final Timestamp: ${System.currentTimeMillis()}"
-                        )
                 }
         }
 

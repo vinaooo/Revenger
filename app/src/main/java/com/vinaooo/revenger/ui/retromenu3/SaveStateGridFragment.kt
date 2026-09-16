@@ -351,61 +351,18 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     // ========== VISUAL UPDATE ==========
 
     override fun updateSelectionVisualInternal() {
-        // Update slot selection visuals
-        for (row in 0 until GRID_ROWS) {
-            for (col in 0 until GRID_COLS) {
-                val index = row * GRID_COLS + col
-                val slotView = slotViews.getOrNull(index) ?: continue
-                val selectionBorder = slotView.findViewById<View>(R.id.slot_selection_border)
-                val glowView = slotView.findViewById<View>(R.id.slot_glow_indicator)
-                val slotName = slotView.findViewById<TextView>(R.id.slot_name)
+        // Flatten the 2D grid position to the single index the shared helper branches on.
+        // -1 (an index no slot ever has) means "back button selected, no slot is".
+        val selectedSlotIndex = if (isBackButtonSelected) -1 else selectedRow * GRID_COLS + selectedCol
 
-                val isSelected = !isBackButtonSelected && row == selectedRow && col == selectedCol
-                val slotNumber = index + 1
-                val isLastUsed = SessionSlotTracker.getInstance().getLastUsedSlot() == slotNumber
-
-                // ===== SELECTION BORDER (Yellow) =====
-                selectionBorder.visibility = if (isSelected) View.VISIBLE else View.GONE
-
-                // ===== GLOW INDICATOR (White Pulsing) =====
-                // Glow is visible ONLY when:
-                // 1. Slot is the last-used slot
-                // 2. Slot is NOT selected (selection takes visual precedence)
-                if (isLastUsed && !isSelected) {
-                    glowView.visibility = View.VISIBLE
-                    
-                    // Only start animation if this is a different slot than currently animating
-                    // This prevents restarting the animation on every updateSelectionVisualInternal() call
-                    if (lastAnimatedGlowView != glowView) {
-                        // Stop previous animation if different slot
-                        if (lastAnimatedGlowView != null) {
-                            activeGlowAnimator?.cancel()
-                            activeGlowAnimator = null
-                            lastAnimatedGlowView?.alpha = 1.0f
-                        }
-                        // Start new animation on this slot
-                        startGlowAnimation(glowView)
-                        lastAnimatedGlowView = glowView
-                    }
-                } else {
-                    glowView.visibility = View.GONE
-                    
-                    // Only stop animation if this was the animated slot
-                    if (lastAnimatedGlowView == glowView) {
-                        activeGlowAnimator?.cancel()
-                        activeGlowAnimator = null
-                        lastAnimatedGlowView = null
-                    }
-                    glowView.alpha = 1.0f
-                }
-
-                // ===== TEXT COLOR =====
-                slotName.setTextColor(
-                        if (isSelected) resources.getColor(R.color.rm_selected_color, null)
-                        else resources.getColor(R.color.rm_text_color, null)
-                )
-            }
-        }
+        // Update slot selection visuals. The "which slot is selected" branching goes through
+        // the shared helper; the border/glow/text-color treatment stays fragment-specific.
+        applySelectionVisuals(
+                items = slotViews,
+                selectedIndex = selectedSlotIndex,
+                onSelected = { slotView, index -> applySlotVisual(slotView, index, isSelected = true) },
+                onUnselected = { slotView, index -> applySlotVisual(slotView, index, isSelected = false) }
+        )
 
         // Update back button visual
         if (isBackButtonSelected) {
@@ -417,8 +374,66 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         }
 
         // Notify subclass of selection change
-        val selectedSlotIndex = if (isBackButtonSelected) -1 else selectedRow * GRID_COLS + selectedCol
         onSelectionChanged(selectedSlotIndex)
+    }
+
+    /**
+     * Applies the selected/unselected visual treatment to a single slot view: the selection
+     * border, the last-used-slot glow (which stays fragment-owned stateful bookkeeping tied to
+     * [activeGlowAnimator]/[lastAnimatedGlowView]), and the slot name's text color.
+     *
+     * @param slotView the slot's root view
+     * @param index the slot's 0-based index in [slotViews]
+     * @param isSelected whether this slot is the currently selected one
+     */
+    private fun applySlotVisual(slotView: View, index: Int, isSelected: Boolean) {
+        val selectionBorder = slotView.findViewById<View>(R.id.slot_selection_border)
+        val glowView = slotView.findViewById<View>(R.id.slot_glow_indicator)
+        val slotName = slotView.findViewById<TextView>(R.id.slot_name)
+
+        val slotNumber = index + 1
+        val isLastUsed = SessionSlotTracker.getInstance().getLastUsedSlot() == slotNumber
+
+        // ===== SELECTION BORDER (Yellow) =====
+        selectionBorder.visibility = if (isSelected) View.VISIBLE else View.GONE
+
+        // ===== GLOW INDICATOR (White Pulsing) =====
+        // Glow is visible ONLY when:
+        // 1. Slot is the last-used slot
+        // 2. Slot is NOT selected (selection takes visual precedence)
+        if (isLastUsed && !isSelected) {
+            glowView.visibility = View.VISIBLE
+
+            // Only start animation if this is a different slot than currently animating
+            // This prevents restarting the animation on every updateSelectionVisualInternal() call
+            if (lastAnimatedGlowView != glowView) {
+                // Stop previous animation if different slot
+                if (lastAnimatedGlowView != null) {
+                    activeGlowAnimator?.cancel()
+                    activeGlowAnimator = null
+                    lastAnimatedGlowView?.alpha = 1.0f
+                }
+                // Start new animation on this slot
+                startGlowAnimation(glowView)
+                lastAnimatedGlowView = glowView
+            }
+        } else {
+            glowView.visibility = View.GONE
+
+            // Only stop animation if this was the animated slot
+            if (lastAnimatedGlowView == glowView) {
+                activeGlowAnimator?.cancel()
+                activeGlowAnimator = null
+                lastAnimatedGlowView = null
+            }
+            glowView.alpha = 1.0f
+        }
+
+        // ===== TEXT COLOR =====
+        slotName.setTextColor(
+                if (isSelected) resources.getColor(R.color.rm_selected_color, null)
+                else resources.getColor(R.color.rm_text_color, null)
+        )
     }
 
     /**

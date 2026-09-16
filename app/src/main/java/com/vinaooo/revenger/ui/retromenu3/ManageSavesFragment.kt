@@ -549,52 +549,53 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
     // ========== OPERATIONS ==========
 
-    private fun performRename(slotNumber: Int, newName: String) {
-        val success = saveStateManager.renameSlot(slotNumber, newName)
+    /**
+     * Runs a slot [operation] against [SaveStateManager] and reports the outcome the same way
+     * for every slot operation: on success, refresh the grid and show [successMessageRes]; on
+     * failure, show [errorMessageRes] and leave the grid untouched.
+     */
+    private fun performSlotOperation(operation: () -> Boolean, successMessageRes: Int, errorMessageRes: Int) {
+        val success = operation()
         if (success) {
             refreshGrid()
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.rename_success), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), successMessageRes), Toast.LENGTH_SHORT)
                     .show()
         } else {
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.rename_error), Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), errorMessageRes), Toast.LENGTH_SHORT)
                     .show()
         }
+    }
+
+    private fun performRename(slotNumber: Int, newName: String) {
+        performSlotOperation(
+                { saveStateManager.renameSlot(slotNumber, newName) },
+                R.string.rename_success,
+                R.string.rename_error
+        )
     }
 
     private fun performCopy(fromSlot: Int, toSlot: Int) {
-        val success = saveStateManager.copySlot(fromSlot, toSlot)
-        if (success) {
-            refreshGrid()
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.copy_success), Toast.LENGTH_SHORT)
-                    .show()
-        } else {
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.copy_error), Toast.LENGTH_SHORT)
-                    .show()
-        }
+        performSlotOperation(
+                { saveStateManager.copySlot(fromSlot, toSlot) },
+                R.string.copy_success,
+                R.string.copy_error
+        )
     }
 
     private fun performMove(fromSlot: Int, toSlot: Int) {
-        val success = saveStateManager.moveSlot(fromSlot, toSlot)
-        if (success) {
-            refreshGrid()
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.move_success), Toast.LENGTH_SHORT)
-                    .show()
-        } else {
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.move_error), Toast.LENGTH_SHORT)
-                    .show()
-        }
+        performSlotOperation(
+                { saveStateManager.moveSlot(fromSlot, toSlot) },
+                R.string.move_success,
+                R.string.move_error
+        )
     }
 
     private fun performDelete(slotNumber: Int) {
-        val success = saveStateManager.deleteSlot(slotNumber)
-        if (success) {
-            refreshGrid()
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.delete_success), Toast.LENGTH_SHORT)
-                    .show()
-        } else {
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.delete_error), Toast.LENGTH_SHORT)
-                    .show()
-        }
+        performSlotOperation(
+                { saveStateManager.deleteSlot(slotNumber) },
+                R.string.delete_success,
+                R.string.delete_error
+        )
     }
 
     companion object {

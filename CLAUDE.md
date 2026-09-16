@@ -56,11 +56,13 @@ Gradle configuration cache is disabled because of `prepareCore`.
 
 Launch flow: `views/SplashActivity` (CRT boot animation, `ui/splash/CRTBootView`) → `views/GameActivity`. `RevengerApplication.onCreate` initializes `DefaultSettingsRepository`, `PipConfigRepository`, and the `AppConfig` singleton.
 
-- **`views/GameActivity`** + **`viewmodels/GameActivityViewModel`** — the emulator screen. Both files are very large; the ViewModel owns the `RetroView`, emulation lifecycle, save/load, PiP, and screenshot logic; the Activity handles input dispatch, PiP broadcast actions, and menu wiring.
+- **`views/GameActivity`** + **`viewmodels/GameActivityViewModel`** — the emulator screen. Both files are very large; the ViewModel owns the `RetroView`, emulation lifecycle, and screenshot logic, and delegates save/load/reset orchestration to `viewmodels/menu/SaveLoadOrchestrator`. PiP orchestration is still inline in `GameActivity` itself (not yet extracted into its own controller — a known future step); `utils/PipSnapshotSelector` and `utils/PipAspectRatioResolver` only hold the pure snapshot-selection/aspect-ratio math out of it. The Activity also handles input dispatch and menu wiring.
 - **`retroview/RetroView`** — wraps LibretroDroid's `GLRetroView` (core loading, serialize/deserialize state, viewport).
-- **`input/ControllerInput`** (large) + **`gamepad/`** — physical gamepad handling and the RadialGamePad virtual touchscreen controls.
+- **`input/ControllerInput`** (large) + **`gamepad/`** — physical gamepad handling and the RadialGamePad virtual touchscreen controls; `gamepad/GamePadLayoutAdjuster` repositions the pads on rotation.
 - **`managers/`** — `SaveStateManager` (multi‑slot saves + save‑states, `slotN.sav` / `slotN.state`, previews as `.webp`), `SessionSlotTracker`, `AudioRoutingManager`, `GameLifecycleObserver` (SRAM flush on focus loss).
-- **`controllers/`** — `AudioController`, `ShaderController` (`disabled` / `sharp` / `crt` / `lcd` / `upscale1`), `SpeedController` (fast‑forward).
+- **`controllers/`** — `AudioController`, `ShaderController` (`disabled` / `sharp` / `crt` / `lcd` / `upscale1`), `SpeedController` (fast‑forward), `FloatingMenuButtonController` (floating menu-button visibility).
+- **`viewmodels/menu/SaveLoadOrchestrator`** — save/load/reset orchestration extracted from `GameActivityViewModel`, keyed off the emulator's frame-speed state.
+- **`views/menu/RotationMenuStateResolver`** — pure decision of which `MenuState` a rotation-triggered menu recreation should rebuild, extracted from `GameActivity.onConfigurationChanged`.
 
 ### RetroMenu3 — the in‑game menu (`ui/retromenu3/`)
 
