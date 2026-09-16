@@ -140,6 +140,10 @@ class CoreVariablesFragment : MenuFragmentBase() {
         }
     }
 
+    // MenuFragmentBase requires overriding this callback, but this fragment's selection
+    // (touch, keyboard, and gamepad confirm) is fully handled by performConfirm() ->
+    // handleItemClick(), so there is nothing left to do here.
+    @Suppress("EmptyFunctionBlock")
     override fun onMenuItemSelected(item: MenuItem) {}
     override fun performNavigateUp() {
         navigateUpCircular(getMenuItems().size)

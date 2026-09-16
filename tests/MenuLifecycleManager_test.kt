@@ -46,7 +46,6 @@ class MenuLifecycleManager_test {
     private lateinit var animationController: MenuAnimationController
     private lateinit var inputHandler: MenuInputHandler
     private lateinit var stateController: MenuStateController
-    private lateinit var callbackManager: MenuCallbackManager
     private lateinit var menuViewManager: MenuViewManager
     private lateinit var actionHandler: MenuActionHandler
 
@@ -64,7 +63,6 @@ class MenuLifecycleManager_test {
                     animationController = animationController,
                     inputHandler = inputHandler,
                     stateController = stateController,
-                    callbackManager = callbackManager,
                     menuViewManager = menuViewManager,
                     actionHandler = actionHandler
             )
@@ -87,7 +85,6 @@ class MenuLifecycleManager_test {
         animationController = mockk(relaxed = true)
         inputHandler = mockk(relaxed = true)
         stateController = mockk(relaxed = true)
-        callbackManager = mockk(relaxed = true)
         menuViewManager = mockk(relaxed = true)
         actionHandler = mockk(relaxed = true)
     }
@@ -188,7 +185,6 @@ class MenuLifecycleManager_test {
                         animationController = animationController,
                         inputHandler = inputHandler,
                         stateController = stateController,
-                        callbackManager = callbackManager,
                         menuViewManager = menuViewManager,
                         actionHandler = actionHandler
                 )

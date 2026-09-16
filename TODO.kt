@@ -12,6 +12,9 @@
 // TODO: Ajustar animação CRT
 // TODO: IA para tradução
 // TODO: Rodar a partir de container Docker
+// TODO: MenuInputHandlerImpl.setupInputHandling (ui/retromenu3/MenuInputHandler.kt) e um stub --
+//       configurar listeners de botoes virtuais e input fisico ali, hoje a configuracao passa
+//       por NavigationController.
 
 // FIXME: Melhorar navegação via teclado
 // FIXME: KEYCODE_BACK/KEYCODE_ESCAPE podem disparar NavigateBack/CloseAllMenus 2x por

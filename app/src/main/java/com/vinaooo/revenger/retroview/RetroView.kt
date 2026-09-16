@@ -36,16 +36,6 @@ class RetroView(
             applyShaderInRealtime(value)
         }
 
-    @Deprecated("Shader selection is now always enabled")
-    private fun isSettingsMode(): Boolean {
-        return true
-    }
-
-    /** Public method to check if shader selection is enabled - always true now */
-    fun isShaderSelectionEnabled(): Boolean {
-        return true
-    }
-
     private fun applyShaderInRealtime(shaderName: String) {
         val shaderConfig =
                 when (shaderName) {

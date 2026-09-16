@@ -30,7 +30,6 @@ class MenuActionHandler_test {
 
     private lateinit var viewModel: GameActivityViewModel
     private lateinit var navigationController: NavigationController
-    private lateinit var viewManager: MenuViewManager
     private lateinit var submenuCoordinator: SubmenuCoordinator
 
     @Before
@@ -38,7 +37,6 @@ class MenuActionHandler_test {
         navigationController = mockk(relaxed = true)
         viewModel = mockk(relaxed = true)
         every { viewModel.navigationController } returns navigationController
-        viewManager = mockk(relaxed = true)
         submenuCoordinator = mockk(relaxed = true)
     }
 
@@ -51,7 +49,7 @@ class MenuActionHandler_test {
     }
 
     private fun handlerWith(fragment: Fragment) =
-            MenuActionHandler(fragment, viewModel, viewManager, submenuCoordinator)
+            MenuActionHandler(fragment, viewModel, submenuCoordinator)
 
     // --- CONTINUE ---
 

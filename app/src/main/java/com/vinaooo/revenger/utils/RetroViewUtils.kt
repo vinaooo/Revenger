@@ -9,7 +9,7 @@ import com.vinaooo.revenger.retroview.RetroView
 
 class RetroViewUtils(private val activity: Activity) {
     /** Retorna o caminho do arquivo de save state utilizado */
-    fun getSaveStatePath(retroView: com.vinaooo.revenger.retroview.RetroView?): String? {
+    fun getSaveStatePath(): String? {
         return try {
             storage.state.absolutePath
         } catch (e: Exception) {

@@ -28,7 +28,6 @@ class SplashActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "SplashActivity"
-        private const val FADE_DURATION = 300L // Fade duration (ms)
     }
 
     private lateinit var crtBootView: CRTBootView

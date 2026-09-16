@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.controllers
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import com.vinaooo.revenger.AppConfig
@@ -8,7 +7,6 @@ import com.vinaooo.revenger.retroview.RetroView
 
 /** Controller for dynamic real-time shader management */
 class ShaderController(
-        private val context: Context,
         private val sharedPreferences: SharedPreferences,
         private val appConfig: AppConfig
 ) {
@@ -41,12 +39,6 @@ class ShaderController(
             effectiveDefault
         }
         Log.d("ShaderController", "Initial shader loaded: $currentShader (config default: $effectiveDefault)")
-    }
-
-    /** Shader selection is now always available (no longer conditional) */
-    @Deprecated("Shader selection is always enabled")
-    private fun isSettingsMode(): Boolean {
-        return true
     }
 
     /** Connects the controller to the RetroView */

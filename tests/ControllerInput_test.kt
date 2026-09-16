@@ -1,9 +1,7 @@
 package com.vinaooo.revenger.input
 
-import android.content.Context
 import android.view.KeyEvent
 import androidx.lifecycle.MutableLiveData
-import androidx.test.core.app.ApplicationProvider
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.retroview.RetroView
 import io.mockk.every
@@ -33,8 +31,7 @@ class ControllerInput_test {
     // so proving cooldown-independent behavior requires waiting out the real windows.
     private val comboCooldownMs = 500L
 
-    private fun newControllerInput(): ControllerInput =
-            ControllerInput(ApplicationProvider.getApplicationContext<Context>())
+    private fun newControllerInput(): ControllerInput = ControllerInput()
 
     /**
      * Builds a mocked [RetroView] whose [RetroView.frameRendered] is pinned to [frameRendered]

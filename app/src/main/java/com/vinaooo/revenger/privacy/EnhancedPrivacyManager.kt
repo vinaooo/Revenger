@@ -41,18 +41,24 @@ object EnhancedPrivacyManager {
     }
 
     /** Android 13+: Standard modern privacy */
+    // Placeholder: requesting the missing permission is not implemented yet.
+    @Suppress("EmptyIfBlock")
     private fun initializeStandardPrivacy(context: Context) {
         // Standard permission handling
-        if (!hasStoragePermissions(context)) {}
+        if (!hasStoragePermissions(context)) {
+        }
 
         // Basic data access controls
         enableBasicDataAudit()
     }
 
     /** Android 11: Basic privacy compliance */
+    // Placeholder: requesting the missing permission is not implemented yet.
+    @Suppress("EmptyIfBlock")
     private fun initializeBasicPrivacy(context: Context) {
         // Ensure basic compliance
-        if (!hasBasicPermissions(context)) {}
+        if (!hasBasicPermissions(context)) {
+        }
     }
 
     /** Enhanced permission management for Android 16 */
@@ -67,7 +73,8 @@ object EnhancedPrivacyManager {
         // Hypothetical advanced audit features
     }
 
-    /** Basic data access logging */
+    /** Basic data access logging (hypothetical, not implemented yet) */
+    @Suppress("EmptyFunctionBlock")
     private fun enableBasicDataAudit() {}
 
     /** Granular permission configuration for SDK 36 */

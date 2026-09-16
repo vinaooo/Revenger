@@ -105,41 +105,6 @@ object ScreenshotCaptureUtil {
     }
 
     /**
-     * Get the aspect ratio for a given LibRetro core name.
-     * 
-     * @param coreName The core name from config (e.g., "gambatte", "snes9x", "genesis_plus_gx")
-     * @return The aspect ratio for the core's target system
-     */
-    private fun getAspectRatioForCore(coreName: String): Float {
-        return when (coreName.lowercase()) {
-            // SNES cores
-            "snes9x", "bsnes", "snes9x_next", "mednafen_snes", "mesen-s" -> AspectRatios.SNES
-            
-            // Game Boy / Game Boy Color cores
-            "gambatte", "mgba", "vba_next", "sameboy", "gearboy" -> AspectRatios.GAME_BOY
-            
-            // Game Boy Advance cores
-            "gpsp", "vba-m", "meteor" -> AspectRatios.GAME_BOY_ADVANCE
-            
-            // Master System cores
-            "gearsystem", "genesis_plus_gx", "picodrive", "smsplus" -> AspectRatios.MASTER_SYSTEM
-            
-            // Mega Drive / Genesis cores (same cores as Master System, but different aspect)
-            // Note: picodrive and genesis_plus_gx support both, so we use Master System default
-            // The actual aspect depends on the ROM being played
-            
-            // NES cores
-            "nestopia", "fceumm", "quicknes", "mesen" -> AspectRatios.NES
-            
-            // Default fallback
-            else -> {
-                Log.w(TAG, "Unknown core '$coreName', using default aspect ratio")
-                AspectRatios.DEFAULT
-            }
-        }
-    }
-
-    /**
      * Calculate the game content rectangle within the GLRetroView.
      * This removes the black bars (letterbox/pillarbox) based on the game's aspect ratio.
      *

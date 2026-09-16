@@ -103,6 +103,9 @@ object ViewUtils {
                 .setInterpolator(android.view.animation.DecelerateInterpolator())
                 .setListener(
                         object : android.animation.Animator.AnimatorListener {
+                            // Animator.AnimatorListener requires overriding every callback;
+                            // only end/cancel matter here to restore the layer type.
+                            @Suppress("EmptyFunctionBlock")
                             override fun onAnimationStart(animation: android.animation.Animator) {}
                             override fun onAnimationEnd(animation: android.animation.Animator) {
                                 // Restore layer type to prevent memory leaks
@@ -113,6 +116,7 @@ object ViewUtils {
                                 // Restore layer type even if cancelled
                                 view.setLayerType(View.LAYER_TYPE_NONE, null)
                             }
+                            @Suppress("EmptyFunctionBlock")
                             override fun onAnimationRepeat(animation: android.animation.Animator) {}
                         }
                 )

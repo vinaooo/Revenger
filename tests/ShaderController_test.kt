@@ -31,7 +31,7 @@ class ShaderController_test {
     private fun newController(configShader: String = "disabled"): ShaderController {
         val appConfig = mockk<AppConfig>()
         every { appConfig.getShader() } returns configShader
-        return ShaderController(context, prefs, appConfig)
+        return ShaderController(prefs, appConfig)
     }
 
     // --- Resolução do shader inicial ---
