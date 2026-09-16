@@ -24,12 +24,7 @@ import org.robolectric.annotation.Config
  * `SubmenuCoordinator` needs `fragment.view?.post{}` to actually run its posted work -- that also
  * implements [AboutListener], since `showAboutSubmenu` casts its host fragment to it directly.
  */
-/**
- * NOTE for future tests in this package (`com.vinaooo.revenger.ui.retromenu3`): this is a public
- * top-level test double so `FragmentManager` can recreate it. If another test file needs a fake
- * host fragment, reuse this one or pick a distinct name -- don't redeclare `HostFragment`.
- */
-class HostFragment : Fragment(), AboutListener {
+class SubmenuCoordinatorHostFragment : Fragment(), AboutListener {
     var backToMainMenuCalls = 0
     override fun onAboutBackToMainMenu() {
         backToMainMenuCalls++
@@ -65,7 +60,7 @@ class HostFragment : Fragment(), AboutListener {
 class SubmenuCoordinator_test {
 
     private lateinit var activity: FragmentActivity
-    private lateinit var hostFragment: HostFragment
+    private lateinit var hostFragment: SubmenuCoordinatorHostFragment
     private lateinit var viewModel: GameActivityViewModel
     private lateinit var viewManager: MenuViewManager
     private lateinit var animationController: MenuAnimationController
@@ -82,7 +77,7 @@ class SubmenuCoordinator_test {
         val root = FrameLayout(activity).apply { id = View.generateViewId() }
         activity.setContentView(root)
 
-        hostFragment = HostFragment()
+        hostFragment = SubmenuCoordinatorHostFragment()
         activity.supportFragmentManager
                 .beginTransaction()
                 .add(root.id, hostFragment, "host")

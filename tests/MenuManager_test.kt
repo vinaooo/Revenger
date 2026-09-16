@@ -24,15 +24,10 @@ import org.robolectric.annotation.Config
  * `navigateUp`/`navigateDown`/`confirm`/`back`/`getCurrentSelectedIndex`/`setSelectedIndex` all
  * gate on the current fragment being a real, attached `androidx.fragment.app.Fragment` (checked
  * via `isAdded`/`context`), so a plain `mockk<MenuFragment>()` can't exercise that guard --
- * [FakeMenuFragment] below is a real `Fragment` implementing [MenuFragment], attached to a real
- * `FragmentActivity` via Robolectric where the "attached" behavior needs to be verified.
+ * [MenuManagerFakeFragment] below is a real `Fragment` implementing [MenuFragment], attached to a
+ * real `FragmentActivity` via Robolectric where the "attached" behavior needs to be verified.
  */
-/**
- * NOTE for future tests in this package (`com.vinaooo.revenger.ui.retromenu3`): this is a public
- * top-level test double so `FragmentManager` can recreate it. If another test file needs a fake
- * `MenuFragment`, reuse this one or pick a distinct name -- don't redeclare `FakeMenuFragment`.
- */
-class FakeMenuFragment : Fragment(), MenuFragment {
+class MenuManagerFakeFragment : Fragment(), MenuFragment {
     var navigateUpResult = true
     var navigateDownResult = true
     var confirmResult = true
@@ -68,8 +63,8 @@ class MenuManager_test {
         activity = Robolectric.buildActivity(FragmentActivity::class.java).setup().get()
     }
 
-    private fun attachedFragment(): FakeMenuFragment {
-        val fragment = FakeMenuFragment()
+    private fun attachedFragment(): MenuManagerFakeFragment {
+        val fragment = MenuManagerFakeFragment()
         activity.supportFragmentManager.beginTransaction().add(fragment, "fake").commitNow()
         return fragment
     }
@@ -167,7 +162,7 @@ class MenuManager_test {
     @Test
     fun `navigateUp retorna false quando o fragment registrado nao esta anexado`() {
         // Fragment real, mas nunca adicionado a um FragmentManager (isAdded == false).
-        menuManager.registerFragment(MenuState.MAIN_MENU, FakeMenuFragment().apply { navigateUpResult = true })
+        menuManager.registerFragment(MenuState.MAIN_MENU, MenuManagerFakeFragment().apply { navigateUpResult = true })
 
         assertFalse(menuManager.navigateUp())
     }
@@ -190,7 +185,7 @@ class MenuManager_test {
 
     @Test
     fun `confirm retorna false quando o fragment nao esta anexado`() {
-        menuManager.registerFragment(MenuState.MAIN_MENU, FakeMenuFragment().apply { confirmResult = true })
+        menuManager.registerFragment(MenuState.MAIN_MENU, MenuManagerFakeFragment().apply { confirmResult = true })
 
         assertFalse(menuManager.confirm())
     }
