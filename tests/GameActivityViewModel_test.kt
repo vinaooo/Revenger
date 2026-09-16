@@ -204,14 +204,13 @@ class GameActivityViewModel_test {
 
     /**
      * Test 3 (regression guard for the bundle-copy consolidation): after `setupMenuCallback` runs
-     * once, all 16 real `ControllerInputCallbacks` fields (the 4 set in `init {}` plus the 12 set
-     * by `setupMenuCallback`) must be non-default. Only the dead `menuCallback` field (never
-     * assigned anywhere) is expected to stay at its default. Comparing by identity, not behavior,
+     * once, all 16 `ControllerInputCallbacks` fields (the 4 set in `init {}` plus the 12 set
+     * by `setupMenuCallback`) must be non-default. Comparing by identity, not behavior,
      * because function references from distinct lambda literals are never `===`/`==` to each
      * other -- so this reliably catches "a callback got dropped during the copy() consolidation".
      */
     @Test
-    fun `setupMenuCallback substitui todos os 16 callbacks reais e deixa o campo morto no default`() {
+    fun `setupMenuCallback substitui todos os 16 callbacks reais`() {
         val activity = mockk<FragmentActivity>(relaxed = true)
         viewModel.setupMenuCallback(activity)
 
@@ -244,12 +243,9 @@ class GameActivityViewModel_test {
         assertNotSame(defaults.shouldBlockAllGamepadInput, callbacks.shouldBlockAllGamepadInput)
         assertNotSame(defaults.isRetroMenu3Open, callbacks.isRetroMenu3Open)
         assertNotSame(defaults.isMenuOperationSafe, callbacks.isMenuOperationSafe)
-
-        // Dead field, never assigned anywhere -- must stay at the class's own default.
-        assertSame(defaults.menuCallback, callbacks.menuCallback)
     }
 
-    // ===== Characterization tests for the 10 registerXFragment[ForRotation] methods =====
+    // ===== Characterization tests for the 8 registerXFragment[ForRotation] methods =====
     //
     // Written BEFORE consolidating them into a single `registerSubmenuFragment` helper, to pin
     // down the real (and non-uniform) per-method combination of:

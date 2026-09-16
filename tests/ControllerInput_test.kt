@@ -248,10 +248,9 @@ class ControllerInput_test {
     }
 
     @Test
-    fun `assigning a ControllerInputCallbacks bundle updates all 17 delegate properties without cross-contamination`() {
+    fun `assigning a ControllerInputCallbacks bundle updates all 16 delegate properties without cross-contamination`() {
         val controllerInput = newControllerInput()
 
-        val menuCallbackFake: () -> Unit = {}
         val selectStartComboCallbackFake: () -> Unit = {}
         val startButtonCallbackFake: () -> Unit = {}
         val shouldHandleSelectStartComboFake: () -> Boolean = { true }
@@ -271,7 +270,6 @@ class ControllerInput_test {
 
         controllerInput.callbacks =
                 ControllerInputCallbacks(
-                        menuCallback = menuCallbackFake,
                         selectStartComboCallback = selectStartComboCallbackFake,
                         startButtonCallback = startButtonCallbackFake,
                         shouldHandleSelectStartCombo = shouldHandleSelectStartComboFake,
@@ -290,7 +288,6 @@ class ControllerInput_test {
                         isMenuOperationSafe = isMenuOperationSafeFake
                 )
 
-        assertSame(menuCallbackFake, controllerInput.menuCallback)
         assertSame(selectStartComboCallbackFake, controllerInput.selectStartComboCallback)
         assertSame(startButtonCallbackFake, controllerInput.startButtonCallback)
         assertSame(
@@ -316,10 +313,9 @@ class ControllerInput_test {
     }
 
     @Test
-    fun `assigning each of the 17 delegate properties individually updates the callbacks bundle without cross-contamination`() {
+    fun `assigning each of the 16 delegate properties individually updates the callbacks bundle without cross-contamination`() {
         val controllerInput = newControllerInput()
 
-        val menuCallbackFake: () -> Unit = {}
         val selectStartComboCallbackFake: () -> Unit = {}
         val startButtonCallbackFake: () -> Unit = {}
         val shouldHandleSelectStartComboFake: () -> Boolean = { true }
@@ -340,10 +336,9 @@ class ControllerInput_test {
         // Assign every property individually (as GameActivityViewModel.setupMenuCallback()
         // and InputViewModel do), rather than replacing the whole bundle at once. Each
         // setter is a hand-written `callbacks = callbacks.copy(field = value)` -- this
-        // proves every one of the 17 names its own field (no copy-paste mismatch) and
+        // proves every one of the 16 names its own field (no copy-paste mismatch) and
         // that earlier assignments survive later ones (each copy() only touches its own
         // field, it doesn't reconstruct the bundle from defaults).
-        controllerInput.menuCallback = menuCallbackFake
         controllerInput.selectStartComboCallback = selectStartComboCallbackFake
         controllerInput.startButtonCallback = startButtonCallbackFake
         controllerInput.shouldHandleSelectStartCombo = shouldHandleSelectStartComboFake
@@ -363,7 +358,6 @@ class ControllerInput_test {
 
         val callbacks = controllerInput.callbacks
 
-        assertSame(menuCallbackFake, callbacks.menuCallback)
         assertSame(selectStartComboCallbackFake, callbacks.selectStartComboCallback)
         assertSame(startButtonCallbackFake, callbacks.startButtonCallback)
         assertSame(shouldHandleSelectStartComboFake, callbacks.shouldHandleSelectStartCombo)

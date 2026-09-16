@@ -484,7 +484,7 @@ class GameActivityViewModel(application: Application) :
      * [setupMenuCallback] re-runs unconditionally on every call (unlike the one-time
      * NavigationController setup above). Collapsed into a single `copy()` of
      * [com.vinaooo.revenger.input.ControllerInputCallbacks] so every other field --
-     * the 4 set in `init {}`, and the dead `menuCallback` -- is preserved as-is.
+     * the 4 set in `init {}` -- is preserved as-is.
      */
     private fun wireControllerInputMenuCallbacks() {
         // REMOVED: Legacy callback configurations - NavigationController handles all navigation now
@@ -1077,7 +1077,7 @@ class GameActivityViewModel(application: Application) :
     // REMOVED: dismissAllMenus() - NavigationController handles menu dismissal now
 
     /**
-     * Shared implementation for the 10 `registerXFragment`/`registerXFragmentForRotation`
+     * Shared implementation for the 8 `registerXFragment`/`registerXFragmentForRotation`
      * methods below. Each one does some subset of: set the fragment field, notify `menuViewModel`,
      * activate the corresponding menu state, and register with `menuManager` -- always in that
      * order. The exact combination of [notifyMenuViewModel] and [activate] is NOT uniform across

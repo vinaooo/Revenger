@@ -110,11 +110,6 @@ class ControllerInput(private val context: Context) {
          */
         var callbacks: ControllerInputCallbacks = ControllerInputCallbacks()
 
-        /** The callback for when the user inputs the menu key-combination */
-        var menuCallback: () -> Unit
-                get() = callbacks.menuCallback
-                set(value) { callbacks = callbacks.copy(menuCallback = value) }
-
         /** The callback for when the user inputs the SELECT+START combo (RetroMenu3) */
         var selectStartComboCallback: () -> Unit
                 get() = callbacks.selectStartComboCallback
