@@ -51,6 +51,28 @@ class GamePadConfig(context: Context, private val appConfig: AppConfig) {
 
                 val LEFT_DPAD = PrimaryDialConfig.Cross(CrossConfig(GLRetroView.MOTION_SOURCE_DPAD))
                 val LEFT_ANALOG = PrimaryDialConfig.Stick(GLRetroView.MOTION_SOURCE_ANALOG_LEFT)
+
+                // Total sockets around the radial pad (clock positions 0-11).
+                private const val TOTAL_SOCKET_COUNT = 12
+
+                // Offset to find the socket diametrically opposite another one, used to keep
+                // the bounding box symmetric (see ALIGNMENT STRATEGY below).
+                private const val OPPOSITE_SOCKET_OFFSET = 6
+
+                // --- LEFT side socket indices (index 2 is BUTTON_SELECT, in the default ignore range) ---
+                private const val LEFT_SOCKET_INDEX_L2 = 3
+                private const val LEFT_SOCKET_INDEX_L1 = 4
+
+                // --- RIGHT side socket indices (indices 0, 1 and 2 are in the default ignore range) ---
+                private const val RIGHT_SOCKET_INDEX_R2 = 3
+                private const val RIGHT_SOCKET_INDEX_START = 4
+                private const val RIGHT_SOCKET_INDEX_FAKE_BUTTON_5 = 5
+                private const val RIGHT_SOCKET_INDEX_FAKE_BUTTON_6 = 6
+                private const val RIGHT_SOCKET_INDEX_FAKE_BUTTON_7 = 7
+                private const val RIGHT_SOCKET_INDEX_MENU = 8
+                private const val RIGHT_SOCKET_INDEX_FAKE_BUTTON_9 = 9
+                private const val RIGHT_SOCKET_INDEX_FAKE_BUTTON_10 = 10
+                private const val RIGHT_SOCKET_INDEX_FAKE_BUTTON_11 = 11
         }
 
         private val radialGamePadTheme =
@@ -90,8 +112,8 @@ class GamePadConfig(context: Context, private val appConfig: AppConfig) {
         private val leftButtons =
                 mapOf(
                         2 to Pair(BUTTON_SELECT, appConfig.getButtonSelect()),
-                        3 to Pair(BUTTON_L2, appConfig.getButtonL2()),
-                        4 to Pair(BUTTON_L1, appConfig.getButtonL1()),
+                        LEFT_SOCKET_INDEX_L2 to Pair(BUTTON_L2, appConfig.getButtonL2()),
+                        LEFT_SOCKET_INDEX_L1 to Pair(BUTTON_L1, appConfig.getButtonL1()),
                 )
 
         // --- RIGHT side button definitions (index → button, isVisible) ---
@@ -100,19 +122,24 @@ class GamePadConfig(context: Context, private val appConfig: AppConfig) {
                         0 to Pair(BUTTON_F1, appConfig.getFakeButton0()),
                         1 to Pair(BUTTON_F2, appConfig.getFakeButton1()),
                         2 to Pair(BUTTON_R1, appConfig.getButtonR1()),
-                        3 to Pair(BUTTON_R2, appConfig.getButtonR2()),
-                        4 to Pair(BUTTON_START, appConfig.getButtonStart()),
-                        5 to Pair(BUTTON_F4, appConfig.getFakeButton5()),
-                        6 to Pair(BUTTON_F10, appConfig.getFakeButton6()),
-                        7 to Pair(BUTTON_F5, appConfig.getFakeButton7()),
-                        8 to Pair(BUTTON_F6, appConfig.getMenuModeGamepad()),
-                        9 to Pair(BUTTON_F7, appConfig.getFakeButton9()),
-                        10 to
+                        RIGHT_SOCKET_INDEX_R2 to Pair(BUTTON_R2, appConfig.getButtonR2()),
+                        RIGHT_SOCKET_INDEX_START to Pair(BUTTON_START, appConfig.getButtonStart()),
+                        RIGHT_SOCKET_INDEX_FAKE_BUTTON_5 to
+                                Pair(BUTTON_F4, appConfig.getFakeButton5()),
+                        RIGHT_SOCKET_INDEX_FAKE_BUTTON_6 to
+                                Pair(BUTTON_F10, appConfig.getFakeButton6()),
+                        RIGHT_SOCKET_INDEX_FAKE_BUTTON_7 to
+                                Pair(BUTTON_F5, appConfig.getFakeButton7()),
+                        RIGHT_SOCKET_INDEX_MENU to
+                                Pair(BUTTON_F6, appConfig.getMenuModeGamepad()),
+                        RIGHT_SOCKET_INDEX_FAKE_BUTTON_9 to
+                                Pair(BUTTON_F7, appConfig.getFakeButton9()),
+                        RIGHT_SOCKET_INDEX_FAKE_BUTTON_10 to
                                 Pair(
                                         BUTTON_F8,
                                         appConfig.getFakeButton10()
                                 ),
-                        11 to
+                        RIGHT_SOCKET_INDEX_FAKE_BUTTON_11 to
                                 Pair(
                                         BUTTON_F9,
                                         appConfig.getFakeButton11()
@@ -125,7 +152,9 @@ class GamePadConfig(context: Context, private val appConfig: AppConfig) {
                 val leftVisible = leftButtons.filter { it.value.second }.keys
                 val rightVisible = rightButtons.filter { it.value.second }.keys
                 val visibleUnion = leftVisible + rightVisible
-                val balanced = visibleUnion + visibleUnion.map { (it + 6) % 12 }
+                val balanced =
+                        visibleUnion +
+                                visibleUnion.map { (it + OPPOSITE_SOCKET_OFFSET) % TOTAL_SOCKET_COUNT }
                 balanced.distinct().sorted()
         }
 

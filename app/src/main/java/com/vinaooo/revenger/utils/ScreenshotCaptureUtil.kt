@@ -61,6 +61,14 @@ object ScreenshotCaptureUtil {
     // A paused-game still does not need to be sub-second fresh; keep the recurring cost low.
     private const val PIP_FRAME_MIN_INTERVAL_MS = 2500L
 
+    // Auto-crop border detection (see autoCropBlackBorders below)
+    private const val MAX_BORDER_CROP_RATIO = 0.05f // Max 5% crop on each side
+    private const val BORDER_SCAN_SAMPLE_COUNT = 20 // Sample ~20 rows/columns for performance
+    private const val BLACK_BORDER_BRIGHTNESS_THRESHOLD = 10
+    private const val RED_CHANNEL_SHIFT_BITS = 16
+    private const val GREEN_CHANNEL_SHIFT_BITS = 8
+    private const val COLOR_CHANNEL_MASK = 0xFF
+
     /**
      * Cached context for reading config values.
      */
@@ -306,10 +314,10 @@ object ScreenshotCaptureUtil {
     private fun autoCropBlackBorders(bitmap: Bitmap): Bitmap {
         val w = bitmap.width
         val h = bitmap.height
-        val maxCropX = (w * 0.05f).toInt() // Max 5% crop on each side
-        val maxCropY = (h * 0.05f).toInt()
-        val sampleStep = maxOf(h / 20, 1) // Sample ~20 rows for performance
-        val brightnessThreshold = 10
+        val maxCropX = (w * MAX_BORDER_CROP_RATIO).toInt()
+        val maxCropY = (h * MAX_BORDER_CROP_RATIO).toInt()
+        val sampleStep = maxOf(h / BORDER_SCAN_SAMPLE_COUNT, 1)
+        val brightnessThreshold = BLACK_BORDER_BRIGHTNESS_THRESHOLD
 
         // Find left border
         var left = 0
@@ -317,9 +325,9 @@ object ScreenshotCaptureUtil {
             var hasContent = false
             for (y in 0 until h step sampleStep) {
                 val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr 16) and 0xFF
-                val g = (pixel shr 8) and 0xFF
-                val b = pixel and 0xFF
+                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val b = pixel and COLOR_CHANNEL_MASK
                 if (r + g + b > brightnessThreshold) {
                     hasContent = true
                     break
@@ -337,9 +345,9 @@ object ScreenshotCaptureUtil {
             var hasContent = false
             for (y in 0 until h step sampleStep) {
                 val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr 16) and 0xFF
-                val g = (pixel shr 8) and 0xFF
-                val b = pixel and 0xFF
+                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val b = pixel and COLOR_CHANNEL_MASK
                 if (r + g + b > brightnessThreshold) {
                     hasContent = true
                     break
@@ -352,15 +360,15 @@ object ScreenshotCaptureUtil {
         }
 
         // Find top border
-        val sampleStepX = maxOf(w / 20, 1)
+        val sampleStepX = maxOf(w / BORDER_SCAN_SAMPLE_COUNT, 1)
         var top = 0
         for (y in 0 until minOf(maxCropY, h)) {
             var hasContent = false
             for (x in 0 until w step sampleStepX) {
                 val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr 16) and 0xFF
-                val g = (pixel shr 8) and 0xFF
-                val b = pixel and 0xFF
+                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val b = pixel and COLOR_CHANNEL_MASK
                 if (r + g + b > brightnessThreshold) {
                     hasContent = true
                     break
@@ -378,9 +386,9 @@ object ScreenshotCaptureUtil {
             var hasContent = false
             for (x in 0 until w step sampleStepX) {
                 val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr 16) and 0xFF
-                val g = (pixel shr 8) and 0xFF
-                val b = pixel and 0xFF
+                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val b = pixel and COLOR_CHANNEL_MASK
                 if (r + g + b > brightnessThreshold) {
                     hasContent = true
                     break
