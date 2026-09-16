@@ -5,9 +5,14 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.test.core.app.ApplicationProvider
+import com.vinaooo.revenger.R
 import com.vinaooo.revenger.managers.SaveStateManager
+import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.ui.retromenu3.callbacks.ManageSavesListener
+import com.vinaooo.revenger.utils.FontUtils
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import java.io.File
 import org.junit.After
 import org.junit.Assert.*
@@ -17,6 +22,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowToast
 
 /**
  * Robolectric tests for ManageSavesFragment, following the pattern proven by
@@ -92,5 +98,177 @@ class ManageSavesFragment_test {
         } catch (e: Exception) {
             fail("onBackConfirmed should not throw exception: ${e.message}")
         }
+    }
+
+    // ========== performRename / performCopy / performMove / performDelete ==========
+    //
+    // These four private methods (see SaveStateGridFragment.saveStateManager, injected here via
+    // reflection since the field is protected) share one if/else-toast/refresh shape. The tests
+    // below mock saveStateManager to force each success/failure branch deterministically -
+    // deleteSlot() in particular can't be forced to fail through the real filesystem-backed
+    // manager, since Kotlin's File.deleteRecursively() succeeds even on a missing directory.
+
+    private fun mockedSaveStateManager(): SaveStateManager {
+        val manager = mockk<SaveStateManager>(relaxed = true)
+        val emptySlots = (1..SaveStateManager.TOTAL_SLOTS).map { SaveSlotData.empty(it) }
+        every { manager.getAllSlots() } returns emptySlots
+        every { manager.getSlot(any()) } answers { SaveSlotData.empty(firstArg()) }
+        return manager
+    }
+
+    private fun injectSaveStateManager(manager: SaveStateManager) {
+        val field = SaveStateGridFragment::class.java.getDeclaredField("saveStateManager")
+        field.isAccessible = true
+        field.set(fragment, manager)
+    }
+
+    private fun callPerformRename(slotNumber: Int, newName: String) {
+        val method =
+                ManageSavesFragment::class.java.getDeclaredMethod(
+                        "performRename",
+                        Int::class.javaPrimitiveType,
+                        String::class.java
+                )
+        method.isAccessible = true
+        method.invoke(fragment, slotNumber, newName)
+    }
+
+    private fun callPerformCopy(fromSlot: Int, toSlot: Int) {
+        val method =
+                ManageSavesFragment::class.java.getDeclaredMethod(
+                        "performCopy",
+                        Int::class.javaPrimitiveType,
+                        Int::class.javaPrimitiveType
+                )
+        method.isAccessible = true
+        method.invoke(fragment, fromSlot, toSlot)
+    }
+
+    private fun callPerformMove(fromSlot: Int, toSlot: Int) {
+        val method =
+                ManageSavesFragment::class.java.getDeclaredMethod(
+                        "performMove",
+                        Int::class.javaPrimitiveType,
+                        Int::class.javaPrimitiveType
+                )
+        method.isAccessible = true
+        method.invoke(fragment, fromSlot, toSlot)
+    }
+
+    private fun callPerformDelete(slotNumber: Int) {
+        val method =
+                ManageSavesFragment::class.java.getDeclaredMethod(
+                        "performDelete",
+                        Int::class.javaPrimitiveType
+                )
+        method.isAccessible = true
+        method.invoke(fragment, slotNumber)
+    }
+
+    private fun expectedToast(resId: Int): String =
+            FontUtils.getCapitalizedString(activity, resId)
+
+    @Test
+    fun `performRename com sucesso mostra toast de sucesso e atualiza grid`() {
+        val manager = mockedSaveStateManager()
+        every { manager.renameSlot(1, "New Name") } returns true
+        injectSaveStateManager(manager)
+
+        callPerformRename(1, "New Name")
+
+        assertEquals(1, ShadowToast.shownToastCount())
+        assertEquals(expectedToast(R.string.rename_success), ShadowToast.getTextOfLatestToast())
+        verify(exactly = 1) { manager.getAllSlots() }
+    }
+
+    @Test
+    fun `performRename com falha mostra toast de erro e nao atualiza grid`() {
+        val manager = mockedSaveStateManager()
+        every { manager.renameSlot(1, "New Name") } returns false
+        injectSaveStateManager(manager)
+
+        callPerformRename(1, "New Name")
+
+        assertEquals(1, ShadowToast.shownToastCount())
+        assertEquals(expectedToast(R.string.rename_error), ShadowToast.getTextOfLatestToast())
+        verify(exactly = 0) { manager.getAllSlots() }
+    }
+
+    @Test
+    fun `performDelete com sucesso mostra toast de sucesso e atualiza grid`() {
+        val manager = mockedSaveStateManager()
+        every { manager.deleteSlot(3) } returns true
+        injectSaveStateManager(manager)
+
+        callPerformDelete(3)
+
+        assertEquals(1, ShadowToast.shownToastCount())
+        assertEquals(expectedToast(R.string.delete_success), ShadowToast.getTextOfLatestToast())
+        verify(exactly = 1) { manager.getAllSlots() }
+    }
+
+    @Test
+    fun `performDelete com falha mostra toast de erro e nao atualiza grid`() {
+        val manager = mockedSaveStateManager()
+        every { manager.deleteSlot(3) } returns false
+        injectSaveStateManager(manager)
+
+        callPerformDelete(3)
+
+        assertEquals(1, ShadowToast.shownToastCount())
+        assertEquals(expectedToast(R.string.delete_error), ShadowToast.getTextOfLatestToast())
+        verify(exactly = 0) { manager.getAllSlots() }
+    }
+
+    @Test
+    fun `performCopy com sucesso mostra toast de sucesso e atualiza grid`() {
+        val manager = mockedSaveStateManager()
+        every { manager.copySlot(1, 2) } returns true
+        injectSaveStateManager(manager)
+
+        callPerformCopy(1, 2)
+
+        assertEquals(1, ShadowToast.shownToastCount())
+        assertEquals(expectedToast(R.string.copy_success), ShadowToast.getTextOfLatestToast())
+        verify(exactly = 1) { manager.getAllSlots() }
+    }
+
+    @Test
+    fun `performCopy com falha mostra toast de erro e nao atualiza grid`() {
+        val manager = mockedSaveStateManager()
+        every { manager.copySlot(1, 2) } returns false
+        injectSaveStateManager(manager)
+
+        callPerformCopy(1, 2)
+
+        assertEquals(1, ShadowToast.shownToastCount())
+        assertEquals(expectedToast(R.string.copy_error), ShadowToast.getTextOfLatestToast())
+        verify(exactly = 0) { manager.getAllSlots() }
+    }
+
+    @Test
+    fun `performMove com sucesso mostra toast de sucesso e atualiza grid`() {
+        val manager = mockedSaveStateManager()
+        every { manager.moveSlot(1, 2) } returns true
+        injectSaveStateManager(manager)
+
+        callPerformMove(1, 2)
+
+        assertEquals(1, ShadowToast.shownToastCount())
+        assertEquals(expectedToast(R.string.move_success), ShadowToast.getTextOfLatestToast())
+        verify(exactly = 1) { manager.getAllSlots() }
+    }
+
+    @Test
+    fun `performMove com falha mostra toast de erro e nao atualiza grid`() {
+        val manager = mockedSaveStateManager()
+        every { manager.moveSlot(1, 2) } returns false
+        injectSaveStateManager(manager)
+
+        callPerformMove(1, 2)
+
+        assertEquals(1, ShadowToast.shownToastCount())
+        assertEquals(expectedToast(R.string.move_error), ShadowToast.getTextOfLatestToast())
+        verify(exactly = 0) { manager.getAllSlots() }
     }
 }
