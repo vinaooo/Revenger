@@ -8,7 +8,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.ui.retromenu3.callbacks.ExitListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -66,12 +65,6 @@ class ExitFragment : MenuFragmentBase() {
     private lateinit var selectionArrowSaveAndExit: TextView
     private lateinit var selectionArrowExitWithoutSave: TextView
     private lateinit var selectionArrowBack: TextView
-
-    private var exitListener: ExitListener? = null
-
-    fun setExitListener(listener: ExitListener) {
-        this.exitListener = listener
-    }
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -327,7 +320,7 @@ class ExitFragment : MenuFragmentBase() {
 
             // Get ROM name from config
             val romName = try {
-                getString(R.string.conf_name)
+                getString(R.string.name)
             } catch (e: Exception) {
                 "Unknown Game"
             }
@@ -367,111 +360,53 @@ class ExitFragment : MenuFragmentBase() {
     /** Update selection visual - specific implementation for ExitFragment */
     override fun updateSelectionVisualInternal() {
         val selectedIndex = getCurrentSelectedIndex()
+        val selectedColor =
+                androidx.core.content.ContextCompat.getColor(
+                        requireContext(),
+                        R.color.rm_selected_color
+                )
+        val normalColor =
+                androidx.core.content.ContextCompat.getColor(
+                        requireContext(),
+                        R.color.rm_normal_color
+                )
 
         // Update each menu item state based on selection
-        menuItems.forEachIndexed { index, item ->
-            if (index == selectedIndex) {
-                // Selected item – use RetroCardView.State.SELECTED
-                item.setState(RetroCardView.State.SELECTED)
-            } else {
-                // Unselected item – use RetroCardView.State.NORMAL
-                item.setState(RetroCardView.State.NORMAL)
-            }
-        }
+        applySelectionVisuals(
+                items = menuItems,
+                selectedIndex = selectedIndex,
+                onSelected = { it.setState(RetroCardView.State.SELECTED) },
+                onUnselected = { it.setState(RetroCardView.State.NORMAL) }
+        )
 
         // Control text colors based on selection
-        saveAndExitTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 0)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_selected_color
-                        )
-                else
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_normal_color
-                        )
-        )
-        exitWithoutSaveTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 1)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_selected_color
-                        )
-                else
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_normal_color
-                        )
-        )
-        backTitle.setTextColor(
-                if (getCurrentSelectedIndex() == 2)
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_selected_color
-                        )
-                else
-                        androidx.core.content.ContextCompat.getColor(
-                                requireContext(),
-                                R.color.rm_normal_color
-                        )
+        applySelectionVisuals(
+                items = listOf(saveAndExitTitle, exitWithoutSaveTitle, backTitle),
+                selectedIndex = selectedIndex,
+                onSelected = { it.setTextColor(selectedColor) },
+                onUnselected = { it.setTextColor(normalColor) }
         )
 
-        // Control selection arrows colors and visibility
-        // FIX: Selected item shows arrow without margin (attached to text)
-        // val arrowMarginEnd =
-        // resources.getDimensionPixelSize(R.dimen.rm_arrow_margin_end)
-
-        // Save and Exit
-        if (getCurrentSelectedIndex() == 0) {
-            selectionArrowSaveAndExit.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowSaveAndExit.visibility = View.VISIBLE
-            (selectionArrowSaveAndExit.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
-                marginEnd = 0 // Force zero margin after arrow - attached to text
-            }
-        } else {
-            selectionArrowSaveAndExit.visibility = View.GONE
-        }
-
-        // Exit without Save
-        if (getCurrentSelectedIndex() == 1) {
-            selectionArrowExitWithoutSave.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowExitWithoutSave.visibility = View.VISIBLE
-            (selectionArrowExitWithoutSave.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
-                marginEnd = 0 // Force zero margin after arrow - attached to text
-            }
-        } else {
-            selectionArrowExitWithoutSave.visibility = View.GONE
-        }
-
-        // Back
-        if (getCurrentSelectedIndex() == 2) {
-            selectionArrowBack.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowBack.visibility = View.VISIBLE
-            (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // No space before the arrow
-                marginEnd = 0 // Force zero margin after arrow - attached to text
-            }
-        } else {
-            selectionArrowBack.visibility = View.GONE
-        }
+        // Control selection arrows: selected arrow shows with zero margin (attached to
+        // text); unselected arrow is hidden.
+        applySelectionVisuals(
+                items =
+                        listOf(
+                                selectionArrowSaveAndExit,
+                                selectionArrowExitWithoutSave,
+                                selectionArrowBack
+                        ),
+                selectedIndex = selectedIndex,
+                onSelected = { arrow ->
+                    arrow.setTextColor(selectedColor)
+                    arrow.visibility = View.VISIBLE
+                    (arrow.layoutParams as LinearLayout.LayoutParams).apply {
+                        marginStart = 0 // No space before the arrow
+                        marginEnd = 0 // Force zero margin after arrow - attached to text
+                    }
+                },
+                onUnselected = { it.visibility = View.GONE }
+        )
 
         // Force layout update
         exitMenuContainer.requestLayout()

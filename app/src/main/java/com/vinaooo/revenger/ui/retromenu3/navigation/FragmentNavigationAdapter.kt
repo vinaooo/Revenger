@@ -13,6 +13,7 @@ import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
 import com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment
 import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+import com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment
 
 /**
  * Adapter that isolates Fragment transaction logic from the NavigationController.
@@ -53,9 +54,7 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
             MenuType.PROGRESS -> showProgressMenu()
             MenuType.ABOUT -> showAboutMenu()
             MenuType.EXIT -> showExitMenu()
-            MenuType.CORE_VARIABLES -> {
-                Log.w(TAG, "[SHOW] Core Variables menu not yet implemented")
-            }
+            MenuType.CORE_VARIABLES -> showCoreVariablesMenu()
             MenuType.SAVE_SLOTS -> showSaveSlotsMenu()
             MenuType.LOAD_SLOTS -> showLoadSlotsMenu()
             MenuType.MANAGE_SAVES -> showManageSavesMenu()
@@ -157,6 +156,20 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
         Log.d(TAG, "[SHOW] Exit menu added successfully")
     }
 
+    private fun showCoreVariablesMenu() {
+        Log.d(TAG, "[SHOW] Core Variables menu")
+
+        val coreVariablesFragment = CoreVariablesFragment()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(MENU_CONTAINER_ID, coreVariablesFragment, TAG_CORE_VARIABLES_MENU)
+                .addToBackStack(TAG_CORE_VARIABLES_MENU)
+                .commitAllowingStateLoss()
+
+        Log.d(TAG, "[SHOW] Core Variables menu added successfully")
+    }
+
     private fun showSaveSlotsMenu() {
         Log.d(TAG, "[SHOW] Save Slots menu")
 
@@ -232,15 +245,21 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
             try {
                 fragmentManager.beginTransaction().remove(currentFragment).commitAllowingStateLoss()
                 Log.d(TAG, "[HIDE] Menu remove requested for fragment=${currentFragment.javaClass.simpleName}")
-
-                // Verify state after transaction (best-effort)
-                val foundAfter = fragmentManager.findFragmentById(MENU_CONTAINER_ID)
-                Log.d(TAG, "[HIDE] After remove: fragmentById=${foundAfter?.javaClass?.simpleName} backStack=${fragmentManager.backStackEntryCount}")
             } catch (t: Throwable) {
                 Log.e(TAG, "[HIDE] Exception while removing fragment", t)
             }
         } else {
             Log.w(TAG, "[HIDE] No menu to hide (currentFragment=null or not added)")
+        }
+
+        // Catch the case where backstack wasn't cleared
+        if (fragmentManager.backStackEntryCount > 0) {
+            try {
+                Log.d(TAG, "[HIDE] Clearing remaining backstack items: ${fragmentManager.backStackEntryCount}")
+                fragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+            } catch (t: Throwable) {
+                Log.e(TAG, "[HIDE] Exception while clearing backstack", t)
+            }
         }
     }
 
@@ -284,6 +303,7 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
         private const val TAG_PROGRESS_MENU = "ProgressFragment"
         private const val TAG_ABOUT_MENU = "AboutFragment"
         private const val TAG_EXIT_MENU = "ExitFragment"
+        private const val TAG_CORE_VARIABLES_MENU = "CoreVariablesFragment"
         private const val TAG_SAVE_SLOTS_MENU = "SaveSlotsFragment"
         private const val TAG_LOAD_SLOTS_MENU = "LoadSlotsFragment"
         private const val TAG_MANAGE_SAVES_MENU = "ManageSavesFragment"

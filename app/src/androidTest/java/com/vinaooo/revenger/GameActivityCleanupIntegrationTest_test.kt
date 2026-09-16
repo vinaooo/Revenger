@@ -1,11 +1,10 @@
 package com.vinaooo.revenger.ui.integration
 
-import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.action.ViewActions.*
-import androidx.test.espresso.matcher.ViewMatchers.*
+import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 import com.vinaooo.revenger.views.GameActivity
 import org.junit.Before
 import org.junit.Rule
@@ -33,9 +32,14 @@ class GameActivityCleanupIntegrationTest {
         // If we get here, the activity initialized successfully
         // All 8 properties were initialized without exception
 
-        // Validate that layout is inflated
-        onView(withId(R.id.retroView)).check { view, noViewFoundException ->
-            // View may exist or not, but no crashes
+        // Validate that layout is inflated. Uses findViewById directly (not Espresso's
+        // onView) since this is a plain presence check, not a UI interaction - Espresso
+        // eagerly initializes its InputManager-based event injector on any onView() call,
+        // which is incompatible with this device's Android version.
+        activityRule.scenario.onActivity { activity ->
+            assert(activity.findViewById<android.view.View>(R.id.retroview_container) != null) {
+                "retroview_container should be present in the inflated layout"
+            }
         }
     }
 
@@ -49,8 +53,10 @@ class GameActivityCleanupIntegrationTest {
         }
 
         // Activity should continue functioning
-        onView(withId(R.id.retroView)).check { view, noViewFoundException ->
-            // Should still exist after rotation
+        activityRule.scenario.onActivity { activity ->
+            assert(activity.findViewById<android.view.View>(R.id.retroview_container) != null) {
+                "retroview_container should still be present after rotation"
+            }
         }
 
         // Return to portrait
@@ -140,7 +146,7 @@ class CriticalBehaviorValidationTest {
         activityRule.scenario.onActivity { activity ->
             try {
                 // Any access to uninitialized properties would throw here
-                val viewModel = activity.viewModel
+                val viewModel = ViewModelProvider(activity)[GameActivityViewModel::class.java]
                 assert(viewModel != null) { "ViewModel should be initialized" }
             } catch (e: UninitializedPropertyAccessException) {
                 exceptionThrown = true
@@ -172,7 +178,7 @@ class CriticalBehaviorValidationTest {
     fun testViewModelsAccessible() {
         activityRule.scenario.onActivity { activity ->
             // All properties should be accessible
-            val viewModel = activity.viewModel
+            val viewModel = ViewModelProvider(activity)[GameActivityViewModel::class.java]
 
             // If we reach here without exception, it's correct
             assert(viewModel != null) { "ViewModel accessible" }
@@ -187,7 +193,7 @@ class CriticalBehaviorValidationTest {
         activityRule.scenario.onActivity { activity ->
             try {
                 // Acessar propriedades que deveriam estar inicializadas
-                val retroView = activity.retroView
+                val retroView = ViewModelProvider(activity)[GameActivityViewModel::class.java].retroView
                 // May be null by design, but should not throw exception
             } catch (e: NullPointerException) {
                 nullPointerThrown = true

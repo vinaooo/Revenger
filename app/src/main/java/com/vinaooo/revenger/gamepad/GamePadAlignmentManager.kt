@@ -5,6 +5,8 @@ import android.util.Log
 import com.swordfish.radialgamepad.library.config.RadialGamePadConfig
 import com.vinaooo.revenger.R
 
+import com.vinaooo.revenger.AppConfig
+
 /**
  * Centralized manager for virtual GamePad alignment and positioning.
  *
@@ -16,7 +18,7 @@ import com.vinaooo.revenger.R
  * Goal: Ensure that the centers of LEFT and RIGHT GamePads are always horizontally
  * aligned, even when they have different secondary button configurations.
  */
-class GamePadAlignmentManager(private val resources: Resources) {
+class GamePadAlignmentManager(private val appConfig: AppConfig) {
 
     companion object {
         private const val TAG = "GamePadAlignmentManager"
@@ -123,8 +125,8 @@ class GamePadAlignmentManager(private val resources: Resources) {
      */
     fun validateOffsets(): Pair<Boolean, String> {
         return try {
-            val portraitOffset = resources.getInteger(R.integer.gp_offset_portrait)
-            val landscapeOffset = resources.getInteger(R.integer.gp_offset_landscape)
+            val portraitOffset = appConfig.gamePadConfigModel.gp_offset_portrait
+            val landscapeOffset = appConfig.gamePadConfigModel.gp_offset_landscape
 
             val portraitValid = portraitOffset in 0..100
             val landscapeValid = landscapeOffset in 0..100

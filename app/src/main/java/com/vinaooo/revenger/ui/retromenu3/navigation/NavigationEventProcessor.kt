@@ -60,8 +60,8 @@ class NavigationEventProcessor(
                 navigateBack()
             }
             is NavigationEvent.OpenMenu -> {
-                Log.d(TAG, "[MENU_EVENT] OpenMenu: inputSource=${event.inputSource}")
-                openMainMenu()
+                Log.d(TAG, "[MENU_EVENT] OpenMenu: inputSource=${event.inputSource}, targetMenu=${event.targetMenu}")
+                openMainMenu(event.targetMenu)
             }
             is NavigationEvent.CloseAllMenus -> {
                 Log.d(
@@ -265,25 +265,41 @@ class NavigationEventProcessor(
                     TAG,
                     "[NAVIGATE_BACK] fragmentAdapter.navigateBack() returned: $success"
             )
+
+            // A submenu opened directly as the root (no parent on the stack — e.g. the PiP
+            // "Save and Exit" grid) has now been popped and nothing is left. Close the menu
+            // fully so listeners run, mirroring the MAIN + empty-stack branch above —
+            // otherwise onMenuClosed() never fires and the game stays paused.
+            if (fragmentAdapter.getBackStackCount() == 0) {
+                Log.d(TAG, "[NAVIGATE_BACK] Menu fully closed via rootless path — notifying close")
+                onMenuClosed(lastActionButton)
+                fragmentAdapter.hideMenu()
+                stateManager.unregisterFragment()
+                eventQueue.clear()
+                lastActionButton = null
+                // The back press WAS handled (menu closed), even though fragmentAdapter
+                // returns false for an already-empty back stack.
+                return true
+            }
             return success
         }
     }
 
-    /** Open the main menu. */
-    private fun openMainMenu() {
-        Log.d(TAG, "[MENU_OPEN] Opening main menu")
+    /** Open the menu at a specific target (defaults to MAIN). */
+    private fun openMainMenu(targetMenu: MenuType = MenuType.MAIN) {
+        Log.d(TAG, "[MENU_OPEN] Opening menu, target: $targetMenu")
 
         Log.d(TAG, "[MENU_OPEN] Calling onMenuOpenedCallback to pause game")
         onMenuOpened()
         Log.d(TAG, "[MENU_OPEN] onMenuOpenedCallback completed")
 
-        stateManager.updateCurrentMenu(MenuType.MAIN)
+        stateManager.updateCurrentMenu(targetMenu)
         stateManager.updateSelectedIndex(0)
         stateManager.clearStack()
 
-        Log.d(TAG, "[MENU_OPEN] Calling fragmentAdapter.showMenu(MAIN)")
-        fragmentAdapter.showMenu(MenuType.MAIN)
-        Log.d(TAG, "[MENU_OPEN] Main menu opened successfully")
+        Log.d(TAG, "[MENU_OPEN] Calling fragmentAdapter.showMenu($targetMenu)")
+        fragmentAdapter.showMenu(targetMenu)
+        Log.d(TAG, "[MENU_OPEN] Menu opened successfully")
     }
 
     /** Close all menus. */

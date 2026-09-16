@@ -45,7 +45,7 @@ class SplashActivity : AppCompatActivity() {
 
         // CRITICAL: Apply orientation IMMEDIATELY after super.onCreate()
         // to avoid incorrect orientation flash
-        val configOrientation = resources.getInteger(R.integer.conf_orientation)
+        val configOrientation = com.vinaooo.revenger.RevengerApplication.appConfig.getOrientation()
         OrientationManager.applyConfigOrientation(this, configOrientation)
 
         Log.d(TAG, "SplashActivity created - orientation: $configOrientation")
@@ -116,19 +116,18 @@ class SplashActivity : AppCompatActivity() {
         Log.d(TAG, "Starting GameActivity")
 
         val intent = Intent(this, GameActivity::class.java)
-        startActivity(intent)
-        finish()
-
         // No transition - fade out already occurred in Phase 3
-        @Suppress("DEPRECATION") overridePendingTransition(0, 0)
+        val options = androidx.core.app.ActivityOptionsCompat.makeCustomAnimation(this, 0, 0)
+        startActivity(intent, options.toBundle())
+        finish()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
-        // Reapply forced orientation to keep conf_orientation authoritative
+        // Reapply forced orientation to keep orientation authoritative
         // Ensures physical orientation changes do not interfere with animation
-        val configOrientation = resources.getInteger(R.integer.conf_orientation)
+        val configOrientation = com.vinaooo.revenger.RevengerApplication.appConfig.getOrientation()
         OrientationManager.applyConfigOrientation(this, configOrientation)
         Log.d(TAG, "Configuration changed - orientation reapplied: $configOrientation")
     }

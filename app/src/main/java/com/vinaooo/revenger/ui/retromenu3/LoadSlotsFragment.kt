@@ -49,10 +49,16 @@ class LoadSlotsFragment : SaveStateGridFragment() {
      * and on top of the game surface, creating a smooth visual transition on load.
      */
     private fun showPreviewForSlot(slot: SaveSlotData) {
-        if (!slot.hasPreview()) return
+        val fileToLoad = when {
+            slot.hasPreview() -> slot.previewFile
+            slot.hasScreenshot() -> slot.screenshotFile
+            else -> null
+        }
+
+        if (fileToLoad == null) return
 
         try {
-            val bitmap = BitmapFactory.decodeFile(slot.previewFile!!.absolutePath)
+            val bitmap = BitmapFactory.decodeFile(fileToLoad.absolutePath)
             if (bitmap != null) {
                 viewModel.showLoadPreview(bitmap)
                 Log.d(TAG, "Load preview shown for slot ${slot.slotNumber}")

@@ -10,7 +10,7 @@ import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.libretrodroid.GLRetroViewData
 import com.swordfish.libretrodroid.ShaderConfig
 import com.swordfish.libretrodroid.Variable
-import com.vinaooo.revenger.R
+import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.repositories.Storage
 import kotlinx.coroutines.CoroutineScope
@@ -18,33 +18,32 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 
-class RetroView(private val context: Context, private val coroutineScope: CoroutineScope) {
-    companion object {
-        var romBytes: ByteArray? = null
-    }
-
+class RetroView(
+    private val context: Context, 
+    private val coroutineScope: CoroutineScope,
+    private val appConfig: AppConfig
+) {
     private val resources = context.resources
     private val storage = Storage.getInstance(context)
 
-    // Dynamic shader for "settings" mode
-    private var _dynamicShader: String = "sharp"
+    // Dynamic shader is now always available for user selection
+    private var _dynamicShader: String = "disabled"
     var dynamicShader: String
         get() = _dynamicShader
         set(value) {
             _dynamicShader = value
-            // Apply shader in real time if in settings mode
-            if (isSettingsMode()) {
-                applyShaderInRealtime(value)
-            }
+            // Always apply shader in real time (shader selection always enabled)
+            applyShaderInRealtime(value)
         }
 
+    @Deprecated("Shader selection is now always enabled")
     private fun isSettingsMode(): Boolean {
-        return context.getString(R.string.conf_shader).lowercase() == "settings"
+        return true
     }
 
-    /** Public method to check if shader selection is enabled */
+    /** Public method to check if shader selection is enabled - always true now */
     fun isShaderSelectionEnabled(): Boolean {
-        return isSettingsMode()
+        return true
     }
 
     private fun applyShaderInRealtime(shaderName: String) {
@@ -54,6 +53,9 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                     "sharp" -> ShaderConfig.Sharp
                     "crt" -> ShaderConfig.CRT
                     "lcd" -> ShaderConfig.LCD
+                    "upscale1" -> ShaderConfig.CUT()
+                    "upscale2" -> ShaderConfig.CUT2()
+                    "upscale3" -> ShaderConfig.CUT3()
                     else -> ShaderConfig.Sharp
                 }
 
@@ -71,7 +73,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
      * @return ShaderConfig enum value for video rendering
      */
     private fun getShaderConfig(): ShaderConfig {
-        val shaderString = context.getString(R.string.conf_shader).lowercase()
+        val shaderString = appConfig.getShader().lowercase()
 
         return when (shaderString) {
             "disabled" -> {
@@ -90,25 +92,20 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 Log.i("RetroView", "Shader configurado: LCD (efeito de matriz LCD)")
                 ShaderConfig.LCD
             }
-            "settings" -> {
-                Log.i(
-                        "RetroView",
-                        "Shader configurado: Settings (modo dinâmico) - usando: $_dynamicShader"
-                )
-                // Settings mode: use dynamic shader
-                when (_dynamicShader) {
-                    "disabled" -> ShaderConfig.Default
-                    "sharp" -> ShaderConfig.Sharp
-                    "crt" -> ShaderConfig.CRT
-                    "lcd" -> ShaderConfig.LCD
-                    else -> ShaderConfig.Sharp
-                }
+            "upscale1" -> {
+                Log.i("RetroView", "Shader configurado: CUT (Upsampling Filter 1)")
+                ShaderConfig.CUT()
+            }
+            "upscale2" -> {
+                Log.i("RetroView", "Shader configurado: CUT2 (Upsampling Filter 2)")
+                ShaderConfig.CUT2()
+            }
+            "upscale3" -> {
+                Log.i("RetroView", "Shader configurado: CUT3 (Upsampling Filter 3)")
+                ShaderConfig.CUT3()
             }
             else -> {
-                Log.w(
-                        "RetroView",
-                        "Invalid shader configuration: '$shaderString'. Using Sharp as fallback."
-                )
+                Log.w("RetroView", "Invalid shader configuration: '$shaderString'. Using Sharp as fallback.")
                 ShaderConfig.Sharp
             }
         }
@@ -122,7 +119,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                 coreFilePath = "libcore.so"
 
                 /* Prepare the ROM bytes */
-                val romName = context.getString(R.string.conf_rom)
+                val romName = appConfig.getRomName()
 
                 // Load ROM from assets/rom/ (faster builds — assets bypass AAPT2 processing)
                 val romAssetPath = "rom/$romName"
@@ -135,22 +132,15 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
                             )
                         }
 
-                val romLoadStartTime = System.currentTimeMillis()
-                if (resources.getBoolean(R.bool.conf_load_bytes)) {
-                    if (romBytes == null) romBytes = romInputStream.use { it.readBytes() }
-                    gameFileBytes = romBytes
-                } else {
-                    // Always overwrite ROM file to ensure latest version is loaded
-                    storage.rom.outputStream().use { romInputStream.copyTo(it) }
-                    Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
+                // Always overwrite ROM file to storage to ensure latest version is loaded
+                storage.rom.outputStream().use { romInputStream.copyTo(it) }
+                Log.i("RetroView", "ROM file updated: $romName -> ${storage.rom.absolutePath}")
 
-                    gameFilePath = storage.rom.absolutePath
-                }
+                gameFilePath = storage.rom.absolutePath
 
                 shader = getShaderConfig()
                 variables = getCoreVariables()
 
-                val sramLoadStartTime = System.currentTimeMillis()
                 if (storage.sram.exists()) {
                     storage.sram.inputStream().use { saveRAMState = it.readBytes() }
                 }
@@ -161,6 +151,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
     init {
         view = GLRetroView(context, retroViewData)
+        view.preserveEGLContextOnPause = true
 
         val params =
                 FrameLayout.LayoutParams(
@@ -203,7 +194,7 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
     /** Parse core variables from config */
     private fun getCoreVariables(): Array<Variable> {
         val variables = arrayListOf<Variable>()
-        val rawVariablesString = context.getString(R.string.conf_variables)
+        val rawVariablesString = appConfig.getVariables()
         val rawVariables = rawVariablesString.split(",")
 
         Log.d("RetroView", "Configuring core variables: '$rawVariablesString'")
@@ -220,5 +211,17 @@ class RetroView(private val context: Context, private val coroutineScope: Corout
 
         Log.d("RetroView", "Total core variables configured: ${variables.size}")
         return variables.toTypedArray()
+    }
+
+    fun resume() {
+        view.onResume()
+    }
+
+    fun pause() {
+        view.onPause()
+    }
+
+    fun destroy() {
+        view.onDestroy()
     }
 }

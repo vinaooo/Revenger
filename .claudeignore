@@ -1,0 +1,52 @@
+# Diretórios de Build e Cache do Gradle
+.gradle/
+build/
+*/build/
+
+# Artefatos Compilados (Binários)
+*.class
+*.jar
+*.war
+*.ear
+*.kexe
+*.so
+*.dll
+
+# Configurações Locais de IDE (Excesso de XML)
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Logs, Dumps e Arquivos Temporários
+*.log
+hs_err_pid*.log
+/tmp/
+/temp/
+
+# Documentação Autogerada
+/dokka/
+/javadoc/
+
+# Arquivos de Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# Controle de Versão
+/.git/
+
+# ROMs e Backups de Jogo (binários grandes, até 1GB+ por arquivo)
+/roms_backup/
+app/src/main/assets/rom/*
+
+# Ambiente Virtual Python (scripts de ícones)
+/venv/
+icons/.cache/
+
+# Segredos e Material de Assinatura
+icons/.env
+/revenger.jks
+
+# Backups locais de configuração
+/config_backup/

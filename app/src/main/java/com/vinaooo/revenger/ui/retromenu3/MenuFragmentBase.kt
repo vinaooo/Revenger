@@ -1,6 +1,7 @@
 package com.vinaooo.revenger.ui.retromenu3
 
 import android.util.Log
+import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.viewmodels.InputViewModel
@@ -173,6 +174,53 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     protected fun resetSelection() {
         _currentSelectedIndex = 0
         updateSelectionVisualInternal()
+    }
+
+    /**
+     * Applies per-item selected/unselected visuals to a fixed list of item views.
+     *
+     * Iterates [items] and invokes [onSelected] for the view at [selectedIndex] and
+     * [onUnselected] for every other view. This replaces the iterate-and-branch loop that
+     * subclasses previously duplicated in each `updateSelectionVisualInternal()` override;
+     * subclasses keep their own selected/unselected visual treatment (color, glow, scale,
+     * margins, etc.) in the lambdas passed here.
+     *
+     * @param items the menu item views, in display order
+     * @param selectedIndex the currently selected index
+     * @param onSelected applied to the view at [selectedIndex]
+     * @param onUnselected applied to every other view
+     */
+    protected fun <T : View> applySelectionVisuals(
+            items: List<T>,
+            selectedIndex: Int,
+            onSelected: (T) -> Unit,
+            onUnselected: (T) -> Unit
+    ) {
+        items.forEachIndexed { index, item ->
+            if (index == selectedIndex) onSelected(item) else onUnselected(item)
+        }
+    }
+
+    /**
+     * Indexed variant of [applySelectionVisuals] for fragments whose per-item visual treatment
+     * needs the item's index (e.g. to derive a 1-based slot number, or to look up related state
+     * keyed by position). Behaves identically otherwise: [onSelected] is invoked for the item at
+     * [selectedIndex], [onUnselected] for every other item, both receiving the item's index.
+     *
+     * @param items the menu item views, in display order
+     * @param selectedIndex the currently selected index
+     * @param onSelected applied to the view at [selectedIndex], with its index
+     * @param onUnselected applied to every other view, with its index
+     */
+    protected fun <T : View> applySelectionVisuals(
+            items: List<T>,
+            selectedIndex: Int,
+            onSelected: (T, Int) -> Unit,
+            onUnselected: (T, Int) -> Unit
+    ) {
+        items.forEachIndexed { index, item ->
+            if (index == selectedIndex) onSelected(item, index) else onUnselected(item, index)
+        }
     }
 
     /**

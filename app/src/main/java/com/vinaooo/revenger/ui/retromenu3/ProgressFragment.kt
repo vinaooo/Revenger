@@ -8,7 +8,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.ui.retromenu3.callbacks.ProgressListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
@@ -68,12 +67,6 @@ class ProgressFragment : MenuFragmentBase() {
 
     // Track selected index when navigating to submenus
     private var savedSelectionIndex = 0
-
-    private var progressListener: ProgressListener? = null
-
-    fun setProgressListener(listener: ProgressListener) {
-        this.progressListener = listener
-    }
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -317,148 +310,65 @@ class ProgressFragment : MenuFragmentBase() {
     /** Update selection visual - specific implementation for ProgressFragment */
     override fun updateSelectionVisualInternal() {
         val currentIndex = getCurrentSelectedIndex()
-
-        // CRITICAL: Get the currently selected item from menuItems (dynamic list)
-        val selectedItem =
-                if (currentIndex >= 0 && currentIndex < menuItems.size) {
-                    menuItems[currentIndex]
-                } else {
-                    null
-                }
+        val selectedColor =
+                androidx.core.content.ContextCompat.getColor(
+                        requireContext(),
+                        R.color.rm_selected_color
+                )
+        val normalColor =
+                androidx.core.content.ContextCompat.getColor(
+                        requireContext(),
+                        R.color.rm_normal_color
+                )
+        val disabledColor =
+                androidx.core.content.ContextCompat.getColor(
+                        requireContext(),
+                        R.color.rm_disabled_color
+                )
 
         // Update each menu item based on selection state
-        menuItems.forEachIndexed { index, menuItem ->
-            if (index == currentIndex) {
-                // Selected item - use SELECTED state of RetroCardView
-                menuItem.setState(RetroCardView.State.SELECTED)
-            } else {
-                // Unselected item - use NORMAL state of RetroCardView
-                menuItem.setState(RetroCardView.State.NORMAL)
-            }
-        }
+        applySelectionVisuals(
+                items = menuItems,
+                selectedIndex = currentIndex,
+                onSelected = { it.setState(RetroCardView.State.SELECTED) },
+                onUnselected = { it.setState(RetroCardView.State.NORMAL) }
+        )
 
-        // Control text colors and arrows based on which ACTUAL item is selected
-        // Load State
-        if (selectedItem == loadState) {
-            loadStateTitle.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowLoadState.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowLoadState.visibility = View.VISIBLE
-            (selectionArrowLoadState.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0
-                marginEnd = 0
-            }
-        } else {
-            loadStateTitle.setTextColor(
-                    if (!loadState.isEnabled)
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_disabled_color
-                            )
-                    else
-                            androidx.core.content.ContextCompat.getColor(
-                                    requireContext(),
-                                    R.color.rm_normal_color
-                            )
-            )
-            selectionArrowLoadState.visibility = View.GONE
-        }
+        // Control text colors based on which item is selected. Load State keeps its
+        // disabled-color special case when unselected and disabled.
+        applySelectionVisuals(
+                items = listOf(loadStateTitle, saveStateTitle, manageSavesTitle, backTitle),
+                selectedIndex = currentIndex,
+                onSelected = { it.setTextColor(selectedColor) },
+                onUnselected = { title ->
+                    val color =
+                            if (title === loadStateTitle && !loadState.isEnabled) disabledColor
+                            else normalColor
+                    title.setTextColor(color)
+                }
+        )
 
-        // Save State
-        if (selectedItem == saveState) {
-            saveStateTitle.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowSaveState.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowSaveState.visibility = View.VISIBLE
-            (selectionArrowSaveState.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0
-                marginEnd = 0
-            }
-        } else {
-            saveStateTitle.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_normal_color
-                    )
-            )
-            selectionArrowSaveState.visibility = View.GONE
-        }
-
-        // Manage Saves
-        if (selectedItem == manageSaves) {
-            manageSavesTitle.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowManageSaves.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowManageSaves.visibility = View.VISIBLE
-            (selectionArrowManageSaves.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0
-                marginEnd = 0
-            }
-        } else {
-            manageSavesTitle.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_normal_color
-                    )
-            )
-            selectionArrowManageSaves.visibility = View.GONE
-        }
-
-        // Back
-        if (selectedItem == backProgress) {
-            backTitle.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowBack.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            selectionArrowBack.visibility = View.VISIBLE
-            (selectionArrowBack.layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0
-                marginEnd = 0
-            }
-        } else {
-            backTitle.setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            requireContext(),
-                            R.color.rm_normal_color
-                    )
-            )
-            selectionArrowBack.visibility = View.GONE
-        }
+        // Control selection arrows: selected arrow shows with zero margin (attached to
+        // text); unselected arrow is hidden.
+        applySelectionVisuals(
+                items =
+                        listOf(
+                                selectionArrowLoadState,
+                                selectionArrowSaveState,
+                                selectionArrowManageSaves,
+                                selectionArrowBack
+                        ),
+                selectedIndex = currentIndex,
+                onSelected = { arrow ->
+                    arrow.setTextColor(selectedColor)
+                    arrow.visibility = View.VISIBLE
+                    (arrow.layoutParams as LinearLayout.LayoutParams).apply {
+                        marginStart = 0
+                        marginEnd = 0
+                    }
+                },
+                onUnselected = { it.visibility = View.GONE }
+        )
 
         // Force layout update
         progressContainer.requestLayout()

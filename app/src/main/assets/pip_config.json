@@ -1,0 +1,36 @@
+{
+    "platforms": {
+        "gba": {
+            "ratio_w": 3,
+            "ratio_h": 2
+        },
+        "snes": {
+            "ratio_w": 4,
+            "ratio_h": 3
+        },
+        "sms": {
+            "ratio_w": 4,
+            "ratio_h": 3
+        },
+        "md": {
+            "ratio_w": 4,
+            "ratio_h": 3
+        },
+        "gb": {
+            "ratio_w": 10,
+            "ratio_h": 9
+        },
+        "ds": {
+            "ratio_w": 4,
+            "ratio_h": 3
+        },
+        "3ds": {
+            "ratio_w": 5,
+            "ratio_h": 3
+        }
+    },
+    "default": {
+        "ratio_w": 4,
+        "ratio_h": 3
+    }
+}

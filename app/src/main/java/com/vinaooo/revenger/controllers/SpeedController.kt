@@ -3,6 +3,7 @@ package com.vinaooo.revenger.controllers
 import android.content.Context
 import android.content.SharedPreferences
 import com.swordfish.libretrodroid.GLRetroView
+import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.PreferencesConstants
 
@@ -12,11 +13,11 @@ import com.vinaooo.revenger.utils.PreferencesConstants
  */
 class SpeedController(
         private val context: Context,
-        private val sharedPreferences: SharedPreferences
+        private val sharedPreferences: SharedPreferences,
+        private val appConfig: AppConfig
 ) {
     // Fast forward speed configured in config.xml
-    private val fastForwardSpeed =
-            context.resources.getInteger(R.integer.conf_fast_forward_multiplier)
+    private val fastForwardSpeed = appConfig.getFastForwardMultiplier()
 
     /**
      * Toggles between normal speed (1x) and fast forward (configurable)

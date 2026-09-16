@@ -82,7 +82,8 @@ sealed class MenuEvent {
  * - `PROGRESS_MENU`: Submenu de save/load states
  * - `SETTINGS_MENU`: Submenu de configurações (Audio, Shader, Speed)
  * - `ABOUT_MENU`: Submenu de informações sobre ROM/Core
- * - `EXIT_MENU`: Submenu de confirmação de saída (Save & Exit, Exit, Back)
+ * - `EXIT_MENU,
+        CORE_VARIABLES_MENU`: Submenu de confirmação de saída (Save & Exit, Exit, Back)
  *
  * **Transições**:
  * ```
@@ -98,7 +99,12 @@ enum class MenuState {
     PROGRESS_MENU,
     SETTINGS_MENU,
     ABOUT_MENU,
-    EXIT_MENU
+    EXIT_MENU,
+        CORE_VARIABLES_MENU,
+    SAVE_SLOTS_MENU,
+    LOAD_SLOTS_MENU,
+    MANAGE_SAVES_MENU,
+    EXIT_SAVE_SLOTS_MENU
 }
 
 /**
@@ -118,7 +124,8 @@ data class MenuSystemState(
         SETTINGS_MENU,
         PROGRESS_MENU,
         ABOUT_MENU,
-        EXIT_MENU
+        EXIT_MENU,
+        CORE_VARIABLES_MENU
     }
 
     /** Check if any menu is currently active */
@@ -351,31 +358,10 @@ class MenuManager(
 
     /** Navigate to a specific menu state */
     fun navigateToState(newState: MenuState) {
-        Log.d(
-                "MenuManager",
-                "[NAVIGATE_TO_STATE] 🧭 ========== NAVIGATE TO STATE START =========="
-        )
-        Log.d("MenuManager", "[NAVIGATE_TO_STATE] 📊 newState=$newState")
-
         val oldState = stateManager.getCurrentState()
-        Log.d("MenuManager", "[NAVIGATE_TO_STATE] 📊 oldState=$oldState")
-
         stateManager.changeState(newState)
-        Log.d(
-                "MenuManager",
-                "[NAVIGATE_TO_STATE] ✅ State changed: $oldState -> $newState"
-        )
-
-        Log.d(
-                "MenuManager",
-                "[NAVIGATE_TO_STATE] 📡 Calling listener.onMenuEvent(StateChanged)"
-        )
+        Log.d("MenuManager", "navigateToState: $oldState -> $newState")
         listener.onMenuEvent(MenuEvent.StateChanged(oldState, newState))
-
-        Log.d(
-                "MenuManager",
-                "[NAVIGATE_TO_STATE] 🧭 ========== NAVIGATE TO STATE END =========="
-        )
     }
 
     /** Handle a menu action */
@@ -399,149 +385,86 @@ class MenuManager(
 
     /** Navigate up in current menu */
     fun navigateUp(): Boolean {
-        Log.d("MenuManager", "[NAV] ↑ ========== NAVIGATE UP START ==========")
         val fragment = getCurrentFragment()
         val isAdded = (fragment as? androidx.fragment.app.Fragment)?.isAdded == true
         val hasContext = (fragment as? androidx.fragment.app.Fragment)?.context != null
         val isVisible = (fragment as? androidx.fragment.app.Fragment)?.isVisible == true
         val isResumed = (fragment as? androidx.fragment.app.Fragment)?.isResumed == true
 
-        Log.d("MenuManager", "[NAV] ↑ Fragment status check")
-        Log.d("MenuManager", "[NAV]   📋 fragment=${fragment?.javaClass?.simpleName}")
-        Log.d("MenuManager", "[NAV]   ✅ isAdded=$isAdded")
-        Log.d("MenuManager", "[NAV]   🎯 hasContext=$hasContext")
-        Log.d("MenuManager", "[NAV]   👁️ isVisible=$isVisible")
-        Log.d("MenuManager", "[NAV]   🎮 isResumed=$isResumed")
-        Log.d("MenuManager", "[NAV]   📊 currentState=${getCurrentState()}")
-
-        if (fragment != null && isAdded && hasContext) {
-            Log.d("MenuManager", "[NAV] ↑ Calling fragment.onNavigateUp()")
-            val result = fragment.onNavigateUp()
-            Log.d("MenuManager", "[NAV] ↑ Result=$result")
-            Log.d("MenuManager", "[NAV] ↑ ========== NAVIGATE UP COMPLETED ==========")
-            return result
+        return if (fragment != null && isAdded && hasContext) {
+            fragment.onNavigateUp()
         } else {
             Log.w(
                     "MenuManager",
                     "[NAV] Navigate up: Fragment not available or not attached - fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, isVisible=$isVisible, isResumed=$isResumed"
             )
-            Log.d("MenuManager", "[NAV] ↑ ========== NAVIGATE UP FAILED ==========")
-            return false
+            false
         }
     }
 
     /** Navigate down in current menu */
     fun navigateDown(): Boolean {
-        Log.d(
-                "MenuManager",
-                "[NAV] ↓ navigateDown: ========== STARTING NAVIGATE DOWN =========="
-        )
         val fragment = getCurrentFragment()
         val isAdded = (fragment as? androidx.fragment.app.Fragment)?.isAdded == true
         val hasContext = (fragment as? androidx.fragment.app.Fragment)?.context != null
         val isVisible = (fragment as? androidx.fragment.app.Fragment)?.isVisible == true
         val isResumed = (fragment as? androidx.fragment.app.Fragment)?.isResumed == true
 
-        Log.d("MenuManager", "[NAV] ↓ navigateDown: Fragment status check")
-        Log.d("MenuManager", "[NAV]   📋 fragment=${fragment?.javaClass?.simpleName}")
-        Log.d("MenuManager", "[NAV]   ✅ isAdded=$isAdded")
-        Log.d("MenuManager", "[NAV]   🎯 hasContext=$hasContext")
-        Log.d("MenuManager", "[NAV]   👁️ isVisible=$isVisible")
-        Log.d("MenuManager", "[NAV]   🎮 isResumed=$isResumed")
-        Log.d("MenuManager", "[NAV]   📊 currentState=${getCurrentState()}")
-
-        if (fragment != null && isAdded && hasContext) {
-            Log.d(
-                    "MenuManager",
-                    "[NAV] ↓ navigateDown: Calling fragment.onNavigateDown()"
-            )
-            val result = fragment.onNavigateDown()
-            Log.d("MenuManager", "[NAV] ↓ navigateDown: Result=$result")
-            Log.d(
-                    "MenuManager",
-                    "[NAV] ↓ navigateDown: ========== NAVIGATE DOWN COMPLETED =========="
-            )
-            return result
+        return if (fragment != null && isAdded && hasContext) {
+            fragment.onNavigateDown()
         } else {
             Log.w(
                     "MenuManager",
                     "[NAV] navigateDown: Fragment not available or not attached - fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, isVisible=$isVisible, isResumed=$isResumed"
             )
-            Log.d(
-                    "MenuManager",
-                    "[NAV] ↓ navigateDown: ========== NAVIGATE DOWN FAILED =========="
-            )
-            return false
+            false
         }
     }
 
     /** Confirm current selection */
     fun confirm(): Boolean {
-        Log.d("MenuManager", "[CONFIRM] ===== CONFIRM OPERATION START =====")
-        Log.d("MenuManager", "[CONFIRM] isProcessingConfirm=$isProcessingConfirm")
-
         // Prevent simultaneous confirm operations
         if (isProcessingConfirm) {
-            Log.d(
-                    "MenuManager",
-                    "[CONFIRM] ⚠️ confirm() already in progress, ignoring"
-            )
+            Log.d("MenuManager", "[CONFIRM] Already in progress, ignoring")
             return false
         }
 
         isProcessingConfirm = true
-        Log.d("MenuManager", "[CONFIRM] 🔄 Starting confirm operation")
 
         try {
             val fragment = getCurrentFragment()
-            if (fragment != null &&
+            return if (fragment != null &&
                             (fragment as? androidx.fragment.app.Fragment)?.isAdded == true &&
                             (fragment as? androidx.fragment.app.Fragment)?.context != null
             ) {
-                val result = fragment.onConfirm()
-                Log.d(
-                        "MenuManager",
-                        "[CONFIRM] ✅ Confirm operation completed, result=$result"
-                )
-                return result
+                fragment.onConfirm()
             } else {
                 Log.w(
                         "MenuManager",
                         "[CONFIRM] ⚠️ Fragment not available or not attached - fragment=$fragment, isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
                 )
-                return false
+                false
             }
         } finally {
             isProcessingConfirm = false
-            Log.d("MenuManager", "[CONFIRM] 🔄 Confirm operation flag reset")
-            Log.d("MenuManager", "[CONFIRM] ===== CONFIRM OPERATION END =====")
         }
     }
 
     /** Go back */
     fun back(): Boolean {
-        Log.d("MenuManager", "[BACK] ===== BACK OPERATION START =====")
-        Log.d("MenuManager", "[BACK] isProcessingBack=$isProcessingBack")
-        Log.d("MenuManager", "[BACK] isProcessingConfirm=$isProcessingConfirm")
-
         // Prevent simultaneous back operations
         if (isProcessingBack) {
-            Log.d("MenuManager", "[BACK] ⚠️ back() already in progress, ignoring")
+            Log.d("MenuManager", "[BACK] Already in progress, ignoring")
             return false
         }
 
         // Prevent back operations while confirm is in progress (critical dismiss operation)
         if (isProcessingConfirm) {
-            Log.d(
-                    "MenuManager",
-                    "[BACK] ⚠️ confirm() in progress, ignoring back during dismiss"
-            )
-            Log.d("MenuManager", "[BACK] ===== BACK OPERATION BLOCKED =====")
+            Log.d("MenuManager", "[BACK] confirm() in progress, ignoring back during dismiss")
             return false
         }
 
         isProcessingBack = true
-        Log.d("MenuManager", "[BACK] 🔄 Starting back operation")
 
         try {
             val fragment = getCurrentFragment()
@@ -567,7 +490,6 @@ class MenuManager(
             return fragmentHandled
         } finally {
             isProcessingBack = false
-            Log.d("MenuManager", "[BACK] 🔄 Back operation flag reset")
         }
     }
     /** Get current selected index */
@@ -612,9 +534,7 @@ class MenuManager(
 
     /** Send navigation down event */
     fun sendNavigateDown() {
-        Log.d("MenuManager", "[SEND] sendNavigateDown: Sending navigate down event")
         listener.onMenuEvent(MenuEvent.NavigateDown)
-        Log.d("MenuManager", "[SEND] sendNavigateDown: Event sent")
     }
 
     /** Send confirm event */

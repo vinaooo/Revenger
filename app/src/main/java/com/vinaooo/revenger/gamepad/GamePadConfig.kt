@@ -1,14 +1,15 @@
 package com.vinaooo.revenger.gamepad
 
 import android.content.Context
-import android.content.res.Resources
 import android.view.KeyEvent
 import androidx.core.content.ContextCompat
+import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.radialgamepad.library.config.*
 import com.swordfish.radialgamepad.library.haptics.HapticConfig
+import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.R
 
-class GamePadConfig(context: Context, private val resources: Resources) {
+class GamePadConfig(context: Context, private val appConfig: AppConfig) {
         companion object {
 
                 val BUTTON_START = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_START, label = "+")
@@ -43,23 +44,23 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                 val BUTTON_F9 = ButtonConfig(id = -9, label = "11")
                 val BUTTON_F10 = ButtonConfig(id = -10, label = "6")
 
-                val LEFT_DPAD = PrimaryDialConfig.Cross(CrossConfig(0))
-                val LEFT_ANALOG = PrimaryDialConfig.Stick(0)
+                val LEFT_DPAD = PrimaryDialConfig.Cross(CrossConfig(GLRetroView.MOTION_SOURCE_DPAD))
+                val LEFT_ANALOG = PrimaryDialConfig.Stick(GLRetroView.MOTION_SOURCE_ANALOG_LEFT)
         }
 
         private val radialGamePadTheme =
                 RadialGamePadTheme(
                         textColor = ContextCompat.getColor(context, android.R.color.white),
-                        normalColor = ContextCompat.getColor(context, R.color.gp_button_color),
-                        pressedColor = ContextCompat.getColor(context, R.color.gp_pressed_color)
+                        normalColor = android.graphics.Color.parseColor(appConfig.gamePadConfigModel.button_button_color),
+                        pressedColor = android.graphics.Color.parseColor(appConfig.gamePadConfigModel.gp_pressed_color)
                 )
 
         private fun getActionButtonsInOrder(): List<ButtonConfig> {
                 return listOfNotNull( // ordem antihoraria
-                        BUTTON_B.takeIf { resources.getBoolean(R.bool.conf_gp_b) }, // Right (3h)
-                        BUTTON_Y.takeIf { resources.getBoolean(R.bool.conf_gp_y) }, // Top (12h)
-                        BUTTON_X.takeIf { resources.getBoolean(R.bool.conf_gp_x) }, // Left (9h)
-                        BUTTON_A.takeIf { resources.getBoolean(R.bool.conf_gp_a) } // Bottom (6h)
+                        BUTTON_B.takeIf { appConfig.getButtonB() }, // Right (3h)
+                        BUTTON_Y.takeIf { appConfig.getButtonY() }, // Top (12h)
+                        BUTTON_X.takeIf { appConfig.getButtonX() }, // Left (9h)
+                        BUTTON_A.takeIf { appConfig.getButtonA() } // Bottom (6h)
                 )
         }
 
@@ -108,33 +109,33 @@ class GamePadConfig(context: Context, private val resources: Resources) {
         // --- LEFT side button definitions (index → button, isVisible) ---
         private val leftButtons =
                 mapOf(
-                        2 to Pair(BUTTON_SELECT, resources.getBoolean(R.bool.conf_gp_select)),
-                        3 to Pair(BUTTON_L2, resources.getBoolean(R.bool.conf_gp_l2)),
-                        4 to Pair(BUTTON_L1, resources.getBoolean(R.bool.conf_gp_l1)),
+                        2 to Pair(BUTTON_SELECT, appConfig.getButtonSelect()),
+                        3 to Pair(BUTTON_L2, appConfig.getButtonL2()),
+                        4 to Pair(BUTTON_L1, appConfig.getButtonL1()),
                 )
 
         // --- RIGHT side button definitions (index → button, isVisible) ---
         private val rightButtons =
                 mapOf(
-                        0 to Pair(BUTTON_F1, resources.getBoolean(R.bool.conf_show_fake_button_0)),
-                        1 to Pair(BUTTON_F2, resources.getBoolean(R.bool.conf_show_fake_button_1)),
-                        2 to Pair(BUTTON_R1, resources.getBoolean(R.bool.conf_gp_r1)),
-                        3 to Pair(BUTTON_R2, resources.getBoolean(R.bool.conf_gp_r2)),
-                        4 to Pair(BUTTON_START, resources.getBoolean(R.bool.conf_gp_start)),
-                        5 to Pair(BUTTON_F4, resources.getBoolean(R.bool.conf_show_fake_button_5)),
-                        6 to Pair(BUTTON_F10, resources.getBoolean(R.bool.conf_show_fake_button_6)),
-                        7 to Pair(BUTTON_F5, resources.getBoolean(R.bool.conf_show_fake_button_7)),
-                        8 to Pair(BUTTON_F6, resources.getBoolean(R.bool.conf_menu_mode_gamepad)),
-                        9 to Pair(BUTTON_F7, resources.getBoolean(R.bool.conf_show_fake_button_9)),
+                        0 to Pair(BUTTON_F1, appConfig.getFakeButton0()),
+                        1 to Pair(BUTTON_F2, appConfig.getFakeButton1()),
+                        2 to Pair(BUTTON_R1, appConfig.getButtonR1()),
+                        3 to Pair(BUTTON_R2, appConfig.getButtonR2()),
+                        4 to Pair(BUTTON_START, appConfig.getButtonStart()),
+                        5 to Pair(BUTTON_F4, appConfig.getFakeButton5()),
+                        6 to Pair(BUTTON_F10, appConfig.getFakeButton6()),
+                        7 to Pair(BUTTON_F5, appConfig.getFakeButton7()),
+                        8 to Pair(BUTTON_F6, appConfig.getMenuModeGamepad()),
+                        9 to Pair(BUTTON_F7, appConfig.getFakeButton9()),
                         10 to
                                 Pair(
                                         BUTTON_F8,
-                                        resources.getBoolean(R.bool.conf_show_fake_button_10)
+                                        appConfig.getFakeButton10()
                                 ),
                         11 to
                                 Pair(
                                         BUTTON_F9,
-                                        resources.getBoolean(R.bool.conf_show_fake_button_11)
+                                        appConfig.getFakeButton11()
                                 ),
                 )
 
@@ -179,12 +180,12 @@ class GamePadConfig(context: Context, private val resources: Resources) {
         val left =
                 RadialGamePadConfig(
                         haptic =
-                                if (resources.getBoolean(R.bool.conf_gp_haptic)) HapticConfig.PRESS
+                                if (appConfig.getGpHaptic()) HapticConfig.PRESS
                                 else HapticConfig.OFF,
                         theme = radialGamePadTheme,
                         sockets = 12,
                         primaryDial =
-                                if (resources.getBoolean(R.bool.conf_left_analog)) LEFT_ANALOG
+                                if (appConfig.getLeftAnalog()) LEFT_ANALOG
                                 else LEFT_DPAD,
                         secondaryDials = buildSecondaryDials(leftButtons)
                 )
@@ -192,7 +193,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
         val right =
                 RadialGamePadConfig(
                         haptic =
-                                if (resources.getBoolean(R.bool.conf_gp_haptic)) HapticConfig.PRESS
+                                if (appConfig.getGpHaptic()) HapticConfig.PRESS
                                 else HapticConfig.OFF,
                         theme = radialGamePadTheme,
                         sockets = 12,
@@ -200,9 +201,7 @@ class GamePadConfig(context: Context, private val resources: Resources) {
                                 PrimaryDialConfig.PrimaryButtons(
                                         dials = getActionButtonsInOrder(),
                                         allowMultiplePressesSingleFinger =
-                                                resources.getBoolean(
-                                                        R.bool.conf_gp_allow_multiple_presses_action
-                                                )
+                                                appConfig.getButtonAllowMultiplePressesAction()
                                 ),
                         secondaryDials = buildSecondaryDials(rightButtons)
                 )

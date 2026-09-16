@@ -76,8 +76,38 @@ Here's how Revenger is configured with the new multi‑slot system:
 - [LibRetro](http://buildbot.libretro.com/nightly/): Emulator cores for Android
 
 # Configuration
-- Edit `app/src/main/res/values/config.xml` and change your configuration
-- Place your ROM files in `roms_backup/` at the project root (the build system automatically stages the active ROM based on `conf_rom` in config.xml)
+- Edit `app/src/main/assets/config/config.json` and change your configuration
+- Place your ROM files in `roms_backup/` at the project root (the build system automatically stages the active ROM based on `rom` in config.xml)
+
+## Default Settings System
+
+Revenger now supports an **default settings mode** that automatically configures the emulator based on the platform of the ROM. When enabled, the APK chooses the best LibRetro core, gamepad layout, orientation, shaders and other preferences by inspecting the ROM extension (or an explicit `platform` tag). This eliminates manual tweaking and makes packaging one‑tap ready games trivial.
+
+### Enabling
+Add the following tags in `app/src/main/assets/config/config.json`:
+
+```xml
+<bool name="default_settings">true</bool>
+<string name="platform"/><!-- optional, used when extension is ambiguous -->
+```
+
+`default_settings` is a **build‑time flag**. When `false` (the default) Revenger behaves exactly as before, using values directly from `config.xml`.
+
+### How it works
+1. On build, the Gradle `prepareCore` task reads the default settings JSON (`app/src/main/assets/default_settings.json`).
+2. It resolves a profile by `platform` or ROM filename extension and selects the corresponding core for download.
+3. At runtime, an `AppConfig` facade returns either the original config.xml values or overrides from the profile. All components (RetroView, GamePad, controllers, etc.) query `AppConfig` instead of resources directly.
+
+### Supported platforms
+The JSON currently includes profiles for: **Master System (sms/gg)**, **Mega Drive (md)**, **Super Nintendo (snes)**, **Game Boy/Color (gb/gbc)**, **Game Boy Advance (gba)** and **NES (nes)**. Adding new platforms is as simple as editing the JSON and optionally adjusting aspect ratio mappings.
+
+### Benefits
+- ✅ One‑tap packaging – just install and play
+- ✅ Optimized core and variable presets per system
+- ✅ Build‑time validation prevents incorrect cores
+- 🚫 Zero impact when disabled (legacy configs still work)
+
+For full details see [docs/default_settings.md](docs/default_settings.md).
 
 ## Shader Configuration
 Revenger supports configurable video shaders for enhanced visual experience:
@@ -104,6 +134,35 @@ Set the desired shader in `config.xml`:
 - Use **Disabled** for maximum performance
 - Use **CRT** for retro gaming experience
 - Use **LCD** for modern aesthetic
+
+# Auto-Generated Icons
+Revenger features an automated script system to generate all required Android app icons (including adaptive icons for Android 8.0+) based on the chosen console/emulator core. The build system pulls incredible game artworks from internet APIs automatically to create a compelling standard for the standalone games.
+
+## How it works
+The scripts are located inside the `icons/scripts/` directory:
+1. **`master_icon.py`**: The main controller. It reads your `config.xml` to determine what emulator core is currently configured and fetches relevant artworks. It handles the whole pipeline until outputs are put into the `app/src/main/res/` mipmap directories, and generates the `mipmap-anydpi-v26` XML definitions automatically.
+2. **`fetch_icon.py`** & **`fetch_smart.py`**: Modules dealing with SteamGridDB and IGDB respectively to grab high-quality gaming arts dynamically.
+3. **`generate_typo.py`**: A fallback system that generates a beautifully styled text-based icon if an internet connection is dead or game couldn't be parsed.
+4. **`utils.py`**: Contains shared utility logic like environment loading and name normalization.
+
+To regenerate icons manually via CLI, ensure you have Python and `Pillow` installed, and execute:
+```bash
+python3 icons/scripts/master_icon.py
+```
+
+## Interactive Icon Picker
+Sometimes the automated scraping engine might make a poor choice (e.g. downloading a weirdly cropped image, or picking an unrelated match). Revenger now comes with a **Web GUI Picker** built for exactly this scenario!
+
+If the compiled icon looks bad, simply run this helper script from the root folder:
+```bash
+./pick_icon.sh
+```
+Once triggered, it runs a parallel sweep downloading up to 5 variations from SteamGridDB, 5 variants from IGDB (applying the blur effect natively to mimic the smart icon overlay) and bundles everything up into a clean, lightweight HTML page on your browser. 
+
+You just need to click on the artwork you prefer (or upload a custom image), and the module handles cropping, formatting, and forcing it into your project folder. Future Gradle builds will instantly start using your curated pick!
+
+## Icon Assets & References
+The console graphics located in the `icons/images/` directory are officially sourced from the **[Libretro / RetroArch Assets](https://github.com/libretro/retroarch-assets)** repository. We use these clean, monochrome console illustrations to instantly brand the Revenger APK for the specific system it is emulating.
 
 # Building
 Use standard Gradle commands for building:
@@ -169,6 +228,11 @@ This project is based on **Ludere** by **tytydraco**:
 - Original repository: https://github.com/tytydraco/Ludere
 - Licensed under GNU GPL v3.0
 - All original copyright notices have been preserved
+
+### Asset Attribution
+Console icons and graphics used for automatically generated app icons (`icons/images/`) are sourced from the **[libretro/retroarch-assets](https://github.com/libretro/retroarch-assets)** repository.
+- **License**: [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)
+- **Authors**: The Libretro Team and contributors. 
 
 ### Contributors
 

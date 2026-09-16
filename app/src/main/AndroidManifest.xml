@@ -13,10 +13,11 @@
         android:allowBackup="true"
         android:largeHeap="true"
         android:isGame="true"
+        android:appCategory="game"
         android:hardwareAccelerated="true"
         android:name=".RevengerApplication"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/conf_name"
+        android:label="@string/name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
@@ -35,7 +36,9 @@
         <!-- GameActivity - Main emulator -->
         <activity android:name=".views.GameActivity"
             android:exported="false"
-            android:configChanges="keyboardHidden|orientation|screenSize|uiMode">
+            android:supportsPictureInPicture="true"
+            android:resizeableActivity="true"
+            android:configChanges="keyboardHidden|orientation|screenSize|uiMode|screenLayout|smallestScreenSize">
         </activity>
     </application>
 </manifest>

@@ -51,6 +51,46 @@ revenger_debug*
 submenu_nav*
 temp_apk/DEPRECATED_CODE_ANALYSIS.md
 
-# Test and documentation folders (per project instructions)
-/tests
+# Documentation folder (per project instructions)
 /docs
+
+# Icon Scripts Secrets
+icons/.env
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDEs and Tools
+/.vscode
+/.kotlin
+/.github
+/.idea/*
+
+# Python Virtual Environment
+/venv/
+
+# OS Generated Files
+*.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+icons/.cache/
+
+# Dynamically generated Android launcher icons
+app/src/main/res/mipmap-*/ic_launcher*.png

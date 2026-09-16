@@ -57,14 +57,17 @@ RetroMenu3Fragment (UI)
 - Pixel-perfect, arcade-style visuals
 
 ## Testing Requirements
-- **Unit tests**: add/maintain tests for `NavigationStateManager` and `NavigationEventProcessor`
+- **Every change needs a test.** Adding a class or method → add tests for it. Fixing a bug → add a regression test that fails without the fix and passes with it. Changing existing behavior → update the tests that cover it. If the code you're touching has no test yet, write one as part of the change — do not defer it to a follow-up.
+- **Unit tests**: add/maintain tests for `NavigationStateManager` and `NavigationEventProcessor` specifically, and for any other manager, repository, controller, or ViewModel you add or modify
 - **Integration tests**: validate end-to-end menu flows (`RetroMenu3IntegrationTest`) including debouncing and concurrent events
 - **Robolectric**: keep framework-level interaction tests for fragment lifecycle
 - **Performance benchmarks**: ensure no regressions in menu responsiveness after refactor
 
 ### Testing Implementation
-- **JUnit 4/5**, **Robolectric 4.11.1**, **MockK** and CI via **GitHub Actions** remain the standard
+- **JUnit 4**, **Robolectric 4.13**, **MockK**/**Mockito** remain the standard. There is no CI yet — tests run locally via `./gradlew testDebugUnitTest` (add `-PskipAssetStaging` to run without a staged ROM/downloaded core/generated icons, e.g. on a clean checkout).
 - Add targeted unit tests that assert single responsibility: state mutations exclusively in `NavigationStateManager`, event handling logic exclusively in `NavigationEventProcessor`
+- `object` singletons with cached state (e.g. `DefaultSettingsRepository`, `PipConfigRepository`) only populate that state once — `initialize()` is a no-op after the first call. Reset their backing field via reflection in test `setUp`/`tearDown`, or tests bleed state into each other within the same JVM.
+- Prefer real, cheap dependencies (`NavigationStateManager`, `EventQueue`, data classes) over mocking them; reserve mocks for collaborators that touch real `FragmentManager` transactions (`FragmentNavigationAdapter`) or construct concrete Android views / native libraries in their constructor (`GLRetroView`, `RadialGamePad`) — those are too expensive to exercise for real in a unit test.
 
 ## Code Standards
 - PascalCase for classes, camelCase for methods/variables
@@ -75,7 +78,7 @@ RetroMenu3Fragment (UI)
 ## Maintenance Rules (refined)
 1. **Preserve UI/UX**: Retain retro styling and `RetroCardView` appearance
 2. **Backward compatibility**: Preserve public fragment/viewmodel contracts
-3. **Test coverage**: New classes must have unit + integration tests
+3. **Test coverage**: Every change — new code, a bug fix, or a behavior change — must include tests. New classes need unit + integration tests; modified classes need their existing tests updated or extended to cover the change
 5. **Performance verification**: Benchmark menu responsiveness after changes
 6. **Consistency**: Use `NavigationStateManager` for state reads/writes; do not mutate state directly from UI
 7. **Code review**: Peer review required for navigation or UI changes

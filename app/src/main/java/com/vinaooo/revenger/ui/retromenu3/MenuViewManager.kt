@@ -101,7 +101,7 @@ class MenuViewManager(private val fragment: Fragment) {
 
         val titleText =
                 when (titleStyle) {
-                    1 -> fragment.resources.getString(R.string.conf_name)
+                    1 -> fragment.resources.getString(R.string.name)
                     else -> fragment.resources.getString(R.string.rm_title)
                 }
 

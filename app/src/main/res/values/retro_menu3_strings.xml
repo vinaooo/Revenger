@@ -62,7 +62,7 @@
     <string name="rm_title">Game menu</string>
     <!-- Title style: 
             0 = use rm_title
-            1 = use conf_name from config.xml -->
+            1 = use name from config.xml -->
     <integer name="rm_title_style">0</integer>
 
     <!-- Text Capitalization Style -->
