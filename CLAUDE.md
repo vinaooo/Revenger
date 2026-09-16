@@ -32,6 +32,14 @@ Static analysis: `./gradlew detekt` (config: `detekt.yml`; use `detektMain` for 
 
 App icons: `python3 icons/scripts/master_icon.py` (also runs automatically as the `generateIcons` Gradle task before every build) scrapes console/game art from SteamGridDB/IGDB. `./pick_icon.sh` opens an interactive HTML picker when the auto‑pick is bad. Needs Python + Pillow (a `venv/` is checked out).
 
+## Git workflow
+
+**Never commit directly to `develop`.** Every change — a bug fix, a refactor, a docs update, anything — is made on its own branch created from `develop` (branch off the latest `develop`, not off `master` or another feature branch). `develop` only advances by merging those branches in through a pull request; it is never the branch you commit to directly.
+
+- Before making any change, create a new branch from `develop` (e.g. `fix/<short-description>`, `feat/<short-description>`, `docs/<short-description>`).
+- When the change is ready, open the pull request against `develop` (never against `master`).
+- If you find yourself already on `develop` with uncommitted or committed work, stop and move it: create the branch from the current commit, then reset `develop` back to `origin/develop` before continuing.
+
 ## The config system (read before changing build or runtime behavior)
 
 `app/src/main/assets/config/config.json` is the single source of truth for *what game this APK is*. It holds only: `default_settings`, `platform`, `name`, `rom`, `target_abi` (plus optional `core` when manual).
