@@ -223,6 +223,14 @@ android {
     }
 }
 
+// Wires the repo's tuned ruleset into the detekt Gradle task. Without this, the plugin
+// silently falls back to its own built-in defaults and every threshold in detekt.yml is dead
+// configuration.
+detekt {
+    config.setFrom(file("$rootDir/detekt.yml"))
+    buildUponDefaultConfig = true
+}
+
 // Report-only coverage, scoped to the debug variant only (skip building/testing release
 // just to measure coverage). No koverVerify gate: no baseline exists yet.
 kover {
