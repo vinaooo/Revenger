@@ -28,7 +28,8 @@ object MenuLayoutConfig {
     // Char index where the 3rd two-digit segment starts (and the 2nd one ends) in that string.
     private const val PROPORTIONS_SEGMENT_BOUNDARY = 4
 
-    // The 3 percentages parsed from a proportions string must add up to this.
+    // The 3 percentages parsed from a proportions string must add up to this, and it's also the
+    // scale used to convert a normalized 0.0-1.0 weight back into a whole percentage for display.
     private const val PERCENTAGE_SCALE = 100
 
     // A valid 3-column [Space, Content, Space] layout needs at least this many children.

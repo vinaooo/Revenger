@@ -53,7 +53,7 @@ object AdvancedPerformanceProfiler {
     private const val DEBUG_OVERLAY_UPDATE_INTERVAL_MS = 500L
 
     // Debug overlay appearance
-    private const val DEBUG_OVERLAY_TEXT_SIZE_SP = 14f
+    private const val DEBUG_OVERLAY_TEXT_SIZE_PX = 14f
     private const val DEBUG_OVERLAY_PADDING_HORIZONTAL_PX = 20
     private const val DEBUG_OVERLAY_PADDING_VERTICAL_PX = 12
     private const val DEBUG_OVERLAY_MARGIN_PX = 32
@@ -345,7 +345,7 @@ object AdvancedPerformanceProfiler {
                                     android.graphics.Color.parseColor("#CC000000")
                             ) // More opaque
                             setTextColor(android.graphics.Color.YELLOW) // More visible color
-                            textSize = DEBUG_OVERLAY_TEXT_SIZE_SP // Larger font
+                            textSize = DEBUG_OVERLAY_TEXT_SIZE_PX // Larger font
                             // Bigger padding
                             setPadding(
                                     DEBUG_OVERLAY_PADDING_HORIZONTAL_PX,
