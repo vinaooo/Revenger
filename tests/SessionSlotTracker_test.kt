@@ -150,4 +150,43 @@ class SessionSlotTracker_test {
         assertNotSame(instance1, instance2)
         assertFalse(instance2.hasSlotContext())
     }
+
+    // ========== CONCURRENCY ==========
+
+    // Regression test for the PiP quick-save flow (a background Thread) racing main-thread
+    // save/load operations. lastUsedSlotNumber and lastOperationType must always be updated
+    // together: without @Synchronized, one thread's recordSave(1) and another's recordLoad(2)
+    // can interleave their field writes, leaving e.g. slot=2 paired with type=SAVE -- a
+    // combination neither call ever asked for. With @Synchronized each call is atomic, so the
+    // final pair must always match one of the two calls exactly.
+    @Test
+    fun `recordSave e recordLoad concorrentes nunca deixam um par slot-tipo inconsistente`() {
+        val threadCount = 20
+        val iterationsPerThread = 500
+        val ready = java.util.concurrent.CountDownLatch(threadCount)
+        val go = java.util.concurrent.CountDownLatch(1)
+        val done = java.util.concurrent.CountDownLatch(threadCount)
+
+        val threads = (0 until threadCount).map { i ->
+            Thread {
+                ready.countDown()
+                go.await()
+                repeat(iterationsPerThread) {
+                    if (i % 2 == 0) tracker.recordSave(1) else tracker.recordLoad(2)
+                }
+                done.countDown()
+            }
+        }
+        threads.forEach { it.start() }
+        ready.await()
+        go.countDown()
+        done.await()
+
+        val slot = tracker.getLastUsedSlot()
+        val type = tracker.getLastOperationType()
+        val consistent =
+                (slot == 1 && type == SessionSlotTracker.OperationType.SAVE) ||
+                        (slot == 2 && type == SessionSlotTracker.OperationType.LOAD)
+        assertTrue("Inconsistent slot/type pair after concurrent access: slot=$slot type=$type", consistent)
+    }
 }

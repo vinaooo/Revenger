@@ -211,4 +211,44 @@ class SaveStateManager_test {
     fun `renameSlot de slot vazio retorna false`() {
         assertFalse(manager.renameSlot(8, "Cannot Rename"))
     }
+
+    // ========== CONCURRENCY ==========
+
+    // Regression test for the PiP quick-save flow (a background Thread) racing a main-thread
+    // save to the same slot. Each thread writes a state.bin filled entirely with its own byte
+    // value; without @Synchronized, concurrent unsynchronized writeBytes() calls to the same
+    // file can interleave, leaving a state.bin that mixes bytes from two different threads.
+    // With @Synchronized, every write is fully serialized, so the slot's final content must
+    // always be a single thread's complete, uniform array.
+    @Test
+    fun `saveToSlot concorrente no mesmo slot nunca produz um state-bin corrompido`() {
+        val threadCount = 20
+        val stateSize = 2000
+        val ready = java.util.concurrent.CountDownLatch(threadCount)
+        val go = java.util.concurrent.CountDownLatch(1)
+        val done = java.util.concurrent.CountDownLatch(threadCount)
+
+        val threads = (0 until threadCount).map { i ->
+            Thread {
+                ready.countDown()
+                go.await()
+                manager.saveToSlot(3, ByteArray(stateSize) { i.toByte() }, null)
+                done.countDown()
+            }
+        }
+        threads.forEach { it.start() }
+        ready.await()
+        go.countDown() // release all threads at once to maximize contention
+        done.await()
+
+        val result = manager.loadFromSlot(3)
+        assertNotNull(result)
+        assertEquals(stateSize, result!!.size)
+        val distinctValues = result.toSet()
+        assertEquals(
+                "state.bin must contain exactly one thread's byte value, not a mix of several",
+                1,
+                distinctValues.size
+        )
+    }
 }

@@ -258,6 +258,10 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 viewModel.setupRetroView(this, retroviewContainer)
                 viewModel.retroView?.let { retroView ->
                         gameLifecycleObserver = GameLifecycleObserver(retroView)
+                        // Wires the PiP-aware pause/resume guard into the real Activity lifecycle.
+                        // Without this, retroView.pause()/resume() (the GL render thread's
+                        // onPause()/onResume()) were never called by anything in the app.
+                        lifecycle.addObserver(gameLifecycleObserver)
 
                         // Once the first frame is on screen: seed the PiP still and arm PiP params
                         // so a Home gesture never has to do that work mid-gesture.
@@ -1079,6 +1083,19 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                 )
                         }
                 }
+
+                // pipBroadcastReceiver is only unregistered on the "exited PiP" branch of
+                // onPictureInPictureModeChanged; if the Activity is destroyed while still in
+                // PiP (task swiped away, killed for memory, etc.) that branch never runs, so
+                // unregister it here too. unregisterReceiver() throws IllegalArgumentException
+                // if it was never registered (never entered PiP) -- catch that expected case.
+                try {
+                        unregisterReceiver(pipBroadcastReceiver)
+                } catch (e: IllegalArgumentException) {
+                        // Never entered PiP this session, or already unregistered -- expected.
+                }
+
+                floatingMenuButtonController.dispose()
 
                 // Stop performance profiling
                 AdvancedPerformanceProfiler.stopProfiling()

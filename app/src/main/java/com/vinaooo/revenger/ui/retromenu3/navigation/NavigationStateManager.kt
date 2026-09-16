@@ -11,7 +11,10 @@ import com.vinaooo.revenger.ui.retromenu3.MenuFragment
  * - Active menu and selected item
  * - Navigation history stack
  * - Reference to the current fragment
- * - Concurrency control (mutex)
+ *
+ * Not thread-safe by itself: it holds plain mutable state with no internal lock. Callers
+ * (currently just [NavigationEventProcessor], driven from the Android main thread's input
+ * dispatch) are responsible for only mutating it from a single thread at a time.
  */
 class NavigationStateManager {
     /** Currently active menu */

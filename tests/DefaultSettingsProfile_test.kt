@@ -105,4 +105,33 @@ class DefaultSettingsProfile_test {
     fun `parseProfiles com array vazio retorna lista vazia`() {
         assertTrue(DefaultSettingsProfile.parseProfiles(JSONArray()).isEmpty())
     }
+
+    @Test
+    fun `parseProfiles ignora apenas o perfil malformado e preserva os demais validos`() {
+        val malformedJson =
+            JSONObject(completeProfileJson().toString()).apply {
+                put("platform_id", "platform_bad")
+                remove("fast_forward_multiplier") // getInt() throws when this key is missing
+            }
+        val array =
+            JSONArray().apply {
+                put(
+                    JSONObject(completeProfileJson().toString()).apply {
+                        put("platform_id", "platform_a")
+                    }
+                )
+                put(malformedJson)
+                put(
+                    JSONObject(completeProfileJson().toString()).apply {
+                        put("platform_id", "platform_c")
+                    }
+                )
+            }
+
+        val profiles = DefaultSettingsProfile.parseProfiles(array)
+
+        assertEquals(2, profiles.size)
+        assertEquals("platform_a", profiles[0].platformId)
+        assertEquals("platform_c", profiles[1].platformId)
+    }
 }

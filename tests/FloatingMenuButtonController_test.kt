@@ -385,4 +385,36 @@ class FloatingMenuButtonController_test {
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(6900)) // now at t=18700ms
         assertEquals(1.0f, floatingButton.alpha)
     }
+
+    // --- dispose(): cancels a pending restorative fade on teardown ---
+
+    // Regression test: without dispose(), a fade triggered shortly before the host Activity is
+    // destroyed leaves its restore Runnable (closing over floatingButton) alive on the main
+    // Handler for up to 10s past destruction.
+    @Test
+    fun `dispose cancela um restore pendente para que ele nunca dispare`() {
+        seedAppConfig(menuModeFab = "bottom-right", gamepadEnabled = false)
+        val controller = newController()
+        controller.setup()
+        every { viewModel.isAnyMenuActive() } returns false
+
+        controller.triggerFade()
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(200)) // fade-out anim completes
+        assertEquals(0.3f, floatingButton.alpha)
+
+        controller.dispose()
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(9800 + 500))
+
+        // The restore never fires -- the button is left faded, not an accidental leaked
+        // resurrection of alpha after the Activity that owns it is gone.
+        assertEquals(0.3f, floatingButton.alpha)
+    }
+
+    @Test
+    fun `dispose sem nenhum fade pendente nao lanca excecao`() {
+        val controller = newController()
+        controller.setup()
+
+        controller.dispose()
+    }
 }

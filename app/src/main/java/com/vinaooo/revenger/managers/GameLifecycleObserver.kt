@@ -57,8 +57,8 @@ class GameLifecycleObserver(
         }
     }
 
-    override fun onDestroy(owner: LifecycleOwner) {
-        super.onDestroy(owner)
-        retroView.destroy()
-    }
+    // No onDestroy override: retroView.view is registered directly as its own lifecycle
+    // observer (GameActivityViewModel.setupRetroView) and owns core teardown via its own
+    // ON_DESTROY-annotated method. Forwarding retroView.destroy() here too would call
+    // view.onDestroy() a second time on the same lifecycle event.
 }

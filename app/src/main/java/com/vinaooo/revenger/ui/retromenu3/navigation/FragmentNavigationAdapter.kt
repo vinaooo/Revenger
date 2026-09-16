@@ -279,10 +279,14 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
 
         // Check if there is an active submenu (back stack not empty)
         if (fragmentManager.backStackEntryCount > 0) {
-            // Fazer pop da back stack (volta ao menu anterior)
-            fragmentManager.popBackStackImmediate()
-            Log.d(TAG, "[BACK] Popped back stack successfully")
-            return true
+            // Fazer pop da back stack (volta ao menu anterior). popBackStackImmediate() can
+            // return false (e.g. the FragmentManager's state changed between the count check
+            // above and this call) -- propagate that instead of always reporting success, so
+            // callers can tell a real desync between the logical nav state and what's on
+            // screen from an actual successful pop.
+            val popped = fragmentManager.popBackStackImmediate()
+            Log.d(TAG, "[BACK] popBackStackImmediate() returned: $popped")
+            return popped
         } else {
             Log.d(TAG, "[BACK] Already at root menu")
             return false

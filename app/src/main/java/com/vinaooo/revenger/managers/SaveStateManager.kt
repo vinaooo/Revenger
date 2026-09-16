@@ -31,6 +31,12 @@ import org.json.JSONObject
  *     │   └── metadata.json   # Save metadata
  *     └── ... (slot_2 to slot_9)
  * ```
+ *
+ * All public slot I/O is `@Synchronized` on this singleton instance: PiP's quick-save flow
+ * runs on a background `Thread` (see `GameActivity`'s PiP quick-save handling) concurrently
+ * with any main-thread save/load/copy triggered from the menu, and unsynchronized file I/O on
+ * the same slot directory could otherwise interleave partial writes across `state.bin`,
+ * `metadata.json` and the screenshot/preview files.
  */
 class SaveStateManager private constructor(private val context: Context) {
 
@@ -73,11 +79,13 @@ class SaveStateManager private constructor(private val context: Context) {
     // ========== PUBLIC API ==========
 
     /** Get all 9 slots with their current state (empty or occupied) */
+    @Synchronized
     fun getAllSlots(): List<SaveSlotData> {
         return (1..TOTAL_SLOTS).map { getSlot(it) }
     }
 
     /** Get a specific slot by number (1-9) */
+    @Synchronized
     fun getSlot(slotNumber: Int): SaveSlotData {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
@@ -117,6 +125,7 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param romName Name of the current ROM
      * @return true if save was successful
      */
+    @Synchronized
     fun saveToSlot(
             slotNumber: Int,
             stateBytes: ByteArray,
@@ -168,6 +177,7 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param slotNumber Source slot (1-9)
      * @return ByteArray of state data, or null if slot is empty
      */
+    @Synchronized
     fun loadFromSlot(slotNumber: Int): ByteArray? {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
@@ -193,6 +203,7 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param slotNumber Slot to delete (1-9)
      * @return true if deletion was successful
      */
+    @Synchronized
     fun deleteSlot(slotNumber: Int): Boolean {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
@@ -214,6 +225,7 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param targetSlot Target slot number
      * @return true if copy was successful
      */
+    @Synchronized
     fun copySlot(sourceSlot: Int, targetSlot: Int): Boolean {
         require(sourceSlot in 1..TOTAL_SLOTS) { "Source slot must be between 1 and $TOTAL_SLOTS" }
         require(targetSlot in 1..TOTAL_SLOTS) { "Target slot must be between 1 and $TOTAL_SLOTS" }
@@ -260,6 +272,7 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param targetSlot Target slot number
      * @return true if move was successful
      */
+    @Synchronized
     fun moveSlot(sourceSlot: Int, targetSlot: Int): Boolean {
         if (copySlot(sourceSlot, targetSlot)) {
             return deleteSlot(sourceSlot)
@@ -274,6 +287,7 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param newName New name for the slot
      * @return true if rename was successful
      */
+    @Synchronized
     fun renameSlot(slotNumber: Int, newName: String): Boolean {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
@@ -304,6 +318,7 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param screenshot New screenshot bitmap
      * @return true if update was successful
      */
+    @Synchronized
     fun updateScreenshot(slotNumber: Int, screenshot: Bitmap): Boolean {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
@@ -324,16 +339,19 @@ class SaveStateManager private constructor(private val context: Context) {
     }
 
     /** Check if any slot has a save state */
+    @Synchronized
     fun hasAnySave(): Boolean {
         return (1..TOTAL_SLOTS).any { !getSlot(it).isEmpty }
     }
 
     /** Get the first empty slot number, or null if all slots are occupied */
+    @Synchronized
     fun getFirstEmptySlot(): Int? {
         return (1..TOTAL_SLOTS).firstOrNull { getSlot(it).isEmpty }
     }
 
     /** Get count of occupied slots */
+    @Synchronized
     fun getOccupiedSlotCount(): Int {
         return (1..TOTAL_SLOTS).count { !getSlot(it).isEmpty }
     }

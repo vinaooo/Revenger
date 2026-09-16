@@ -83,32 +83,44 @@ def generateConfigId = { String name, String core ->
 }
 
 /**
- * Evaluates which core to use across the entire build by checking optimal config first
+ * Evaluates which core to use across the entire build by checking optimal config first.
+ *
+ * This is the single source of truth for platform/extension -> core resolution, used both
+ * to derive applicationId (at configuration time, below) and by prepareCore (at execution
+ * time) to pick which core .so to download. It fails fast -- the same way in both places --
+ * when default_settings is enabled but no profile matches, instead of silently falling back
+ * to config_manual.json's (possibly stale/unrelated) 'core' value, which previously let the
+ * applicationId reflect a different core than the one actually bundled.
  */
 def getResolvedCore = { ->
     def defaultSettingsEnabled = getConfigValue('default_settings') == 'true'
-    if (defaultSettingsEnabled) {
-        def jsonFile = file("${rootProject.projectDir.path}/app/src/main/assets/default_settings.json")
-        if (jsonFile.exists()) {
-            def jsonSlurper = new groovy.json.JsonSlurper()
-            def profiles = jsonSlurper.parseText(jsonFile.text)
-            def platformId = getConfigValue('platform')
-            def romName = getConfigValue('rom')
-            def extension = romName.contains('.') ? romName.substring(romName.lastIndexOf('.')).toLowerCase() : ''
-            
-            def profile = null
-            if (platformId != null && !platformId.trim().isEmpty()) {
-                profile = profiles.find { it.platform_id == platformId }
-            }
-            if (!profile) {
-                profile = profiles.find { it.extensions.contains(extension) }
-            }
-            if (profile && profile.core) {
-                return profile.core
-            }
-        }
+    if (!defaultSettingsEnabled) {
+        return getConfigValue('core')
     }
-    return getConfigValue('core')
+
+    def jsonFile = file("${rootProject.projectDir.path}/app/src/main/assets/default_settings.json")
+    if (!jsonFile.exists()) {
+        throw new GradleException("default_settings.json not found in assets/")
+    }
+
+    def jsonSlurper = new groovy.json.JsonSlurper()
+    def profiles = jsonSlurper.parseText(jsonFile.text)
+    def platformId = getConfigValue('platform')
+    def romName = getConfigValue('rom')
+    def extension = romName.contains('.') ? romName.substring(romName.lastIndexOf('.')).toLowerCase() : ''
+
+    def profile = null
+    if (platformId != null && !platformId.trim().isEmpty()) {
+        profile = profiles.find { it.platform_id == platformId }
+    }
+    if (!profile) {
+        profile = profiles.find { it.extensions.contains(extension) }
+    }
+    if (!profile) {
+        throw new GradleException("No default settings profile found for extension '$extension'. Add platform or use manual mode (default_settings=false)")
+    }
+
+    return profile.core
 }
 
 android {
@@ -304,56 +316,15 @@ tasks.whenTaskAdded { task ->
 
 task prepareCore {
     doLast {
-        // Determine core name: either from config.xml or from default settings JSON
-        def coreName
         def defaultSettingsEnabled = getConfigValue('default_settings') == 'true'
-        
-        if (defaultSettingsEnabled) {
-            println "🤖 Default Settings enabled - resolving core from platform profile"
-            
-            def jsonFile = file("${rootProject.projectDir}/app/src/main/assets/default_settings.json")
-            if (!jsonFile.exists()) {
-                throw new GradleException("default_settings.json not found in assets/")
-            }
-            
-            def jsonSlurper = new groovy.json.JsonSlurper()
-            def profiles = jsonSlurper.parse(jsonFile)
-            
-            def platformId = getConfigValue('platform')
-            def romName = getConfigValue('rom')
-            def extension = romName.substring(romName.lastIndexOf('.')).toLowerCase()
-            
-            println "   Platform ID: ${platformId ?: '(not set)'}"
-            println "   ROM: $romName"
-            println "   Extension: $extension"
-            
-            def profile = null
-            
-            // Try explicit platform ID first
-            if (platformId && platformId != '') {
-                profile = profiles.find { it.platform_id == platformId }
-                if (profile) {
-                    println "   ✅ Found profile by platform_id: ${profile.platform_id}"
-                }
-            }
-            
-            // Fall back to extension matching
-            if (!profile) {
-                profile = profiles.find { it.extensions.contains(extension) }
-                if (profile) {
-                    println "   ✅ Found profile by extension: ${profile.platform_id}"
-                } else {
-                    throw new GradleException("No default settings profile found for extension '$extension'. Add platform or use manual mode (default_settings=false)")
-                }
-            }
-            
-            coreName = profile.core
-            println "   🎯 Selected core: $coreName (from default profile)"
-        } else {
-            coreName = getConfigValue('core')
-            println "🛠️  Manual mode - using core from core: $coreName"
-        }
-        
+        println defaultSettingsEnabled ?
+                "🤖 Default Settings enabled - resolving core from platform profile" :
+                "🛠️  Manual mode - using core from config"
+        // Delegates to the same resolution used for applicationId (getResolvedCore, above)
+        // so the downloaded core and the applicationId can never disagree.
+        def coreName = getResolvedCore()
+        println "   🎯 Selected core: $coreName"
+
         def targetAbi = getConfigValue('target_abi')
         def allAbis = ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
         def abisToFetch = (targetAbi == 'all') ? allAbis : [targetAbi]
@@ -364,11 +335,18 @@ task prepareCore {
 
         for (abi in abisToFetch) {
             def jniAbiFolder = file("${rootProject.projectDir}/app/src/main/jniLibs/$abi")
+            def existingCore = new File(jniAbiFolder, "libcore.so")
+            // Size check (not just "the folder is non-empty") so a zero-byte/truncated
+            // libcore.so left behind by an interrupted build isn't silently reused and shipped.
+            // A real libretro core .so is always at least hundreds of KB.
+            def MIN_CORE_SIZE_BYTES = 65536L
 
-            if (jniAbiFolder.exists() && jniAbiFolder.list().length > 0) {
+            if (existingCore.exists() && existingCore.length() >= MIN_CORE_SIZE_BYTES) {
                 println "LibRetro core already exists for $abi, skipping download"
                 foundAbis << abi
                 continue
+            } else if (jniAbiFolder.exists() && jniAbiFolder.list().length > 0) {
+                println "⚠️  Existing core for $abi looks incomplete (missing or undersized libcore.so) — re-downloading"
             }
 
             def coreUrl = "https://buildbot.libretro.com/nightly/android/latest/$abi/${coreName}_libretro_android.so.zip"

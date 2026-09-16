@@ -26,7 +26,6 @@ class ControllerInput(private val context: Context) {
         // Fixed threshold values for single-trigger system
         private val dpadThreshold: Float = 0.1f // Physical DPAD - more responsive
         private val leftAnalogThreshold: Float = 0.7f // Left analog - less sensitive
-        private val rightAnalogThreshold: Float = 0.7f // Right analog - less sensitive
 
         // Single trigger system - tracks previous state to detect transitions
         private data class DirectionalState(
@@ -39,7 +38,6 @@ class ControllerInput(private val context: Context) {
         // Track state for each input type to implement single-trigger navigation
         private val dpadState = DirectionalState()
         private val leftAnalogState = DirectionalState()
-        private val rightAnalogState = DirectionalState()
 
         /** Set of keys currently being held by the user */
         private val keyLog = mutableSetOf<Int>()
@@ -60,11 +58,6 @@ class ControllerInput(private val context: Context) {
         /** Timestamp to prevent combo detection immediately after menu closes */
         private var menuCloseDebounceTime = 0L
         private val MENU_CLOSE_DEBOUNCE_MS = 200L // 200ms debounce after menu closes
-
-        // FIX ERROR 1: Context tracking for KEY_DOWN/KEY_UP (B/BackSpace)
-        // Store timestamp of last KEY_DOWN per key to validate corresponding KEY_UP
-        private val keyDownTimestamps = mutableMapOf<Int, Long>()
-        private val KEY_UP_TIMEOUT_MS = 500L // Timeout to consider a KEY_UP orphaned
 
         /**
          * Clears the keyLog to avoid combo detection after closing the menu.
@@ -235,7 +228,6 @@ class ControllerInput(private val context: Context) {
                 keepInterceptingUntil = 0L
                 buttonThatClosedMenu = null
 
-                keyDownTimestamps.clear()
                 blockedUntilKeyUp.clear()
 
                 android.util.Log.d(
@@ -632,7 +624,6 @@ class ControllerInput(private val context: Context) {
                         keyCode == KeyEvent.KEYCODE_BUTTON_B &&
                                 shouldInterceptSpecificButton(keyCode)
                 if (shouldInterceptB) {
-                        val now = System.currentTimeMillis()
                         android.util.Log.d(
                                 "ControllerInput",
                                 "🔵 BUTTON_B intercepted - action=${if (action == KeyEvent.ACTION_DOWN) "DOWN" else "UP"}"
@@ -652,7 +643,6 @@ class ControllerInput(private val context: Context) {
                                 // Primeira vez pressionando: adicionar ao keyLog e executar
                                 // callback
                                 keyLog.add(KeyEvent.KEYCODE_BUTTON_B)
-                                keyDownTimestamps[KeyEvent.KEYCODE_BUTTON_B] = now
                                 android.util.Log.d(
                                         "ControllerInput",
                                         "   → First B DOWN - executing menuBackCallback"
@@ -664,7 +654,6 @@ class ControllerInput(private val context: Context) {
                                 // ACTION_UP: remove from keyLog to allow new interaction
                                 val wasPressed = keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
                                 keyLog.remove(KeyEvent.KEYCODE_BUTTON_B)
-                                keyDownTimestamps.remove(KeyEvent.KEYCODE_BUTTON_B)
 
                                 if (wasPressed) {
                                         android.util.Log.d(
@@ -722,6 +711,21 @@ class ControllerInput(private val context: Context) {
                                 ) { lastGamepadMenuButtonCallbackTime = it }
                         }
                         return true // Event intercepted - don't send to core
+                }
+
+                // BLOCK COMPLETELY all controls when RetroMenu3 is open
+                // EXCEPT those already handled above (A, B, START, gamepad menu button)
+                val shouldBlockGamepadButton = shouldBlockAllGamepadInput()
+                android.util.Log.d(
+                        "ControllerInput",
+                        "🎮 processGamePadButtonEvent: shouldBlockAllGamepadInput() = $shouldBlockGamepadButton (keyCode: $keyCode, action: $actionName)"
+                )
+                if (shouldBlockGamepadButton) {
+                        android.util.Log.d(
+                                "ControllerInput",
+                                "🛑 BLOCKING GAMEPAD INPUT - RetroMenu3 is open (keyCode: $keyCode)"
+                        )
+                        return true // Block completely, don't send to core
                 }
 
                 /* Keep track of user input events */

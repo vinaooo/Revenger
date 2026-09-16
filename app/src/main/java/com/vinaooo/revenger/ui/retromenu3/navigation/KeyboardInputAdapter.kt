@@ -42,14 +42,24 @@ class KeyboardInputAdapter(
         /** Timestamp inicial antes de qualquer evento ser processado (PHASE 3.1) */
         private const val NO_EVENT_TIME = 0L
 
-        // V4.5: GLOBAL STATIC LOCK - Compartilhado por TODAS as instâncias/threads
+        // V4.5: GLOBAL STATIC LOCK - Compartilhado por TODAS as instâncias
         // CRÍTICO: Lock DEVE ser companion object (static) para proteger contra
-        // múltiplas instâncias ou chamadas paralelas de GameActivityViewModel
+        // múltiplas instâncias de KeyboardInputAdapter (ex.: uma recriada por rotação
+        // enquanto o estado da instância anterior ainda importa)
         private val GLOBAL_STATE_LOCK = ReentrantLock()
 
         // V4.5: GLOBAL STATIC STATE - Compartilhado por TODAS as instâncias
-        // Necessário porque GameActivityViewModel pode ter múltiplas instâncias
-        // ou chamar onKeyDown() de threads paralelas
+        // Necessário para sobreviver a GameActivityViewModel recriando esta classe (ex. em
+        // rotação de tela) sem perder o "ciclo de pressão" em andamento.
+        //
+        // NOTA (auditoria de maturidade): o histórico deste arquivo também citava
+        // "onKeyDown() chamado 4x SIMULTANEAMENTE em threads paralelas" (Fix V4.3, ver comentário
+        // na classe abaixo) como justificativa. Isso foi verificado e é FALSO: onKeyDown()/
+        // onKeyUp() têm um único call site cada, em GameActivityViewModel.processKeyEvent(),
+        // chamado a partir de GameActivity.onKeyDown()/onKeyUp() -- dispatch padrão do Android,
+        // sempre na main thread, um evento por chamada. O que provavelmente foi observado é
+        // key-repeat (múltiplos ACTION_DOWN sequenciais e rápidos durante um toque longo), não
+        // chamadas concorrentes reais.
         private val pressCycleStates = mutableMapOf<Int, PressCycleState>()
 
         // FIX ERRO 1: Tracking de KEY_DOWN/KEY_UP para ações (Back/Backspace)
@@ -75,9 +85,10 @@ class KeyboardInputAdapter(
     // Usamos event.eventTime (hardware timestamp) para detectar duplicatas
     //
     // Fix V4.3: Thread-Safe Synchronization - Previne race condition
-    // GameActivityViewModel chama onKeyDown() 4x SIMULTANEAMENTE (threads paralelas)
-    // Isso causava 4 navegações antes de hasNavigatedInCycle = true
-    // Solução: synchronized block protege seção crítica
+    // (ver nota de auditoria na companion object acima: a causa raiz aqui era key-repeat do
+    // Android -- vários ACTION_DOWN sequenciais rápidos, sempre na main thread -- não chamadas
+    // concorrentes reais de threads paralelas)
+    // Solução: synchronized block protege a seção crítica de qualquer forma, sem custo real
     //
     // Fix V4.5: GLOBAL STATIC Lock e State - Previne múltiplas instâncias
     // Lock e state DEVEM ser companion object (static) para funcionar

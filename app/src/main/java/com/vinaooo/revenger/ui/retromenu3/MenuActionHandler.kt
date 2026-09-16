@@ -164,12 +164,4 @@ class MenuActionHandler(
                 submenuCoordinator.openSubmenu(MenuState.EXIT_MENU)
         }
 
-        /** Dismiss do menu (fecha o fragment) */
-        private fun dismissMenu() {
-                // Remove the fragment visually
-                fragment.parentFragmentManager
-                        .beginTransaction()
-                        .remove(fragment)
-                        .commitAllowingStateLoss()
-        }
 }

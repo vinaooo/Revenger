@@ -594,4 +594,38 @@ class ControllerInput_test {
             )
         }
     }
+
+    // Regression test: processGamePadButtonEvent previously had no
+    // shouldBlockAllGamepadInput() gate (unlike processKeyEvent), so an unmapped virtual
+    // button (anything besides A/B/START/gamepad-menu-button) leaked through to the core
+    // while RetroMenu3 was open.
+    @Test
+    fun `processGamePadButtonEvent blocks an unmapped virtual button while the menu is open`() {
+        val controllerInput = newControllerInput()
+        controllerInput.shouldBlockAllGamepadInput = { true }
+        val unmappedButton = KeyEvent.KEYCODE_BUTTON_X
+
+        val result =
+                controllerInput.processGamePadButtonEvent(unmappedButton, KeyEvent.ACTION_DOWN)
+
+        assertTrue(
+                "Unmapped virtual button must be intercepted (not sent to the core) while the menu is open",
+                result
+        )
+    }
+
+    @Test
+    fun `processGamePadButtonEvent still sends an unmapped virtual button to the core when the menu is closed`() {
+        val controllerInput = newControllerInput()
+        controllerInput.shouldBlockAllGamepadInput = { false }
+        val unmappedButton = KeyEvent.KEYCODE_BUTTON_X
+
+        val result =
+                controllerInput.processGamePadButtonEvent(unmappedButton, KeyEvent.ACTION_DOWN)
+
+        assertFalse(
+                "Unmapped virtual button must reach the core when no menu is blocking input",
+                result
+        )
+    }
 }

@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.models
 
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -36,6 +37,8 @@ data class DefaultSettingsProfile(
     val confPerformanceOverlay: Boolean
 ) {
     companion object {
+        private const val TAG = "DefaultSettingsProfile"
+
         /**
          * Parse a single profile from JSON object
          */
@@ -74,12 +77,17 @@ data class DefaultSettingsProfile(
         }
 
         /**
-         * Parse all profiles from JSON array
+         * Parse all profiles from JSON array. A malformed entry is skipped (and logged)
+         * rather than discarding every other valid profile in the array.
          */
         fun parseProfiles(jsonArray: JSONArray): List<DefaultSettingsProfile> {
             val profiles = mutableListOf<DefaultSettingsProfile>()
             for (i in 0 until jsonArray.length()) {
-                profiles.add(fromJson(jsonArray.getJSONObject(i)))
+                try {
+                    profiles.add(fromJson(jsonArray.getJSONObject(i)))
+                } catch (e: Exception) {
+                    Log.e(TAG, "Skipping malformed profile at index $i", e)
+                }
             }
             return profiles
         }
