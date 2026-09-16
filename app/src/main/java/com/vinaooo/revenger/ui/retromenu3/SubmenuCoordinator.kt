@@ -375,7 +375,11 @@ class SubmenuCoordinator(
                     return@addOnBackStackChangedListener
                 }
 
-                Log.d(TAG, "[BACK_STACK] Back stack decreased ($previousBackStackCount -> $backStackCount), restoring main menu selection")
+                Log.d(
+                        TAG,
+                        "[BACK_STACK] Back stack decreased ($previousBackStackCount -> " +
+                                "$backStackCount), restoring main menu selection"
+                )
                 // USE THE NEW RESTORATION METHOD
                 restoreMainMenuSelection()
             }

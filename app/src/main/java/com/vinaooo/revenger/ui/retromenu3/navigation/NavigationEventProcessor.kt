@@ -27,7 +27,13 @@ class NavigationEventProcessor(
     /** Processes a navigation event. */
     fun processEvent(event: NavigationEvent) {
         try {
-            Log.d(TAG, "[PROCESS_EVENT] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} event=$event lastAction=$lastActionButton currentMenu=${stateManager.currentMenu} backStack=${fragmentAdapter.getBackStackCount()}")
+            Log.d(
+                    TAG,
+                    "[PROCESS_EVENT] ts=${System.currentTimeMillis()} " +
+                            "thread=${Thread.currentThread().name} event=$event " +
+                            "lastAction=$lastActionButton currentMenu=${stateManager.currentMenu} " +
+                            "backStack=${fragmentAdapter.getBackStackCount()}"
+            )
         } catch (t: Throwable) {
             Log.w(TAG, "[PROCESS_EVENT] failed to log debug info", t)
         }
@@ -237,7 +243,8 @@ class NavigationEventProcessor(
 
             Log.d(
                     TAG,
-                    "[NAVIGATE_BACK] Restored state: menu=${stateManager.currentMenu}, index=${stateManager.selectedItemIndex}"
+                    "[NAVIGATE_BACK] Restored state: menu=${stateManager.currentMenu}, " +
+                            "index=${stateManager.selectedItemIndex}"
             )
 
             if (stateManager.currentMenu == MenuType.MAIN && stateManager.isStackEmpty()) {
@@ -352,7 +359,8 @@ class NavigationEventProcessor(
     fun navigateToSubmenu(targetMenu: MenuType, saveCurrentState: Boolean = true) {
         Log.d(
                 TAG,
-                "[NAV_TO_SUBMENU] Navigating to $targetMenu from ${stateManager.currentMenu} (saveState=$saveCurrentState)"
+                "[NAV_TO_SUBMENU] Navigating to $targetMenu from ${stateManager.currentMenu} " +
+                        "(saveState=$saveCurrentState)"
         )
 
         if (saveCurrentState) {
@@ -360,7 +368,9 @@ class NavigationEventProcessor(
             stateManager.pushCurrentState()
             Log.d(
                     TAG,
-                    "[NAV_TO_SUBMENU] Pushed state: menu=${stateManager.currentMenu}, index=${stateManager.selectedItemIndex}, stack size=${stateManager.getStackSize()}"
+                    "[NAV_TO_SUBMENU] Pushed state: menu=${stateManager.currentMenu}, " +
+                            "index=${stateManager.selectedItemIndex}, " +
+                            "stack size=${stateManager.getStackSize()}"
             )
         }
 

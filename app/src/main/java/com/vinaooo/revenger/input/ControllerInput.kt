@@ -464,15 +464,18 @@ class ControllerInput(private val context: Context) {
                         )
                         android.util.Log.d(
                                 "ControllerInput",
-                                "   shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()} (precisa ser true)"
+                                "   shouldHandleSelectStartCombo(): " +
+                                        "${shouldHandleSelectStartCombo()} (precisa ser true)"
                         )
                         android.util.Log.d(
                                 "ControllerInput",
-                                "   timeSinceLastTrigger: ${timeSinceLastTrigger}ms (precisa ser > ${COMBO_COOLDOWN_MS}ms)"
+                                "   timeSinceLastTrigger: ${timeSinceLastTrigger}ms " +
+                                        "(precisa ser > ${COMBO_COOLDOWN_MS}ms)"
                         )
                         android.util.Log.d(
                                 "ControllerInput",
-                                "   timeSinceMenuClose: ${timeSinceMenuClose}ms (precisa ser > ${MENU_CLOSE_DEBOUNCE_MS}ms)"
+                                "   timeSinceMenuClose: ${timeSinceMenuClose}ms " +
+                                        "(precisa ser > ${MENU_CLOSE_DEBOUNCE_MS}ms)"
                         )
 
                         if (!hasSelectAndStart) {}
@@ -494,11 +497,13 @@ class ControllerInput(private val context: Context) {
                                         // check happens first
                                         android.util.Log.d(
                                                 "ControllerInput",
-                                                "│    ℹ️  Menu closed, comboAlreadyTriggered=true (will be reset by callback)"
+                                                "│    ℹ️  Menu closed, comboAlreadyTriggered=true " +
+                                                        "(will be reset by callback)"
                                         )
                                         android.util.Log.d(
                                                 "ControllerInput",
-                                                "│       lastComboTriggerTime: $lastComboTriggerTime (${timeSinceLastTrigger}ms ago)"
+                                                "│       lastComboTriggerTime: $lastComboTriggerTime " +
+                                                        "(${timeSinceLastTrigger}ms ago)"
                                         )
                                         android.util.Log.d(
                                                 "ControllerInput",
@@ -555,7 +560,8 @@ class ControllerInput(private val context: Context) {
                                 keyLog.add(keyCode)
                                 android.util.Log.d(
                                         "ControllerInput",
-                                        "⬇️  ACTION_DOWN: keyCode=$keyCode, wasAlreadyPressed=$wasAlreadyPressed, keyLog=$keyLog"
+                                        "⬇️  ACTION_DOWN: keyCode=$keyCode, " +
+                                                "wasAlreadyPressed=$wasAlreadyPressed, keyLog=$keyLog"
                                 )
 
                                 // If the button was already pressed, don't check combo again
@@ -626,7 +632,8 @@ class ControllerInput(private val context: Context) {
                 if (shouldInterceptB) {
                         android.util.Log.d(
                                 "ControllerInput",
-                                "🔵 BUTTON_B intercepted - action=${if (action == KeyEvent.ACTION_DOWN) "DOWN" else "UP"}"
+                                "🔵 BUTTON_B intercepted - action=" +
+                                        "${if (action == KeyEvent.ACTION_DOWN) "DOWN" else "UP"}"
                         )
 
                         if (action == KeyEvent.ACTION_DOWN) {
@@ -718,7 +725,8 @@ class ControllerInput(private val context: Context) {
                 val shouldBlockGamepadButton = shouldBlockAllGamepadInput()
                 android.util.Log.d(
                         "ControllerInput",
-                        "🎮 processGamePadButtonEvent: shouldBlockAllGamepadInput() = $shouldBlockGamepadButton (keyCode: $keyCode, action: $actionName)"
+                        "🎮 processGamePadButtonEvent: shouldBlockAllGamepadInput() = " +
+                                "$shouldBlockGamepadButton (keyCode: $keyCode, action: $actionName)"
                 )
                 if (shouldBlockGamepadButton) {
                         android.util.Log.d(
@@ -780,7 +788,9 @@ class ControllerInput(private val context: Context) {
                 if (event.action == KeyEvent.ACTION_DOWN || event.action == KeyEvent.ACTION_UP) {
                         android.util.Log.d(
                                 "ControllerInput",
-                                "🎮 processKeyEvent: keyCode=$keyCode action=${if (event.action == KeyEvent.ACTION_DOWN) "DOWN" else "UP"} (BUTTON_A=96, BUTTON_B=97)"
+                                "🎮 processKeyEvent: keyCode=$keyCode action=" +
+                                        "${if (event.action == KeyEvent.ACTION_DOWN) "DOWN" else "UP"} " +
+                                        "(BUTTON_A=96, BUTTON_B=97)"
                         )
                 }
 
@@ -837,7 +847,8 @@ class ControllerInput(private val context: Context) {
                 ) {
                         android.util.Log.d(
                                 "ControllerInput",
-                                "🔵 BUTTON_B intercepted in processKeyEvent - action=${event.action} (DOWN=0, UP=1), shouldIntercept=true"
+                                "🔵 BUTTON_B intercepted in processKeyEvent - " +
+                                        "action=${event.action} (DOWN=0, UP=1), shouldIntercept=true"
                         )
                         val alreadyPressed = keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
                         if (event.action == KeyEvent.ACTION_DOWN) {
@@ -881,7 +892,8 @@ class ControllerInput(private val context: Context) {
                                         KeyEvent.KEYCODE_DPAD_UP -> {
                                                 android.util.Log.d(
                                                         "ControllerInput",
-                                                        "DPAD UP (KeyEvent) intercepted for menu navigation - calling callback"
+                                                        "DPAD UP (KeyEvent) intercepted for menu " +
+                                                                "navigation - calling callback"
                                                 )
                                                 executeMenuCallback(
                                                         menuNavigateUpCallback,
@@ -895,7 +907,8 @@ class ControllerInput(private val context: Context) {
                                         KeyEvent.KEYCODE_DPAD_DOWN -> {
                                                 android.util.Log.d(
                                                         "ControllerInput",
-                                                        "DPAD DOWN (KeyEvent) intercepted for menu navigation - calling callback"
+                                                        "DPAD DOWN (KeyEvent) intercepted for menu " +
+                                                                "navigation - calling callback"
                                                 )
                                                 executeMenuCallback(
                                                         menuNavigateDownCallback,
@@ -909,7 +922,8 @@ class ControllerInput(private val context: Context) {
                                         KeyEvent.KEYCODE_DPAD_LEFT -> {
                                                 android.util.Log.d(
                                                         "ControllerInput",
-                                                        "DPAD LEFT (KeyEvent) intercepted for menu navigation - calling callback"
+                                                        "DPAD LEFT (KeyEvent) intercepted for menu " +
+                                                                "navigation - calling callback"
                                                 )
                                                 executeMenuCallback(
                                                         menuNavigateLeftCallback,
@@ -923,7 +937,8 @@ class ControllerInput(private val context: Context) {
                                         KeyEvent.KEYCODE_DPAD_RIGHT -> {
                                                 android.util.Log.d(
                                                         "ControllerInput",
-                                                        "DPAD RIGHT (KeyEvent) intercepted for menu navigation - calling callback"
+                                                        "DPAD RIGHT (KeyEvent) intercepted for menu " +
+                                                                "navigation - calling callback"
                                                 )
                                                 executeMenuCallback(
                                                         menuNavigateRightCallback,
@@ -944,7 +959,8 @@ class ControllerInput(private val context: Context) {
                 val shouldBlock = shouldBlockAllGamepadInput()
                 android.util.Log.d(
                         "ControllerInput",
-                        "🎮 processKeyEvent: shouldBlockAllGamepadInput() = $shouldBlock (keyCode: $keyCode, action: ${event.action})"
+                        "🎮 processKeyEvent: shouldBlockAllGamepadInput() = $shouldBlock " +
+                                "(keyCode: $keyCode, action: ${event.action})"
                 )
                 if (shouldBlock) {
                         android.util.Log.d(
@@ -1100,9 +1116,13 @@ class ControllerInput(private val context: Context) {
                                         return true
                                 }
                                 else -> {
-                                        // Return true if any supported axis is out of deadzone but not triggering a new event
-                                        if (Math.abs(hatX) > dpadThreshold || Math.abs(hatY) > dpadThreshold ||
-                                            Math.abs(axisX) > leftAnalogThreshold || Math.abs(axisY) > leftAnalogThreshold) {
+                                        // Return true if any supported axis is out of deadzone but
+                                        // not triggering a new event
+                                        if (Math.abs(hatX) > dpadThreshold ||
+                                                        Math.abs(hatY) > dpadThreshold ||
+                                                        Math.abs(axisX) > leftAnalogThreshold ||
+                                                        Math.abs(axisY) > leftAnalogThreshold
+                                        ) {
                                                 return true
                                         }
                                 }
@@ -1110,7 +1130,8 @@ class ControllerInput(private val context: Context) {
                 } else {
                         android.util.Log.d(
                                 "ControllerInput",
-                                "[INTERCEPT] 🚫 DPAD interception disabled - shouldInterceptDpadForMenu=${shouldInterceptDpadForMenu()}"
+                                "[INTERCEPT] 🚫 DPAD interception disabled - " +
+                                        "shouldInterceptDpadForMenu=${shouldInterceptDpadForMenu()}"
                         )
                 }
 

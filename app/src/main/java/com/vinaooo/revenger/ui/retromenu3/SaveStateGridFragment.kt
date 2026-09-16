@@ -113,7 +113,8 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         viewModel.navigationController?.selectItem(0) // Force reset to first item
         Log.d(
                 TAG,
-                "[NAVIGATION] ${this::class.simpleName} registered with ${getTotalNavigableItems()} items, selection reset to 0"
+                "[NAVIGATION] ${this::class.simpleName} registered with " +
+                        "${getTotalNavigableItems()} items, selection reset to 0"
         )
     }
 

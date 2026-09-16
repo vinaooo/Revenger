@@ -69,7 +69,8 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                         if (bitmap != null) {
                                                 val config = bitmap.config ?: android.graphics.Bitmap.Config.ARGB_8888
                                                 val bitmapCopy = bitmap.copy(config, true)
-                                                com.vinaooo.revenger.utils.ScreenshotCaptureUtil.setManualScreenshots(bitmapCopy, bitmapCopy)
+                                                com.vinaooo.revenger.utils.ScreenshotCaptureUtil
+                                                        .setManualScreenshots(bitmapCopy, bitmapCopy)
                                                 viewModel.suppressNextScreenshotCapture = true
                                         }
 
@@ -166,7 +167,10 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 // 1. Force Configuration BEFORE super.onCreate() (chooses correct layout)
                 // 2. Apply requestedOrientation for persistence
                 val configOrientation = appConfig.getOrientation()
-                com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(this, configOrientation)
+                com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(
+                        this,
+                        configOrientation
+                )
 
                 super.onCreate(savedInstanceState)
 
@@ -188,7 +192,8 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 ScreenshotCaptureUtil.setContext(this)
                 android.util.Log.e(
                         "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] ScreenshotCaptureUtil.setContext() completed"
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] " +
+                                "ScreenshotCaptureUtil.setContext() completed"
                 )
 
                 // Apply conditional features based on Android version
@@ -308,7 +313,8 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 viewModel.setMenuContainer(menuContainer)
                 android.util.Log.e(
                         "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] onCreate() COMPLETE - Total: ${System.currentTimeMillis() - startTime}ms"
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] onCreate() COMPLETE - " +
+                                "Total: ${System.currentTimeMillis() - startTime}ms"
                 )
         }
 
@@ -330,7 +336,9 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                                 // Configuration changed (could be auto-rotate)
                                                 Log.d(
                                                         TAG,
-                                                        "[ROTATION_LISTENER] System configuration changed - checking auto-rotate"
+                                                        "[ROTATION_LISTENER] System " +
+                                                                "configuration changed - " +
+                                                                "checking auto-rotate"
                                                 )
                                                 reapplyOrientation()
                                         }
@@ -570,7 +578,8 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 fragmentManager.findFragmentById(R.id.menu_container)?.let { existingFragment ->
                         Log.d(
                                 TAG,
-                                "[ORIENTATION] 🗑️ Removendo fragment existente: ${existingFragment::class.java.simpleName}"
+                                "[ORIENTATION] 🗑️ Removendo fragment existente: " +
+                                        "${existingFragment::class.java.simpleName}"
                         )
                         fragmentManager
                                 .beginTransaction()
@@ -1323,7 +1332,9 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                         val slotNumber = tracker.getLastUsedSlot() ?: 1
                                         val stateBytes = retroView.view.serializeState()
                                         val screenshot = ScreenshotCaptureUtil.getPipFrame()
-                                        val saveManager = com.vinaooo.revenger.managers.SaveStateManager.getInstance(applicationContext)
+                                        val saveManager =
+                                                com.vinaooo.revenger.managers.SaveStateManager
+                                                        .getInstance(applicationContext)
                                         val slotData = saveManager.getSlot(slotNumber)
                                         saveManager.saveToSlot(
                                                 slotNumber = slotNumber,
@@ -1448,7 +1459,8 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                         // Memorizar se o gamepad estava visível e escondê-lo para o PiP
                         wasGamepadVisibleBeforePip = (containers?.visibility == android.view.View.VISIBLE)
                         if (wasGamepadVisibleBeforePip) {
-                                containers?.visibility = android.view.View.INVISIBLE // Invisível para que as dimensões não quebrem
+                                // Invisível para que as dimensões não quebrem
+                                containers?.visibility = android.view.View.INVISIBLE
                         }
                         
                         floatingBtn?.visibility = android.view.View.GONE

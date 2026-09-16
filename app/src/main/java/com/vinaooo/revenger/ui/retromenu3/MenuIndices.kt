@@ -7,7 +7,8 @@ package com.vinaooo.revenger.ui.retromenu3
  * **Purpose**: Centralize magic values (0–5) for easier maintenance. If menu order
  * changes, edit only here.
  *
- * **SOLID Pattern**: Avoids duplication of magic numbers. **Maintainability**: Centralized change = single source of truth.
+ * **SOLID Pattern**: Avoids duplication of magic numbers. **Maintainability**: Centralized
+ * change = single source of truth.
  *
  * **Implemented**: Phase 3.1 - Extracted constants to eliminate magic numbers.
  *

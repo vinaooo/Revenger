@@ -162,7 +162,8 @@ class KeyboardInputAdapter(
             // LOG DETALHADO: Sempre logar quando evento chega
             Log.d(
                     TAG,
-                    "[KEY_DOWN-RECEIVED] keyCode=$keyCode, repeatCount=${event.repeatCount}, eventTime=${event.eventTime}, downTime=${event.downTime}"
+                    "[KEY_DOWN-RECEIVED] keyCode=$keyCode, repeatCount=${event.repeatCount}, " +
+                            "eventTime=${event.eventTime}, downTime=${event.downTime}"
             )
 
             // CORREÇÃO: Ignorar eventos de repeat para teclas de navegação
@@ -203,7 +204,8 @@ class KeyboardInputAdapter(
                             state.hasNavigatedInCycle = false
                             Log.d(
                                     TAG,
-                                    "[CYCLE-START] keyCode=$keyCode, timeSinceLastDown=${timeSinceLastDown}ms → NEW CYCLE"
+                                    "[CYCLE-START] keyCode=$keyCode, " +
+                                            "timeSinceLastDown=${timeSinceLastDown}ms → NEW CYCLE"
                             )
                         }
 
@@ -216,12 +218,16 @@ class KeyboardInputAdapter(
                             state.hasNavigatedInCycle = true
                             Log.d(
                                     TAG,
-                                    "[NAV-ALLOW] keyCode=$keyCode, cycle=${if (isNewCycle) "new" else "same"}, action=NAVIGATE"
+                                    "[NAV-ALLOW] keyCode=$keyCode, " +
+                                            "cycle=${if (isNewCycle) "new" else "same"}, " +
+                                            "action=NAVIGATE"
                             )
                         } else {
                             Log.d(
                                     TAG,
-                                    "[NAV-BLOCK] keyCode=$keyCode, cycle=same, timeSinceLastDown=${timeSinceLastDown}ms, reason=already_navigated"
+                                    "[NAV-BLOCK] keyCode=$keyCode, cycle=same, " +
+                                            "timeSinceLastDown=${timeSinceLastDown}ms, " +
+                                            "reason=already_navigated"
                             )
                         }
                         allowNav // Retorna decisão do withLock block
@@ -456,7 +462,8 @@ class KeyboardInputAdapter(
             // KEY_UP órfão (timeout excedido)
             Log.w(
                     TAG,
-                    "🚨 ORPHAN KEY_UP detected for Backspace - timeout exceeded (${currentTimeForActions - keyDownTime}ms)"
+                    "🚨 ORPHAN KEY_UP detected for Backspace - timeout exceeded " +
+                            "(${currentTimeForActions - keyDownTime}ms)"
             )
             actionKeyDownTimestamps.remove(keyCode)
             return true // Discard orphan

@@ -160,9 +160,8 @@ object LogSaver {
             val versionCode = packageInfo.longVersionCode
             builder.append("App Version: ${packageInfo.versionName} ($versionCode)\n")
             builder.append("Package Name: ${context.packageName}\n")
-            builder.append(
-                    "Build Type: ${if (context.packageName.contains("debug", ignoreCase = true)) "Debug" else "Release"}\n"
-            )
+            val isDebugBuild = context.packageName.contains("debug", ignoreCase = true)
+            builder.append("Build Type: ${if (isDebugBuild) "Debug" else "Release"}\n")
         } catch (e: Exception) {
             builder.append("App Version: Unable to retrieve\n")
         }

@@ -62,7 +62,11 @@ class NavigationController(private val activity: FragmentActivity) {
         }
 
         try {
-            Log.d(TAG, "[HANDLE_EVENT] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} enqueuedEvent=$event")
+            Log.d(
+                    TAG,
+                    "[HANDLE_EVENT] ts=${System.currentTimeMillis()} " +
+                            "thread=${Thread.currentThread().name} enqueuedEvent=$event"
+            )
         } catch (t: Throwable) {
             Log.w(TAG, "[HANDLE_EVENT] failed to log event", t)
         }
@@ -161,7 +165,8 @@ class NavigationController(private val activity: FragmentActivity) {
             stateManager.updateCurrentMenu(MenuType.MAIN)
             Log.d(
                     TAG,
-                    "Registered MAIN menu fragment with $itemCount items, currentIndex=${stateManager.selectedItemIndex}"
+                    "Registered MAIN menu fragment with $itemCount items, " +
+                            "currentIndex=${stateManager.selectedItemIndex}"
             )
         } else {
             Log.d(
@@ -202,7 +207,9 @@ class NavigationController(private val activity: FragmentActivity) {
 
         Log.d(
                 TAG,
-                "Saved state: menu=${stateManager.currentMenu}, index=${stateManager.selectedItemIndex}, stack size=${stateManager.getStackSize()}"
+                "Saved state: menu=${stateManager.currentMenu}, " +
+                        "index=${stateManager.selectedItemIndex}, " +
+                        "stack size=${stateManager.getStackSize()}"
         )
     }
 
@@ -216,7 +223,9 @@ class NavigationController(private val activity: FragmentActivity) {
 
         Log.d(
                 TAG,
-                "Restored state: menu=${stateManager.currentMenu}, index=${stateManager.selectedItemIndex}, stack size=${stateManager.getStackSize()}"
+                "Restored state: menu=${stateManager.currentMenu}, " +
+                        "index=${stateManager.selectedItemIndex}, " +
+                        "stack size=${stateManager.getStackSize()}"
         )
     }
 

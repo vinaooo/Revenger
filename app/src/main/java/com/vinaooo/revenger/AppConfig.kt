@@ -73,7 +73,9 @@ class AppConfig(private val context: Context) {
         val gson = Gson()
         baseConfig = loadJsonAsset("config/config.json", BaseConfig::class.java, gson) ?: BaseConfig()
         manualConfig = loadJsonAsset("config/config_manual.json", ManualConfig::class.java, gson) ?: ManualConfig()
-        gamePadConfigModel = loadJsonAsset("config/gamepad.json", GamePadAssetsConfig::class.java, gson) ?: GamePadAssetsConfig()
+        gamePadConfigModel =
+                loadJsonAsset("config/gamepad.json", GamePadAssetsConfig::class.java, gson)
+                        ?: GamePadAssetsConfig()
     }
 
     private fun <T> loadJsonAsset(path: String, type: Class<T>, gson: Gson): T? {
@@ -162,7 +164,9 @@ class AppConfig(private val context: Context) {
 
     fun getGamepad(): Boolean = profile?.confGamepad ?: manualConfig.gamepad
     fun getGpHaptic(): Boolean = profile?.confGpHaptic ?: manualConfig.gp_haptic
-    fun getButtonAllowMultiplePressesAction(): Boolean = profile?.confButtonAllowMultiplePressesAction ?: manualConfig.button_allow_multiple_presses_action
+    fun getButtonAllowMultiplePressesAction(): Boolean =
+            profile?.confButtonAllowMultiplePressesAction
+                    ?: manualConfig.button_allow_multiple_presses_action
     
     fun getButtonA(): Boolean = profile?.confButtonA ?: manualConfig.button_a
     fun getButtonB(): Boolean = profile?.confButtonB ?: manualConfig.button_b

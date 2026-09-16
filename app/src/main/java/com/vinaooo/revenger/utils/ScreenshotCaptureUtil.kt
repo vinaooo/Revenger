@@ -248,7 +248,11 @@ object ScreenshotCaptureUtil {
                     bitmap,
                     { copyResult ->
                         if (copyResult == PixelCopy.SUCCESS) {
-                            Log.d(TAG, "Screenshot captured: ${croppedWidth}x$croppedHeight (cropped from ${width}x$height)")
+                            Log.d(
+                                    TAG,
+                                    "Screenshot captured: ${croppedWidth}x$croppedHeight " +
+                                            "(cropped from ${width}x$height)"
+                            )
                             // Auto-crop any remaining black borders from the core output
                             val autoCropped = autoCropBlackBorders(bitmap)
                             if (autoCropped !== bitmap) {
@@ -437,7 +441,11 @@ object ScreenshotCaptureUtil {
             return bitmap
         }
 
-        Log.d(TAG, "Auto-crop: Removing borders L=$left T=$top R=${w - 1 - right} B=${h - 1 - bottom} -> ${cropWidth}x$cropHeight")
+        Log.d(
+                TAG,
+                "Auto-crop: Removing borders L=$left T=$top R=${w - 1 - right} " +
+                        "B=${h - 1 - bottom} -> ${cropWidth}x$cropHeight"
+        )
         return Bitmap.createBitmap(bitmap, left, top, cropWidth, cropHeight)
     }
 
