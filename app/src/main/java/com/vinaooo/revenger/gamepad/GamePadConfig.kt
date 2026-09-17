@@ -4,7 +4,12 @@ import android.content.Context
 import android.view.KeyEvent
 import androidx.core.content.ContextCompat
 import com.swordfish.libretrodroid.GLRetroView
-import com.swordfish.radialgamepad.library.config.*
+import com.swordfish.radialgamepad.library.config.ButtonConfig
+import com.swordfish.radialgamepad.library.config.CrossConfig
+import com.swordfish.radialgamepad.library.config.PrimaryDialConfig
+import com.swordfish.radialgamepad.library.config.RadialGamePadConfig
+import com.swordfish.radialgamepad.library.config.RadialGamePadTheme
+import com.swordfish.radialgamepad.library.config.SecondaryDialConfig
 import com.swordfish.radialgamepad.library.haptics.HapticConfig
 import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.R
@@ -51,7 +56,10 @@ class GamePadConfig(context: Context, private val appConfig: AppConfig) {
         private val radialGamePadTheme =
                 RadialGamePadTheme(
                         textColor = ContextCompat.getColor(context, android.R.color.white),
-                        normalColor = android.graphics.Color.parseColor(appConfig.gamePadConfigModel.button_button_color),
+                        normalColor =
+                                android.graphics.Color.parseColor(
+                                        appConfig.gamePadConfigModel.button_button_color
+                                ),
                         pressedColor = android.graphics.Color.parseColor(appConfig.gamePadConfigModel.gp_pressed_color)
                 )
 

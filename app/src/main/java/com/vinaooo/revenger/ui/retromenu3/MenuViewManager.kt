@@ -95,7 +95,8 @@ class MenuViewManager(private val fragment: Fragment) {
         menuTitleTextView = titleTextView // Store reference for hiding/showing
         Log.d(
                 TAG,
-                "[VIEW] setupDynamicTitle - menuTitleTextView initialized: ${menuTitleTextView != null}, id: ${titleTextView?.id}"
+                "[VIEW] setupDynamicTitle - menuTitleTextView initialized: " +
+                        "${menuTitleTextView != null}, id: ${titleTextView?.id}"
         )
         val titleStyle = fragment.resources.getInteger(R.integer.rm_title_style)
 
@@ -308,7 +309,9 @@ class MenuViewManager(private val fragment: Fragment) {
     fun hideMainMenuTexts() {
         Log.d(
                 TAG,
-                "[VIEW] hideMainMenuTexts called - menuTitleTextView: ${menuTitleTextView?.hashCode()}, visibility before: ${menuTitleTextView?.visibility}"
+                "[VIEW] hideMainMenuTexts called - " +
+                        "menuTitleTextView: ${menuTitleTextView?.hashCode()}, " +
+                        "visibility before: ${menuTitleTextView?.visibility}"
         )
         if (!::menuItemViews.isInitialized) {
             Log.e(TAG, "[VIEW] MenuItemViews not initialized, cannot hide main menu texts")

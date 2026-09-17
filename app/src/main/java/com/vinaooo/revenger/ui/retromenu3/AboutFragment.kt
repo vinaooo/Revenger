@@ -337,7 +337,9 @@ class AboutFragment : MenuFragmentBase() {
             0 -> {
                 // Core Variables
                 android.util.Log.d(TAG, "[ACTION] About menu: Core Variables selected")
-                viewModel.navigationController?.navigateToSubmenu(com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.CORE_VARIABLES)
+                viewModel.navigationController?.navigateToSubmenu(
+                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.CORE_VARIABLES
+                )
             }
             1 -> {
                 // Back to main menu - Execute action directly
@@ -395,7 +397,11 @@ class AboutFragment : MenuFragmentBase() {
 
     override fun getMenuItems(): List<MenuItem> {
         return listOf(
-                MenuItem("core_variables", resources.getString(R.string.about_core_variables), action = MenuAction.NONE),
+                MenuItem(
+                        "core_variables",
+                        resources.getString(R.string.about_core_variables),
+                        action = MenuAction.NONE
+                ),
                 MenuItem("back", resources.getString(R.string.about_back), action = MenuAction.BACK)
         )
     }

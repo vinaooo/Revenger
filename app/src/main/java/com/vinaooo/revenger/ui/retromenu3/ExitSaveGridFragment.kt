@@ -282,7 +282,12 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
             val cancelArrow = dialog.findViewById<TextView>(R.id.cancel_button_arrow)
 
             titleView.text = getString(R.string.overwrite_dialog_title)
-            messageView.text = FontUtils.getCapitalizedString(requireContext(), R.string.overwrite_dialog_message, slot.name)
+            messageView.text =
+                    FontUtils.getCapitalizedString(
+                            requireContext(),
+                            R.string.overwrite_dialog_message,
+                            slot.name
+                    )
             confirmText.text = getString(R.string.dialog_overwrite)
             cancelText.text = getString(R.string.dialog_cancel)
 
@@ -429,7 +434,11 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
         val retroView = viewModel.retroView
         if (retroView == null) {
             Log.e(TAG, "RetroView is null, cannot save")
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.save_error), Toast.LENGTH_SHORT)
+            Toast.makeText(
+                    requireContext(),
+                    FontUtils.getCapitalizedString(requireContext(), R.string.save_error),
+                    Toast.LENGTH_SHORT
+            )
                 .show()
             return
         }
@@ -481,12 +490,20 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
                 ).show()
             } else {
                 Log.e(TAG, "Save failed to slot $slotNumber")
-                Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.save_error), Toast.LENGTH_SHORT)
+                Toast.makeText(
+                        requireContext(),
+                        FontUtils.getCapitalizedString(requireContext(), R.string.save_error),
+                        Toast.LENGTH_SHORT
+                )
                     .show()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error saving state", e)
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.save_error), Toast.LENGTH_SHORT)
+            Toast.makeText(
+                    requireContext(),
+                    FontUtils.getCapitalizedString(requireContext(), R.string.save_error),
+                    Toast.LENGTH_SHORT
+            )
                 .show()
         }
     }

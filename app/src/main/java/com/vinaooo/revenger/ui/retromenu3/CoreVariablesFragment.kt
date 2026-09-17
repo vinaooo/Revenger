@@ -84,7 +84,12 @@ class CoreVariablesFragment : MenuFragmentBase() {
         val capitalizationStyle = resources.getInteger(com.vinaooo.revenger.R.integer.rm_text_capitalization)
         val titleText = coreVariablesTitle.text.toString()
         val capitalizedTitle = when (capitalizationStyle) {
-            1 -> if (titleText.isNotEmpty()) titleText.substring(0, 1).uppercase() + titleText.substring(1) else titleText
+            1 ->
+                    if (titleText.isNotEmpty()) {
+                        titleText.substring(0, 1).uppercase() + titleText.substring(1)
+                    } else {
+                        titleText
+                    }
             2 -> titleText.uppercase()
             else -> titleText
         }
@@ -210,7 +215,11 @@ class CoreVariablesFragment : MenuFragmentBase() {
 
     override fun getMenuItems(): List<MenuItem> {
         return cardViews.mapIndexed { index, view ->
-            MenuItem(id = "item_$index", title = titleViews[index].text.toString(), action = com.vinaooo.revenger.ui.retromenu3.MenuAction.NONE)
+            MenuItem(
+                    id = "item_$index",
+                    title = titleViews[index].text.toString(),
+                    action = com.vinaooo.revenger.ui.retromenu3.MenuAction.NONE
+            )
         }
     }
 }

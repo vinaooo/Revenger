@@ -346,29 +346,38 @@ class RetroMenu3Fragment :
                                 // Check if fragment is still associated with a fragment manager
                                 // before removing
                                 try {
-                                        Log.d("RetroMenu3Fragment", "[DISMISS] Animation end callback ts=${System.currentTimeMillis()} isAdded=$isAdded")
+                                        val ts = System.currentTimeMillis()
+                                        Log.d(
+                                                "RetroMenu3Fragment",
+                                                "[DISMISS] Animation end callback ts=$ts isAdded=$isAdded"
+                                        )
                                         if (isAdded) {
                                                 android.util.Log.d(
-                                                                "RetroMenu3Fragment",
-                                                                "[DISMISS] Fragment still associated with manager, removing..."
+                                                        "RetroMenu3Fragment",
+                                                        "[DISMISS] Fragment still associated with manager, removing..."
+                                                )
+                                                parentFragmentManager.beginTransaction().remove(this).commit()
+                                                val after =
+                                                        parentFragmentManager.findFragmentById(
+                                                                com.vinaooo.revenger.R.id.menu_container
                                                         )
-                                                        parentFragmentManager
-                                                                .beginTransaction()
-                                                                .remove(this)
-                                                                .commit()
-
-                                                val after = parentFragmentManager.findFragmentById(com.vinaooo.revenger.R.id.menu_container)
-                                                Log.d("RetroMenu3Fragment", "[DISMISS] After remove requested, fragmentById=${after?.javaClass?.simpleName} backStack=${parentFragmentManager.backStackEntryCount}")
-
+                                                val afterName = after?.javaClass?.simpleName
+                                                val backStack = parentFragmentManager.backStackEntryCount
+                                                Log.d(
+                                                        "RetroMenu3Fragment",
+                                                        "[DISMISS] After remove requested, " +
+                                                                "fragmentById=$afterName backStack=$backStack"
+                                                )
                                                 // Execute callback after animation and fragment removal
                                                 onAnimationEnd?.invoke()
                                         } else {
                                                 android.util.Log.w(
-                                                                "RetroMenu3Fragment",
-                                                                "[DISMISS] Fragment not associated with manager, skipping removal"
-                                                        )
-                                                        // Execute callback even if fragment removal failed
-                                                        onAnimationEnd?.invoke()
+                                                        "RetroMenu3Fragment",
+                                                        "[DISMISS] Fragment not associated with manager, " +
+                                                                "skipping removal"
+                                                )
+                                                // Execute callback even if fragment removal failed
+                                                onAnimationEnd?.invoke()
                                         }
                                 } catch (t: Throwable) {
                                         Log.e("RetroMenu3Fragment", "[DISMISS] Exception during dismiss callback", t)

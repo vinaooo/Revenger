@@ -3,8 +3,12 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Activity
 import android.app.Application
 import android.util.Log
-import android.view.*
+import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.Window
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.FragmentActivity
@@ -23,7 +27,12 @@ import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
-import com.vinaooo.revenger.ui.retromenu3.*
+import com.vinaooo.revenger.ui.retromenu3.AboutFragment
+import com.vinaooo.revenger.ui.retromenu3.ExitFragment
+import com.vinaooo.revenger.ui.retromenu3.MenuManager
+import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
+import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
+import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
 import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
 import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
@@ -358,11 +367,15 @@ class GameActivityViewModel(application: Application) :
         try {
             Log.d(
                     "GameActivityViewModel",
-                    "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} - menu opened callback start"
+                    "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} " +
+                            "thread=${Thread.currentThread().name} - menu opened callback start"
             )
+            val menuFragment =
+                    activity.supportFragmentManager.findFragmentById(R.id.menu_container)
             Log.d(
                     "GameActivityViewModel",
-                    "[ON_MENU_OPENED] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}"
+                    "[ON_MENU_OPENED] Fragment in container=${menuFragment?.javaClass?.simpleName} " +
+                            "backStack=${activity.supportFragmentManager.backStackEntryCount}"
             )
         } catch (t: Throwable) {
             Log.w(
@@ -408,11 +421,15 @@ class GameActivityViewModel(application: Application) :
         try {
             Log.d(
                     "GameActivityViewModel",
-                    "🔥 [ON_MENU_CLOSED_CALLBACK] ts=${System.currentTimeMillis()} thread=${Thread.currentThread().name} closingButton=$closingButton"
+                    "🔥 [ON_MENU_CLOSED_CALLBACK] ts=${System.currentTimeMillis()} " +
+                            "thread=${Thread.currentThread().name} closingButton=$closingButton"
             )
+            val menuFragment = activity.supportFragmentManager.findFragmentById(R.id.menu_container)
             Log.d(
                     "GameActivityViewModel",
-                    "🔥 [ON_MENU_CLOSED_CALLBACK] Fragment in container=${activity.supportFragmentManager.findFragmentById(R.id.menu_container)?.javaClass?.simpleName} backStack=${activity.supportFragmentManager.backStackEntryCount}"
+                    "🔥 [ON_MENU_CLOSED_CALLBACK] Fragment in container=" +
+                            "${menuFragment?.javaClass?.simpleName} " +
+                            "backStack=${activity.supportFragmentManager.backStackEntryCount}"
             )
         } catch (t: Throwable) {
             Log.w(
@@ -742,7 +759,8 @@ class GameActivityViewModel(application: Application) :
                         {
                             android.util.Log.d(
                                     "GameActivityViewModel",
-                                    "[DISMISS_MAIN] dismissRetroMenu3: DELAYED - isRetroMenu3Open after delay: ${isRetroMenu3Open()}"
+                                    "[DISMISS_MAIN] dismissRetroMenu3: DELAYED - " +
+                                            "isRetroMenu3Open after delay: ${isRetroMenu3Open()}"
                             )
                             android.util.Log.d(
                                     "GameActivityViewModel",
@@ -771,7 +789,8 @@ class GameActivityViewModel(application: Application) :
         )
         android.util.Log.d(
                 "GameActivityViewModel",
-                "[CLEAR_STATE] clearControllerInputState: comboAlreadyTriggered before: ${controllerInput.getComboAlreadyTriggered()}"
+                "[CLEAR_STATE] clearControllerInputState: comboAlreadyTriggered before: " +
+                        "${controllerInput.getComboAlreadyTriggered()}"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
@@ -788,12 +807,15 @@ class GameActivityViewModel(application: Application) :
                             )
                             android.util.Log.d(
                                     "GameActivityViewModel",
-                                    "[CLEAR_STATE] clearControllerInputState: isRetroMenu3Open after delay: ${isRetroMenu3Open()}"
+                                    "[CLEAR_STATE] clearControllerInputState: " +
+                                            "isRetroMenu3Open after delay: ${isRetroMenu3Open()}"
                             )
                             inputViewModel.clearControllerInputState()
                             android.util.Log.d(
                                     "GameActivityViewModel",
-                                    "[CLEAR_STATE] clearControllerInputState: comboAlreadyTriggered after: ${controllerInput.getComboAlreadyTriggered()}"
+                                    "[CLEAR_STATE] clearControllerInputState: " +
+                                            "comboAlreadyTriggered after: " +
+                                            "${controllerInput.getComboAlreadyTriggered()}"
                             )
                             android.util.Log.d(
                                     "GameActivityViewModel",
@@ -889,23 +911,35 @@ class GameActivityViewModel(application: Application) :
         )
         android.util.Log.d(
                 "GameActivityViewModel",
-                "[ACTIVE]   📋 aboutFragmentActive=$aboutFragmentActive (ref=${aboutFragment != null}, added=${aboutFragment?.isAdded}, resumed=${aboutFragment?.isResumed})"
+                "[ACTIVE]   📋 aboutFragmentActive=$aboutFragmentActive " +
+                        "(ref=${aboutFragment != null}, added=${aboutFragment?.isAdded}, " +
+                        "resumed=${aboutFragment?.isResumed})"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
-                "[ACTIVE]   📋 coreVariablesFragmentActive=$coreVariablesFragmentActive (ref=${coreVariablesFragment != null}, added=${coreVariablesFragment?.isAdded}, resumed=${coreVariablesFragment?.isResumed})"
+                "[ACTIVE]   📋 coreVariablesFragmentActive=$coreVariablesFragmentActive " +
+                        "(ref=${coreVariablesFragment != null}, " +
+                        "added=${coreVariablesFragment?.isAdded}, " +
+                        "resumed=${coreVariablesFragment?.isResumed})"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
-                "[ACTIVE]   ⚙️ settingsFragmentActive=$settingsFragmentActive (ref=${settingsMenuFragment != null}, added=${settingsMenuFragment?.isAdded}, resumed=${settingsMenuFragment?.isResumed})"
+                "[ACTIVE]   ⚙️ settingsFragmentActive=$settingsFragmentActive " +
+                        "(ref=${settingsMenuFragment != null}, " +
+                        "added=${settingsMenuFragment?.isAdded}, " +
+                        "resumed=${settingsMenuFragment?.isResumed})"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
-                "[ACTIVE]   💾 progressFragmentActive=$progressFragmentActive (ref=${progressFragment != null}, added=${progressFragment?.isAdded}, resumed=${progressFragment?.isResumed})"
+                "[ACTIVE]   💾 progressFragmentActive=$progressFragmentActive " +
+                        "(ref=${progressFragment != null}, added=${progressFragment?.isAdded}, " +
+                        "resumed=${progressFragment?.isResumed})"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
-                "[ACTIVE]   🚪 exitFragmentActive=$exitFragmentActive (ref=${exitFragment != null}, added=${exitFragment?.isAdded}, resumed=${exitFragment?.isResumed})"
+                "[ACTIVE]   🚪 exitFragmentActive=$exitFragmentActive " +
+                        "(ref=${exitFragment != null}, added=${exitFragment?.isAdded}, " +
+                        "resumed=${exitFragment?.isResumed})"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
@@ -976,14 +1010,17 @@ class GameActivityViewModel(application: Application) :
         if (isRetroMenu3Open() && !isDismissingAllMenus()) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "dismiss${fragmentName}: Main menu restoration handled by BackStackChangeListener (retroMenu3Open=$retroMenu3OpenBefore)"
+                    "dismiss${fragmentName}: Main menu restoration handled by " +
+                            "BackStackChangeListener (retroMenu3Open=$retroMenu3OpenBefore)"
             )
             // REMOVED: retroMenu3Fragment?.restoreMainMenu()
             // The BackStackChangeListener in RetroMenu3Fragment will handle menu restoration
         } else {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "dismiss${fragmentName}: NOT showing main menu (dismissingAll=${isDismissingAllMenus()}, retroMenu3Open=$retroMenu3OpenBefore)"
+                    "dismiss${fragmentName}: NOT showing main menu " +
+                            "(dismissingAll=${isDismissingAllMenus()}, " +
+                            "retroMenu3Open=$retroMenu3OpenBefore)"
             )
         }
 
@@ -996,7 +1033,8 @@ class GameActivityViewModel(application: Application) :
         if (settingsMenuFragment != null) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "isSettingsMenuOpen check: fragment=${settingsMenuFragment}, isAdded=${settingsMenuFragment?.isAdded}, result=$isOpen"
+                    "isSettingsMenuOpen check: fragment=${settingsMenuFragment}, " +
+                            "isAdded=${settingsMenuFragment?.isAdded}, result=$isOpen"
             )
         }
         return isOpen
@@ -1094,7 +1132,8 @@ class GameActivityViewModel(application: Application) :
         if (activate != null) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "[REGISTER] $emoji $methodLabel: Registering $fragmentClassName - isAdded=${fragment.isAdded}, isResumed=${fragment.isResumed}"
+                    "[REGISTER] $emoji $methodLabel: Registering $fragmentClassName - " +
+                            "isAdded=${fragment.isAdded}, isResumed=${fragment.isResumed}"
             )
         } else {
             android.util.Log.d(
@@ -1618,13 +1657,16 @@ class GameActivityViewModel(application: Application) :
 
                 android.util.Log.d(
                         "GameActivityViewModel",
-                        "[PHASE4] Navigation key check: keyCode=$keyCode, action=${event.action}, isMenuActive=$isMenuActive, shouldProcess=$shouldProcessKeyboard"
+                        "[PHASE4] Navigation key check: keyCode=$keyCode, " +
+                                "action=${event.action}, isMenuActive=$isMenuActive, " +
+                                "shouldProcess=$shouldProcessKeyboard"
                 )
 
                 if (shouldProcessKeyboard) {
                     android.util.Log.d(
                             "GameActivityViewModel",
-                            "[PHASE4] Routing key event to KeyboardInputAdapter: keyCode=$keyCode, action=${event.action}"
+                            "[PHASE4] Routing key event to KeyboardInputAdapter: " +
+                                    "keyCode=$keyCode, action=${event.action}"
                     )
                     // Route to keyboard adapter based on action type
                     val consumed =

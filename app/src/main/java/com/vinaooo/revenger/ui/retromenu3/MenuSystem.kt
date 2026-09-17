@@ -352,7 +352,9 @@ class MenuManager(
             fragments[stateManager.getCurrentState()].also {
                 Log.d(
                         "MenuManager",
-                        "[FRAGMENT] getCurrentFragment: state=${stateManager.getCurrentState()}, fragment=${it?.javaClass?.simpleName}, isAdded=${(it as? androidx.fragment.app.Fragment)?.isAdded}"
+                        "[FRAGMENT] getCurrentFragment: state=${stateManager.getCurrentState()}, " +
+                                "fragment=${it?.javaClass?.simpleName}, " +
+                                "isAdded=${(it as? androidx.fragment.app.Fragment)?.isAdded}"
                 )
             }
 
@@ -396,7 +398,9 @@ class MenuManager(
         } else {
             Log.w(
                     "MenuManager",
-                    "[NAV] Navigate up: Fragment not available or not attached - fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, isVisible=$isVisible, isResumed=$isResumed"
+                    "[NAV] Navigate up: Fragment not available or not attached - " +
+                            "fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, " +
+                            "isVisible=$isVisible, isResumed=$isResumed"
             )
             false
         }
@@ -415,7 +419,9 @@ class MenuManager(
         } else {
             Log.w(
                     "MenuManager",
-                    "[NAV] navigateDown: Fragment not available or not attached - fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, isVisible=$isVisible, isResumed=$isResumed"
+                    "[NAV] navigateDown: Fragment not available or not attached - " +
+                            "fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, " +
+                            "isVisible=$isVisible, isResumed=$isResumed"
             )
             false
         }
@@ -441,7 +447,10 @@ class MenuManager(
             } else {
                 Log.w(
                         "MenuManager",
-                        "[CONFIRM] ⚠️ Fragment not available or not attached - fragment=$fragment, isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
+                        "[CONFIRM] ⚠️ Fragment not available or not attached - " +
+                                "fragment=$fragment, " +
+                                "isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, " +
+                                "context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
                 )
                 false
             }
@@ -478,7 +487,10 @@ class MenuManager(
                     } else {
                         Log.w(
                                 "MenuManager",
-                                "[NAV] back: Fragment not available or not attached - fragment=$fragment, isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
+                                "[NAV] back: Fragment not available or not attached - " +
+                                        "fragment=$fragment, " +
+                                        "isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, " +
+                                        "context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
                         )
                         false
                     }

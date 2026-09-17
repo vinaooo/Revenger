@@ -69,7 +69,9 @@ class GamePad(
 
             android.util.Log.d(
                 TAG,
-                "Input device: id=$id, name=$name, virtual=$isVirtual, sources=0x${sources.toString(16)}, gamepad=$hasGamepadSource, joystick=$hasJoystickSource"
+                "Input device: id=$id, name=$name, virtual=$isVirtual, " +
+                        "sources=0x${sources.toString(16)}, gamepad=$hasGamepadSource, " +
+                        "joystick=$hasJoystickSource"
             )
 
             if (!isVirtual && (hasGamepadSource || hasJoystickSource)) {
@@ -111,7 +113,8 @@ class GamePad(
 
                 android.util.Log.d(
                     TAG,
-                        "🎮 Callback returned: intercepted=$intercepted (will ${if (intercepted) "BLOCK" else "SEND"} to core)"
+                        "🎮 Callback returned: intercepted=$intercepted " +
+                                "(will ${if (intercepted) "BLOCK" else "SEND"} to core)"
                 )
 
                 // Only send to the core if NOT intercepted

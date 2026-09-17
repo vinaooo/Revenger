@@ -408,7 +408,8 @@ object AdvancedPerformanceProfiler {
                         } else {
                             android.util.Log.d(
                                     "PerformanceProfiler",
-                                    "Not updating overlay - isProfilingActive: $isProfilingActive, debugOverlayView: ${debugOverlayView != null}"
+                                    "Not updating overlay - isProfilingActive: $isProfilingActive, " +
+                                            "debugOverlayView: ${debugOverlayView != null}"
                             )
                         }
                     }

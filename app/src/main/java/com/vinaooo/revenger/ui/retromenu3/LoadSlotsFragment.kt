@@ -30,7 +30,11 @@ class LoadSlotsFragment : SaveStateGridFragment() {
     override fun onSlotConfirmed(slot: SaveSlotData) {
         if (slot.isEmpty) {
             Log.d(TAG, "Cannot load from empty slot ${slot.slotNumber}")
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.slot_is_empty), Toast.LENGTH_SHORT)
+            Toast.makeText(
+                            requireContext(),
+                            FontUtils.getCapitalizedString(requireContext(), R.string.slot_is_empty),
+                            Toast.LENGTH_SHORT
+                    )
                     .show()
             return
         }
@@ -77,7 +81,11 @@ class LoadSlotsFragment : SaveStateGridFragment() {
         val retroView = viewModel.retroView
         if (retroView == null) {
             Log.e(TAG, "RetroView is null, cannot load")
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.load_error), Toast.LENGTH_SHORT)
+            Toast.makeText(
+                            requireContext(),
+                            FontUtils.getCapitalizedString(requireContext(), R.string.load_error),
+                            Toast.LENGTH_SHORT
+                    )
                     .show()
             return
         }
@@ -88,7 +96,11 @@ class LoadSlotsFragment : SaveStateGridFragment() {
 
             if (stateBytes == null) {
                 Log.e(TAG, "Failed to load state from slot $slotNumber")
-                Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.load_error), Toast.LENGTH_SHORT)
+                Toast.makeText(
+                                requireContext(),
+                                FontUtils.getCapitalizedString(requireContext(), R.string.load_error),
+                                Toast.LENGTH_SHORT
+                        )
                         .show()
                 return
             }
@@ -108,12 +120,20 @@ class LoadSlotsFragment : SaveStateGridFragment() {
                 listener?.onLoadCompleted(slotNumber)
             } else {
                 Log.e(TAG, "Failed to unserialize state from slot $slotNumber")
-                Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.load_error), Toast.LENGTH_SHORT)
+                Toast.makeText(
+                                requireContext(),
+                                FontUtils.getCapitalizedString(requireContext(), R.string.load_error),
+                                Toast.LENGTH_SHORT
+                        )
                         .show()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error loading state", e)
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.load_error), Toast.LENGTH_SHORT)
+            Toast.makeText(
+                            requireContext(),
+                            FontUtils.getCapitalizedString(requireContext(), R.string.load_error),
+                            Toast.LENGTH_SHORT
+                    )
                     .show()
         }
     }

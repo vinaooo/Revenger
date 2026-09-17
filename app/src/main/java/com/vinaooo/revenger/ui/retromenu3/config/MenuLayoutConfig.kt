@@ -29,7 +29,9 @@ object MenuLayoutConfig {
             val rightWeight: Float
     ) {
         override fun toString(): String =
-                "LayoutProportions(left=${(leftWeight * 100).toInt()}%, center=${(centerWeight * 100).toInt()}%, right=${(rightWeight * 100).toInt()}%)"
+                "LayoutProportions(left=${(leftWeight * 100).toInt()}%, " +
+                        "center=${(centerWeight * 100).toInt()}%, " +
+                        "right=${(rightWeight * 100).toInt()}%)"
     }
 
     /** Representa as proporções de layout vertical (topo, conteúdo, abaixo) */
@@ -39,7 +41,9 @@ object MenuLayoutConfig {
             val bottomWeight: Float
     ) {
         override fun toString(): String =
-                "VerticalProportions(top=${(topWeight * 100).toInt()}%, content=${(contentWeight * 100).toInt()}%, bottom=${(bottomWeight * 100).toInt()}%)"
+                "VerticalProportions(top=${(topWeight * 100).toInt()}%, " +
+                        "content=${(contentWeight * 100).toInt()}%, " +
+                        "bottom=${(bottomWeight * 100).toInt()}%)"
     }
 
     /**
@@ -69,7 +73,8 @@ object MenuLayoutConfig {
             if (total != 100) {
                 Log.e(
                         TAG,
-                        "❌ Soma das proporções inválida: $leftPercent + $centerPercent + $rightPercent = $total (esperado 100)"
+                        "❌ Soma das proporções inválida: $leftPercent + $centerPercent + " +
+                                "$rightPercent = $total (esperado 100)"
                 )
                 return null
             }
@@ -250,7 +255,8 @@ object MenuLayoutConfig {
             if (total != 100) {
                 Log.e(
                         TAG,
-                        "❌ Soma das proporções inválida: $topPercent + $contentPercent + $bottomPercent = $total (esperado 100)"
+                        "❌ Soma das proporções inválida: $topPercent + $contentPercent + " +
+                                "$bottomPercent = $total (esperado 100)"
                 )
                 return null
             }

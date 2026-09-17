@@ -118,7 +118,9 @@ class GamePadLayoutAdjuster {
 
             Log.d(
                     TAG,
-                    "Portrait offset: $offsetPercent% → availableHeight=$availableHeight, containerHeight=$containerHeight, maxMovement=$maxMovement, bottomMargin=$bottomMargin px"
+                    "Portrait offset: $offsetPercent% → availableHeight=$availableHeight, " +
+                            "containerHeight=$containerHeight, maxMovement=$maxMovement, " +
+                            "bottomMargin=$bottomMargin px"
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error applying portrait offset", e)
@@ -160,7 +162,9 @@ class GamePadLayoutAdjuster {
 
             Log.d(
                     TAG,
-                    "Landscape offset: $offsetPercent% → availableHeight=$availableHeight, containerHeight=$containerHeight, maxMovement=$maxMovement, topMargin=$topMargin px"
+                    "Landscape offset: $offsetPercent% → availableHeight=$availableHeight, " +
+                            "containerHeight=$containerHeight, maxMovement=$maxMovement, " +
+                            "topMargin=$topMargin px"
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error applying landscape offset", e)

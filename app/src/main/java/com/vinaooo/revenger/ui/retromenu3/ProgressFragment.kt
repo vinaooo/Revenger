@@ -445,7 +445,8 @@ class ProgressFragment : MenuFragmentBase() {
             updateSelectionVisualInternal()
             android.util.Log.d(
                     "ProgressFragment",
-                    "[RESUME] ✅ Re-registered with NavigationController, restored selection to index $savedSelectionIndex"
+                    "[RESUME] ✅ Re-registered with NavigationController, restored selection " +
+                            "to index $savedSelectionIndex"
             )
         }
     }

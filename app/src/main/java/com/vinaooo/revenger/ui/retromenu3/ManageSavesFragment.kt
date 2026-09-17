@@ -77,7 +77,11 @@ class ManageSavesFragment : SaveStateGridFragment() {
         if (slot.isEmpty) {
             // Empty slot: show feedback
             android.util.Log.d(TAG, "Cannot manage empty slot ${slot.slotNumber}")
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), R.string.slot_is_empty), Toast.LENGTH_SHORT)
+            Toast.makeText(
+                            requireContext(),
+                            FontUtils.getCapitalizedString(requireContext(), R.string.slot_is_empty),
+                            Toast.LENGTH_SHORT
+                    )
                     .show()
             return
         }
@@ -421,7 +425,12 @@ class ManageSavesFragment : SaveStateGridFragment() {
             val cancelArrow = dialog.findViewById<TextView>(R.id.cancel_button_arrow)
 
             titleView.text = getString(R.string.delete_dialog_title)
-            messageView.text = FontUtils.getCapitalizedString(requireContext(), R.string.delete_dialog_message, slot.name)
+            messageView.text =
+                    FontUtils.getCapitalizedString(
+                            requireContext(),
+                            R.string.delete_dialog_message,
+                            slot.name
+                    )
             confirmText.text = getString(R.string.dialog_delete)
             cancelText.text = getString(R.string.dialog_cancel)
 
@@ -531,7 +540,11 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
             // Verify removal
             val parentAfter = dialog.parent
-            Log.d(TAG, "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName} isDialogVisible=${isDialogVisible}")
+            Log.d(
+                    TAG,
+                    "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName} " +
+                            "isDialogVisible=${isDialogVisible}"
+            )
         } catch (t: Throwable) {
             Log.e(TAG, "[DIALOG] Exception while hiding dialog", t)
         }
@@ -558,10 +571,18 @@ class ManageSavesFragment : SaveStateGridFragment() {
         val success = operation()
         if (success) {
             refreshGrid()
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), successMessageRes), Toast.LENGTH_SHORT)
+            Toast.makeText(
+                            requireContext(),
+                            FontUtils.getCapitalizedString(requireContext(), successMessageRes),
+                            Toast.LENGTH_SHORT
+                    )
                     .show()
         } else {
-            Toast.makeText(requireContext(), FontUtils.getCapitalizedString(requireContext(), errorMessageRes), Toast.LENGTH_SHORT)
+            Toast.makeText(
+                            requireContext(),
+                            FontUtils.getCapitalizedString(requireContext(), errorMessageRes),
+                            Toast.LENGTH_SHORT
+                    )
                     .show()
         }
     }

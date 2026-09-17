@@ -18,7 +18,11 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
     sealed class InputEvent {
         object Idle : InputEvent()
         object HandleSelectStartCombo : InputEvent()
-        data class SetupGamePads(val activity: androidx.fragment.app.FragmentActivity, val leftContainer: android.widget.FrameLayout, val rightContainer: android.widget.FrameLayout) : InputEvent()
+        data class SetupGamePads(
+                val activity: androidx.fragment.app.FragmentActivity,
+                val leftContainer: android.widget.FrameLayout,
+                val rightContainer: android.widget.FrameLayout
+        ) : InputEvent()
         object ResetComboAlreadyTriggered : InputEvent()
     }
 

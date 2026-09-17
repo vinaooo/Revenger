@@ -87,7 +87,12 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
         // Diagnostic: confirm fragment was added
         try {
             val found = fragmentManager.findFragmentByTag(TAG_MAIN_MENU)
-            Log.d(TAG, "[SHOW] Main menu added - fragment=${found?.javaClass?.simpleName} isAdded=${found?.isAdded} backStack=${fragmentManager.backStackEntryCount}")
+            Log.d(
+                    TAG,
+                    "[SHOW] Main menu added - fragment=${found?.javaClass?.simpleName} " +
+                            "isAdded=${found?.isAdded} " +
+                            "backStack=${fragmentManager.backStackEntryCount}"
+            )
         } catch (t: Throwable) {
             Log.w(TAG, "[SHOW] failed to log fragment state after add", t)
         }
@@ -256,7 +261,10 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
         if (fragmentManager.backStackEntryCount > 0) {
             try {
                 Log.d(TAG, "[HIDE] Clearing remaining backstack items: ${fragmentManager.backStackEntryCount}")
-                fragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                fragmentManager.popBackStackImmediate(
+                        null,
+                        androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+                )
             } catch (t: Throwable) {
                 Log.e(TAG, "[HIDE] Exception while clearing backstack", t)
             }
