@@ -15,33 +15,35 @@ import org.robolectric.annotation.Config
  * FPS_SMOOTHING_FACTOR) so a future accidental change to one of those values fails a test instead
  * of passing silently.
  *
- * [AdvancedPerformanceProfiler] is a singleton `object` with private mutable state
- * (frameTimeData/lastFrameTime/frameCount/emulatorFps); state is reset via reflection between
- * tests, following the pattern already used for other stateful singletons in this codebase (see
- * definitions/Code.md).
+ * [AdvancedPerformanceProfiler] delegates its frame-stats API to [FrameStatsTracker] (via Kotlin
+ * interface delegation, `by`) and its session-active flag to [ProfilingSessionController]; both
+ * collaborators hold private mutable state (frameTimeData/lastFrameTime/frameCount/emulatorFps on
+ * the tracker, isProfilingActive on the session controller). That state is reset via reflection
+ * between tests, following the pattern already used for other stateful singletons in this
+ * codebase (see definitions/Code.md).
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
 class AdvancedPerformanceProfiler_test {
 
-    private fun setPrivateField(name: String, value: Any?) {
-        val field = AdvancedPerformanceProfiler::class.java.getDeclaredField(name)
+    private fun setPrivateField(target: Any, name: String, value: Any?) {
+        val field = target::class.java.getDeclaredField(name)
         field.isAccessible = true
-        field.set(AdvancedPerformanceProfiler, value)
+        field.set(target, value)
     }
 
-    private fun getPrivateField(name: String): Any? {
-        val field = AdvancedPerformanceProfiler::class.java.getDeclaredField(name)
+    private fun getPrivateField(target: Any, name: String): Any? {
+        val field = target::class.java.getDeclaredField(name)
         field.isAccessible = true
-        return field.get(AdvancedPerformanceProfiler)
+        return field.get(target)
     }
 
     private fun resetProfilerState() {
-        setPrivateField("frameTimeData", mutableListOf<Long>())
-        setPrivateField("lastFrameTime", 0L)
-        setPrivateField("frameCount", 0)
-        setPrivateField("emulatorFps", 0.0)
-        setPrivateField("isProfilingActive", false)
+        setPrivateField(frameStatsTracker, "frameTimeData", mutableListOf<Long>())
+        setPrivateField(frameStatsTracker, "lastFrameTime", 0L)
+        setPrivateField(frameStatsTracker, "frameCount", 0)
+        setPrivateField(frameStatsTracker, "emulatorFps", 0.0)
+        setPrivateField(profilingSessionController, "isProfilingActive", false)
     }
 
     @Before
@@ -63,7 +65,9 @@ class AdvancedPerformanceProfiler_test {
         AdvancedPerformanceProfiler.recordFrameTime(10_000_000L)
         AdvancedPerformanceProfiler.recordFrameTime(20_000_000L)
 
-        val stats = AdvancedPerformanceProfiler.getFrameStats()
+        // Explicit type pins the public contract: AdvancedPerformanceProfiler.FrameStats must
+        // keep resolving as a qualified type name after the collaborator split.
+        val stats: AdvancedPerformanceProfiler.FrameStats = AdvancedPerformanceProfiler.getFrameStats()
 
         assertEquals(15.0, stats.averageFrameTimeMs, 0.001)
         assertEquals(1000.0 / 15.0, stats.averageFps, 0.001)
@@ -84,7 +88,7 @@ class AdvancedPerformanceProfiler_test {
 
     @Test
     fun `getFrameStats prefere o emulatorFps ja calculado quando disponivel`() {
-        setPrivateField("emulatorFps", 42.0)
+        setPrivateField(frameStatsTracker, "emulatorFps", 42.0)
         AdvancedPerformanceProfiler.recordFrameTime(10_000_000L)
 
         val stats = AdvancedPerformanceProfiler.getFrameStats()
@@ -102,12 +106,12 @@ class AdvancedPerformanceProfiler_test {
         // A tolerance of 1.0 absorbs the small timing drift between setting lastFrameTime and
         // the actual System.nanoTime() read inside onFrameRendered(), while still failing loudly
         // if the smoothing factor were something else (e.g. 0.2 -> expected ~= 802).
-        setPrivateField("emulatorFps", 1000.0)
-        setPrivateField("lastFrameTime", System.nanoTime() - 100_000_000L)
+        setPrivateField(frameStatsTracker, "emulatorFps", 1000.0)
+        setPrivateField(frameStatsTracker, "lastFrameTime", System.nanoTime() - 100_000_000L)
 
         AdvancedPerformanceProfiler.onFrameRendered()
 
-        val emulatorFps = getPrivateField("emulatorFps") as Double
+        val emulatorFps = getPrivateField(frameStatsTracker, "emulatorFps") as Double
         assertEquals(901.0, emulatorFps, 1.0)
     }
 
@@ -117,10 +121,10 @@ class AdvancedPerformanceProfiler_test {
         // timestamp and must not touch emulatorFps.
         AdvancedPerformanceProfiler.onFrameRendered()
 
-        val emulatorFps = getPrivateField("emulatorFps") as Double
+        val emulatorFps = getPrivateField(frameStatsTracker, "emulatorFps") as Double
         assertEquals(0.0, emulatorFps, 0.0001)
 
-        val lastFrameTime = getPrivateField("lastFrameTime") as Long
+        val lastFrameTime = getPrivateField(frameStatsTracker, "lastFrameTime") as Long
         assertEquals(true, lastFrameTime > 0L)
     }
 }
