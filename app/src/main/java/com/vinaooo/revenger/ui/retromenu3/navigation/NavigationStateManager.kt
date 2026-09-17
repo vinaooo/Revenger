@@ -34,7 +34,7 @@ interface NavigationStackAccess {
 /** Default [NavigationStackAccess] implementation, backed by a plain [NavigationStack]. */
 class NavigationStackHolder : NavigationStackAccess {
     /** Exposed so [NavigationStateManager] can push onto it and (de)serialize it to a Bundle. */
-    val stack = NavigationStack()
+    internal val stack = NavigationStack()
 
     /** Empilha um estado (quando se navega para frente). */
     fun pushState(state: MenuState) {
