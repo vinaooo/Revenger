@@ -212,6 +212,59 @@ class SaveStateManager_test {
         assertFalse(manager.renameSlot(8, "Cannot Rename"))
     }
 
+    // ========== ERROR PATHS ==========
+
+    // Regression test for the narrowed IOException catch in saveToSlot: forces a real I/O
+    // failure (the slot directory can't be created because a plain file already occupies that
+    // path) rather than a mock, so a mis-narrowed catch type would let the exception propagate
+    // and fail this test instead of silently passing.
+    @Test
+    fun `saveToSlot com diretorio de slot bloqueado por arquivo retorna false`() {
+        savesDir.mkdirs()
+        val blockedSlotDir = File(savesDir, "slot_6")
+        blockedSlotDir.createNewFile()
+
+        val result = manager.saveToSlot(6, "data".toByteArray(), null)
+
+        assertFalse(result)
+    }
+
+    // Regression test for the narrowed JSONException catch in readMetadata: a state file exists
+    // (so getSlot() doesn't short-circuit to empty) but metadata.json is not valid JSON.
+    @Test
+    fun `getSlot com metadata json corrompido nao lanca excecao e usa nome padrao`() {
+        val slotDir = File(savesDir, "slot_1")
+        slotDir.mkdirs()
+        File(slotDir, "state.bin").writeBytes("state".toByteArray())
+        File(slotDir, "metadata.json").writeText("{ not valid json ]")
+
+        val slot = manager.getSlot(1)
+
+        assertFalse(slot.isEmpty)
+        assertEquals("Slot 1", slot.name)
+    }
+
+    // Regression test for the narrowed DateTimeParseException catch in parseTimestamp: valid
+    // metadata JSON, but the timestamp field isn't a valid ISO-8601 instant.
+    @Test
+    fun `getSlot com timestamp invalido no metadata retorna slot sem timestamp`() {
+        val slotDir = File(savesDir, "slot_1")
+        slotDir.mkdirs()
+        File(slotDir, "state.bin").writeBytes("state".toByteArray())
+        File(slotDir, "metadata.json").writeText(
+                org.json.JSONObject()
+                        .put("name", "Broken Timestamp")
+                        .put("timestamp", "not-a-real-timestamp")
+                        .toString()
+        )
+
+        val slot = manager.getSlot(1)
+
+        assertFalse(slot.isEmpty)
+        assertEquals("Broken Timestamp", slot.name)
+        assertNull(slot.timestamp)
+    }
+
     // ========== CONCURRENCY ==========
 
     // Regression test for the PiP quick-save flow (a background Thread) racing a main-thread

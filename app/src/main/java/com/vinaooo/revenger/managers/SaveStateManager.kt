@@ -5,7 +5,10 @@ import android.graphics.Bitmap
 import android.util.Log
 import com.vinaooo.revenger.models.SaveSlotData
 import java.io.File
+import java.io.IOException
 import java.time.Instant
+import java.time.format.DateTimeParseException
+import org.json.JSONException
 import org.json.JSONObject
 
 /**
@@ -166,7 +169,7 @@ class SaveStateManager private constructor(private val context: Context) {
 
             Log.d(TAG, "Save state saved to slot $slotNumber")
             true
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Log.e(TAG, "Failed to save state to slot $slotNumber", e)
             false
         }
@@ -192,7 +195,7 @@ class SaveStateManager private constructor(private val context: Context) {
 
         return try {
             stateFile.readBytes()
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Log.e(TAG, "Failed to load state from slot $slotNumber", e)
             null
         }
@@ -213,7 +216,7 @@ class SaveStateManager private constructor(private val context: Context) {
             slotDir.deleteRecursively()
             Log.d(TAG, "Slot $slotNumber deleted")
             true
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
             Log.e(TAG, "Failed to delete slot $slotNumber", e)
             false
         }
@@ -260,7 +263,13 @@ class SaveStateManager private constructor(private val context: Context) {
 
             Log.d(TAG, "Slot $sourceSlot copied to slot $targetSlot")
             true
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
+            false
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
+            false
+        } catch (e: JSONException) {
             Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
             false
         }
@@ -306,7 +315,7 @@ class SaveStateManager private constructor(private val context: Context) {
             metadataFile.writeText(metadata.toString(2))
             Log.d(TAG, "Slot $slotNumber renamed to '$newName'")
             true
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Log.e(TAG, "Failed to rename slot $slotNumber", e)
             false
         }
@@ -333,7 +342,7 @@ class SaveStateManager private constructor(private val context: Context) {
             saveScreenshot(slotDir, screenshot)
             Log.d(TAG, "Screenshot updated for slot $slotNumber")
             true
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Log.e(TAG, "Failed to update screenshot for slot $slotNumber", e)
             false
         }
@@ -380,7 +389,10 @@ class SaveStateManager private constructor(private val context: Context) {
                     put("slotNumber", slotNumber)
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Log.e(TAG, "Failed to read metadata for slot $slotNumber", e)
+            JSONObject()
+        } catch (e: JSONException) {
             Log.e(TAG, "Failed to read metadata for slot $slotNumber", e)
             JSONObject()
         }
@@ -390,8 +402,8 @@ class SaveStateManager private constructor(private val context: Context) {
         if (timestampStr.isNullOrBlank()) return null
         return try {
             Instant.parse(timestampStr)
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to parse timestamp: $timestampStr")
+        } catch (e: DateTimeParseException) {
+            Log.w(TAG, "Failed to parse timestamp: $timestampStr", e)
             null
         }
     }
@@ -464,7 +476,9 @@ class SaveStateManager private constructor(private val context: Context) {
             legacyFile.delete()
 
             Log.d(TAG, "Legacy save state migrated successfully to slot 1")
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Log.e(TAG, "Failed to migrate legacy save state", e)
+        } catch (e: SecurityException) {
             Log.e(TAG, "Failed to migrate legacy save state", e)
         }
     }

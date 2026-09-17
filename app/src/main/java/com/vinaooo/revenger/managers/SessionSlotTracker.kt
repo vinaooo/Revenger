@@ -43,8 +43,9 @@ class SessionSlotTracker private constructor() {
         private fun log(message: String) {
             try {
                 android.util.Log.d(TAG, message)
-            } catch (e: RuntimeException) {
-                // Log not available in unit test environment - silently ignore
+            } catch (ignored: RuntimeException) {
+                // android.util.Log throws a plain RuntimeException when unmocked (Robolectric/unit
+                // tests): there's no narrower type to catch, and this is a deliberate no-op.
             }
         }
     }
