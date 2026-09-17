@@ -77,63 +77,9 @@ class RetroMenu3Fragment :
 
         private var menuListener: RetroMenu3Listener? = null
 
-        fun getMenuListener(): RetroMenu3Listener? = menuListener
-
         /** Get the animation controller for external access */
         fun getAnimationController(): MenuAnimationController {
                 return animationController
-        }
-
-        /**
-         * Recreate submenu after orientation change. Removes current fragment and reopens with the layout
-         * correto.
-         */
-        fun recreateSubmenuAfterOrientationChange(currentState: MenuState) {
-                android.util.Log.d(
-                        "RetroMenu3",
-                        "[ORIENTATION] recreateSubmenuAfterOrientationChange: $currentState"
-                )
-
-                if (currentState == MenuState.MAIN_MENU) {
-                        android.util.Log.d(
-                                "RetroMenu3",
-                                "[ORIENTATION] State is MAIN_MENU, nothing to do"
-                        )
-                        return
-                }
-
-                // Obter o fragment manager e remover o submenu atual
-                val fragmentManager = parentFragmentManager
-                val submenuTag =
-                        when (currentState) {
-                                MenuState.SETTINGS_MENU ->
-                                        SettingsMenuFragment::class.java.simpleName
-                                MenuState.PROGRESS_MENU -> ProgressFragment::class.java.simpleName
-                                MenuState.ABOUT_MENU -> AboutFragment::class.java.simpleName
-                                MenuState.EXIT_MENU -> ExitFragment::class.java.simpleName
-                                else -> null
-                        }
-
-                if (submenuTag != null) {
-                        val submenuFragment = fragmentManager.findFragmentByTag(submenuTag)
-                        if (submenuFragment != null && submenuFragment.isAdded) {
-                                android.util.Log.d(
-                                        "RetroMenu3",
-                                        "[ORIENTATION] Removendo fragment $submenuTag"
-                                )
-                                fragmentManager
-                                        .beginTransaction()
-                                        .remove(submenuFragment)
-                                        .commitNowAllowingStateLoss()
-
-                                // Reabrir usando o coordinator
-                                android.util.Log.d(
-                                        "RetroMenu3",
-                                        "[ORIENTATION] Reabrindo submenu $currentState"
-                                )
-                                submenuCoordinator.openSubmenu(currentState)
-                        }
-                }
         }
 
         /**
@@ -502,21 +448,6 @@ class RetroMenu3Fragment :
         /** Restore the main menu when closing a submenu */
         fun restoreMainMenu() {
                 menuViewManager.restoreMainMenu()
-        }
-
-        /** Navigate down (public access for testing) */
-        fun performNavigateDownPublic() {
-                inputHandler.handleNavigateDown()
-        }
-
-        /** Navigate up (public access for testing) */
-        fun performNavigateUpPublic() {
-                inputHandler.handleNavigateUp()
-        }
-
-        /** Confirm selection (public access for testing) */
-        fun performConfirmPublic() {
-                inputHandler.handleConfirm()
         }
 
         override fun updateSelectionVisualInternal() {
