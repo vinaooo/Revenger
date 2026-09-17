@@ -280,7 +280,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
                 viewModel.setFastForwardEnabled(!currentFastForwardState)
                 updateMenuState()
             }
-            3 -> {
+            BACK_TO_MAIN_MENU_INDEX -> {
                 // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Settings menu: Back to main menu selected")
                 // Use NavigationController to navigate back (don't call performBack which returns false)
@@ -443,6 +443,9 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     companion object {
         private const val TAG = "SettingsMenu"
+
+        // Index of the "back to main menu" entry in this settings menu's item list.
+        private const val BACK_TO_MAIN_MENU_INDEX = 3
 
         fun newInstance(): SettingsMenuFragment {
             return SettingsMenuFragment()

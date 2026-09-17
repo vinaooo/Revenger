@@ -50,6 +50,10 @@ class SubmenuCoordinator(
 
     companion object {
         private const val TAG = "RetroMenu3"
+
+        // Short settle delay between chained UI restore steps, so each step only runs once the
+        // previous one (setSelectedIndex, then showing the main menu) has been processed.
+        private const val RESTORE_STEP_SETTLE_DELAY_MS = 50L
     }
 
     // Store the main menu selected index before opening a submenu
@@ -162,10 +166,13 @@ class SubmenuCoordinator(
                                 animationController?.updateSelectionVisual(currentIndex)
                             }
                     pendingRestoreUpdateVisual = updateVisualRunnable
-                    fragment.view?.postDelayed(updateVisualRunnable, 50)
+                    fragment.view?.postDelayed(
+                            updateVisualRunnable,
+                            RESTORE_STEP_SETTLE_DELAY_MS
+                    )
                 }
         pendingRestoreShowMenu = showMenuRunnable
-        fragment.view?.postDelayed(showMenuRunnable, 50)
+        fragment.view?.postDelayed(showMenuRunnable, RESTORE_STEP_SETTLE_DELAY_MS)
     }
 
     fun setCallbacks(

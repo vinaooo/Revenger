@@ -28,6 +28,7 @@ class SplashActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "SplashActivity"
+        private const val NATIVE_SPLASH_EXIT_READY_DELAY_MS = 100L
     }
 
     private lateinit var crtBootView: CRTBootView
@@ -90,7 +91,7 @@ class SplashActivity : AppCompatActivity() {
                     isReady = true
                     Log.d(TAG, "Ready to exit native splash")
                 },
-                100
+                NATIVE_SPLASH_EXIT_READY_DELAY_MS
         ) // Small delay to ensure the layout is ready
     }
 

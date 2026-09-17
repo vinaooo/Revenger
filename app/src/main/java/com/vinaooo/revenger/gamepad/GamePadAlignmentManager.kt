@@ -25,6 +25,9 @@ class GamePadAlignmentManager(private val appConfig: AppConfig) {
 
         // Default indices that need to be mirrored
         private const val MENU_INDEX = 8 // Index of MENU button (RIGHT)
+
+        private const val OFFSET_PERCENT_MAX = 100
+        private const val PERCENT_SCALE = 100.0
     }
 
     /**
@@ -39,8 +42,8 @@ class GamePadAlignmentManager(private val appConfig: AppConfig) {
      * margin = 0px (at edge) Example: screenHeight=1000, offset=50 → margin = 500px (centered)
      */
     fun calculateBottomMarginPortrait(screenHeight: Int, offsetPercent: Int): Int {
-        val clampedOffset = offsetPercent.coerceIn(0, 100)
-        val calculatedMargin = (screenHeight * (100 - clampedOffset) / 100.0).toInt()
+        val clampedOffset = offsetPercent.coerceIn(0, OFFSET_PERCENT_MAX)
+        val calculatedMargin = (screenHeight * (OFFSET_PERCENT_MAX - clampedOffset) / PERCENT_SCALE).toInt()
 
         Log.d(
                 TAG,
@@ -60,11 +63,11 @@ class GamePadAlignmentManager(private val appConfig: AppConfig) {
      * @return Top margin in pixels. Positive = moves downward
      */
     fun calculateTopMarginLandscape(screenHeight: Int, offsetPercent: Int): Int {
-        val clampedOffset = offsetPercent.coerceIn(0, 100)
+        val clampedOffset = offsetPercent.coerceIn(0, OFFSET_PERCENT_MAX)
 
         // Em landscape, queremos inverter: offset 100 = abaixo (long margin), offset 0 = topo (0
         // margin)
-        val calculatedMargin = (screenHeight * clampedOffset / 100.0).toInt()
+        val calculatedMargin = (screenHeight * clampedOffset / PERCENT_SCALE).toInt()
 
         Log.d(
                 TAG,
@@ -128,8 +131,8 @@ class GamePadAlignmentManager(private val appConfig: AppConfig) {
             val portraitOffset = appConfig.gamePadConfigModel.gp_offset_portrait
             val landscapeOffset = appConfig.gamePadConfigModel.gp_offset_landscape
 
-            val portraitValid = portraitOffset in 0..100
-            val landscapeValid = landscapeOffset in 0..100
+            val portraitValid = portraitOffset in 0..OFFSET_PERCENT_MAX
+            val landscapeValid = landscapeOffset in 0..OFFSET_PERCENT_MAX
 
             return when {
                 !portraitValid ->

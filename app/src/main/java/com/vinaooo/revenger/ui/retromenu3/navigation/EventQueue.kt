@@ -131,7 +131,7 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
         val effectiveDebounceWindow =
                 when (event) {
                     is NavigationEvent.Navigate ->
-                            30L // Ultra-responsivo (30ms = ~33 FPS frame time)
+                            NAVIGATE_DEBOUNCE_WINDOW_MS // Ultra-responsivo (~33 FPS frame time)
                     is NavigationEvent.ActivateSelected, is NavigationEvent.SelectItem ->
                             debounceWindowMs // Ativação com debounce maior
                     is NavigationEvent.NavigateBack,
@@ -170,6 +170,10 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
 
     companion object {
         private const val TAG = "EventQueue"
+
+        // Ultra-responsive debounce window for Navigate (UP/DOWN) events: ~1 frame at 30 FPS,
+        // above hardware bounce (<10ms), so rapid navigation doesn't skip items.
+        private const val NAVIGATE_DEBOUNCE_WINDOW_MS = 30L
     }
 }
 

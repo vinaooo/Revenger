@@ -20,6 +20,9 @@ interface BackgroundEffect {
 
 /** Factory to create effect instances based on configured type */
 object BackgroundEffectFactory {
+    private const val EFFECT_TYPE_NONE = 0
+    private const val EFFECT_TYPE_SCANLINE = 3
+
     /**
      * Create the appropriate effect based on type
      * @param type Effect type (0=None, 3=Scanline)
@@ -27,19 +30,19 @@ object BackgroundEffectFactory {
      */
     fun create(type: Int): BackgroundEffect {
         return when (type) {
-            3 -> ScanlineEffect()
+            EFFECT_TYPE_SCANLINE -> ScanlineEffect()
             else -> NoEffect()
         }
     }
 
     /** Returns list with all available effect types */
-    fun getAllEffectTypes(): List<Int> = listOf(0, 3)
+    fun getAllEffectTypes(): List<Int> = listOf(EFFECT_TYPE_NONE, EFFECT_TYPE_SCANLINE)
 
     /** Returns descriptive name of the effect */
     fun getEffectName(type: Int): String {
         return when (type) {
-            0 -> "None (Dimming Only)"
-            3 -> "Scanline (CRT)"
+            EFFECT_TYPE_NONE -> "None (Dimming Only)"
+            EFFECT_TYPE_SCANLINE -> "Scanline (CRT)"
             else -> "Unknown"
         }
     }

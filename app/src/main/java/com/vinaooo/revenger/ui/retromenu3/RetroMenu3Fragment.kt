@@ -319,7 +319,7 @@ class RetroMenu3Fragment :
                                                         submenuCoordinator.openSubmenu(savedState)
                                                 }
                                         },
-                                        50
+                                        SUBMENU_REOPEN_VIEW_READY_DELAY_MS
                                 )
                         }
                 }
@@ -611,6 +611,10 @@ class RetroMenu3Fragment :
 
         companion object {
                 private const val TAG = "RetroMenu3Fragment"
+
+                // Short delay before reopening a saved submenu, to wait for the view to be
+                // completely ready after configuration change.
+                private const val SUBMENU_REOPEN_VIEW_READY_DELAY_MS = 50L
 
                 fun newInstance(): RetroMenu3Fragment {
                         return RetroMenu3Fragment()

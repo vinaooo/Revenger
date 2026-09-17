@@ -14,6 +14,8 @@ import java.io.InputStreamReader
 object PipConfigRepository {
     private const val TAG = "PipConfigRepository"
     private const val ASSET_FILE = "pip_config.json"
+    private const val FALLBACK_ASPECT_RATIO_WIDTH = 4
+    private const val FALLBACK_ASPECT_RATIO_HEIGHT = 3
 
     private var platformsConfig: Map<String, PipConfigProfile>? = null
     var defaultConfig: PipConfigProfile? = null
@@ -48,7 +50,7 @@ object PipConfigRepository {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load PiP configurations", e)
             platformsConfig = emptyMap()
-            defaultConfig = PipConfigProfile("default", 4, 3)
+            defaultConfig = PipConfigProfile("default", FALLBACK_ASPECT_RATIO_WIDTH, FALLBACK_ASPECT_RATIO_HEIGHT)
         }
     }
 
@@ -57,10 +59,11 @@ object PipConfigRepository {
      */
     fun getProfile(platformId: String?): PipConfigProfile {
         if (platformId.isNullOrEmpty()) {
-            return defaultConfig ?: PipConfigProfile("default", 4, 3)
+            return defaultConfig ?: PipConfigProfile("default", FALLBACK_ASPECT_RATIO_WIDTH, FALLBACK_ASPECT_RATIO_HEIGHT)
         }
         
-        return platformsConfig?.get(platformId.lowercase()) ?: defaultConfig ?: PipConfigProfile("default", 4, 3)
+        return platformsConfig?.get(platformId.lowercase()) ?: defaultConfig
+            ?: PipConfigProfile("default", FALLBACK_ASPECT_RATIO_WIDTH, FALLBACK_ASPECT_RATIO_HEIGHT)
     }
 
     private fun loadJsonFromAssets(context: Context): String {

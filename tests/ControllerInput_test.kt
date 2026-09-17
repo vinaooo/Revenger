@@ -104,6 +104,26 @@ class ControllerInput_test {
         assertTrue(fired)
     }
 
+    // Regression test: some physical gamepads report their menu/hamburger button as the
+    // vendor keycode -6 (not one of KeyEvent's own constants), so this handling is only
+    // reachable by passing that literal directly.
+    @Test
+    fun `gamepad menu button keycode -6 triggers gamepadMenuButtonCallback only when shouldHandleGamepadMenuButton returns true`() {
+        val controllerInput = newControllerInput()
+        var fired = false
+        controllerInput.gamepadMenuButtonCallback = { fired = true }
+        controllerInput.shouldHandleGamepadMenuButton = { false }
+
+        val notConsumed = controllerInput.processGamePadButtonEvent(-6, KeyEvent.ACTION_DOWN)
+        assertFalse(notConsumed) // shouldHandleGamepadMenuButton()=false: falls through, sent to core
+        assertFalse(fired)
+
+        controllerInput.shouldHandleGamepadMenuButton = { true }
+        val consumed = controllerInput.processGamePadButtonEvent(-6, KeyEvent.ACTION_DOWN)
+        assertTrue(consumed) // handled: intercepted, not sent to core
+        assertTrue(fired)
+    }
+
     @Test
     fun `menuConfirmCallback is debounced at 150ms and gated by isMenuOperationSafe`() {
         val controllerInput = newControllerInput()

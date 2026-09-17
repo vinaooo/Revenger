@@ -321,7 +321,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
             // Animate in
             dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(150).start()
+            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
         }
     }
 
@@ -397,7 +397,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
             com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyAllProportionsToMenuLayout(dialog)
             
             dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(150).start()
+            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
 
             // Setup keyboard click listeners and initial selection
             retroKeyboard?.setupKeyboardInView(dialog)
@@ -464,7 +464,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
             container.addView(dialog)
             dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(150).start()
+            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
         }
     }
 
@@ -621,6 +621,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
     companion object {
         private const val TAG = "ManageSavesFragment"
+        private const val DIALOG_FADE_IN_DURATION_MS = 150L
 
         fun newInstance(): ManageSavesFragment {
             return ManageSavesFragment()

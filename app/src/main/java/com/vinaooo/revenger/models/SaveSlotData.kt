@@ -38,6 +38,9 @@ data class SaveSlotData(
         private val DISPLAY_FORMATTER: DateTimeFormatter =
                 DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault())
 
+        private const val SECONDS_PER_HOUR = 3600L
+        private const val SECONDS_PER_MINUTE = 60L
+
         /** Create an empty slot representation */
         fun empty(slotNumber: Int): SaveSlotData {
             return SaveSlotData(
@@ -74,8 +77,8 @@ data class SaveSlotData(
     fun getFormattedPlayTime(): String {
         if (playTime <= 0) return ""
 
-        val hours = playTime / 3600
-        val minutes = (playTime % 3600) / 60
+        val hours = playTime / SECONDS_PER_HOUR
+        val minutes = (playTime % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE
 
         return when {
             hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"

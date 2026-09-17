@@ -20,11 +20,18 @@ class ControllerInput {
                                 KeyEvent.KEYCODE_BACK,
                                 KeyEvent.KEYCODE_POWER
                         )
-        }
 
-        // Fixed threshold values for single-trigger system
-        private val dpadThreshold: Float = 0.1f // Physical DPAD - more responsive
-        private val leftAnalogThreshold: Float = 0.7f // Left analog - less sensitive
+                // Fixed threshold values for single-trigger system
+                private const val DPAD_THRESHOLD: Float = 0.1f // Physical DPAD - more responsive
+                private const val LEFT_ANALOG_THRESHOLD: Float = 0.7f // Left analog - less sensitive
+
+                /** Vendor keycode reported by some physical gamepads for their menu/hamburger button */
+                private const val GAMEPAD_MENU_BUTTON_KEYCODE = -6
+
+                private const val COMBO_COOLDOWN_MS = 500L // 500ms cooldown between combo detections
+                private const val MENU_CLOSE_DEBOUNCE_MS = 200L // 200ms debounce after menu closes
+                private const val MENU_CALLBACK_DEBOUNCE_MS = 150L
+        }
 
         // Single trigger system - tracks previous state to detect transitions
         private data class DirectionalState(
@@ -52,11 +59,9 @@ class ControllerInput {
 
         /** Timestamp of last combo detection to prevent rapid re-triggers */
         private var lastComboTriggerTime = 0L
-        private val COMBO_COOLDOWN_MS = 500L // 500ms cooldown between combo detections
 
         /** Timestamp to prevent combo detection immediately after menu closes */
         private var menuCloseDebounceTime = 0L
-        private val MENU_CLOSE_DEBOUNCE_MS = 200L // 200ms debounce after menu closes
 
         /**
          * Clears the keyLog to avoid combo detection after closing the menu.
@@ -171,9 +176,6 @@ class ControllerInput {
         private var lastMenuNavigateRightCallbackTime: Long = 0
         private var lastStartButtonCallbackTime: Long = 0
         private var lastGamepadMenuButtonCallbackTime: Long = 0
-
-        // Minimum time between menu callback calls (in milliseconds)
-        private val MENU_CALLBACK_DEBOUNCE_MS = 150L
 
         /** Helper function to execute menu callbacks with debouncing protection */
         private fun executeMenuCallback(
@@ -686,7 +688,7 @@ class ControllerInput {
                 }
 
                 // INTERCEPT GAMEPAD MENU BUTTON (☰)
-                if (keyCode == -6 && shouldHandleGamepadMenuButton()) {
+                if (keyCode == GAMEPAD_MENU_BUTTON_KEYCODE && shouldHandleGamepadMenuButton()) {
                         if (action == KeyEvent.ACTION_DOWN) {
                                 android.util.Log.d(
                                         "ControllerInput",
@@ -1013,19 +1015,19 @@ class ControllerInput {
 
                         // Check D-PAD transitions
                         val dpadTrigger = checkSingleTrigger(
-                                currentUp = hatY < -dpadThreshold,
-                                currentDown = hatY > dpadThreshold,
-                                currentLeft = hatX < -dpadThreshold,
-                                currentRight = hatX > dpadThreshold,
+                                currentUp = hatY < -DPAD_THRESHOLD,
+                                currentDown = hatY > DPAD_THRESHOLD,
+                                currentLeft = hatX < -DPAD_THRESHOLD,
+                                currentRight = hatX > DPAD_THRESHOLD,
                                 previousState = dpadState
                         )
 
                         // Check Left Analog transitions
                         val analogTrigger = checkSingleTrigger(
-                                currentUp = axisY < -leftAnalogThreshold,
-                                currentDown = axisY > leftAnalogThreshold,
-                                currentLeft = axisX < -leftAnalogThreshold,
-                                currentRight = axisX > leftAnalogThreshold,
+                                currentUp = axisY < -LEFT_ANALOG_THRESHOLD,
+                                currentDown = axisY > LEFT_ANALOG_THRESHOLD,
+                                currentLeft = axisX < -LEFT_ANALOG_THRESHOLD,
+                                currentRight = axisX > LEFT_ANALOG_THRESHOLD,
                                 previousState = leftAnalogState
                         )
 
@@ -1096,10 +1098,10 @@ class ControllerInput {
                                 else -> {
                                         // Return true if any supported axis is out of deadzone but
                                         // not triggering a new event
-                                        if (Math.abs(hatX) > dpadThreshold ||
-                                                        Math.abs(hatY) > dpadThreshold ||
-                                                        Math.abs(axisX) > leftAnalogThreshold ||
-                                                        Math.abs(axisY) > leftAnalogThreshold
+                                        if (Math.abs(hatX) > DPAD_THRESHOLD ||
+                                                        Math.abs(hatY) > DPAD_THRESHOLD ||
+                                                        Math.abs(axisX) > LEFT_ANALOG_THRESHOLD ||
+                                                        Math.abs(axisY) > LEFT_ANALOG_THRESHOLD
                                         ) {
                                                 return true
                                         }

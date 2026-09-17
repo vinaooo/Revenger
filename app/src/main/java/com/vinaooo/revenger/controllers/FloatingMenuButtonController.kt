@@ -31,6 +31,11 @@ class FloatingMenuButtonController(
 
     companion object {
         private const val TAG = "FloatingMenuButtonController"
+        private const val VISIBLE_ALPHA = 1.0f
+        private const val DIMMED_ALPHA = 0.3f
+        private const val FADE_TRANSITION_DURATION_MS = 200L
+        private const val RESTORE_ANIMATION_DURATION_MS = 500L
+        private const val INACTIVITY_RESTORE_DELAY_MS = 10000L
     }
 
     private var fadeHandler: Handler? = null
@@ -75,7 +80,9 @@ class FloatingMenuButtonController(
 
         // Setup fade handler
         fadeHandler = Handler(Looper.getMainLooper())
-        fadeRunnable = Runnable { floatingButton.animate().alpha(1.0f).setDuration(500).start() }
+        fadeRunnable = Runnable {
+            floatingButton.animate().alpha(VISIBLE_ALPHA).setDuration(RESTORE_ANIMATION_DURATION_MS).start()
+        }
     }
 
     /**
@@ -87,12 +94,12 @@ class FloatingMenuButtonController(
         if (floatingButton.visibility != View.VISIBLE) return
 
         // Fade button to 30% alpha
-        floatingButton.animate().alpha(0.3f).setDuration(200).start()
+        floatingButton.animate().alpha(DIMMED_ALPHA).setDuration(FADE_TRANSITION_DURATION_MS).start()
 
         // Cancel any pending restorative fades, and schedule a new one in 10s
         fadeRunnable?.let { runnable ->
             fadeHandler?.removeCallbacks(runnable)
-            fadeHandler?.postDelayed(runnable, 10000)
+            fadeHandler?.postDelayed(runnable, INACTIVITY_RESTORE_DELAY_MS)
         }
     }
 
@@ -100,16 +107,16 @@ class FloatingMenuButtonController(
         if (floatingButton.visibility != View.VISIBLE) return
 
         fadeRunnable?.let { runnable -> fadeHandler?.removeCallbacks(runnable) }
-        floatingButton.animate().alpha(1.0f).setDuration(200).start()
+        floatingButton.animate().alpha(VISIBLE_ALPHA).setDuration(FADE_TRANSITION_DURATION_MS).start()
     }
 
     override fun fadeFloatingButtonImmediately() {
         if (floatingButton.visibility != View.VISIBLE) return
 
-        floatingButton.animate().alpha(0.3f).setDuration(200).start()
+        floatingButton.animate().alpha(DIMMED_ALPHA).setDuration(FADE_TRANSITION_DURATION_MS).start()
         fadeRunnable?.let { runnable ->
             fadeHandler?.removeCallbacks(runnable)
-            fadeHandler?.postDelayed(runnable, 10000)
+            fadeHandler?.postDelayed(runnable, INACTIVITY_RESTORE_DELAY_MS)
         }
     }
 

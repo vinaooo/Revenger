@@ -47,6 +47,21 @@ class GameActivityViewModel(application: Application) :
         AboutListener,
         MenuManager.MenuManagerListener {
 
+    companion object {
+        // Grace period after the menu closes during which button interception stays active.
+        // Covers the ~150ms hardware delay observed between ACTION_DOWN and ACTION_UP; a
+        // shorter window (50ms) was found insufficient.
+        private const val MENU_CLOSE_BUTTON_INTERCEPT_GRACE_MS = 200L
+
+        // Delay before clearing state after dismissing the RetroMenu3 fragment, to let the
+        // pending fragment removal complete first.
+        private const val RETRO_MENU3_FRAGMENT_REMOVAL_SETTLE_DELAY_MS = 200L
+
+        // Delay before clearing controller input state, to let the pending fragment
+        // destruction complete first.
+        private const val CONTROLLER_STATE_CLEAR_FRAGMENT_DESTROY_SETTLE_DELAY_MS = 200L
+    }
+
     private val resources = application.resources
     private val appConfig = RevengerApplication.appConfig
 
@@ -435,7 +450,10 @@ class GameActivityViewModel(application: Application) :
         // 200ms covers the ~150ms hardware delay between ACTION_DOWN and ACTION_UP
         // Identified via logs: UP arrives 150ms later; 50ms was insufficient
         // Block only the button that actually closed the menu
-        controllerInput.keepInterceptingButtons(200, closingButton = closingButton)
+        controllerInput.keepInterceptingButtons(
+                MENU_CLOSE_BUTTON_INTERCEPT_GRACE_MS,
+                closingButton = closingButton
+        )
 
         // Keep the freshest known frame as the PiP still before dropping the menu caches.
         com.vinaooo.revenger.utils.ScreenshotCaptureUtil.promoteCachedFullToPipFrame()
@@ -738,8 +756,8 @@ class GameActivityViewModel(application: Application) :
                                     "[DISMISS_MAIN] dismissRetroMenu3: Menu dismissed"
                             )
                         },
-                        200
-                ) // 200ms delay to ensure fragment removal is complete
+                        RETRO_MENU3_FRAGMENT_REMOVAL_SETTLE_DELAY_MS
+                ) // Delay to ensure fragment removal is complete
 
         android.util.Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Completed")
     }
@@ -788,8 +806,8 @@ class GameActivityViewModel(application: Application) :
                                     "[CLEAR_STATE] clearControllerInputState: COMPLETED"
                             )
                         },
-                        200
-                ) // 200ms delay to ensure fragment destruction is complete
+                        CONTROLLER_STATE_CLEAR_FRAGMENT_DESTROY_SETTLE_DELAY_MS
+                ) // Delay to ensure fragment destruction is complete
     }
 
     /** Check if the RetroMenu3 is currently open */

@@ -12,6 +12,8 @@ import com.vinaooo.revenger.utils.AndroidCompatibility
  */
 object EnhancedPrivacyManager {
 
+    private const val ANDROID_16_API_LEVEL = 36
+
     /** Initialize privacy controls based on Android version */
     fun initializePrivacyControls(context: Context) {
         when {
@@ -28,7 +30,7 @@ object EnhancedPrivacyManager {
     }
 
     /** Android 16+: Enhanced privacy with granular controls */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun initializeEnhancedPrivacy() {
         // Enhanced permission management
         requestEnhancedPermissions()
@@ -62,13 +64,13 @@ object EnhancedPrivacyManager {
     }
 
     /** Enhanced permission management for Android 16 */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun requestEnhancedPermissions() {
         // This would use hypothetical SDK 36 enhanced permission APIs
     }
 
     /** Advanced data audit logging for SDK 36 */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun enableAdvancedDataAudit() {
         // Hypothetical advanced audit features
     }
@@ -78,7 +80,7 @@ object EnhancedPrivacyManager {
     private fun enableBasicDataAudit() {}
 
     /** Granular permission configuration for SDK 36 */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun configureGranularPermissions() {
         // Hypothetical granular permission features
     }

@@ -12,6 +12,12 @@ import com.vinaooo.revenger.utils.RetroViewUtils
  */
 class SaveLoadOrchestrator {
 
+    private companion object {
+        // Delay before saving and restoring frame speed when temporarily unpausing a paused
+        // emulator for a save.
+        private const val PAUSED_SAVE_RESTORE_DELAY_MS = 200L
+    }
+
     private val handler = Handler(Looper.getMainLooper())
     private var pendingSaveRestore: Runnable? = null
 
@@ -76,7 +82,7 @@ class SaveLoadOrchestrator {
                 onComplete?.invoke()
             }
             pendingSaveRestore = restore
-            handler.postDelayed(restore, 200)
+            handler.postDelayed(restore, PAUSED_SAVE_RESTORE_DELAY_MS)
         } else {
             // Keep current frameSpeed (including 0 for paused state in menu)
             utils.saveState(retroView)

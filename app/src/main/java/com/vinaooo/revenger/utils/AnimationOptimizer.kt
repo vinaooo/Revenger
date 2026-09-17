@@ -11,8 +11,13 @@ import androidx.core.util.Pools
  */
 object AnimationOptimizer {
 
+    // Max number of pooled listener instances kept for reuse; sized to comfortably cover the
+    // menu's simultaneous animations without unbounded growth.
+    private const val ANIMATOR_LISTENER_POOL_MAX_SIZE = 8
+
     // Pool of ViewPropertyAnimator listeners to reduce allocations
-    private val animatorListenerPool = Pools.SimplePool<AnimationEndListener>(8)
+    private val animatorListenerPool =
+            Pools.SimplePool<AnimationEndListener>(ANIMATOR_LISTENER_POOL_MAX_SIZE)
 
     /** Optimized animation using ViewPropertyAnimator with listener pool */
     fun animateViewOptimized(

@@ -63,6 +63,9 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         private const val TAG = "SaveStateGridFragment"
         const val GRID_COLS = 3
         const val GRID_ROWS = 3
+        private const val GLOW_DIM_ALPHA = 0.3f
+        private const val GLOW_BRIGHT_ALPHA = 1.0f
+        private const val GLOW_ANIMATION_DURATION_MS = 1500L
     }
 
     // ========== ABSTRACT METHODS ==========
@@ -464,8 +467,14 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         // Cancel any previously active animator
         activeGlowAnimator?.cancel()
 
-        activeGlowAnimator = ObjectAnimator.ofFloat(glowView, "alpha", 0.3f, 1.0f, 0.3f).apply {
-            duration = 1500L  // 1.5 seconds per cycle
+        activeGlowAnimator = ObjectAnimator.ofFloat(
+                glowView,
+                "alpha",
+                GLOW_DIM_ALPHA,
+                GLOW_BRIGHT_ALPHA,
+                GLOW_DIM_ALPHA
+        ).apply {
+            duration = GLOW_ANIMATION_DURATION_MS  // 1.5 seconds per cycle
             interpolator = AccelerateDecelerateInterpolator()  // Smooth pulse effect
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.RESTART
