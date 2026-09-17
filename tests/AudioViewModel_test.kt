@@ -88,4 +88,20 @@ class AudioViewModel_test {
 
         assertEquals(controller, viewModel.getAudioController())
     }
+
+    // Regression test for the narrowed ClassCastException catch in loadAudioState(): a value of
+    // the wrong type under "audio_enabled" (e.g. left over from a preferences-format change) must
+    // fall back to true instead of crashing construction.
+    @Test
+    fun `construcao com valor de tipo errado para audio_enabled usa true como padrao`() {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        app.getSharedPreferences("revenger_prefs", Application.MODE_PRIVATE)
+                .edit()
+                .putString("audio_enabled", "not-a-boolean")
+                .commit()
+
+        val corrupted = AudioViewModel(app)
+
+        assertTrue(corrupted.getAudioState())
+    }
 }

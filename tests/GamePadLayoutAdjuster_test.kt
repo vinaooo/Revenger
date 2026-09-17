@@ -335,4 +335,37 @@ class GamePadLayoutAdjuster_test {
 
         shadowOf(Looper.getMainLooper()).idle()
     }
+
+    // --- applyPortraitOffset / applyLandscapeOffset: narrowed ClassCastException catch ---
+
+    /**
+     * Regression test for the narrowed `ClassCastException` catch in `applyPortraitOffset()` /
+     * `applyLandscapeOffset()`: `container.layoutParams as FrameLayout.LayoutParams` throws when
+     * the container was attached to a non-`FrameLayout` parent, so its `layoutParams` is a
+     * `LinearLayout.LayoutParams` instead. Both methods must swallow that (logging it) rather
+     * than letting it propagate out of the reflective invocation below.
+     */
+    private fun buildContainerWithWrongLayoutParamsType(): LinearLayout {
+        val parent = LinearLayout(context)
+        val container = LinearLayout(context)
+        container.layoutParams = LinearLayout.LayoutParams(0, 0)
+        parent.addView(container)
+        sizeView(parent, 1080, 400)
+        sizeView(container, 1080, 200)
+        return container
+    }
+
+    @Test
+    fun `applyPortraitOffset com layoutParams de tipo errado nao lanca excecao`() {
+        val container = buildContainerWithWrongLayoutParamsType()
+
+        callApplyPortraitOffset(container)
+    }
+
+    @Test
+    fun `applyLandscapeOffset com layoutParams de tipo errado nao lanca excecao`() {
+        val container = buildContainerWithWrongLayoutParamsType()
+
+        callApplyLandscapeOffset(container)
+    }
 }

@@ -87,7 +87,7 @@ data class DefaultSettingsProfile(
             for (i in 0 until jsonArray.length()) {
                 try {
                     profiles.add(fromJson(jsonArray.getJSONObject(i)))
-                } catch (e: Exception) {
+                } catch (e: org.json.JSONException) {
                     Log.e(TAG, "Skipping malformed profile at index $i", e)
                 }
             }

@@ -3,9 +3,11 @@ package com.vinaooo.revenger
 import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.JsonParseException
 import com.vinaooo.revenger.models.DefaultSettingsProfile
 import com.vinaooo.revenger.repositories.DefaultSettingsRepository
 import com.vinaooo.revenger.utils.ConfigIdGenerator
+import java.io.IOException
 import java.io.InputStreamReader
 
 // Field names mirror config.json's keys verbatim (Gson matches by field name, no
@@ -97,8 +99,13 @@ class AppConfig(private val context: Context) {
                     gson.fromJson(reader, type)
                 }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to load config from $path: ${e.message}")
+        } catch (e: IOException) {
+            Log.e(TAG, "Failed to load config from $path", e)
+            null
+        } catch (e: JsonParseException) {
+            // Covers both JsonSyntaxException and JsonIOException, Gson's two parse-failure
+            // subclasses.
+            Log.e(TAG, "Failed to load config from $path", e)
             null
         }
     }

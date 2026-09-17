@@ -48,11 +48,13 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
         loadFastForwardState()
     }
 
+    // SharedPreferences.getInt()/getBoolean() throw ClassCastException if a value stored under
+    // that key isn't the requested type (e.g. a stale value from a preferences-format change).
     private fun loadSpeedState() {
         viewModelScope.launch {
             try {
                 currentSpeed = preferencesRepository.getGameSpeedSync()
-            } catch (e: Exception) {
+            } catch (e: ClassCastException) {
                 android.util.Log.e("SpeedViewModel", "Error loading speed state", e)
                 currentSpeed = 1 // Default
             }
@@ -63,7 +65,7 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 isFastForwardEnabled = preferencesRepository.getFastForwardEnabledSync()
-            } catch (e: Exception) {
+            } catch (e: ClassCastException) {
                 android.util.Log.e("SpeedViewModel", "Error loading fast-forward state", e)
                 isFastForwardEnabled = false // Default
             }
@@ -87,12 +89,15 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
         saveSpeedState()
     }
 
+    // SharedPreferences.Editor.putX()/apply() don't declare or realistically throw on the
+    // standard Android implementation; kept broad via the escape hatch as a defensive net for
+    // this fire-and-forget write, since there's no narrower reachable type to name.
     private fun saveSpeedState() {
         viewModelScope.launch {
             try {
                 preferencesRepository.setGameSpeed(currentSpeed)
-            } catch (e: Exception) {
-                android.util.Log.e("SpeedViewModel", "Error saving speed state", e)
+            } catch (expectedPreferencesWriteFailure: Exception) {
+                android.util.Log.e("SpeedViewModel", "Error saving speed state", expectedPreferencesWriteFailure)
             }
         }
     }
@@ -101,8 +106,12 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 preferencesRepository.setFastForwardEnabled(isFastForwardEnabled)
-            } catch (e: Exception) {
-                android.util.Log.e("SpeedViewModel", "Error saving fast-forward state", e)
+            } catch (expectedPreferencesWriteFailure: Exception) {
+                android.util.Log.e(
+                        "SpeedViewModel",
+                        "Error saving fast-forward state",
+                        expectedPreferencesWriteFailure
+                )
             }
         }
     }

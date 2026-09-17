@@ -107,4 +107,20 @@ class ShaderViewModel_test {
     fun `getCurrentShaderDisplayName cai para o estado local quando nao ha controller`() {
         assertEquals(viewModel.getShaderState(), viewModel.getCurrentShaderDisplayName())
     }
+
+    // Regression test for the narrowed ClassCastException catch in loadShaderState(): a value of
+    // the wrong type under "current_shader" (e.g. left over from a preferences-format change)
+    // must fall back to "default" instead of crashing construction.
+    @Test
+    fun `construcao com valor de tipo errado para current_shader usa default como padrao`() {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        app.getSharedPreferences("revenger_prefs", Application.MODE_PRIVATE)
+                .edit()
+                .putInt("current_shader", 42)
+                .commit()
+
+        val corrupted = ShaderViewModel(app)
+
+        assertEquals("default", corrupted.getShaderState())
+    }
 }

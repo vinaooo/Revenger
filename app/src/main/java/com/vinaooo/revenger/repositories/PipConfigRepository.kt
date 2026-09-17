@@ -3,8 +3,10 @@ package com.vinaooo.revenger.repositories
 import android.content.Context
 import android.util.Log
 import com.vinaooo.revenger.models.PipConfigProfile
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStreamReader
 
 /**
@@ -47,7 +49,11 @@ object PipConfigRepository {
             
             platformsConfig = map
             Log.d(TAG, "Loaded ${map.size} PiP configurations")
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Log.e(TAG, "Failed to load PiP configurations", e)
+            platformsConfig = emptyMap()
+            defaultConfig = PipConfigProfile("default", FALLBACK_ASPECT_RATIO_WIDTH, FALLBACK_ASPECT_RATIO_HEIGHT)
+        } catch (e: JSONException) {
             Log.e(TAG, "Failed to load PiP configurations", e)
             platformsConfig = emptyMap()
             defaultConfig = PipConfigProfile("default", FALLBACK_ASPECT_RATIO_WIDTH, FALLBACK_ASPECT_RATIO_HEIGHT)

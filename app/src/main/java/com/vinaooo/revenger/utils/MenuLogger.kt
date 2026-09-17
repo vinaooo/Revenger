@@ -15,7 +15,11 @@ object MenuLogger {
             try {
                 // Try to access BuildConfig.DEBUG if available
                 Class.forName("com.vinaooo.revenger.BuildConfig").getField("DEBUG").getBoolean(null)
-            } catch (e: Exception) {
+                // Class.forName/getField/getBoolean's checked failures (ClassNotFoundException,
+                // NoSuchFieldException, IllegalAccessException) all share this common ancestor,
+                // which isn't on detekt's generic-exception list.
+            } catch (e: ReflectiveOperationException) {
+                Log.w(TAG, "BuildConfig.DEBUG not accessible via reflection, defaulting to true", e)
                 // Fallback to true if BuildConfig is not available
                 true
             }

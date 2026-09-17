@@ -44,11 +44,13 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
         loadAudioState()
     }
 
+    // SharedPreferences.getBoolean() throws ClassCastException if a value stored under that key
+    // isn't a Boolean (e.g. a stale value from a preferences-format change).
     private fun loadAudioState() {
         viewModelScope.launch {
             try {
                 isAudioEnabled = preferencesRepository.getAudioEnabledSync()
-            } catch (e: Exception) {
+            } catch (e: ClassCastException) {
                 android.util.Log.e("AudioViewModel", "Error loading audio state", e)
                 isAudioEnabled = true // Default
             }
@@ -73,12 +75,15 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
         saveAudioState()
     }
 
+    // SharedPreferences.Editor.putBoolean()/apply() don't declare or realistically throw on the
+    // standard Android implementation; kept broad via the escape hatch as a defensive net for
+    // this fire-and-forget write, since there's no narrower reachable type to name.
     private fun saveAudioState() {
         viewModelScope.launch {
             try {
                 preferencesRepository.setAudioEnabled(isAudioEnabled)
-            } catch (e: Exception) {
-                android.util.Log.e("AudioViewModel", "Error saving audio state", e)
+            } catch (expectedPreferencesWriteFailure: Exception) {
+                android.util.Log.e("AudioViewModel", "Error saving audio state", expectedPreferencesWriteFailure)
             }
         }
     }

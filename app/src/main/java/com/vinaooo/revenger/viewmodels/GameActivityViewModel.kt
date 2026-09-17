@@ -358,11 +358,14 @@ class GameActivityViewModel(application: Application) :
                     "[ON_MENU_OPENED] Fragment in container=${menuFragment?.javaClass?.simpleName} " +
                             "backStack=${activity.supportFragmentManager.backStackEntryCount}"
             )
-        } catch (t: Throwable) {
+        } catch (expectedDiagnosticLoggingFailure: Throwable) {
+            // This block only formats debug strings from trivial fragment-manager getters; there
+            // is no narrower reachable type, and Throwable is itself on detekt's generic-exception
+            // list, so the name-based escape hatch is used instead of guessing one.
             Log.w(
                     "GameActivityViewModel",
                     "[ON_MENU_OPENED] failed to log fragment manager state",
-                    t
+                    expectedDiagnosticLoggingFailure
             )
         }
 
@@ -380,8 +383,14 @@ class GameActivityViewModel(application: Application) :
                     "GameActivityViewModel",
                     "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} - menu opened callback completed"
             )
-        } catch (t: Throwable) {
-            Log.w("GameActivityViewModel", "[ON_MENU_OPENED] failed to log completion", t)
+        } catch (expectedDiagnosticLoggingFailure: Throwable) {
+            // Same rationale as the catch above: purely diagnostic logging with no narrower
+            // reachable type.
+            Log.w(
+                    "GameActivityViewModel",
+                    "[ON_MENU_OPENED] failed to log completion",
+                    expectedDiagnosticLoggingFailure
+            )
         }
     }
 
@@ -409,11 +418,13 @@ class GameActivityViewModel(application: Application) :
                             "${menuFragment?.javaClass?.simpleName} " +
                             "backStack=${activity.supportFragmentManager.backStackEntryCount}"
             )
-        } catch (t: Throwable) {
+        } catch (expectedDiagnosticLoggingFailure: Throwable) {
+            // Same rationale as handleMenuOpened()'s diagnostic-logging catches: purely debug
+            // string formatting with no narrower reachable type.
             Log.w(
                     "GameActivityViewModel",
                     "🔥 [ON_MENU_CLOSED_CALLBACK] failed to log fragment manager state",
-                    t
+                    expectedDiagnosticLoggingFailure
             )
         }
         android.util.Log.d(

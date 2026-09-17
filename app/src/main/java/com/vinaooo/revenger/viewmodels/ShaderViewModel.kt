@@ -32,11 +32,13 @@ class ShaderViewModel(application: Application) : AndroidViewModel(application) 
         loadShaderState()
     }
 
+    // SharedPreferences.getString() throws ClassCastException if a value stored under that key
+    // isn't a String (e.g. a stale value from a preferences-format change).
     private fun loadShaderState() {
         viewModelScope.launch {
             try {
                 currentShader = preferencesRepository.getShaderNameSync()
-            } catch (e: Exception) {
+            } catch (e: ClassCastException) {
                 android.util.Log.e("ShaderViewModel", "Error loading shader state", e)
                 currentShader = "default"
             }
@@ -63,12 +65,15 @@ class ShaderViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    // SharedPreferences.Editor.putString()/apply() don't declare or realistically throw on the
+    // standard Android implementation; kept broad via the escape hatch as a defensive net for
+    // this fire-and-forget write, since there's no narrower reachable type to name.
     private fun saveShaderState() {
         viewModelScope.launch {
             try {
                 preferencesRepository.setShaderName(currentShader)
-            } catch (e: Exception) {
-                android.util.Log.e("ShaderViewModel", "Error saving shader state", e)
+            } catch (expectedPreferencesWriteFailure: Exception) {
+                android.util.Log.e("ShaderViewModel", "Error saving shader state", expectedPreferencesWriteFailure)
             }
         }
     }

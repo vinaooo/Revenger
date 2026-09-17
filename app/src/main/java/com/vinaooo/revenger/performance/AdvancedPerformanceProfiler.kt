@@ -474,8 +474,11 @@ object AdvancedPerformanceProfiler {
                     "Config value for performance_overlay: $configValue"
             )
             configValue
-        } catch (e: Exception) {
-            android.util.Log.e("PerformanceProfiler", "Error reading config: ${e.message}")
+            // getConfigBoolean() handles its own resource-lookup failures internally and does not
+            // rethrow, so nothing is actually reachable here today; kept as a defensive net in
+            // case that internal contract changes.
+        } catch (expectedUnreachable: Exception) {
+            android.util.Log.e("PerformanceProfiler", "Error reading config", expectedUnreachable)
             // Only fallback to debug behavior if config reading fails
             isDebugBuild(context)
         }
@@ -487,7 +490,8 @@ object AdvancedPerformanceProfiler {
             // Check if app was installed via Android Studio (debuggable)
             val appInfo = context.packageManager.getApplicationInfo(context.packageName, 0)
             (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
-        } catch (e: Exception) {
+        } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
+            android.util.Log.w("PerformanceProfiler", "Could not read own application info", e)
             // Fallback: check package name for debug indicators
             context.packageName.contains("debug", ignoreCase = true)
         }
@@ -506,8 +510,8 @@ object AdvancedPerformanceProfiler {
                 android.util.Log.w("PerformanceProfiler", "Resource ID not found for $key")
                 false
             }
-        } catch (e: Exception) {
-            android.util.Log.e("PerformanceProfiler", "Error reading boolean $key: ${e.message}")
+        } catch (e: android.content.res.Resources.NotFoundException) {
+            android.util.Log.e("PerformanceProfiler", "Error reading boolean $key", e)
             false
         }
     }
