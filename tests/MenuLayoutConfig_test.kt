@@ -227,6 +227,38 @@ class MenuLayoutConfig_test {
     }
 
     @Test
+    fun `applyProportionsToMenuLayout ignora LinearLayout horizontal com menos de 3 filhos`() {
+        val root = FrameLayout(context)
+
+        // Horizontal, but only 2 children — must be skipped (MIN_LAYOUT_CHILD_COUNT = 3).
+        val tooFewChildren =
+                LinearLayout(context).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    addView(spacerChild())
+                    addView(spacerChild())
+                }
+        root.addView(tooFewChildren)
+
+        // The real candidate, with 3 children.
+        val mainRow =
+                LinearLayout(context).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    addView(spacerChild())
+                    addView(spacerChild())
+                    addView(spacerChild())
+                }
+        root.addView(mainRow)
+
+        MenuLayoutConfig.applyProportionsToMenuLayout(root)
+
+        // Portrait default proportions: 10/80/10, applied to mainRow, not to tooFewChildren.
+        assertEquals(0.10f, (mainRow.getChildAt(0).layoutParams as LinearLayout.LayoutParams).weight, 0.0001f)
+        assertEquals(0.80f, (mainRow.getChildAt(1).layoutParams as LinearLayout.LayoutParams).weight, 0.0001f)
+        assertEquals(0f, (tooFewChildren.getChildAt(0).layoutParams as LinearLayout.LayoutParams).weight, 0.0001f)
+        assertEquals(0f, (tooFewChildren.getChildAt(1).layoutParams as LinearLayout.LayoutParams).weight, 0.0001f)
+    }
+
+    @Test
     fun `applyProportionsToMenuLayout sem LinearLayout horizontal candidato nao lanca excecao`() {
         val root = FrameLayout(context)
         try {
