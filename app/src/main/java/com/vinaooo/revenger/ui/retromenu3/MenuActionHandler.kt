@@ -105,14 +105,20 @@ class MenuActionHandler(
                                                         .show()
                                         }
                                 }
-                        } catch (e: Exception) {
-                                MenuLogger.e("[ACTION] ❌ Exception while saving log", e)
+                                // LogSaver.saveCompleteLog() already catches its own failures and
+                                // returns null instead of propagating, and the remaining
+                                // statements are simple UI/Toast calls; the only realistic
+                                // exception reaching here is a coroutine CancellationException
+                                // from this scope being cancelled mid-save, which this safety net
+                                // still needs to log and report to the user rather than crash on.
+                        } catch (expectedUnreachable: Exception) {
+                                MenuLogger.e("[ACTION] ❌ Exception while saving log", expectedUnreachable)
 
                                 // Show error message on main thread
                                 withContext(Dispatchers.Main) {
                                         android.widget.Toast.makeText(
                                                         context,
-                                                        "Error saving log: ${e.message}",
+                                                        "Error saving log: ${expectedUnreachable.message}",
                                                         android.widget.Toast.LENGTH_SHORT
                                                 )
                                                 .show()

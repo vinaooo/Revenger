@@ -93,8 +93,11 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
                             "isAdded=${found?.isAdded} " +
                             "backStack=${fragmentManager.backStackEntryCount}"
             )
-        } catch (t: Throwable) {
-            Log.w(TAG, "[SHOW] failed to log fragment state after add", t)
+            // findFragmentByTag() and backStackEntryCount are pure reads with no documented
+            // throwable condition; this is a diagnostic-logging safety net that must never break
+            // the actual show-menu flow above it, kept via detekt's documented escape hatch.
+        } catch (expectedUnreachable: Throwable) {
+            Log.w(TAG, "[SHOW] failed to log fragment state after add", expectedUnreachable)
         }
 
         Log.d(TAG, "[SHOW] Main menu added successfully (synchronous)")
@@ -250,8 +253,11 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
             try {
                 fragmentManager.beginTransaction().remove(currentFragment).commitAllowingStateLoss()
                 Log.d(TAG, "[HIDE] Menu remove requested for fragment=${currentFragment.javaClass.simpleName}")
-            } catch (t: Throwable) {
-                Log.e(TAG, "[HIDE] Exception while removing fragment", t)
+            } catch (e: IllegalStateException) {
+                // commitAllowingStateLoss() can still throw IllegalStateException (e.g. the
+                // FragmentManager has already been destroyed), even though it suppresses the
+                // "state loss" case.
+                Log.e(TAG, "[HIDE] Exception while removing fragment", e)
             }
         } else {
             Log.w(TAG, "[HIDE] No menu to hide (currentFragment=null or not added)")
@@ -265,8 +271,10 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
                         null,
                         androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
                 )
-            } catch (t: Throwable) {
-                Log.e(TAG, "[HIDE] Exception while clearing backstack", t)
+            } catch (e: IllegalStateException) {
+                // popBackStackImmediate() throws IllegalStateException if called after the
+                // FragmentManager's state has already been saved.
+                Log.e(TAG, "[HIDE] Exception while clearing backstack", e)
             }
         }
     }

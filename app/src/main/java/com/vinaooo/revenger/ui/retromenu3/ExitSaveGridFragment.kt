@@ -454,11 +454,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
             val preview = viewModel.getCachedFullScreenshot()
 
             // Get ROM name from config
-            val romName = try {
-                getString(R.string.name)
-            } catch (e: Exception) {
-                "Unknown Game"
-            }
+            val romName = resolveRomNameOrFallback()
 
             // Save to slot
             val success = saveStateManager.saveToSlot(
@@ -497,8 +493,11 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
                 )
                     .show()
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error saving state", e)
+            // serializeState() deadlocks its GL-thread latch rather than propagating on native
+            // failure; the only reachable failure here is a plain NullPointerException, still
+            // "too generic" per this project's config, so this stays a safety net (escape hatch).
+        } catch (expectedNativeCallFailure: Exception) {
+            Log.e(TAG, "Error saving state", expectedNativeCallFailure)
             Toast.makeText(
                     requireContext(),
                     FontUtils.getCapitalizedString(requireContext(), R.string.save_error),
@@ -507,6 +506,18 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
                 .show()
         }
     }
+
+    /** Resolves the configured ROM display name, falling back to a generic label on failure. */
+    private fun resolveRomNameOrFallback(): String =
+        try {
+            getString(R.string.name)
+        } catch (e: android.content.res.Resources.NotFoundException) {
+            Log.w(TAG, "R.string.name not found, using fallback name", e)
+            "Unknown Game"
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "Fragment not attached while resolving ROM name, using fallback name", e)
+            "Unknown Game"
+        }
 
     // ========== CLEANUP ==========
 

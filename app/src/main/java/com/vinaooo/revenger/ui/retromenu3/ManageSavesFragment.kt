@@ -545,8 +545,11 @@ class ManageSavesFragment : SaveStateGridFragment() {
                     "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName} " +
                             "isDialogVisible=${isDialogVisible}"
             )
-        } catch (t: Throwable) {
-            Log.e(TAG, "[DIALOG] Exception while hiding dialog", t)
+            // View/ViewGroup.removeView() teardown here doesn't have a known reachable failure
+            // mode; this is a deliberate safety net so a rare view-tree inconsistency during
+            // dialog teardown never crashes the game, kept via detekt's own escape-hatch naming.
+        } catch (ignoredViewTeardownFailure: Throwable) {
+            Log.e(TAG, "[DIALOG] Exception while hiding dialog", ignoredViewTeardownFailure)
         }
 
         // Reset state

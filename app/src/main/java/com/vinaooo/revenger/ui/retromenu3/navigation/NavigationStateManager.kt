@@ -138,7 +138,7 @@ class NavigationStateManager {
                 val stackBundle = savedState.getBundle(KEY_NAV_STACK)
                 navigationStack.fromBundle(stackBundle)
             } catch (e: IllegalArgumentException) {
-                Log.w(TAG, "Invalid menu type in saved state: $menuString")
+                Log.w(TAG, "Invalid menu type in saved state: $menuString", e)
             }
         }
     }

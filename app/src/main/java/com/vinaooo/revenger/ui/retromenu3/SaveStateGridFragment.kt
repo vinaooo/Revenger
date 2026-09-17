@@ -223,8 +223,14 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
                     } else {
                         screenshot.setImageResource(R.drawable.ic_no_screenshot)
                     }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to load screenshot: ${e.message}")
+                    // BitmapFactory.decodeFile() is documented to return null on failure rather
+                    // than throw, and this call passes no Options that could trigger an
+                    // IllegalArgumentException; in practice some OEM/OS-version combinations have
+                    // been known to surface a corrupt screenshot file as an unchecked,
+                    // undocumented RuntimeException from native decode code instead of the null
+                    // contract, so this stays a safety net via detekt's own escape-hatch naming.
+                } catch (expectedNativeDecodeFailure: Exception) {
+                    Log.e(TAG, "Failed to load screenshot: ${expectedNativeDecodeFailure.message}", expectedNativeDecodeFailure)
                     screenshot.setImageResource(R.drawable.ic_no_screenshot)
                 }
             }

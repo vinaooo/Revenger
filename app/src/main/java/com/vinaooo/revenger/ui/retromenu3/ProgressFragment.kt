@@ -387,7 +387,9 @@ class ProgressFragment : MenuFragmentBase() {
             val viewModel = ViewModelProvider(activity)[GameActivityViewModel::class.java]
             // Call clearKeyLog through ViewModel to reset combo state
             viewModel.clearControllerKeyLog()
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
+            // requireActivity() throws IllegalStateException if the fragment is no longer
+            // attached, which is routinely the case by the time onDestroy() runs.
             android.util.Log.w("ProgressFragment", "Error resetting combo state in onDestroy", e)
         }
     }

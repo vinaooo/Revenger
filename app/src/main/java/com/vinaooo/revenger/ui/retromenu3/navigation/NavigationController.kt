@@ -67,8 +67,11 @@ class NavigationController(private val activity: FragmentActivity) {
                     "[HANDLE_EVENT] ts=${System.currentTimeMillis()} " +
                             "thread=${Thread.currentThread().name} enqueuedEvent=$event"
             )
-        } catch (t: Throwable) {
-            Log.w(TAG, "[HANDLE_EVENT] failed to log event", t)
+            // This only formats and logs a diagnostic string with no documented throwable
+            // condition; kept as a safety net so a logging hiccup never blocks real event
+            // processing below, via detekt's documented escape hatch.
+        } catch (expectedUnreachable: Throwable) {
+            Log.w(TAG, "[HANDLE_EVENT] failed to log event", expectedUnreachable)
         }
 
         // Processa o evento

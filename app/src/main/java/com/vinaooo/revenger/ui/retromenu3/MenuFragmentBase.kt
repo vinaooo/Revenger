@@ -81,7 +81,9 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
                     "MenuFragmentBase",
                     "[LIFECYCLE] onPause() - clearPendingInputsPreserveHeld() for ${this::class.simpleName}"
             )
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
+            // requireActivity() throws IllegalStateException if the fragment is no longer
+            // attached, which can race with onPause() during teardown.
             Log.e(
                     "MenuFragmentBase",
                     "[LIFECYCLE] Failed to clear pending inputs in onPause()",
