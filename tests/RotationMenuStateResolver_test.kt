@@ -11,6 +11,7 @@ import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
 import com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment
 import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -239,6 +240,44 @@ class RotationMenuStateResolver_test {
                         hasBackStack = false,
                         currentState = MenuState.MANAGE_SAVES_MENU
                 )
+        )
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // resolveNavigationMenuType: maps each MenuState with a registration path to its MenuType.
+    // ---------------------------------------------------------------------------------------
+
+    @Test
+    fun `resolveNavigationMenuType mapeia cada estado com registro dedicado para seu MenuType`() {
+        val expected =
+                mapOf(
+                        MenuState.MAIN_MENU to MenuType.MAIN,
+                        MenuState.SETTINGS_MENU to MenuType.SETTINGS,
+                        MenuState.PROGRESS_MENU to MenuType.PROGRESS,
+                        MenuState.ABOUT_MENU to MenuType.ABOUT,
+                        MenuState.EXIT_MENU to MenuType.EXIT,
+                        MenuState.SAVE_SLOTS_MENU to MenuType.SAVE_SLOTS,
+                        MenuState.LOAD_SLOTS_MENU to MenuType.LOAD_SLOTS,
+                        MenuState.MANAGE_SAVES_MENU to MenuType.MANAGE_SAVES,
+                        MenuState.EXIT_SAVE_SLOTS_MENU to MenuType.EXIT_SAVE_SLOTS
+                )
+
+        expected.forEach { (state, menuType) ->
+            assertEquals(
+                    "estado $state deveria mapear para $menuType",
+                    menuType,
+                    RotationMenuStateResolver.resolveNavigationMenuType(state)
+            )
+        }
+    }
+
+    @Test
+    fun `resolveNavigationMenuType cai para MAIN quando o estado nao tem registro dedicado`() {
+        // CORE_VARIABLES_MENU has no registration branch in the source switch; same fallback
+        // as before the extraction.
+        assertEquals(
+                MenuType.MAIN,
+                RotationMenuStateResolver.resolveNavigationMenuType(MenuState.CORE_VARIABLES_MENU)
         )
     }
 }

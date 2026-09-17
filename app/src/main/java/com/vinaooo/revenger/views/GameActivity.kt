@@ -575,28 +575,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 val isMainMenu =
                         effectiveState == com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU
 
-                // Limpar COMPLETAMENTE o backstack antes de recriar
-                Log.d(
-                        TAG,
-                        "[ORIENTATION] 🗑️ Limpando backstack (count=${fragmentManager.backStackEntryCount})"
-                )
-                fragmentManager.popBackStack(
-                        null,
-                        androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
-                )
-
-                // Remover qualquer Fragment que esteja no container
-                fragmentManager.findFragmentById(R.id.menu_container)?.let { existingFragment ->
-                        Log.d(
-                                TAG,
-                                "[ORIENTATION] 🗑️ Removendo fragment existente: " +
-                                        "${existingFragment::class.java.simpleName}"
-                        )
-                        fragmentManager
-                                .beginTransaction()
-                                .remove(existingFragment)
-                                .commitNowAllowingStateLoss()
-                }
+                clearMenuContainerForRotation(fragmentManager)
 
                 // Aguardar limpeza completa
                 android.os.Handler(android.os.Looper.getMainLooper())
@@ -612,6 +591,32 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                         )
 
                 Log.d(TAG, "[ORIENTATION] ====== ORIENTATION CHECK COMPLETED ======")
+        }
+
+        /** Pop the backstack and remove any fragment left in the menu container, before rebuilding. */
+        private fun clearMenuContainerForRotation(
+                fragmentManager: androidx.fragment.app.FragmentManager
+        ) {
+                Log.d(
+                        TAG,
+                        "[ORIENTATION] 🗑️ Limpando backstack (count=${fragmentManager.backStackEntryCount})"
+                )
+                fragmentManager.popBackStack(
+                        null,
+                        androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+                )
+
+                fragmentManager.findFragmentById(R.id.menu_container)?.let { existingFragment ->
+                        Log.d(
+                                TAG,
+                                "[ORIENTATION] 🗑️ Removendo fragment existente: " +
+                                        "${existingFragment::class.java.simpleName}"
+                        )
+                        fragmentManager
+                                .beginTransaction()
+                                .remove(existingFragment)
+                                .commitNowAllowingStateLoss()
+                }
         }
 
         /**
@@ -869,34 +874,8 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 // to be created and registered. This prevents registerFragment() from overwriting
                 // state.
                 val navMenuTypeForSync =
-                        when (effectiveState) {
-                                com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU ->
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MAIN
-                                com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU ->
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
-                                                .SETTINGS
-                                com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU ->
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
-                                                .PROGRESS
-                                com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU ->
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.ABOUT
-                                com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU ->
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.EXIT
-                                com.vinaooo.revenger.ui.retromenu3.MenuState.SAVE_SLOTS_MENU ->
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
-                                                .SAVE_SLOTS
-                                com.vinaooo.revenger.ui.retromenu3.MenuState.LOAD_SLOTS_MENU ->
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
-                                                .LOAD_SLOTS
-                                com.vinaooo.revenger.ui.retromenu3.MenuState.MANAGE_SAVES_MENU ->
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
-                                                .MANAGE_SAVES
-                                com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_SAVE_SLOTS_MENU ->
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
-                                                .EXIT_SAVE_SLOTS
-                                else ->
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.MAIN
-                        }
+                        com.vinaooo.revenger.views.menu.RotationMenuStateResolver
+                                .resolveNavigationMenuType(effectiveState)
                 viewModel.navigationController?.syncState(
                         menuType = navMenuTypeForSync,
                         selectedIndex = 0,

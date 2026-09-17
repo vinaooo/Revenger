@@ -10,6 +10,7 @@ import com.vinaooo.revenger.ui.retromenu3.MenuState
 import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment
 import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
 
 /**
  * Decides which [MenuState] a rotation-triggered menu recreation should rebuild, given what was
@@ -60,4 +61,25 @@ object RotationMenuStateResolver {
 
         return submenuState ?: currentState
     }
+
+    /**
+     * Maps a rotation-recreation [MenuState] to the [MenuType] the NavigationController's state
+     * should be synced to afterwards. Pure mirror of the mapping that used to live inline in
+     * `GameActivity.registerSubmenuAndSyncNavigationAfterRotation`: a state with no dedicated
+     * registration path (only [MenuState.CORE_VARIABLES_MENU] today) falls back to [MenuType.MAIN],
+     * same as before.
+     */
+    fun resolveNavigationMenuType(state: MenuState): MenuType =
+            when (state) {
+                MenuState.MAIN_MENU -> MenuType.MAIN
+                MenuState.SETTINGS_MENU -> MenuType.SETTINGS
+                MenuState.PROGRESS_MENU -> MenuType.PROGRESS
+                MenuState.ABOUT_MENU -> MenuType.ABOUT
+                MenuState.EXIT_MENU -> MenuType.EXIT
+                MenuState.SAVE_SLOTS_MENU -> MenuType.SAVE_SLOTS
+                MenuState.LOAD_SLOTS_MENU -> MenuType.LOAD_SLOTS
+                MenuState.MANAGE_SAVES_MENU -> MenuType.MANAGE_SAVES
+                MenuState.EXIT_SAVE_SLOTS_MENU -> MenuType.EXIT_SAVE_SLOTS
+                else -> MenuType.MAIN
+            }
 }
