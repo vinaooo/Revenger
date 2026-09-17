@@ -62,6 +62,7 @@ class DebugOverlayController(
     private var debugOverlayUpdateRunnable: Runnable? = null
 
     override fun showDebugOverlay(context: Context) {
+        Log.d(TAG, "showDebugOverlay called - checking config")
         if (!shouldShowPerformanceOverlay(context)) {
             Log.d(TAG, "shouldShowPerformanceOverlay returned false")
             return
@@ -73,8 +74,10 @@ class DebugOverlayController(
                             Log.d(TAG, "Context is not Activity")
                             return
                         }
+        Log.d(TAG, "Context is Activity, proceeding...")
 
         activity.runOnUiThread {
+            Log.d(TAG, "In runOnUiThread, creating overlay")
             if (debugOverlayView == null) {
                 val view = buildDebugOverlayView(context)
                 debugOverlayView = view
@@ -133,24 +136,36 @@ class DebugOverlayController(
     /** Adds the overlay view on top of the activity's content root. */
     private fun attachOverlayToRoot(activity: Activity, view: TextView) {
         val rootView = activity.window.decorView.findViewById<FrameLayout>(android.R.id.content)
+        Log.d(TAG, "Adding overlay to root view")
         rootView.addView(view)
         Log.d(TAG, "Debug overlay view added to root view")
     }
 
     /** Start updating debug overlay */
     private fun startDebugOverlayUpdates() {
+        Log.d(TAG, "startDebugOverlayUpdates called")
         debugOverlayUpdateRunnable =
                 object : Runnable {
                     override fun run() {
                         val view = debugOverlayView
                         if (isProfilingActive() && view != null) {
-                            view.text = buildOverlayText()
+                            val debugText = buildOverlayText()
+                            view.text = debugText
+                            Log.d(TAG, "Overlay text updated: $debugText")
                             // Update every UPDATE_INTERVAL_MS
                             handler.postDelayed(this, UPDATE_INTERVAL_MS)
+                        } else {
+                            Log.d(
+                                    TAG,
+                                    "Not updating overlay - isProfilingActive: " +
+                                            "${isProfilingActive()}, debugOverlayView: " +
+                                            "${view != null}"
+                            )
                         }
                     }
                 }
         handler.post(debugOverlayUpdateRunnable!!)
+        Log.d(TAG, "Overlay update runnable posted")
     }
 
     /** Formats the FPS/frame-time/memory/CPU text shown on the overlay. */
