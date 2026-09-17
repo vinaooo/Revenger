@@ -198,10 +198,45 @@ class SubmenuCoordinator(
         Log.d(TAG, "openSubmenu: $submenuType (saved index $mainMenuSelectedIndexBeforeSubmenu)")
 
         when (submenuType) {
-            MenuState.PROGRESS_MENU -> showProgressSubmenu()
-            MenuState.SETTINGS_MENU -> showSettingsSubmenu()
-            MenuState.ABOUT_MENU -> showAboutSubmenu()
-            MenuState.EXIT_MENU -> showExitSubmenu()
+            MenuState.PROGRESS_MENU ->
+                    openSubmenuFragment(
+                            label = "Progress",
+                            tag = "ProgressFragment",
+                            targetState = MenuState.PROGRESS_MENU,
+                            createFragment = { ProgressFragment.newInstance() },
+                            register = { viewModel.registerProgressFragment(it) }
+                    )
+            MenuState.SETTINGS_MENU ->
+                    openSubmenuFragment(
+                            label = "Settings",
+                            tag = "SettingsMenuFragment",
+                            targetState = MenuState.SETTINGS_MENU,
+                            createFragment = { SettingsMenuFragment.newInstance() },
+                            register = { viewModel.registerSettingsMenuFragment(it) }
+                    )
+            MenuState.ABOUT_MENU ->
+                    openSubmenuFragment(
+                            label = "About",
+                            tag = "AboutFragment",
+                            targetState = MenuState.ABOUT_MENU,
+                            createFragment = {
+                                AboutFragment.newInstance().apply {
+                                    // Only safe as long as the host is a RetroMenu3Fragment; a
+                                    // different host throws ClassCastException, caught below by
+                                    // openSubmenuFragment()'s escape hatch.
+                                    setAboutListener(fragment as AboutListener)
+                                }
+                            },
+                            register = { viewModel.registerAboutFragment(it) }
+                    )
+            MenuState.EXIT_MENU ->
+                    openSubmenuFragment(
+                            label = "Exit",
+                            tag = "ExitFragment",
+                            targetState = MenuState.EXIT_MENU,
+                            createFragment = { ExitFragment.newInstance() },
+                            register = { viewModel.registerExitFragment(it) }
+                    )
             MenuState.MAIN_MENU -> {
                 Log.w(TAG, "openSubmenu called with MAIN_MENU - this should not happen")
             }
@@ -211,17 +246,27 @@ class SubmenuCoordinator(
         }
     }
 
-    private fun showSettingsSubmenu() {
-        Log.d(TAG, "showSettingsSubmenu: opening")
+    /**
+     * Shared open-submenu-fragment sequence: add the fragment (invisible initially), hide the
+     * main menu once it's ready, register it on the ViewModel, and transition [menuManager] to
+     * [targetState]. Consolidates what were four near-identical `show*Submenu()` methods (one per
+     * submenu), which only differed in the fragment type/tag/target state.
+     */
+    private fun <F : Fragment> openSubmenuFragment(
+            label: String,
+            tag: String,
+            targetState: MenuState,
+            createFragment: () -> F,
+            register: (F) -> Unit
+    ) {
         try {
-            Log.e(TAG, "[DEBUG] showSettingsSubmenu - Creating SettingsMenuFragment")
-            val settingsFragment = SettingsMenuFragment.newInstance()
+            val submenuFragment = createFragment()
 
             // First add the submenu (but invisible initially)
             fragment.parentFragmentManager
                     .beginTransaction()
-                    .replace(R.id.menu_container, settingsFragment, "SettingsMenuFragment")
-                    .addToBackStack("SettingsMenuFragment")
+                    .replace(R.id.menu_container, submenuFragment, tag)
+                    .addToBackStack(tag)
                     .commitAllowingStateLoss()
 
             // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
@@ -231,118 +276,19 @@ class SubmenuCoordinator(
             }
 
             // Registrar o fragment no ViewModel
-            viewModel.registerSettingsMenuFragment(settingsFragment)
+            register(submenuFragment)
 
-            // Change menu state to SETTINGS_MENU
-            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU)
+            // Change menu state to the submenu's state
+            menuManager.navigateToState(targetState)
             // navigateToState() fans out through listener.onMenuEvent(StateChanged) into
             // GameActivityViewModel's activate/deactivate*Menu() calls, whose full set of
             // reachable exceptions isn't enumerable from here; kept broad via the escape hatch
-            // rather than narrowing to just commitAllowingStateLoss()'s IllegalStateException,
-            // to preserve the pre-existing behavior of never letting a submenu-open failure crash.
+            // rather than narrowing to just commitAllowingStateLoss()'s IllegalStateException, to
+            // preserve the pre-existing behavior of never letting a submenu-open failure crash.
+            // Also covers the `fragment as AboutListener` cast in the About submenu's
+            // `createFragment`, which throws ClassCastException if the host doesn't implement it.
         } catch (expectedSubmenuOpenFailure: Exception) {
-            Log.e(TAG, "SubmenuCoordinator: Failed to open Settings submenu", expectedSubmenuOpenFailure)
-        }
-    }
-
-    private fun showAboutSubmenu() {
-        Log.d(TAG, "showAboutSubmenu: opening")
-        try {
-            Log.e(TAG, "[DEBUG] showAboutSubmenu - Creating AboutFragment")
-            val aboutFragment = AboutFragment.newInstance()
-            aboutFragment.setAboutListener(fragment as AboutListener)
-
-            // First add the submenu (but invisible initially)
-            fragment.parentFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.menu_container, aboutFragment, "AboutFragment")
-                    .addToBackStack("AboutFragment")
-                    .commitAllowingStateLoss()
-
-            // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
-            fragment.view?.post {
-                // HIDE THE MAIN MENU COMPLETELY AFTER THE SUBMENU IS READY
-                viewManager.hideMainMenuCompletely()
-            }
-
-            // Registrar o fragment no ViewModel
-            viewModel.registerAboutFragment(aboutFragment)
-
-            // Alterar o estado do menu para ABOUT_MENU
-            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU)
-            // Same rationale as showSettingsSubmenu(): navigateToState() fans out into
-            // unenumerable ViewModel activation code, so this stays broad via the escape hatch.
-        } catch (e: ClassCastException) {
-            // `fragment` is typed as the generic androidx.fragment.app.Fragment, so the
-            // `fragment as AboutListener` cast above is only safe as long as the host is a
-            // RetroMenu3Fragment; this is reachable if SubmenuCoordinator is ever constructed
-            // with a different host. Caught ahead of the broader Exception below since it's a
-            // RuntimeException subtype.
-            Log.e(TAG, "SubmenuCoordinator: Failed to open About submenu", e)
-        } catch (expectedSubmenuOpenFailure: Exception) {
-            Log.e(TAG, "SubmenuCoordinator: Failed to open About submenu", expectedSubmenuOpenFailure)
-        }
-    }
-
-    private fun showProgressSubmenu() {
-        Log.d(TAG, "showProgressSubmenu: opening")
-        try {
-            Log.e(TAG, "[DEBUG] showProgressSubmenu - Creating ProgressFragment")
-            val progressFragment = ProgressFragment.newInstance()
-
-            // First add the submenu (but invisible initially)
-            fragment.parentFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.menu_container, progressFragment, "ProgressFragment")
-                    .addToBackStack("ProgressFragment")
-                    .commitAllowingStateLoss()
-
-            // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
-            fragment.view?.post {
-                // HIDE THE MAIN MENU COMPLETELY AFTER THE SUBMENU IS READY
-                viewManager.hideMainMenuCompletely()
-            }
-
-            // Registrar o fragment no ViewModel
-            viewModel.registerProgressFragment(progressFragment)
-
-            // Alterar o estado do menu para PROGRESS_MENU
-            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU)
-            // Same rationale as showSettingsSubmenu(): navigateToState() fans out into
-            // unenumerable ViewModel activation code, so this stays broad via the escape hatch.
-        } catch (expectedSubmenuOpenFailure: Exception) {
-            Log.e(TAG, "SubmenuCoordinator: Failed to open Progress submenu", expectedSubmenuOpenFailure)
-        }
-    }
-
-    private fun showExitSubmenu() {
-        Log.d(TAG, "showExitSubmenu: opening")
-        try {
-            Log.e(TAG, "[DEBUG] showExitSubmenu - Creating ExitFragment")
-            val exitFragment = ExitFragment.newInstance()
-
-            // First add the submenu (but invisible initially)
-            fragment.parentFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.menu_container, exitFragment, "ExitFragment")
-                    .addToBackStack("ExitFragment")
-                    .commitAllowingStateLoss()
-
-            // Aguardar um momento para o fragment ser criado, depois ocultar menu principal
-            fragment.view?.post {
-                // HIDE THE MAIN MENU COMPLETELY AFTER THE SUBMENU IS READY
-                viewManager.hideMainMenuCompletely()
-            }
-
-            // Registrar o fragment no ViewModel
-            viewModel.registerExitFragment(exitFragment)
-
-            // Alterar o estado do menu para EXIT_MENU
-            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU)
-            // Same rationale as showSettingsSubmenu(): navigateToState() fans out into
-            // unenumerable ViewModel activation code, so this stays broad via the escape hatch.
-        } catch (expectedSubmenuOpenFailure: Exception) {
-            Log.e(TAG, "SubmenuCoordinator: Failed to open Exit submenu", expectedSubmenuOpenFailure)
+            Log.e(TAG, "SubmenuCoordinator: Failed to open $label submenu", expectedSubmenuOpenFailure)
         }
     }
 

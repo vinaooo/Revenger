@@ -26,6 +26,199 @@ data class MenuItemView(
 )
 
 /**
+ * Show/hide/dim visual-state transitions of the RetroMenu3 main menu container. Split out of
+ * [MenuViewManager] so it stays under the project's function-count threshold, and exposed back on
+ * it unchanged via interface delegation. Call [attachContainer]/[attachTitle] whenever
+ * [MenuViewManager] (re)initializes the underlying views (`setupViews()`/`setupDynamicTitle()`) --
+ * both may be called independently and in either order.
+ */
+interface MainMenuVisibility {
+    fun dimMainMenu()
+    fun restoreMainMenu()
+    fun hideMainMenu()
+    fun hideMainMenuCompletely()
+    fun hideMainMenuTexts()
+    fun showMainMenuTexts()
+    fun showMainMenu(preserveSelection: Boolean = false)
+}
+
+class MainMenuVisibilityController : MainMenuVisibility {
+
+    companion object {
+        private const val TAG = "MenuViewManager"
+        private const val MAIN_MENU_DIM_ALPHA = 0.3f
+    }
+
+    private var menuContainerView: LinearLayout? = null
+    private var menuItemViews: List<MenuItemView>? = null
+    private var menuTitleTextView: TextView? = null
+
+    /** Called from `setupViews()` once the container and per-item views exist. */
+    fun attachContainer(containerView: LinearLayout, itemViews: List<MenuItemView>) {
+        menuContainerView = containerView
+        menuItemViews = itemViews
+    }
+
+    /** Called from `setupDynamicTitle()` once the title view exists. */
+    fun attachTitle(titleTextView: TextView?) {
+        menuTitleTextView = titleTextView
+    }
+
+    /** Put the main menu in the background (when a submenu opens) */
+    override fun dimMainMenu() {
+        val container =
+                menuContainerView
+                        ?: run {
+                            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot dim main menu")
+                            return
+                        }
+        container.alpha = MAIN_MENU_DIM_ALPHA
+    }
+
+    /** Return the main menu to normal (when submenu is closed) */
+    override fun restoreMainMenu() {
+        val container =
+                menuContainerView
+                        ?: run {
+                            Log.e(
+                                    TAG,
+                                    "[VIEW] MenuContainer not initialized, cannot restore main menu"
+                            )
+                            return
+                        }
+        container.alpha = 1.0f
+    }
+
+    /** Make main menu invisible (when submenu is opened) */
+    override fun hideMainMenu() {
+        val container =
+                menuContainerView
+                        ?: run {
+                            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot hide main menu")
+                            return
+                        }
+        container.visibility = View.INVISIBLE
+    }
+
+    /** Oculta completamente o menu principal de uma vez (para evitar piscada visual) */
+    override fun hideMainMenuCompletely() {
+        val container =
+                menuContainerView
+                        ?: run {
+                            Log.e(
+                                    TAG,
+                                    "[VIEW] MenuContainer not initialized, cannot hide main menu completely"
+                            )
+                            return
+                        }
+        container.visibility = View.INVISIBLE
+        menuItemViews?.forEach { menuItemView ->
+            menuItemView.titleTextView.visibility = View.INVISIBLE
+            menuItemView.arrowTextView.visibility = View.INVISIBLE
+        }
+        menuTitleTextView?.visibility = View.INVISIBLE
+    }
+
+    /** Hide main menu texts completely (when a submenu is active) */
+    override fun hideMainMenuTexts() {
+        val items =
+                menuItemViews
+                        ?: run {
+                            Log.e(
+                                    TAG,
+                                    "[VIEW] MenuItemViews not initialized, cannot hide main menu texts"
+                            )
+                            return
+                        }
+        items.forEach { menuItemView ->
+            menuItemView.titleTextView.visibility = View.INVISIBLE
+            menuItemView.arrowTextView.visibility = View.INVISIBLE
+        }
+        menuTitleTextView?.visibility = View.INVISIBLE
+    }
+
+    /** Show main menu texts again (when submenu is closed) */
+    override fun showMainMenuTexts() {
+        val items =
+                menuItemViews
+                        ?: run {
+                            Log.e(
+                                    TAG,
+                                    "[VIEW] MenuItemViews not initialized, cannot show main menu texts"
+                            )
+                            return
+                        }
+        items.forEach { menuItemView ->
+            menuItemView.titleTextView.visibility = View.VISIBLE
+            menuItemView.arrowTextView.visibility = View.VISIBLE
+        }
+        menuTitleTextView?.visibility = View.VISIBLE
+    }
+
+    /** Make main menu visible again (when submenu is closed) */
+    override fun showMainMenu(preserveSelection: Boolean) {
+        Log.d(TAG, "[VIEW] showMainMenu called with preserveSelection=$preserveSelection")
+        val container =
+                menuContainerView
+                        ?: run {
+                            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot show main menu")
+                            return
+                        }
+        container.visibility = View.VISIBLE
+        container.alpha = 1.0f
+    }
+}
+
+/**
+ * Applies the selected/unselected color, arrow, and highlight state to a single [MenuItemView].
+ * Pure per-item styling extracted out of [MenuViewManager.updateSelectionVisual].
+ */
+class MenuItemSelectionStyler(private val fragment: Fragment) {
+
+    /** Define um item de menu como selecionado */
+    fun markSelected(menuItemView: MenuItemView) {
+        menuItemView.titleTextView.setTextColor(
+                androidx.core.content.ContextCompat.getColor(
+                        fragment.requireContext(),
+                        R.color.rm_selected_color
+                )
+        )
+        menuItemView.arrowTextView.apply {
+            setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                            fragment.requireContext(),
+                            R.color.rm_selected_color
+                    )
+            )
+            visibility = View.VISIBLE
+            (layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = 0 // Force zero margin - critical fix
+                marginEnd =
+                        fragment.resources.getDimensionPixelSize(
+                                R.dimen.rm_arrow_margin_end
+                        )
+                leftMargin = 0 // Additional force for left margin
+            }
+        }
+        // RetroCardView usa estados internos para visual
+        menuItemView.cardView.setState(RetroCardView.State.SELECTED)
+    }
+
+    /** Mark a menu item as unselected */
+    fun markUnselected(menuItemView: MenuItemView) {
+        menuItemView.titleTextView.setTextColor(
+                androidx.core.content.ContextCompat.getColor(
+                        fragment.requireContext(),
+                        R.color.rm_normal_color
+                )
+        )
+        menuItemView.arrowTextView.visibility = View.GONE
+        // RetroCardView volta ao estado normal
+        menuItemView.cardView.setState(RetroCardView.State.NORMAL)
+    }
+}
+
+/**
  * RetroMenu3 menu views manager.
  *
  * **Responsibilities**:
@@ -48,12 +241,17 @@ data class MenuItemView(
  * @see MenuViewInitializer Initializes touch navigation system
  * @see MenuAnimationController Controls menu animations
  * @see RetroCardView Componente customizado de card
+ * @see MainMenuVisibilityController Show/hide/dim of the main menu container (delegated)
+ * @see MenuItemSelectionStyler Per-item selected/unselected styling
  */
-class MenuViewManager(private val fragment: Fragment) {
+class MenuViewManager(
+        private val fragment: Fragment,
+        private val visibilityController: MainMenuVisibilityController = MainMenuVisibilityController(),
+        private val itemStyler: MenuItemSelectionStyler = MenuItemSelectionStyler(fragment)
+) : MainMenuVisibility by visibilityController {
 
     companion object {
         private const val TAG = "MenuViewManager"
-        private const val MAIN_MENU_DIM_ALPHA = 0.3f
     }
 
     // Menu item views
@@ -94,6 +292,7 @@ class MenuViewManager(private val fragment: Fragment) {
     fun setupDynamicTitle(view: View) {
         val titleTextView = view.findViewById<TextView>(R.id.menu_title)
         menuTitleTextView = titleTextView // Store reference for hiding/showing
+        visibilityController.attachTitle(titleTextView)
         Log.d(
                 TAG,
                 "[VIEW] setupDynamicTitle - menuTitleTextView initialized: " +
@@ -203,6 +402,8 @@ class MenuViewManager(private val fragment: Fragment) {
 
         // Set first item as selected
         updateSelectionVisual(0)
+
+        visibilityController.attachContainer(menuContainerView, menuItemViews)
     }
 
     /** Atualiza o estado visual do menu (itens dinâmicos, estados, etc.) */
@@ -232,195 +433,18 @@ class MenuViewManager(private val fragment: Fragment) {
         ) { onEnd() }
     }
 
-    /** Define um item de menu como selecionado */
-    private fun setItemSelected(menuItemView: MenuItemView) {
-        menuItemView.titleTextView.setTextColor(
-                androidx.core.content.ContextCompat.getColor(
-                        fragment.requireContext(),
-                        R.color.rm_selected_color
-                )
-        )
-        menuItemView.arrowTextView.apply {
-            setTextColor(
-                    androidx.core.content.ContextCompat.getColor(
-                            fragment.requireContext(),
-                            R.color.rm_selected_color
-                    )
-            )
-            visibility = View.VISIBLE
-            (layoutParams as LinearLayout.LayoutParams).apply {
-                marginStart = 0 // Force zero margin - critical fix
-                marginEnd =
-                        fragment.resources.getDimensionPixelSize(
-                                R.dimen.rm_arrow_margin_end
-                        )
-                leftMargin = 0 // Additional force for left margin
-            }
-        }
-        // RetroCardView usa estados internos para visual
-        menuItemView.cardView.setState(RetroCardView.State.SELECTED)
-    }
-
-    /** Mark a menu item as unselected */
-    private fun setItemUnselected(menuItemView: MenuItemView) {
-        menuItemView.titleTextView.setTextColor(
-                androidx.core.content.ContextCompat.getColor(
-                        fragment.requireContext(),
-                        R.color.rm_normal_color
-                )
-        )
-        menuItemView.arrowTextView.visibility = View.GONE
-        // RetroCardView volta ao estado normal
-        menuItemView.cardView.setState(RetroCardView.State.NORMAL)
-    }
-
     /** Update the selection visual based on the current index */
     fun updateSelectionVisual(currentIndex: Int) {
         // Update each menu item view based on selection state
         menuItemViews.forEachIndexed { index, menuItemView ->
             if (index == currentIndex) {
-                setItemSelected(menuItemView)
+                itemStyler.markSelected(menuItemView)
             } else {
-                setItemUnselected(menuItemView)
+                itemStyler.markUnselected(menuItemView)
             }
         }
 
         // Layout will be updated automatically when visibility changes
-    }
-
-    /** Put the main menu in the background (when a submenu opens) */
-    fun dimMainMenu() {
-        Log.d(TAG, "[VIEW] dimMainMenu called - checking menuContainerView initialization")
-        if (!::menuContainerView.isInitialized) {
-            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot dim main menu")
-            return
-        }
-        Log.d(
-                TAG,
-                "[VIEW] dimMainMenu: menuContainerView is initialized, current alpha: ${menuContainerView.alpha}"
-        )
-        menuContainerView.alpha = MAIN_MENU_DIM_ALPHA // Opacidade reduzida para segundo plano
-        Log.d(
-                TAG,
-                "[VIEW] dimMainMenu completed - main menu dimmed to alpha: ${menuContainerView.alpha}"
-        )
-    }
-
-    /** Hide main menu texts completely (when a submenu is active) */
-    fun hideMainMenuTexts() {
-        Log.d(
-                TAG,
-                "[VIEW] hideMainMenuTexts called - " +
-                        "menuTitleTextView: ${menuTitleTextView?.hashCode()}, " +
-                        "visibility before: ${menuTitleTextView?.visibility}"
-        )
-        if (!::menuItemViews.isInitialized) {
-            Log.e(TAG, "[VIEW] MenuItemViews not initialized, cannot hide main menu texts")
-            return
-        }
-
-        // Hide all main menu item texts
-        menuItemViews.forEach { menuItemView ->
-            menuItemView.titleTextView.visibility = View.INVISIBLE
-            menuItemView.arrowTextView.visibility = View.INVISIBLE
-        }
-
-        // Hide the main menu title
-        menuTitleTextView?.visibility = View.INVISIBLE
-        Log.d(
-                TAG,
-                "[VIEW] hideMainMenuTexts - menuTitleTextView visibility after: ${menuTitleTextView?.visibility}"
-        )
-
-        Log.d(TAG, "[VIEW] hideMainMenuTexts completed - main menu texts hidden")
-    }
-
-    /** Show main menu texts again (when submenu is closed) */
-    fun showMainMenuTexts() {
-        Log.d(TAG, "[VIEW] showMainMenuTexts called")
-        if (!::menuItemViews.isInitialized) {
-            Log.e(TAG, "[VIEW] MenuItemViews not initialized, cannot show main menu texts")
-            return
-        }
-
-        // Mostrar todos os textos dos itens do menu principal
-        menuItemViews.forEach { menuItemView ->
-            menuItemView.titleTextView.visibility = View.VISIBLE
-            menuItemView.arrowTextView.visibility = View.VISIBLE
-        }
-
-        // Show the main menu title
-        menuTitleTextView?.visibility = View.VISIBLE
-
-        Log.d(TAG, "[VIEW] showMainMenuTexts completed - main menu texts shown")
-    }
-
-    /** Return the main menu to normal (when submenu is closed) */
-    fun restoreMainMenu() {
-        Log.d(TAG, "[VIEW] restoreMainMenu called")
-        if (!::menuContainerView.isInitialized) {
-            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot restore main menu")
-            return
-        }
-        menuContainerView.alpha = 1.0f // Opacidade normal
-        Log.d(TAG, "[VIEW] restoreMainMenu completed - main menu restored")
-    }
-
-    /** Make main menu invisible (when submenu is opened) */
-    fun hideMainMenu() {
-        Log.d(TAG, "[VIEW] hideMainMenu called")
-        if (!::menuContainerView.isInitialized) {
-            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot hide main menu")
-            return
-        }
-        // Hide only the menu content, keeping the background for the submenu
-        menuContainerView.visibility = View.INVISIBLE
-        Log.d(TAG, "[VIEW] hideMainMenu completed - main menu hidden")
-    }
-
-    /** Oculta completamente o menu principal de uma vez (para evitar piscada visual) */
-    fun hideMainMenuCompletely() {
-        Log.d(TAG, "[VIEW] hideMainMenuCompletely called")
-        if (!::menuContainerView.isInitialized) {
-            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot hide main menu completely")
-            return
-        }
-
-        // Ocultar o container do menu
-        menuContainerView.visibility = View.INVISIBLE
-
-        // Hide all main menu item texts in a single operation
-        if (::menuItemViews.isInitialized) {
-            menuItemViews.forEach { menuItemView ->
-                menuItemView.titleTextView.visibility = View.INVISIBLE
-                menuItemView.arrowTextView.visibility = View.INVISIBLE
-            }
-        }
-
-        // Hide the main menu title
-        menuTitleTextView?.visibility = View.INVISIBLE
-
-        Log.d(
-                TAG,
-                "[VIEW] hideMainMenuCompletely completed - main menu completely hidden without flicker"
-        )
-    }
-
-    /** Make main menu visible again (when submenu is closed) */
-    fun showMainMenu(preserveSelection: Boolean = false) {
-        Log.d(TAG, "[VIEW] showMainMenu called with preserveSelection=$preserveSelection")
-        if (!::menuContainerView.isInitialized) {
-            Log.e(TAG, "[VIEW] MenuContainer not initialized, cannot show main menu")
-            return
-        }
-
-        // Make visible
-        menuContainerView.visibility = View.VISIBLE
-
-        // Ensure alpha is at 1.0 (fully visible)
-        menuContainerView.alpha = 1.0f
-
-        Log.d(TAG, "[VIEW] showMainMenu completed - main menu shown")
     }
 
     // Getters for accessing views when needed

@@ -178,67 +178,71 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         updateSelectionVisualInternal()
     }
 
-    /**
-     * Applies per-item selected/unselected visuals to a fixed list of item views.
-     *
-     * Iterates [items] and invokes [onSelected] for the view at [selectedIndex] and
-     * [onUnselected] for every other view. This replaces the iterate-and-branch loop that
-     * subclasses previously duplicated in each `updateSelectionVisualInternal()` override;
-     * subclasses keep their own selected/unselected visual treatment (color, glow, scale,
-     * margins, etc.) in the lambdas passed here.
-     *
-     * @param items the menu item views, in display order
-     * @param selectedIndex the currently selected index
-     * @param onSelected applied to the view at [selectedIndex]
-     * @param onUnselected applied to every other view
-     */
-    protected fun <T : View> applySelectionVisuals(
-            items: List<T>,
-            selectedIndex: Int,
-            onSelected: (T) -> Unit,
-            onUnselected: (T) -> Unit
-    ) {
-        items.forEachIndexed { index, item ->
-            if (index == selectedIndex) onSelected(item) else onUnselected(item)
-        }
-    }
-
-    /**
-     * Indexed variant of [applySelectionVisuals] for fragments whose per-item visual treatment
-     * needs the item's index (e.g. to derive a 1-based slot number, or to look up related state
-     * keyed by position). Behaves identically otherwise: [onSelected] is invoked for the item at
-     * [selectedIndex], [onUnselected] for every other item, both receiving the item's index.
-     *
-     * @param items the menu item views, in display order
-     * @param selectedIndex the currently selected index
-     * @param onSelected applied to the view at [selectedIndex], with its index
-     * @param onUnselected applied to every other view, with its index
-     */
-    protected fun <T : View> applySelectionVisuals(
-            items: List<T>,
-            selectedIndex: Int,
-            onSelected: (T, Int) -> Unit,
-            onUnselected: (T, Int) -> Unit
-    ) {
-        items.forEachIndexed { index, item ->
-            if (index == selectedIndex) onSelected(item, index) else onUnselected(item, index)
-        }
-    }
-
-    /**
-     * Applies configurable layout proportions to the menu (horizontal and vertical). Should be
-     * called in onViewCreated of submenus.
-     *
-     * @param view The root view of the inflated menu
-     */
-    protected fun applyLayoutProportions(view: android.view.View) {
-        com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyAllProportionsToMenuLayout(
-                view
-        )
-    }
-
     companion object {
         /** Delay for touch item activation in milliseconds */
         const val TOUCH_ACTIVATION_DELAY_MS = 100L
     }
+}
+
+/**
+ * Applies per-item selected/unselected visuals to a fixed list of item views.
+ *
+ * Iterates [items] and invokes [onSelected] for the view at [selectedIndex] and [onUnselected]
+ * for every other view. This replaces the iterate-and-branch loop that subclasses previously
+ * duplicated in each `updateSelectionVisualInternal()` override; subclasses keep their own
+ * selected/unselected visual treatment (color, glow, scale, margins, etc.) in the lambdas passed
+ * here.
+ *
+ * Top-level (rather than a [MenuFragmentBase] member) so it stays out of that class's
+ * function-count threshold; every submenu fragment calling it lives in this same package, so the
+ * unqualified call sites are unaffected.
+ *
+ * @param items the menu item views, in display order
+ * @param selectedIndex the currently selected index
+ * @param onSelected applied to the view at [selectedIndex]
+ * @param onUnselected applied to every other view
+ */
+internal fun <T : View> applySelectionVisuals(
+        items: List<T>,
+        selectedIndex: Int,
+        onSelected: (T) -> Unit,
+        onUnselected: (T) -> Unit
+) {
+    items.forEachIndexed { index, item ->
+        if (index == selectedIndex) onSelected(item) else onUnselected(item)
+    }
+}
+
+/**
+ * Indexed variant of [applySelectionVisuals] for fragments whose per-item visual treatment needs
+ * the item's index (e.g. to derive a 1-based slot number, or to look up related state keyed by
+ * position). Behaves identically otherwise: [onSelected] is invoked for the item at
+ * [selectedIndex], [onUnselected] for every other item, both receiving the item's index.
+ *
+ * @param items the menu item views, in display order
+ * @param selectedIndex the currently selected index
+ * @param onSelected applied to the view at [selectedIndex], with its index
+ * @param onUnselected applied to every other view, with its index
+ */
+internal fun <T : View> applySelectionVisuals(
+        items: List<T>,
+        selectedIndex: Int,
+        onSelected: (T, Int) -> Unit,
+        onUnselected: (T, Int) -> Unit
+) {
+    items.forEachIndexed { index, item ->
+        if (index == selectedIndex) onSelected(item, index) else onUnselected(item, index)
+    }
+}
+
+/**
+ * Applies configurable layout proportions to the menu (horizontal and vertical). Should be called
+ * in onViewCreated of submenus.
+ *
+ * Top-level for the same reason as [applySelectionVisuals] above.
+ *
+ * @param view The root view of the inflated menu
+ */
+internal fun applyLayoutProportions(view: android.view.View) {
+    com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyAllProportionsToMenuLayout(view)
 }
