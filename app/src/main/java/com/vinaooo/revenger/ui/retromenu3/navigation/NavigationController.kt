@@ -6,6 +6,21 @@ import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.ui.retromenu3.MenuFragment
 
 /**
+ * Holds the two rotation-of-control callbacks [NavigationController] fires around menu
+ * open/close (pause/resume the game, reset combo state, etc). Bundled into one object instead of
+ * two separate constructor parameters purely to keep [NavigationController]'s constructor under
+ * the project's parameter-count threshold; both fields stay mutable `var`s so callers can keep
+ * assigning them after construction exactly as before.
+ */
+class NavigationCallbacks {
+    /** Callback chamado quando o menu principal é aberto (para pausar jogo, etc.) */
+    var onMenuOpened: (() -> Unit)? = null
+
+    /** Callback chamado quando o menu é completamente fechado (para resumir jogo, etc.) */
+    var onMenuClosed: ((closingButton: Int?) -> Unit)? = null
+}
+
+/**
  * Controlador central de navegação - Single Source of Truth.
  *
  * Gerencia todo o estado de navegação do sistema de menus:
@@ -19,31 +34,45 @@ import com.vinaooo.revenger.ui.retromenu3.MenuFragment
  *
  * @property activity Referência à activity para gerenciar fragmentos
  */
-class NavigationController(private val activity: FragmentActivity) {
-    /** Adapter para gerenciar transações de fragmentos */
-    private val fragmentAdapter = FragmentNavigationAdapter(activity)
-
-    /** Gerenciador de estado de navegação */
-    private val stateManager = NavigationStateManager()
-
-    /** Fila de eventos com debouncing */
-    private val eventQueue = EventQueue(debounceWindowMs = DEBOUNCE_WINDOW_MS)
-
-    /** Processador de eventos de navegação */
-    private val processor =
-            NavigationEventProcessor(
-                    stateManager,
-                    fragmentAdapter,
-                    eventQueue,
-                    onMenuOpened = { onMenuOpenedCallback?.invoke() },
-                    onMenuClosed = { onMenuClosedCallback?.invoke(it) }
-            )
+class NavigationController(
+        private val activity: FragmentActivity,
+        /** Adapter para gerenciar transações de fragmentos */
+        private val fragmentAdapter: FragmentNavigationAdapter = FragmentNavigationAdapter(activity),
+        /** Gerenciador de estado de navegação */
+        private val stateManager: NavigationStateManager = NavigationStateManager(),
+        /** Fila de eventos com debouncing */
+        private val eventQueue: EventQueue = EventQueue(debounceWindowMs = DEBOUNCE_WINDOW_MS),
+        private val callbacks: NavigationCallbacks = NavigationCallbacks(),
+        /**
+         * Processador de eventos de navegação. Exposto de volta aqui via delegação de interface
+         * ([NavigationCommands]) para os comandos de navegação diretos (up/down/left/right,
+         * selecionar, ativar, voltar, navegar-para-submenu) -- evita redeclarar um wrapper fino
+         * para cada um só para manter a assinatura pública, mantendo esta classe sob o limite de
+         * funções do projeto.
+         */
+        private val processor: NavigationEventProcessor =
+                NavigationEventProcessor(
+                        stateManager,
+                        fragmentAdapter,
+                        eventQueue,
+                        onMenuOpened = { callbacks.onMenuOpened?.invoke() },
+                        onMenuClosed = { callbacks.onMenuClosed?.invoke(it) }
+                )
+) : NavigationCommands by processor {
 
     /** Callback chamado quando o menu principal é aberto (para pausar jogo, etc.) */
-    var onMenuOpenedCallback: (() -> Unit)? = null
+    var onMenuOpenedCallback: (() -> Unit)?
+        get() = callbacks.onMenuOpened
+        set(value) {
+            callbacks.onMenuOpened = value
+        }
 
     /** Callback chamado quando o menu é completamente fechado (para resumir jogo, etc.) */
-    var onMenuClosedCallback: ((closingButton: Int?) -> Unit)? = null
+    var onMenuClosedCallback: ((closingButton: Int?) -> Unit)?
+        get() = callbacks.onMenuClosed
+        set(value) {
+            callbacks.onMenuClosed = value
+        }
 
     /**
      * Processa um evento de navegação.
@@ -93,64 +122,24 @@ class NavigationController(private val activity: FragmentActivity) {
         stateManager.updateSelectedIndex(selectedIndex)
     }
 
-    /** Navega para o item acima (UP). */
-    fun navigateUp() {
-        processor.navigateUp()
-    }
-
-    /** Navega para o item abaixo (DOWN). */
-    fun navigateDown() {
-        processor.navigateDown()
-    }
-
-    /** Navega para a esquerda (LEFT). Usado para navegação 2D em grids. */
-    fun navigateLeft() {
-        processor.navigateLeft()
-    }
-
-    /** Navega para a direita (RIGHT). Usado para navegação 2D em grids. */
-    fun navigateRight() {
-        processor.navigateRight()
-    }
-
     /**
      * Seleciona um item específico diretamente (normalmente touch).
+     *
+     * NOTE: navigateUp/navigateDown/navigateLeft/navigateRight/activateItem/navigateBack/
+     * navigateToSubmenu are pure pass-throughs to [processor] and come for free via the
+     * [NavigationCommands] delegation on the class header above; selectItem gets its own
+     * override here only to keep the negative-index guard that predates that delegation.
      *
      * @param index Índice do item a selecionar (0-based)
      * @throws IllegalArgumentException se o índice for negativo
      */
-    fun selectItem(index: Int) {
+    override fun selectItem(index: Int) {
         if (index < 0) {
             Log.e(TAG, "[ERROR] Item index cannot be negative: $index")
             throw IllegalArgumentException("Item index cannot be negative: $index")
         }
 
         processor.selectItem(index)
-    }
-
-    /** Ativa o item atualmente selecionado. */
-    fun activateItem() {
-        processor.activateItem()
-    }
-
-    /**
-     * Navega para trás (volta ao menu anterior).
-     *
-     * @return true se navegou para trás, false se já estava no menu principal
-     */
-    fun navigateBack(): Boolean {
-        return processor.navigateBack()
-    }
-
-    /**
-     * Navega para um submenu específico, empilhando o estado atual. Usado pelos fragments para
-     * navegar para submenus mantendo o histórico.
-     *
-     * @param targetMenu Menu destino
-     * @param saveCurrentState Se deve salvar o estado atual na pilha (default: true)
-     */
-    fun navigateToSubmenu(targetMenu: MenuType, saveCurrentState: Boolean = true) {
-        processor.navigateToSubmenu(targetMenu, saveCurrentState)
     }
 
     /**

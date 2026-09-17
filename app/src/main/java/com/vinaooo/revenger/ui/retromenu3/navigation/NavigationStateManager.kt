@@ -5,6 +5,54 @@ import android.os.Bundle
 import com.vinaooo.revenger.ui.retromenu3.MenuFragment
 
 /**
+ * Navigation history stack queries (pop/clear/empty/size), exposed back on
+ * [NavigationStateManager] unchanged via interface delegation. Split out purely because
+ * [NavigationStateManager]'s own method names (`popState`, `clearStack`, `isStackEmpty`,
+ * `getStackSize`) differ from [NavigationStack]'s (`pop`, `clear`, `isEmpty`, `size`), so a plain
+ * `by navigationStack` isn't possible without this adapter. `pushCurrentState()` stays on
+ * [NavigationStateManager] itself (and [NavigationStackHolder.pushState] stays out of this
+ * interface) because building the [MenuState] to push needs [NavigationStateManager]'s own
+ * `currentMenu`/`selectedItemIndex`, which this holder doesn't have.
+ */
+interface NavigationStackAccess {
+    /**
+     * Desempilha o último estado salvo.
+     * @return O estado anterior ou null se a pilha estiver vazia
+     */
+    fun popState(): MenuState?
+
+    /** Limpa a pilha de navegação. */
+    fun clearStack()
+
+    /** Verifica se a pilha de navegação está vazia. */
+    fun isStackEmpty(): Boolean
+
+    /** Retorna o tamanho da pilha de navegação. */
+    fun getStackSize(): Int
+}
+
+/** Default [NavigationStackAccess] implementation, backed by a plain [NavigationStack]. */
+class NavigationStackHolder : NavigationStackAccess {
+    /** Exposed so [NavigationStateManager] can push onto it and (de)serialize it to a Bundle. */
+    val stack = NavigationStack()
+
+    /** Empilha um estado (quando se navega para frente). */
+    fun pushState(state: MenuState) {
+        stack.push(state)
+    }
+
+    override fun popState(): MenuState? = stack.pop()
+
+    override fun clearStack() {
+        stack.clear()
+    }
+
+    override fun isStackEmpty(): Boolean = stack.isEmpty()
+
+    override fun getStackSize(): Int = stack.size()
+}
+
+/**
  * Navigation state manager.
  *
  * Responsible for maintaining and manipulating the current menu state, including:
@@ -16,7 +64,9 @@ import com.vinaooo.revenger.ui.retromenu3.MenuFragment
  * (currently just [NavigationEventProcessor], driven from the Android main thread's input
  * dispatch) are responsible for only mutating it from a single thread at a time.
  */
-class NavigationStateManager {
+class NavigationStateManager(
+        private val stackHolder: NavigationStackHolder = NavigationStackHolder()
+) : NavigationStackAccess by stackHolder {
     /** Currently active menu */
     var currentMenu: MenuType = MenuType.MAIN
         private set
@@ -24,9 +74,6 @@ class NavigationStateManager {
     /** Index of the currently selected item (0-based) */
     var selectedItemIndex: Int = 0
         private set
-
-    /** Navigation stack to implement "back" */
-    private val navigationStack = NavigationStack()
 
     /** Reference to the currently visible fragment (for updating UI) */
     var currentFragment: MenuFragment? = null
@@ -59,27 +106,8 @@ class NavigationStateManager {
 
     /** Empilha o estado atual na pilha de navegação. */
     fun pushCurrentState() {
-        navigationStack.push(MenuState(currentMenu, selectedItemIndex))
+        stackHolder.pushState(MenuState(currentMenu, selectedItemIndex))
     }
-
-    /**
-     * Desempilha o último estado salvo.
-     * @return O estado anterior ou null se a pilha estiver vazia
-     */
-    fun popState(): MenuState? {
-        return navigationStack.pop()
-    }
-
-    /** Limpa a pilha de navegação. */
-    fun clearStack() {
-        navigationStack.clear()
-    }
-
-    /** Verifica se a pilha de navegação está vazia. */
-    fun isStackEmpty(): Boolean = navigationStack.isEmpty()
-
-    /** Retorna o tamanho da pilha de navegação. */
-    fun getStackSize(): Int = navigationStack.size()
 
     /**
      * Registra o fragmento atualmente visível.
@@ -117,7 +145,7 @@ class NavigationStateManager {
         outState.putString(KEY_CURRENT_MENU, currentMenu.name)
         outState.putInt(KEY_SELECTED_INDEX, selectedItemIndex)
 
-        val stackBundle = navigationStack.toBundle()
+        val stackBundle = stackHolder.stack.toBundle()
         outState.putBundle(KEY_NAV_STACK, stackBundle)
     }
 
@@ -136,7 +164,7 @@ class NavigationStateManager {
                 selectedItemIndex = savedState.getInt(KEY_SELECTED_INDEX, 0)
 
                 val stackBundle = savedState.getBundle(KEY_NAV_STACK)
-                navigationStack.fromBundle(stackBundle)
+                stackHolder.stack.fromBundle(stackBundle)
             } catch (e: IllegalArgumentException) {
                 Log.w(TAG, "Invalid menu type in saved state: $menuString", e)
             }

@@ -16,42 +16,31 @@ import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
 import com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment
 
 /**
- * Adapter that isolates Fragment transaction logic from the NavigationController.
- *
- * This class encapsulates all FragmentManager operations (show, hide, add, remove), allowing the
- * NavigationController to work with high-level concepts (MenuType) instead of dealing directly
- * with Fragments and transactions.
- *
- * RESPONSIBILITIES:
- * - Manage fragment transactions (add/remove/show/hide)
- * - Map MenuType to Fragment classes
- * - Maintain references to active fragments
- * - Ensure atomic transactions without crashes
- *
- * IMPORTANT: This class does NOT contain navigation or state logic. It only performs the UI
- * operations requested by the NavigationController.
+ * ID of the container where menu fragments are displayed. This is the FrameLayout defined in
+ * activity_game.xml. Shared by [MenuFragmentPresenter]/[SimpleMenuShower] (which show fragments
+ * into it) and [FragmentNavigationAdapter] (which looks up the currently visible one in
+ * [FragmentNavigationAdapter.hideMenu]).
  */
-class FragmentNavigationAdapter(private val activity: FragmentActivity) {
+private val menuContainerId = R.id.menu_container
 
-    private val fragmentManager: FragmentManager = activity.supportFragmentManager
+/** Shared log tag for every class in this file that performs a Fragment transaction. */
+private const val TAG = "FragmentNavigationAdapter"
 
-    /**
-     * Displays the menu specified by MenuType.
-     *
-     * This operation:
-     * 1. Creates the appropriate fragment if necessary
-     * 2. Adds it to the container (R.id.menu_container)
-     * 3. Commits the transaction with commitAllowingStateLoss()
-     *
-     * @param menuType The type of menu to display
-     */
-    fun showMenu(menuType: MenuType) {
-        Log.d(TAG, "[SHOW] Menu type: $menuType")
+/**
+ * Shows the menus whose transaction is a uniform replace + addToBackStack + commit (everything
+ * except MAIN, which uses add()/commitNow() to guarantee synchronous availability, and PROGRESS,
+ * which first clears any grid submenus already on the back stack). Split out of
+ * [MenuFragmentPresenter] purely to stay under the project's function-count threshold -- these
+ * eight menus don't otherwise share any logic beyond the identical transaction shape. Only
+ * [show] is called from outside this class, so it is injected directly into
+ * [MenuFragmentPresenter] rather than exposed via interface delegation.
+ */
+class SimpleMenuShower(private val fragmentManager: FragmentManager) {
 
+    /** Displays one of the "simple" (uniform replace-transaction) menus. */
+    fun show(menuType: MenuType) {
         when (menuType) {
-            MenuType.MAIN -> showMainMenu()
             MenuType.SETTINGS -> showSettingsMenu()
-            MenuType.PROGRESS -> showProgressMenu()
             MenuType.ABOUT -> showAboutMenu()
             MenuType.EXIT -> showExitMenu()
             MenuType.CORE_VARIABLES -> showCoreVariablesMenu()
@@ -59,6 +48,161 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
             MenuType.LOAD_SLOTS -> showLoadSlotsMenu()
             MenuType.MANAGE_SAVES -> showManageSavesMenu()
             MenuType.EXIT_SAVE_SLOTS -> showExitSaveSlotsMenu()
+            MenuType.MAIN, MenuType.PROGRESS ->
+                    Log.w(TAG, "[SHOW] $menuType is not a simple menu, ignoring")
+        }
+    }
+
+    private fun showSettingsMenu() {
+        Log.d(TAG, "[SHOW] Settings menu")
+
+        val settingsFragment = SettingsMenuFragment.newInstance()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(menuContainerId, settingsFragment, TAG_SETTINGS_MENU)
+                .addToBackStack(TAG_SETTINGS_MENU)
+                .commitAllowingStateLoss()
+
+        Log.d(TAG, "[SHOW] Settings menu added successfully")
+    }
+
+    private fun showAboutMenu() {
+        Log.d(TAG, "[SHOW] About menu")
+
+        val aboutFragment = AboutFragment.newInstance()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(menuContainerId, aboutFragment, TAG_ABOUT_MENU)
+                .addToBackStack(TAG_ABOUT_MENU)
+                .commitAllowingStateLoss()
+
+        Log.d(TAG, "[SHOW] About menu added successfully")
+    }
+
+    private fun showExitMenu() {
+        Log.d(TAG, "[SHOW] Exit menu")
+
+        val exitFragment = ExitFragment.newInstance()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(menuContainerId, exitFragment, TAG_EXIT_MENU)
+                .addToBackStack(TAG_EXIT_MENU)
+                .commitAllowingStateLoss()
+
+        Log.d(TAG, "[SHOW] Exit menu added successfully")
+    }
+
+    private fun showCoreVariablesMenu() {
+        Log.d(TAG, "[SHOW] Core Variables menu")
+
+        val coreVariablesFragment = CoreVariablesFragment()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(menuContainerId, coreVariablesFragment, TAG_CORE_VARIABLES_MENU)
+                .addToBackStack(TAG_CORE_VARIABLES_MENU)
+                .commitAllowingStateLoss()
+
+        Log.d(TAG, "[SHOW] Core Variables menu added successfully")
+    }
+
+    private fun showSaveSlotsMenu() {
+        Log.d(TAG, "[SHOW] Save Slots menu")
+
+        val saveSlotsFragment = SaveSlotsFragment.newInstance()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(menuContainerId, saveSlotsFragment, TAG_SAVE_SLOTS_MENU)
+                .addToBackStack(TAG_SAVE_SLOTS_MENU)
+                .commitAllowingStateLoss()
+
+        Log.d(TAG, "[SHOW] Save Slots menu added successfully")
+    }
+
+    private fun showLoadSlotsMenu() {
+        Log.d(TAG, "[SHOW] Load Slots menu")
+
+        val loadSlotsFragment = LoadSlotsFragment.newInstance()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(menuContainerId, loadSlotsFragment, TAG_LOAD_SLOTS_MENU)
+                .addToBackStack(TAG_LOAD_SLOTS_MENU)
+                .commitAllowingStateLoss()
+
+        Log.d(TAG, "[SHOW] Load Slots menu added successfully")
+    }
+
+    private fun showManageSavesMenu() {
+        Log.d(TAG, "[SHOW] Manage Saves menu")
+
+        val manageSavesFragment = ManageSavesFragment.newInstance()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(menuContainerId, manageSavesFragment, TAG_MANAGE_SAVES_MENU)
+                .addToBackStack(TAG_MANAGE_SAVES_MENU)
+                .commitAllowingStateLoss()
+
+        Log.d(TAG, "[SHOW] Manage Saves menu added successfully")
+    }
+
+    private fun showExitSaveSlotsMenu() {
+        Log.d(TAG, "[SHOW] Exit Save Slots menu")
+
+        val exitSaveGridFragment = ExitSaveGridFragment.newInstance()
+
+        fragmentManager
+                .beginTransaction()
+                .replace(menuContainerId, exitSaveGridFragment, TAG_EXIT_SAVE_SLOTS_MENU)
+                .addToBackStack(TAG_EXIT_SAVE_SLOTS_MENU)
+                .commitAllowingStateLoss()
+
+        Log.d(TAG, "[SHOW] Exit Save Slots menu added successfully")
+    }
+
+    companion object {
+        /** Tags para identificar fragments no FragmentManager */
+        private const val TAG_SETTINGS_MENU = "SettingsMenuFragment"
+        private const val TAG_ABOUT_MENU = "AboutFragment"
+        private const val TAG_EXIT_MENU = "ExitFragment"
+        private const val TAG_CORE_VARIABLES_MENU = "CoreVariablesFragment"
+        private const val TAG_SAVE_SLOTS_MENU = "SaveSlotsFragment"
+        private const val TAG_LOAD_SLOTS_MENU = "LoadSlotsFragment"
+        private const val TAG_MANAGE_SAVES_MENU = "ManageSavesFragment"
+        private const val TAG_EXIT_SAVE_SLOTS_MENU = "ExitSaveGridFragment"
+    }
+}
+
+/**
+ * Creates and commits the FragmentManager transaction for each [MenuType], mapping it to its
+ * concrete Fragment class and tag. Split out of [FragmentNavigationAdapter] (which stays
+ * responsible for hide/back/back-stack queries) so it stays under the project's function-count
+ * threshold. Only [show] is called from outside this class, so it is injected directly into
+ * [FragmentNavigationAdapter] rather than exposed via interface delegation.
+ *
+ * @see SimpleMenuShower Handles the menus whose transaction doesn't need any special-casing
+ */
+class MenuFragmentPresenter(private val fragmentManager: FragmentManager) {
+
+    private val simpleMenuShower = SimpleMenuShower(fragmentManager)
+
+    /**
+     * Displays the menu specified by MenuType.
+     *
+     * @param menuType The type of menu to display
+     */
+    fun show(menuType: MenuType) {
+        Log.d(TAG, "[SHOW] Menu type: $menuType")
+
+        when (menuType) {
+            MenuType.MAIN -> showMainMenu()
+            MenuType.PROGRESS -> showProgressMenu()
+            else -> simpleMenuShower.show(menuType)
         }
     }
 
@@ -81,7 +225,7 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
         // even after "added successfully", causing pause/resume imbalance
         fragmentManager
                 .beginTransaction()
-                .add(MENU_CONTAINER_ID, mainFragment, TAG_MAIN_MENU)
+                .add(menuContainerId, mainFragment, TAG_MAIN_MENU)
                 .commitNow()
 
         // Diagnostic: confirm fragment was added
@@ -103,20 +247,6 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
         Log.d(TAG, "[SHOW] Main menu added successfully (synchronous)")
     }
 
-    private fun showSettingsMenu() {
-        Log.d(TAG, "[SHOW] Settings menu")
-
-        val settingsFragment = SettingsMenuFragment.newInstance()
-
-        fragmentManager
-                .beginTransaction()
-                .replace(MENU_CONTAINER_ID, settingsFragment, TAG_SETTINGS_MENU)
-                .addToBackStack(TAG_SETTINGS_MENU)
-                .commitAllowingStateLoss()
-
-        Log.d(TAG, "[SHOW] Settings menu added successfully")
-    }
-
     private fun showProgressMenu() {
         Log.d(TAG, "[SHOW] Progress menu")
 
@@ -129,108 +259,51 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
 
         fragmentManager
                 .beginTransaction()
-                .replace(MENU_CONTAINER_ID, progressFragment, TAG_PROGRESS_MENU)
+                .replace(menuContainerId, progressFragment, TAG_PROGRESS_MENU)
                 .addToBackStack(TAG_PROGRESS_MENU)
                 .commitAllowingStateLoss()
 
         Log.d(TAG, "[SHOW] Progress menu added successfully")
     }
 
-    private fun showAboutMenu() {
-        Log.d(TAG, "[SHOW] About menu")
-
-        val aboutFragment = AboutFragment.newInstance()
-
-        fragmentManager
-                .beginTransaction()
-                .replace(MENU_CONTAINER_ID, aboutFragment, TAG_ABOUT_MENU)
-                .addToBackStack(TAG_ABOUT_MENU)
-                .commitAllowingStateLoss()
-
-        Log.d(TAG, "[SHOW] About menu added successfully")
+    companion object {
+        /** Tags para identificar fragments no FragmentManager */
+        private const val TAG_MAIN_MENU = "RetroMenu3Fragment"
+        private const val TAG_PROGRESS_MENU = "ProgressFragment"
     }
+}
 
-    private fun showExitMenu() {
-        Log.d(TAG, "[SHOW] Exit menu")
+/**
+ * Adapter that isolates Fragment transaction logic from the NavigationController.
+ *
+ * This class encapsulates all FragmentManager operations (show, hide, add, remove), allowing the
+ * NavigationController to work with high-level concepts (MenuType) instead of dealing directly
+ * with Fragments and transactions.
+ *
+ * RESPONSIBILITIES:
+ * - Manage fragment transactions (add/remove/show/hide)
+ * - Map MenuType to Fragment classes
+ * - Maintain references to active fragments
+ * - Ensure atomic transactions without crashes
+ *
+ * IMPORTANT: This class does NOT contain navigation or state logic. It only performs the UI
+ * operations requested by the NavigationController.
+ *
+ * @see MenuFragmentPresenter Owns the actual per-[MenuType] fragment transactions for [showMenu]
+ */
+class FragmentNavigationAdapter(private val activity: FragmentActivity) {
 
-        val exitFragment = ExitFragment.newInstance()
+    private val fragmentManager: FragmentManager = activity.supportFragmentManager
+    private val presenter = MenuFragmentPresenter(fragmentManager)
 
-        fragmentManager
-                .beginTransaction()
-                .replace(MENU_CONTAINER_ID, exitFragment, TAG_EXIT_MENU)
-                .addToBackStack(TAG_EXIT_MENU)
-                .commitAllowingStateLoss()
-
-        Log.d(TAG, "[SHOW] Exit menu added successfully")
-    }
-
-    private fun showCoreVariablesMenu() {
-        Log.d(TAG, "[SHOW] Core Variables menu")
-
-        val coreVariablesFragment = CoreVariablesFragment()
-
-        fragmentManager
-                .beginTransaction()
-                .replace(MENU_CONTAINER_ID, coreVariablesFragment, TAG_CORE_VARIABLES_MENU)
-                .addToBackStack(TAG_CORE_VARIABLES_MENU)
-                .commitAllowingStateLoss()
-
-        Log.d(TAG, "[SHOW] Core Variables menu added successfully")
-    }
-
-    private fun showSaveSlotsMenu() {
-        Log.d(TAG, "[SHOW] Save Slots menu")
-
-        val saveSlotsFragment = SaveSlotsFragment.newInstance()
-
-        fragmentManager
-                .beginTransaction()
-                .replace(MENU_CONTAINER_ID, saveSlotsFragment, TAG_SAVE_SLOTS_MENU)
-                .addToBackStack(TAG_SAVE_SLOTS_MENU)
-                .commitAllowingStateLoss()
-
-        Log.d(TAG, "[SHOW] Save Slots menu added successfully")
-    }
-
-    private fun showLoadSlotsMenu() {
-        Log.d(TAG, "[SHOW] Load Slots menu")
-
-        val loadSlotsFragment = LoadSlotsFragment.newInstance()
-
-        fragmentManager
-                .beginTransaction()
-                .replace(MENU_CONTAINER_ID, loadSlotsFragment, TAG_LOAD_SLOTS_MENU)
-                .addToBackStack(TAG_LOAD_SLOTS_MENU)
-                .commitAllowingStateLoss()
-
-        Log.d(TAG, "[SHOW] Load Slots menu added successfully")
-    }
-
-    private fun showManageSavesMenu() {
-        Log.d(TAG, "[SHOW] Manage Saves menu")
-
-        val manageSavesFragment = ManageSavesFragment.newInstance()
-
-        fragmentManager
-                .beginTransaction()
-                .replace(MENU_CONTAINER_ID, manageSavesFragment, TAG_MANAGE_SAVES_MENU)
-                .addToBackStack(TAG_MANAGE_SAVES_MENU)
-                .commitAllowingStateLoss()
-
-        Log.d(TAG, "[SHOW] Manage Saves menu added successfully")
-    }
-    private fun showExitSaveSlotsMenu() {
-        Log.d(TAG, "[SHOW] Exit Save Slots menu")
-
-        val exitSaveGridFragment = ExitSaveGridFragment.newInstance()
-
-        fragmentManager
-                .beginTransaction()
-                .replace(MENU_CONTAINER_ID, exitSaveGridFragment, TAG_EXIT_SAVE_SLOTS_MENU)
-                .addToBackStack(TAG_EXIT_SAVE_SLOTS_MENU)
-                .commitAllowingStateLoss()
-
-        Log.d(TAG, "[SHOW] Exit Save Slots menu added successfully")
+    /**
+     * Displays the menu specified by MenuType.
+     *
+     * @param menuType The type of menu to display
+     * @see MenuFragmentPresenter.show
+     */
+    fun showMenu(menuType: MenuType) {
+        presenter.show(menuType)
     }
 
     /**
@@ -247,7 +320,7 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
         Log.d(TAG, "[HIDE] Hiding current menu")
 
         // Encontrar fragment atual no container
-        val currentFragment = fragmentManager.findFragmentById(MENU_CONTAINER_ID)
+        val currentFragment = fragmentManager.findFragmentById(menuContainerId)
 
         if (currentFragment != null && currentFragment.isAdded) {
             try {
@@ -312,27 +385,5 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
     /** Retorna o número de fragments na back stack. 0 = menu principal, >0 = em submenu */
     fun getBackStackCount(): Int {
         return fragmentManager.backStackEntryCount
-    }
-
-    companion object {
-        private const val TAG = "FragmentNavigationAdapter"
-
-        /** Tags para identificar fragments no FragmentManager */
-        private const val TAG_MAIN_MENU = "RetroMenu3Fragment"
-        private const val TAG_SETTINGS_MENU = "SettingsMenuFragment"
-        private const val TAG_PROGRESS_MENU = "ProgressFragment"
-        private const val TAG_ABOUT_MENU = "AboutFragment"
-        private const val TAG_EXIT_MENU = "ExitFragment"
-        private const val TAG_CORE_VARIABLES_MENU = "CoreVariablesFragment"
-        private const val TAG_SAVE_SLOTS_MENU = "SaveSlotsFragment"
-        private const val TAG_LOAD_SLOTS_MENU = "LoadSlotsFragment"
-        private const val TAG_MANAGE_SAVES_MENU = "ManageSavesFragment"
-        private const val TAG_EXIT_SAVE_SLOTS_MENU = "ExitSaveGridFragment"
-
-        /**
-         * ID of the container where menu fragments are displayed. This is the FrameLayout defined in
-         * activity_game.xml.
-         */
-        private val MENU_CONTAINER_ID = R.id.menu_container
     }
 }
