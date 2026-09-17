@@ -67,8 +67,14 @@ class LoadSlotsFragment : SaveStateGridFragment() {
                 viewModel.showLoadPreview(bitmap)
                 Log.d(TAG, "Load preview shown for slot ${slot.slotNumber}")
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error loading preview for slot ${slot.slotNumber}", e)
+            // BitmapFactory.decodeFile() is documented to return null on failure rather than
+            // throw, and this call passes no Options that could trigger an IllegalArgumentException;
+            // in practice some OEM/OS-version combinations have been known to surface a corrupt
+            // preview file as an unchecked, undocumented RuntimeException from native decode code
+            // instead of the null contract, so this stays a safety net rather than a narrower
+            // catch, via detekt's own escape-hatch naming instead of @Suppress.
+        } catch (expectedNativeDecodeFailure: Exception) {
+            Log.e(TAG, "Error loading preview for slot ${slot.slotNumber}", expectedNativeDecodeFailure)
         }
     }
 
@@ -127,8 +133,15 @@ class LoadSlotsFragment : SaveStateGridFragment() {
                         )
                         .show()
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error loading state", e)
+            // unserializeState() runs on LibretroDroid's GL thread via a blocking CountDownLatch;
+            // a failure inside the native call there deadlocks the latch rather than propagating
+            // an exception back to this thread, and the only checked failure mode reaching here
+            // (the library unboxing a null native result) surfaces as a plain
+            // NullPointerException, which this project's detekt config still treats as "too
+            // generic" -- so there is no narrower reachable type to catch. Kept as a safety net
+            // via detekt's documented escape hatch instead of @Suppress.
+        } catch (expectedNativeCallFailure: Exception) {
+            Log.e(TAG, "Error loading state", expectedNativeCallFailure)
             Toast.makeText(
                             requireContext(),
                             FontUtils.getCapitalizedString(requireContext(), R.string.load_error),

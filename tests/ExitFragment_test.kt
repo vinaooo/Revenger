@@ -80,4 +80,20 @@ class ExitFragment_test {
             fail("onMenuItemSelected(back) should not throw exception: ${e.message}")
         }
     }
+
+    // Regression test for the narrowed IllegalStateException catch in
+    // MenuFragmentBase.onPause(): after the fragment is removed from the FragmentManager,
+    // requireActivity() throws IllegalStateException ("Fragment ... not attached to a context"),
+    // which the catch must swallow and log instead of propagating. A mis-narrowed catch type
+    // would let the exception escape and fail this test.
+    @Test
+    fun `onPause apos fragment ser removido nao lanca excecao`() {
+        activity.supportFragmentManager.beginTransaction().remove(fragment).commitNow()
+
+        try {
+            fragment.onPause()
+        } catch (e: Exception) {
+            fail("onPause() should not throw after the fragment is detached: ${e.message}")
+        }
+    }
 }

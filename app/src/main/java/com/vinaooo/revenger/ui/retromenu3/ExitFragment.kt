@@ -321,7 +321,15 @@ class ExitFragment : MenuFragmentBase() {
             // Get ROM name from config
             val romName = try {
                 getString(R.string.name)
-            } catch (e: Exception) {
+            } catch (e: android.content.res.Resources.NotFoundException) {
+                android.util.Log.w(TAG, "[ACTION] R.string.name not found, using fallback name", e)
+                "Unknown Game"
+            } catch (e: IllegalStateException) {
+                android.util.Log.w(
+                    TAG,
+                    "[ACTION] Fragment not attached while resolving ROM name, using fallback name",
+                    e
+                )
                 "Unknown Game"
             }
 
@@ -344,8 +352,15 @@ class ExitFragment : MenuFragmentBase() {
             } else {
                 android.util.Log.e(TAG, "[ACTION] Auto-save failed to slot $slotNumber, proceeding with exit")
             }
-        } catch (e: Exception) {
-            android.util.Log.e(TAG, "[ACTION] Error during auto-save", e)
+            // serializeState() runs on LibretroDroid's GL thread via a blocking CountDownLatch;
+            // a failure inside the native call there deadlocks the latch rather than propagating
+            // an exception back to this thread, and the only checked failure mode reaching here
+            // (the library unboxing a null native result) surfaces as a plain
+            // NullPointerException, which this project's detekt config still treats as "too
+            // generic" -- so there is no narrower reachable type to catch. Kept as a safety net
+            // via detekt's documented escape hatch instead of @Suppress.
+        } catch (expectedNativeCallFailure: Exception) {
+            android.util.Log.e(TAG, "[ACTION] Error during auto-save", expectedNativeCallFailure)
         }
 
         // Dismiss menu and exit regardless of save result

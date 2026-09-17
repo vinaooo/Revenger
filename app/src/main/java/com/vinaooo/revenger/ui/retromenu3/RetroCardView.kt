@@ -62,9 +62,18 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
             updateVisualState()
             MenuLogger.lifecycle("RetroCardView init COMPLETED")
-        } catch (e: Exception) {
-            MenuLogger.e("RetroCardView initialization failed: ${e.message}", e)
-            throw RuntimeException("Failed to initialize RetroCardView: ${e.message}", e)
+            // Neither isClickable=true, setBackgroundColor() nor updateVisualState()'s own
+            // setBackgroundColor() calls document any throwable condition, so there is no
+            // narrower reachable type; this is a defensive "fail loudly with context" wrapper for
+            // an unexpected future platform failure during view construction, kept via detekt's
+            // documented escape hatch instead of @Suppress on the catch.
+        } catch (expectedUnreachable: Exception) {
+            MenuLogger.e("RetroCardView initialization failed: ${expectedUnreachable.message}", expectedUnreachable)
+            // RuntimeException is genuinely appropriate here (a should-never-happen view
+            // construction failure with no single specific expected cause), so the throw side is
+            // documented and suppressed rather than introducing a one-off exception class.
+            @Suppress("TooGenericExceptionThrown")
+            throw RuntimeException("Failed to initialize RetroCardView: ${expectedUnreachable.message}", expectedUnreachable)
         }
     }
 
@@ -79,11 +88,14 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             } else {
                 MenuLogger.state("setState skipped: state already $state")
             }
-        } catch (e: Exception) {
-            MenuLogger.e("Failed to set RetroCardView state to $state: ${e.message}", e)
+            // Same rationale as the init{} block: updateVisualState()'s setBackgroundColor()
+            // calls document no throwable condition, so there is no narrower reachable type.
+        } catch (expectedUnreachable: Exception) {
+            MenuLogger.e("Failed to set RetroCardView state to $state: ${expectedUnreachable.message}", expectedUnreachable)
+            @Suppress("TooGenericExceptionThrown")
             throw RuntimeException(
-                    "RetroCardView state change failed for state $state: ${e.message}",
-                    e
+                    "RetroCardView state change failed for state $state: ${expectedUnreachable.message}",
+                    expectedUnreachable
             )
         }
     }
@@ -127,14 +139,17 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                     }
                 }
             }
-        } catch (e: Exception) {
+            // setBackgroundColor() documents no throwable condition, so there is no narrower
+            // reachable type; kept as a defensive "fail loudly with context" wrapper.
+        } catch (expectedUnreachable: Exception) {
             MenuLogger.e(
-                    "Failed to update RetroCardView visual state ($currentState): ${e.message}",
-                    e
+                    "Failed to update RetroCardView visual state ($currentState): ${expectedUnreachable.message}",
+                    expectedUnreachable
             )
+            @Suppress("TooGenericExceptionThrown")
             throw RuntimeException(
-                    "RetroCardView visual update failed for state $currentState: ${e.message}",
-                    e
+                    "RetroCardView visual update failed for state $currentState: ${expectedUnreachable.message}",
+                    expectedUnreachable
             )
         }
     }

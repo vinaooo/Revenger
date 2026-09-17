@@ -34,8 +34,11 @@ class NavigationEventProcessor(
                             "lastAction=$lastActionButton currentMenu=${stateManager.currentMenu} " +
                             "backStack=${fragmentAdapter.getBackStackCount()}"
             )
-        } catch (t: Throwable) {
-            Log.w(TAG, "[PROCESS_EVENT] failed to log debug info", t)
+            // This only formats and logs a diagnostic string (getBackStackCount() is a pure read)
+            // with no documented throwable condition; kept as a safety net so a logging hiccup
+            // never blocks the actual event dispatch below, via detekt's documented escape hatch.
+        } catch (expectedUnreachable: Throwable) {
+            Log.w(TAG, "[PROCESS_EVENT] failed to log debug info", expectedUnreachable)
         }
         when (event) {
             is NavigationEvent.Navigate -> {

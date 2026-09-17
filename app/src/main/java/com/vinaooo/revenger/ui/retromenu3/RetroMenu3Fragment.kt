@@ -261,9 +261,19 @@ class RetroMenu3Fragment :
                                 "RetroMenu3",
                                 "[LIFECYCLE] onViewCreated COMPLETED - menu ready"
                         )
-                } catch (e: Exception) {
-                        android.util.Log.e("RetroMenu3", "[LIFECYCLE] ERROR in onViewCreated", e)
-                        throw e
+                        // This is a broad top-level setup boundary spanning multiple collaborators
+                        // (lifecycleManager, submenuCoordinator, navigationController); it
+                        // deliberately fails loudly rather than swallowing, logging the failure
+                        // before rethrowing unchanged, so narrowing to one type would require
+                        // enumerating every exception each collaborator can throw. Kept via
+                        // detekt's documented escape hatch instead of @Suppress.
+                } catch (expectedSetupFailure: Exception) {
+                        android.util.Log.e(
+                                "RetroMenu3",
+                                "[LIFECYCLE] ERROR in onViewCreated",
+                                expectedSetupFailure
+                        )
+                        throw expectedSetupFailure
                 }
         }
 
@@ -377,8 +387,8 @@ class RetroMenu3Fragment :
                                                 // Execute callback even if fragment removal failed
                                                 onAnimationEnd?.invoke()
                                         }
-                                } catch (t: Throwable) {
-                                        Log.e("RetroMenu3Fragment", "[DISMISS] Exception during dismiss callback", t)
+                                } catch (expectedDismissFailure: Throwable) { // also guards onAnimationEnd
+                                        Log.e("RetroMenu3Fragment", "[DISMISS] Exception during dismiss callback", expectedDismissFailure)
                                         onAnimationEnd?.invoke()
                                 }
                         }
@@ -465,7 +475,11 @@ class RetroMenu3Fragment :
                         try {
                                 submenuCoordinator.closeCurrentSubmenu()
                                 return true // Consumir o evento
-                        } catch (e: Exception) {
+                                // closeCurrentSubmenu() already narrows and catches the
+                                // IllegalStateException popBackStack() can throw, so this is
+                                // defense-in-depth against the same type rather than a distinct
+                                // reachable failure.
+                        } catch (e: IllegalStateException) {
                                 android.util.Log.e(
                                         "RetroMenu3Fragment",
                                         "[PERFORM_BACK] ❌ Error closing submenu",

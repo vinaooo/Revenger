@@ -2,6 +2,7 @@ package com.vinaooo.revenger.ui.retromenu3.config
 
 import android.content.Context
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Space
@@ -414,5 +415,58 @@ class MenuLayoutConfig_test {
         } catch (e: Exception) {
             fail("applyDialogProportions should not throw without a dialog_container: ${e.message}")
         }
+    }
+
+    // ========== ClassCastException paths (narrowed catches around the unguarded LayoutParams
+    // casts in applyVerticalProportions / applyDialogVerticalPosition) ==========
+
+    // Regression test for the narrowed ClassCastException catch in applyVerticalProportions:
+    // menuContainer.layoutParams is assigned directly (bypassing the parent's automatic
+    // LayoutParams conversion), so it's a plain ViewGroup.LayoutParams instead of a
+    // LinearLayout.LayoutParams when the force-cast runs. A mis-narrowed catch type would let
+    // the exception propagate and fail this test instead of the tree staying untouched.
+    @Test
+    fun `applyVerticalProportions com layoutParams de tipo incompativel nao lanca excecao e nao modifica a arvore`() {
+        val parentRow = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
+        val menuContainer = LinearLayout(context).apply { id = R.id.menu_container }
+        parentRow.addView(menuContainer, ViewGroup.LayoutParams(0, 0))
+        // Force an incompatible LayoutParams subtype directly onto the child, skipping the
+        // parent's normal generateLayoutParams() conversion that addView() would otherwise do.
+        menuContainer.layoutParams = ViewGroup.LayoutParams(0, 0)
+
+        val verticalProportions = MenuLayoutConfig.parseVerticalProportions("304030")!!
+        try {
+            MenuLayoutConfig.applyVerticalProportions(menuContainer, verticalProportions)
+        } catch (e: ClassCastException) {
+            fail("applyVerticalProportions should catch its own ClassCastException: ${e.message}")
+        }
+
+        // Tree must be untouched: the cast fails before removeViewAt() runs.
+        assertEquals(1, parentRow.childCount)
+        assertSame(menuContainer, parentRow.getChildAt(0))
+    }
+
+    // Regression test for the narrowed ClassCastException catch in applyDialogVerticalPosition
+    // (private, reached through applyDialogProportions), using the same incompatible-LayoutParams
+    // setup as above.
+    @Test
+    fun `applyDialogProportions com layoutParams de tipo incompativel no dialog_container nao lanca excecao`() {
+        val parentRow = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
+        val dialogContainer = LinearLayout(context).apply { id = R.id.dialog_container }
+        parentRow.addView(dialogContainer, ViewGroup.LayoutParams(0, 0))
+        dialogContainer.layoutParams = ViewGroup.LayoutParams(0, 0)
+
+        val root = FrameLayout(context)
+        root.addView(parentRow)
+
+        try {
+            MenuLayoutConfig.applyDialogProportions(root)
+        } catch (e: ClassCastException) {
+            fail("applyDialogProportions should catch its own ClassCastException: ${e.message}")
+        }
+
+        // Tree must be untouched: the cast fails before removeViewAt() runs.
+        assertEquals(1, parentRow.childCount)
+        assertSame(dialogContainer, parentRow.getChildAt(0))
     }
 }

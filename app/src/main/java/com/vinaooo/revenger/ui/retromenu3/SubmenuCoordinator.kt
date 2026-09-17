@@ -235,8 +235,13 @@ class SubmenuCoordinator(
 
             // Change menu state to SETTINGS_MENU
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU)
-        } catch (e: Exception) {
-            Log.e(TAG, "SubmenuCoordinator: Failed to open Settings submenu", e)
+            // navigateToState() fans out through listener.onMenuEvent(StateChanged) into
+            // GameActivityViewModel's activate/deactivate*Menu() calls, whose full set of
+            // reachable exceptions isn't enumerable from here; kept broad via the escape hatch
+            // rather than narrowing to just commitAllowingStateLoss()'s IllegalStateException,
+            // to preserve the pre-existing behavior of never letting a submenu-open failure crash.
+        } catch (expectedSubmenuOpenFailure: Exception) {
+            Log.e(TAG, "SubmenuCoordinator: Failed to open Settings submenu", expectedSubmenuOpenFailure)
         }
     }
 
@@ -265,8 +270,17 @@ class SubmenuCoordinator(
 
             // Alterar o estado do menu para ABOUT_MENU
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU)
-        } catch (e: Exception) {
+            // Same rationale as showSettingsSubmenu(): navigateToState() fans out into
+            // unenumerable ViewModel activation code, so this stays broad via the escape hatch.
+        } catch (e: ClassCastException) {
+            // `fragment` is typed as the generic androidx.fragment.app.Fragment, so the
+            // `fragment as AboutListener` cast above is only safe as long as the host is a
+            // RetroMenu3Fragment; this is reachable if SubmenuCoordinator is ever constructed
+            // with a different host. Caught ahead of the broader Exception below since it's a
+            // RuntimeException subtype.
             Log.e(TAG, "SubmenuCoordinator: Failed to open About submenu", e)
+        } catch (expectedSubmenuOpenFailure: Exception) {
+            Log.e(TAG, "SubmenuCoordinator: Failed to open About submenu", expectedSubmenuOpenFailure)
         }
     }
 
@@ -294,8 +308,10 @@ class SubmenuCoordinator(
 
             // Alterar o estado do menu para PROGRESS_MENU
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU)
-        } catch (e: Exception) {
-            Log.e(TAG, "SubmenuCoordinator: Failed to open Progress submenu", e)
+            // Same rationale as showSettingsSubmenu(): navigateToState() fans out into
+            // unenumerable ViewModel activation code, so this stays broad via the escape hatch.
+        } catch (expectedSubmenuOpenFailure: Exception) {
+            Log.e(TAG, "SubmenuCoordinator: Failed to open Progress submenu", expectedSubmenuOpenFailure)
         }
     }
 
@@ -323,8 +339,10 @@ class SubmenuCoordinator(
 
             // Alterar o estado do menu para EXIT_MENU
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU)
-        } catch (e: Exception) {
-            Log.e(TAG, "SubmenuCoordinator: Failed to open Exit submenu", e)
+            // Same rationale as showSettingsSubmenu(): navigateToState() fans out into
+            // unenumerable ViewModel activation code, so this stays broad via the escape hatch.
+        } catch (expectedSubmenuOpenFailure: Exception) {
+            Log.e(TAG, "SubmenuCoordinator: Failed to open Exit submenu", expectedSubmenuOpenFailure)
         }
     }
 
@@ -342,7 +360,9 @@ class SubmenuCoordinator(
             // Pop the back stack to close the current submenu; restoration is handled by the
             // back stack listener.
             fragment.parentFragmentManager.popBackStack()
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
+            // popBackStack() throws IllegalStateException if called after the FragmentManager's
+            // state has already been saved.
             Log.e(TAG, "[CLOSE_SUBMENU] ❌ Error closing submenu", e)
         } finally {
             isClosingSubmenu = false

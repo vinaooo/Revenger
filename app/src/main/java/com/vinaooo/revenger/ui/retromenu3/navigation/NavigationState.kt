@@ -83,7 +83,7 @@ data class MenuState(val menuType: MenuType, val selectedIndex: Int = 0) {
                 MenuState(menuType, index)
             } catch (e: IllegalArgumentException) {
                 // Invalid MenuType in Bundle
-                Log.w("NavigationState", "Invalid MenuType in bundle: $typeString")
+                Log.w("NavigationState", "Invalid MenuType in bundle: $typeString", e)
                 null
             }
         }
@@ -173,7 +173,7 @@ class NavigationStack {
                 val menuType = MenuType.valueOf(typeString)
                 stack.add(MenuState(menuType, index))
             } catch (e: IllegalArgumentException) {
-                Log.w("NavigationStack", "Invalid MenuType in stack: $typeString")
+                Log.w("NavigationStack", "Invalid MenuType in stack: $typeString", e)
             }
         }
     }

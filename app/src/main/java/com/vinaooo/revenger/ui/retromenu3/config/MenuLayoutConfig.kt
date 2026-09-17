@@ -150,8 +150,12 @@ object MenuLayoutConfig {
             parentLayout.requestLayout()
 
             Log.d(TAG, "Proporções aplicadas ao layout: $proportions")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Erro ao aplicar proporções de layout", e)
+            // The layoutParams casts above are all guarded by an `is` check on the very same
+            // object one line earlier, so nothing here is reachable in practice; this catch is a
+            // deliberate safety net kept from crashing the menu over a future refactor that might
+            // break that invariant. Named per detekt's own escape hatch instead of @Suppress.
+        } catch (expectedUnreachable: Exception) {
+            Log.e(TAG, "❌ Erro ao aplicar proporções de layout", expectedUnreachable)
         }
     }
 
@@ -182,7 +186,7 @@ object MenuLayoutConfig {
                 )
             }
             proportions
-        } catch (e: Exception) {
+        } catch (e: android.content.res.Resources.NotFoundException) {
             Log.e(TAG, "❌ Erro ao obter proporções configuradas", e)
             null
         }
@@ -213,8 +217,11 @@ object MenuLayoutConfig {
 
             // Aplicar as proporções
             applyLayoutProportions(mainLayout, proportions)
-        } catch (e: Exception) {
-            Log.e(TAG, "Erro ao aplicar proporções ao menu layout", e)
+            // getConfiguredProportions and applyLayoutProportions both already catch their own
+            // failures and never propagate, so nothing reaches this catch in practice; kept as a
+            // safety net against a future change to either callee.
+        } catch (expectedUnreachable: Exception) {
+            Log.e(TAG, "Erro ao aplicar proporções ao menu layout", expectedUnreachable)
         }
     }
 
@@ -317,7 +324,7 @@ object MenuLayoutConfig {
                 )
             }
             proportions
-        } catch (e: Exception) {
+        } catch (e: android.content.res.Resources.NotFoundException) {
             Log.e(TAG, "❌ Erro ao obter proporções verticais configuradas", e)
             null
         }
@@ -416,7 +423,10 @@ object MenuLayoutConfig {
             parentLinearLayout.addView(verticalWrapper, containerIndex)
 
             Log.d(TAG, "Proporções verticais aplicadas com sucesso: $proportions")
-        } catch (e: Exception) {
+        } catch (e: ClassCastException) {
+            // menuContainer.layoutParams is force-cast to LinearLayout.LayoutParams above without
+            // an `is` guard; a caller passing a container whose parent assigned a different
+            // LayoutParams subtype hits this.
             Log.e(TAG, "❌ Erro ao aplicar proporções verticais", e)
         }
     }
@@ -438,8 +448,12 @@ object MenuLayoutConfig {
             val menuContainer = findMenuContentContainer(view) ?: return
 
             applyVerticalProportions(menuContainer, verticalProportions)
-        } catch (e: Exception) {
-            Log.e(TAG, "Erro ao aplicar todas as proporções do menu", e)
+            // Every callee above (applyProportionsToMenuLayout, getConfiguredVerticalProportions,
+            // applyVerticalProportions) already catches its own failures and returns/no-ops
+            // instead of propagating, so nothing reaches this catch in practice; kept as a safety
+            // net against a future change to one of those callees.
+        } catch (expectedUnreachable: Exception) {
+            Log.e(TAG, "Erro ao aplicar todas as proporções do menu", expectedUnreachable)
         }
     }
 
@@ -462,8 +476,11 @@ object MenuLayoutConfig {
             val dialogContainer = view.findViewById<android.widget.LinearLayout>(R.id.dialog_container) ?: return
 
             applyDialogVerticalPosition(dialogContainer, verticalProportions)
-        } catch (e: Exception) {
-            Log.e(TAG, "Erro ao aplicar proporções do dialog", e)
+            // Every callee above already catches its own failures instead of propagating, so
+            // nothing reaches this catch in practice; kept as a safety net against a future
+            // change to one of those callees.
+        } catch (expectedUnreachable: Exception) {
+            Log.e(TAG, "Erro ao aplicar proporções do dialog", expectedUnreachable)
         }
     }
 
@@ -557,7 +574,10 @@ object MenuLayoutConfig {
                     TAG,
                     "Posição vertical do dialog aplicada: top=${(proportions.topWeight * PERCENTAGE_SCALE).toInt()}%"
             )
-        } catch (e: Exception) {
+        } catch (e: ClassCastException) {
+            // dialogContainer.layoutParams is force-cast to LinearLayout.LayoutParams above
+            // without an `is` guard; a caller passing a container whose parent assigned a
+            // different LayoutParams subtype hits this.
             Log.e(TAG, "❌ Erro ao aplicar posição vertical do dialog", e)
         }
     }

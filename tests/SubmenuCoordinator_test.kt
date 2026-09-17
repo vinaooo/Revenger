@@ -38,6 +38,19 @@ class SubmenuCoordinatorHostFragment : Fragment(), AboutListener {
 }
 
 /**
+ * A host [Fragment] that deliberately does NOT implement [AboutListener], used to force the
+ * `fragment as AboutListener` cast in `showAboutSubmenu` to fail with a real
+ * `ClassCastException` (regression test below), instead of mocking the exception.
+ */
+class NonAboutListenerHostFragment : Fragment() {
+    override fun onCreateView(
+            inflater: android.view.LayoutInflater,
+            container: android.view.ViewGroup?,
+            savedInstanceState: android.os.Bundle?
+    ): View = FrameLayout(requireContext())
+}
+
+/**
  * [SubmenuCoordinator] is the navigation coordinator between the RetroMenu3 main menu and its
  * submenus (Progress/Settings/About/Exit): it opens the right submenu fragment, hides the main
  * menu while a submenu is showing, and restores the main menu selection when the submenu closes
@@ -185,6 +198,32 @@ class SubmenuCoordinator_test {
         // que usa o indice padrao (0), e a documentacao do proprio teste sobre por que nao
         // encadeamos abertura + fechamento real de submenu aqui.
         assertEquals(1, getIndexCalls)
+    }
+
+    // Regression test for the narrowed ClassCastException catch in showAboutSubmenu: forces a
+    // real cast failure (host fragment doesn't implement AboutListener) instead of mocking the
+    // exception. A mis-narrowed catch type would let it propagate and fail this test.
+    @Test
+    fun `openSubmenu com ABOUT_MENU e host que nao implementa AboutListener nao lanca excecao`() {
+        val nonListenerHost = NonAboutListenerHostFragment()
+        activity.supportFragmentManager
+                .beginTransaction()
+                .add(nonListenerHost, "non-listener-host")
+                .commitNow()
+
+        val coordinator =
+                SubmenuCoordinator(nonListenerHost, viewModel, viewManager, menuManager, animationController)
+        coordinator.setCallbacks(
+                showMainMenuCallback = {},
+                setSelectedIndexCallback = {},
+                getCurrentSelectedIndexCallback = { 0 }
+        )
+
+        coordinator.openSubmenu(MenuState.ABOUT_MENU)
+
+        // The cast failure happens before the state transition / registration, so neither runs.
+        assertEquals(MenuState.MAIN_MENU, menuManager.getCurrentState())
+        verify(inverse = true) { viewModel.registerAboutFragment(any()) }
     }
 
     // --- closeCurrentSubmenu ---

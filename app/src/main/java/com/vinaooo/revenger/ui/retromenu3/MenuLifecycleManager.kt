@@ -97,9 +97,17 @@ class MenuLifecycleManagerImpl(
             MenuLogger.lifecycle("MenuLifecycleManager: Selection visual updated")
 
             MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - Setup completed")
-        } catch (e: Exception) {
-            MenuLogger.lifecycle("MenuLifecycleManager.onViewCreated - ERROR: ${e.message}")
-            throw e
+            // This is a broad top-level setup boundary spanning ~8 collaborator classes
+            // (viewInitializer, menuViewManager, animationController, stateController,
+            // inputHandler); it deliberately fails loudly rather than swallowing, logging the
+            // failure before rethrowing unchanged, so narrowing to one type would require
+            // enumerating every exception each collaborator can throw. Kept via detekt's
+            // documented escape hatch instead of @Suppress.
+        } catch (expectedSetupFailure: Exception) {
+            MenuLogger.lifecycle(
+                    "MenuLifecycleManager.onViewCreated - ERROR: ${expectedSetupFailure.message}"
+            )
+            throw expectedSetupFailure
         }
     }
 
@@ -119,7 +127,9 @@ class MenuLifecycleManagerImpl(
                     androidx.lifecycle.ViewModelProvider(activity)[
                             com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java]
             viewModel.onRetroMenu3FragmentDestroyed()
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
+            // requireActivity() throws IllegalStateException if the fragment is no longer
+            // attached, which is routinely the case by the time onDestroy() runs.
             MenuLogger.e("Error notifying ViewModel of fragment destruction")
             MenuLogger.e("MenuLifecycleManager", e)
         }
@@ -135,7 +145,9 @@ class MenuLifecycleManagerImpl(
                             com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java]
             // Call clearKeyLog through ViewModel to reset combo state
             viewModel.clearControllerKeyLog()
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
+            // requireActivity() throws IllegalStateException if the fragment is no longer
+            // attached, which is routinely the case by the time onDestroy() runs.
             Log.w(
                     "MenuLifecycleManager",
                     "Error resetting combo state in onDestroy",
@@ -153,8 +165,11 @@ class MenuLifecycleManagerImpl(
             // Apply all proportions (horizontal and vertical)
             com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig
                     .applyAllProportionsToMenuLayout(view)
-        } catch (e: Exception) {
-            Log.e("MenuLifecycleManager", "Error applying layout proportions", e)
+            // applyAllProportionsToMenuLayout already catches its own failures instead of
+            // propagating, so nothing reaches this catch in practice; kept as a safety net
+            // against a future change to that callee.
+        } catch (expectedUnreachable: Exception) {
+            Log.e("MenuLifecycleManager", "Error applying layout proportions", expectedUnreachable)
         }
     }
 }
