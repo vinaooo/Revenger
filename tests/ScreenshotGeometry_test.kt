@@ -78,6 +78,39 @@ class ScreenshotGeometry_test {
     }
 
     @Test
+    fun `bitmap nao quadrado com bordas de espessuras diferentes por lado e cortado nas medidas exatas`() {
+        // 300x100 bitmap (non-square, so a left/right vs. top/bottom axis mix-up would be
+        // caught): four distinct border thicknesses, each comfortably inside MAX_BORDER_CROP_RATIO
+        // (5%) of its own dimension (5% of 300 = 15px, 5% of 100 = 5px).
+        val width = 300
+        val height = 100
+        val leftBorder = 4
+        val rightBorder = 7
+        val topBorder = 2
+        val bottomBorder = 3
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                val isBorder =
+                    x < leftBorder ||
+                        x >= width - rightBorder ||
+                        y < topBorder ||
+                        y >= height - bottomBorder
+                bitmap.setPixel(x, y, if (isBorder) Color.BLACK else Color.WHITE)
+            }
+        }
+
+        val result = ScreenshotGeometry.autoCropBlackBorders(bitmap)
+
+        assertTrue("Esperava um bitmap recortado (nova instancia)", result !== bitmap)
+        assertEquals(width - leftBorder - rightBorder, result.width)
+        assertEquals(height - topBorder - bottomBorder, result.height)
+        // Confirm the crop origin: the pixel now at (0,0) must be the bitmap's original
+        // (leftBorder, topBorder) content pixel, not a pixel from a swapped axis.
+        assertEquals(Color.WHITE, result.getPixel(0, 0))
+    }
+
+    @Test
     fun `bordas mais grossas que o limite de 5 por cento nao sao cortadas (evita falso positivo)`() {
         // Border thicker than MAX_BORDER_CROP_RATIO's scan window: the whole scanned region is
         // black, so no content boundary is found and the bitmap must come back untouched.

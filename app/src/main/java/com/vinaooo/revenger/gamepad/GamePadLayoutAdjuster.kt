@@ -201,43 +201,7 @@ class GamePadLayoutAdjuster {
             val rightHeight = rightContainer.height
             val maxHeight = maxOf(leftHeight, rightHeight)
 
-            // Debug: measure actual positions and sizes
-            val leftPos = IntArray(2)
-            val rightPos = IntArray(2)
-            leftContainer.getLocationOnScreen(leftPos)
-            rightContainer.getLocationOnScreen(rightPos)
-            val screenWidth = container.resources.displayMetrics.widthPixels
-            Log.d(TAG, "=== GAMEPAD ALIGNMENT DEBUG ===")
-            Log.d(TAG, "Screen width: $screenWidth")
-            Log.d(
-                    TAG,
-                    "LEFT container: x=${leftPos[0]}, width=${leftContainer.width}, height=$leftHeight"
-            )
-            Log.d(
-                    TAG,
-                    "RIGHT container: x=${rightPos[0]}, width=${rightContainer.width}, height=$rightHeight"
-            )
-            Log.d(TAG, "LEFT margin from left edge: ${leftPos[0]}px")
-            Log.d(
-                    TAG,
-                    "RIGHT margin from right edge: ${screenWidth - rightPos[0] - rightContainer.width}px"
-            )
-            // Check RadialGamePad view sizes
-            if (leftContainer.childCount > 0) {
-                val leftPad = leftContainer.getChildAt(0)
-                Log.d(
-                        TAG,
-                        "LEFT pad: width=${leftPad.width}, height=${leftPad.height}, x=${leftPad.x}"
-                )
-            }
-            if (rightContainer.childCount > 0) {
-                val rightPad = rightContainer.getChildAt(0)
-                Log.d(
-                        TAG,
-                        "RIGHT pad: width=${rightPad.width}, height=${rightPad.height}, x=${rightPad.x}"
-                )
-            }
-            Log.d(TAG, "=== END ALIGNMENT DEBUG ===")
+            logGamePadAlignmentDebug(container, leftContainer, rightContainer, leftHeight, rightHeight)
 
             if (maxHeight > 0) {
                 Log.d(
@@ -256,6 +220,50 @@ class GamePadLayoutAdjuster {
                 }
             }
         }
+    }
+
+    /** Logs the left/right gamepad container positions and sizes, for alignment debugging. */
+    private fun logGamePadAlignmentDebug(
+            container: LinearLayout,
+            leftContainer: android.widget.FrameLayout,
+            rightContainer: android.widget.FrameLayout,
+            leftHeight: Int,
+            rightHeight: Int
+    ) {
+        // Debug: measure actual positions and sizes
+        val leftPos = IntArray(2)
+        val rightPos = IntArray(2)
+        leftContainer.getLocationOnScreen(leftPos)
+        rightContainer.getLocationOnScreen(rightPos)
+        val screenWidth = container.resources.displayMetrics.widthPixels
+        Log.d(TAG, "=== GAMEPAD ALIGNMENT DEBUG ===")
+        Log.d(TAG, "Screen width: $screenWidth")
+        Log.d(
+                TAG,
+                "LEFT container: x=${leftPos[0]}, width=${leftContainer.width}, height=$leftHeight"
+        )
+        Log.d(
+                TAG,
+                "RIGHT container: x=${rightPos[0]}, width=${rightContainer.width}, height=$rightHeight"
+        )
+        Log.d(TAG, "LEFT margin from left edge: ${leftPos[0]}px")
+        Log.d(
+                TAG,
+                "RIGHT margin from right edge: ${screenWidth - rightPos[0] - rightContainer.width}px"
+        )
+        // Check RadialGamePad view sizes
+        if (leftContainer.childCount > 0) {
+            val leftPad = leftContainer.getChildAt(0)
+            Log.d(TAG, "LEFT pad: width=${leftPad.width}, height=${leftPad.height}, x=${leftPad.x}")
+        }
+        if (rightContainer.childCount > 0) {
+            val rightPad = rightContainer.getChildAt(0)
+            Log.d(
+                    TAG,
+                    "RIGHT pad: width=${rightPad.width}, height=${rightPad.height}, x=${rightPad.x}"
+            )
+        }
+        Log.d(TAG, "=== END ALIGNMENT DEBUG ===")
     }
 
     /** Adjust gamepad container sizes programmatically */

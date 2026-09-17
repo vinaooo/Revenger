@@ -281,29 +281,42 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             paint.alpha = glowAlpha.coerceIn(0, MAX_ALPHA_VALUE)
 
             // Draw glow line with needle tips
-            drawNeedleLine(canvas, centerX, centerY, lineWidth, glowHeight, glowNeedleLength)
+            drawNeedleLine(
+                    canvas,
+                    NeedleLineGeometry(centerX, centerY, lineWidth, glowHeight, glowNeedleLength)
+            )
         }
 
         // Draw main line with needle tips
         paint.alpha = (MAX_ALPHA_VALUE * alphaMultiplier).toInt()
-        drawNeedleLine(canvas, centerX, centerY, lineWidth, lineHeightPx, needleLength)
+        drawNeedleLine(
+                canvas,
+                NeedleLineGeometry(centerX, centerY, lineWidth, lineHeightPx, needleLength)
+        )
     }
 
+    /**
+     * Geometry parameters for [drawNeedleLine], grouped into a single value to keep that
+     * function's parameter list short.
+     */
+    private data class NeedleLineGeometry(
+            val centerX: Float,
+            val centerY: Float,
+            val lineWidth: Float,
+            val lineHeight: Float,
+            val needleLength: Float
+    )
+
     /** Desenha uma linha com pontas de agulha (triangulares) nas extremidades */
-    private fun drawNeedleLine(
-            canvas: Canvas,
-            centerX: Float,
-            centerY: Float,
-            lineWidth: Float,
-            lineHeight: Float,
-            needleLength: Float
-    ) {
+    private fun drawNeedleLine(canvas: Canvas, geometry: NeedleLineGeometry) {
         val path = Path()
 
-        val left = centerX - lineWidth / 2
-        val right = centerX + lineWidth / 2
-        val top = centerY - lineHeight / 2
-        val bottom = centerY + lineHeight / 2
+        val left = geometry.centerX - geometry.lineWidth / 2
+        val right = geometry.centerX + geometry.lineWidth / 2
+        val top = geometry.centerY - geometry.lineHeight / 2
+        val bottom = geometry.centerY + geometry.lineHeight / 2
+        val centerY = geometry.centerY
+        val needleLength = geometry.needleLength
 
         // Draw shape with needle tips:
         //     ←─────────────────────────→

@@ -55,31 +55,44 @@ object DefaultSettingsRepository {
      * @return Matching profile or null if not found
      */
     fun findProfile(platformId: String?, extension: String): DefaultSettingsProfile? {
-        val profileList = profiles ?: run {
+        val profileList = profiles
+        if (profileList == null) {
             Log.w(TAG, "Profiles not initialized, call initialize() first")
             return null
         }
 
-        // Try explicit platform ID first
-        if (!platformId.isNullOrEmpty()) {
-            val profile = profileList.find { it.platformId == platformId }
-            if (profile != null) {
-                Log.d(TAG, "Found profile by platformId: $platformId")
-                return profile
-            }
+        return findByPlatformId(profileList, platformId) ?: findByExtension(profileList, extension)
+    }
+
+    /** Try an explicit platform ID match first. */
+    private fun findByPlatformId(
+        profileList: List<DefaultSettingsProfile>,
+        platformId: String?
+    ): DefaultSettingsProfile? {
+        if (platformId.isNullOrEmpty()) return null
+
+        val profile = profileList.find { it.platformId == platformId }
+        if (profile != null) {
+            Log.d(TAG, "Found profile by platformId: $platformId")
+        } else {
             Log.w(TAG, "No profile found for platformId: $platformId")
         }
+        return profile
+    }
 
-        // Fall back to extension matching
+    /** Fall back to matching by the ROM's file extension. */
+    private fun findByExtension(
+        profileList: List<DefaultSettingsProfile>,
+        extension: String
+    ): DefaultSettingsProfile? {
         val normalizedExtension = if (extension.startsWith(".")) extension else ".$extension"
         val profile = profileList.find { it.extensions.contains(normalizedExtension.lowercase()) }
-        
+
         if (profile != null) {
             Log.d(TAG, "Found profile by extension: $normalizedExtension -> ${profile.platformId}")
         } else {
             Log.w(TAG, "No profile found for extension: $normalizedExtension")
         }
-        
         return profile
     }
 

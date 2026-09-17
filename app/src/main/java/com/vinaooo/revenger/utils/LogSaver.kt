@@ -228,41 +228,54 @@ object LogSaver {
             val inputManager =
                     context.getSystemService(Context.INPUT_SERVICE) as
                             android.hardware.input.InputManager
-            val inputDevices = inputManager.inputDeviceIds
-
-            var hasPhysicalGamepad = false
-            var hasVirtualGamepad = false
-
-            for (deviceId in inputDevices) {
-                val device = inputManager.getInputDevice(deviceId)
-                if (device != null) {
-                    val sources = device.sources
-
-                    // Check if it's a physical gamepad
-                    if (sources and android.view.InputDevice.SOURCE_GAMEPAD != 0 ||
-                                    sources and android.view.InputDevice.SOURCE_JOYSTICK != 0
-                    ) {
-                        if (!device.name.contains("virtual", ignoreCase = true)) {
-                            hasPhysicalGamepad = true
-                        } else {
-                            hasVirtualGamepad = true
-                        }
-                    }
-                }
-            }
-
-            when {
-                hasPhysicalGamepad && hasVirtualGamepad -> "Physical + Virtual Gamepad"
-                hasPhysicalGamepad -> "Physical Gamepad"
-                hasVirtualGamepad -> "Virtual Gamepad"
-                else -> "Touch/Other Input"
-            }
+            val (hasPhysicalGamepad, hasVirtualGamepad) = classifyConnectedGamepads(inputManager)
+            describeInputMethod(hasPhysicalGamepad, hasVirtualGamepad)
             // Some OEM input-driver implementations of InputManager/InputDevice are known to
             // throw unpredictable RuntimeExceptions for buggy virtual devices; not enumerable
             // from here, so kept broad via the escape hatch.
         } catch (expectedInputQueryFailure: Exception) {
             android.util.Log.w(TAG, "Could not determine input method", expectedInputQueryFailure)
             "Unable to determine"
+        }
+    }
+
+    /**
+     * Walks the connected input devices and classifies them as physical vs. virtual gamepads.
+     * @return a (hasPhysicalGamepad, hasVirtualGamepad) pair
+     */
+    private fun classifyConnectedGamepads(
+            inputManager: android.hardware.input.InputManager
+    ): Pair<Boolean, Boolean> {
+        var hasPhysicalGamepad = false
+        var hasVirtualGamepad = false
+
+        for (deviceId in inputManager.inputDeviceIds) {
+            val device = inputManager.getInputDevice(deviceId)
+            if (device == null || !isGamepadSource(device.sources)) continue
+
+            if (device.name.contains("virtual", ignoreCase = true)) {
+                hasVirtualGamepad = true
+            } else {
+                hasPhysicalGamepad = true
+            }
+        }
+
+        return hasPhysicalGamepad to hasVirtualGamepad
+    }
+
+    /** Whether an [android.view.InputDevice.getSources] bitmask reports a gamepad/joystick. */
+    private fun isGamepadSource(sources: Int): Boolean {
+        return sources and android.view.InputDevice.SOURCE_GAMEPAD != 0 ||
+                sources and android.view.InputDevice.SOURCE_JOYSTICK != 0
+    }
+
+    /** Renders the final human-readable input method description. */
+    private fun describeInputMethod(hasPhysicalGamepad: Boolean, hasVirtualGamepad: Boolean): String {
+        return when {
+            hasPhysicalGamepad && hasVirtualGamepad -> "Physical + Virtual Gamepad"
+            hasPhysicalGamepad -> "Physical Gamepad"
+            hasVirtualGamepad -> "Virtual Gamepad"
+            else -> "Touch/Other Input"
         }
     }
 
