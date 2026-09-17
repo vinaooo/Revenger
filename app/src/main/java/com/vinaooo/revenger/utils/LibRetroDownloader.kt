@@ -44,7 +44,12 @@ class LibRetroDownloader private constructor() {
                 // Extract and rename
                 extractAndRename(zipBytes, destinationDir)
                 true
-            } catch (e: Exception) {
+                // Every failure in downloadFile()/extractAndRename() (URL parsing, HTTP
+                // connection, ZIP extraction, file writes) surfaces as IOException. Not logged:
+                // this class runs on the plain JVM against android.jar stubs during the Gradle
+                // build (see main() below), where android.util.Log throws "Stub!" -- the name
+                // escape hatch documents the intentional silence instead.
+            } catch (ignoredDownloadFailure: IOException) {
                 false
             }
         }

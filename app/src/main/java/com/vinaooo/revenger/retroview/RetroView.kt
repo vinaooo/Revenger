@@ -119,7 +119,8 @@ class RetroView(
                         } catch (e: java.io.FileNotFoundException) {
                             throw IllegalArgumentException(
                                     "ROM '$romName' not found in assets/rom/. Ensure the file " +
-                                            "exists at app/src/main/assets/rom/$romName"
+                                            "exists at app/src/main/assets/rom/$romName",
+                                    e
                             )
                         }
 

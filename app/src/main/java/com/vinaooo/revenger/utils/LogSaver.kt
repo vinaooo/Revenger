@@ -35,7 +35,10 @@ object LogSaver {
 
             android.util.Log.d(TAG, "Log saved successfully to: ${logFile.absolutePath}")
             logFile.absolutePath
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            android.util.Log.e(TAG, "Failed to save log file", e)
+            null
+        } catch (e: SecurityException) {
             android.util.Log.e(TAG, "Failed to save log file", e)
             null
         }
@@ -102,7 +105,9 @@ object LogSaver {
         val serial =
                 try {
                     Build.getSerial()
-                } catch (e: SecurityException) {
+                } catch (ignoredMissingSerialPermission: SecurityException) {
+                    // Devices without READ_PHONE_STATE (or on newer Android, never) simply deny
+                    // this call -- routine and not worth logging.
                     "Unavailable (Permission Required)"
                 }
         builder.append("Serial: $serial\n")
@@ -164,7 +169,8 @@ object LogSaver {
             builder.append("Package Name: ${context.packageName}\n")
             val isDebugBuild = context.packageName.contains("debug", ignoreCase = true)
             builder.append("Build Type: ${if (isDebugBuild) "Debug" else "Release"}\n")
-        } catch (e: Exception) {
+        } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
+            android.util.Log.w(TAG, "Could not read package info", e)
             builder.append("App Version: Unable to retrieve\n")
         }
 
@@ -190,7 +196,8 @@ object LogSaver {
             builder.append("LibRetro Core: $configCore\n")
             builder.append("ROM File: $configRom\n")
 
-            // Check if ROM exists
+            // Check if ROM exists. getIdentifier() returns 0 (not an exception) when not
+            // found; openRawResource() then throws Resources.NotFoundException for that id.
             try {
                 val romStream =
                         resources.openRawResource(
@@ -198,10 +205,14 @@ object LogSaver {
                         )
                 romStream.close()
                 builder.append("ROM Status: Available\n")
-            } catch (e: Exception) {
+            } catch (e: android.content.res.Resources.NotFoundException) {
+                android.util.Log.w(TAG, "ROM resource not found: $configRom", e)
                 builder.append("ROM Status: Not found or inaccessible\n")
             }
-        } catch (e: Exception) {
+            // RevengerApplication.appConfig is a lateinit var; accessing it before
+            // Application.onCreate() completes throws UninitializedPropertyAccessException.
+        } catch (e: UninitializedPropertyAccessException) {
+            android.util.Log.w(TAG, "AppConfig not yet initialized", e)
             builder.append("Configuration: Unable to retrieve\n")
         }
 
@@ -246,7 +257,11 @@ object LogSaver {
                 hasVirtualGamepad -> "Virtual Gamepad"
                 else -> "Touch/Other Input"
             }
-        } catch (e: Exception) {
+            // Some OEM input-driver implementations of InputManager/InputDevice are known to
+            // throw unpredictable RuntimeExceptions for buggy virtual devices; not enumerable
+            // from here, so kept broad via the escape hatch.
+        } catch (expectedInputQueryFailure: Exception) {
+            android.util.Log.w(TAG, "Could not determine input method", expectedInputQueryFailure)
             "Unable to determine"
         }
     }
@@ -265,7 +280,7 @@ object LogSaver {
             relevantLines.joinToString("\n")
         } catch (e: IOException) {
             "Unable to capture system logs: ${e.message}"
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
             "Error capturing system logs: ${e.message}"
         }
     }

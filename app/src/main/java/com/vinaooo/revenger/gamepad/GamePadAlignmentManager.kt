@@ -153,8 +153,13 @@ class GamePadAlignmentManager(private val appConfig: AppConfig) {
                     Pair(true, "")
                 }
             }
-        } catch (e: Exception) {
-            Pair(false, "Erro ao validar offsets: ${e.message}")
+            // appConfig is an injected collaborator (see GamePadAlignmentManager_test's
+            // "captura excecoes" case, which intentionally throws a plain RuntimeException from
+            // a mock) rather than a fixed lateinit read, so its reachable failures aren't
+            // enumerable from here; kept broad via the escape hatch.
+        } catch (expectedConfigReadFailure: Exception) {
+            Log.w(TAG, "Error validating offsets", expectedConfigReadFailure)
+            Pair(false, "Erro ao validar offsets: ${expectedConfigReadFailure.message}")
         }
     }
 }

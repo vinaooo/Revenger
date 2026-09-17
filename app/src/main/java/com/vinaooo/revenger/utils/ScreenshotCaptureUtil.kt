@@ -181,8 +181,10 @@ object ScreenshotCaptureUtil {
                     Log.w(TAG, "Context not set, using default aspect ratio")
                     AspectRatios.DEFAULT
                 }
-            } catch (e: Exception) {
-                Log.w(TAG, "Could not determine aspect ratio: ${e.message}")
+                // RevengerApplication.appConfig is a lateinit var; accessing it before
+                // Application.onCreate() completes throws UninitializedPropertyAccessException.
+            } catch (e: UninitializedPropertyAccessException) {
+                Log.w(TAG, "Could not determine aspect ratio", e)
                 AspectRatios.DEFAULT
             }
 
@@ -240,7 +242,10 @@ object ScreenshotCaptureUtil {
                     },
                     Handler(Looper.getMainLooper())
             )
-        } catch (e: Exception) {
+            // PixelCopy.request() documents throwing IllegalArgumentException when the source
+            // surface isn't laid out or attached to a window; the dimension/validity checks above
+            // rule out the other documented causes (invalid rect, immutable/hardware bitmap).
+        } catch (e: IllegalArgumentException) {
             Log.e(TAG, "Failed to capture screenshot", e)
             callback(null)
         }
@@ -292,7 +297,9 @@ object ScreenshotCaptureUtil {
                     },
                     Handler(Looper.getMainLooper())
             )
-        } catch (e: Exception) {
+            // Same rationale as captureGameScreen(): PixelCopy.request()'s only documented
+            // failure not already ruled out by the checks above is IllegalArgumentException.
+        } catch (e: IllegalArgumentException) {
             Log.e(TAG, "Failed to capture full screenshot", e)
             callback(null)
         }
@@ -542,7 +549,10 @@ object ScreenshotCaptureUtil {
         if (source.isRecycled) return
         val copy = try {
             source.copy(source.config ?: Bitmap.Config.ARGB_8888, false)
-        } catch (e: Exception) {
+            // Bitmap.copy() throws IllegalStateException ("Can't copy a recycled bitmap") if the
+            // bitmap is recycled concurrently between the isRecycled check above and this call --
+            // there is no lock across the two, so this is a real, reachable race.
+        } catch (e: IllegalStateException) {
             Log.w(TAG, "Could not copy cached frame for PiP", e)
             return
         }
@@ -580,8 +590,11 @@ object ScreenshotCaptureUtil {
             val canvas = android.graphics.Canvas(bitmap)
             view.draw(canvas)
             bitmap
-        } catch (e: Exception) {
-            Log.e(TAG, "Fallback screenshot capture failed", e)
+            // view.draw() dispatches into an arbitrary caller-supplied View's onDraw() /
+            // dispatchDraw() override, which isn't enumerable from this generic fallback utility;
+            // kept broad via the escape hatch.
+        } catch (expectedViewDrawFailure: Exception) {
+            Log.e(TAG, "Fallback screenshot capture failed", expectedViewDrawFailure)
             null
         }
     }

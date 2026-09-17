@@ -24,8 +24,12 @@ object FontUtils {
             try {
                 arcadeTypeface = Typeface.createFromAsset(context.assets, ARCADE_FONT_PATH)
                 Log.d(TAG, "Arcade font loaded successfully from assets/$ARCADE_FONT_PATH")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error loading arcade font from assets/$ARCADE_FONT_PATH", e)
+                // Typeface.createFromAsset() documents throwing RuntimeException directly (not a
+                // subclass) when the asset can't be found/parsed; RuntimeException is itself on
+                // detekt's generic-exception list, so there is no narrower type -- the name-based
+                // escape hatch is used instead.
+            } catch (expectedFontLoadFailure: RuntimeException) {
+                Log.e(TAG, "Error loading arcade font from assets/$ARCADE_FONT_PATH", expectedFontLoadFailure)
                 // Fallback to system default font
                 arcadeTypeface = Typeface.DEFAULT
             }
@@ -39,8 +43,10 @@ object FontUtils {
             try {
                 pixelifyTypeface = Typeface.createFromAsset(context.assets, PIXELIFY_FONT_PATH)
                 Log.d(TAG, "Pixelify font loaded successfully from assets/$PIXELIFY_FONT_PATH")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error loading pixelify font from assets/$PIXELIFY_FONT_PATH", e)
+                // Same rationale as getArcadeTypeface(): RuntimeException is documented and
+                // itself on detekt's generic list, so the name escape hatch is used.
+            } catch (expectedFontLoadFailure: RuntimeException) {
+                Log.e(TAG, "Error loading pixelify font from assets/$PIXELIFY_FONT_PATH", expectedFontLoadFailure)
                 // Fallback to system default font
                 pixelifyTypeface = Typeface.DEFAULT
             }
@@ -54,8 +60,10 @@ object FontUtils {
             try {
                 micro5Typeface = Typeface.createFromAsset(context.assets, MICRO5_FONT_PATH)
                 Log.d(TAG, "Micro5 font loaded successfully from assets/$MICRO5_FONT_PATH")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error loading micro5 font from assets/$MICRO5_FONT_PATH", e)
+                // Same rationale as getArcadeTypeface(): RuntimeException is documented and
+                // itself on detekt's generic list, so the name escape hatch is used.
+            } catch (expectedFontLoadFailure: RuntimeException) {
+                Log.e(TAG, "Error loading micro5 font from assets/$MICRO5_FONT_PATH", expectedFontLoadFailure)
                 // Fallback to system default font
                 micro5Typeface = Typeface.DEFAULT
             }
@@ -69,8 +77,10 @@ object FontUtils {
             try {
                 tiny5Typeface = Typeface.createFromAsset(context.assets, TINY5_FONT_PATH)
                 Log.d(TAG, "Tiny5 font loaded successfully from assets/$TINY5_FONT_PATH")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error loading tiny5 font from assets/$TINY5_FONT_PATH", e)
+                // Same rationale as getArcadeTypeface(): RuntimeException is documented and
+                // itself on detekt's generic list, so the name escape hatch is used.
+            } catch (expectedFontLoadFailure: RuntimeException) {
+                Log.e(TAG, "Error loading tiny5 font from assets/$TINY5_FONT_PATH", expectedFontLoadFailure)
                 // Fallback to system default font
                 tiny5Typeface = Typeface.DEFAULT
             }
@@ -95,8 +105,13 @@ object FontUtils {
             // Cachear a fonte carregada
             dynamicTypefaces[cacheKey] = typeface
             typeface
-        } catch (e: Exception) {
-            Log.d(TAG, "Dynamic font not found at assets/$fontPath, will use fallback")
+            // Same RuntimeException rationale as the fixed-font loaders above.
+        } catch (expectedFontLoadFailure: RuntimeException) {
+            Log.d(
+                    TAG,
+                    "Dynamic font not found at assets/$fontPath, will use fallback",
+                    expectedFontLoadFailure
+            )
             null
         }
     }

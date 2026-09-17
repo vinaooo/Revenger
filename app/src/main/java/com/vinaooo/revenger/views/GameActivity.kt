@@ -376,19 +376,26 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
          * Reapplies orientation configuration when the auto-rotate preference changes. This allows
          * the app to dynamically respond to system changes.
          */
+        // Settings.System.getInt(cr, name, def) never throws SettingNotFoundException (that's
+        // only the 2-arg overload without a default), but OEM-modified ContentResolvers are known
+        // to fail in ways that aren't enumerable (SecurityException, provider-specific
+        // RuntimeExceptions); treat any failure as auto-rotate being off, matching the pre-existing
+        // fallback -- kept broad via detekt's documented name escape hatch.
+        private fun readAutoRotateSetting(): Boolean =
+                try {
+                        android.provider.Settings.System.getInt(
+                                contentResolver,
+                                android.provider.Settings.System.ACCELEROMETER_ROTATION,
+                                0
+                        ) == 1
+                } catch (expectedSettingsReadFailure: Exception) {
+                        Log.w(TAG, "[ROTATION] Could not read auto-rotate setting", expectedSettingsReadFailure)
+                        false
+                }
+
         private fun reapplyOrientation() {
                 try {
-                        val wasAutoRotate =
-                                try {
-                                        android.provider.Settings.System.getInt(
-                                                contentResolver,
-                                                android.provider.Settings.System
-                                                        .ACCELEROMETER_ROTATION,
-                                                0
-                                        ) == 1
-                                } catch (e: Exception) {
-                                        false
-                                }
+                        val wasAutoRotate = readAutoRotateSetting()
 
                         Log.d(TAG, "[ROTATION_REAPPLY] System auto-rotate: $wasAutoRotate")
 
@@ -396,11 +403,15 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                         viewModel.setConfigOrientation(this)
 
                         Log.d(TAG, "[ROTATION_REAPPLY] Orientation successfully reapplied")
-                } catch (e: Exception) {
+                        // setConfigOrientation() fans out into OrientationManager and
+                        // Activity.requestedOrientation, whose full set of reachable exceptions
+                        // isn't enumerable from here; kept broad via the escape hatch rather than
+                        // guessing a narrower type, to preserve never letting a reapply failure crash.
+                } catch (expectedReapplyFailure: Exception) {
                         Log.e(
                                 TAG,
-                                "[ROTATION_REAPPLY] Error reapplying orientation: ${e.message}",
-                                e
+                                "[ROTATION_REAPPLY] Error reapplying orientation",
+                                expectedReapplyFailure
                         )
                 }
         }
@@ -412,16 +423,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 // Check if we should reprocess orientation
                 // DO NOT reprocess when config=3 and auto-rotate=OFF (to allow manual button)
                 val configOrientation = appConfig.getOrientation()
-                val autoRotateEnabled =
-                        try {
-                                android.provider.Settings.System.getInt(
-                                        contentResolver,
-                                        android.provider.Settings.System.ACCELEROMETER_ROTATION,
-                                        0
-                                ) == 1
-                        } catch (e: Exception) {
-                                false
-                        }
+                val autoRotateEnabled = readAutoRotateSetting()
 
                 // Only reapply orientation if config=1 or 2 (forced) or if config=3 with
                 // auto-rotate
@@ -1096,15 +1098,14 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
 
         override fun onDestroy() {
                 // Remove auto-rotate change listener
+                // unregisterReceiver() throws IllegalArgumentException if the receiver was never
+                // registered -- expected if rotation listening was never set up.
                 rotationSettingsReceiver?.let {
                         try {
                                 unregisterReceiver(it)
                                 Log.d(TAG, "[ROTATION_LISTENER] BroadcastReceiver unregistered")
-                        } catch (e: Exception) {
-                                Log.e(
-                                        TAG,
-                                        "[ROTATION_LISTENER] Erro ao desregistrar receiver: ${e.message}"
-                                )
+                        } catch (e: IllegalArgumentException) {
+                                Log.e(TAG, "[ROTATION_LISTENER] Erro ao desregistrar receiver", e)
                         }
                 }
 
@@ -1115,7 +1116,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 // if it was never registered (never entered PiP) -- catch that expected case.
                 try {
                         unregisterReceiver(pipBroadcastReceiver)
-                } catch (e: IllegalArgumentException) {
+                } catch (ignoredNeverRegisteredForPip: IllegalArgumentException) {
                         // Never entered PiP this session, or already unregistered -- expected.
                 }
 
@@ -1166,12 +1167,15 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 // Cleanup estrito do PiP quando a Activity retorna à tela cheia
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                         try {
+                                // isInPictureInPictureMode, pipOverlay.visibility and
+                                // clearPipOverlaySnapshot() document no throwable condition, so
+                                // there is no narrower reachable type; kept as a defensive net.
                                 if (!isInPictureInPictureMode && pipOverlay.visibility == android.view.View.VISIBLE) {
                                         Log.d(TAG, "[PIP] Cleaning stuck PiP overlay in onResume")
                                         clearPipOverlaySnapshot()
                                 }
-                        } catch (e: Exception) {
-                                Log.e(TAG, "[PIP] Error checking PiP state in onResume", e)
+                        } catch (expectedUnreachable: Exception) {
+                                Log.e(TAG, "[PIP] Error checking PiP state in onResume", expectedUnreachable)
                         }
 
                         // Keep PiP params (aspect ratio, actions, auto-enter) current so a Home
@@ -1256,8 +1260,14 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                         gameLifecycleObserver.clearPendingPipTransition()
                                 }
                         }
-                } catch (e: Exception) {
-                        Log.e(TAG, "[PIP] Failed to enter Picture-in-Picture mode", e)
+                        // This block also fans through maybeCapturePipFrame() and
+                        // showPipOverlaySnapshotIfAvailable() -> PipSnapshotSelector.select(),
+                        // whose fallback suppliers (bitmap decode, GL surface capture) are not
+                        // fully enumerable even after narrowing their own internal catches in this
+                        // same change; kept broad as the last line of defense before a PiP-entry
+                        // failure would otherwise crash the Activity.
+                } catch (expectedPipEntryFailure: Exception) {
+                        Log.e(TAG, "[PIP] Failed to enter Picture-in-Picture mode", expectedPipEntryFailure)
                         clearPipOverlaySnapshot()
                         if (::gameLifecycleObserver.isInitialized) {
                                 gameLifecycleObserver.clearPendingPipTransition()
@@ -1297,7 +1307,17 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                 .screenshotFile
                                 ?: return null
                         android.graphics.BitmapFactory.decodeFile(file.absolutePath)
-                } catch (e: Exception) {
+                        // decodeFile() itself never throws (it returns null on a bad image).
+                        // getSlot()'s require(slotNumber in 1..9) can't fail here either:
+                        // SessionSlotTracker.getLastUsedSlot() is only ever set by recordSave()/
+                        // recordLoad(), which both validate the same range before storing, and the
+                        // value is in-memory only (never persisted/corrupted); the `?: 1` fallback
+                        // is in range too. The one reachable failure left in this chain is File I/O
+                        // access being denied by the platform. This helper is called both from a
+                        // path already wrapped in a broad net (maybeEnterPictureInPictureAfterMenuClosed)
+                        // and from onPictureInPictureModeChanged, which has no enclosing try -- so
+                        // this catch is this chain's only safety net for that second call site.
+                } catch (e: SecurityException) {
                         Log.w(TAG, "[PIP] Could not decode last-slot screenshot", e)
                         null
                 }
@@ -1361,8 +1381,16 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                         )
                                         tracker.recordSave(slotNumber)
                                         Log.d(TAG, "[PIP] Quick save written to slot $slotNumber")
-                                } catch (e: Exception) {
-                                        Log.e(TAG, "[PIP] Quick save failed", e)
+                                        // serializeState() runs on LibretroDroid's GL thread via a blocking
+                                        // CountDownLatch; a failure inside the native call there deadlocks the
+                                        // latch rather than propagating an exception back to this thread, and
+                                        // the only checked failure mode reaching here (the library unboxing a
+                                        // null native result) surfaces as a plain NullPointerException, which
+                                        // this project's detekt config still treats as "too generic" -- so
+                                        // there is no narrower reachable type to catch. Kept as a safety net
+                                        // via detekt's documented escape hatch instead of @Suppress.
+                                } catch (expectedNativeCallFailure: Exception) {
+                                        Log.e(TAG, "[PIP] Quick save failed", expectedNativeCallFailure)
                                 } finally {
                                         runOnUiThread { finishAndRemoveTask() }
                                 }
@@ -1434,8 +1462,14 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                 // Only auto-enter PiP on Home when the feature is actually enabled.
                                 builder.setAutoEnterEnabled(appConfig.isPipEnabled())
                         }
+                        // setPictureInPictureParams() documents IllegalArgumentException (invalid
+                        // aspect ratio) and IllegalStateException (activity not visible/eligible)
+                        // as its reachable failures; getPipParamsBuilder()'s own collaborators
+                        // (PipConfigRepository, PipAspectRatioResolver) don't throw.
                         setPictureInPictureParams(builder.build())
-                } catch (e: Exception) {
+                } catch (e: IllegalArgumentException) {
+                        Log.e(TAG, "[PIP] Failed to update Picture-in-Picture params", e)
+                } catch (e: IllegalStateException) {
                         Log.e(TAG, "[PIP] Failed to update Picture-in-Picture params", e)
                 }
         }
@@ -1485,10 +1519,11 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                 gameLifecycleObserver.onExitedPictureInPicture()
                         }
 
-                        // Desregistrar receiver
+                        // Desregistrar receiver. unregisterReceiver() throws
+                        // IllegalArgumentException if it was never registered.
                         try {
                                 unregisterReceiver(pipBroadcastReceiver)
-                        } catch (e: Exception) {
+                        } catch (e: IllegalArgumentException) {
                                 Log.e(TAG, "Error unregistering pip receiver", e)
                         }
                         

@@ -101,4 +101,22 @@ class GameStateViewModel_test {
 
         assertTrue(viewModel.shouldSkipNextTempStateLoad())
     }
+
+    // Regression test for the narrowed ClassCastException catch in
+    // restoreGameSpeedFromPreferences(): a value of the wrong type under "frame_speed" (e.g. left
+    // over from a preferences-format change) must not crash and must not emit a bogus
+    // SetGameSpeed event.
+    @Test
+    fun `restoreGameSpeedFromPreferences com valor de tipo errado nao lanca e nao emite evento`() {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        app.getSharedPreferences("revenger_prefs", Application.MODE_PRIVATE)
+                .edit()
+                .putString("frame_speed", "not-an-int")
+                .commit()
+        val corrupted = GameStateViewModel(app)
+
+        corrupted.restoreGameSpeedFromPreferences()
+
+        assertTrue(corrupted.eventFlow.value is GameStateViewModel.GameStateEvent.Idle)
+    }
 }

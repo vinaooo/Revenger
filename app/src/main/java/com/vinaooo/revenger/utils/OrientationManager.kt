@@ -27,14 +27,19 @@ object OrientationManager {
      */
     fun applyConfigOrientation(activity: Activity, configOrientation: String) {
         // Check system auto-rotate preference
+        // Settings.System.getInt(cr, name, def) never throws SettingNotFoundException (only the
+        // 2-arg overload without a default does), but OEM-modified ContentResolvers are known to
+        // fail in ways that aren't enumerable (SecurityException, provider-specific
+        // RuntimeExceptions); kept broad via the name escape hatch, matching GameActivity's
+        // identical read of this same setting.
         val accelerometerRotationEnabled = try {
             android.provider.Settings.System.getInt(
                 activity.contentResolver,
                 android.provider.Settings.System.ACCELEROMETER_ROTATION,
                 0
             ) == 1
-        } catch (e: Exception) {
-            Log.w(TAG, "Error reading auto-rotate setting", e)
+        } catch (expectedSettingsReadFailure: Exception) {
+            Log.w(TAG, "Error reading auto-rotate setting", expectedSettingsReadFailure)
             false
         }
 

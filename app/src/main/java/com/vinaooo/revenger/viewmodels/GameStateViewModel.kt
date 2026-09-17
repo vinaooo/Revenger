@@ -61,9 +61,12 @@ class GameStateViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 _eventFlow.value = GameStateEvent.ResetGame
 
+                // onComplete is an arbitrary caller-supplied callback (UI code reacting to the
+                // reset); its reachable exceptions aren't enumerable from this ViewModel, so this
+                // stays broad via the escape hatch to preserve never letting it crash the coroutine.
                 onComplete?.invoke()
-            } catch (e: Exception) {
-                android.util.Log.e("GameStateViewModel", "Error resetting game", e)
+            } catch (expectedCallbackFailure: Exception) {
+                android.util.Log.e("GameStateViewModel", "Error resetting game", expectedCallbackFailure)
             }
         }
     }
@@ -83,12 +86,14 @@ class GameStateViewModel(application: Application) : AndroidViewModel(applicatio
 
     // ========== SPEED CONTROL METHODS ==========
 
+    // SharedPreferences.getInt() throws ClassCastException if a value stored under that key
+    // isn't an Int (e.g. a stale value from a preferences-format change).
     fun restoreGameSpeedFromPreferences() {
         viewModelScope.launch {
             try {
                 val speed = preferencesRepository.getGameSpeedSync()
                 setGameSpeed(speed)
-            } catch (e: Exception) {
+            } catch (e: ClassCastException) {
                 android.util.Log.e("GameStateViewModel", "Error restoring game speed", e)
             }
         }

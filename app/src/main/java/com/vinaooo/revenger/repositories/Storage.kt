@@ -1,11 +1,15 @@
 package com.vinaooo.revenger.repositories
 
 import android.content.Context
+import android.util.Log
 import java.io.File
+import java.io.IOException
 
 /** Singleton responsible for providing stable paths for ROM, SRAM and save states. */
 class Storage(context: Context) {
     companion object {
+        private const val TAG = "Storage"
+
         @Volatile private var instance: Storage? = null
 
         fun getInstance(context: Context): Storage =
@@ -55,8 +59,10 @@ class Storage(context: Context) {
             if (!legacyFile.delete()) {
                 // Removal failed; legacy file will be kept without affecting the new state
             }
-        } catch (e: Exception) {
-            // Migration failures are ignored to maintain compatibility with previous behavior
+        } catch (e: IOException) {
+            Log.w(TAG, "Failed to migrate legacy file $fileName", e)
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Failed to migrate legacy file $fileName", e)
         }
     }
 }

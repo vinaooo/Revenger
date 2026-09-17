@@ -4,7 +4,9 @@ import android.content.Context
 import android.util.Log
 import com.vinaooo.revenger.models.DefaultSettingsProfile
 import org.json.JSONArray
+import org.json.JSONException
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStreamReader
 
 /**
@@ -33,7 +35,10 @@ object DefaultSettingsRepository {
             val jsonArray = JSONArray(jsonString)
             profiles = DefaultSettingsProfile.parseProfiles(jsonArray)
             Log.d(TAG, "Loaded ${profiles!!.size} platform profiles")
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Log.e(TAG, "Failed to load default settings", e)
+            profiles = emptyList()
+        } catch (e: JSONException) {
             Log.e(TAG, "Failed to load default settings", e)
             profiles = emptyList()
         }

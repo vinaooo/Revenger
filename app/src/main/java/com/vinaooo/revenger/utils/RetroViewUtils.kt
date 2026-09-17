@@ -2,17 +2,27 @@ package com.vinaooo.revenger.utils
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import androidx.core.content.edit
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.repositories.Storage
 import com.vinaooo.revenger.retroview.RetroView
+import java.io.IOException
 
 class RetroViewUtils(private val activity: Activity) {
+    companion object {
+        private const val TAG = "RetroViewUtils"
+    }
+
     /** Retorna o caminho do arquivo de save state utilizado */
     fun getSaveStatePath(): String? {
         return try {
             storage.state.absolutePath
-        } catch (e: Exception) {
+            // File.getAbsolutePath() documents no throwable condition here: storage.state is
+            // already derived from Context.filesDir (always absolute), and Android has no
+            // SecurityManager, so there is no narrower reachable type.
+        } catch (expectedUnreachable: Exception) {
+            Log.w(TAG, "Could not resolve save state path", expectedUnreachable)
             null
         }
     }
@@ -101,8 +111,17 @@ class RetroViewUtils(private val activity: Activity) {
             val stateBytes = retroView.view.serializeState()
 
             storage.state.outputStream().use { it.write(stateBytes) }
-        } catch (e: Exception) {
-            // Save errors are ignored to maintain compatibility with previous behavior
+        } catch (e: IOException) {
+            Log.e(TAG, "Failed to write save state file", e)
+            // serializeState() runs on LibretroDroid's GL thread via a blocking CountDownLatch; a
+            // failure inside the native call there deadlocks the latch rather than propagating an
+            // exception back to this thread, and the only checked failure mode reaching here (the
+            // library unboxing a null native result) surfaces as a plain NullPointerException,
+            // which this project's detekt config still treats as "too generic" -- so there is no
+            // narrower reachable type to catch. Kept as a safety net via detekt's documented
+            // escape hatch instead of @Suppress.
+        } catch (expectedNativeCallFailure: Exception) {
+            Log.e(TAG, "Failed to save state", expectedNativeCallFailure)
         }
     }
 
