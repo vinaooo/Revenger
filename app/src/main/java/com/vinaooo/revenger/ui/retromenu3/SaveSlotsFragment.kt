@@ -114,7 +114,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             val textViews = mutableListOf<TextView>()
             findAllTextViews(dialog, textViews)
             textViews.removeAll { it is RetroEditText }
-            ViewUtils.applySelectedFontToViews(requireContext(), *textViews.toTypedArray())
+            ViewUtils.applySelectedFontToViews(requireContext(), textViews)
 
             // Initialize RetroKeyboard
             retroKeyboard = RetroKeyboard(
