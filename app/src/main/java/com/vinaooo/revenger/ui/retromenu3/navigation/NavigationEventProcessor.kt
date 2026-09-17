@@ -191,60 +191,68 @@ class NavigationEventProcessor(
                 "Activate item: index=${stateManager.selectedItemIndex} (menu: ${stateManager.currentMenu})"
         )
 
-        if (stateManager.currentMenu == MenuType.MAIN) {
-            val targetMenu =
-                    when (stateManager.selectedItemIndex) {
-                        MenuIndices.CONTINUE -> {
-                            // Continue
-                            Log.d(TAG, "Continue selected - closing menu")
-                            fragmentAdapter.hideMenu()
-                            stateManager.unregisterFragment()
-                            eventQueue.clear()
-                            onMenuClosed(lastActionButton)
-                            lastActionButton = null
-                            return
-                        }
-                        MenuIndices.RESET -> {
-                            // Reset
-                            Log.d(TAG, "Reset selected")
-                            val handled = stateManager.currentFragment?.onConfirm() ?: false
-                            if (handled) {
-                                Log.d(TAG, "Reset handled by fragment")
-                            } else {
-                                Log.w(TAG, "Reset NOT handled by fragment")
-                            }
-                            return
-                        }
-                        MenuIndices.PROGRESS -> MenuType.PROGRESS
-                        MenuIndices.SETTINGS -> MenuType.SETTINGS
-                        MenuIndices.ABOUT -> MenuType.ABOUT
-                        MenuIndices.EXIT -> MenuType.EXIT
-                        else -> {
-                            Log.w(
-                                    TAG,
-                                    "Unknown menu item index: ${stateManager.selectedItemIndex}"
-                            )
-                            return
-                        }
+        if (stateManager.currentMenu != MenuType.MAIN) {
+            activateSubmenuItem()
+            return
+        }
+
+        val targetMenu = resolveMainMenuActivation() ?: return
+
+        stateManager.pushCurrentState()
+        stateManager.updateCurrentMenu(targetMenu)
+        stateManager.updateSelectedIndex(0)
+        fragmentAdapter.showMenu(targetMenu)
+
+        Log.d(TAG, "Navigated to submenu: $targetMenu")
+    }
+
+    /**
+     * Resolves what the currently selected MAIN menu item should navigate to, or handles it
+     * directly (Continue/Reset/unknown index) and returns null when there's nothing further for
+     * [activateItem] to do.
+     */
+    private fun resolveMainMenuActivation(): MenuType? =
+            when (stateManager.selectedItemIndex) {
+                MenuIndices.CONTINUE -> {
+                    Log.d(TAG, "Continue selected - closing menu")
+                    fragmentAdapter.hideMenu()
+                    stateManager.unregisterFragment()
+                    eventQueue.clear()
+                    onMenuClosed(lastActionButton)
+                    lastActionButton = null
+                    null
+                }
+                MenuIndices.RESET -> {
+                    Log.d(TAG, "Reset selected")
+                    val handled = stateManager.currentFragment?.onConfirm() ?: false
+                    if (handled) {
+                        Log.d(TAG, "Reset handled by fragment")
+                    } else {
+                        Log.w(TAG, "Reset NOT handled by fragment")
                     }
-
-            stateManager.pushCurrentState()
-            stateManager.updateCurrentMenu(targetMenu)
-            stateManager.updateSelectedIndex(0)
-            fragmentAdapter.showMenu(targetMenu)
-
-            Log.d(TAG, "Navigated to submenu: $targetMenu")
-        } else {
-            Log.d(
-                    TAG,
-                    "Activating item in submenu ${stateManager.currentMenu} at index ${stateManager.selectedItemIndex}"
-            )
-            val handled = stateManager.currentFragment?.onConfirm() ?: false
-            if (handled) {
-                Log.d(TAG, "Item activation handled by fragment")
-            } else {
-                Log.w(TAG, "Item activation NOT handled by fragment")
+                    null
+                }
+                MenuIndices.PROGRESS -> MenuType.PROGRESS
+                MenuIndices.SETTINGS -> MenuType.SETTINGS
+                MenuIndices.ABOUT -> MenuType.ABOUT
+                MenuIndices.EXIT -> MenuType.EXIT
+                else -> {
+                    Log.w(TAG, "Unknown menu item index: ${stateManager.selectedItemIndex}")
+                    null
+                }
             }
+
+    /** Activates the currently selected item within a submenu (any menu other than MAIN). */
+    private fun activateSubmenuItem() {
+        Log.d(
+                TAG,
+                "Activating item in submenu ${stateManager.currentMenu} at index ${stateManager.selectedItemIndex}"
+        )
+        val handled = stateManager.currentFragment?.onConfirm() ?: false
+        if (handled) {
+            Log.d(TAG, "Item activation handled by fragment")
+        } else {
+            Log.w(TAG, "Item activation NOT handled by fragment")
         }
     }
 
@@ -255,20 +263,43 @@ class NavigationEventProcessor(
     override fun navigateBack(): Boolean {
         Log.d(TAG, "[NAVIGATE_BACK] Navigate back called")
 
-        // IMPORTANT: First, let the current fragment handle the back event
-        // This allows fragments with dialogs to consume the back event
-        val fragment = stateManager.currentFragment
-        if (fragment != null) {
+        return BackNavigator().resolve()
+    }
+
+    /**
+     * Implements [navigateBack]'s decision chain as small single-purpose steps. An `inner class`
+     * (for direct access to [stateManager]/[fragmentAdapter]/[lastActionButton] etc.) split out of
+     * [NavigationEventProcessor] so that class stays under the project's function-count threshold.
+     */
+    private inner class BackNavigator {
+
+        fun resolve(): Boolean =
+                tryFragmentConsumedBack() ?: tryCloseAtMainWithEmptyStack() ?: restoreFromBackStack()
+
+        /**
+         * Lets the current fragment handle the back event first (e.g. a fragment with an open
+         * dialog). Returns `true` if the fragment consumed it, `null` if there's no fragment or
+         * it didn't -- meaning [resolve] should keep trying the next step.
+         */
+        private fun tryFragmentConsumedBack(): Boolean? {
+            // IMPORTANT: This allows fragments with dialogs to consume the back event before it
+            // navigates back in the menu stack.
+            val fragment = stateManager.currentFragment ?: return null
             val consumed = fragment.onBack()
             Log.d(TAG, "[NAVIGATE_BACK] Fragment onBack() returned: $consumed")
-            if (consumed) {
-                // Fragment consumed the event (e.g., closed a dialog)
-                // Don't navigate back in the menu stack
-                return true
-            }
+            return if (consumed) true else null
         }
 
-        if (stateManager.currentMenu == MenuType.MAIN && stateManager.isStackEmpty()) {
+        /**
+         * Closes the menu completely when already at MAIN with an empty back stack. Returns
+         * `true` when it did so, `null` when that's not the current state -- meaning [resolve]
+         * should keep trying the next step.
+         */
+        private fun tryCloseAtMainWithEmptyStack(): Boolean? {
+            if (stateManager.currentMenu != MenuType.MAIN || !stateManager.isStackEmpty()) {
+                return null
+            }
+
             Log.d(TAG, "[NAVIGATE_BACK] At main menu, closing menu completely")
             Log.d(TAG, "[NAVIGATE_BACK] Resetting combo state before menu close")
             onMenuClosed(lastActionButton)
@@ -281,9 +312,13 @@ class NavigationEventProcessor(
             return true
         }
 
-        val previousState = stateManager.popState()
+        /**
+         * Pops the previous state off the navigation stack and restores it, or falls back to
+         * MAIN when the stack was already empty.
+         */
+        private fun restoreFromBackStack(): Boolean {
+            val previousState = stateManager.popState() ?: return restoreToMainMenu()
 
-        if (previousState != null) {
             stateManager.updateCurrentMenu(previousState.menuType)
             stateManager.updateSelectedIndex(previousState.selectedIndex)
 
@@ -294,47 +329,44 @@ class NavigationEventProcessor(
             )
 
             if (stateManager.currentMenu == MenuType.MAIN && stateManager.isStackEmpty()) {
-                Log.d(
-                        TAG,
-                        "[NAVIGATE_BACK] Returned to main menu, resetting combo state"
-                )
+                Log.d(TAG, "[NAVIGATE_BACK] Returned to main menu, resetting combo state")
                 lastActionButton = null
             }
 
             val success = fragmentAdapter.navigateBack()
-            Log.d(
-                    TAG,
-                    "[NAVIGATE_BACK] fragmentAdapter.navigateBack() returned: $success"
-            )
+            Log.d(TAG, "[NAVIGATE_BACK] fragmentAdapter.navigateBack() returned: $success")
             return success
-        } else {
+        }
+
+        /**
+         * Falls back to MAIN when the navigation stack was already empty. A submenu opened
+         * directly as the root (no parent on the stack -- e.g. the PiP "Save and Exit" grid) has
+         * now been popped and nothing is left, so this closes the menu fully so listeners run,
+         * mirroring [tryCloseAtMainWithEmptyStack] -- otherwise onMenuClosed() never fires and
+         * the game stays paused.
+         */
+        private fun restoreToMainMenu(): Boolean {
             stateManager.updateCurrentMenu(MenuType.MAIN)
             stateManager.updateSelectedIndex(0)
 
             Log.d(TAG, "[NAVIGATE_BACK] Stack empty, setting to main menu")
 
             val success = fragmentAdapter.navigateBack()
-            Log.d(
-                    TAG,
-                    "[NAVIGATE_BACK] fragmentAdapter.navigateBack() returned: $success"
-            )
+            Log.d(TAG, "[NAVIGATE_BACK] fragmentAdapter.navigateBack() returned: $success")
 
-            // A submenu opened directly as the root (no parent on the stack — e.g. the PiP
-            // "Save and Exit" grid) has now been popped and nothing is left. Close the menu
-            // fully so listeners run, mirroring the MAIN + empty-stack branch above —
-            // otherwise onMenuClosed() never fires and the game stays paused.
-            if (fragmentAdapter.getBackStackCount() == 0) {
-                Log.d(TAG, "[NAVIGATE_BACK] Menu fully closed via rootless path — notifying close")
-                onMenuClosed(lastActionButton)
-                fragmentAdapter.hideMenu()
-                stateManager.unregisterFragment()
-                eventQueue.clear()
-                lastActionButton = null
-                // The back press WAS handled (menu closed), even though fragmentAdapter
-                // returns false for an already-empty back stack.
-                return true
+            if (fragmentAdapter.getBackStackCount() != 0) {
+                return success
             }
-            return success
+
+            Log.d(TAG, "[NAVIGATE_BACK] Menu fully closed via rootless path — notifying close")
+            onMenuClosed(lastActionButton)
+            fragmentAdapter.hideMenu()
+            stateManager.unregisterFragment()
+            eventQueue.clear()
+            lastActionButton = null
+            // The back press WAS handled (menu closed), even though fragmentAdapter
+            // returns false for an already-empty back stack.
+            return true
         }
     }
 

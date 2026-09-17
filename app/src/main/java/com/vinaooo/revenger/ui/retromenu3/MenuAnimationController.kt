@@ -90,157 +90,63 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                         "MenuAnimationController: updateSelectionVisual for index $selectedIndex"
                 )
 
-                // Update title colors based on selection
-                menuViews.continueTitle.setTextColor(
-                        if (selectedIndex == MENU_ITEM_CONTINUE)
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.continueTitle.context,
-                                        R.color.rm_selected_color
-                                )
-                        else
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.continueTitle.context,
-                                        R.color.rm_normal_color
-                                )
-                )
-                menuViews.resetTitle.setTextColor(
-                        if (selectedIndex == MENU_ITEM_RESET)
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.resetTitle.context,
-                                        R.color.rm_selected_color
-                                )
-                        else
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.resetTitle.context,
-                                        R.color.rm_normal_color
-                                )
-                )
-                menuViews.progressTitle.setTextColor(
-                        if (selectedIndex == MENU_ITEM_PROGRESS)
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.progressTitle.context,
-                                        R.color.rm_selected_color
-                                )
-                        else
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.progressTitle.context,
-                                        R.color.rm_normal_color
-                                )
-                )
-                menuViews.settingsTitle.setTextColor(
-                        if (selectedIndex == MENU_ITEM_SETTINGS)
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.settingsTitle.context,
-                                        R.color.rm_selected_color
-                                )
-                        else
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.settingsTitle.context,
-                                        R.color.rm_normal_color
-                                )
-                )
-                menuViews.aboutTitle.setTextColor(
-                        if (selectedIndex == MENU_ITEM_ABOUT)
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.aboutTitle.context,
-                                        R.color.rm_selected_color
-                                )
-                        else
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.aboutTitle.context,
-                                        R.color.rm_normal_color
-                                )
-                )
-                menuViews.exitTitle.setTextColor(
-                        if (selectedIndex == MENU_ITEM_EXIT)
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.exitTitle.context,
-                                        R.color.rm_selected_color
-                                )
-                        else
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.exitTitle.context,
-                                        R.color.rm_normal_color
-                                )
-                )
+                updateTitleColors(selectedIndex)
+                updateSelectionArrows(selectedIndex)
+        }
 
-                // Update selection arrow visibility and colors
-                // Continue
-                if (selectedIndex == MENU_ITEM_CONTINUE) {
-                        menuViews.selectionArrowContinue.setTextColor(
+        /** Updates the text color of every menu item title based on which index is selected. */
+        private fun updateTitleColors(selectedIndex: Int) {
+                applyTitleColor(menuViews.continueTitle, selectedIndex == MENU_ITEM_CONTINUE)
+                applyTitleColor(menuViews.resetTitle, selectedIndex == MENU_ITEM_RESET)
+                applyTitleColor(menuViews.progressTitle, selectedIndex == MENU_ITEM_PROGRESS)
+                applyTitleColor(menuViews.settingsTitle, selectedIndex == MENU_ITEM_SETTINGS)
+                applyTitleColor(menuViews.aboutTitle, selectedIndex == MENU_ITEM_ABOUT)
+                applyTitleColor(menuViews.exitTitle, selectedIndex == MENU_ITEM_EXIT)
+        }
+
+        /** Updates visibility and color of every selection arrow based on which index is selected. */
+        private fun updateSelectionArrows(selectedIndex: Int) {
+                applyArrowVisibility(
+                        menuViews.selectionArrowContinue,
+                        selectedIndex == MENU_ITEM_CONTINUE
+                )
+                applyArrowVisibility(menuViews.selectionArrowReset, selectedIndex == MENU_ITEM_RESET)
+                applyArrowVisibility(
+                        menuViews.selectionArrowProgress,
+                        selectedIndex == MENU_ITEM_PROGRESS
+                )
+                applyArrowVisibility(
+                        menuViews.selectionArrowSettings,
+                        selectedIndex == MENU_ITEM_SETTINGS
+                )
+                applyArrowVisibility(menuViews.selectionArrowAbout, selectedIndex == MENU_ITEM_ABOUT)
+                applyArrowVisibility(menuViews.selectionArrowExit, selectedIndex == MENU_ITEM_EXIT)
+        }
+
+        /** Sets [view]'s text color to the selected or normal color depending on [isSelected]. */
+        private fun applyTitleColor(view: android.widget.TextView, isSelected: Boolean) {
+                view.setTextColor(
+                        androidx.core.content.ContextCompat.getColor(
+                                view.context,
+                                if (isSelected) R.color.rm_selected_color else R.color.rm_normal_color
+                        )
+                )
+        }
+
+        /**
+         * Shows [arrow] in the selected color when [isSelected] is true, otherwise hides it.
+         */
+        private fun applyArrowVisibility(arrow: android.widget.TextView, isSelected: Boolean) {
+                if (isSelected) {
+                        arrow.setTextColor(
                                 androidx.core.content.ContextCompat.getColor(
-                                        menuViews.selectionArrowContinue.context,
+                                        arrow.context,
                                         R.color.rm_selected_color
                                 )
                         )
-                        menuViews.selectionArrowContinue.visibility = View.VISIBLE
+                        arrow.visibility = View.VISIBLE
                 } else {
-                        menuViews.selectionArrowContinue.visibility = View.GONE
-                }
-
-                // Reset
-                if (selectedIndex == MENU_ITEM_RESET) {
-                        menuViews.selectionArrowReset.setTextColor(
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.selectionArrowReset.context,
-                                        R.color.rm_selected_color
-                                )
-                        )
-                        menuViews.selectionArrowReset.visibility = View.VISIBLE
-                } else {
-                        menuViews.selectionArrowReset.visibility = View.GONE
-                }
-
-                // Progress
-                if (selectedIndex == MENU_ITEM_PROGRESS) {
-                        menuViews.selectionArrowProgress.setTextColor(
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.selectionArrowProgress.context,
-                                        R.color.rm_selected_color
-                                )
-                        )
-                        menuViews.selectionArrowProgress.visibility = View.VISIBLE
-                } else {
-                        menuViews.selectionArrowProgress.visibility = View.GONE
-                }
-
-                // Settings
-                if (selectedIndex == MENU_ITEM_SETTINGS) {
-                        menuViews.selectionArrowSettings.setTextColor(
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.selectionArrowSettings.context,
-                                        R.color.rm_selected_color
-                                )
-                        )
-                        menuViews.selectionArrowSettings.visibility = View.VISIBLE
-                } else {
-                        menuViews.selectionArrowSettings.visibility = View.GONE
-                }
-
-                // About
-                if (selectedIndex == MENU_ITEM_ABOUT) {
-                        menuViews.selectionArrowAbout.setTextColor(
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.selectionArrowAbout.context,
-                                        R.color.rm_selected_color
-                                )
-                        )
-                        menuViews.selectionArrowAbout.visibility = View.VISIBLE
-                } else {
-                        menuViews.selectionArrowAbout.visibility = View.GONE
-                }
-
-                // Exit
-                if (selectedIndex == MENU_ITEM_EXIT) {
-                        menuViews.selectionArrowExit.setTextColor(
-                                androidx.core.content.ContextCompat.getColor(
-                                        menuViews.selectionArrowExit.context,
-                                        R.color.rm_selected_color
-                                )
-                        )
-                        menuViews.selectionArrowExit.visibility = View.VISIBLE
-                } else {
-                        menuViews.selectionArrowExit.visibility = View.GONE
+                        arrow.visibility = View.GONE
                 }
         }
 
