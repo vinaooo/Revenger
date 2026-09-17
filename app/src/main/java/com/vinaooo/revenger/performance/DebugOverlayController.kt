@@ -62,15 +62,25 @@ class DebugOverlayController(
     private var debugOverlayUpdateRunnable: Runnable? = null
 
     override fun showDebugOverlay(context: Context) {
-        if (!shouldShowPerformanceOverlay(context)) return
+        if (!shouldShowPerformanceOverlay(context)) {
+            Log.d(TAG, "shouldShowPerformanceOverlay returned false")
+            return
+        }
 
-        val activity = context as? Activity ?: return
+        val activity =
+                context as? Activity
+                        ?: run {
+                            Log.d(TAG, "Context is not Activity")
+                            return
+                        }
 
         activity.runOnUiThread {
             if (debugOverlayView == null) {
                 val view = buildDebugOverlayView(context)
                 debugOverlayView = view
                 attachOverlayToRoot(activity, view)
+            } else {
+                Log.d(TAG, "Debug overlay view already exists")
             }
             startDebugOverlayUpdates()
         }
@@ -172,7 +182,9 @@ class DebugOverlayController(
     private fun shouldShowPerformanceOverlay(context: Context): Boolean {
         // Check config setting first (even in debug builds)
         return try {
-            getConfigBoolean(context, "performance_overlay")
+            val configValue = getConfigBoolean(context, "performance_overlay")
+            Log.d(TAG, "Config value for performance_overlay: $configValue")
+            configValue
             // getConfigBoolean() handles its own resource-lookup failures internally and does not
             // rethrow, so nothing is actually reachable here today; kept as a defensive net in
             // case that internal contract changes.

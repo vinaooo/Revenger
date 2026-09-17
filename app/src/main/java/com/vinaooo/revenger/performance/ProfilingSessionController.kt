@@ -3,15 +3,9 @@ package com.vinaooo.revenger.performance
 import android.content.Context
 import android.os.Handler
 import androidx.annotation.RequiresApi
+import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler.ProfileLevel
 import com.vinaooo.revenger.utils.AndroidCompatibility
 import java.util.concurrent.ConcurrentHashMap
-
-/** Profiling depth dispatched based on the running Android version. */
-enum class ProfileLevel {
-    BASIC,
-    STANDARD,
-    ADVANCED
-}
 
 /**
  * Session lifecycle (start/stop) for [AdvancedPerformanceProfiler], re-exposed on it via Kotlin

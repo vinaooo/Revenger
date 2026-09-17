@@ -42,4 +42,30 @@ private val debugOverlayController =
 object AdvancedPerformanceProfiler :
         ProfilingSession by profilingSessionController,
         FrameStatsProvider by frameStatsTracker,
-        DebugOverlay by debugOverlayController
+        DebugOverlay by debugOverlayController {
+
+    // These three types were nested inside this object before the collaborator split, so
+    // AdvancedPerformanceProfiler.ProfileLevel / .MemoryInfo / .FrameStats were part of its public
+    // type surface. They're kept nested here (rather than made top-level in each collaborator's
+    // own file) purely to preserve that surface -- the collaborators reference them qualified.
+    // A nested (non-inner) type like this compiles to its own class file, and referencing it as a
+    // type does not trigger this object's initialization, so nesting them back does not
+    // reintroduce the circular-init problem the collaborator split otherwise had to avoid.
+
+    /** Profiling depth dispatched based on the running Android version. */
+    enum class ProfileLevel {
+        BASIC,
+        STANDARD,
+        ADVANCED
+    }
+
+    /** Memory snapshot returned by [HardwareMetricsCollector.getMemoryInfo]. */
+    data class MemoryInfo(val used: Long, val available: Long, val total: Long)
+
+    /** Aggregated frame-timing statistics, see [FrameStatsProvider.getFrameStats]. */
+    data class FrameStats(
+            val averageFps: Double,
+            val averageFrameTimeMs: Double,
+            val droppedFrames: Int
+    )
+}

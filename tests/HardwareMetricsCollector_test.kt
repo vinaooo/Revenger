@@ -45,9 +45,9 @@ class HardwareMetricsCollector_test {
     fun `getCpuUsage retorna uma porcentagem baseada em memoria usada e maxima`() {
         val cpuUsage = collector.getCpuUsage()
 
-        // Derived from used/max heap memory: never negative, and in practice well under 100
-        // long before the heap is actually exhausted.
-        assertTrue(cpuUsage >= 0.0)
+        // Derived from used/max heap memory as a 0-100 percentage (PERCENTAGE_MULTIPLIER = 100);
+        // pins the multiplier itself, not just non-negativity.
+        assertTrue(cpuUsage in 0.0..100.0)
     }
 
     @Test

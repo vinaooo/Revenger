@@ -1,15 +1,12 @@
 package com.vinaooo.revenger.performance
 
-/** Aggregated frame-timing statistics, see [FrameStatsProvider.getFrameStats]. */
-data class FrameStats(val averageFps: Double, val averageFrameTimeMs: Double, val droppedFrames: Int)
-
 /**
  * Frame-time bookkeeping and FPS calculation for [AdvancedPerformanceProfiler], re-exposed on it
  * via Kotlin interface delegation (`by`).
  */
 interface FrameStatsProvider {
     /** Get current frame statistics */
-    fun getFrameStats(): FrameStats
+    fun getFrameStats(): AdvancedPerformanceProfiler.FrameStats
 
     /** Add frame time measurement */
     fun recordFrameTime(frameTimeNs: Long)
@@ -44,7 +41,7 @@ class FrameStatsTracker : FrameStatsProvider {
     private var frameCount = 0
     private var emulatorFps = 0.0
 
-    override fun getFrameStats(): FrameStats {
+    override fun getFrameStats(): AdvancedPerformanceProfiler.FrameStats {
         synchronized(frameTimeData) {
             val frameTimesMs =
                     frameTimeData.map { it / NANOS_PER_MILLISECOND } // Convert to milliseconds
@@ -63,7 +60,7 @@ class FrameStatsTracker : FrameStatsProvider {
             val targetFrameTimeMs = MILLISECONDS_PER_SECOND / TARGET_FPS // 16.67ms for 60fps
             val droppedFrames = frameTimesMs.count { it > targetFrameTimeMs }
 
-            return FrameStats(fps, averageFrameTimeMs, droppedFrames)
+            return AdvancedPerformanceProfiler.FrameStats(fps, averageFrameTimeMs, droppedFrames)
         }
     }
 

@@ -8,9 +8,6 @@ import java.util.concurrent.ConcurrentHashMap
 /** SDK level gating the "advanced" (Android 16+) profiling path. */
 internal const val ANDROID_16_API_LEVEL = 36
 
-/** Memory snapshot returned by [HardwareMetricsCollector.getMemoryInfo]. */
-data class MemoryInfo(val used: Long, val available: Long, val total: Long)
-
 /**
  * Per-SDK-level hardware metric collection (GPU/memory/thermal/frame-pacing stubs, plus the basic
  * memory/CPU sampling used on every level), extracted from [AdvancedPerformanceProfiler] purely to
@@ -76,12 +73,12 @@ class HardwareMetricsCollector(private val performanceData: ConcurrentHashMap<St
     }
 
     /** Get memory information */
-    fun getMemoryInfo(context: Context): MemoryInfo {
+    fun getMemoryInfo(context: Context): AdvancedPerformanceProfiler.MemoryInfo {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val memInfo = ActivityManager.MemoryInfo()
         activityManager.getMemoryInfo(memInfo)
 
-        return MemoryInfo(
+        return AdvancedPerformanceProfiler.MemoryInfo(
                 used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory(),
                 available = memInfo.availMem,
                 total = memInfo.totalMem

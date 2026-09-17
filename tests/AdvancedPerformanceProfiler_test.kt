@@ -65,7 +65,9 @@ class AdvancedPerformanceProfiler_test {
         AdvancedPerformanceProfiler.recordFrameTime(10_000_000L)
         AdvancedPerformanceProfiler.recordFrameTime(20_000_000L)
 
-        val stats = AdvancedPerformanceProfiler.getFrameStats()
+        // Explicit type pins the public contract: AdvancedPerformanceProfiler.FrameStats must
+        // keep resolving as a qualified type name after the collaborator split.
+        val stats: AdvancedPerformanceProfiler.FrameStats = AdvancedPerformanceProfiler.getFrameStats()
 
         assertEquals(15.0, stats.averageFrameTimeMs, 0.001)
         assertEquals(1000.0 / 15.0, stats.averageFps, 0.001)
