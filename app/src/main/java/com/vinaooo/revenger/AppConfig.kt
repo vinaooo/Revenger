@@ -8,6 +8,9 @@ import com.vinaooo.revenger.repositories.DefaultSettingsRepository
 import com.vinaooo.revenger.utils.ConfigIdGenerator
 import java.io.InputStreamReader
 
+// Field names mirror config.json's keys verbatim (Gson matches by field name, no
+// @SerializedName), so they must stay snake_case rather than follow Kotlin naming style.
+@Suppress("ConstructorParameterNaming")
 data class BaseConfig(
     val default_settings: Boolean = false,
     val platform: String = "",
@@ -16,6 +19,9 @@ data class BaseConfig(
     val target_abi: String = ""
 )
 
+// Field names mirror config_manual.json's keys verbatim (Gson matches by field name, no
+// @SerializedName), so they must stay snake_case rather than follow Kotlin naming style.
+@Suppress("ConstructorParameterNaming")
 data class ManualConfig(
     val core: String = "",
     val variables: String = "",
@@ -50,6 +56,9 @@ data class ManualConfig(
     val performance_overlay: Boolean = false
 )
 
+// Field names mirror config_manual.json's gamepad-asset keys verbatim (Gson matches by field
+// name, no @SerializedName), so they must stay snake_case rather than follow Kotlin naming style.
+@Suppress("ConstructorParameterNaming")
 data class GamePadAssetsConfig(
     val button_button_color: String = "#88ffffff",
     val gp_pressed_color: String = "#66ffffff",
@@ -63,8 +72,11 @@ data class GamePadAssetsConfig(
  * Provides unified access to both static config.xml values and dynamic default settings.
  */
 class AppConfig(private val context: Context) {
-    private val TAG = "AppConfig"
-    
+    companion object {
+        private const val TAG = "AppConfig"
+    }
+
+
     private val baseConfig: BaseConfig
     private val manualConfig: ManualConfig
     val gamePadConfigModel: GamePadAssetsConfig
