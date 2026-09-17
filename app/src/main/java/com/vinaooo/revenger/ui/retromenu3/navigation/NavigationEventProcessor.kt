@@ -4,6 +4,49 @@ import android.util.Log
 import com.vinaooo.revenger.ui.retromenu3.MenuIndices
 
 /**
+ * Directional navigation commands: up/down/left/right, direct selection, activation and back.
+ *
+ * Owned and implemented by [NavigationEventProcessor]. Split into its own interface so
+ * [NavigationController] can expose the pure pass-through ones back out unchanged via interface
+ * delegation (`by`), instead of redeclaring a thin wrapper for each one -- keeps both classes
+ * under the project's function-count threshold without changing any behavior.
+ */
+interface NavigationCommands {
+    /** Navigates to the item above (UP). */
+    fun navigateUp()
+
+    /** Navigates to the item below (DOWN). */
+    fun navigateDown()
+
+    /** Navigate left (LEFT). Used for 2D grid navigation. */
+    fun navigateLeft()
+
+    /** Navigates right (RIGHT). Used for 2D grid navigation. */
+    fun navigateRight()
+
+    /** Selects a specific item directly. */
+    fun selectItem(index: Int)
+
+    /** Activates the currently selected item. */
+    fun activateItem()
+
+    /**
+     * Navigate back.
+     * @return true if navigated back, false if already at main menu
+     */
+    fun navigateBack(): Boolean
+
+    /**
+     * Navigate to a specific submenu, pushing the current state. Used by fragments to
+     * navigate to submenus while maintaining history.
+     *
+     * @param targetMenu Target menu
+     * @param saveCurrentState Whether to save the current state on the stack (default: true)
+     */
+    fun navigateToSubmenu(targetMenu: MenuType, saveCurrentState: Boolean = true)
+}
+
+/**
  * Navigation event processor.
  *
  * Responsible for the logic of processing events and executing navigation actions. Removes the
@@ -15,7 +58,7 @@ class NavigationEventProcessor(
         private val eventQueue: EventQueue,
         private val onMenuOpened: () -> Unit,
         private val onMenuClosed: (Int?) -> Unit
-) {
+) : NavigationCommands {
 
     /** Tracks the last button that caused an action (for grace period) */
     private var lastActionButton: Int? = null
@@ -84,7 +127,7 @@ class NavigationEventProcessor(
     }
 
     /** Navigates to the item above (UP). */
-    fun navigateUp() {
+    override fun navigateUp() {
         // PHASE 3.2: Delegate navigation to fragment to support custom logic
         stateManager.currentFragment?.onNavigateUp()
 
@@ -95,7 +138,7 @@ class NavigationEventProcessor(
     }
 
     /** Navigates to the item below (DOWN). */
-    fun navigateDown() {
+    override fun navigateDown() {
         // PHASE 3.2: Delegate navigation to fragment to support custom logic
         stateManager.currentFragment?.onNavigateDown()
 
@@ -106,7 +149,7 @@ class NavigationEventProcessor(
     }
 
     /** Navigate left (LEFT). Used for 2D grid navigation. */
-    fun navigateLeft() {
+    override fun navigateLeft() {
         val handled = stateManager.currentFragment?.onNavigateLeft() ?: false
         if (handled) {
             // Sync selectedItemIndex with fragment's current selection
@@ -117,7 +160,7 @@ class NavigationEventProcessor(
     }
 
     /** Navigates right (RIGHT). Used for 2D grid navigation. */
-    fun navigateRight() {
+    override fun navigateRight() {
         val handled = stateManager.currentFragment?.onNavigateRight() ?: false
         if (handled) {
             // Sync selectedItemIndex with fragment's current selection
@@ -128,7 +171,7 @@ class NavigationEventProcessor(
     }
 
     /** Selects a specific item directly. */
-    fun selectItem(index: Int) {
+    override fun selectItem(index: Int) {
         if (index < 0 || index >= stateManager.currentMenuItemCount) {
             Log.w(
                     TAG,
@@ -142,7 +185,7 @@ class NavigationEventProcessor(
     }
 
     /** Activates the currently selected item. */
-    fun activateItem() {
+    override fun activateItem() {
         Log.d(
                 TAG,
                 "Activate item: index=${stateManager.selectedItemIndex} (menu: ${stateManager.currentMenu})"
@@ -209,7 +252,7 @@ class NavigationEventProcessor(
      * Navigate back.
      * @return true if navigated back, false if already at main menu
      */
-    fun navigateBack(): Boolean {
+    override fun navigateBack(): Boolean {
         Log.d(TAG, "[NAVIGATE_BACK] Navigate back called")
 
         // IMPORTANT: First, let the current fragment handle the back event
@@ -359,7 +402,7 @@ class NavigationEventProcessor(
      * @param targetMenu Target menu
      * @param saveCurrentState Whether to save the current state on the stack (default: true)
      */
-    fun navigateToSubmenu(targetMenu: MenuType, saveCurrentState: Boolean = true) {
+    override fun navigateToSubmenu(targetMenu: MenuType, saveCurrentState: Boolean) {
         Log.d(
                 TAG,
                 "[NAV_TO_SUBMENU] Navigating to $targetMenu from ${stateManager.currentMenu} " +
