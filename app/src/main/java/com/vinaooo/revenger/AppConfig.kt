@@ -1,14 +1,8 @@
 package com.vinaooo.revenger
 
 import android.content.Context
-import android.util.Log
-import com.google.gson.Gson
-import com.google.gson.JsonParseException
 import com.vinaooo.revenger.models.DefaultSettingsProfile
-import com.vinaooo.revenger.repositories.DefaultSettingsRepository
 import com.vinaooo.revenger.utils.ConfigIdGenerator
-import java.io.IOException
-import java.io.InputStreamReader
 
 // Field names mirror config.json's keys verbatim (Gson matches by field name, no
 // @SerializedName), so they must stay snake_case rather than follow Kotlin naming style.
@@ -72,159 +66,41 @@ data class GamePadAssetsConfig(
 /**
  * Centralized application configuration facade.
  * Provides unified access to both static config.xml values and dynamic default settings.
+ *
+ * The 40+ individual getters this facade used to declare directly are now split across small,
+ * per-domain delegates (`AppConfigIdentity`, `AppConfigDisplay`, `AppConfigMenuMode`,
+ * `AppConfigInput`, `AppConfigFaceButtons`, `AppConfigShoulderButtons`, `AppConfigFakeButtons`),
+ * each reading from the shared [ConfigSources] and re-exposed here via Kotlin interface
+ * delegation (`by`) -- see [ConfigSources] for why config loading itself lives there instead of
+ * in this class. This keeps the public `AppConfig`/`RevengerApplication.appConfig` surface
+ * unchanged: every caller keeps calling the same methods on the same object.
  */
-class AppConfig(private val context: Context) {
-    companion object {
-        private const val TAG = "AppConfig"
-    }
+class AppConfig(
+        context: Context,
+        private val sources: ConfigSources = ConfigSources(context)
+) :
+        AppConfigIdentity by AppConfigIdentityImpl(sources),
+        AppConfigDisplay by AppConfigDisplayImpl(sources),
+        AppConfigMenuMode by AppConfigMenuModeImpl(sources),
+        AppConfigInput by AppConfigInputImpl(sources),
+        AppConfigFaceButtons by AppConfigFaceButtonsImpl(sources),
+        AppConfigShoulderButtons by AppConfigShoulderButtonsImpl(sources),
+        AppConfigFakeButtons by AppConfigFakeButtonsImpl(sources) {
 
-
-    private val baseConfig: BaseConfig
-    private val manualConfig: ManualConfig
     val gamePadConfigModel: GamePadAssetsConfig
+        get() = sources.gamePadConfigModel
 
-    init {
-        val gson = Gson()
-        baseConfig = loadJsonAsset("config/config.json", BaseConfig::class.java, gson) ?: BaseConfig()
-        manualConfig = loadJsonAsset("config/config_manual.json", ManualConfig::class.java, gson) ?: ManualConfig()
-        gamePadConfigModel =
-                loadJsonAsset("config/gamepad.json", GamePadAssetsConfig::class.java, gson)
-                        ?: GamePadAssetsConfig()
-    }
-
-    private fun <T> loadJsonAsset(path: String, type: Class<T>, gson: Gson): T? {
-        return try {
-            context.assets.open(path).use { inputStream ->
-                InputStreamReader(inputStream).use { reader ->
-                    gson.fromJson(reader, type)
-                }
-            }
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to load config from $path", e)
-            null
-        } catch (e: JsonParseException) {
-            // Covers both JsonSyntaxException and JsonIOException, Gson's two parse-failure
-            // subclasses.
-            Log.e(TAG, "Failed to load config from $path", e)
-            null
-        }
-    }
-
-    private val profile: DefaultSettingsProfile? by lazy {
-        if (!isDefaultMode()) {
-            null
-        } else {
-            val platformId = getPlatformId()
-            val romName = getRomName()
-            val extension = extractExtension(romName)
-            
-            Log.d(TAG, "Resolving default profile: platformId=$platformId, extension=$extension")
-            
-            val resolvedProfile = DefaultSettingsRepository.findProfile(platformId, extension)
-            
-            if (resolvedProfile == null) {
-                Log.w(TAG, "No default profile found, falling back to assets config")
-            } else {
-                Log.i(TAG, "Using default profile: ${resolvedProfile.platformId} (core: ${resolvedProfile.core})")
-            }
-            
-            resolvedProfile
-        }
-    }
-
-    // ========== Identity settings (always from config.json) ==========
+    // ========== Identity/core composite (needs both name and core) ==========
 
     fun getId(): String = ConfigIdGenerator.generate(getName(), getCore())
-    fun getName(): String = baseConfig.name.takeIf { it.isNotEmpty() } ?: "Revenger"
-    fun getRomName(): String = baseConfig.rom
-    fun getTargetAbi(): String = baseConfig.target_abi
-    fun getPlatformId(): String = baseConfig.platform
 
     // ========== Core and variables (default profile overrides) ==========
 
-    fun getCore(): String = profile?.core ?: manualConfig.core
-    fun getVariables(): String = profile?.confVariables ?: manualConfig.variables
-
-    // ========== Performance settings (default profile overrides) ==========
-
-    fun getFastForwardMultiplier(): Int = profile?.confFastForwardMultiplier ?: manualConfig.fast_forward_multiplier
-
-    // ========== Display settings (default profile overrides) ==========
-
-    fun getFullscreen(): Boolean = profile?.confFullscreen ?: manualConfig.fullscreen
-    fun isPipEnabled(): Boolean = profile?.confEnablePip ?: manualConfig.enable_pip
-    fun getOrientation(): String = profile?.confOrientation ?: manualConfig.orientation
-    fun getShader(): String = profile?.confShader ?: manualConfig.shader
-
-    // ========== Menu settings (default profile overrides) ==========
-
-    fun getMenuModeFab(): String {
-        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
-        val match = Regex("fab=([\\w-]+)").find(mode)
-        return match?.groups?.get(1)?.value ?: ""
-    }
-    fun getMenuModeGamepad(): Boolean {
-        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
-        val modes = mode.split(",").map { it.trim() }
-        return modes.contains("gamepad")
-    }
-    fun getMenuModeBack(): Boolean {
-        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
-        val modes = mode.split(",").map { it.trim() }
-        return modes.contains("back")
-    }
-    fun getMenuModeCombo(): Boolean {
-        val mode = profile?.confMenuMode ?: manualConfig.menu_mode
-        val modes = mode.split(",").map { it.trim() }
-        return modes.contains("combo")
-    }
-
-    // ========== Gamepad settings (default profile overrides) ==========
-
-    fun getGamepad(): Boolean = profile?.confGamepad ?: manualConfig.gamepad
-    fun getGpHaptic(): Boolean = profile?.confGpHaptic ?: manualConfig.gp_haptic
-    fun getButtonAllowMultiplePressesAction(): Boolean =
-            profile?.confButtonAllowMultiplePressesAction
-                    ?: manualConfig.button_allow_multiple_presses_action
-    
-    fun getButtonA(): Boolean = profile?.confButtonA ?: manualConfig.button_a
-    fun getButtonB(): Boolean = profile?.confButtonB ?: manualConfig.button_b
-    fun getButtonX(): Boolean = profile?.confButtonX ?: manualConfig.button_x
-    fun getButtonY(): Boolean = profile?.confButtonY ?: manualConfig.button_y
-    fun getButtonStart(): Boolean = profile?.confButtonStart ?: manualConfig.button_start
-    fun getButtonSelect(): Boolean = profile?.confButtonSelect ?: manualConfig.button_select
-    fun getButtonL1(): Boolean = profile?.confButtonL1 ?: manualConfig.button_l1
-    fun getButtonR1(): Boolean = profile?.confButtonR1 ?: manualConfig.button_r1
-    fun getButtonL2(): Boolean = profile?.confButtonL2 ?: manualConfig.button_l2
-    fun getButtonR2(): Boolean = profile?.confButtonR2 ?: manualConfig.button_r2
-    fun getLeftAnalog(): Boolean = profile?.confLeftAnalog ?: manualConfig.left_analog
-
-    // ========== Debug settings (default profile overrides) ==========
-
-    fun getPerformanceOverlay(): Boolean = profile?.confPerformanceOverlay ?: manualConfig.performance_overlay
-
-    // ========== Fake buttons (always from manualConfig, not in default profiles) ==========
-
-    fun getFakeButton0(): Boolean = manualConfig.fake_button_0
-    fun getFakeButton1(): Boolean = manualConfig.fake_button_1
-    fun getFakeButton5(): Boolean = manualConfig.fake_button_5
-    fun getFakeButton6(): Boolean = manualConfig.fake_button_6
-    fun getFakeButton7(): Boolean = manualConfig.fake_button_7
-    fun getFakeButton9(): Boolean = manualConfig.fake_button_9
-    fun getFakeButton10(): Boolean = manualConfig.fake_button_10
-    fun getFakeButton11(): Boolean = manualConfig.fake_button_11
+    fun getCore(): String = sources.profile?.core ?: sources.manualConfig.core
+    fun getVariables(): String = sources.profile?.confVariables ?: sources.manualConfig.variables
 
     // ========== Utility methods ==========
 
-    private fun extractExtension(filename: String): String {
-        val lastDot = filename.lastIndexOf('.')
-        return if (lastDot >= 0) {
-            filename.substring(lastDot).lowercase()
-        } else {
-            ""
-        }
-    }
-
-    fun isDefaultMode(): Boolean = baseConfig.default_settings
-    fun getResolvedProfile(): DefaultSettingsProfile? = profile
+    fun isDefaultMode(): Boolean = sources.baseConfig.default_settings
+    fun getResolvedProfile(): DefaultSettingsProfile? = sources.profile
 }
