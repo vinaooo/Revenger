@@ -395,10 +395,7 @@ class GameActivityViewModel(application: Application) :
     private fun handleMenuClosed(activity: FragmentActivity, closingButton: Int?) {
         (activity as? FloatingButtonVisibilityHost)?.fadeFloatingButtonImmediately()
 
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "🔥 [ON_MENU_CLOSED_CALLBACK] ===== MENU CLOSED ====="
-        )
+        android.util.Log.d("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] ===== MENU CLOSED =====")
         try {
             Log.d(
                     "GameActivityViewModel",
