@@ -290,21 +290,13 @@ class ControllerInput {
          * if the menu is "technically active".
          */
         private fun shouldInterceptSpecificButton(keyCode: Int): Boolean {
-                // Check 1: Menu open? Yes, intercept
                 val menuActive = shouldInterceptDpadForMenu()
-                if (menuActive) {
-                        return true
-                }
-
-                // Check 2: Grace period active AND is the button that closed? Yes, intercept
                 val now = System.currentTimeMillis()
                 val gracePeriodActive = now < keepInterceptingUntil
-                if (gracePeriodActive && keyCode == buttonThatClosedMenu) {
-                        return true
-                }
 
-                // Button may pass
-                return false
+                // Intercept if the menu is open, or if we're still in the grace period for the
+                // specific button that closed it.
+                return menuActive || (gracePeriodActive && keyCode == buttonThatClosedMenu)
         }
 
         /**

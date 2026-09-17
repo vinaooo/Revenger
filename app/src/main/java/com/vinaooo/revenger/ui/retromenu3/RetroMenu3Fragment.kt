@@ -410,34 +410,24 @@ class RetroMenu3Fragment :
         }
 
         override fun performBack(): Boolean {
-                // If there is an active submenu, close it first
+                // If there is no active submenu, let the MenuManager handle closing the main menu.
                 val backStackCount = parentFragmentManager.backStackEntryCount
-
-                if (backStackCount > 0) {
-                        android.util.Log.d(
-                                "RetroMenu3Fragment",
-                                "performBack: submenu active, closing it"
-                        )
-                        try {
-                                submenuCoordinator.closeCurrentSubmenu()
-                                return true // Consumir o evento
-                                // closeCurrentSubmenu() already narrows and catches the
-                                // IllegalStateException popBackStack() can throw, so this is
-                                // defense-in-depth against the same type rather than a distinct
-                                // reachable failure.
-                        } catch (e: IllegalStateException) {
-                                android.util.Log.e(
-                                        "RetroMenu3Fragment",
-                                        "[PERFORM_BACK] ❌ Error closing submenu",
-                                        e
-                                )
-                                return false // Could not close, let MenuManager handle it
-                        }
+                if (backStackCount == 0) {
+                        return false
                 }
 
-                // For main menu, back should close the menu
-                // This will be handled by the MenuManager calling the appropriate action
-                return false // Let MenuManager handle this
+                android.util.Log.d("RetroMenu3Fragment", "performBack: submenu active, closing it")
+                return try {
+                        submenuCoordinator.closeCurrentSubmenu()
+                        true // Consumir o evento
+                        // closeCurrentSubmenu() already narrows and catches the
+                        // IllegalStateException popBackStack() can throw, so this is
+                        // defense-in-depth against the same type rather than a distinct
+                        // reachable failure.
+                } catch (e: IllegalStateException) {
+                        android.util.Log.e("RetroMenu3Fragment", "[PERFORM_BACK] ❌ Error closing submenu", e)
+                        false // Could not close, let MenuManager handle it
+                }
         }
 
         /** Dim the main menu when opening a submenu */
