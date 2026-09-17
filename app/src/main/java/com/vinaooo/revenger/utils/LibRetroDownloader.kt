@@ -7,6 +7,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 /**
@@ -79,19 +80,24 @@ class LibRetroDownloader private constructor() {
 
         private fun extractAndRename(zipBytes: ByteArray, destinationDir: File) {
             ZipInputStream(ByteArrayInputStream(zipBytes)).use { zipIn ->
-                var entry = zipIn.nextEntry
+                findSharedObjectEntry(zipIn) ?: return@use
 
-                while (entry != null) {
-                    if (!entry.isDirectory && entry.name.endsWith(".so")) {
-                        // Extract directly as libcore.so
-                        val outputFile = File(destinationDir, "libcore.so")
-
-                        FileOutputStream(outputFile).use { output -> zipIn.copyTo(output) }
-                        break
-                    }
-                    entry = zipIn.nextEntry
-                }
+                // Extract directly as libcore.so
+                val outputFile = File(destinationDir, "libcore.so")
+                FileOutputStream(outputFile).use { output -> zipIn.copyTo(output) }
             }
+        }
+
+        /** Scans the remaining entries of [zipIn] for the first non-directory `.so` file. */
+        private fun findSharedObjectEntry(zipIn: ZipInputStream): ZipEntry? {
+            var entry = zipIn.nextEntry
+            while (entry != null) {
+                if (!entry.isDirectory && entry.name.endsWith(".so")) {
+                    return entry
+                }
+                entry = zipIn.nextEntry
+            }
+            return null
         }
     }
 }

@@ -2,6 +2,7 @@ package com.vinaooo.revenger.utils
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -11,13 +12,13 @@ import android.view.SurfaceView
 import android.view.View
 import androidx.annotation.RequiresApi
 import com.swordfish.libretrodroid.GLRetroView
-import com.vinaooo.revenger.R
 
 // An object's own body members aren't visible from within its own supertype constructor
-// arguments (there is no `this` yet at that point), so this store is instantiated at file scope
-// -- with placeholder no-op collaborators -- and wired up to the real ones from an `init` block
-// inside [ScreenshotCaptureUtil] below, once that object has finished constructing.
+// arguments (there is no `this` yet at that point), so these stores are instantiated at file
+// scope -- with placeholder no-op collaborators -- and wired up to the real ones from an `init`
+// block inside [ScreenshotCaptureUtil] below, once that object has finished constructing.
 private val pipFrameStore = PipFrameStore()
+private val croppedScreenshotStore = CroppedScreenshotStore()
 
 /**
  * Utility class for capturing screenshots from the emulator's GLRetroView.
@@ -34,32 +35,26 @@ private val pipFrameStore = PipFrameStore()
  * IMPORTANT: GLRetroView is a GLSurfaceView, so we must use PixelCopy.request(SurfaceView, ...)
  * instead of PixelCopy.request(Window, ...) to capture the actual GL content.
  *
- * The black-border/aspect-ratio math lives in [ScreenshotGeometry] and the Picture-in-Picture
- * frame cache lives in [PipFrameStore] -- both split out purely to keep this object under the
- * project's function-count threshold; see those classes for why.
+ * The black-border/aspect-ratio math lives in [ScreenshotGeometry], the Picture-in-Picture frame
+ * cache lives in [PipFrameStore], and the menu screenshot cache lives in [CroppedScreenshotStore]
+ * -- all split out purely to keep this object under the project's function-count threshold; see
+ * those classes for why.
  */
-object ScreenshotCaptureUtil : PipFrameCache by pipFrameStore {
+object ScreenshotCaptureUtil :
+        PipFrameCache by pipFrameStore, CroppedScreenshotCache by croppedScreenshotStore {
 
     init {
         pipFrameStore.configure(
                 captureFullScreen = { glRetroView, callback -> captureFullScreen(glRetroView, callback) },
-                getCachedFullScreenshot = { cachedFullScreenshot }
+                getCachedFullScreenshot = { getCachedFullScreenshot() }
+        )
+        croppedScreenshotStore.configure(
+                captureGameScreen = { glRetroView, callback -> captureGameScreen(glRetroView, callback) },
+                captureFullScreen = { glRetroView, callback -> captureFullScreen(glRetroView, callback) }
         )
     }
 
     private const val TAG = "ScreenshotCaptureUtil"
-
-    /**
-     * Cached screenshot from when the menu was opened. Captured at pause time and used when saving.
-     * This is the cropped version (no black bars) used for slot thumbnails.
-     */
-    @Volatile private var cachedScreenshot: Bitmap? = null
-
-    /**
-     * Cached full-screen screenshot including black bars.
-     * Used as load preview overlay — matches the screen pixel-perfectly with fitXY.
-     */
-    @Volatile private var cachedFullScreenshot: Bitmap? = null
 
     /**
      * Cached context for reading config values.
@@ -119,85 +114,15 @@ object ScreenshotCaptureUtil : PipFrameCache by pipFrameStore {
         try {
             val width = glRetroView.width
             val height = glRetroView.height
-
-            if (width <= 0 || height <= 0) {
-                Log.w(TAG, "Invalid view dimensions: ${width}x$height")
-                callback(null)
-                return
-            }
-
-            // Get game aspect ratio based on the platform config (matching PiP ratio)
-            val gameAspectRatio = try {
-                val context = cachedContext
-                if (context != null) {
-                    val platformId = com.vinaooo.revenger.RevengerApplication.appConfig.getPlatformId()
-                    val pipProfile = com.vinaooo.revenger.repositories.PipConfigRepository.getProfile(platformId)
-                    val aspectRatio = pipProfile.ratioW.toFloat() / pipProfile.ratioH.toFloat()
-                    Log.d(TAG, "Platform: $platformId, Aspect ratio: $aspectRatio")
-                    aspectRatio
-                } else {
-                    Log.w(TAG, "Context not set, using default aspect ratio")
-                    AspectRatios.DEFAULT
-                }
-                // RevengerApplication.appConfig is a lateinit var; accessing it before
-                // Application.onCreate() completes throws UninitializedPropertyAccessException.
-            } catch (e: UninitializedPropertyAccessException) {
-                Log.w(TAG, "Could not determine aspect ratio", e)
-                AspectRatios.DEFAULT
-            }
-
-            // Calculate the game content rectangle (excluding black bars)
-            val gameRect = ScreenshotGeometry.calculateGameContentRect(width, height, gameAspectRatio)
-
-            Log.d(TAG, "View: ${width}x$height, Game aspect: $gameAspectRatio, Content rect: $gameRect")
-
-            // Create bitmap for the cropped game content
-            val croppedWidth = gameRect.width()
-            val croppedHeight = gameRect.height()
-
-            if (croppedWidth <= 0 || croppedHeight <= 0) {
-                Log.w(TAG, "Invalid cropped dimensions: ${croppedWidth}x$croppedHeight")
-                callback(null)
-                return
-            }
-
-            val bitmap = Bitmap.createBitmap(croppedWidth, croppedHeight, Bitmap.Config.ARGB_8888)
-
-            // GLRetroView extends GLSurfaceView which extends SurfaceView
-            val surfaceView = glRetroView as SurfaceView
-
-            // Check if surface is valid
-            if (!surfaceView.holder.surface.isValid) {
-                Log.e(TAG, "Surface is not valid for capture")
-                bitmap.recycle()
-                callback(null)
-                return
-            }
+            val gameRect = resolveCaptureRect(width, height, callback) ?: return
+            val target = prepareCaptureTarget(glRetroView, gameRect, callback) ?: return
 
             // Use PixelCopy with source rect to capture only the game content area
             PixelCopy.request(
-                    surfaceView,
-                    gameRect, // Only capture the game content area
-                    bitmap,
-                    { copyResult ->
-                        if (copyResult == PixelCopy.SUCCESS) {
-                            Log.d(
-                                    TAG,
-                                    "Screenshot captured: ${croppedWidth}x$croppedHeight " +
-                                            "(cropped from ${width}x$height)"
-                            )
-                            // Auto-crop any remaining black borders from the core output
-                            val autoCropped = ScreenshotGeometry.autoCropBlackBorders(bitmap)
-                            if (autoCropped !== bitmap) {
-                                bitmap.recycle()
-                            }
-                            callback(autoCropped)
-                        } else {
-                            Log.e(TAG, "PixelCopy failed with result: $copyResult")
-                            bitmap.recycle()
-                            callback(null)
-                        }
-                    },
+                    target.surfaceView,
+                    target.rect, // Only capture the game content area
+                    target.bitmap,
+                    { copyResult -> onGameScreenCopyResult(copyResult, target, width, height, callback) },
                     Handler(Looper.getMainLooper())
             )
             // PixelCopy.request() documents throwing IllegalArgumentException when the source
@@ -207,6 +132,112 @@ object ScreenshotCaptureUtil : PipFrameCache by pipFrameStore {
             Log.e(TAG, "Failed to capture screenshot", e)
             callback(null)
         }
+    }
+
+    /** The bitmap + surface + source rect [captureGameScreen] needs to issue its PixelCopy. */
+    private data class CaptureTarget(val bitmap: Bitmap, val surfaceView: SurfaceView, val rect: Rect)
+
+    /**
+     * Resolves the game's aspect ratio from the platform config (matching the PiP ratio), or
+     * [AspectRatios.DEFAULT] when no context is set yet or `RevengerApplication.appConfig` isn't
+     * initialized.
+     */
+    private fun resolveGameAspectRatio(): Float {
+        val context = cachedContext
+        if (context == null) {
+            Log.w(TAG, "Context not set, using default aspect ratio")
+            return AspectRatios.DEFAULT
+        }
+        return try {
+            val platformId = com.vinaooo.revenger.RevengerApplication.appConfig.getPlatformId()
+            val pipProfile = com.vinaooo.revenger.repositories.PipConfigRepository.getProfile(platformId)
+            val aspectRatio = pipProfile.ratioW.toFloat() / pipProfile.ratioH.toFloat()
+            Log.d(TAG, "Platform: $platformId, Aspect ratio: $aspectRatio")
+            aspectRatio
+            // RevengerApplication.appConfig is a lateinit var; accessing it before
+            // Application.onCreate() completes throws UninitializedPropertyAccessException.
+        } catch (e: UninitializedPropertyAccessException) {
+            Log.w(TAG, "Could not determine aspect ratio", e)
+            AspectRatios.DEFAULT
+        }
+    }
+
+    /** Logs [message] (as a warning, or an error with [bitmapToRecycle] recycled) and notifies [callback] of failure. */
+    private fun rejectCapture(
+            message: String,
+            callback: (Bitmap?) -> Unit,
+            isError: Boolean = false,
+            bitmapToRecycle: Bitmap? = null
+    ): Nothing? {
+        if (isError) Log.e(TAG, message) else Log.w(TAG, message)
+        bitmapToRecycle?.recycle()
+        callback(null)
+        return null
+    }
+
+    /** Computes the game content rect (excluding black bars), or null -- rejecting -- if invalid. */
+    private fun resolveCaptureRect(width: Int, height: Int, callback: (Bitmap?) -> Unit): Rect? {
+        if (width <= 0 || height <= 0) {
+            return rejectCapture("Invalid view dimensions: ${width}x$height", callback)
+        }
+
+        val gameAspectRatio = resolveGameAspectRatio()
+        val gameRect = ScreenshotGeometry.calculateGameContentRect(width, height, gameAspectRatio)
+        Log.d(TAG, "View: ${width}x$height, Game aspect: $gameAspectRatio, Content rect: $gameRect")
+
+        return if (gameRect.width() <= 0 || gameRect.height() <= 0) {
+            rejectCapture("Invalid cropped dimensions: ${gameRect.width()}x${gameRect.height()}", callback)
+        } else {
+            gameRect
+        }
+    }
+
+    /** Allocates the capture bitmap and validates the source surface, or null -- rejecting -- if invalid. */
+    private fun prepareCaptureTarget(
+            glRetroView: GLRetroView,
+            gameRect: Rect,
+            callback: (Bitmap?) -> Unit
+    ): CaptureTarget? {
+        val bitmap = Bitmap.createBitmap(gameRect.width(), gameRect.height(), Bitmap.Config.ARGB_8888)
+        // GLRetroView extends GLSurfaceView which extends SurfaceView
+        val surfaceView = glRetroView as SurfaceView
+
+        if (!surfaceView.holder.surface.isValid) {
+            return rejectCapture(
+                    "Surface is not valid for capture",
+                    callback,
+                    isError = true,
+                    bitmapToRecycle = bitmap
+            )
+        }
+        return CaptureTarget(bitmap, surfaceView, gameRect)
+    }
+
+    /** Handles the async [PixelCopy.request] result for [captureGameScreen]. */
+    private fun onGameScreenCopyResult(
+            copyResult: Int,
+            target: CaptureTarget,
+            viewWidth: Int,
+            viewHeight: Int,
+            callback: (Bitmap?) -> Unit
+    ) {
+        if (copyResult != PixelCopy.SUCCESS) {
+            Log.e(TAG, "PixelCopy failed with result: $copyResult")
+            target.bitmap.recycle()
+            callback(null)
+            return
+        }
+        Log.d(
+                TAG,
+                "Screenshot captured: ${target.rect.width()}x${target.rect.height()} " +
+                        "(cropped from ${viewWidth}x$viewHeight)"
+        )
+        // Auto-crop any remaining black borders from the core output
+        val autoCropped = ScreenshotGeometry.autoCropBlackBorders(target.bitmap)
+        if (autoCropped !== target.bitmap) {
+            target.bitmap.recycle()
+        }
+        callback(autoCropped)
     }
 
     /**
@@ -261,75 +292,6 @@ object ScreenshotCaptureUtil : PipFrameCache by pipFrameStore {
             Log.e(TAG, "Failed to capture full screenshot", e)
             callback(null)
         }
-    }
-
-    /**
-     * Capture and cache both cropped and full screenshots when menu opens.
-     * Cropped screenshot (no black bars) is used for slot thumbnails.
-     * Full screenshot (with black bars) is used for load preview overlay.
-     *
-     * @param glRetroView The GLRetroView to capture from
-     * @param onCaptured Optional callback when capture completes
-     */
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun captureAndCacheScreenshot(
-            glRetroView: GLRetroView,
-            onCaptured: ((Boolean) -> Unit)? = null
-    ) {
-        // Capture cropped screenshot for slot thumbnails
-        captureGameScreen(glRetroView) { bitmap ->
-            synchronized(this) {
-                cachedScreenshot?.recycle()
-                cachedScreenshot = bitmap
-            }
-            Log.d(TAG, "Cropped screenshot cached: ${bitmap != null}")
-        }
-
-        // Capture full screenshot for load preview overlay
-        captureFullScreen(glRetroView) { fullBitmap ->
-            synchronized(this) {
-                cachedFullScreenshot?.recycle()
-                cachedFullScreenshot = fullBitmap
-            }
-            Log.d(TAG, "Full screenshot cached: ${fullBitmap != null}")
-            onCaptured?.invoke(fullBitmap != null || cachedScreenshot != null)
-        }
-    }
-
-    /** Get the cached cropped screenshot for saving. Returns null if no screenshot was cached. */
-    fun getCachedScreenshot(): Bitmap? {
-        return cachedScreenshot
-    }
-
-    /** Manually inject bitmaps. Useful for PiP. */
-    fun setManualScreenshots(screenshot: Bitmap?, fullScreenshot: Bitmap?) {
-        synchronized(this) {
-            cachedScreenshot?.recycle()
-            cachedScreenshot = screenshot
-            cachedFullScreenshot?.recycle()
-            cachedFullScreenshot = fullScreenshot
-        }
-    }
-
-    /** Get the cached full-screen screenshot (with black bars) for preview overlay. */
-    fun getCachedFullScreenshot(): Bitmap? {
-        return cachedFullScreenshot
-    }
-
-    /** Check if a cached screenshot exists. */
-    fun hasCachedScreenshot(): Boolean {
-        return cachedScreenshot != null
-    }
-
-    /** Clear all cached screenshots. Call when menu closes without saving to free memory. */
-    fun clearCachedScreenshot() {
-        synchronized(this) {
-            cachedScreenshot?.recycle()
-            cachedScreenshot = null
-            cachedFullScreenshot?.recycle()
-            cachedFullScreenshot = null
-        }
-        Log.d(TAG, "All cached screenshots cleared")
     }
 
     /**

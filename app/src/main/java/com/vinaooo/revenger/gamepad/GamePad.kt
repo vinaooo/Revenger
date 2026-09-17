@@ -30,127 +30,140 @@ class GamePad(
 
         /** Should the user see the on-screen controls? */
         fun shouldShowGamePads(activity: Activity, appConfig: AppConfig): Boolean {
-            /* Config says we shouldn't use virtual controls */
-        if (!appConfig.getGamepad()) {
-        android.util.Log.d(TAG, "Virtual gamepad disabled by AppConfig")
-        return false
+            // Split across two expressions (rather than one 4-operand `||` chain) to keep each
+            // individual boolean condition small; `||` still short-circuits, so a config/hardware
+            // block below skips touching `activity` at all, matching the original check order.
+            val blockedByConfigOrHardware =
+                    isGamepadDisabledByConfig(appConfig) || isMissingTouchScreen(activity)
+            val hidden =
+                    blockedByConfigOrHardware ||
+                            isPresentationDisplay(activity) ||
+                            hasExternalPhysicalController()
+
+            if (!hidden) android.util.Log.d(TAG, "Virtual gamepad visible: no blockers detected")
+            return !hidden
         }
 
-            /* Devices without a touchscreen don't need a GamePad */
+        /** Config says we shouldn't use virtual controls. */
+        private fun isGamepadDisabledByConfig(appConfig: AppConfig): Boolean {
+            if (appConfig.getGamepad()) return false
+            android.util.Log.d(TAG, "Virtual gamepad disabled by AppConfig")
+            return true
+        }
+
+        /** Devices without a touchscreen don't need a GamePad. */
+        private fun isMissingTouchScreen(activity: Activity): Boolean {
             val hasTouchScreen =
                     activity.packageManager?.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)
-        if (hasTouchScreen == null || !hasTouchScreen) {
-        android.util.Log.d(TAG, "Virtual gamepad hidden: touchscreen feature missing")
-        return false
+            if (hasTouchScreen == true) return false
+            android.util.Log.d(TAG, "Virtual gamepad hidden: touchscreen feature missing")
+            return true
         }
 
+        /** Is the game currently being presented on a secondary TV/presentation display? */
+        private fun isPresentationDisplay(activity: Activity): Boolean {
             /* Fetch the current display that the game is running on */
             val currentDisplayId = activity.display!!.displayId
-
-            /* Are we presenting this screen on a TV or display? */
             val dm = activity.getSystemService(Service.DISPLAY_SERVICE) as DisplayManager
-        val currentDisplay = dm.getDisplay(currentDisplayId)
-            val isPresentationDisplay =
-                currentDisplay.displayId != Display.DEFAULT_DISPLAY &&
-                    (currentDisplay.flags and Display.FLAG_PRESENTATION ==
-                        Display.FLAG_PRESENTATION)
-            if (isPresentationDisplay) {
-            android.util.Log.d(
-                TAG,
-                "Virtual gamepad hidden: running on presentation display ${currentDisplay.displayId}"
-            )
-            return false
+            val currentDisplay = dm.getDisplay(currentDisplayId)
+            val isPresentation =
+                    currentDisplay.displayId != Display.DEFAULT_DISPLAY &&
+                            (currentDisplay.flags and Display.FLAG_PRESENTATION ==
+                                    Display.FLAG_PRESENTATION)
+            if (isPresentation) {
+                android.util.Log.d(TAG, "Virtual gamepad hidden: running on presentation display")
             }
+            return isPresentation
+        }
 
-            /* If a GamePad is connected, we definitely don't need touch controls */
+        /** If a GamePad is connected, we definitely don't need touch controls. */
+        private fun hasExternalPhysicalController(): Boolean {
             for (id in InputDevice.getDeviceIds()) {
-        InputDevice.getDevice(id)?.apply {
-            val hasGamepadSource = supportsSource(InputDevice.SOURCE_GAMEPAD)
-            val hasJoystickSource = supportsSource(InputDevice.SOURCE_JOYSTICK)
+                InputDevice.getDevice(id)?.apply {
+                    val hasGamepadSource = supportsSource(InputDevice.SOURCE_GAMEPAD)
+                    val hasJoystickSource = supportsSource(InputDevice.SOURCE_JOYSTICK)
 
-            android.util.Log.d(
-                TAG,
-                "Input device: id=$id, name=$name, virtual=$isVirtual, " +
-                        "sources=0x${sources.toString(HEX_RADIX)}, gamepad=$hasGamepadSource, " +
-                        "joystick=$hasJoystickSource"
-            )
+                    android.util.Log.d(
+                            TAG,
+                            "Input device: id=$id, name=$name, virtual=$isVirtual, " +
+                                    "sources=0x${sources.toString(HEX_RADIX)}, gamepad=$hasGamepadSource, " +
+                                    "joystick=$hasJoystickSource"
+                    )
 
-            if (!isVirtual && (hasGamepadSource || hasJoystickSource)) {
-                android.util.Log.d(
-                    TAG,
-                    "Virtual gamepad hidden: external controller detected ($name)"
-                )
-                return false
-            }
+                    if (!isVirtual && (hasGamepadSource || hasJoystickSource)) {
+                        android.util.Log.d(
+                                TAG,
+                                "Virtual gamepad hidden: external controller detected ($name)"
+                        )
+                        return true
+                    }
                 }
             }
-
-        android.util.Log.d(TAG, "Virtual gamepad visible: no blockers detected")
-            return true
+            return false
         }
     }
 
     private fun eventHandler(event: Event, retroView: GLRetroView) {
         when (event) {
-            is Event.Button -> {
-                // Log BEFORE the callback to see all events coming from the library
-                val buttonName =
-                        when (event.id) {
-                            android.view.KeyEvent.KEYCODE_BUTTON_A -> "A"
-                            android.view.KeyEvent.KEYCODE_BUTTON_B -> "B"
-                            android.view.KeyEvent.KEYCODE_BUTTON_START -> "START"
-                            android.view.KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
-                            else -> event.id.toString()
-                        }
-                val actionName =
-                        if (event.action == android.view.KeyEvent.ACTION_DOWN) "DOWN" else "UP"
-                android.util.Log.d(
-                    TAG,
-                        "🎮 RadialGamePad event received: $buttonName $actionName (BEFORE callback)"
-                )
+            is Event.Button -> handleButtonEvent(event, retroView)
+            is Event.Direction -> handleDirectionEvent(event, retroView)
+        }
+    }
 
-                // Invoke the callback and check if the event was intercepted
-                val intercepted = onButtonEvent?.invoke(event) ?: false
-
-                android.util.Log.d(
-                    TAG,
-                        "🎮 Callback returned: intercepted=$intercepted " +
-                                "(will ${if (intercepted) "BLOCK" else "SEND"} to core)"
-                )
-
-                // Only send to the core if NOT intercepted
-                if (!intercepted) {
-                    retroView.sendKeyEvent(event.action, event.id)
+    /** Handles a [Event.Button] event: logs it, runs the interception callback, forwards to the core. */
+    private fun handleButtonEvent(event: Event.Button, retroView: GLRetroView) {
+        // Log BEFORE the callback to see all events coming from the library
+        val buttonName =
+                when (event.id) {
+                    android.view.KeyEvent.KEYCODE_BUTTON_A -> "A"
+                    android.view.KeyEvent.KEYCODE_BUTTON_B -> "B"
+                    android.view.KeyEvent.KEYCODE_BUTTON_START -> "START"
+                    android.view.KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
+                    else -> event.id.toString()
                 }
-            }
-            is Event.Direction -> {
-                // Invoke the callback and check if the event was intercepted
-                val intercepted = onButtonEvent?.invoke(event) ?: false
+        val actionName = if (event.action == android.view.KeyEvent.ACTION_DOWN) "DOWN" else "UP"
+        android.util.Log.d(
+                TAG,
+                "🎮 RadialGamePad event received: $buttonName $actionName (BEFORE callback)"
+        )
 
-                // Only send to the core if NOT intercepted
-                if (!intercepted) {
-                    when (event.id) {
-                        GLRetroView.MOTION_SOURCE_DPAD ->
-                                retroView.sendMotionEvent(
-                                        GLRetroView.MOTION_SOURCE_DPAD,
-                                        event.xAxis,
-                                        event.yAxis
-                                )
-                        GLRetroView.MOTION_SOURCE_ANALOG_LEFT ->
-                                retroView.sendMotionEvent(
-                                        GLRetroView.MOTION_SOURCE_ANALOG_LEFT,
-                                        event.xAxis,
-                                        event.yAxis
-                                )
-                        GLRetroView.MOTION_SOURCE_ANALOG_RIGHT ->
-                                retroView.sendMotionEvent(
-                                        GLRetroView.MOTION_SOURCE_ANALOG_RIGHT,
-                                        event.xAxis,
-                                        event.yAxis
-                                )
-                    }
-                }
-            }
+        // Invoke the callback and check if the event was intercepted
+        val intercepted = onButtonEvent?.invoke(event) ?: false
+
+        android.util.Log.d(
+                TAG,
+                "🎮 Callback returned: intercepted=$intercepted " +
+                        "(will ${if (intercepted) "BLOCK" else "SEND"} to core)"
+        )
+
+        // Only send to the core if NOT intercepted
+        if (!intercepted) {
+            retroView.sendKeyEvent(event.action, event.id)
+        }
+    }
+
+    /** Handles a [Event.Direction] event: runs the interception callback, forwards to the core. */
+    private fun handleDirectionEvent(event: Event.Direction, retroView: GLRetroView) {
+        // Invoke the callback and check if the event was intercepted
+        val intercepted = onButtonEvent?.invoke(event) ?: false
+        if (intercepted) return
+
+        // Only send to the core if NOT intercepted
+        when (event.id) {
+            GLRetroView.MOTION_SOURCE_DPAD ->
+                    retroView.sendMotionEvent(GLRetroView.MOTION_SOURCE_DPAD, event.xAxis, event.yAxis)
+            GLRetroView.MOTION_SOURCE_ANALOG_LEFT ->
+                    retroView.sendMotionEvent(
+                            GLRetroView.MOTION_SOURCE_ANALOG_LEFT,
+                            event.xAxis,
+                            event.yAxis
+                    )
+            GLRetroView.MOTION_SOURCE_ANALOG_RIGHT ->
+                    retroView.sendMotionEvent(
+                            GLRetroView.MOTION_SOURCE_ANALOG_RIGHT,
+                            event.xAxis,
+                            event.yAxis
+                    )
         }
     }
 
