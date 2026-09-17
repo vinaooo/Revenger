@@ -53,6 +53,7 @@ class MenuViewManager(private val fragment: Fragment) {
 
     companion object {
         private const val TAG = "MenuViewManager"
+        private const val MAIN_MENU_DIM_ALPHA = 0.3f
     }
 
     // Menu item views
@@ -298,7 +299,7 @@ class MenuViewManager(private val fragment: Fragment) {
                 TAG,
                 "[VIEW] dimMainMenu: menuContainerView is initialized, current alpha: ${menuContainerView.alpha}"
         )
-        menuContainerView.alpha = 0.3f // Opacidade reduzida para segundo plano
+        menuContainerView.alpha = MAIN_MENU_DIM_ALPHA // Opacidade reduzida para segundo plano
         Log.d(
                 TAG,
                 "[VIEW] dimMainMenu completed - main menu dimmed to alpha: ${menuContainerView.alpha}"

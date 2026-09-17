@@ -1,13 +1,12 @@
 package com.vinaooo.revenger.input
 
-import android.content.Context
 import android.view.InputEvent
 import android.view.KeyEvent
 import android.view.MotionEvent
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.retroview.RetroView
 
-class ControllerInput(private val context: Context) {
+class ControllerInput {
         companion object {
                 /** Combination to open the menu */
                 val KEYCOMBO_MENU =
@@ -21,11 +20,18 @@ class ControllerInput(private val context: Context) {
                                 KeyEvent.KEYCODE_BACK,
                                 KeyEvent.KEYCODE_POWER
                         )
-        }
 
-        // Fixed threshold values for single-trigger system
-        private val dpadThreshold: Float = 0.1f // Physical DPAD - more responsive
-        private val leftAnalogThreshold: Float = 0.7f // Left analog - less sensitive
+                // Fixed threshold values for single-trigger system
+                private const val DPAD_THRESHOLD: Float = 0.1f // Physical DPAD - more responsive
+                private const val LEFT_ANALOG_THRESHOLD: Float = 0.7f // Left analog - less sensitive
+
+                /** Vendor keycode reported by some physical gamepads for their menu/hamburger button */
+                private const val GAMEPAD_MENU_BUTTON_KEYCODE = -6
+
+                private const val COMBO_COOLDOWN_MS = 500L // 500ms cooldown between combo detections
+                private const val MENU_CLOSE_DEBOUNCE_MS = 200L // 200ms debounce after menu closes
+                private const val MENU_CALLBACK_DEBOUNCE_MS = 150L
+        }
 
         // Single trigger system - tracks previous state to detect transitions
         private data class DirectionalState(
@@ -53,11 +59,9 @@ class ControllerInput(private val context: Context) {
 
         /** Timestamp of last combo detection to prevent rapid re-triggers */
         private var lastComboTriggerTime = 0L
-        private val COMBO_COOLDOWN_MS = 500L // 500ms cooldown between combo detections
 
         /** Timestamp to prevent combo detection immediately after menu closes */
         private var menuCloseDebounceTime = 0L
-        private val MENU_CLOSE_DEBOUNCE_MS = 200L // 200ms debounce after menu closes
 
         /**
          * Clears the keyLog to avoid combo detection after closing the menu.
@@ -173,9 +177,6 @@ class ControllerInput(private val context: Context) {
         private var lastStartButtonCallbackTime: Long = 0
         private var lastGamepadMenuButtonCallbackTime: Long = 0
 
-        // Minimum time between menu callback calls (in milliseconds)
-        private val MENU_CALLBACK_DEBOUNCE_MS = 150L
-
         /** Helper function to execute menu callbacks with debouncing protection */
         private fun executeMenuCallback(
                 callback: () -> Unit,
@@ -283,15 +284,6 @@ class ControllerInput(private val context: Context) {
                 buttonThatClosedMenu = closingButton
         }
 
-        /** Check if we should continue intercepting (menu open OR grace period active) */
-        private fun shouldInterceptButtons(): Boolean {
-                val menuActive = shouldInterceptDpadForMenu()
-                val gracePeriodActive = System.currentTimeMillis() < keepInterceptingUntil
-                val result = menuActive || gracePeriodActive
-
-                return result
-        }
-
         /**
          * Checks if a SPECIFIC button should be blocked during the grace period. Blocks only the
          * button that closed the menu during the grace period. Does NOT block other buttons even
@@ -333,8 +325,7 @@ class ControllerInput(private val context: Context) {
                 currentDown: Boolean,
                 currentLeft: Boolean = false,
                 currentRight: Boolean = false,
-                previousState: DirectionalState,
-                inputName: String
+                previousState: DirectionalState
         ): Int? {
                 var triggeredKeyCode: Int? = null
 
@@ -478,7 +469,6 @@ class ControllerInput(private val context: Context) {
                                         "(precisa ser > ${MENU_CLOSE_DEBOUNCE_MS}ms)"
                         )
 
-                        if (!hasSelectAndStart) {}
                         if (comboAlreadyTriggered) {
                                 // DISABLED: Phase 5.1f - Performance optimization
                                 // android.util.Log.d(
@@ -513,9 +503,6 @@ class ControllerInput(private val context: Context) {
                                         // Menu is OPEN - this is expected, not a bug
                                 }
                         }
-                        if (!shouldHandleSelectStartCombo()) {}
-                        if (timeSinceLastTrigger <= COMBO_COOLDOWN_MS) {}
-                        if (timeSinceMenuClose <= MENU_CLOSE_DEBOUNCE_MS) {}
                 }
         }
 
@@ -609,11 +596,6 @@ class ControllerInput(private val context: Context) {
                                 else -> keyCode.toString()
                         }
                 val actionName = if (action == KeyEvent.ACTION_DOWN) "DOWN" else "UP"
-                val timestamp =
-                        android.text.format.DateFormat.format(
-                                "HH:mm:ss.SSS",
-                                System.currentTimeMillis()
-                        )
 
                 // INTERCEPT BUTTON A for confirmation when menu is open
                 // During grace period, DO NOT block A (only open menu blocks)
@@ -706,7 +688,7 @@ class ControllerInput(private val context: Context) {
                 }
 
                 // INTERCEPT GAMEPAD MENU BUTTON (☰)
-                if (keyCode == -6 && shouldHandleGamepadMenuButton()) {
+                if (keyCode == GAMEPAD_MENU_BUTTON_KEYCODE && shouldHandleGamepadMenuButton()) {
                         if (action == KeyEvent.ACTION_DOWN) {
                                 android.util.Log.d(
                                         "ControllerInput",
@@ -1033,22 +1015,20 @@ class ControllerInput(private val context: Context) {
 
                         // Check D-PAD transitions
                         val dpadTrigger = checkSingleTrigger(
-                                currentUp = hatY < -dpadThreshold,
-                                currentDown = hatY > dpadThreshold,
-                                currentLeft = hatX < -dpadThreshold,
-                                currentRight = hatX > dpadThreshold,
-                                previousState = dpadState,
-                                inputName = "DPAD"
+                                currentUp = hatY < -DPAD_THRESHOLD,
+                                currentDown = hatY > DPAD_THRESHOLD,
+                                currentLeft = hatX < -DPAD_THRESHOLD,
+                                currentRight = hatX > DPAD_THRESHOLD,
+                                previousState = dpadState
                         )
 
                         // Check Left Analog transitions
                         val analogTrigger = checkSingleTrigger(
-                                currentUp = axisY < -leftAnalogThreshold,
-                                currentDown = axisY > leftAnalogThreshold,
-                                currentLeft = axisX < -leftAnalogThreshold,
-                                currentRight = axisX > leftAnalogThreshold,
-                                previousState = leftAnalogState,
-                                inputName = "L_ANALOG"
+                                currentUp = axisY < -LEFT_ANALOG_THRESHOLD,
+                                currentDown = axisY > LEFT_ANALOG_THRESHOLD,
+                                currentLeft = axisX < -LEFT_ANALOG_THRESHOLD,
+                                currentRight = axisX > LEFT_ANALOG_THRESHOLD,
+                                previousState = leftAnalogState
                         )
 
                         // Use DPAD trigger if available, otherwise Analog
@@ -1118,10 +1098,10 @@ class ControllerInput(private val context: Context) {
                                 else -> {
                                         // Return true if any supported axis is out of deadzone but
                                         // not triggering a new event
-                                        if (Math.abs(hatX) > dpadThreshold ||
-                                                        Math.abs(hatY) > dpadThreshold ||
-                                                        Math.abs(axisX) > leftAnalogThreshold ||
-                                                        Math.abs(axisY) > leftAnalogThreshold
+                                        if (Math.abs(hatX) > DPAD_THRESHOLD ||
+                                                        Math.abs(hatY) > DPAD_THRESHOLD ||
+                                                        Math.abs(axisX) > LEFT_ANALOG_THRESHOLD ||
+                                                        Math.abs(axisY) > LEFT_ANALOG_THRESHOLD
                                         ) {
                                                 return true
                                         }

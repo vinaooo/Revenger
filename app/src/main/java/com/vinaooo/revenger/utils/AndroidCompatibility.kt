@@ -8,6 +8,10 @@ import android.os.Build
  */
 object AndroidCompatibility {
 
+    private const val ANDROID_14_API_LEVEL = 34
+    private const val ANDROID_15_API_LEVEL = 35
+    private const val ANDROID_16_API_LEVEL = 36
+
     /** Check if running on Android 12+ (API 31) Features: Material You, Dynamic Colors, etc. */
     fun isAndroid12Plus(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
@@ -20,19 +24,19 @@ object AndroidCompatibility {
      * Check if running on Android 14+ (API 34) Features: Enhanced security, partial photo
      * permissions
      */
-    fun isAndroid14Plus(): Boolean = Build.VERSION.SDK_INT >= 34
+    fun isAndroid14Plus(): Boolean = Build.VERSION.SDK_INT >= ANDROID_14_API_LEVEL
 
     /**
      * Check if running on Android 15+ (API 35) Features: Enhanced privacy controls, improved
      * performance
      */
-    fun isAndroid15Plus(): Boolean = Build.VERSION.SDK_INT >= 35
+    fun isAndroid15Plus(): Boolean = Build.VERSION.SDK_INT >= ANDROID_15_API_LEVEL
 
     /**
      * Check if running on Android 16+ (API 36) - Target SDK Features: Latest SDK 36 specific
      * features
      */
-    fun isAndroid16Plus(): Boolean = Build.VERSION.SDK_INT >= 36
+    fun isAndroid16Plus(): Boolean = Build.VERSION.SDK_INT >= ANDROID_16_API_LEVEL
 
     /** Apply features conditionally based on Android version */
     fun applyConditionalFeatures() {

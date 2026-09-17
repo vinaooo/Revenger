@@ -16,6 +16,8 @@ import java.util.Locale
 object LogSaver {
 
     private const val TAG = "LogSaver"
+    private const val BYTES_PER_KILOBYTE = 1024
+    private const val MAX_LOG_LINES = 1000
 
     /** Saves a complete log file with device information and system logs */
     fun saveCompleteLog(context: Context): String? {
@@ -140,9 +142,9 @@ object LogSaver {
 
         // Memory
         val runtime = Runtime.getRuntime()
-        val totalMemory = runtime.totalMemory() / 1024 / 1024
-        val freeMemory = runtime.freeMemory() / 1024 / 1024
-        val maxMemory = runtime.maxMemory() / 1024 / 1024
+        val totalMemory = runtime.totalMemory() / BYTES_PER_KILOBYTE / BYTES_PER_KILOBYTE
+        val freeMemory = runtime.freeMemory() / BYTES_PER_KILOBYTE / BYTES_PER_KILOBYTE
+        val maxMemory = runtime.maxMemory() / BYTES_PER_KILOBYTE / BYTES_PER_KILOBYTE
 
         builder.append(
                 "Memory - Total: ${totalMemory}MB, Free: ${freeMemory}MB, Max: ${maxMemory}MB\n"
@@ -258,7 +260,7 @@ object LogSaver {
 
             // Filter only relevant logs (last 1000 lines to avoid being too large)
             val lines = logs.lines()
-            val relevantLines = lines.takeLast(1000)
+            val relevantLines = lines.takeLast(MAX_LOG_LINES)
 
             relevantLines.joinToString("\n")
         } catch (e: IOException) {

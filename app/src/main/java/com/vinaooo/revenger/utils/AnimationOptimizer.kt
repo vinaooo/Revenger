@@ -1,8 +1,6 @@
 package com.vinaooo.revenger.utils
 
 import android.animation.Animator
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
 import android.view.View
 import android.view.ViewPropertyAnimator
 import androidx.core.util.Pools
@@ -13,14 +11,13 @@ import androidx.core.util.Pools
  */
 object AnimationOptimizer {
 
-    // AnimatorSet pool to reduce allocations
-    private val animatorSetPool = Pools.SimplePool<AnimatorSet>(4)
-
-    // ObjectAnimator pool to reduce allocations
-    private val objectAnimatorPool = Pools.SimplePool<ObjectAnimator>(12)
+    // Max number of pooled listener instances kept for reuse; sized to comfortably cover the
+    // menu's simultaneous animations without unbounded growth.
+    private const val ANIMATOR_LISTENER_POOL_MAX_SIZE = 8
 
     // Pool of ViewPropertyAnimator listeners to reduce allocations
-    private val animatorListenerPool = Pools.SimplePool<AnimationEndListener>(8)
+    private val animatorListenerPool =
+            Pools.SimplePool<AnimationEndListener>(ANIMATOR_LISTENER_POOL_MAX_SIZE)
 
     /** Optimized animation using ViewPropertyAnimator with listener pool */
     fun animateViewOptimized(
@@ -42,7 +39,7 @@ object AnimationOptimizer {
                 .setListener(getAnimationEndListener(view, onEnd))
     }
 
-    /** Optimized batch animation using AnimatorSet pool */
+    /** Optimized batch animation using ViewPropertyAnimator */
     fun animateViewsBatchOptimized(
             views: Array<View>,
             toAlpha: Float,
@@ -163,6 +160,9 @@ object AnimationOptimizer {
                                     view.setLayerType(View.LAYER_TYPE_NONE, null)
                                 }
 
+                                // Animator.AnimatorListener requires overriding every callback;
+                                // only start/end/cancel matter for this batch animation.
+                                @Suppress("EmptyFunctionBlock")
                                 override fun onAnimationRepeat(
                                         animation: android.animation.Animator
                                 ) {}
@@ -186,25 +186,6 @@ object AnimationOptimizer {
         )
     }
 
-    /** Obtains an AnimatorSet from the pool or creates a new one */
-    private fun getAnimatorSet(): AnimatorSet {
-        return animatorSetPool.acquire() ?: AnimatorSet()
-    }
-
-    /** Obtains an ObjectAnimator from the pool or creates a new one */
-    private fun getObjectAnimator(
-            target: Any,
-            property: String,
-            vararg values: Float
-    ): ObjectAnimator {
-        return objectAnimatorPool.acquire()?.apply {
-            setTarget(target)
-            setPropertyName(property)
-            setFloatValues(*values)
-        }
-                ?: ObjectAnimator.ofFloat(target, property, *values)
-    }
-
     /** Obtains a listener from the pool or creates a new one */
     private fun getAnimationEndListener(
             view: View,
@@ -221,6 +202,9 @@ object AnimationOptimizer {
     private class AnimationEndListener(var view: View? = null, var onEnd: (() -> Unit)? = null) :
             Animator.AnimatorListener {
 
+        // Animator.AnimatorListener requires overriding every callback; this reusable
+        // listener only cares about end/cancel to restore layer type and return to the pool.
+        @Suppress("EmptyFunctionBlock")
         override fun onAnimationStart(animation: Animator) {}
 
         override fun onAnimationEnd(animation: Animator) {
@@ -242,6 +226,7 @@ object AnimationOptimizer {
             animatorListenerPool.release(this)
         }
 
+        @Suppress("EmptyFunctionBlock")
         override fun onAnimationRepeat(animation: Animator) {}
     }
 

@@ -61,6 +61,14 @@ object ScreenshotCaptureUtil {
     // A paused-game still does not need to be sub-second fresh; keep the recurring cost low.
     private const val PIP_FRAME_MIN_INTERVAL_MS = 2500L
 
+    // Auto-crop border detection (see autoCropBlackBorders below)
+    private const val MAX_BORDER_CROP_RATIO = 0.05f // Max 5% crop on each side
+    private const val BORDER_SCAN_SAMPLE_COUNT = 20 // Sample ~20 rows/columns for performance
+    private const val BLACK_BORDER_BRIGHTNESS_THRESHOLD = 10
+    private const val RED_CHANNEL_SHIFT_BITS = 16
+    private const val GREEN_CHANNEL_SHIFT_BITS = 8
+    private const val COLOR_CHANNEL_MASK = 0xFF
+
     /**
      * Cached context for reading config values.
      */
@@ -102,41 +110,6 @@ object ScreenshotCaptureUtil {
         
         // Default fallback
         const val DEFAULT = 4f / 3f
-    }
-
-    /**
-     * Get the aspect ratio for a given LibRetro core name.
-     * 
-     * @param coreName The core name from config (e.g., "gambatte", "snes9x", "genesis_plus_gx")
-     * @return The aspect ratio for the core's target system
-     */
-    private fun getAspectRatioForCore(coreName: String): Float {
-        return when (coreName.lowercase()) {
-            // SNES cores
-            "snes9x", "bsnes", "snes9x_next", "mednafen_snes", "mesen-s" -> AspectRatios.SNES
-            
-            // Game Boy / Game Boy Color cores
-            "gambatte", "mgba", "vba_next", "sameboy", "gearboy" -> AspectRatios.GAME_BOY
-            
-            // Game Boy Advance cores
-            "gpsp", "vba-m", "meteor" -> AspectRatios.GAME_BOY_ADVANCE
-            
-            // Master System cores
-            "gearsystem", "genesis_plus_gx", "picodrive", "smsplus" -> AspectRatios.MASTER_SYSTEM
-            
-            // Mega Drive / Genesis cores (same cores as Master System, but different aspect)
-            // Note: picodrive and genesis_plus_gx support both, so we use Master System default
-            // The actual aspect depends on the ROM being played
-            
-            // NES cores
-            "nestopia", "fceumm", "quicknes", "mesen" -> AspectRatios.NES
-            
-            // Default fallback
-            else -> {
-                Log.w(TAG, "Unknown core '$coreName', using default aspect ratio")
-                AspectRatios.DEFAULT
-            }
-        }
     }
 
     /**
@@ -341,10 +314,10 @@ object ScreenshotCaptureUtil {
     private fun autoCropBlackBorders(bitmap: Bitmap): Bitmap {
         val w = bitmap.width
         val h = bitmap.height
-        val maxCropX = (w * 0.05f).toInt() // Max 5% crop on each side
-        val maxCropY = (h * 0.05f).toInt()
-        val sampleStep = maxOf(h / 20, 1) // Sample ~20 rows for performance
-        val brightnessThreshold = 10
+        val maxCropX = (w * MAX_BORDER_CROP_RATIO).toInt()
+        val maxCropY = (h * MAX_BORDER_CROP_RATIO).toInt()
+        val sampleStep = maxOf(h / BORDER_SCAN_SAMPLE_COUNT, 1)
+        val brightnessThreshold = BLACK_BORDER_BRIGHTNESS_THRESHOLD
 
         // Find left border
         var left = 0
@@ -352,9 +325,9 @@ object ScreenshotCaptureUtil {
             var hasContent = false
             for (y in 0 until h step sampleStep) {
                 val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr 16) and 0xFF
-                val g = (pixel shr 8) and 0xFF
-                val b = pixel and 0xFF
+                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val b = pixel and COLOR_CHANNEL_MASK
                 if (r + g + b > brightnessThreshold) {
                     hasContent = true
                     break
@@ -372,9 +345,9 @@ object ScreenshotCaptureUtil {
             var hasContent = false
             for (y in 0 until h step sampleStep) {
                 val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr 16) and 0xFF
-                val g = (pixel shr 8) and 0xFF
-                val b = pixel and 0xFF
+                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val b = pixel and COLOR_CHANNEL_MASK
                 if (r + g + b > brightnessThreshold) {
                     hasContent = true
                     break
@@ -387,15 +360,15 @@ object ScreenshotCaptureUtil {
         }
 
         // Find top border
-        val sampleStepX = maxOf(w / 20, 1)
+        val sampleStepX = maxOf(w / BORDER_SCAN_SAMPLE_COUNT, 1)
         var top = 0
         for (y in 0 until minOf(maxCropY, h)) {
             var hasContent = false
             for (x in 0 until w step sampleStepX) {
                 val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr 16) and 0xFF
-                val g = (pixel shr 8) and 0xFF
-                val b = pixel and 0xFF
+                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val b = pixel and COLOR_CHANNEL_MASK
                 if (r + g + b > brightnessThreshold) {
                     hasContent = true
                     break
@@ -413,9 +386,9 @@ object ScreenshotCaptureUtil {
             var hasContent = false
             for (x in 0 until w step sampleStepX) {
                 val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr 16) and 0xFF
-                val g = (pixel shr 8) and 0xFF
-                val b = pixel and 0xFF
+                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
+                val b = pixel and COLOR_CHANNEL_MASK
                 if (r + g + b > brightnessThreshold) {
                     hasContent = true
                     break

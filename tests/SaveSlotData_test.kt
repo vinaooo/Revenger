@@ -44,7 +44,7 @@ class SaveSlotData_test {
             slotNumber = 1,
             name = "Boss Fight",
             timestamp = Instant.now(),
-            romName = "Zelda",
+            romName = "Test ROM",
             playTime = 3600,
             description = "Before final boss",
             stateFile = null,
@@ -100,8 +100,49 @@ class SaveSlotData_test {
     fun `toString retorna representacao legivel`() {
         val slot = SaveSlotData.empty(5)
         val str = slot.toString()
-        
+
         assertTrue(str.contains("SaveSlotData"))
         assertTrue(str.contains("slotNumber=5"))
+    }
+
+    @Test
+    fun `getFormattedPlayTime retorna vazio para playTime zero ou negativo`() {
+        val zero = SaveSlotData.empty(1).copy(playTime = 0)
+        val negative = SaveSlotData.empty(1).copy(playTime = -10)
+
+        assertEquals("", zero.getFormattedPlayTime())
+        assertEquals("", negative.getFormattedPlayTime())
+    }
+
+    @Test
+    fun `getFormattedPlayTime retorna menos de 1m para playTime abaixo de 60 segundos`() {
+        val slot = SaveSlotData.empty(1).copy(playTime = 59)
+        assertEquals("<1m", slot.getFormattedPlayTime())
+    }
+
+    @Test
+    fun `getFormattedPlayTime converte 60 segundos em 1m, pinando SECONDS_PER_MINUTE`() {
+        val slot = SaveSlotData.empty(1).copy(playTime = 60)
+        assertEquals("1m", slot.getFormattedPlayTime())
+    }
+
+    @Test
+    fun `getFormattedPlayTime converte 3600 segundos em 1h, pinando SECONDS_PER_HOUR`() {
+        val slot = SaveSlotData.empty(1).copy(playTime = 3600)
+        assertEquals("1h", slot.getFormattedPlayTime())
+    }
+
+    @Test
+    fun `getFormattedPlayTime combina horas e minutos`() {
+        // 1h30m = 3600 + 30*60 = 5400s
+        val slot = SaveSlotData.empty(1).copy(playTime = 5400)
+        assertEquals("1h 30m", slot.getFormattedPlayTime())
+    }
+
+    @Test
+    fun `getFormattedPlayTime nao conta segundos residuais como minuto extra`() {
+        // 3659s = 1h 0m 59s -> hours=1, minutes=0 (residual seconds below a minute are dropped)
+        val slot = SaveSlotData.empty(1).copy(playTime = 3659)
+        assertEquals("1h", slot.getFormattedPlayTime())
     }
 }

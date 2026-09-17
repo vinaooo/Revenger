@@ -12,6 +12,8 @@ import com.vinaooo.revenger.utils.AndroidCompatibility
  */
 object EnhancedPrivacyManager {
 
+    private const val ANDROID_16_API_LEVEL = 36
+
     /** Initialize privacy controls based on Android version */
     fun initializePrivacyControls(context: Context) {
         when {
@@ -28,7 +30,7 @@ object EnhancedPrivacyManager {
     }
 
     /** Android 16+: Enhanced privacy with granular controls */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun initializeEnhancedPrivacy() {
         // Enhanced permission management
         requestEnhancedPermissions()
@@ -41,37 +43,44 @@ object EnhancedPrivacyManager {
     }
 
     /** Android 13+: Standard modern privacy */
+    // Placeholder: requesting the missing permission is not implemented yet.
+    @Suppress("EmptyIfBlock")
     private fun initializeStandardPrivacy(context: Context) {
         // Standard permission handling
-        if (!hasStoragePermissions(context)) {}
+        if (!hasStoragePermissions(context)) {
+        }
 
         // Basic data access controls
         enableBasicDataAudit()
     }
 
     /** Android 11: Basic privacy compliance */
+    // Placeholder: requesting the missing permission is not implemented yet.
+    @Suppress("EmptyIfBlock")
     private fun initializeBasicPrivacy(context: Context) {
         // Ensure basic compliance
-        if (!hasBasicPermissions(context)) {}
+        if (!hasBasicPermissions(context)) {
+        }
     }
 
     /** Enhanced permission management for Android 16 */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun requestEnhancedPermissions() {
         // This would use hypothetical SDK 36 enhanced permission APIs
     }
 
     /** Advanced data audit logging for SDK 36 */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun enableAdvancedDataAudit() {
         // Hypothetical advanced audit features
     }
 
-    /** Basic data access logging */
+    /** Basic data access logging (hypothetical, not implemented yet) */
+    @Suppress("EmptyFunctionBlock")
     private fun enableBasicDataAudit() {}
 
     /** Granular permission configuration for SDK 36 */
-    @RequiresApi(36)
+    @RequiresApi(ANDROID_16_API_LEVEL)
     private fun configureGranularPermissions() {
         // Hypothetical granular permission features
     }

@@ -164,12 +164,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
         )
     }
 
-    /** Shader selection is always enabled (legacy method kept for compatibility) */
-    @Deprecated("Shader selection is now always enabled")
-    private fun isShaderSelectionEnabled(): Boolean {
-        return true
-    }
-
     private fun setupClickListeners() {
         // PHASE 3.3a: Route touch events through NavigationController
         Log.d(
@@ -286,7 +280,7 @@ class SettingsMenuFragment : MenuFragmentBase() {
                 viewModel.setFastForwardEnabled(!currentFastForwardState)
                 updateMenuState()
             }
-            3 -> {
+            BACK_TO_MAIN_MENU_INDEX -> {
                 // Back to main menu - Execute action directly
                 android.util.Log.d(TAG, "[ACTION] Settings menu: Back to main menu selected")
                 // Use NavigationController to navigate back (don't call performBack which returns false)
@@ -449,6 +443,9 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
     companion object {
         private const val TAG = "SettingsMenu"
+
+        // Index of the "back to main menu" entry in this settings menu's item list.
+        private const val BACK_TO_MAIN_MENU_INDEX = 3
 
         fun newInstance(): SettingsMenuFragment {
             return SettingsMenuFragment()

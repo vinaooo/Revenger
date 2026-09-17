@@ -162,14 +162,13 @@ class RetroMenu3Fragment :
                         )
 
                 // Inicializar MenuActionHandler (depende de submenuCoordinator)
-                actionHandler =
-                        MenuActionHandler(this, viewModel, menuViewManager, submenuCoordinator)
+                actionHandler = MenuActionHandler(this, viewModel, submenuCoordinator)
 
                 // Agora inicializar os outros managers que dependem dos anteriores
                 stateController = MenuStateControllerImpl(this, animationController)
                 callbackManager = MenuCallbackManagerImpl(menuListener)
                 inputHandler =
-                        MenuInputHandlerImpl(this, stateController, callbackManager, actionHandler)
+                        MenuInputHandlerImpl(stateController, callbackManager, actionHandler)
 
                 // Initialize lifecycle manager last (depends on others)
                 lifecycleManager =
@@ -180,7 +179,6 @@ class RetroMenu3Fragment :
                                 animationController = animationController,
                                 inputHandler = inputHandler,
                                 stateController = stateController,
-                                callbackManager = callbackManager,
                                 menuViewManager = menuViewManager,
                                 actionHandler = actionHandler
                         )
@@ -321,7 +319,7 @@ class RetroMenu3Fragment :
                                                         submenuCoordinator.openSubmenu(savedState)
                                                 }
                                         },
-                                        50
+                                        SUBMENU_REOPEN_VIEW_READY_DELAY_MS
                                 )
                         }
                 }
@@ -613,6 +611,10 @@ class RetroMenu3Fragment :
 
         companion object {
                 private const val TAG = "RetroMenu3Fragment"
+
+                // Short delay before reopening a saved submenu, to wait for the view to be
+                // completely ready after configuration change.
+                private const val SUBMENU_REOPEN_VIEW_READY_DELAY_MS = 50L
 
                 fun newInstance(): RetroMenu3Fragment {
                         return RetroMenu3Fragment()

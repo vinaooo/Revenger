@@ -3,6 +3,10 @@ package com.vinaooo.revenger.ui.retromenu3
 import android.view.View
 import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
+import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
+import com.vinaooo.revenger.viewmodels.GameActivityViewModel
+import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -82,6 +86,35 @@ class SettingsMenuFragment_test {
         } catch (e: Exception) {
             fail("onMenuItemSelected(back) should not throw exception: ${e.message}")
         }
+    }
+
+    @Test
+    fun `performConfirm no indice 3 delega para navigateBack, sem tocar audio, shader ou velocidade`() {
+        // Pins BACK_TO_MAIN_MENU_INDEX = 3: performConfirm() on the "back" item must call
+        // navigationController.navigateBack() -- and, unlike the audio/shader/speed toggle
+        // branches (0, 1, 2), must NOT change any of those states. A mocked NavigationController
+        // makes this discriminating: if the index constant regressed to a value that falls
+        // through to the `else` branch instead, navigateBack() would never be invoked and this
+        // assertion (not just the state-unchanged ones below) would catch it.
+        val viewModel = getViewModel()
+        val navigationController = mockk<NavigationController>(relaxed = true)
+        viewModel.navigationController = navigationController
+
+        val audioBefore = viewModel.getAudioState()
+        val fastForwardBefore = viewModel.getFastForwardState()
+
+        fragment.setSelectedIndex(3)
+        fragment.onConfirm()
+
+        verify(exactly = 1) { navigationController.navigateBack() }
+        assertEquals(audioBefore, viewModel.getAudioState())
+        assertEquals(fastForwardBefore, viewModel.getFastForwardState())
+    }
+
+    private fun getViewModel(): GameActivityViewModel {
+        val viewModelField = SettingsMenuFragment::class.java.getDeclaredField("viewModel")
+        viewModelField.isAccessible = true
+        return viewModelField.get(fragment) as GameActivityViewModel
     }
 
     @Test

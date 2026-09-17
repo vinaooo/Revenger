@@ -18,6 +18,12 @@ class GamePadLayoutAdjuster {
 
     companion object {
         private const val TAG = "GamePadLayoutAdjuster"
+        private const val PORTRAIT_GAMEPAD_WEIGHT = 0.40f
+        private const val PORTRAIT_CENTER_WEIGHT = 0.2f
+        private const val LANDSCAPE_GAMEPAD_WEIGHT = 0.25f
+        private const val LANDSCAPE_CENTER_WEIGHT = 0.5f
+        private const val OFFSET_PERCENT_MAX = 100
+        private const val PERCENT_SCALE = 100.0
     }
 
     /** Adjust gamepad position based on screen orientation */
@@ -56,7 +62,7 @@ class GamePadLayoutAdjuster {
             Log.d(TAG, "GamePad positioned at BOTTOM for portrait mode")
 
             // Increase gamepad sizes for portrait (40% each instead of 25%)
-            adjustGamePadSizes(gamepadContainer, 0.40f, 0.2f)
+            adjustGamePadSizes(gamepadContainer, PORTRAIT_GAMEPAD_WEIGHT, PORTRAIT_CENTER_WEIGHT)
 
             // Equalize heights and apply portrait offset
             gamepadContainer.post {
@@ -69,7 +75,7 @@ class GamePadLayoutAdjuster {
             Log.d(TAG, "GamePad positioned at TOP for landscape mode")
 
             // Keep original sizes for landscape (25% each)
-            adjustGamePadSizes(gamepadContainer, 0.25f, 0.5f)
+            adjustGamePadSizes(gamepadContainer, LANDSCAPE_GAMEPAD_WEIGHT, LANDSCAPE_CENTER_WEIGHT)
 
             // Equalize heights in landscape to fix alignment issues
             gamepadContainer.post {
@@ -110,7 +116,7 @@ class GamePadLayoutAdjuster {
 
             // Calculate margin: offset 100% = 0px (bottom edge), offset 0% =
             // maxMovement (top)
-            val bottomMargin = (maxMovement * (100 - offsetPercent) / 100.0).toInt()
+            val bottomMargin = (maxMovement * (OFFSET_PERCENT_MAX - offsetPercent) / PERCENT_SCALE).toInt()
 
             val layoutParams = container.layoutParams as FrameLayout.LayoutParams
             layoutParams.bottomMargin = bottomMargin
@@ -154,7 +160,7 @@ class GamePadLayoutAdjuster {
 
             // Calculate margin: offset 0% = 0px (top), offset 100% = maxMovement
             // (bottom)
-            val topMargin = (maxMovement * offsetPercent / 100.0).toInt()
+            val topMargin = (maxMovement * offsetPercent / PERCENT_SCALE).toInt()
 
             val layoutParams = container.layoutParams as FrameLayout.LayoutParams
             layoutParams.topMargin = topMargin

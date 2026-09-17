@@ -102,7 +102,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
         } else {
             backButton.setTextColor(resources.getColor(R.color.rm_disabled_color, null))
             backButton.setBackgroundResource(R.drawable.back_button_background)
-            backButton.alpha = 0.5f
+            backButton.alpha = DISABLED_EXIT_BUTTON_ALPHA
         }
     }
 
@@ -113,7 +113,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
         // Override the back/exit button visual when it's disabled
         if (isBackButtonSelected && !exitEnabled) {
             backButton.setTextColor(resources.getColor(R.color.rm_disabled_color, null))
-            backButton.alpha = 0.5f
+            backButton.alpha = DISABLED_EXIT_BUTTON_ALPHA
         } else if (isBackButtonSelected && exitEnabled) {
             backButton.setTextColor(resources.getColor(R.color.rm_selected_color, null))
             backButton.alpha = 1.0f
@@ -228,7 +228,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
                 .applyAllProportionsToMenuLayout(dialog)
 
             dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(150).start()
+            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
 
             // Setup keyboard
             retroKeyboard?.setupKeyboardInView(dialog)
@@ -334,7 +334,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
 
             // Animate in
             dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(150).start()
+            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
         }
     }
 
@@ -526,6 +526,8 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
 
     companion object {
         private const val TAG = "ExitSaveGridFragment"
+        private const val DISABLED_EXIT_BUTTON_ALPHA = 0.5f
+        private const val DIALOG_FADE_IN_DURATION_MS = 150L
 
         fun newInstance(): ExitSaveGridFragment {
             return ExitSaveGridFragment()

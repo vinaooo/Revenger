@@ -49,6 +49,7 @@ class SaveStateManager private constructor(private val context: Context) {
         private const val METADATA_FILE = "metadata.json"
         private const val LEGACY_STATE_FILE = "state"
         const val TOTAL_SLOTS = 9
+        private const val PREVIEW_IMAGE_QUALITY = 80
 
         @Volatile private var instance: SaveStateManager? = null
 
@@ -398,7 +399,7 @@ class SaveStateManager private constructor(private val context: Context) {
     private fun saveScreenshot(slotDir: File, bitmap: Bitmap) {
         val screenshotFile = File(slotDir, SCREENSHOT_FILE)
         screenshotFile.outputStream().use { out ->
-            bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 80, out)
+            bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, PREVIEW_IMAGE_QUALITY, out)
         }
     }
 
@@ -409,7 +410,7 @@ class SaveStateManager private constructor(private val context: Context) {
     private fun savePreview(slotDir: File, bitmap: Bitmap) {
         val previewFile = File(slotDir, PREVIEW_FILE)
         previewFile.outputStream().use { out ->
-            bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 80, out)
+            bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, PREVIEW_IMAGE_QUALITY, out)
         }
     }
 

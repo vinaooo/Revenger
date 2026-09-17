@@ -49,6 +49,15 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 private const val ACTION_PIP_QUICK_SAVE = "com.vinaooo.revenger.PIP_QUICK_SAVE"
                 private const val ACTION_PIP_SAVE = "com.vinaooo.revenger.PIP_SAVE"
                 private const val PIP_QUICK_SAVE_FRAME_TIMEOUT_MS = 2000L
+
+                // Rotation menu-recreation chain delays: staggered so each step only runs once the
+                // system/fragment-manager work the previous step kicked off has had time to settle.
+                private const val ROTATION_SYSTEM_SETTLE_DELAY_MS = 250L
+                private const val ROTATION_TEARDOWN_SETTLE_DELAY_MS = 100L
+                private const val ROTATION_MAIN_MENU_FOCUS_RESTORE_DELAY_MS = 500L
+                private const val ROTATION_SUBMENU_BASE_SETTLE_DELAY_MS = 150L
+                private const val ROTATION_SUBMENU_REGISTER_DELAY_MS = 100L
+                private const val ROTATION_SUBMENU_FOCUS_RESTORE_DELAY_MS = 600L
         }
         private val pipBroadcastReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
@@ -497,7 +506,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                                 currentState
                                         )
                                 },
-                                250
+                                ROTATION_SYSTEM_SETTLE_DELAY_MS
                         ) // Delay to ensure the system finished processing rotation
         }
 
@@ -597,7 +606,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                                 isMainMenu
                                         )
                                 },
-                                100
+                                ROTATION_TEARDOWN_SETTLE_DELAY_MS
                         )
 
                 Log.d(TAG, "[ORIENTATION] ====== ORIENTATION CHECK COMPLETED ======")
@@ -704,7 +713,10 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
 
                         // Restaurar foco
                         android.os.Handler(android.os.Looper.getMainLooper())
-                                .postDelayed({ restoreMainMenuFocusAfterRotation() }, 500)
+                                .postDelayed(
+                                        { restoreMainMenuFocusAfterRotation() },
+                                        ROTATION_MAIN_MENU_FOCUS_RESTORE_DELAY_MS
+                                )
                 }
 
                 transaction.commit()
@@ -755,7 +767,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 android.os.Handler(android.os.Looper.getMainLooper())
                         .postDelayed(
                                 { addSubmenuOnTopAfterRotation(effectiveState, newFragment) },
-                                150
+                                ROTATION_SUBMENU_BASE_SETTLE_DELAY_MS
                         ) // Delay para garantir que RetroMenu3 foi completamente adicionado
         }
 
@@ -790,12 +802,15 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                                 newFragment
                                         )
                                 },
-                                100
+                                ROTATION_SUBMENU_REGISTER_DELAY_MS
                         ) // Aguardar Fragment ser adicionado antes de registrar
 
                 // Restaurar foco no submenu
                 android.os.Handler(android.os.Looper.getMainLooper())
-                        .postDelayed({ restoreSubmenuFocusAfterRotation(effectiveState) }, 600)
+                        .postDelayed(
+                                { restoreSubmenuFocusAfterRotation(effectiveState) },
+                                ROTATION_SUBMENU_FOCUS_RESTORE_DELAY_MS
+                        )
         }
 
         /**

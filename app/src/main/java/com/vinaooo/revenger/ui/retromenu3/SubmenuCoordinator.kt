@@ -25,7 +25,6 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
  * - `hasSubmenuOpen`: Indicates if a submenu is active
  * - `isClosingSubmenu`: Protection against multiple simultaneous closes
  * - `isRestoringSelection`: Protection against duplicate restorations
- * - `shouldPreserveSelectionOnShowMainMenu`: Controls whether to restore selection
  *
  * **Integration**:
  * - Works with MenuManager for fragment registration
@@ -51,13 +50,14 @@ class SubmenuCoordinator(
 
     companion object {
         private const val TAG = "RetroMenu3"
+
+        // Short settle delay between chained UI restore steps, so each step only runs once the
+        // previous one (setSelectedIndex, then showing the main menu) has been processed.
+        private const val RESTORE_STEP_SETTLE_DELAY_MS = 50L
     }
 
     // Store the main menu selected index before opening a submenu
     private var mainMenuSelectedIndexBeforeSubmenu: Int = 0
-
-    // Flag to indicate if selection should be preserved when showing main menu
-    private var shouldPreserveSelectionOnShowMainMenu: Boolean = false
 
     // Flag to prevent multiple simultaneous close operations
     private var isClosingSubmenu: Boolean = false
@@ -166,10 +166,13 @@ class SubmenuCoordinator(
                                 animationController?.updateSelectionVisual(currentIndex)
                             }
                     pendingRestoreUpdateVisual = updateVisualRunnable
-                    fragment.view?.postDelayed(updateVisualRunnable, 50)
+                    fragment.view?.postDelayed(
+                            updateVisualRunnable,
+                            RESTORE_STEP_SETTLE_DELAY_MS
+                    )
                 }
         pendingRestoreShowMenu = showMenuRunnable
-        fragment.view?.postDelayed(showMenuRunnable, 50)
+        fragment.view?.postDelayed(showMenuRunnable, RESTORE_STEP_SETTLE_DELAY_MS)
     }
 
     fun setCallbacks(

@@ -47,6 +47,21 @@ class GameActivityViewModel(application: Application) :
         AboutListener,
         MenuManager.MenuManagerListener {
 
+    companion object {
+        // Grace period after the menu closes during which button interception stays active.
+        // Covers the ~150ms hardware delay observed between ACTION_DOWN and ACTION_UP; a
+        // shorter window (50ms) was found insufficient.
+        private const val MENU_CLOSE_BUTTON_INTERCEPT_GRACE_MS = 200L
+
+        // Delay before clearing state after dismissing the RetroMenu3 fragment, to let the
+        // pending fragment removal complete first.
+        private const val RETRO_MENU3_FRAGMENT_REMOVAL_SETTLE_DELAY_MS = 200L
+
+        // Delay before clearing controller input state, to let the pending fragment
+        // destruction complete first.
+        private const val CONTROLLER_STATE_CLEAR_FRAGMENT_DESTROY_SETTLE_DELAY_MS = 200L
+    }
+
     private val resources = application.resources
     private val appConfig = RevengerApplication.appConfig
 
@@ -55,9 +70,6 @@ class GameActivityViewModel(application: Application) :
 
     /** Menu management ViewModel */
     private val menuViewModel: MenuViewModel = MenuViewModel(application)
-
-    /** Game state management ViewModel */
-    private val gameStateViewModel: GameStateViewModel = GameStateViewModel(application)
 
     /** Input management ViewModel */
     private val inputViewModel: InputViewModel = InputViewModel(application)
@@ -168,30 +180,6 @@ class GameActivityViewModel(application: Application) :
     // ===== CENTRALIZED STATE MANAGEMENT =====
     // Distributed state migrated to MenuStateManager
 
-    /** Check if settings menu is active */
-    private fun isSettingsMenuActive(): Boolean =
-            menuStateManager.isMenuActive(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
-            )
-
-    /** Check if progress menu is active */
-    private fun isProgressActive(): Boolean =
-            menuStateManager.isMenuActive(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU
-            )
-
-    /** Check if exit menu is active */
-    private fun isExitActive(): Boolean =
-            menuStateManager.isMenuActive(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
-            )
-
-    /** Check if about menu is active */
-    private fun isAboutActive(): Boolean =
-            menuStateManager.isMenuActive(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
-            )
-
     /** Activate settings menu */
     private fun activateSettingsMenu() {
         menuStateManager.activateMenu(
@@ -249,13 +237,6 @@ class GameActivityViewModel(application: Application) :
     }
 
 
-    /** Activate core variables menu */
-    private fun activateCoreVariablesMenu() {
-        menuStateManager.activateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.CORE_VARIABLES_MENU
-        )
-    }
-
     /** Deactivate core variables menu */
     private fun deactivateCoreVariablesMenu() {
         menuStateManager.deactivateMenu(
@@ -279,7 +260,7 @@ class GameActivityViewModel(application: Application) :
     fun getMenuManager(): MenuManager = menuManager
 
     private var compositeDisposable = CompositeDisposable()
-    private val controllerInput = ControllerInput(application.applicationContext)
+    private val controllerInput = ControllerInput()
 
     // Controllers modulares
     private var audioController: AudioController? = null
@@ -414,10 +395,7 @@ class GameActivityViewModel(application: Application) :
     private fun handleMenuClosed(activity: FragmentActivity, closingButton: Int?) {
         (activity as? FloatingButtonVisibilityHost)?.fadeFloatingButtonImmediately()
 
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "🔥 [ON_MENU_CLOSED_CALLBACK] ===== MENU CLOSED ====="
-        )
+        android.util.Log.d("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] ===== MENU CLOSED =====")
         try {
             Log.d(
                     "GameActivityViewModel",
@@ -469,7 +447,10 @@ class GameActivityViewModel(application: Application) :
         // 200ms covers the ~150ms hardware delay between ACTION_DOWN and ACTION_UP
         // Identified via logs: UP arrives 150ms later; 50ms was insufficient
         // Block only the button that actually closed the menu
-        controllerInput.keepInterceptingButtons(200, closingButton = closingButton)
+        controllerInput.keepInterceptingButtons(
+                MENU_CLOSE_BUTTON_INTERCEPT_GRACE_MS,
+                closingButton = closingButton
+        )
 
         // Keep the freshest known frame as the PiP still before dropping the menu caches.
         com.vinaooo.revenger.utils.ScreenshotCaptureUtil.promoteCachedFullToPipFrame()
@@ -772,8 +753,8 @@ class GameActivityViewModel(application: Application) :
                                     "[DISMISS_MAIN] dismissRetroMenu3: Menu dismissed"
                             )
                         },
-                        200
-                ) // 200ms delay to ensure fragment removal is complete
+                        RETRO_MENU3_FRAGMENT_REMOVAL_SETTLE_DELAY_MS
+                ) // Delay to ensure fragment removal is complete
 
         android.util.Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Completed")
     }
@@ -822,8 +803,8 @@ class GameActivityViewModel(application: Application) :
                                     "[CLEAR_STATE] clearControllerInputState: COMPLETED"
                             )
                         },
-                        200
-                ) // 200ms delay to ensure fragment destruction is complete
+                        CONTROLLER_STATE_CLEAR_FRAGMENT_DESTROY_SETTLE_DELAY_MS
+                ) // Delay to ensure fragment destruction is complete
     }
 
     /** Check if the RetroMenu3 is currently open */
@@ -1752,7 +1733,7 @@ class GameActivityViewModel(application: Application) :
         sharedPreferences = sharedPrefs
         audioController = AudioController(activity.applicationContext, sharedPrefs)
         speedController = SpeedController(activity.applicationContext, sharedPrefs, appConfig)
-        shaderController = ShaderController(activity.applicationContext, sharedPrefs, appConfig)
+        shaderController = ShaderController(sharedPrefs, appConfig)
 
         // Set controllers in ViewModels
         audioController?.let { audioViewModel.setAudioController(it) }

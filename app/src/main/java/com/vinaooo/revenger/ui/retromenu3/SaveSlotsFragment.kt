@@ -141,7 +141,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyAllProportionsToMenuLayout(dialog)
             
             dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(150).start()
+            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
 
             // Setup keyboard
             retroKeyboard?.setupKeyboardInView(dialog)
@@ -360,7 +360,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
             // Animate in
             dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(150).start()
+            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
         }
     }
 
@@ -454,6 +454,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
     companion object {
         private const val TAG = "SaveSlotsFragment"
+        private const val DIALOG_FADE_IN_DURATION_MS = 150L
 
         fun newInstance(): SaveSlotsFragment {
             return SaveSlotsFragment()

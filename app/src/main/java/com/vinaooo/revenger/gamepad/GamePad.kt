@@ -26,6 +26,7 @@ class GamePad(
 
     companion object {
     private const val TAG = "GamePad"
+    private const val HEX_RADIX = 16
 
         /** Should the user see the on-screen controls? */
         fun shouldShowGamePads(activity: Activity, appConfig: AppConfig): Boolean {
@@ -70,7 +71,7 @@ class GamePad(
             android.util.Log.d(
                 TAG,
                 "Input device: id=$id, name=$name, virtual=$isVirtual, " +
-                        "sources=0x${sources.toString(16)}, gamepad=$hasGamepadSource, " +
+                        "sources=0x${sources.toString(HEX_RADIX)}, gamepad=$hasGamepadSource, " +
                         "joystick=$hasJoystickSource"
             )
 

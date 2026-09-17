@@ -1,9 +1,7 @@
 package com.vinaooo.revenger.input
 
-import android.content.Context
 import android.view.KeyEvent
 import androidx.lifecycle.MutableLiveData
-import androidx.test.core.app.ApplicationProvider
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.retroview.RetroView
 import io.mockk.every
@@ -33,8 +31,7 @@ class ControllerInput_test {
     // so proving cooldown-independent behavior requires waiting out the real windows.
     private val comboCooldownMs = 500L
 
-    private fun newControllerInput(): ControllerInput =
-            ControllerInput(ApplicationProvider.getApplicationContext<Context>())
+    private fun newControllerInput(): ControllerInput = ControllerInput()
 
     /**
      * Builds a mocked [RetroView] whose [RetroView.frameRendered] is pinned to [frameRendered]
@@ -104,6 +101,26 @@ class ControllerInput_test {
                 KeyEvent.KEYCODE_BUTTON_START,
                 KeyEvent.ACTION_DOWN
         )
+        assertTrue(fired)
+    }
+
+    // Regression test: some physical gamepads report their menu/hamburger button as the
+    // vendor keycode -6 (not one of KeyEvent's own constants), so this handling is only
+    // reachable by passing that literal directly.
+    @Test
+    fun `gamepad menu button keycode -6 triggers gamepadMenuButtonCallback only when shouldHandleGamepadMenuButton returns true`() {
+        val controllerInput = newControllerInput()
+        var fired = false
+        controllerInput.gamepadMenuButtonCallback = { fired = true }
+        controllerInput.shouldHandleGamepadMenuButton = { false }
+
+        val notConsumed = controllerInput.processGamePadButtonEvent(-6, KeyEvent.ACTION_DOWN)
+        assertFalse(notConsumed) // shouldHandleGamepadMenuButton()=false: falls through, sent to core
+        assertFalse(fired)
+
+        controllerInput.shouldHandleGamepadMenuButton = { true }
+        val consumed = controllerInput.processGamePadButtonEvent(-6, KeyEvent.ACTION_DOWN)
+        assertTrue(consumed) // handled: intercepted, not sent to core
         assertTrue(fired)
     }
 

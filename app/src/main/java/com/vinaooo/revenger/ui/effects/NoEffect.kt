@@ -11,6 +11,11 @@ import android.graphics.Paint
  * retromenu2_background_effect = 0
  */
 class NoEffect : BackgroundEffect {
+
+    companion object {
+        private const val OPACITY_MAX = 255
+    }
+
     override fun apply(context: Context, screenshot: Bitmap, intensity: Float): Bitmap {
         // Create copy of original bitmap
         val result = screenshot.copy(Bitmap.Config.ARGB_8888, true)
@@ -20,7 +25,7 @@ class NoEffect : BackgroundEffect {
         val paint =
                 Paint().apply {
                     color = Color.BLACK
-                    alpha = (intensity * 255).toInt().coerceIn(0, 255)
+                    alpha = (intensity * OPACITY_MAX).toInt().coerceIn(0, OPACITY_MAX)
                 }
 
         canvas.drawRect(0f, 0f, result.width.toFloat(), result.height.toFloat(), paint)

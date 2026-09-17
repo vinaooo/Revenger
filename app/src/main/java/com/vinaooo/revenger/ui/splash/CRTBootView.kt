@@ -38,6 +38,24 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         const val LINE_HEIGHT = 1f // Line height (dp) - thinner
         const val SCANLINE_SPACING = 4 // Spacing between scanlines (px)
         const val SCANLINE_MAX_OPACITY = 76 // Maximum opacity of scanlines (0-255, ~30%)
+
+        // Maximum value of an 8-bit alpha/color channel
+        private const val MAX_ALPHA_VALUE = 255
+
+        // Phase 1 (dot) glow effect
+        private const val DOT_GLOW_LAYER_COUNT = 5
+        private const val DOT_GLOW_RADIUS_STEP_PX = 4f
+        private const val DOT_GLOW_ALPHA_FACTOR = 0.6f
+
+        // Phase 2 (line) needle tips and glow effect
+        private const val NEEDLE_LENGTH_MULTIPLIER = 3f
+        private const val LINE_GLOW_LAYER_COUNT = 8
+        private const val LINE_GLOW_HEIGHT_STEP_PX = 5f
+        private const val LINE_GLOW_NEEDLE_STEP_PX = 3f
+        private const val LINE_GLOW_ALPHA_FACTOR = 0.65f
+
+        // Phase 3 (expansion) rounded corners
+        private const val EXPANSION_CORNER_RADIUS_DP = 30f
     }
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -167,7 +185,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
             // Phase 3: Vertical expansion + scanlines (PHASE_2_END to 1.0)
             else -> {
-                drawExpansionPhase(canvas, centerX, centerY)
+                drawExpansionPhase(canvas, centerY)
             }
         }
     }
@@ -198,18 +216,20 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                 }
 
         // Opacity increases rapidly, multiplied by transition factor
-        val mainAlpha = 255
+        val mainAlpha = MAX_ALPHA_VALUE
         val finalAlpha = (mainAlpha * alphaMultiplier).toInt()
 
         // Draw multiple glow/fade layers around the circle
-        val glowLayers = 5
+        val glowLayers = DOT_GLOW_LAYER_COUNT
         for (layer in glowLayers downTo 1) {
             // Aumenta o raio para cada camada de glow
-            val glowRadius = radius + (layer * 4f)
+            val glowRadius = radius + (layer * DOT_GLOW_RADIUS_STEP_PX)
 
             // Opacidade diminui para camadas externas
-            val glowAlpha = (finalAlpha * (1f - layer / glowLayers.toFloat()) * 0.6f).toInt()
-            paint.alpha = glowAlpha.coerceIn(0, 255)
+            val glowAlpha =
+                    (finalAlpha * (1f - layer / glowLayers.toFloat()) * DOT_GLOW_ALPHA_FACTOR)
+                            .toInt()
+            paint.alpha = glowAlpha.coerceIn(0, MAX_ALPHA_VALUE)
 
             // Draw glow circle
             canvas.drawCircle(centerX, centerY, glowRadius, paint)
@@ -242,26 +262,30 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         val lineWidth = phaseProgress * width
 
         // Length of needle tip (proportional to line height)
-        val needleLength = lineHeightPx * 3f
+        val needleLength = lineHeightPx * NEEDLE_LENGTH_MULTIPLIER
 
         // Draw multiple glow/fade layers around the line
-        val glowLayers = 8
+        val glowLayers = LINE_GLOW_LAYER_COUNT
         for (layer in glowLayers downTo 1) {
             // Increase height (thickness) for each glow layer
-            val glowHeight = lineHeightPx + (layer * 5f)
-            val glowNeedleLength = needleLength + (layer * 3f)
+            val glowHeight = lineHeightPx + (layer * LINE_GLOW_HEIGHT_STEP_PX)
+            val glowNeedleLength = needleLength + (layer * LINE_GLOW_NEEDLE_STEP_PX)
 
             // Opacidade diminui para camadas externas
             val glowAlpha =
-                    (255 * (1f - layer / glowLayers.toFloat()) * 0.65f * alphaMultiplier).toInt()
-            paint.alpha = glowAlpha.coerceIn(0, 255)
+                    (MAX_ALPHA_VALUE *
+                                    (1f - layer / glowLayers.toFloat()) *
+                                    LINE_GLOW_ALPHA_FACTOR *
+                                    alphaMultiplier)
+                            .toInt()
+            paint.alpha = glowAlpha.coerceIn(0, MAX_ALPHA_VALUE)
 
             // Draw glow line with needle tips
             drawNeedleLine(canvas, centerX, centerY, lineWidth, glowHeight, glowNeedleLength)
         }
 
         // Draw main line with needle tips
-        paint.alpha = (255 * alphaMultiplier).toInt()
+        paint.alpha = (MAX_ALPHA_VALUE * alphaMultiplier).toInt()
         drawNeedleLine(canvas, centerX, centerY, lineWidth, lineHeightPx, needleLength)
     }
 
@@ -298,7 +322,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     }
 
     /** Phase 3: Draw vertical expansion + scanlines with fade-out (or fade-in if reverse) */
-    private fun drawExpansionPhase(canvas: Canvas, centerX: Float, centerY: Float) {
+    private fun drawExpansionPhase(canvas: Canvas, centerY: Float) {
         // Normalizar progress para esta fase (0.0 - 1.0)
         val phaseProgress = (progress - PHASE_2_END) / (1f - PHASE_2_END)
 
@@ -307,15 +331,15 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         val clipTop = centerY - clipHeight / 2
         val clipBottom = centerY + clipHeight / 2
 
-        // Raio dos cantos arredondados (30dp)
-        val cornerRadius = 30f * resources.displayMetrics.density
+        // Raio dos cantos arredondados
+        val cornerRadius = EXPANSION_CORNER_RADIUS_DP * resources.displayMetrics.density
 
         // Fade out no modo normal, fade in no modo reverso
         val fadeAlpha =
                 if (isReverseMode) {
-                    phaseProgress * 255 // Fade in: opacidade aumenta
+                    phaseProgress * MAX_ALPHA_VALUE // Fade in: opacidade aumenta
                 } else {
-                    (1f - phaseProgress) * 255 // Fade out: opacidade diminui
+                    (1f - phaseProgress) * MAX_ALPHA_VALUE // Fade out: opacidade diminui
                 }
 
         // Salvar estado do canvas
