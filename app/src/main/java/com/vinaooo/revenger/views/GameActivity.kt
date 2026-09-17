@@ -1373,11 +1373,13 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                                         val slotData = saveManager.getSlot(slotNumber)
                                         saveManager.saveToSlot(
                                                 slotNumber = slotNumber,
-                                                stateBytes = stateBytes,
-                                                screenshot = screenshot,
-                                                preview = screenshot,
-                                                name = if (slotData.isEmpty) "Slot $slotNumber" else slotData.name,
-                                                romName = getString(R.string.name)
+                                                payload = com.vinaooo.revenger.models.SaveSlotPayload(
+                                                        stateBytes = stateBytes,
+                                                        screenshot = screenshot,
+                                                        preview = screenshot,
+                                                        name = if (slotData.isEmpty) "Slot $slotNumber" else slotData.name,
+                                                        romName = getString(R.string.name)
+                                                )
                                         )
                                         tracker.recordSave(slotNumber)
                                         Log.d(TAG, "[PIP] Quick save written to slot $slotNumber")

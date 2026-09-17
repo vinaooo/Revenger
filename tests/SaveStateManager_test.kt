@@ -3,6 +3,7 @@ package com.vinaooo.revenger.managers
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.test.core.app.ApplicationProvider
+import com.vinaooo.revenger.models.SaveSlotPayload
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -86,7 +87,7 @@ class SaveStateManager_test {
     @Test
     fun `saveToSlot cria arquivo de estado`() {
         val testData = "test state data".toByteArray()
-        val result = manager.saveToSlot(1, testData, null, name = "Test Save")
+        val result = manager.saveToSlot(1, SaveSlotPayload(testData, null, name = "Test Save"))
 
         assertTrue(result)
 
@@ -100,7 +101,7 @@ class SaveStateManager_test {
     @Test
     fun `saveToSlot com nome padrao usa formato Slot X`() {
         val testData = "test".toByteArray()
-        manager.saveToSlot(3, testData, null)
+        manager.saveToSlot(3, SaveSlotPayload(testData, null))
 
         val slot = manager.getSlot(3)
         assertEquals("Slot 3", slot.name)
@@ -111,8 +112,8 @@ class SaveStateManager_test {
         val data1 = "first save".toByteArray()
         val data2 = "second save".toByteArray()
         
-        manager.saveToSlot(2, data1, null, name = "First")
-        manager.saveToSlot(2, data2, null, name = "Second")
+        manager.saveToSlot(2, SaveSlotPayload(data1, null, name = "First"))
+        manager.saveToSlot(2, SaveSlotPayload(data2, null, name = "Second"))
         
         val slot = manager.getSlot(2)
         assertEquals("Second", slot.name)
@@ -124,7 +125,7 @@ class SaveStateManager_test {
         val stateData = "state".toByteArray()
         val screenshot = Bitmap.createBitmap(160, 144, Bitmap.Config.ARGB_8888)
         
-        manager.saveToSlot(4, stateData, screenshot, name = "With Screenshot")
+        manager.saveToSlot(4, SaveSlotPayload(stateData, screenshot, name = "With Screenshot"))
         
         val slot = manager.getSlot(4)
         assertNotNull(slot.screenshotFile)
@@ -136,7 +137,7 @@ class SaveStateManager_test {
     @Test
     fun `deleteSlot remove arquivos e marca como vazio`() {
         val testData = "test".toByteArray()
-        manager.saveToSlot(5, testData, null, name = "To Delete")
+        manager.saveToSlot(5, SaveSlotPayload(testData, null, name = "To Delete"))
         
         assertTrue(manager.deleteSlot(5))
         
@@ -150,7 +151,7 @@ class SaveStateManager_test {
         val stateData = "state".toByteArray()
         val screenshot = Bitmap.createBitmap(160, 144, Bitmap.Config.ARGB_8888)
         
-        manager.saveToSlot(7, stateData, screenshot, name = "With Image")
+        manager.saveToSlot(7, SaveSlotPayload(stateData, screenshot, name = "With Image"))
         manager.deleteSlot(7)
         
         val slot = manager.getSlot(7)
@@ -162,7 +163,7 @@ class SaveStateManager_test {
     @Test
     fun `copySlot duplica dados para outro slot`() {
         val testData = "copy test".toByteArray()
-        manager.saveToSlot(1, testData, null, name = "Original")
+        manager.saveToSlot(1, SaveSlotPayload(testData, null, name = "Original"))
         
         assertTrue(manager.copySlot(1, 2))
         
@@ -177,7 +178,7 @@ class SaveStateManager_test {
     @Test
     fun `moveSlot transfere dados e limpa origem`() {
         val testData = "move test".toByteArray()
-        manager.saveToSlot(3, testData, null, name = "To Move")
+        manager.saveToSlot(3, SaveSlotPayload(testData, null, name = "To Move"))
         
         assertTrue(manager.moveSlot(3, 4))
         
@@ -199,7 +200,7 @@ class SaveStateManager_test {
     @Test
     fun `renameSlot altera nome do slot`() {
         val testData = "rename test".toByteArray()
-        manager.saveToSlot(7, testData, null, name = "Old Name")
+        manager.saveToSlot(7, SaveSlotPayload(testData, null, name = "Old Name"))
         
         assertTrue(manager.renameSlot(7, "New Name"))
         
@@ -210,6 +211,39 @@ class SaveStateManager_test {
     @Test
     fun `renameSlot de slot vazio retorna false`() {
         assertFalse(manager.renameSlot(8, "Cannot Rename"))
+    }
+
+    // ========== SCREENSHOT UPDATE ==========
+
+    @Test
+    fun `updateScreenshot em slot existente sobrescreve a imagem e retorna true`() {
+        val initialScreenshot = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)
+        manager.saveToSlot(
+                2,
+                SaveSlotPayload("state".toByteArray(), initialScreenshot, name = "With Slot")
+        )
+        val initialLength = manager.getSlot(2).screenshotFile!!.length()
+
+        val newScreenshot = Bitmap.createBitmap(160, 144, Bitmap.Config.ARGB_8888)
+        val result = manager.updateScreenshot(2, newScreenshot)
+
+        assertTrue(result)
+        val slot = manager.getSlot(2)
+        assertNotNull(slot.screenshotFile)
+        assertTrue(slot.screenshotFile!!.exists())
+        assertTrue(
+                "screenshot file must reflect the new (larger) image, not the original",
+                slot.screenshotFile!!.length() > initialLength
+        )
+    }
+
+    @Test
+    fun `updateScreenshot em slot vazio retorna false`() {
+        val screenshot = Bitmap.createBitmap(160, 144, Bitmap.Config.ARGB_8888)
+
+        val result = manager.updateScreenshot(4, screenshot)
+
+        assertFalse(result)
     }
 
     // ========== ERROR PATHS ==========
@@ -224,7 +258,7 @@ class SaveStateManager_test {
         val blockedSlotDir = File(savesDir, "slot_6")
         blockedSlotDir.createNewFile()
 
-        val result = manager.saveToSlot(6, "data".toByteArray(), null)
+        val result = manager.saveToSlot(6, SaveSlotPayload("data".toByteArray(), null))
 
         assertFalse(result)
     }
@@ -285,7 +319,7 @@ class SaveStateManager_test {
             Thread {
                 ready.countDown()
                 go.await()
-                manager.saveToSlot(3, ByteArray(stateSize) { i.toByte() }, null)
+                manager.saveToSlot(3, SaveSlotPayload(ByteArray(stateSize) { i.toByte() }, null))
                 done.countDown()
             }
         }
@@ -302,6 +336,47 @@ class SaveStateManager_test {
                 "state.bin must contain exactly one thread's byte value, not a mix of several",
                 1,
                 distinctValues.size
+        )
+    }
+
+    // Regression test for the shared lock between SaveStateManager and its delegated
+    // SlotQueryStore: getSlot() is implemented by a separate collaborator instance than
+    // saveToSlot(), so if they didn't synchronize on the same monitor, getSlot() could observe a
+    // slot mid-write (e.g. state.bin already written but metadata.json not yet, so a non-empty
+    // slot momentarily reports the pre-write default name instead of the one being saved).
+    @Test
+    fun `getSlot concorrente com saveToSlot nunca observa slot parcialmente escrito`() {
+        val iterations = 200
+        val payload = SaveSlotPayload("consistent state".toByteArray(), null, name = "Consistent")
+        val done = java.util.concurrent.CountDownLatch(1)
+        val readerFailure = java.util.concurrent.atomic.AtomicReference<String?>(null)
+
+        val writer = Thread {
+            repeat(iterations) { manager.saveToSlot(9, payload) }
+            done.countDown()
+        }
+        val reader = Thread {
+            while (done.count > 0) {
+                val slot = manager.getSlot(9)
+                if (!slot.isEmpty &&
+                                (slot.stateFile?.exists() != true || slot.name != "Consistent")
+                ) {
+                    readerFailure.compareAndSet(
+                            null,
+                            "non-empty slot with stateFile.exists()=${slot.stateFile?.exists()} name=${slot.name}"
+                    )
+                }
+            }
+        }
+
+        writer.start()
+        reader.start()
+        writer.join()
+        reader.join()
+
+        assertNull(
+                "getSlot must never observe a torn/partial write: ${readerFailure.get()}",
+                readerFailure.get()
         )
     }
 }
