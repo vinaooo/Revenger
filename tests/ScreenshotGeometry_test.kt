@@ -11,9 +11,12 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Tests for [ScreenshotCaptureUtil.autoCropBlackBorders] (private), which detects and removes thin
- * black borders from a captured screenshot. Reached via reflection since the method is an
- * implementation detail of the public capture flow.
+ * Tests for [ScreenshotGeometry.autoCropBlackBorders], which detects and removes thin black
+ * borders from a captured screenshot. Moved here from a [ScreenshotCaptureUtil]-reflection-based
+ * test when the black-border/aspect-ratio math was split out of [ScreenshotCaptureUtil] into
+ * [ScreenshotGeometry] to keep that object under the project's function-count threshold --
+ * [ScreenshotGeometry.autoCropBlackBorders] is public on its own small object now, so no
+ * reflection is needed to reach it.
  *
  * These tests lock the named constants extracted from former magic numbers:
  * MAX_BORDER_CROP_RATIO (limits detection/cropping to 5% of each dimension, avoiding false
@@ -23,17 +26,7 @@ import org.robolectric.annotation.Config
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
-class ScreenshotCaptureUtil_test {
-
-    private fun autoCropBlackBorders(bitmap: Bitmap): Bitmap {
-        val method =
-            ScreenshotCaptureUtil::class.java.getDeclaredMethod(
-                "autoCropBlackBorders",
-                Bitmap::class.java
-            )
-        method.isAccessible = true
-        return method.invoke(ScreenshotCaptureUtil, bitmap) as Bitmap
-    }
+class ScreenshotGeometry_test {
 
     @Test
     fun `Robolectric bitmap suporta setPixel e getPixel (pre-condicao para os testes abaixo)`() {
@@ -52,7 +45,7 @@ class ScreenshotCaptureUtil_test {
             }
         }
 
-        val result = autoCropBlackBorders(bitmap)
+        val result = ScreenshotGeometry.autoCropBlackBorders(bitmap)
 
         assertSame(bitmap, result)
     }
@@ -76,7 +69,7 @@ class ScreenshotCaptureUtil_test {
             }
         }
 
-        val result = autoCropBlackBorders(bitmap)
+        val result = ScreenshotGeometry.autoCropBlackBorders(bitmap)
 
         val expectedSize = size - 2 * borderThickness
         assertTrue("Esperava um bitmap recortado (nova instancia)", result !== bitmap)
@@ -102,7 +95,7 @@ class ScreenshotCaptureUtil_test {
             }
         }
 
-        val result = autoCropBlackBorders(bitmap)
+        val result = ScreenshotGeometry.autoCropBlackBorders(bitmap)
 
         assertSame(bitmap, result)
     }

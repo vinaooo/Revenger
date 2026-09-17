@@ -2,7 +2,6 @@ package com.vinaooo.revenger.utils
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Rect
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -13,6 +12,12 @@ import android.view.View
 import androidx.annotation.RequiresApi
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.R
+
+// An object's own body members aren't visible from within its own supertype constructor
+// arguments (there is no `this` yet at that point), so this store is instantiated at file scope
+// -- with placeholder no-op collaborators -- and wired up to the real ones from an `init` block
+// inside [ScreenshotCaptureUtil] below, once that object has finished constructing.
+private val pipFrameStore = PipFrameStore()
 
 /**
  * Utility class for capturing screenshots from the emulator's GLRetroView.
@@ -28,8 +33,19 @@ import com.vinaooo.revenger.R
  *
  * IMPORTANT: GLRetroView is a GLSurfaceView, so we must use PixelCopy.request(SurfaceView, ...)
  * instead of PixelCopy.request(Window, ...) to capture the actual GL content.
+ *
+ * The black-border/aspect-ratio math lives in [ScreenshotGeometry] and the Picture-in-Picture
+ * frame cache lives in [PipFrameStore] -- both split out purely to keep this object under the
+ * project's function-count threshold; see those classes for why.
  */
-object ScreenshotCaptureUtil {
+object ScreenshotCaptureUtil : PipFrameCache by pipFrameStore {
+
+    init {
+        pipFrameStore.configure(
+                captureFullScreen = { glRetroView, callback -> captureFullScreen(glRetroView, callback) },
+                getCachedFullScreenshot = { cachedFullScreenshot }
+        )
+    }
 
     private const val TAG = "ScreenshotCaptureUtil"
 
@@ -44,30 +60,6 @@ object ScreenshotCaptureUtil {
      * Used as load preview overlay — matches the screen pixel-perfectly with fitXY.
      */
     @Volatile private var cachedFullScreenshot: Bitmap? = null
-
-    /**
-     * Dedicated full-screen frame kept fresh for the Picture-in-Picture overlay.
-     *
-     * The GL surface goes black during a PiP transition (libretrodroid pauses its GL thread on
-     * ON_PAUSE and does not redraw the recreated surface), so the PiP window relies entirely on a
-     * captured bitmap. This cache has its own lifetime — it is NOT touched by
-     * [clearCachedScreenshot] and is only released via [clearPipFrame] (GameActivity.onDestroy).
-     */
-    @Volatile private var pipFrame: Bitmap? = null
-
-    /** Last time [capturePipFrame] actually issued a PixelCopy, for throttling frequent triggers. */
-    @Volatile private var lastPipFrameCaptureAt = 0L
-
-    // A paused-game still does not need to be sub-second fresh; keep the recurring cost low.
-    private const val PIP_FRAME_MIN_INTERVAL_MS = 2500L
-
-    // Auto-crop border detection (see autoCropBlackBorders below)
-    private const val MAX_BORDER_CROP_RATIO = 0.05f // Max 5% crop on each side
-    private const val BORDER_SCAN_SAMPLE_COUNT = 20 // Sample ~20 rows/columns for performance
-    private const val BLACK_BORDER_BRIGHTNESS_THRESHOLD = 10
-    private const val RED_CHANNEL_SHIFT_BITS = 16
-    private const val GREEN_CHANNEL_SHIFT_BITS = 8
-    private const val COLOR_CHANNEL_MASK = 0xFF
 
     /**
      * Cached context for reading config values.
@@ -89,61 +81,27 @@ object ScreenshotCaptureUtil {
     private object AspectRatios {
         // SNES: 8:7 pixel aspect ratio, 256x224 -> 4:3 display
         const val SNES = 4f / 3f
-        
+
         // Game Boy: 160x144 -> 10:9 display
         const val GAME_BOY = 10f / 9f
-        
+
         // Game Boy Color: Same as Game Boy
         const val GAME_BOY_COLOR = GAME_BOY
-        
+
         // Game Boy Advance: 240x160 -> 3:2 display
         const val GAME_BOY_ADVANCE = 3f / 2f
-        
+
         // Sega Master System: 256x192 -> 4:3 display
         const val MASTER_SYSTEM = 4f / 3f
-        
+
         // Sega Mega Drive / Genesis: 320x224 -> 4:3 display
         const val MEGA_DRIVE = 4f / 3f
-        
+
         // NES: 256x240 -> 4:3 display
         const val NES = 4f / 3f
-        
+
         // Default fallback
         const val DEFAULT = 4f / 3f
-    }
-
-    /**
-     * Calculate the game content rectangle within the GLRetroView.
-     * This removes the black bars (letterbox/pillarbox) based on the game's aspect ratio.
-     *
-     * @param viewWidth The width of the GLRetroView
-     * @param viewHeight The height of the GLRetroView
-     * @param gameAspectRatio The aspect ratio of the game content
-     * @return Rect representing the game content area (excluding black bars)
-     */
-    private fun calculateGameContentRect(viewWidth: Int, viewHeight: Int, gameAspectRatio: Float): Rect {
-        val viewAspectRatio = viewWidth.toFloat() / viewHeight.toFloat()
-        
-        val contentWidth: Int
-        val contentHeight: Int
-        val offsetX: Int
-        val offsetY: Int
-        
-        if (gameAspectRatio > viewAspectRatio) {
-            // Game is wider than view - has black bars on top/bottom (letterbox)
-            contentWidth = viewWidth
-            contentHeight = (viewWidth / gameAspectRatio).toInt()
-            offsetX = 0
-            offsetY = (viewHeight - contentHeight) / 2
-        } else {
-            // Game is taller than view - has black bars on left/right (pillarbox)
-            contentHeight = viewHeight
-            contentWidth = (viewHeight * gameAspectRatio).toInt()
-            offsetX = (viewWidth - contentWidth) / 2
-            offsetY = 0
-        }
-        
-        return Rect(offsetX, offsetY, offsetX + contentWidth, offsetY + contentHeight)
     }
 
     /**
@@ -189,14 +147,14 @@ object ScreenshotCaptureUtil {
             }
 
             // Calculate the game content rectangle (excluding black bars)
-            val gameRect = calculateGameContentRect(width, height, gameAspectRatio)
-            
+            val gameRect = ScreenshotGeometry.calculateGameContentRect(width, height, gameAspectRatio)
+
             Log.d(TAG, "View: ${width}x$height, Game aspect: $gameAspectRatio, Content rect: $gameRect")
 
             // Create bitmap for the cropped game content
             val croppedWidth = gameRect.width()
             val croppedHeight = gameRect.height()
-            
+
             if (croppedWidth <= 0 || croppedHeight <= 0) {
                 Log.w(TAG, "Invalid cropped dimensions: ${croppedWidth}x$croppedHeight")
                 callback(null)
@@ -229,7 +187,7 @@ object ScreenshotCaptureUtil {
                                             "(cropped from ${width}x$height)"
                             )
                             // Auto-crop any remaining black borders from the core output
-                            val autoCropped = autoCropBlackBorders(bitmap)
+                            val autoCropped = ScreenshotGeometry.autoCropBlackBorders(bitmap)
                             if (autoCropped !== bitmap) {
                                 bitmap.recycle()
                             }
@@ -306,130 +264,6 @@ object ScreenshotCaptureUtil {
     }
 
     /**
-     * Auto-crop black borders from a bitmap.
-     *
-     * Some LibRetro cores (e.g., picodrive for Master System) render frames with
-     * small black borders that don't match the reported aspect ratio exactly.
-     * This method detects and removes those borders by scanning pixel brightness.
-     *
-     * Only crops if borders are detected (brightness threshold < 10).
-     * Limits cropping to max 5% of each dimension to avoid false positives.
-     *
-     * @param bitmap The source bitmap to auto-crop
-     * @return A new cropped bitmap, or the original if no cropping was needed
-     */
-    private fun autoCropBlackBorders(bitmap: Bitmap): Bitmap {
-        val w = bitmap.width
-        val h = bitmap.height
-        val maxCropX = (w * MAX_BORDER_CROP_RATIO).toInt()
-        val maxCropY = (h * MAX_BORDER_CROP_RATIO).toInt()
-        val sampleStep = maxOf(h / BORDER_SCAN_SAMPLE_COUNT, 1)
-        val brightnessThreshold = BLACK_BORDER_BRIGHTNESS_THRESHOLD
-
-        // Find left border
-        var left = 0
-        for (x in 0 until minOf(maxCropX, w)) {
-            var hasContent = false
-            for (y in 0 until h step sampleStep) {
-                val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
-                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
-                val b = pixel and COLOR_CHANNEL_MASK
-                if (r + g + b > brightnessThreshold) {
-                    hasContent = true
-                    break
-                }
-            }
-            if (hasContent) {
-                left = x
-                break
-            }
-        }
-
-        // Find right border
-        var right = w - 1
-        for (x in w - 1 downTo maxOf(w - maxCropX, 0)) {
-            var hasContent = false
-            for (y in 0 until h step sampleStep) {
-                val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
-                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
-                val b = pixel and COLOR_CHANNEL_MASK
-                if (r + g + b > brightnessThreshold) {
-                    hasContent = true
-                    break
-                }
-            }
-            if (hasContent) {
-                right = x
-                break
-            }
-        }
-
-        // Find top border
-        val sampleStepX = maxOf(w / BORDER_SCAN_SAMPLE_COUNT, 1)
-        var top = 0
-        for (y in 0 until minOf(maxCropY, h)) {
-            var hasContent = false
-            for (x in 0 until w step sampleStepX) {
-                val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
-                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
-                val b = pixel and COLOR_CHANNEL_MASK
-                if (r + g + b > brightnessThreshold) {
-                    hasContent = true
-                    break
-                }
-            }
-            if (hasContent) {
-                top = y
-                break
-            }
-        }
-
-        // Find bottom border
-        var bottom = h - 1
-        for (y in h - 1 downTo maxOf(h - maxCropY, 0)) {
-            var hasContent = false
-            for (x in 0 until w step sampleStepX) {
-                val pixel = bitmap.getPixel(x, y)
-                val r = (pixel shr RED_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
-                val g = (pixel shr GREEN_CHANNEL_SHIFT_BITS) and COLOR_CHANNEL_MASK
-                val b = pixel and COLOR_CHANNEL_MASK
-                if (r + g + b > brightnessThreshold) {
-                    hasContent = true
-                    break
-                }
-            }
-            if (hasContent) {
-                bottom = y
-                break
-            }
-        }
-
-        val cropWidth = right - left + 1
-        val cropHeight = bottom - top + 1
-
-        // Only crop if we actually found borders (at least 2px on any side)
-        if (left < 2 && (w - 1 - right) < 2 && top < 2 && (h - 1 - bottom) < 2) {
-            Log.d(TAG, "Auto-crop: No significant black borders detected")
-            return bitmap
-        }
-
-        if (cropWidth <= 0 || cropHeight <= 0) {
-            Log.w(TAG, "Auto-crop: Invalid crop dimensions, skipping")
-            return bitmap
-        }
-
-        Log.d(
-                TAG,
-                "Auto-crop: Removing borders L=$left T=$top R=${w - 1 - right} " +
-                        "B=${h - 1 - bottom} -> ${cropWidth}x$cropHeight"
-        )
-        return Bitmap.createBitmap(bitmap, left, top, cropWidth, cropHeight)
-    }
-
-    /**
      * Capture and cache both cropped and full screenshots when menu opens.
      * Cropped screenshot (no black bars) is used for slot thumbnails.
      * Full screenshot (with black bars) is used for load preview overlay.
@@ -496,77 +330,6 @@ object ScreenshotCaptureUtil {
             cachedFullScreenshot = null
         }
         Log.d(TAG, "All cached screenshots cleared")
-    }
-
-    /**
-     * Capture a fresh full-screen frame into [pipFrame] for the Picture-in-Picture overlay.
-     *
-     * Uses only [captureFullScreen] (no per-pixel border scan, safe to call on input events).
-     * Throttled to at most one PixelCopy per [PIP_FRAME_MIN_INTERVAL_MS] unless [force] is set
-     * (used right before entering PiP, when a stale-by-800ms frame is not good enough).
-     *
-     * @param glRetroView The GLRetroView to capture from
-     * @param force Bypass the throttle
-     */
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun capturePipFrame(glRetroView: GLRetroView, force: Boolean = false) {
-        val now = android.os.SystemClock.elapsedRealtime()
-        if (!force && now - lastPipFrameCaptureAt < PIP_FRAME_MIN_INTERVAL_MS) return
-        lastPipFrameCaptureAt = now
-
-        captureFullScreen(glRetroView) { bitmap ->
-            if (bitmap != null) {
-                updatePipFrame(bitmap)
-                Log.d(TAG, "PiP frame updated (${bitmap.width}x${bitmap.height})")
-            } else {
-                Log.w(TAG, "PiP frame capture failed; keeping previous frame")
-            }
-        }
-    }
-
-    /**
-     * Replace the cached PiP frame. The previous bitmap is dropped for GC rather than recycled —
-     * the PiP overlay ImageView may still be drawing it (PiP-exit ordering between
-     * onPictureInPictureModeChanged, onResume and the first touch is not guaranteed), and recycling
-     * a displayed bitmap crashes the next draw pass.
-     */
-    fun updatePipFrame(bitmap: Bitmap?) {
-        synchronized(this) {
-            if (pipFrame === bitmap) return
-            pipFrame = bitmap
-        }
-    }
-
-    /** Get the cached PiP frame (full surface, with black bars). */
-    fun getPipFrame(): Bitmap? = pipFrame
-
-    /**
-     * Copy the current full-screen menu cache into [pipFrame]. Call right before
-     * [clearCachedScreenshot] (menu close) so the freshest known frame survives as the PiP still.
-     */
-    fun promoteCachedFullToPipFrame() {
-        val source = cachedFullScreenshot ?: return
-        if (source.isRecycled) return
-        val copy = try {
-            source.copy(source.config ?: Bitmap.Config.ARGB_8888, false)
-            // Bitmap.copy() throws IllegalStateException ("Can't copy a recycled bitmap") if the
-            // bitmap is recycled concurrently between the isRecycled check above and this call --
-            // there is no lock across the two, so this is a real, reachable race.
-        } catch (e: IllegalStateException) {
-            Log.w(TAG, "Could not copy cached frame for PiP", e)
-            return
-        }
-        updatePipFrame(copy)
-    }
-
-    /** Release the cached PiP frame. Call from GameActivity.onDestroy(). */
-    fun clearPipFrame() {
-        synchronized(this) {
-            pipFrame?.recycle()
-            pipFrame = null
-        }
-        lastPipFrameCaptureAt = 0L
-        Log.d(TAG, "PiP frame cleared")
     }
 
     /**

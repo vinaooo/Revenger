@@ -2,14 +2,11 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import com.vinaooo.revenger.ui.retromenu3.ExitFragment
-import com.vinaooo.revenger.ui.retromenu3.MenuManager
 import com.vinaooo.revenger.ui.retromenu3.MenuState
 import com.vinaooo.revenger.ui.retromenu3.MenuStateManager
 import com.vinaooo.revenger.ui.retromenu3.MenuSystemState
-import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
-import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
-import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+import com.vinaooo.revenger.viewmodels.menu.MenuFragmentRegistration
+import com.vinaooo.revenger.viewmodels.menu.MenuFragmentRegistry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +15,9 @@ import kotlinx.coroutines.flow.asStateFlow
  * ViewModel specialized in menu management. Responsible for all logic related to
  * menus, submenus, and navigation.
  */
-class MenuViewModel(application: Application) : AndroidViewModel(application) {
+class MenuViewModel(application: Application) :
+        AndroidViewModel(application),
+        MenuFragmentRegistration by MenuFragmentRegistry() {
 
     sealed class MenuEvent {
         object Idle : MenuEvent()
@@ -42,15 +41,6 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
         _menuState = MutableStateFlow(menuStateManager.currentState)
     }
 
-    // References to fragments (kept for compatibility)
-    private var retroMenu3Fragment: RetroMenu3Fragment? = null
-    private var settingsMenuFragment: SettingsMenuFragment? = null
-    private var progressFragment: ProgressFragment? = null
-    private var exitFragment: ExitFragment? = null
-
-    // Menu container
-    private var menuContainerView: android.widget.FrameLayout? = null
-
     // RetroMenu3 menu state
     val isRetroMenu3Open: Boolean
         get() = menuStateManager.isRetroMenu3Open()
@@ -59,26 +49,9 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
         get() = menuStateManager.isDismissingAllMenus()
 
     // ========== CONFIGURATION METHODS ==========
-
-    fun setMenuContainer(container: android.widget.FrameLayout) {
-        menuContainerView = container
-    }
-
-    fun registerRetroMenu3Fragment(fragment: RetroMenu3Fragment) {
-        retroMenu3Fragment = fragment
-    }
-
-    fun registerSettingsMenuFragment(fragment: SettingsMenuFragment) {
-        settingsMenuFragment = fragment
-    }
-
-    fun registerProgressFragment(fragment: ProgressFragment) {
-        progressFragment = fragment
-    }
-
-    fun registerExitFragment(fragment: ExitFragment) {
-        exitFragment = fragment
-    }
+    // setMenuContainer/registerRetroMenu3Fragment/registerSettingsMenuFragment/
+    // registerProgressFragment/registerExitFragment come from the MenuFragmentRegistration
+    // delegation in the class header above.
 
     // ========== MENU CONTROL METHODS ==========
 
