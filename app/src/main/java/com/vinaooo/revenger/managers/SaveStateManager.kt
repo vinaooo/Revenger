@@ -3,13 +3,10 @@ package com.vinaooo.revenger.managers
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
-import com.vinaooo.revenger.models.SaveSlotData
+import com.vinaooo.revenger.models.SaveSlotPayload
 import java.io.File
 import java.io.IOException
-import java.time.Instant
-import java.time.format.DateTimeParseException
 import org.json.JSONException
-import org.json.JSONObject
 
 /**
  * Manages multiple save state slots (1-9) with metadata and screenshots.
@@ -35,24 +32,36 @@ import org.json.JSONObject
  *     └── ... (slot_2 to slot_9)
  * ```
  *
- * All public slot I/O is `@Synchronized` on this singleton instance: PiP's quick-save flow
- * runs on a background `Thread` (see `GameActivity`'s PiP quick-save handling) concurrently
- * with any main-thread save/load/copy triggered from the menu, and unsynchronized file I/O on
- * the same slot directory could otherwise interleave partial writes across `state.bin`,
- * `metadata.json` and the screenshot/preview files.
+ * Slot path/file resolution, image writing and metadata JSON handling are delegated to
+ * [SlotFileLayout] and [SlotMetadataStore]; the read-only slot queries ([getAllSlots], [getSlot],
+ * [hasAnySave], [getFirstEmptySlot], [getOccupiedSlotCount]) are delegated to [SlotQueryStore] via
+ * Kotlin interface delegation (`by`), so this class's own public surface stays identical for
+ * existing callers while its function count stays under the project's threshold.
+ *
+ * All public slot I/O -- on this class and on the delegated [SlotQueryStore] -- synchronizes on
+ * the shared [slotLock] monitor: PiP's quick-save flow runs on a background `Thread` (see
+ * `GameActivity`'s PiP quick-save handling) concurrently with any main-thread save/load/copy
+ * triggered from the menu, and unsynchronized file I/O on the same slot directory could otherwise
+ * interleave partial writes across `state.bin`, `metadata.json` and the screenshot/preview files.
  */
-class SaveStateManager private constructor(private val context: Context) {
+class SaveStateManager
+private constructor(
+        private val context: Context,
+        private val fileLayout: SlotFileLayout = SlotFileLayout(File(context.filesDir, SAVES_DIR)),
+        private val metadataStore: SlotMetadataStore = SlotMetadataStore()
+) : SlotQueryOperations by SlotQueryStore(fileLayout, metadataStore, slotLock, TOTAL_SLOTS) {
 
     companion object {
         private const val TAG = "SaveStateManager"
         private const val SAVES_DIR = "saves"
-        private const val STATE_FILE = "state.bin"
-        private const val SCREENSHOT_FILE = "screenshot.webp"
-        private const val PREVIEW_FILE = "preview.webp"
-        private const val METADATA_FILE = "metadata.json"
-        private const val LEGACY_STATE_FILE = "state"
         const val TOTAL_SLOTS = 9
-        private const val PREVIEW_IMAGE_QUALITY = 80
+
+        /**
+         * Shared monitor guarding all slot I/O across this manager and the delegated
+         * [SlotQueryStore]. A single object is used (rather than `this`) because the query
+         * operations are implemented by a separate delegate instance, not by this class itself.
+         */
+        private val slotLock = Any()
 
         @Volatile private var instance: SaveStateManager? = null
 
@@ -73,105 +82,56 @@ class SaveStateManager private constructor(private val context: Context) {
     }
 
     private val filesDir: File = context.filesDir
-    private val savesDir: File = File(filesDir, SAVES_DIR)
 
     init {
-        ensureSavesDirExists()
-        migrateLegacySaveIfNeeded()
+        fileLayout.ensureSavesDirExists()
+        metadataStore.migrateLegacySaveIfNeeded(filesDir, fileLayout)
     }
 
     // ========== PUBLIC API ==========
-
-    /** Get all 9 slots with their current state (empty or occupied) */
-    @Synchronized
-    fun getAllSlots(): List<SaveSlotData> {
-        return (1..TOTAL_SLOTS).map { getSlot(it) }
-    }
-
-    /** Get a specific slot by number (1-9) */
-    @Synchronized
-    fun getSlot(slotNumber: Int): SaveSlotData {
-        require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
-
-        val slotDir = getSlotDirectory(slotNumber)
-        val stateFile = File(slotDir, STATE_FILE)
-        val screenshotFile = File(slotDir, SCREENSHOT_FILE)
-        val previewFile = File(slotDir, PREVIEW_FILE)
-        val metadataFile = File(slotDir, METADATA_FILE)
-
-        if (!stateFile.exists()) {
-            return SaveSlotData.empty(slotNumber)
-        }
-
-        val metadata = readMetadata(metadataFile, slotNumber)
-        return SaveSlotData(
-                slotNumber = slotNumber,
-                name = metadata.optString("name", "Slot $slotNumber"),
-                timestamp = parseTimestamp(metadata.optString("timestamp", "")),
-                romName = metadata.optString("romName", ""),
-                playTime = metadata.optLong("playTime", 0),
-                description = metadata.optString("description", ""),
-                stateFile = stateFile,
-                screenshotFile = if (screenshotFile.exists()) screenshotFile else null,
-                previewFile = if (previewFile.exists()) previewFile else null,
-                isEmpty = false
-        )
-    }
 
     /**
      * Save state to a specific slot
      *
      * @param slotNumber Target slot (1-9)
-     * @param stateBytes Serialized state data from RetroView
-     * @param screenshot Bitmap of the game screen (will be saved as WebP)
-     * @param preview Full-screen bitmap with black bars for load preview overlay (optional)
-     * @param name User-defined name (defaults to "Slot X")
-     * @param romName Name of the current ROM
+     * @param payload Serialized state bytes plus optional screenshot/preview and metadata
      * @return true if save was successful
      */
-    @Synchronized
-    fun saveToSlot(
-            slotNumber: Int,
-            stateBytes: ByteArray,
-            screenshot: Bitmap?,
-            preview: Bitmap? = null,
-            name: String? = null,
-            romName: String = ""
-    ): Boolean {
+    fun saveToSlot(slotNumber: Int, payload: SaveSlotPayload): Boolean {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
-        return try {
-            val slotDir = getSlotDirectory(slotNumber)
-            slotDir.mkdirs()
+        return synchronized(slotLock) {
+            try {
+                val slotDir = fileLayout.slotDirectory(slotNumber)
+                slotDir.mkdirs()
 
-            // Save state data
-            val stateFile = File(slotDir, STATE_FILE)
-            stateFile.writeBytes(stateBytes)
+                // Save state data
+                fileLayout.stateFile(slotNumber).writeBytes(payload.stateBytes)
 
-            // Save screenshot if provided
-            screenshot?.let { bitmap -> saveScreenshot(slotDir, bitmap) }
+                // Save screenshot if provided
+                payload.screenshot?.let { bitmap ->
+                    fileLayout.writeWebpImage(fileLayout.screenshotFile(slotNumber), bitmap)
+                }
 
-            // Save full-screen preview if provided (for load preview overlay)
-            preview?.let { bitmap -> savePreview(slotDir, bitmap) }
+                // Save full-screen preview if provided (for load preview overlay)
+                payload.preview?.let { bitmap ->
+                    fileLayout.writeWebpImage(fileLayout.previewFile(slotNumber), bitmap)
+                }
 
-            // Save metadata
-            val metadataFile = File(slotDir, METADATA_FILE)
-            val metadata =
-                    JSONObject().apply {
-                        put("name", name ?: "Slot $slotNumber")
-                        put("timestamp", Instant.now().toString())
-                        put("slotNumber", slotNumber)
-                        put("romName", romName)
-                        put("playTime", 0)
-                        put("description", "")
-                    }
-            metadataFile.writeText(metadata.toString(2))
+                // Save metadata
+                metadataStore.writeNewMetadata(
+                        fileLayout.metadataFile(slotNumber),
+                        slotNumber,
+                        payload.name,
+                        payload.romName
+                )
 
-            Log.d(TAG, "Save state saved to slot $slotNumber")
-            true
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to save state to slot $slotNumber", e)
-            false
+                Log.d(TAG, "Save state saved to slot $slotNumber")
+                true
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to save state to slot $slotNumber", e)
+                false
+            }
         }
     }
 
@@ -181,23 +141,23 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param slotNumber Source slot (1-9)
      * @return ByteArray of state data, or null if slot is empty
      */
-    @Synchronized
     fun loadFromSlot(slotNumber: Int): ByteArray? {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
-        val slotDir = getSlotDirectory(slotNumber)
-        val stateFile = File(slotDir, STATE_FILE)
+        return synchronized(slotLock) {
+            val stateFile = fileLayout.stateFile(slotNumber)
 
-        if (!stateFile.exists()) {
-            Log.w(TAG, "Slot $slotNumber is empty")
-            return null
-        }
-
-        return try {
-            stateFile.readBytes()
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to load state from slot $slotNumber", e)
-            null
+            if (!stateFile.exists()) {
+                Log.w(TAG, "Slot $slotNumber is empty")
+                null
+            } else {
+                try {
+                    stateFile.readBytes()
+                } catch (e: IOException) {
+                    Log.e(TAG, "Failed to load state from slot $slotNumber", e)
+                    null
+                }
+            }
         }
     }
 
@@ -207,18 +167,19 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param slotNumber Slot to delete (1-9)
      * @return true if deletion was successful
      */
-    @Synchronized
     fun deleteSlot(slotNumber: Int): Boolean {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
-        val slotDir = getSlotDirectory(slotNumber)
-        return try {
-            slotDir.deleteRecursively()
-            Log.d(TAG, "Slot $slotNumber deleted")
-            true
-        } catch (e: SecurityException) {
-            Log.e(TAG, "Failed to delete slot $slotNumber", e)
-            false
+        return synchronized(slotLock) {
+            val slotDir = fileLayout.slotDirectory(slotNumber)
+            try {
+                slotDir.deleteRecursively()
+                Log.d(TAG, "Slot $slotNumber deleted")
+                true
+            } catch (e: SecurityException) {
+                Log.e(TAG, "Failed to delete slot $slotNumber", e)
+                false
+            }
         }
     }
 
@@ -229,66 +190,70 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param targetSlot Target slot number
      * @return true if copy was successful
      */
-    @Synchronized
     fun copySlot(sourceSlot: Int, targetSlot: Int): Boolean {
         require(sourceSlot in 1..TOTAL_SLOTS) { "Source slot must be between 1 and $TOTAL_SLOTS" }
         require(targetSlot in 1..TOTAL_SLOTS) { "Target slot must be between 1 and $TOTAL_SLOTS" }
         require(sourceSlot != targetSlot) { "Source and target slots must be different" }
 
-        val sourceDir = getSlotDirectory(sourceSlot)
-        val targetDir = getSlotDirectory(targetSlot)
+        return synchronized(slotLock) {
+            val sourceDir = fileLayout.slotDirectory(sourceSlot)
+            val targetDir = fileLayout.slotDirectory(targetSlot)
 
-        if (!sourceDir.exists()) {
-            Log.w(TAG, "Source slot $sourceSlot is empty")
-            return false
-        }
+            if (!sourceDir.exists()) {
+                Log.w(TAG, "Source slot $sourceSlot is empty")
+                false
+            } else {
+                try {
+                    // Delete target if exists
+                    targetDir.deleteRecursively()
+                    targetDir.mkdirs()
 
-        return try {
-            // Delete target if exists
-            targetDir.deleteRecursively()
-            targetDir.mkdirs()
+                    // Copy all files
+                    sourceDir.listFiles()?.forEach { file ->
+                        file.copyTo(File(targetDir, file.name), overwrite = true)
+                    }
 
-            // Copy all files
-            sourceDir.listFiles()?.forEach { file ->
-                file.copyTo(File(targetDir, file.name), overwrite = true)
+                    // Update slot number in metadata
+                    metadataStore.updateSlotNumber(fileLayout.metadataFile(targetSlot), targetSlot)
+
+                    Log.d(TAG, "Slot $sourceSlot copied to slot $targetSlot")
+                    true
+                } catch (e: IOException) {
+                    Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
+                    false
+                } catch (e: SecurityException) {
+                    Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
+                    false
+                } catch (e: JSONException) {
+                    Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
+                    false
+                }
             }
-
-            // Update slot number in metadata
-            val metadataFile = File(targetDir, METADATA_FILE)
-            if (metadataFile.exists()) {
-                val metadata = JSONObject(metadataFile.readText())
-                metadata.put("slotNumber", targetSlot)
-                metadataFile.writeText(metadata.toString(2))
-            }
-
-            Log.d(TAG, "Slot $sourceSlot copied to slot $targetSlot")
-            true
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
-            false
-        } catch (e: SecurityException) {
-            Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
-            false
-        } catch (e: JSONException) {
-            Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
-            false
         }
     }
 
     /**
      * Move save from one slot to another
      *
+     * The outer `synchronized` here is deliberate, not redundant with [copySlot]/[deleteSlot]'s own
+     * locking: it keeps the copy-then-delete pair inside a single critical section so another
+     * thread can never observe the brief window between them (e.g. both slots holding a copy of
+     * the save at once). [slotLock] is a plain (non-reentrant-unaware) Java monitor, but
+     * `synchronized` blocks on the *same* monitor nest safely, so the inner locks taken by
+     * `copySlot`/`deleteSlot` are just reentrant no-ops here.
+     *
      * @param sourceSlot Source slot number
      * @param targetSlot Target slot number
      * @return true if move was successful
      */
-    @Synchronized
-    fun moveSlot(sourceSlot: Int, targetSlot: Int): Boolean {
-        if (copySlot(sourceSlot, targetSlot)) {
-            return deleteSlot(sourceSlot)
-        }
-        return false
-    }
+    fun moveSlot(sourceSlot: Int, targetSlot: Int): Boolean =
+            synchronized(slotLock) {
+                if (copySlot(sourceSlot, targetSlot)) {
+                    deleteSlot(sourceSlot)
+                } else {
+                    false
+                }
+            }
 
     /**
      * Rename a save slot
@@ -297,27 +262,25 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param newName New name for the slot
      * @return true if rename was successful
      */
-    @Synchronized
     fun renameSlot(slotNumber: Int, newName: String): Boolean {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
-        val slotDir = getSlotDirectory(slotNumber)
-        val metadataFile = File(slotDir, METADATA_FILE)
+        return synchronized(slotLock) {
+            val metadataFile = fileLayout.metadataFile(slotNumber)
 
-        if (!metadataFile.exists()) {
-            Log.w(TAG, "Slot $slotNumber has no metadata")
-            return false
-        }
-
-        return try {
-            val metadata = JSONObject(metadataFile.readText())
-            metadata.put("name", newName)
-            metadataFile.writeText(metadata.toString(2))
-            Log.d(TAG, "Slot $slotNumber renamed to '$newName'")
-            true
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to rename slot $slotNumber", e)
-            false
+            if (!metadataFile.exists()) {
+                Log.w(TAG, "Slot $slotNumber has no metadata")
+                false
+            } else {
+                try {
+                    metadataStore.updateName(metadataFile, newName)
+                    Log.d(TAG, "Slot $slotNumber renamed to '$newName'")
+                    true
+                } catch (e: IOException) {
+                    Log.e(TAG, "Failed to rename slot $slotNumber", e)
+                    false
+                }
+            }
         }
     }
 
@@ -328,158 +291,24 @@ class SaveStateManager private constructor(private val context: Context) {
      * @param screenshot New screenshot bitmap
      * @return true if update was successful
      */
-    @Synchronized
     fun updateScreenshot(slotNumber: Int, screenshot: Bitmap): Boolean {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
-        val slotDir = getSlotDirectory(slotNumber)
-        if (!slotDir.exists()) {
-            Log.w(TAG, "Slot $slotNumber does not exist")
-            return false
-        }
-
-        return try {
-            saveScreenshot(slotDir, screenshot)
-            Log.d(TAG, "Screenshot updated for slot $slotNumber")
-            true
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to update screenshot for slot $slotNumber", e)
-            false
-        }
-    }
-
-    /** Check if any slot has a save state */
-    @Synchronized
-    fun hasAnySave(): Boolean {
-        return (1..TOTAL_SLOTS).any { !getSlot(it).isEmpty }
-    }
-
-    /** Get the first empty slot number, or null if all slots are occupied */
-    @Synchronized
-    fun getFirstEmptySlot(): Int? {
-        return (1..TOTAL_SLOTS).firstOrNull { getSlot(it).isEmpty }
-    }
-
-    /** Get count of occupied slots */
-    @Synchronized
-    fun getOccupiedSlotCount(): Int {
-        return (1..TOTAL_SLOTS).count { !getSlot(it).isEmpty }
-    }
-
-    // ========== PRIVATE METHODS ==========
-
-    private fun getSlotDirectory(slotNumber: Int): File {
-        return File(savesDir, "slot_$slotNumber")
-    }
-
-    private fun ensureSavesDirExists() {
-        if (!savesDir.exists()) {
-            savesDir.mkdirs()
-            Log.d(TAG, "Created saves directory: ${savesDir.absolutePath}")
-        }
-    }
-
-    private fun readMetadata(metadataFile: File, slotNumber: Int): JSONObject {
-        return try {
-            if (metadataFile.exists()) {
-                JSONObject(metadataFile.readText())
+        return synchronized(slotLock) {
+            val slotDir = fileLayout.slotDirectory(slotNumber)
+            if (!slotDir.exists()) {
+                Log.w(TAG, "Slot $slotNumber does not exist")
+                false
             } else {
-                JSONObject().apply {
-                    put("name", "Slot $slotNumber")
-                    put("slotNumber", slotNumber)
+                try {
+                    fileLayout.writeWebpImage(fileLayout.screenshotFile(slotNumber), screenshot)
+                    Log.d(TAG, "Screenshot updated for slot $slotNumber")
+                    true
+                } catch (e: IOException) {
+                    Log.e(TAG, "Failed to update screenshot for slot $slotNumber", e)
+                    false
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to read metadata for slot $slotNumber", e)
-            JSONObject()
-        } catch (e: JSONException) {
-            Log.e(TAG, "Failed to read metadata for slot $slotNumber", e)
-            JSONObject()
-        }
-    }
-
-    private fun parseTimestamp(timestampStr: String?): Instant? {
-        if (timestampStr.isNullOrBlank()) return null
-        return try {
-            Instant.parse(timestampStr)
-        } catch (e: DateTimeParseException) {
-            Log.w(TAG, "Failed to parse timestamp: $timestampStr", e)
-            null
-        }
-    }
-
-    private fun saveScreenshot(slotDir: File, bitmap: Bitmap) {
-        val screenshotFile = File(slotDir, SCREENSHOT_FILE)
-        screenshotFile.outputStream().use { out ->
-            bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, PREVIEW_IMAGE_QUALITY, out)
-        }
-    }
-
-    /**
-     * Save full-screen preview image to a slot directory.
-     * This image includes black bars and is used for the load preview overlay.
-     */
-    private fun savePreview(slotDir: File, bitmap: Bitmap) {
-        val previewFile = File(slotDir, PREVIEW_FILE)
-        previewFile.outputStream().use { out ->
-            bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, PREVIEW_IMAGE_QUALITY, out)
-        }
-    }
-
-    /**
-     * Migrate legacy single save state to slot 1.
-     *
-     * Migration rules:
-     * 1. Check if legacy file exists and has content
-     * 2. Check if slot 1 is empty (don't overwrite existing saves)
-     * 3. Copy legacy state to slot_1/state.bin
-     * 4. Create metadata with "(Legacy)" suffix
-     * 5. Delete legacy file after successful migration
-     */
-    private fun migrateLegacySaveIfNeeded() {
-        val legacyFile = File(filesDir, LEGACY_STATE_FILE)
-
-        if (!legacyFile.exists() || legacyFile.length() == 0L) {
-            return
-        }
-
-        // Don't overwrite existing slot 1
-        val slot1Dir = getSlotDirectory(1)
-        val slot1StateFile = File(slot1Dir, STATE_FILE)
-        if (slot1StateFile.exists()) {
-            Log.d(TAG, "Slot 1 already has a save, skipping legacy migration")
-            return
-        }
-
-        Log.d(TAG, "Migrating legacy save state to slot 1...")
-
-        try {
-            slot1Dir.mkdirs()
-
-            // Copy state file
-            legacyFile.copyTo(slot1StateFile, overwrite = false)
-
-            // Create metadata for migrated save
-            val metadataFile = File(slot1Dir, METADATA_FILE)
-            val metadata =
-                    JSONObject().apply {
-                        put("name", "Slot 1 (Legacy)")
-                        put("timestamp", Instant.now().toString())
-                        put("slotNumber", 1)
-                        put("romName", "")
-                        put("playTime", 0)
-                        put("description", "Migrated from single-slot save system")
-                    }
-            metadataFile.writeText(metadata.toString(2))
-
-            // Delete legacy file after successful migration
-            legacyFile.delete()
-
-            Log.d(TAG, "Legacy save state migrated successfully to slot 1")
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to migrate legacy save state", e)
-        } catch (e: SecurityException) {
-            Log.e(TAG, "Failed to migrate legacy save state", e)
         }
     }
 }

@@ -459,11 +459,13 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
             // Save to slot
             val success = saveStateManager.saveToSlot(
                 slotNumber = slotNumber,
-                stateBytes = stateBytes,
-                screenshot = screenshot,
-                preview = preview,
-                name = name,
-                romName = romName
+                payload = com.vinaooo.revenger.models.SaveSlotPayload(
+                    stateBytes = stateBytes,
+                    screenshot = screenshot,
+                    preview = preview,
+                    name = name,
+                    romName = romName
+                )
             )
 
             if (success) {

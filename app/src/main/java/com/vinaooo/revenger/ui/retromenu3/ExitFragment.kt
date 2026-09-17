@@ -337,12 +337,14 @@ class ExitFragment : MenuFragmentBase() {
             val saveStateManager = com.vinaooo.revenger.managers.SaveStateManager.getInstance(requireContext())
             val success = saveStateManager.saveToSlot(
                 slotNumber = slotNumber,
-                stateBytes = stateBytes,
-                screenshot = screenshot,
-                name = saveStateManager.getSlot(slotNumber).let {
-                    if (it.isEmpty) "Slot $slotNumber" else it.name
-                },
-                romName = romName
+                payload = com.vinaooo.revenger.models.SaveSlotPayload(
+                    stateBytes = stateBytes,
+                    screenshot = screenshot,
+                    name = saveStateManager.getSlot(slotNumber).let {
+                        if (it.isEmpty) "Slot $slotNumber" else it.name
+                    },
+                    romName = romName
+                )
             )
 
             if (success) {
