@@ -5,9 +5,11 @@ import com.vinaooo.revenger.ui.retromenu3.callbacks.RetroMenu3Listener
 import com.vinaooo.revenger.utils.MenuLogger
 
 /**
- * Interface for managing menu callbacks. Centralizes all calls to the menu listener.
+ * Imperative menu commands (game actions triggered from the menu). Split out of
+ * [MenuCallbackManager] so each half stays under the project's function-count threshold; see
+ * [MenuCallbackQueries] for the read-only counterpart.
  */
-interface MenuCallbackManager {
+interface MenuCallbackActions {
     fun onContinueGame()
     fun onResetGame()
     fun onSaveState()
@@ -15,11 +17,26 @@ interface MenuCallbackManager {
     fun onToggleAudio()
     fun onFastForward()
     fun onToggleShader()
+}
+
+/**
+ * Read-only state queries backing the menu's toggle/indicator display. Split out of
+ * [MenuCallbackManager]; see [MenuCallbackActions] for the imperative counterpart.
+ */
+interface MenuCallbackQueries {
     fun getAudioState(): Boolean
     fun getFastForwardState(): Boolean
     fun getShaderState(): String
     fun hasSaveState(): Boolean
 }
+
+/**
+ * Interface for managing menu callbacks. Centralizes all calls to the menu listener.
+ *
+ * Composed of [MenuCallbackActions] and [MenuCallbackQueries] (declares no members of its own)
+ * so implementers and callers keep using a single unified type.
+ */
+interface MenuCallbackManager : MenuCallbackActions, MenuCallbackQueries
 
 /** Implementation of MenuCallbackManager. Delegates calls to the RetroMenu3Listener. */
 class MenuCallbackManagerImpl(private val listener: RetroMenu3Listener?) :

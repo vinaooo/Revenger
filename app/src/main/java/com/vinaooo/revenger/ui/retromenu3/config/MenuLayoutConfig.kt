@@ -19,45 +19,55 @@ import com.vinaooo.revenger.R
  * - "107020" = 10% esq, 70% centro, 20% dir
  * - "257525" = 25% esq, 75% centro, 25% dir
  */
-object MenuLayoutConfig {
+// A proportions string is 3 two-digit percentages concatenated, e.g. "XXYYZZ".
+private const val PROPORTIONS_STRING_LENGTH = 6
+
+// Char index where the 3rd two-digit segment starts (and the 2nd one ends) in that string.
+private const val PROPORTIONS_SEGMENT_BOUNDARY = 4
+
+// The 3 percentages parsed from a proportions string must add up to this, and it's also the
+// scale used to convert a normalized 0.0-1.0 weight back into a whole percentage for display.
+private const val PERCENTAGE_SCALE = 100
+
+// A valid 3-column [Space, Content, Space] layout needs at least this many children.
+private const val MIN_LAYOUT_CHILD_COUNT = 3
+
+/** Representa as proporções de layout horizontal (esquerda, centro, direita) */
+data class LayoutProportions(
+        val leftWeight: Float,
+        val centerWeight: Float,
+        val rightWeight: Float
+) {
+    override fun toString(): String =
+            "LayoutProportions(left=${(leftWeight * PERCENTAGE_SCALE).toInt()}%, " +
+                    "center=${(centerWeight * PERCENTAGE_SCALE).toInt()}%, " +
+                    "right=${(rightWeight * PERCENTAGE_SCALE).toInt()}%)"
+}
+
+/** Representa as proporções de layout vertical (topo, conteúdo, abaixo) */
+data class VerticalProportions(
+        val topWeight: Float,
+        val contentWeight: Float,
+        val bottomWeight: Float
+) {
+    override fun toString(): String =
+            "VerticalProportions(top=${(topWeight * PERCENTAGE_SCALE).toInt()}%, " +
+                    "content=${(contentWeight * PERCENTAGE_SCALE).toInt()}%, " +
+                    "bottom=${(bottomWeight * PERCENTAGE_SCALE).toInt()}%)"
+}
+
+/**
+ * Parses "XXYYZZ" horizontal/vertical layout-proportion strings into normalized weights. Split
+ * out of [MenuLayoutConfig] so the object stays under the project's function-count threshold, and
+ * exposed back on it unchanged via interface delegation.
+ */
+interface ProportionsParsing {
+    fun parseLayoutProportions(proportionsString: String): LayoutProportions?
+    fun parseVerticalProportions(proportionsString: String): VerticalProportions?
+}
+
+object ProportionsParser : ProportionsParsing {
     private const val TAG = "MenuLayoutConfig"
-
-    // A proportions string is 3 two-digit percentages concatenated, e.g. "XXYYZZ".
-    private const val PROPORTIONS_STRING_LENGTH = 6
-
-    // Char index where the 3rd two-digit segment starts (and the 2nd one ends) in that string.
-    private const val PROPORTIONS_SEGMENT_BOUNDARY = 4
-
-    // The 3 percentages parsed from a proportions string must add up to this, and it's also the
-    // scale used to convert a normalized 0.0-1.0 weight back into a whole percentage for display.
-    private const val PERCENTAGE_SCALE = 100
-
-    // A valid 3-column [Space, Content, Space] layout needs at least this many children.
-    private const val MIN_LAYOUT_CHILD_COUNT = 3
-
-    /** Representa as proporções de layout horizontal (esquerda, centro, direita) */
-    data class LayoutProportions(
-            val leftWeight: Float,
-            val centerWeight: Float,
-            val rightWeight: Float
-    ) {
-        override fun toString(): String =
-                "LayoutProportions(left=${(leftWeight * PERCENTAGE_SCALE).toInt()}%, " +
-                        "center=${(centerWeight * PERCENTAGE_SCALE).toInt()}%, " +
-                        "right=${(rightWeight * PERCENTAGE_SCALE).toInt()}%)"
-    }
-
-    /** Representa as proporções de layout vertical (topo, conteúdo, abaixo) */
-    data class VerticalProportions(
-            val topWeight: Float,
-            val contentWeight: Float,
-            val bottomWeight: Float
-    ) {
-        override fun toString(): String =
-                "VerticalProportions(top=${(topWeight * PERCENTAGE_SCALE).toInt()}%, " +
-                        "content=${(contentWeight * PERCENTAGE_SCALE).toInt()}%, " +
-                        "bottom=${(bottomWeight * PERCENTAGE_SCALE).toInt()}%)"
-    }
 
     /**
      * Parseia uma string de proporções no formato "XXYYZZ" e retorna os pesos normalizados.
@@ -65,7 +75,7 @@ object MenuLayoutConfig {
      * @param proportionsString String com 6 caracteres numéricos (ex: "108010")
      * @return LayoutProportions com os pesos normalizados para soma = 1.0f, ou null se inválido
      */
-    fun parseLayoutProportions(proportionsString: String): LayoutProportions? {
+    override fun parseLayoutProportions(proportionsString: String): LayoutProportions? {
         return try {
             // Validar comprimento
             if (proportionsString.length != PROPORTIONS_STRING_LENGTH) {
@@ -107,6 +117,133 @@ object MenuLayoutConfig {
             null
         }
     }
+
+    /**
+     * Parseia uma string de proporções verticais no formato "XXYYZZ" e retorna os pesos
+     * normalizados.
+     *
+     * @param proportionsString String com 6 caracteres numéricos (ex: "107020")
+     * @return VerticalProportions com os pesos normalizados para soma = 1.0f, ou null se inválido
+     */
+    override fun parseVerticalProportions(proportionsString: String): VerticalProportions? {
+        return try {
+            // Validar comprimento
+            if (proportionsString.length != PROPORTIONS_STRING_LENGTH) {
+                Log.e(
+                        TAG,
+                        "❌ Formato inválido: esperado 6 dígitos, recebido ${proportionsString.length}"
+                )
+                return null
+            }
+
+            // Extrair os valores
+            val topPercent = proportionsString.substring(0, 2).toInt()
+            val contentPercent = proportionsString.substring(2, PROPORTIONS_SEGMENT_BOUNDARY).toInt()
+            val bottomPercent = proportionsString.substring(PROPORTIONS_SEGMENT_BOUNDARY, PROPORTIONS_STRING_LENGTH).toInt()
+
+            // Validar soma = 100%
+            val total = topPercent + contentPercent + bottomPercent
+            if (total != PERCENTAGE_SCALE) {
+                Log.e(
+                        TAG,
+                        "❌ Soma das proporções inválida: $topPercent + $contentPercent + " +
+                                "$bottomPercent = $total (esperado 100)"
+                )
+                return null
+            }
+
+            // Converter para pesos normalizados (0.0-1.0)
+            val proportions =
+                    VerticalProportions(
+                            topWeight = topPercent / 100f,
+                            contentWeight = contentPercent / 100f,
+                            bottomWeight = bottomPercent / 100f
+                    )
+
+            Log.d(TAG, "Proporções verticais parseadas com sucesso: $proportions")
+            proportions
+        } catch (e: NumberFormatException) {
+            Log.e(TAG, "❌ Erro ao parsear proporções verticais: $proportionsString", e)
+            null
+        }
+    }
+}
+
+/**
+ * Finds the container views that layout proportions get applied to. Split out of
+ * [MenuLayoutConfig] (both members were already private, used only internally) so the object
+ * stays under the project's function-count threshold.
+ */
+object MenuLayoutFinder {
+
+    private const val TAG = "MenuLayoutConfig"
+
+    /** Encontra o LinearLayout principal que contém a estrutura 3-colunas. */
+    fun findMainHorizontalLayout(view: View): android.widget.LinearLayout? {
+        // Se for FrameLayout, procura um LinearLayout filho horizontal
+        if (view is android.widget.FrameLayout) {
+            for (i in 0 until view.childCount) {
+                val child = view.getChildAt(i)
+                if (child is android.widget.LinearLayout) {
+                    val orientation = child.orientation
+                    // Se for LinearLayout horizontal com 3+ filhos, é o container correto
+                    if (orientation == android.widget.LinearLayout.HORIZONTAL &&
+                                    child.childCount >= MIN_LAYOUT_CHILD_COUNT
+                    ) {
+                        return child
+                    }
+                }
+            }
+        }
+
+        Log.w(TAG, "❌ findMainHorizontalLayout: no matching layout found")
+        return null
+    }
+
+    /** Encontra o LinearLayout vertical que contém o conteúdo do menu */
+    fun findMenuContentContainer(view: View): android.widget.LinearLayout? {
+        // IDs possíveis do container vertical do menu
+        val possibleIds =
+                listOf(
+                        R.id.menu_container,
+                        R.id.settings_menu_container,
+                        R.id.progress_container,
+                        R.id.about_container,
+                        R.id.exit_menu_container,
+                        R.id.grid_container, // SaveStateGridFragment (Load/Save/Manage)
+                        R.id.dialog_container // Dialogs (Rename, Confirm, etc.)
+                )
+
+        for (id in possibleIds) {
+            val container = view.findViewById<android.widget.LinearLayout?>(id)
+            if (container != null) {
+                return container
+            }
+        }
+
+        return null
+    }
+}
+
+/**
+ * Utilitário para parsear e aplicar configurações de layout dos menus.
+ *
+ * As proporções são especificadas em formato de string: "XXYYZZ"
+ * - XX: percentual do espaço esquerdo (0-100)
+ * - YY: percentual do conteúdo central (0-100)
+ * - ZZ: percentual do espaço direito (0-100) Total DEVE ser 100
+ *
+ * Exemplos:
+ * - "108010" = 10% esq, 80% centro, 10% dir
+ * - "107020" = 10% esq, 70% centro, 20% dir
+ * - "257525" = 25% esq, 75% centro, 25% dir
+ *
+ * String parsing ([parseLayoutProportions]/[parseVerticalProportions]) is delegated to
+ * [ProportionsParser]; container lookups are delegated (by direct call, not interface
+ * delegation, since both were already private) to [MenuLayoutFinder].
+ */
+object MenuLayoutConfig : ProportionsParsing by ProportionsParser {
+    private const val TAG = "MenuLayoutConfig"
 
     /**
      * Aplica as proporções de layout a um LinearLayout.
@@ -209,7 +346,7 @@ object MenuLayoutConfig {
             }
 
             // Encontrar o LinearLayout horizontal
-            val mainLayout = findMainHorizontalLayout(view)
+            val mainLayout = MenuLayoutFinder.findMainHorizontalLayout(view)
             if (mainLayout == null) {
                 Log.w(TAG, "⚠️ findMainHorizontalLayout returned null, aborting")
                 return
@@ -222,78 +359,6 @@ object MenuLayoutConfig {
             // safety net against a future change to either callee.
         } catch (expectedUnreachable: Exception) {
             Log.e(TAG, "Erro ao aplicar proporções ao menu layout", expectedUnreachable)
-        }
-    }
-
-    /** Encontra o LinearLayout principal que contém a estrutura 3-colunas. */
-    private fun findMainHorizontalLayout(view: View): android.widget.LinearLayout? {
-        // Se for FrameLayout, procura um LinearLayout filho horizontal
-        if (view is android.widget.FrameLayout) {
-            for (i in 0 until view.childCount) {
-                val child = view.getChildAt(i)
-                if (child is android.widget.LinearLayout) {
-                    val orientation = child.orientation
-                    // Se for LinearLayout horizontal com 3+ filhos, é o container correto
-                    if (orientation == android.widget.LinearLayout.HORIZONTAL &&
-                                    child.childCount >= MIN_LAYOUT_CHILD_COUNT
-                    ) {
-                        return child
-                    }
-                }
-            }
-        }
-
-        Log.w(TAG, "❌ findMainHorizontalLayout: no matching layout found")
-        return null
-    }
-
-    /**
-     * Parseia uma string de proporções verticais no formato "XXYYZZ" e retorna os pesos
-     * normalizados.
-     *
-     * @param proportionsString String com 6 caracteres numéricos (ex: "107020")
-     * @return VerticalProportions com os pesos normalizados para soma = 1.0f, ou null se inválido
-     */
-    fun parseVerticalProportions(proportionsString: String): VerticalProportions? {
-        return try {
-            // Validar comprimento
-            if (proportionsString.length != PROPORTIONS_STRING_LENGTH) {
-                Log.e(
-                        TAG,
-                        "❌ Formato inválido: esperado 6 dígitos, recebido ${proportionsString.length}"
-                )
-                return null
-            }
-
-            // Extrair os valores
-            val topPercent = proportionsString.substring(0, 2).toInt()
-            val contentPercent = proportionsString.substring(2, PROPORTIONS_SEGMENT_BOUNDARY).toInt()
-            val bottomPercent = proportionsString.substring(PROPORTIONS_SEGMENT_BOUNDARY, PROPORTIONS_STRING_LENGTH).toInt()
-
-            // Validar soma = 100%
-            val total = topPercent + contentPercent + bottomPercent
-            if (total != PERCENTAGE_SCALE) {
-                Log.e(
-                        TAG,
-                        "❌ Soma das proporções inválida: $topPercent + $contentPercent + " +
-                                "$bottomPercent = $total (esperado 100)"
-                )
-                return null
-            }
-
-            // Converter para pesos normalizados (0.0-1.0)
-            val proportions =
-                    VerticalProportions(
-                            topWeight = topPercent / 100f,
-                            contentWeight = contentPercent / 100f,
-                            bottomWeight = bottomPercent / 100f
-                    )
-
-            Log.d(TAG, "Proporções verticais parseadas com sucesso: $proportions")
-            proportions
-        } catch (e: NumberFormatException) {
-            Log.e(TAG, "❌ Erro ao parsear proporções verticais: $proportionsString", e)
-            null
         }
     }
 
@@ -445,7 +510,7 @@ object MenuLayoutConfig {
             val verticalProportions = getConfiguredVerticalProportions(view) ?: return
 
             // Encontrar o container vertical do menu (pode ter IDs diferentes)
-            val menuContainer = findMenuContentContainer(view) ?: return
+            val menuContainer = MenuLayoutFinder.findMenuContentContainer(view) ?: return
 
             applyVerticalProportions(menuContainer, verticalProportions)
             // Every callee above (applyProportionsToMenuLayout, getConfiguredVerticalProportions,
@@ -580,29 +645,5 @@ object MenuLayoutConfig {
             // different LayoutParams subtype hits this.
             Log.e(TAG, "❌ Erro ao aplicar posição vertical do dialog", e)
         }
-    }
-
-    /** Encontra o LinearLayout vertical que contém o conteúdo do menu */
-    private fun findMenuContentContainer(view: View): android.widget.LinearLayout? {
-        // IDs possíveis do container vertical do menu
-        val possibleIds =
-                listOf(
-                        R.id.menu_container,
-                        R.id.settings_menu_container,
-                        R.id.progress_container,
-                        R.id.about_container,
-                        R.id.exit_menu_container,
-                        R.id.grid_container, // SaveStateGridFragment (Load/Save/Manage)
-                        R.id.dialog_container // Dialogs (Rename, Confirm, etc.)
-                )
-
-        for (id in possibleIds) {
-            val container = view.findViewById<android.widget.LinearLayout?>(id)
-            if (container != null) {
-                return container
-            }
-        }
-
-        return null
     }
 }

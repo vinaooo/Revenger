@@ -161,6 +161,38 @@ data class MenuSystemState(
 }
 
 /**
+ * Read-only queries over the current [MenuSystemState]. Split out of [MenuStateManager] so its
+ * mutation API stays under the project's function-count threshold; backed by [MenuStateHolder].
+ */
+interface MenuStateQueries {
+    fun hasActiveMenus(): Boolean
+    fun isMenuActive(menuType: MenuSystemState.MenuType): Boolean
+    fun isRetroMenu3Open(): Boolean
+    fun isDismissingAllMenus(): Boolean
+    fun getCurrentState(): MenuState
+}
+
+/**
+ * Holds the single mutable [MenuSystemState] reference for [MenuStateManager] and answers the
+ * read-only [MenuStateQueries] directly off it, so [MenuStateManager] itself only declares the
+ * mutation methods.
+ */
+class MenuStateHolder : MenuStateQueries {
+    var state: MenuSystemState = MenuSystemState()
+
+    override fun hasActiveMenus(): Boolean = state.hasActiveMenus()
+
+    override fun isMenuActive(menuType: MenuSystemState.MenuType): Boolean =
+            state.isMenuActive(menuType)
+
+    override fun isRetroMenu3Open(): Boolean = state.isRetroMenu3Open
+
+    override fun isDismissingAllMenus(): Boolean = state.isDismissingAllMenus
+
+    override fun getCurrentState(): MenuState = state.currentState
+}
+
+/**
  * Gerenciador de estado centralizado para o sistema de menu.
  *
  * **Single Source of Truth (Phase 4+)**: Substitui flags booleanas distribuídas por estado imutável
@@ -171,6 +203,10 @@ data class MenuSystemState(
  * - **Predictable**: Estado imutável = mudanças rastreáveis e testáveis
  * - **Observable**: Callback onStateChanged notifica observers sobre mudanças
  *
+ * Read-only access to the current state (`hasActiveMenus`, `isMenuActive`, `isRetroMenu3Open`,
+ * `isDismissingAllMenus`, `getCurrentState`) is delegated to [MenuStateHolder] (see
+ * [MenuStateQueries]); this class only owns the transformation/mutation API.
+ *
  * **Uso**:
  * ```kotlin
  * menuStateManager.updateState { it.withMenuActivated(MenuType.PROGRESS_MENU) }
@@ -180,19 +216,25 @@ data class MenuSystemState(
  * @param onStateChanged Callback opcional invocado após cada mudança de estado
  * @see MenuSystemState Estado imutável gerenciado por esta classe
  */
-class MenuStateManager(private val onStateChanged: ((MenuSystemState) -> Unit)? = null) {
+class MenuStateManager
+private constructor(
+        private val onStateChanged: ((MenuSystemState) -> Unit)?,
+        private val stateHolder: MenuStateHolder
+) : MenuStateQueries by stateHolder {
 
-    private var _currentState = MenuSystemState()
+    constructor(
+            onStateChanged: ((MenuSystemState) -> Unit)? = null
+    ) : this(onStateChanged, MenuStateHolder())
 
     /** Get current state (immutable copy) */
     val currentState: MenuSystemState
-        get() = _currentState
+        get() = stateHolder.state
 
     /** Update state using a transformation function */
     fun updateState(transform: (MenuSystemState) -> MenuSystemState) {
-        _currentState = transform(_currentState)
-        onStateChanged?.invoke(_currentState)
-        Log.d(TAG, "Menu state updated: $_currentState")
+        stateHolder.state = transform(stateHolder.state)
+        onStateChanged?.invoke(stateHolder.state)
+        Log.d(TAG, "Menu state updated: ${stateHolder.state}")
     }
 
     /** Convenience methods for common state changes */
@@ -223,18 +265,6 @@ class MenuStateManager(private val onStateChanged: ((MenuSystemState) -> Unit)? 
     fun setDismissingAllMenus(dismissing: Boolean) {
         updateState { it.withDismissingAllMenus(dismissing) }
     }
-
-    /** Query methods */
-    fun hasActiveMenus(): Boolean = _currentState.hasActiveMenus()
-
-    fun isMenuActive(menuType: MenuSystemState.MenuType): Boolean =
-            _currentState.isMenuActive(menuType)
-
-    fun isRetroMenu3Open(): Boolean = _currentState.isRetroMenu3Open
-
-    fun isDismissingAllMenus(): Boolean = _currentState.isDismissingAllMenus
-
-    fun getCurrentState(): MenuState = _currentState.currentState
 
     companion object {
         private const val TAG = "MenuStateManager"
@@ -312,51 +342,118 @@ interface MenuFragment {
 }
 
 /**
- * Central menu manager that coordinates all menu fragments and handles state transitions. This
- * implements the State Machine pattern for menu navigation.
+ * Fragment registration/lookup for [MenuManager], keyed off the menu state owned by a
+ * [MenuStateManager]. Split out so [MenuManager] itself only declares the action-routing methods;
+ * exposed back on `MenuManager` unchanged via interface delegation.
  */
-class MenuManager(
-        private val listener: MenuManagerListener,
-        private val stateManager: MenuStateManager
-) {
+interface MenuFragmentRegistration {
+    /** Register a fragment for a specific menu state */
+    fun registerFragment(state: MenuState, fragment: MenuFragment)
 
-    interface MenuManagerListener {
-        fun onMenuEvent(event: MenuEvent)
-    }
+    /** Unregister a fragment for a specific menu state */
+    fun unregisterFragment(state: MenuState)
+
+    /** Get the current fragment */
+    fun getCurrentFragment(): MenuFragment?
+}
+
+class MenuFragmentRegistry(private val stateManager: MenuStateManager) : MenuFragmentRegistration {
 
     private val fragments = mutableMapOf<MenuState, MenuFragment>()
 
-    // Protection against simultaneous confirm operations
-    private var isProcessingConfirm = false
-    private var isProcessingBack = false
-
-    /** Register a fragment for a specific menu state */
-    fun registerFragment(state: MenuState, fragment: MenuFragment) {
+    override fun registerFragment(state: MenuState, fragment: MenuFragment) {
         fragments[state] = fragment
     }
 
-    /** Unregister a fragment for a specific menu state */
-    fun unregisterFragment(state: MenuState) {
+    override fun unregisterFragment(state: MenuState) {
         fragments.remove(state)
-        Log.d(
-                "MenuManager",
-                "[FRAGMENT] unregisterFragment: Removed fragment for state $state"
-        )
+        Log.d(TAG, "[FRAGMENT] unregisterFragment: Removed fragment for state $state")
     }
 
-    /** Get the current menu state */
-    fun getCurrentState(): MenuState = stateManager.getCurrentState()
-
-    /** Get the current fragment */
-    fun getCurrentFragment(): MenuFragment? =
+    override fun getCurrentFragment(): MenuFragment? =
             fragments[stateManager.getCurrentState()].also {
                 Log.d(
-                        "MenuManager",
+                        TAG,
                         "[FRAGMENT] getCurrentFragment: state=${stateManager.getCurrentState()}, " +
                                 "fragment=${it?.javaClass?.simpleName}, " +
                                 "isAdded=${(it as? androidx.fragment.app.Fragment)?.isAdded}"
                 )
             }
+
+    companion object {
+        private const val TAG = "MenuManager"
+    }
+}
+
+/**
+ * Sends the unified [MenuEvent]s (`NavigateUp`/`NavigateDown`/`Confirm`/`Back`/`Action`) to a
+ * [MenuManager.MenuManagerListener]. Split out of [MenuManager] and exposed back on it unchanged
+ * via interface delegation.
+ */
+interface MenuEventSender {
+    /** Send navigation up event */
+    fun sendNavigateUp()
+
+    /** Send navigation down event */
+    fun sendNavigateDown()
+
+    /** Send confirm event */
+    fun sendConfirm()
+
+    /** Send back event */
+    fun sendBack()
+
+    /** Send menu action event */
+    fun sendAction(action: MenuAction)
+}
+
+class MenuEventDispatcher(private val listener: MenuManager.MenuManagerListener) : MenuEventSender {
+    override fun sendNavigateUp() {
+        listener.onMenuEvent(MenuEvent.NavigateUp)
+    }
+
+    override fun sendNavigateDown() {
+        listener.onMenuEvent(MenuEvent.NavigateDown)
+    }
+
+    override fun sendConfirm() {
+        listener.onMenuEvent(MenuEvent.Confirm)
+    }
+
+    override fun sendBack() {
+        listener.onMenuEvent(MenuEvent.Back)
+    }
+
+    override fun sendAction(action: MenuAction) {
+        listener.onMenuEvent(MenuEvent.Action(action))
+    }
+}
+
+/**
+ * Central menu manager that coordinates all menu fragments and handles state transitions. This
+ * implements the State Machine pattern for menu navigation.
+ *
+ * Fragment registration ([MenuFragmentRegistration]) and unified event dispatch
+ * ([MenuEventSender]) are delegated to [MenuFragmentRegistry] and [MenuEventDispatcher]
+ * respectively; both remain callable on `MenuManager` exactly as before.
+ */
+class MenuManager(
+        private val listener: MenuManagerListener,
+        private val stateManager: MenuStateManager,
+        private val fragmentRegistry: MenuFragmentRegistration = MenuFragmentRegistry(stateManager),
+        private val eventSender: MenuEventSender = MenuEventDispatcher(listener)
+) : MenuFragmentRegistration by fragmentRegistry, MenuEventSender by eventSender {
+
+    interface MenuManagerListener {
+        fun onMenuEvent(event: MenuEvent)
+    }
+
+    // Protection against simultaneous confirm operations
+    private var isProcessingConfirm = false
+    private var isProcessingBack = false
+
+    /** Get the current menu state */
+    fun getCurrentState(): MenuState = stateManager.getCurrentState()
 
     /** Navigate to a specific menu state */
     fun navigateToState(newState: MenuState) {
@@ -535,32 +632,5 @@ class MenuManager(
                     "[NAV] setSelectedIndex: Fragment not available or not attached"
             )
         }
-    }
-
-    // ===== NOVOS MÉTODOS PARA SISTEMA UNIFICADO DE EVENTOS =====
-
-    /** Send navigation up event */
-    fun sendNavigateUp() {
-        listener.onMenuEvent(MenuEvent.NavigateUp)
-    }
-
-    /** Send navigation down event */
-    fun sendNavigateDown() {
-        listener.onMenuEvent(MenuEvent.NavigateDown)
-    }
-
-    /** Send confirm event */
-    fun sendConfirm() {
-        listener.onMenuEvent(MenuEvent.Confirm)
-    }
-
-    /** Send back event */
-    fun sendBack() {
-        listener.onMenuEvent(MenuEvent.Back)
-    }
-
-    /** Send menu action event */
-    fun sendAction(action: MenuAction) {
-        listener.onMenuEvent(MenuEvent.Action(action))
     }
 }
