@@ -200,6 +200,11 @@ object FontUtils {
         textViews.forEach { applyTextCapitalization(context, it) }
     }
 
+    /** Same as [applyTextCapitalization], for a caller that already holds a collection. */
+    fun applyTextCapitalization(context: Context, textViews: Collection<android.widget.TextView>) {
+        textViews.forEach { applyTextCapitalization(context, it) }
+    }
+
     /**
      * Returns a string already formatted according to the `rm_text_capitalization` setting.
      * Use em Toasts, hints e em qualquer lugar que construa texto programaticamente.

@@ -43,6 +43,14 @@ object ViewUtils {
         views.forEach { view -> FontUtils.applySelectedFont(context, view) }
     }
 
+    /** Same as [applySelectedFontToViews], for a caller that already holds a collection. */
+    fun applySelectedFontToViews(
+            context: android.content.Context,
+            views: Collection<android.widget.TextView>
+    ) {
+        views.forEach { view -> FontUtils.applySelectedFont(context, view) }
+    }
+
     /**
      * Applies the arcade font to multiple TextViews (for compatibility).
      *

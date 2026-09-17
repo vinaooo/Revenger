@@ -284,8 +284,8 @@ class ManageSavesFragment : SaveStateGridFragment() {
             dialog.findViewById<LinearLayout>(R.id.operations_container)?.let { container ->
                 val textViews = mutableListOf<TextView>()
                 findAllTextViews(container, textViews)
-                ViewUtils.applySelectedFontToViews(requireContext(), *textViews.toTypedArray())
-                FontUtils.applyTextCapitalization(requireContext(), *textViews.toTypedArray())
+                ViewUtils.applySelectedFontToViews(requireContext(), textViews)
+                FontUtils.applyTextCapitalization(requireContext(), textViews)
             }
 
             // Click listeners
@@ -370,9 +370,9 @@ class ManageSavesFragment : SaveStateGridFragment() {
             findAllTextViews(dialog, textViews)
             // Remove RetroEditText from list since we handle it separately
             textViews.removeAll { it is RetroEditText }
-            ViewUtils.applySelectedFontToViews(requireContext(), *textViews.toTypedArray())
+            ViewUtils.applySelectedFontToViews(requireContext(), textViews)
             // Ensure configured capitalization on dialog texts
-            FontUtils.applyTextCapitalization(requireContext(), *textViews.toTypedArray())
+            FontUtils.applyTextCapitalization(requireContext(), textViews)
 
             // Initialize RetroKeyboard
             retroKeyboard = RetroKeyboard(
@@ -447,8 +447,8 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
             val textViews = mutableListOf<TextView>()
             findAllTextViews(dialog, textViews)
-            ViewUtils.applySelectedFontToViews(requireContext(), *textViews.toTypedArray())
-            FontUtils.applyTextCapitalization(requireContext(), *textViews.toTypedArray())
+            ViewUtils.applySelectedFontToViews(requireContext(), textViews)
+            FontUtils.applyTextCapitalization(requireContext(), textViews)
 
             confirmButton.setOnClickListener {
                 hideDialog()
