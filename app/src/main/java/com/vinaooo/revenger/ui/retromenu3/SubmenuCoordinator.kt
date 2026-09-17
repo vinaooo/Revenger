@@ -25,7 +25,6 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
  * - `hasSubmenuOpen`: Indicates if a submenu is active
  * - `isClosingSubmenu`: Protection against multiple simultaneous closes
  * - `isRestoringSelection`: Protection against duplicate restorations
- * - `shouldPreserveSelectionOnShowMainMenu`: Controls whether to restore selection
  *
  * **Integration**:
  * - Works with MenuManager for fragment registration
@@ -55,9 +54,6 @@ class SubmenuCoordinator(
 
     // Store the main menu selected index before opening a submenu
     private var mainMenuSelectedIndexBeforeSubmenu: Int = 0
-
-    // Flag to indicate if selection should be preserved when showing main menu
-    private var shouldPreserveSelectionOnShowMainMenu: Boolean = false
 
     // Flag to prevent multiple simultaneous close operations
     private var isClosingSubmenu: Boolean = false

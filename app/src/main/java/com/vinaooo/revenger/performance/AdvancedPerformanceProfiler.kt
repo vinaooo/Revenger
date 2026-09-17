@@ -24,6 +24,11 @@ object AdvancedPerformanceProfiler {
     private const val MONITORING_INTERVAL_MS = 1000L
     private const val FRAME_TIME_BUFFER_SIZE = 120 // 2 seconds at 60fps
 
+    // Placeholder values for SDK 36 metrics without a real data source yet
+    private const val HYPOTHETICAL_GPU_UTILIZATION = 45.0
+    private const val HYPOTHETICAL_THERMAL_STATE = "NORMAL"
+    private const val HYPOTHETICAL_FRAME_PACING = 95.0
+
     // Frame timing for emulator FPS calculation
     private var lastFrameTime = 0L
     private var frameCount = 0
@@ -189,9 +194,9 @@ object AdvancedPerformanceProfiler {
     @RequiresApi(36)
     private fun collectAdvancedMetrics() {
         // Hypothetical advanced metrics collection
-        performanceData["gpu_utilization"] = getHypotheticalGpuUtilization()
-        performanceData["thermal_state"] = getHypotheticalThermalState()
-        performanceData["frame_pacing_score"] = getHypotheticalFramePacing()
+        performanceData["gpu_utilization"] = HYPOTHETICAL_GPU_UTILIZATION
+        performanceData["thermal_state"] = HYPOTHETICAL_THERMAL_STATE
+        performanceData["frame_pacing_score"] = HYPOTHETICAL_FRAME_PACING
     }
 
     /** Collect standard metrics for Android 12+ */
@@ -223,13 +228,6 @@ object AdvancedPerformanceProfiler {
         // This is a simplified estimation
         return (usedMemory.toDouble() / maxMemory.toDouble()) * 100.0
     }
-
-    /** Hypothetical methods for SDK 36 features */
-    @RequiresApi(36) private fun getHypotheticalGpuUtilization(): Double = 45.0
-
-    @RequiresApi(36) private fun getHypotheticalThermalState(): String = "NORMAL"
-
-    @RequiresApi(36) private fun getHypotheticalFramePacing(): Double = 95.0
 
     /** Get current frame statistics */
     fun getFrameStats(): FrameStats {

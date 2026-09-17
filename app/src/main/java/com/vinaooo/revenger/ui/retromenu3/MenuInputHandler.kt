@@ -13,12 +13,8 @@ interface MenuInputHandler {
     fun handleMenuItemSelected(item: MenuItem)
 }
 
-/**
- * Basic implementation of MenuInputHandler. TODO: Implement full logic after creating
- * MenuCallbackManager.
- */
+/** Implementation of MenuInputHandler, delegating callback-driven actions to MenuCallbackManager. */
 class MenuInputHandlerImpl(
-        private val fragment: RetroMenu3Fragment,
         private val stateController: MenuStateController,
         private val callbackManager: MenuCallbackManager,
         private val actionHandler: MenuActionHandler
@@ -26,7 +22,8 @@ class MenuInputHandlerImpl(
 
     override fun setupInputHandling(menuViews: MenuViews) {
         MenuLogger.action("MenuInputHandler: setupInputHandling - Configurando handlers de entrada")
-        // TODO: Set up listeners for virtual buttons and physical input
+        // Stub: virtual-button/physical-input listener wiring is tracked as roadmap work in
+        // TODO.kt rather than here, since setup is currently driven by NavigationController.
     }
 
     override fun handleNavigateUp(): Boolean {

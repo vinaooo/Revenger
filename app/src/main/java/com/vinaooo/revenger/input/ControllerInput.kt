@@ -1,13 +1,12 @@
 package com.vinaooo.revenger.input
 
-import android.content.Context
 import android.view.InputEvent
 import android.view.KeyEvent
 import android.view.MotionEvent
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.retroview.RetroView
 
-class ControllerInput(private val context: Context) {
+class ControllerInput {
         companion object {
                 /** Combination to open the menu */
                 val KEYCOMBO_MENU =
@@ -283,15 +282,6 @@ class ControllerInput(private val context: Context) {
                 buttonThatClosedMenu = closingButton
         }
 
-        /** Check if we should continue intercepting (menu open OR grace period active) */
-        private fun shouldInterceptButtons(): Boolean {
-                val menuActive = shouldInterceptDpadForMenu()
-                val gracePeriodActive = System.currentTimeMillis() < keepInterceptingUntil
-                val result = menuActive || gracePeriodActive
-
-                return result
-        }
-
         /**
          * Checks if a SPECIFIC button should be blocked during the grace period. Blocks only the
          * button that closed the menu during the grace period. Does NOT block other buttons even
@@ -333,8 +323,7 @@ class ControllerInput(private val context: Context) {
                 currentDown: Boolean,
                 currentLeft: Boolean = false,
                 currentRight: Boolean = false,
-                previousState: DirectionalState,
-                inputName: String
+                previousState: DirectionalState
         ): Int? {
                 var triggeredKeyCode: Int? = null
 
@@ -475,7 +464,6 @@ class ControllerInput(private val context: Context) {
                                 "   timeSinceMenuClose: ${timeSinceMenuClose}ms (precisa ser > ${MENU_CLOSE_DEBOUNCE_MS}ms)"
                         )
 
-                        if (!hasSelectAndStart) {}
                         if (comboAlreadyTriggered) {
                                 // DISABLED: Phase 5.1f - Performance optimization
                                 // android.util.Log.d(
@@ -508,9 +496,6 @@ class ControllerInput(private val context: Context) {
                                         // Menu is OPEN - this is expected, not a bug
                                 }
                         }
-                        if (!shouldHandleSelectStartCombo()) {}
-                        if (timeSinceLastTrigger <= COMBO_COOLDOWN_MS) {}
-                        if (timeSinceMenuClose <= MENU_CLOSE_DEBOUNCE_MS) {}
                 }
         }
 
@@ -603,11 +588,6 @@ class ControllerInput(private val context: Context) {
                                 else -> keyCode.toString()
                         }
                 val actionName = if (action == KeyEvent.ACTION_DOWN) "DOWN" else "UP"
-                val timestamp =
-                        android.text.format.DateFormat.format(
-                                "HH:mm:ss.SSS",
-                                System.currentTimeMillis()
-                        )
 
                 // INTERCEPT BUTTON A for confirmation when menu is open
                 // During grace period, DO NOT block A (only open menu blocks)
@@ -1021,8 +1001,7 @@ class ControllerInput(private val context: Context) {
                                 currentDown = hatY > dpadThreshold,
                                 currentLeft = hatX < -dpadThreshold,
                                 currentRight = hatX > dpadThreshold,
-                                previousState = dpadState,
-                                inputName = "DPAD"
+                                previousState = dpadState
                         )
 
                         // Check Left Analog transitions
@@ -1031,8 +1010,7 @@ class ControllerInput(private val context: Context) {
                                 currentDown = axisY > leftAnalogThreshold,
                                 currentLeft = axisX < -leftAnalogThreshold,
                                 currentRight = axisX > leftAnalogThreshold,
-                                previousState = leftAnalogState,
-                                inputName = "L_ANALOG"
+                                previousState = leftAnalogState
                         )
 
                         // Use DPAD trigger if available, otherwise Analog

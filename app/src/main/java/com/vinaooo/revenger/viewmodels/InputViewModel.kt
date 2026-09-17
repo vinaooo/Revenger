@@ -26,7 +26,7 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
     val eventFlow: StateFlow<InputEvent> = _eventFlow.asStateFlow()
 
 
-    private val controllerInput = ControllerInput(application.applicationContext)
+    private val controllerInput = ControllerInput()
     private val appConfig = RevengerApplication.appConfig
 
     // References to gamepads

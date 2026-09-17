@@ -9,7 +9,7 @@ import java.util.zip.ZipInputStream
  * Modern utility for downloading and extracting LibRetro files. Replaces the plugin
  * de.undercouch.download with native implementation
  */
-class LibRetroDownloader {
+class LibRetroDownloader private constructor() {
 
     companion object {
         private const val CONNECT_TIMEOUT = 30000 // 30s

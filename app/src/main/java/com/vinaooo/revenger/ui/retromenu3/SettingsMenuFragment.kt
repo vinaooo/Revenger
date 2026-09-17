@@ -164,12 +164,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
         )
     }
 
-    /** Shader selection is always enabled (legacy method kept for compatibility) */
-    @Deprecated("Shader selection is now always enabled")
-    private fun isShaderSelectionEnabled(): Boolean {
-        return true
-    }
-
     private fun setupClickListeners() {
         // PHASE 3.3a: Route touch events through NavigationController
         Log.d(
