@@ -7,6 +7,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import io.mockk.verify
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
 import org.junit.After
@@ -30,6 +31,7 @@ class AppConfig_test {
 
     private val assetContents = mutableMapOf<String, String>()
     private lateinit var context: Context
+    private lateinit var assetManager: AssetManager
 
     @Before
     fun setUp() {
@@ -42,7 +44,7 @@ class AppConfig_test {
 
         assetContents.clear()
 
-        val assetManager = mockk<AssetManager>()
+        assetManager = mockk()
         every { assetManager.open(any()) } answers {
             val path = firstArg<String>()
             val json = assetContents[path] ?: throw FileNotFoundException(path)
@@ -102,6 +104,19 @@ class AppConfig_test {
     fun `getName usa Revenger como fallback quando config json nao existe`() {
         // Nenhum asset configurado: loadJsonAsset falha e cai no BaseConfig() padrao.
         assertEquals("Revenger", AppConfig(context).getName())
+    }
+
+    @Test
+    fun `AppConfig carrega cada asset de config uma unica vez, nao uma vez por delegate`() {
+        putBaseConfig()
+        putManualConfig()
+
+        AppConfig(context)
+
+        // AppConfig delega para sete interfaces diferentes, todas construídas a partir do mesmo
+        // ConfigSources (injetado uma única vez via valor default do construtor). Se cada
+        // delegate carregasse o config por conta própria, cada asset seria aberto 7x em vez de 1x.
+        verify(exactly = 3) { assetManager.open(any()) }
     }
 
     @Test
@@ -254,5 +269,82 @@ class AppConfig_test {
         assertTrue(config.isPipEnabled())
         assertEquals("landscape", config.getOrientation())
         assertEquals(1, config.getFastForwardMultiplier())
+    }
+
+    // --- Regressão: AppConfig delega para AppConfigInput/AppConfigFaceButtons/
+    // AppConfigShoulderButtons/AppConfigDisplay (extraídos para resolver TooManyFunctions) sem
+    // perder nenhum campo na fiação. Cada getter tem a mesma forma (profile ?: manualConfig.campo),
+    // então um valor não-default por campo é suficiente para pegar qualquer campo trocado
+    // acidentalmente por outro na extração. ---
+    @Test
+    fun `todas as configuracoes de input e botoes vem do config_manual quando fora do modo default`() {
+        putBaseConfig(defaultSettings = false)
+        assetContents["config/config_manual.json"] =
+            """
+            {
+              "core": "test_core",
+              "performance_overlay": true,
+              "gamepad": false,
+              "gp_haptic": false,
+              "button_allow_multiple_presses_action": true,
+              "left_analog": true,
+              "button_a": false,
+              "button_b": true,
+              "button_x": true,
+              "button_y": false,
+              "button_start": false,
+              "button_select": true,
+              "button_l1": true,
+              "button_r1": false,
+              "button_l2": true,
+              "button_r2": false
+            }
+            """.trimIndent()
+
+        val config = AppConfig(context)
+
+        assertTrue(config.getPerformanceOverlay())
+        assertFalse(config.getGamepad())
+        assertFalse(config.getGpHaptic())
+        assertTrue(config.getButtonAllowMultiplePressesAction())
+        assertTrue(config.getLeftAnalog())
+
+        assertFalse(config.getButtonA())
+        assertTrue(config.getButtonB())
+        assertTrue(config.getButtonX())
+        assertFalse(config.getButtonY())
+        assertFalse(config.getButtonStart())
+        assertTrue(config.getButtonSelect())
+
+        assertTrue(config.getButtonL1())
+        assertFalse(config.getButtonR1())
+        assertTrue(config.getButtonL2())
+        assertFalse(config.getButtonR2())
+    }
+
+    @Test
+    fun `configuracoes de input e botoes usam os defaults do data class quando o arquivo nao existe`() {
+        putBaseConfig()
+        // config_manual.json não configurado: ManualConfig() com valores padrão é usado.
+
+        val config = AppConfig(context)
+
+        assertFalse(config.getPerformanceOverlay())
+        assertTrue(config.getGamepad())
+        assertTrue(config.getGpHaptic())
+        assertFalse(config.getButtonAllowMultiplePressesAction())
+        assertFalse(config.getLeftAnalog())
+
+        assertTrue(config.getButtonA())
+        assertTrue(config.getButtonB())
+        assertFalse(config.getButtonX())
+        assertFalse(config.getButtonY())
+        assertTrue(config.getButtonStart())
+        assertTrue(config.getButtonSelect())
+
+        assertFalse(config.getButtonL1())
+        assertFalse(config.getButtonR1())
+        assertFalse(config.getButtonL2())
+        assertFalse(config.getButtonR2())
     }
 }
