@@ -76,16 +76,15 @@ object ProportionsParser : ProportionsParsing {
      * @return LayoutProportions com os pesos normalizados para soma = 1.0f, ou null se inválido
      */
     override fun parseLayoutProportions(proportionsString: String): LayoutProportions? {
-        return try {
-            // Validar comprimento
-            if (proportionsString.length != PROPORTIONS_STRING_LENGTH) {
-                Log.e(
-                        TAG,
-                        "❌ Formato inválido: esperado 6 dígitos, recebido ${proportionsString.length}"
-                )
-                return null
-            }
+        if (proportionsString.length != PROPORTIONS_STRING_LENGTH) {
+            Log.e(
+                    TAG,
+                    "❌ Formato inválido: esperado 6 dígitos, recebido ${proportionsString.length}"
+            )
+            return null
+        }
 
+        return try {
             // Extrair os valores
             val leftPercent = proportionsString.substring(0, 2).toInt()
             val centerPercent = proportionsString.substring(2, PROPORTIONS_SEGMENT_BOUNDARY).toInt()
@@ -126,16 +125,15 @@ object ProportionsParser : ProportionsParsing {
      * @return VerticalProportions com os pesos normalizados para soma = 1.0f, ou null se inválido
      */
     override fun parseVerticalProportions(proportionsString: String): VerticalProportions? {
-        return try {
-            // Validar comprimento
-            if (proportionsString.length != PROPORTIONS_STRING_LENGTH) {
-                Log.e(
-                        TAG,
-                        "❌ Formato inválido: esperado 6 dígitos, recebido ${proportionsString.length}"
-                )
-                return null
-            }
+        if (proportionsString.length != PROPORTIONS_STRING_LENGTH) {
+            Log.e(
+                    TAG,
+                    "❌ Formato inválido: esperado 6 dígitos, recebido ${proportionsString.length}"
+            )
+            return null
+        }
 
+        return try {
             // Extrair os valores
             val topPercent = proportionsString.substring(0, 2).toInt()
             val contentPercent = proportionsString.substring(2, PROPORTIONS_SEGMENT_BOUNDARY).toInt()
@@ -184,14 +182,8 @@ object MenuLayoutFinder {
         if (view is android.widget.FrameLayout) {
             for (i in 0 until view.childCount) {
                 val child = view.getChildAt(i)
-                if (child is android.widget.LinearLayout) {
-                    val orientation = child.orientation
-                    // Se for LinearLayout horizontal com 3+ filhos, é o container correto
-                    if (orientation == android.widget.LinearLayout.HORIZONTAL &&
-                                    child.childCount >= MIN_LAYOUT_CHILD_COUNT
-                    ) {
-                        return child
-                    }
+                if (isMainHorizontalCandidate(child)) {
+                    return child as android.widget.LinearLayout
                 }
             }
         }
@@ -199,6 +191,15 @@ object MenuLayoutFinder {
         Log.w(TAG, "❌ findMainHorizontalLayout: no matching layout found")
         return null
     }
+
+    /**
+     * Whether [child] is a horizontal [android.widget.LinearLayout] with at least the 3 columns
+     * ([Space, Content, Space]) the menu layout structure expects.
+     */
+    private fun isMainHorizontalCandidate(child: View): Boolean =
+            child is android.widget.LinearLayout &&
+                    child.orientation == android.widget.LinearLayout.HORIZONTAL &&
+                    child.childCount >= MIN_LAYOUT_CHILD_COUNT
 
     /** Encontra o LinearLayout vertical que contém o conteúdo do menu */
     fun findMenuContentContainer(view: View): android.widget.LinearLayout? {
@@ -222,6 +223,181 @@ object MenuLayoutFinder {
         }
 
         return null
+    }
+}
+
+/**
+ * Builds the vertical `[Space, Content, Space]` wrapper structure shared by
+ * [MenuLayoutConfig.applyVerticalProportions] and [MenuLayoutConfig.applyDialogVerticalPosition].
+ * Split out of [MenuLayoutConfig] (already private/internal members) so that object stays under
+ * the project's function-count threshold.
+ */
+private object VerticalLayoutWrapper {
+    private const val TAG = "MenuLayoutConfig"
+
+    /** Logs a warning; used as the single-statement body of validation guard clauses. */
+    fun warn(message: String) {
+        Log.w(TAG, message)
+    }
+
+    /**
+     * Removes [menuContainer] from [parentLinearLayout] at [containerIndex] and re-inserts it
+     * wrapped in a new vertical [android.widget.LinearLayout] with [Space, Container, Space]
+     * children sized by [proportions], stretching the container to fill [proportions.contentWeight].
+     */
+    fun wrapContainerVertically(
+            menuContainer: android.widget.LinearLayout,
+            parentLinearLayout: android.widget.LinearLayout,
+            containerIndex: Int,
+            proportions: VerticalProportions
+    ) {
+        try {
+            // Salvar os layout params originais do container
+            val originalParams =
+                    menuContainer.layoutParams as android.widget.LinearLayout.LayoutParams
+            val originalWeight = originalParams.weight
+
+            // Remover o container do parent
+            parentLinearLayout.removeViewAt(containerIndex)
+
+            // Criar um novo LinearLayout VERTICAL que vai substituir o container
+            val verticalWrapper =
+                    android.widget.LinearLayout(menuContainer.context).apply {
+                        orientation = android.widget.LinearLayout.VERTICAL
+                        layoutParams =
+                                android.widget.LinearLayout.LayoutParams(
+                                        0,
+                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                                        originalWeight // Manter o mesmo peso horizontal
+                                )
+                    }
+
+            // Criar Space superior
+            val topSpace =
+                    android.widget.Space(menuContainer.context).apply {
+                        layoutParams =
+                                android.widget.LinearLayout.LayoutParams(
+                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                                        0,
+                                        proportions.topWeight
+                                )
+                    }
+
+            // Ajustar o container para usar peso vertical
+            menuContainer.layoutParams =
+                    android.widget.LinearLayout.LayoutParams(
+                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                            0,
+                            proportions.contentWeight
+                    )
+
+            // Criar Space inferior
+            val bottomSpace =
+                    android.widget.Space(menuContainer.context).apply {
+                        layoutParams =
+                                android.widget.LinearLayout.LayoutParams(
+                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                                        0,
+                                        proportions.bottomWeight
+                                )
+                    }
+
+            // Montar a estrutura vertical: [Space_topo, Container, Space_abaixo]
+            verticalWrapper.addView(topSpace)
+            verticalWrapper.addView(menuContainer)
+            verticalWrapper.addView(bottomSpace)
+
+            // Adicionar o wrapper de volta no parent na mesma posição
+            parentLinearLayout.addView(verticalWrapper, containerIndex)
+
+            Log.d(TAG, "Proporções verticais aplicadas com sucesso: $proportions")
+        } catch (e: ClassCastException) {
+            // menuContainer.layoutParams is force-cast to LinearLayout.LayoutParams above without
+            // an `is` guard; a caller passing a container whose parent assigned a different
+            // LayoutParams subtype hits this.
+            Log.e(TAG, "❌ Erro ao aplicar proporções verticais", e)
+        }
+    }
+
+    /**
+     * Removes [dialogContainer] from [parentLinearLayout] at [containerIndex] and re-inserts it
+     * wrapped in a new vertical [android.widget.LinearLayout], keeping the dialog itself at
+     * wrap_content height while [Space, Dialog, Space] siblings position it per [proportions].
+     */
+    fun wrapDialogContainerVertically(
+            dialogContainer: android.widget.LinearLayout,
+            parentLinearLayout: android.widget.LinearLayout,
+            containerIndex: Int,
+            proportions: VerticalProportions
+    ) {
+        try {
+            // Salvar os layout params originais do container
+            val originalParams =
+                    dialogContainer.layoutParams as android.widget.LinearLayout.LayoutParams
+            val originalWeight = originalParams.weight
+
+            // Remover o container do parent
+            parentLinearLayout.removeViewAt(containerIndex)
+
+            // Criar um novo LinearLayout VERTICAL que vai substituir o container
+            val verticalWrapper =
+                    android.widget.LinearLayout(dialogContainer.context).apply {
+                        orientation = android.widget.LinearLayout.VERTICAL
+                        layoutParams =
+                                android.widget.LinearLayout.LayoutParams(
+                                        0,
+                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                                        originalWeight // Manter o mesmo peso horizontal
+                                )
+                    }
+
+            // Criar Space superior baseado no topWeight
+            val topSpace =
+                    android.widget.Space(dialogContainer.context).apply {
+                        layoutParams =
+                                android.widget.LinearLayout.LayoutParams(
+                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                                        0,
+                                        proportions.topWeight
+                                )
+                    }
+
+            // IMPORTANTE: Manter wrap_content para o dialog (não esticar)
+            dialogContainer.layoutParams =
+                    android.widget.LinearLayout.LayoutParams(
+                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+
+            // Criar Space inferior que ocupa o resto do espaço
+            val bottomSpace =
+                    android.widget.Space(dialogContainer.context).apply {
+                        layoutParams =
+                                android.widget.LinearLayout.LayoutParams(
+                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                                        0,
+                                        proportions.contentWeight + proportions.bottomWeight
+                                )
+                    }
+
+            // Montar a estrutura vertical: [Space_topo, Dialog, Space_abaixo]
+            verticalWrapper.addView(topSpace)
+            verticalWrapper.addView(dialogContainer)
+            verticalWrapper.addView(bottomSpace)
+
+            // Adicionar o wrapper de volta no parent na mesma posição
+            parentLinearLayout.addView(verticalWrapper, containerIndex)
+
+            Log.d(
+                    TAG,
+                    "Posição vertical do dialog aplicada: top=${(proportions.topWeight * PERCENTAGE_SCALE).toInt()}%"
+            )
+        } catch (e: ClassCastException) {
+            // dialogContainer.layoutParams is force-cast to LinearLayout.LayoutParams above
+            // without an `is` guard; a caller passing a container whose parent assigned a
+            // different LayoutParams subtype hits this.
+            Log.e(TAG, "❌ Erro ao aplicar posição vertical do dialog", e)
+        }
     }
 }
 
@@ -408,92 +584,25 @@ object MenuLayoutConfig : ProportionsParsing by ProportionsParser {
             menuContainer: android.widget.LinearLayout,
             proportions: VerticalProportions
     ) {
-        try {
-            val parent = menuContainer.parent
-            if (parent !is android.widget.LinearLayout) {
-                Log.w(TAG, "⚠️ Parent do container não é LinearLayout")
-                return
-            }
+        val parent =
+                menuContainer.parent as? android.widget.LinearLayout
+                        ?: return VerticalLayoutWrapper.warn(
+                                "⚠️ Parent do container não é LinearLayout"
+                        )
 
-            val parentLinearLayout = parent
-
-            // Verificar se o parent é horizontal (estrutura atual: [Space, Container, Space])
-            if (parentLinearLayout.orientation != android.widget.LinearLayout.HORIZONTAL) {
-                Log.w(TAG, "⚠️ Parent não é horizontal, não podemos aplicar proporções verticais")
-                return
-            }
-
-            val containerIndex = parentLinearLayout.indexOfChild(menuContainer)
-            if (containerIndex == -1) {
-                Log.w(TAG, "⚠️ Container não encontrado no parent")
-                return
-            }
-
-            // Salvar os layout params originais do container
-            val originalParams =
-                    menuContainer.layoutParams as android.widget.LinearLayout.LayoutParams
-            val originalWeight = originalParams.weight
-
-            // Remover o container do parent
-            parentLinearLayout.removeViewAt(containerIndex)
-
-            // Criar um novo LinearLayout VERTICAL que vai substituir o container
-            val verticalWrapper =
-                    android.widget.LinearLayout(menuContainer.context).apply {
-                        orientation = android.widget.LinearLayout.VERTICAL
-                        layoutParams =
-                                android.widget.LinearLayout.LayoutParams(
-                                        0,
-                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                                        originalWeight // Manter o mesmo peso horizontal
-                                )
-                    }
-
-            // Criar Space superior
-            val topSpace =
-                    android.widget.Space(menuContainer.context).apply {
-                        layoutParams =
-                                android.widget.LinearLayout.LayoutParams(
-                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                                        0,
-                                        proportions.topWeight
-                                )
-                    }
-
-            // Ajustar o container para usar peso vertical
-            menuContainer.layoutParams =
-                    android.widget.LinearLayout.LayoutParams(
-                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                            0,
-                            proportions.contentWeight
-                    )
-
-            // Criar Space inferior
-            val bottomSpace =
-                    android.widget.Space(menuContainer.context).apply {
-                        layoutParams =
-                                android.widget.LinearLayout.LayoutParams(
-                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                                        0,
-                                        proportions.bottomWeight
-                                )
-                    }
-
-            // Montar a estrutura vertical: [Space_topo, Container, Space_abaixo]
-            verticalWrapper.addView(topSpace)
-            verticalWrapper.addView(menuContainer)
-            verticalWrapper.addView(bottomSpace)
-
-            // Adicionar o wrapper de volta no parent na mesma posição
-            parentLinearLayout.addView(verticalWrapper, containerIndex)
-
-            Log.d(TAG, "Proporções verticais aplicadas com sucesso: $proportions")
-        } catch (e: ClassCastException) {
-            // menuContainer.layoutParams is force-cast to LinearLayout.LayoutParams above without
-            // an `is` guard; a caller passing a container whose parent assigned a different
-            // LayoutParams subtype hits this.
-            Log.e(TAG, "❌ Erro ao aplicar proporções verticais", e)
+        // Verificar se o parent é horizontal (estrutura atual: [Space, Container, Space])
+        if (parent.orientation != android.widget.LinearLayout.HORIZONTAL) {
+            return VerticalLayoutWrapper.warn(
+                    "⚠️ Parent não é horizontal, não podemos aplicar proporções verticais"
+            )
         }
+
+        val containerIndex = parent.indexOfChild(menuContainer)
+        if (containerIndex == -1) {
+            return VerticalLayoutWrapper.warn("⚠️ Container não encontrado no parent")
+        }
+
+        VerticalLayoutWrapper.wrapContainerVertically(menuContainer, parent, containerIndex, proportions)
     }
 
     /**
@@ -557,93 +666,27 @@ object MenuLayoutConfig : ProportionsParsing by ProportionsParser {
             dialogContainer: android.widget.LinearLayout,
             proportions: VerticalProportions
     ) {
-        try {
-            val parent = dialogContainer.parent
-            if (parent !is android.widget.LinearLayout) {
-                Log.w(TAG, "⚠️ Parent do dialog container não é LinearLayout")
-                return
-            }
+        val parent =
+                dialogContainer.parent as? android.widget.LinearLayout
+                        ?: return VerticalLayoutWrapper.warn(
+                                "⚠️ Parent do dialog container não é LinearLayout"
+                        )
 
-            val parentLinearLayout = parent
-
-            // Verificar se o parent é horizontal
-            if (parentLinearLayout.orientation != android.widget.LinearLayout.HORIZONTAL) {
-                Log.w(TAG, "⚠️ Parent não é horizontal")
-                return
-            }
-
-            val containerIndex = parentLinearLayout.indexOfChild(dialogContainer)
-            if (containerIndex == -1) {
-                Log.w(TAG, "⚠️ Dialog container não encontrado no parent")
-                return
-            }
-
-            // Salvar os layout params originais do container
-            val originalParams =
-                    dialogContainer.layoutParams as android.widget.LinearLayout.LayoutParams
-            val originalWeight = originalParams.weight
-
-            // Remover o container do parent
-            parentLinearLayout.removeViewAt(containerIndex)
-
-            // Criar um novo LinearLayout VERTICAL que vai substituir o container
-            val verticalWrapper =
-                    android.widget.LinearLayout(dialogContainer.context).apply {
-                        orientation = android.widget.LinearLayout.VERTICAL
-                        layoutParams =
-                                android.widget.LinearLayout.LayoutParams(
-                                        0,
-                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                                        originalWeight // Manter o mesmo peso horizontal
-                                )
-                    }
-
-            // Criar Space superior baseado no topWeight
-            val topSpace =
-                    android.widget.Space(dialogContainer.context).apply {
-                        layoutParams =
-                                android.widget.LinearLayout.LayoutParams(
-                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                                        0,
-                                        proportions.topWeight
-                                )
-                    }
-
-            // IMPORTANTE: Manter wrap_content para o dialog (não esticar)
-            dialogContainer.layoutParams =
-                    android.widget.LinearLayout.LayoutParams(
-                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-
-            // Criar Space inferior que ocupa o resto do espaço
-            val bottomSpace =
-                    android.widget.Space(dialogContainer.context).apply {
-                        layoutParams =
-                                android.widget.LinearLayout.LayoutParams(
-                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                                        0,
-                                        proportions.contentWeight + proportions.bottomWeight
-                                )
-                    }
-
-            // Montar a estrutura vertical: [Space_topo, Dialog, Space_abaixo]
-            verticalWrapper.addView(topSpace)
-            verticalWrapper.addView(dialogContainer)
-            verticalWrapper.addView(bottomSpace)
-
-            // Adicionar o wrapper de volta no parent na mesma posição
-            parentLinearLayout.addView(verticalWrapper, containerIndex)
-
-            Log.d(
-                    TAG,
-                    "Posição vertical do dialog aplicada: top=${(proportions.topWeight * PERCENTAGE_SCALE).toInt()}%"
-            )
-        } catch (e: ClassCastException) {
-            // dialogContainer.layoutParams is force-cast to LinearLayout.LayoutParams above
-            // without an `is` guard; a caller passing a container whose parent assigned a
-            // different LayoutParams subtype hits this.
-            Log.e(TAG, "❌ Erro ao aplicar posição vertical do dialog", e)
+        // Verificar se o parent é horizontal
+        if (parent.orientation != android.widget.LinearLayout.HORIZONTAL) {
+            return VerticalLayoutWrapper.warn("⚠️ Parent não é horizontal")
         }
+
+        val containerIndex = parent.indexOfChild(dialogContainer)
+        if (containerIndex == -1) {
+            return VerticalLayoutWrapper.warn("⚠️ Dialog container não encontrado no parent")
+        }
+
+        VerticalLayoutWrapper.wrapDialogContainerVertically(
+                dialogContainer,
+                parent,
+                containerIndex,
+                proportions
+        )
     }
 }
