@@ -2,30 +2,15 @@ package com.vinaooo.revenger.utils
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import androidx.core.content.edit
-import com.vinaooo.revenger.R
 import com.vinaooo.revenger.repositories.Storage
 import com.vinaooo.revenger.retroview.RetroView
-import java.io.IOException
 
-class RetroViewUtils(private val activity: Activity) {
-    companion object {
-        private const val TAG = "RetroViewUtils"
-    }
+class RetroViewUtils(
+        private val activity: Activity,
+        private val stateFiles: StateFileOperations = StateFileStore(Storage.getInstance(activity))
+) : StateFileOperations by stateFiles {
 
-    /** Retorna o caminho do arquivo de save state utilizado */
-    fun getSaveStatePath(): String? {
-        return try {
-            storage.state.absolutePath
-            // File.getAbsolutePath() documents no throwable condition here: storage.state is
-            // already derived from Context.filesDir (always absolute), and Android has no
-            // SecurityManager, so there is no narrower reachable type.
-        } catch (expectedUnreachable: Exception) {
-            Log.w(TAG, "Could not resolve save state path", expectedUnreachable)
-            null
-        }
-    }
     private val storage = Storage.getInstance(activity)
     private val sharedPreferences = activity.getPreferences(Context.MODE_PRIVATE)
     private val fastForwardSpeed =
@@ -72,63 +57,6 @@ class RetroViewUtils(private val activity: Activity) {
             }
             putBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, retroView.view.audioEnabled)
         }
-    }
-
-    fun saveSRAM(retroView: RetroView) {
-        storage.sram.outputStream().use { it.write(retroView.view.serializeSRAM()) }
-    }
-
-    fun loadState(retroView: RetroView) {
-        if (!storage.state.exists()) {
-            return
-        }
-
-        val stateBytes = storage.state.inputStream().use { it.readBytes() }
-
-        if (stateBytes.isEmpty()) {
-            return
-        }
-
-        retroView.view.unserializeState(stateBytes)
-    }
-
-    fun loadTempState(retroView: RetroView) {
-        if (!storage.tempState.exists()) {
-            return
-        }
-
-        val stateBytes = storage.tempState.inputStream().use { it.readBytes() }
-
-        if (stateBytes.isEmpty()) {
-            return
-        }
-
-        retroView.view.unserializeState(stateBytes)
-    }
-
-    fun saveState(retroView: RetroView) {
-        try {
-            val stateBytes = retroView.view.serializeState()
-
-            storage.state.outputStream().use { it.write(stateBytes) }
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to write save state file", e)
-            // serializeState() runs on LibretroDroid's GL thread via a blocking CountDownLatch; a
-            // failure inside the native call there deadlocks the latch rather than propagating an
-            // exception back to this thread, and the only checked failure mode reaching here (the
-            // library unboxing a null native result) surfaces as a plain NullPointerException,
-            // which this project's detekt config still treats as "too generic" -- so there is no
-            // narrower reachable type to catch. Kept as a safety net via detekt's documented
-            // escape hatch instead of @Suppress.
-        } catch (expectedNativeCallFailure: Exception) {
-            Log.e(TAG, "Failed to save state", expectedNativeCallFailure)
-        }
-    }
-
-    fun saveTempState(retroView: RetroView) {
-        val stateBytes = retroView.view.serializeState()
-
-        storage.tempState.outputStream().use { it.write(stateBytes) }
     }
 
     fun fastForward(retroView: RetroView) {

@@ -1,78 +1,18 @@
 package com.vinaooo.revenger.utils
 
-import android.util.Log
+private const val MENU_LOGGER_TAG = "RetroMenu3"
 
 /**
  * Utility for conditional logging in the RetroMenu3 menu system. Allows controlling
  * production logs via a debug flag.
+ *
+ * The always-on level methods ([i]/[w]/[e]) and the debug gate ([d]/[setDebugEnabled]) are split
+ * into [LevelLogger]/[DebugGate] and exposed back here unchanged via interface delegation -- see
+ * those classes for why.
  */
-object MenuLogger {
-
-    private const val TAG = "RetroMenu3"
-
-    // Flag to control logs - uses BuildConfig.DEBUG when available
-    private var isDebugEnabled: Boolean =
-            try {
-                // Try to access BuildConfig.DEBUG if available
-                Class.forName("com.vinaooo.revenger.BuildConfig").getField("DEBUG").getBoolean(null)
-                // Class.forName/getField/getBoolean's checked failures (ClassNotFoundException,
-                // NoSuchFieldException, IllegalAccessException) all share this common ancestor,
-                // which isn't on detekt's generic-exception list.
-            } catch (e: ReflectiveOperationException) {
-                Log.w(TAG, "BuildConfig.DEBUG not accessible via reflection, defaulting to true", e)
-                // Fallback to true if BuildConfig is not available
-                true
-            }
-
-    /** Enable or disable debug logging */
-    fun setDebugEnabled(enabled: Boolean) {
-        isDebugEnabled = enabled
-        Log.i(TAG, "[LOGGER] Debug logging ${if (enabled) "enabled" else "disabled"}")
-    }
-
-    /** Conditional debug log */
-    fun d(message: String) {
-        if (isDebugEnabled) {
-            Log.d(TAG, message)
-        }
-    }
-
-    /** Conditional debug log with throwable */
-    fun d(message: String, throwable: Throwable) {
-        if (isDebugEnabled) {
-            Log.d(TAG, message, throwable)
-        }
-    }
-
-    /** Info log (always active) */
-    fun i(message: String) {
-        Log.i(TAG, message)
-    }
-
-    /** Info log with throwable (always active) */
-    fun i(message: String, throwable: Throwable) {
-        Log.i(TAG, message, throwable)
-    }
-
-    /** Warning log (always active) */
-    fun w(message: String) {
-        Log.w(TAG, message)
-    }
-
-    /** Warning log with throwable (always active) */
-    fun w(message: String, throwable: Throwable) {
-        Log.w(TAG, message, throwable)
-    }
-
-    /** Error log (always active) */
-    fun e(message: String) {
-        Log.e(TAG, message)
-    }
-
-    /** Error log with throwable (always active) */
-    fun e(message: String, throwable: Throwable) {
-        Log.e(TAG, message, throwable)
-    }
+object MenuLogger :
+        LevelLogging by LevelLogger(MENU_LOGGER_TAG),
+        DebugLogging by DebugGate(MENU_LOGGER_TAG) {
 
     /** Log specifically for lifecycle events */
     fun lifecycle(message: String) {

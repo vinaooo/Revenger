@@ -10,7 +10,7 @@ import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.controllers.SpeedController
 import com.vinaooo.revenger.repositories.PreferencesRepository
 import com.vinaooo.revenger.repositories.SharedPreferencesRepository
-import kotlinx.coroutines.launch
+import com.vinaooo.revenger.viewmodels.speed.SpeedStatePersistence
 
 /**
  * ViewModel specialized in game speed management. Responsible for fast-forward control
@@ -38,38 +38,27 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
                     viewModelScope
             )
     private var speedController: SpeedController? = null
+    private val statePersistence = SpeedStatePersistence(preferencesRepository, viewModelScope)
 
     // Speed state
     private var currentSpeed: Int = 1
     private var isFastForwardEnabled: Boolean = false
 
     init {
-        loadSpeedState()
-        loadFastForwardState()
-    }
-
-    // SharedPreferences.getInt()/getBoolean() throw ClassCastException if a value stored under
-    // that key isn't the requested type (e.g. a stale value from a preferences-format change).
-    private fun loadSpeedState() {
-        viewModelScope.launch {
-            try {
-                currentSpeed = preferencesRepository.getGameSpeedSync()
-            } catch (e: ClassCastException) {
-                android.util.Log.e("SpeedViewModel", "Error loading speed state", e)
-                currentSpeed = 1 // Default
-            }
-        }
-    }
-
-    private fun loadFastForwardState() {
-        viewModelScope.launch {
-            try {
-                isFastForwardEnabled = preferencesRepository.getFastForwardEnabledSync()
-            } catch (e: ClassCastException) {
-                android.util.Log.e("SpeedViewModel", "Error loading fast-forward state", e)
-                isFastForwardEnabled = false // Default
-            }
-        }
+        statePersistence.loadSpeedState(
+                onLoaded = { currentSpeed = it },
+                onFailure = {
+                    android.util.Log.e("SpeedViewModel", "Error loading speed state", it)
+                    currentSpeed = 1 // Default
+                }
+        )
+        statePersistence.loadFastForwardState(
+                onLoaded = { isFastForwardEnabled = it },
+                onFailure = {
+                    android.util.Log.e("SpeedViewModel", "Error loading fast-forward state", it)
+                    isFastForwardEnabled = false // Default
+                }
+        )
     }
 
     // ========== SPEED CONTROL METHODS ==========
@@ -86,33 +75,14 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
         _eventFlow.value = SpeedEvent.SetGameSpeed(validSpeed)
         currentSpeed = validSpeed
-        saveSpeedState()
-    }
-
-    // SharedPreferences.Editor.putX()/apply() don't declare or realistically throw on the
-    // standard Android implementation; kept broad via the escape hatch as a defensive net for
-    // this fire-and-forget write, since there's no narrower reachable type to name.
-    private fun saveSpeedState() {
-        viewModelScope.launch {
-            try {
-                preferencesRepository.setGameSpeed(currentSpeed)
-            } catch (expectedPreferencesWriteFailure: Exception) {
-                android.util.Log.e("SpeedViewModel", "Error saving speed state", expectedPreferencesWriteFailure)
-            }
+        statePersistence.saveSpeedState(currentSpeed) {
+            android.util.Log.e("SpeedViewModel", "Error saving speed state", it)
         }
     }
 
     private fun saveFastForwardState() {
-        viewModelScope.launch {
-            try {
-                preferencesRepository.setFastForwardEnabled(isFastForwardEnabled)
-            } catch (expectedPreferencesWriteFailure: Exception) {
-                android.util.Log.e(
-                        "SpeedViewModel",
-                        "Error saving fast-forward state",
-                        expectedPreferencesWriteFailure
-                )
-            }
+        statePersistence.saveFastForwardState(isFastForwardEnabled) {
+            android.util.Log.e("SpeedViewModel", "Error saving fast-forward state", it)
         }
     }
 
