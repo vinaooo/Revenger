@@ -21,19 +21,34 @@ interface MenuLifecycleManager {
 }
 
 /**
+ * The specialized managers [MenuLifecycleManagerImpl] delegates to, bundled into one parameter
+ * object so the constructor stays under detekt's parameter-count threshold.
+ */
+data class MenuLifecycleCollaborators(
+        val viewInitializer: MenuViewInitializer,
+        val animationController: MenuAnimationController,
+        val inputHandler: MenuInputHandler,
+        val stateController: MenuStateController,
+        val menuViewManager: MenuViewManager,
+        val actionHandler: MenuActionHandler
+)
+
+/**
  * Implementation of MenuLifecycleManager. Coordinates menu initialization and delegates to
  * other specialized managers.
  */
 class MenuLifecycleManagerImpl(
         private val fragment: RetroMenu3Fragment,
         private val viewModel: GameActivityViewModel,
-        private val viewInitializer: MenuViewInitializer,
-        private val animationController: MenuAnimationController,
-        private val inputHandler: MenuInputHandler,
-        private val stateController: MenuStateController,
-        private val menuViewManager: MenuViewManager,
-        private val actionHandler: MenuActionHandler
+        private val collaborators: MenuLifecycleCollaborators
 ) : MenuLifecycleManager {
+    private val viewInitializer get() = collaborators.viewInitializer
+    private val animationController get() = collaborators.animationController
+    private val inputHandler get() = collaborators.inputHandler
+    private val stateController get() = collaborators.stateController
+    private val menuViewManager get() = collaborators.menuViewManager
+    private val actionHandler get() = collaborators.actionHandler
+
     private lateinit var menuViews: MenuViews
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?): View {
