@@ -1760,129 +1760,134 @@ class GameActivityViewModel(application: Application) :
 
     // ===== MenuManagerListener Implementation =====
 
+    /** Handles the "back" action's per-state dismissal, extracted out of [handleMenuAction]. */
+    private fun dismissCurrentMenuState() {
+        when (menuManager.getCurrentState()) {
+            com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU -> dismissRetroMenu3()
+            com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> dismissSettingsMenu()
+            com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> dismissProgress()
+            com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> dismissAboutMenu()
+            com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> dismissExit()
+            else -> { }
+        }
+    }
+
+    /** Handles [com.vinaooo.revenger.ui.retromenu3.MenuEvent.Action], extracted from [onMenuEvent]. */
+    private fun handleMenuAction(action: com.vinaooo.revenger.ui.retromenu3.MenuAction) {
+        when (action) {
+            com.vinaooo.revenger.ui.retromenu3.MenuAction.SAVE_STATE -> saveStateCentralized()
+            com.vinaooo.revenger.ui.retromenu3.MenuAction.LOAD_STATE -> loadStateCentralized()
+            com.vinaooo.revenger.ui.retromenu3.MenuAction.RESET -> resetGameCentralized()
+            com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_AUDIO -> {
+                retroView?.let { audioViewModel.toggleAudio(it.view) }
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SPEED -> {
+                retroView?.let { speedController?.toggleFastForward(it.view) }
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SHADER -> {
+                shaderViewModel.toggleShader()
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuAction.SAVE_AND_EXIT -> {
+                // Save and exit - same logic as in ExitFragment
+                saveStateCentralized(
+                        onComplete = { android.os.Process.killProcess(android.os.Process.myPid()) }
+                )
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuAction.EXIT -> {
+                // Exit without save
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuAction.BACK -> dismissCurrentMenuState()
+            is com.vinaooo.revenger.ui.retromenu3.MenuAction.NAVIGATE -> {
+                // Navigate to different menu state
+                menuManager.navigateToState(action.targetMenu)
+            }
+            else -> {
+                // Ignore other actions
+            }
+        }
+    }
+
+    /**
+     * Handles [com.vinaooo.revenger.ui.retromenu3.MenuEvent.StateChanged], extracted from
+     * [onMenuEvent].
+     */
+    private fun handleMenuStateChanged(
+            event: com.vinaooo.revenger.ui.retromenu3.MenuEvent.StateChanged
+    ) {
+        // Handle menu state transitions
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[STATE_CHANGE] 🔄 ========== MENU STATE CHANGED =========="
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[STATE_CHANGE] 🔄 From: ${event.from} -> To: ${event.to}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[STATE_CHANGE] 🔄 isAnyMenuActive before=${isAnyMenuActive()}"
+        )
+
+        // Activate/deactivate menus based on state changes
+        when (event.to) {
+            com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU -> {
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[STATE_CHANGE] 🎮 State changed to MAIN_MENU - retroMenu3Open=${isRetroMenu3Open()}"
+                )
+                // Main menu is always active when RetroMenu3 is open
+                // No need to activate/deactivate here
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> {
+                activateSettingsMenu()
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> {
+                activateProgressMenu()
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> {
+                activateAboutMenu()
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
+                activateExitMenu()
+            }
+            else -> {}
+        }
+
+        // Deactivate previous menu if it was a submenu
+        when (event.from) {
+            com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> {
+                deactivateSettingsMenu()
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> {
+                deactivateProgressMenu()
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> {
+                deactivateAboutMenu()
+            }
+            com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
+                deactivateExitMenu()
+            }
+            else -> {
+                // No deactivation needed for MAIN_MENU or other states
+            }
+        }
+
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[STATE_CHANGE] 🔄 isAnyMenuActive after=${isAnyMenuActive()}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[STATE_CHANGE] 🔄 ========== MENU STATE CHANGED END =========="
+        )
+    }
+
     override fun onMenuEvent(event: com.vinaooo.revenger.ui.retromenu3.MenuEvent) {
         when (event) {
-            is com.vinaooo.revenger.ui.retromenu3.MenuEvent.Action -> {
-                // Handle menu actions
-                when (event.action) {
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.SAVE_STATE ->
-                            saveStateCentralized()
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.LOAD_STATE ->
-                            loadStateCentralized()
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.RESET -> resetGameCentralized()
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_AUDIO -> {
-                        retroView?.let { audioViewModel.toggleAudio(it.view) }
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SPEED -> {
-                        retroView?.let { speedController?.toggleFastForward(it.view) }
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.TOGGLE_SHADER -> {
-                        shaderViewModel.toggleShader()
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.SAVE_AND_EXIT -> {
-                        // Save and exit - same logic as in ExitFragment
-                        saveStateCentralized(
-                                onComplete = {
-                                    android.os.Process.killProcess(android.os.Process.myPid())
-                                }
-                        )
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.EXIT -> {
-                        // Exit without save
-                        android.os.Process.killProcess(android.os.Process.myPid())
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuAction.BACK -> {
-                        // Handle back navigation based on current state
-                        when (menuManager.getCurrentState()) {
-                            com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU ->
-                                    dismissRetroMenu3()
-                            com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU ->
-                                    dismissSettingsMenu()
-                            com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU ->
-                                    dismissProgress()
-                            com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU ->
-                                    dismissAboutMenu()
-                            com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> dismissExit()
-                            else -> { }
-                        }
-                    }
-                    is com.vinaooo.revenger.ui.retromenu3.MenuAction.NAVIGATE -> {
-                        // Navigate to different menu state
-                        menuManager.navigateToState(event.action.targetMenu)
-                    }
-                    else -> {
-                        // Ignore other actions
-                    }
-                }
-            }
-            is com.vinaooo.revenger.ui.retromenu3.MenuEvent.StateChanged -> {
-                // Handle menu state transitions
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[STATE_CHANGE] 🔄 ========== MENU STATE CHANGED =========="
-                )
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[STATE_CHANGE] 🔄 From: ${event.from} -> To: ${event.to}"
-                )
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[STATE_CHANGE] 🔄 isAnyMenuActive before=${isAnyMenuActive()}"
-                )
-
-                // Activate/deactivate menus based on state changes
-                when (event.to) {
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU -> {
-                        android.util.Log.d(
-                                "GameActivityViewModel",
-                                "[STATE_CHANGE] 🎮 State changed to MAIN_MENU - retroMenu3Open=${isRetroMenu3Open()}"
-                        )
-                        // Main menu is always active when RetroMenu3 is open
-                        // No need to activate/deactivate here
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> {
-                        activateSettingsMenu()
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> {
-                        activateProgressMenu()
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> {
-                        activateAboutMenu()
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
-                        activateExitMenu()
-                    }
-                    else -> {}
-                }
-
-                // Deactivate previous menu if it was a submenu
-                when (event.from) {
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> {
-                        deactivateSettingsMenu()
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> {
-                        deactivateProgressMenu()
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> {
-                        deactivateAboutMenu()
-                    }
-                    com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
-                        deactivateExitMenu()
-                    }
-                    else -> {
-                        // No deactivation needed for MAIN_MENU or other states
-                    }
-                }
-
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[STATE_CHANGE] 🔄 isAnyMenuActive after=${isAnyMenuActive()}"
-                )
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[STATE_CHANGE] 🔄 ========== MENU STATE CHANGED END =========="
-                )
-            }
+            is com.vinaooo.revenger.ui.retromenu3.MenuEvent.Action -> handleMenuAction(event.action)
+            is com.vinaooo.revenger.ui.retromenu3.MenuEvent.StateChanged ->
+                    handleMenuStateChanged(event)
             com.vinaooo.revenger.ui.retromenu3.MenuEvent.MenuClosed -> {
                 // Handle complete menu closure - delegate to NavigationController
                 navigationController?.handleNavigationEvent(
