@@ -159,128 +159,152 @@ class KeyboardInputAdapter(
                         )
 
         if (isNavigationKey) {
-            // LOG DETALHADO: Sempre logar quando evento chega
+            return handleDirectionalKeyDown(keyCode, event, currentTime)
+        }
+        return handleNonDirectionalKeyDown(keyCode, event)
+    }
+
+    /** Handles a directional KEY_DOWN, extracted from [onKeyDown]. */
+    private fun handleDirectionalKeyDown(keyCode: Int, event: KeyEvent, currentTime: Long): Boolean {
+        // LOG DETALHADO: Sempre logar quando evento chega
+        Log.d(
+                TAG,
+                "[KEY_DOWN-RECEIVED] keyCode=$keyCode, repeatCount=${event.repeatCount}, " +
+                        "eventTime=${event.eventTime}, downTime=${event.downTime}"
+        )
+
+        // CORREÇÃO: Ignorar eventos de repeat para teclas de navegação
+        // Quando usuário segura uma tecla, Android gera KEY_DOWN com repeatCount > 0
+        // Queremos processar apenas o primeiro evento (repeatCount = 0)
+        if (event.repeatCount > 0) {
             Log.d(
                     TAG,
-                    "[KEY_DOWN-RECEIVED] keyCode=$keyCode, repeatCount=${event.repeatCount}, " +
-                            "eventTime=${event.eventTime}, downTime=${event.downTime}"
+                    "[KEY_DOWN-IGNORED] keyCode=$keyCode (repeat=${event.repeatCount}) - BLOQUEADO"
             )
-
-            // CORREÇÃO: Ignorar eventos de repeat para teclas de navegação
-            // Quando usuário segura uma tecla, Android gera KEY_DOWN com repeatCount > 0
-            // Queremos processar apenas o primeiro evento (repeatCount = 0)
-            if (event.repeatCount > 0) {
-                Log.d(
-                        TAG,
-                        "[KEY_DOWN-IGNORED] keyCode=$keyCode (repeat=${event.repeatCount}) - BLOQUEADO"
-                )
-                return true // Consumir mas não processar repeat
-            }
-            // V4.5: GLOBAL_STATE_LOCK (static companion) - Garante thread-safety REAL
-            val shouldNavigate =
-                    GLOBAL_STATE_LOCK.withLock {
-                        val state = pressCycleStates.getOrPut(keyCode) { PressCycleState() }
-
-                        // V4.2: Event Deduplication - RETORNA FALSE se duplicado (não navega)
-                        if (event.eventTime == state.lastProcessedEventTime) {
-                            Log.d(
-                                    TAG,
-                                    "[DUPLICATE-EVENT] keyCode=$keyCode, eventTime=${event.eventTime}, SKIPPED"
-                            )
-                            return@withLock false // ← Retorna do LAMBDA, não do método!
-                        }
-
-                        // Marcar evento como processado
-                        state.lastProcessedEventTime = event.eventTime
-
-                        // Calcular timeout desde ÚLTIMO KEY_DOWN
-                        val timeSinceLastDown = currentTime - state.lastDownTime
-
-                        // Detectar novo ciclo: timeout >200ms entre KEY_DOWN events
-                        val isNewCycle = timeSinceLastDown > PRESS_CYCLE_TIMEOUT_MS
-
-                        if (isNewCycle) {
-                            // NOVO CICLO - reseta flag
-                            state.hasNavigatedInCycle = false
-                            Log.d(
-                                    TAG,
-                                    "[CYCLE-START] keyCode=$keyCode, " +
-                                            "timeSinceLastDown=${timeSinceLastDown}ms → NEW CYCLE"
-                            )
-                        }
-
-                        // Atualizar timestamp do KEY_DOWN
-                        state.lastDownTime = currentTime
-
-                        // Decidir se permite navegação (DENTRO do withLock!)
-                        val allowNav = !state.hasNavigatedInCycle
-                        if (allowNav) {
-                            state.hasNavigatedInCycle = true
-                            Log.d(
-                                    TAG,
-                                    "[NAV-ALLOW] keyCode=$keyCode, " +
-                                            "cycle=${if (isNewCycle) "new" else "same"}, " +
-                                            "action=NAVIGATE"
-                            )
-                        } else {
-                            Log.d(
-                                    TAG,
-                                    "[NAV-BLOCK] keyCode=$keyCode, cycle=same, " +
-                                            "timeSinceLastDown=${timeSinceLastDown}ms, " +
-                                            "reason=already_navigated"
-                            )
-                        }
-                        allowNav // Retorna decisão do withLock block
-                    }
-
-            // Se bloqueado (false), retorna true (consumido mas não navegou)
-            if (!shouldNavigate) {
-                return true
-            }
-
-            // Processar navegação APENAS nesta transição
-            val navigationEvent =
-                    when (keyCode) {
-                        KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_W -> {
-                            Log.d(TAG, "[KEY_DOWN] Arrow UP - navigating up")
-                            NavigationEvent.Navigate(
-                                    direction = Direction.UP,
-                                    inputSource = InputSource.KEYBOARD
-                            )
-                        }
-                        KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_S -> {
-                            Log.d(TAG, "[KEY_DOWN] Arrow DOWN - navigating down")
-                            NavigationEvent.Navigate(
-                                    direction = Direction.DOWN,
-                                    inputSource = InputSource.KEYBOARD
-                            )
-                        }
-                        KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_A -> {
-                            Log.d(TAG, "[KEY_DOWN] Arrow LEFT - navigating left")
-                            NavigationEvent.Navigate(
-                                    direction = Direction.LEFT,
-                                    inputSource = InputSource.KEYBOARD
-                            )
-                        }
-                        KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_D -> {
-                            Log.d(TAG, "[KEY_DOWN] Arrow RIGHT - navigating right")
-                            NavigationEvent.Navigate(
-                                    direction = Direction.RIGHT,
-                                    inputSource = InputSource.KEYBOARD
-                            )
-                        }
-                        else -> null
-                    }
-
-            // Enviar evento e retornar
-            if (navigationEvent != null) {
-                navigationController.handleNavigationEvent(navigationEvent)
-                return true
-            }
+            return true // Consumir mas não processar repeat
         }
 
+        // Processar navegação APENAS nesta transição; se bloqueado, consome sem navegar
+        return if (resolveDirectionalNavigationDecision(keyCode, event, currentTime)) {
+            dispatchDirectionalNavigation(keyCode)
+        } else {
+            true
+        }
+    }
+
+    /**
+     * Decide, sob [GLOBAL_STATE_LOCK], se este KEY_DOWN direcional deve navegar (novo ciclo ou
+     * primeira pressão do ciclo atual) ou ser bloqueado (repeat do mesmo ciclo/evento duplicado).
+     * Extraído de [handleDirectionalKeyDown].
+     */
+    private fun resolveDirectionalNavigationDecision(
+            keyCode: Int,
+            event: KeyEvent,
+            currentTime: Long
+    ): Boolean =
+            // V4.5: GLOBAL_STATE_LOCK (static companion) - Garante thread-safety REAL
+            GLOBAL_STATE_LOCK.withLock {
+                val state = pressCycleStates.getOrPut(keyCode) { PressCycleState() }
+
+                // V4.2: Event Deduplication - RETORNA FALSE se duplicado (não navega)
+                if (event.eventTime == state.lastProcessedEventTime) {
+                    Log.d(
+                            TAG,
+                            "[DUPLICATE-EVENT] keyCode=$keyCode, eventTime=${event.eventTime}, SKIPPED"
+                    )
+                    return@withLock false // ← Retorna do LAMBDA, não do método!
+                }
+
+                // Marcar evento como processado
+                state.lastProcessedEventTime = event.eventTime
+
+                // Calcular timeout desde ÚLTIMO KEY_DOWN
+                val timeSinceLastDown = currentTime - state.lastDownTime
+
+                // Detectar novo ciclo: timeout >200ms entre KEY_DOWN events
+                val isNewCycle = timeSinceLastDown > PRESS_CYCLE_TIMEOUT_MS
+
+                if (isNewCycle) {
+                    // NOVO CICLO - reseta flag
+                    state.hasNavigatedInCycle = false
+                    Log.d(
+                            TAG,
+                            "[CYCLE-START] keyCode=$keyCode, " +
+                                    "timeSinceLastDown=${timeSinceLastDown}ms → NEW CYCLE"
+                    )
+                }
+
+                // Atualizar timestamp do KEY_DOWN
+                state.lastDownTime = currentTime
+
+                // Decidir se permite navegação (DENTRO do withLock!)
+                val allowNav = !state.hasNavigatedInCycle
+                if (allowNav) {
+                    state.hasNavigatedInCycle = true
+                    Log.d(
+                            TAG,
+                            "[NAV-ALLOW] keyCode=$keyCode, " +
+                                    "cycle=${if (isNewCycle) "new" else "same"}, " +
+                                    "action=NAVIGATE"
+                    )
+                } else {
+                    Log.d(
+                            TAG,
+                            "[NAV-BLOCK] keyCode=$keyCode, cycle=same, " +
+                                    "timeSinceLastDown=${timeSinceLastDown}ms, " +
+                                    "reason=already_navigated"
+                    )
+                }
+                allowNav // Retorna decisão do withLock block
+            }
+
+    /**
+     * Traduz uma tecla direcional já aprovada para navegar em um [NavigationEvent.Navigate] e o
+     * envia. Extraído de [handleDirectionalKeyDown].
+     */
+    private fun dispatchDirectionalNavigation(keyCode: Int): Boolean {
+        val navigationEvent =
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_W -> {
+                        Log.d(TAG, "[KEY_DOWN] Arrow UP - navigating up")
+                        NavigationEvent.Navigate(
+                                direction = Direction.UP,
+                                inputSource = InputSource.KEYBOARD
+                        )
+                    }
+                    KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_S -> {
+                        Log.d(TAG, "[KEY_DOWN] Arrow DOWN - navigating down")
+                        NavigationEvent.Navigate(
+                                direction = Direction.DOWN,
+                                inputSource = InputSource.KEYBOARD
+                        )
+                    }
+                    KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_A -> {
+                        Log.d(TAG, "[KEY_DOWN] Arrow LEFT - navigating left")
+                        NavigationEvent.Navigate(
+                                direction = Direction.LEFT,
+                                inputSource = InputSource.KEYBOARD
+                        )
+                    }
+                    KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_D -> {
+                        Log.d(TAG, "[KEY_DOWN] Arrow RIGHT - navigating right")
+                        NavigationEvent.Navigate(
+                                direction = Direction.RIGHT,
+                                inputSource = InputSource.KEYBOARD
+                        )
+                    }
+                    else -> null
+                }
+
+        // navigationEvent nunca é null aqui: keyCode já foi confirmado direcional pelo caller
+        // (isNavigationKey em onKeyDown cobre exatamente estes 8 keyCodes)
+        return navigationEvent?.also { navigationController.handleNavigationEvent(it) } != null
+    }
+
+    /** Handles a non-directional KEY_DOWN (toggle/action keys), extracted from [onKeyDown]. */
+    private fun handleNonDirectionalKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         // PHASE 4.2a: Ignorar eventos de repeat para teclas de ação
-        if (!isNavigationKey && event.repeatCount > 0) {
+        if (event.repeatCount > 0) {
             Log.d(
                     TAG,
                     "[KEY_DOWN] Ignoring action key repeat for keyCode=$keyCode (repeat=${event.repeatCount})"
@@ -310,7 +334,14 @@ class KeyboardInputAdapter(
             return true
         }
 
-        // Traduzir KeyEvent em NavigationEvent (para teclas de ação)
+        return dispatchActionKeyDown(keyCode)
+    }
+
+    /**
+     * Traduz KeyEvent em NavigationEvent (para teclas de ação) e o envia. Extraído de
+     * [handleNonDirectionalKeyDown].
+     */
+    private fun dispatchActionKeyDown(keyCode: Int): Boolean {
         val actionEvent =
                 when (keyCode) {
                     KeyEvent.KEYCODE_ENTER,
@@ -402,71 +433,79 @@ class KeyboardInputAdapter(
                         )
 
         if (isNavigationKey) {
-            // V4.2: Event Deduplication + V4.6: Cycle Reset
-            GLOBAL_STATE_LOCK.withLock {
-                val state = pressCycleStates.getOrPut(keyCode) { PressCycleState() }
+            return handleDirectionalKeyUp(keyCode, event, currentTime)
+        }
+        return handleNonDirectionalKeyUp(keyCode)
+    }
 
-                if (event.eventTime == state.lastProcessedEventTime) {
-                    // EVENTO UP DUPLICADO - ignora silenciosamente
-                    Log.d(
-                            TAG,
-                            "[DUPLICATE-UP] keyCode=$keyCode, eventTime=${event.eventTime}, SKIPPED"
-                    )
-                    return true
-                }
+    /** Handles a directional KEY_UP (cycle reset/dedup), extracted from [onKeyUp]. */
+    private fun handleDirectionalKeyUp(keyCode: Int, event: KeyEvent, currentTime: Long): Boolean {
+        // V4.2: Event Deduplication + V4.6: Cycle Reset
+        GLOBAL_STATE_LOCK.withLock {
+            val state = pressCycleStates.getOrPut(keyCode) { PressCycleState() }
 
-                // Marcar UP como processado
-                state.lastProcessedEventTime = event.eventTime
-
-                // V4.6: KEY_UP RESETA o ciclo explicitamente
-                // CRÍTICO: Permite navegação rápida (3+ toques/segundo)
-                // Distingue: segurar (sem KEY_UP) vs toques rápidos (com KEY_UP)
-                val timeSinceLastDown = currentTime - state.lastDownTime
-
-                // Resetar flag APENAS se KEY_UP veio relativamente rápido após KEY_DOWN
-                // Isso previne resetar flags de outros ciclos ativos
-                if (timeSinceLastDown < PRESS_CYCLE_TIMEOUT_MS) {
-                    state.hasNavigatedInCycle = false
-                    Log.d(
-                            TAG,
-                            "[KEY_UP-RESET] keyCode=$keyCode, timeSinceLastDown=${timeSinceLastDown}ms → CYCLE RESET"
-                    )
-                } else {
-                    Log.d(
-                            TAG,
-                            "[KEY_UP] keyCode=$keyCode, timeSinceLastDown=${timeSinceLastDown}ms (no reset)"
-                    )
-                }
-
-                // Atualizar timestamp do UP
-                state.lastUpTime = currentTime
+            if (event.eventTime == state.lastProcessedEventTime) {
+                // EVENTO UP DUPLICADO - ignora silenciosamente
+                Log.d(
+                        TAG,
+                        "[DUPLICATE-UP] keyCode=$keyCode, eventTime=${event.eventTime}, SKIPPED"
+                )
+                return true
             }
 
-            return true // Consumir evento
+            // Marcar UP como processado
+            state.lastProcessedEventTime = event.eventTime
+
+            // V4.6: KEY_UP RESETA o ciclo explicitamente
+            // CRÍTICO: Permite navegação rápida (3+ toques/segundo)
+            // Distingue: segurar (sem KEY_UP) vs toques rápidos (com KEY_UP)
+            val timeSinceLastDown = currentTime - state.lastDownTime
+
+            // Resetar flag APENAS se KEY_UP veio relativamente rápido após KEY_DOWN
+            // Isso previne resetar flags de outros ciclos ativos
+            if (timeSinceLastDown < PRESS_CYCLE_TIMEOUT_MS) {
+                state.hasNavigatedInCycle = false
+                Log.d(
+                        TAG,
+                        "[KEY_UP-RESET] keyCode=$keyCode, timeSinceLastDown=${timeSinceLastDown}ms → CYCLE RESET"
+                )
+            } else {
+                Log.d(
+                        TAG,
+                        "[KEY_UP] keyCode=$keyCode, timeSinceLastDown=${timeSinceLastDown}ms (no reset)"
+                )
+            }
+
+            // Atualizar timestamp do UP
+            state.lastUpTime = currentTime
         }
 
-        // V4.7: FALLBACK para teclas de ação quando KEY_DOWN não foi recebido
-        // Alguns teclados/sistemas enviam apenas KEY_UP para certas teclas (ex: Backspace)
-        // Processamos as ações aqui como fallback
-        val currentTimeForActions = System.currentTimeMillis()
+        return true // Consumir evento
+    }
 
-        // FIX ERRO 1: Validar se este KEY_UP corresponde a um KEY_DOWN recente
-        val keyDownTime = actionKeyDownTimestamps[keyCode]
-        if (keyDownTime != null && (currentTimeForActions - keyDownTime) <= KEY_UP_TIMEOUT_MS) {
-            // KEY_UP válido - limpar timestamp
-            actionKeyDownTimestamps.remove(keyCode)
-            Log.d(TAG, "[KEY_UP] Backspace released (matched KEY_DOWN) - processing")
-            // Não processar - já foi processado no KEY_DOWN
+    /**
+     * Handles a non-directional KEY_UP: matches it against a recent KEY_DOWN (Backspace) or falls
+     * back to the legacy no-KEY_DOWN-registered mapping. Extracted from [onKeyUp].
+     *
+     * V4.7 FALLBACK para teclas de ação quando KEY_DOWN não foi recebido: alguns teclados/sistemas
+     * enviam apenas KEY_UP para certas teclas (ex: Backspace). FIX ERRO 1: valida se este KEY_UP
+     * corresponde a um KEY_DOWN recente -- se sim, o evento já foi processado no KEY_DOWN (ou é um
+     * KEY_UP órfão a descartar); se não houver KEY_DOWN registrado, cai no fallback legado.
+     */
+    private fun handleNonDirectionalKeyUp(keyCode: Int): Boolean {
+        val currentTimeForActions = System.currentTimeMillis()
+        val keyDownTime = actionKeyDownTimestamps.remove(keyCode)
+        if (keyDownTime != null) {
+            if ((currentTimeForActions - keyDownTime) <= KEY_UP_TIMEOUT_MS) {
+                Log.d(TAG, "[KEY_UP] Backspace released (matched KEY_DOWN) - processing")
+            } else {
+                Log.w(
+                        TAG,
+                        "🚨 ORPHAN KEY_UP detected for Backspace - timeout exceeded " +
+                                "(${currentTimeForActions - keyDownTime}ms)"
+                )
+            }
             return true
-        } else if (keyDownTime != null) {
-            // KEY_UP órfão (timeout excedido)
-            Log.w(
-                    TAG,
-                    "🚨 ORPHAN KEY_UP detected for Backspace - timeout exceeded " +
-                            "(${currentTimeForActions - keyDownTime}ms)"
-            )
-            actionKeyDownTimestamps.remove(keyCode)
-            return true // Discard orphan
         }
 
         // Fallback: KEY_UP sem KEY_DOWN registrado (modo legacy)
@@ -501,13 +540,12 @@ class KeyboardInputAdapter(
                     }
                     else -> {
                         // Tecla não é de ação - não processar
-                        return false
+                        null
                     }
                 }
 
-        // Enviar evento para o NavigationController
-        navigationController.handleNavigationEvent(actionEvent)
-        return true // Evento consumido
+        // Enviar evento para o NavigationController (actionEvent == null: tecla não mapeada)
+        return actionEvent?.also { navigationController.handleNavigationEvent(it) } != null
     }
 
     /**
