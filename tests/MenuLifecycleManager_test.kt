@@ -55,16 +55,21 @@ class MenuLifecycleManager_test {
         @Suppress("UNCHECKED_CAST") return field.get(target) as T
     }
 
-    private fun newManager() =
-            MenuLifecycleManagerImpl(
-                    fragment = fragment,
-                    viewModel = viewModel,
+    private fun collaborators() =
+            MenuLifecycleCollaborators(
                     viewInitializer = viewInitializer,
                     animationController = animationController,
                     inputHandler = inputHandler,
                     stateController = stateController,
                     menuViewManager = menuViewManager,
                     actionHandler = actionHandler
+            )
+
+    private fun newManager() =
+            MenuLifecycleManagerImpl(
+                    fragment = fragment,
+                    viewModel = viewModel,
+                    collaborators = collaborators()
             )
 
     @Before
@@ -181,12 +186,7 @@ class MenuLifecycleManager_test {
                 MenuLifecycleManagerImpl(
                         fragment = detachedFragment,
                         viewModel = viewModel,
-                        viewInitializer = viewInitializer,
-                        animationController = animationController,
-                        inputHandler = inputHandler,
-                        stateController = stateController,
-                        menuViewManager = menuViewManager,
-                        actionHandler = actionHandler
+                        collaborators = collaborators()
                 )
 
         try {

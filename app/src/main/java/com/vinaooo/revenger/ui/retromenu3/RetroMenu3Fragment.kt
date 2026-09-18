@@ -121,12 +121,15 @@ class RetroMenu3Fragment :
                         MenuLifecycleManagerImpl(
                                 fragment = this,
                                 viewModel = viewModel,
-                                viewInitializer = viewInitializer,
-                                animationController = animationController,
-                                inputHandler = inputHandler,
-                                stateController = stateController,
-                                menuViewManager = menuViewManager,
-                                actionHandler = actionHandler
+                                collaborators =
+                                        MenuLifecycleCollaborators(
+                                                viewInitializer = viewInitializer,
+                                                animationController = animationController,
+                                                inputHandler = inputHandler,
+                                                stateController = stateController,
+                                                menuViewManager = menuViewManager,
+                                                actionHandler = actionHandler
+                                        )
                         )
         }
 
