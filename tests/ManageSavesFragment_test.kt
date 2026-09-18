@@ -3,6 +3,7 @@ package com.vinaooo.revenger.ui.retromenu3
 import android.content.Context
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.test.core.app.ApplicationProvider
 import com.vinaooo.revenger.R
@@ -270,5 +271,109 @@ class ManageSavesFragment_test {
         assertEquals(1, ShadowToast.shownToastCount())
         assertEquals(expectedToast(R.string.move_error), ShadowToast.getTextOfLatestToast())
         verify(exactly = 0) { manager.getAllSlots() }
+    }
+
+    // ========== updateDialogSelection ==========
+    //
+    // updateDialogSelection() maps each dialogButtons entry to its own arrow/text view id via a
+    // single when(button.id) table (previously two verbatim tables). These tests drive the two
+    // dialogs that populate dialogButtons (the operations menu and the delete confirmation) and
+    // confirm every button id in the table still resolves to its own selected/unselected visuals.
+
+    private fun occupiedSlot(slotNumber: Int) =
+            SaveSlotData(
+                    slotNumber = slotNumber,
+                    name = "Save $slotNumber",
+                    timestamp = null,
+                    romName = "rom",
+                    stateFile = null,
+                    screenshotFile = null,
+                    isEmpty = false
+            )
+
+    private fun callShowOperationsMenu(slot: SaveSlotData) {
+        val method =
+                ManageSavesFragment::class.java.getDeclaredMethod(
+                        "showOperationsMenu",
+                        SaveSlotData::class.java
+                )
+        method.isAccessible = true
+        method.invoke(fragment, slot)
+    }
+
+    private fun callShowDeleteConfirmation(slot: SaveSlotData) {
+        val method =
+                ManageSavesFragment::class.java.getDeclaredMethod(
+                        "showDeleteConfirmation",
+                        SaveSlotData::class.java
+                )
+        method.isAccessible = true
+        method.invoke(fragment, slot)
+    }
+
+    private fun setDialogSelectedIndex(index: Int) {
+        val field = ManageSavesFragment::class.java.getDeclaredField("dialogSelectedIndex")
+        field.isAccessible = true
+        field.set(fragment, index)
+    }
+
+    private fun callUpdateDialogSelection() {
+        val method = ManageSavesFragment::class.java.getDeclaredMethod("updateDialogSelection")
+        method.isAccessible = true
+        method.invoke(fragment)
+    }
+
+    @Test
+    fun `updateDialogSelection marca o botao selecionado e sua seta no menu de operacoes`() {
+        val manager = mockedSaveStateManager()
+        injectSaveStateManager(manager)
+        callShowOperationsMenu(occupiedSlot(1))
+
+        val renameButton = fragment.requireView().findViewById<RetroCardView>(R.id.operation_rename)
+        val renameArrow = fragment.requireView().findViewById<TextView>(R.id.rename_arrow)
+        val deleteButton = fragment.requireView().findViewById<RetroCardView>(R.id.operation_delete)
+        val deleteArrow = fragment.requireView().findViewById<TextView>(R.id.delete_arrow)
+
+        // Default selection is index 0 (rename)
+        assertEquals(RetroCardView.State.SELECTED, renameButton.getState())
+        assertEquals(View.VISIBLE, renameArrow.visibility)
+        assertEquals(RetroCardView.State.NORMAL, deleteButton.getState())
+        assertEquals(View.GONE, deleteArrow.visibility)
+
+        setDialogSelectedIndex(3) // delete
+        callUpdateDialogSelection()
+
+        assertEquals(RetroCardView.State.NORMAL, renameButton.getState())
+        assertEquals(View.GONE, renameArrow.visibility)
+        assertEquals(RetroCardView.State.SELECTED, deleteButton.getState())
+        assertEquals(View.VISIBLE, deleteArrow.visibility)
+    }
+
+    @Test
+    fun `updateDialogSelection marca o botao selecionado e sua seta no dialogo de confirmacao de delete`() {
+        val manager = mockedSaveStateManager()
+        injectSaveStateManager(manager)
+        callShowDeleteConfirmation(occupiedSlot(1))
+
+        val confirmButton =
+                fragment.requireView().findViewById<RetroCardView>(R.id.dialog_confirm_button)
+        val confirmArrow = fragment.requireView().findViewById<TextView>(R.id.confirm_button_arrow)
+        val cancelButton =
+                fragment.requireView().findViewById<RetroCardView>(R.id.dialog_cancel_button)
+        val cancelArrow = fragment.requireView().findViewById<TextView>(R.id.cancel_button_arrow)
+
+        // Delete confirmation defaults to cancel (index 1) selected
+        assertEquals(RetroCardView.State.NORMAL, confirmButton.getState())
+        assertEquals(View.GONE, confirmArrow.visibility)
+        assertEquals(RetroCardView.State.SELECTED, cancelButton.getState())
+        assertEquals(View.VISIBLE, cancelArrow.visibility)
+
+        setDialogSelectedIndex(0) // confirm
+        callUpdateDialogSelection()
+
+        assertEquals(RetroCardView.State.SELECTED, confirmButton.getState())
+        assertEquals(View.VISIBLE, confirmArrow.visibility)
+        assertEquals(RetroCardView.State.NORMAL, cancelButton.getState())
+        assertEquals(View.GONE, cancelArrow.visibility)
     }
 }

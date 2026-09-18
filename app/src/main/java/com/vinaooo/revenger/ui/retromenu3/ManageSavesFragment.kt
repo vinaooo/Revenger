@@ -202,30 +202,21 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
     private fun updateDialogSelection() {
         dialogButtons.forEachIndexed { index, button ->
-            val arrow = button.findViewById<TextView>(
-                when (button.id) {
-                    R.id.operation_rename -> R.id.rename_arrow
-                    R.id.operation_copy -> R.id.copy_arrow
-                    R.id.operation_move -> R.id.move_arrow
-                    R.id.operation_delete -> R.id.delete_arrow
-                    R.id.operation_cancel -> R.id.cancel_arrow
-                    R.id.dialog_confirm_button -> R.id.confirm_button_arrow
-                    R.id.dialog_cancel_button -> R.id.cancel_button_arrow
-                    else -> return@forEachIndexed
-                }
-            )
-            val textView = button.findViewById<TextView>(
-                when (button.id) {
-                    R.id.operation_rename -> R.id.rename_text
-                    R.id.operation_copy -> R.id.copy_text
-                    R.id.operation_move -> R.id.move_text
-                    R.id.operation_delete -> R.id.delete_text
-                    R.id.operation_cancel -> R.id.cancel_text
-                    R.id.dialog_confirm_button -> R.id.confirm_button_text
-                    R.id.dialog_cancel_button -> R.id.cancel_button_text
-                    else -> return@forEachIndexed
-                }
-            )
+            val (arrowId, textId) =
+                    when (button.id) {
+                        R.id.operation_rename -> R.id.rename_arrow to R.id.rename_text
+                        R.id.operation_copy -> R.id.copy_arrow to R.id.copy_text
+                        R.id.operation_move -> R.id.move_arrow to R.id.move_text
+                        R.id.operation_delete -> R.id.delete_arrow to R.id.delete_text
+                        R.id.operation_cancel -> R.id.cancel_arrow to R.id.cancel_text
+                        R.id.dialog_confirm_button ->
+                                R.id.confirm_button_arrow to R.id.confirm_button_text
+                        R.id.dialog_cancel_button ->
+                                R.id.cancel_button_arrow to R.id.cancel_button_text
+                        else -> return@forEachIndexed
+                    }
+            val arrow = button.findViewById<TextView>(arrowId)
+            val textView = button.findViewById<TextView>(textId)
 
             if (index == dialogSelectedIndex) {
                 button.setState(RetroCardView.State.SELECTED)
