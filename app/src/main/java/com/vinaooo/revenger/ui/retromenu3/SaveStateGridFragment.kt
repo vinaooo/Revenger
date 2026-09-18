@@ -21,6 +21,7 @@ import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
+import java.io.File
 
 /**
  * Base fragment for save state grid displays.
@@ -214,27 +215,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
             name.text = getString(R.string.slot_empty)
             slotContent.setBackgroundResource(R.drawable.slot_background_empty)
         } else {
-            // Load screenshot if available
-            slot.screenshotFile?.let { file ->
-                try {
-                    val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                    if (bitmap != null) {
-                        screenshot.setImageBitmap(bitmap)
-                    } else {
-                        screenshot.setImageResource(R.drawable.ic_no_screenshot)
-                    }
-                    // BitmapFactory.decodeFile() is documented to return null on failure rather
-                    // than throw, and this call passes no Options that could trigger an
-                    // IllegalArgumentException; in practice some OEM/OS-version combinations have
-                    // been known to surface a corrupt screenshot file as an unchecked,
-                    // undocumented RuntimeException from native decode code instead of the null
-                    // contract, so this stays a safety net via detekt's own escape-hatch naming.
-                } catch (expectedNativeDecodeFailure: Exception) {
-                    Log.e(TAG, "Failed to load screenshot: ${expectedNativeDecodeFailure.message}", expectedNativeDecodeFailure)
-                    screenshot.setImageResource(R.drawable.ic_no_screenshot)
-                }
-            }
-                    ?: run { screenshot.setImageResource(R.drawable.ic_no_screenshot) }
+            applyScreenshot(screenshot, slot.screenshotFile)
             name.text = slot.getDisplayName()
             slotContent.setBackgroundResource(R.drawable.slot_background_occupied)
         }
@@ -262,6 +243,38 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         }
 
         return slotView
+    }
+
+    /**
+     * Loads the slot's screenshot, falling back to the "no screenshot" icon when the file is
+     * absent, unreadable, or fails to decode.
+     */
+    private fun applyScreenshot(screenshot: ImageView, screenshotFile: File?) {
+        if (screenshotFile == null) {
+            screenshot.setImageResource(R.drawable.ic_no_screenshot)
+            return
+        }
+        try {
+            val bitmap = BitmapFactory.decodeFile(screenshotFile.absolutePath)
+            if (bitmap != null) {
+                screenshot.setImageBitmap(bitmap)
+            } else {
+                screenshot.setImageResource(R.drawable.ic_no_screenshot)
+            }
+            // BitmapFactory.decodeFile() is documented to return null on failure rather
+            // than throw, and this call passes no Options that could trigger an
+            // IllegalArgumentException; in practice some OEM/OS-version combinations have
+            // been known to surface a corrupt screenshot file as an unchecked,
+            // undocumented RuntimeException from native decode code instead of the null
+            // contract, so this stays a safety net via detekt's own escape-hatch naming.
+        } catch (expectedNativeDecodeFailure: Exception) {
+            Log.e(
+                    TAG,
+                    "Failed to load screenshot: ${expectedNativeDecodeFailure.message}",
+                    expectedNativeDecodeFailure
+            )
+            screenshot.setImageResource(R.drawable.ic_no_screenshot)
+        }
     }
 
     // ========== NAVIGATION ==========
