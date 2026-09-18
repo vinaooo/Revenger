@@ -17,6 +17,8 @@ import com.vinaooo.revenger.input.ControllerInputCallbacks
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.retromenu3.AboutFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitFragment
+import com.vinaooo.revenger.ui.retromenu3.MenuAction
+import com.vinaooo.revenger.ui.retromenu3.MenuEvent
 import com.vinaooo.revenger.ui.retromenu3.MenuManager
 import com.vinaooo.revenger.ui.retromenu3.MenuState
 import com.vinaooo.revenger.ui.retromenu3.MenuStateManager
@@ -32,9 +34,11 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.unmockkObject
+import io.mockk.unmockkStatic
 import io.mockk.verify
 import io.mockk.verifyOrder
 import org.junit.After
@@ -690,5 +694,112 @@ class GameActivityViewModel_test {
                 )
 
         assertFalse(result)
+    }
+
+    // --- onMenuEvent / handleMenuAction / handleMenuStateChanged / dismissCurrentMenuState ---
+    //
+    // Characterization coverage for the boundaries extracted out of onMenuEvent (detekt
+    // CyclomaticComplexMethod/LongMethod): one test per top-level MenuEvent branch dispatched to
+    // its new handler, plus representative MenuAction sub-branches and dismissCurrentMenuState's
+    // per-state routing.
+
+    @Test
+    fun `onMenuEvent com Action NAVIGATE delega para menuManager navigateToState`() {
+        val menuManagerMock = mockMenuManager()
+
+        viewModel.onMenuEvent(MenuEvent.Action(MenuAction.NAVIGATE(MenuState.SETTINGS_MENU)))
+
+        verify(exactly = 1) { menuManagerMock.navigateToState(MenuState.SETTINGS_MENU) }
+    }
+
+    @Test
+    fun `onMenuEvent com StateChanged para SETTINGS_MENU ativa o menu de configuracoes`() {
+        assertFalse(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+
+        viewModel.onMenuEvent(MenuEvent.StateChanged(MenuState.MAIN_MENU, MenuState.SETTINGS_MENU))
+
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+    }
+
+    @Test
+    fun `onMenuEvent com StateChanged saindo de SETTINGS_MENU desativa o menu de configuracoes`() {
+        viewModel.onMenuEvent(MenuEvent.StateChanged(MenuState.MAIN_MENU, MenuState.SETTINGS_MENU))
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+
+        viewModel.onMenuEvent(MenuEvent.StateChanged(MenuState.SETTINGS_MENU, MenuState.MAIN_MENU))
+
+        assertFalse(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+    }
+
+    @Test
+    fun `onMenuEvent com Action EXIT mata o processo sem salvar`() {
+        mockkStatic(android.os.Process::class)
+        every { android.os.Process.killProcess(any()) } just Runs
+        try {
+            viewModel.retroView = null
+            val utils = mockRetroViewUtils()
+
+            viewModel.onMenuEvent(MenuEvent.Action(MenuAction.EXIT))
+
+            verify(exactly = 1) { android.os.Process.killProcess(android.os.Process.myPid()) }
+            verify(exactly = 0) { utils.saveState(any()) }
+        } finally {
+            unmockkStatic(android.os.Process::class)
+        }
+    }
+
+    @Test
+    fun `onMenuEvent com Action SAVE_AND_EXIT salva e entao mata o processo`() {
+        mockkStatic(android.os.Process::class)
+        every { android.os.Process.killProcess(any()) } just Runs
+        try {
+            // retroView permanece nulo (default do fixture): saveStateCentralized nao salva nada
+            // mas ainda chama onComplete de forma sincrona, o que basta para exercitar a ordem
+            // "salva, depois mata o processo" sem precisar mockar o RetroView inteiro.
+            viewModel.retroView = null
+
+            viewModel.onMenuEvent(MenuEvent.Action(MenuAction.SAVE_AND_EXIT))
+
+            verify(exactly = 1) { android.os.Process.killProcess(android.os.Process.myPid()) }
+        } finally {
+            unmockkStatic(android.os.Process::class)
+        }
+    }
+
+    @Test
+    fun `onMenuEvent com Action BACK no MAIN_MENU chama dismissRetroMenu3`() {
+        mockkStatic(android.util.Log::class)
+        every { android.util.Log.d(any(), any()) } returns 0
+        try {
+            val menuManagerMock = mockMenuManager()
+            every { menuManagerMock.getCurrentState() } returns MenuState.MAIN_MENU
+
+            viewModel.onMenuEvent(MenuEvent.Action(MenuAction.BACK))
+
+            verify {
+                android.util.Log.d(
+                        "GameActivityViewModel",
+                        "[DISMISS_MAIN] dismissRetroMenu3: Starting"
+                )
+            }
+        } finally {
+            unmockkStatic(android.util.Log::class)
+        }
+    }
+
+    @Test
+    fun `onMenuEvent com Action BACK no SETTINGS_MENU chama dismissSettingsMenu`() {
+        mockkStatic(android.util.Log::class)
+        every { android.util.Log.d(any(), any()) } returns 0
+        try {
+            val menuManagerMock = mockMenuManager()
+            every { menuManagerMock.getCurrentState() } returns MenuState.SETTINGS_MENU
+
+            viewModel.onMenuEvent(MenuEvent.Action(MenuAction.BACK))
+
+            verify { android.util.Log.d("GameActivityViewModel", "dismissSettingsMenu: Starting") }
+        } finally {
+            unmockkStatic(android.util.Log::class)
+        }
     }
 }
