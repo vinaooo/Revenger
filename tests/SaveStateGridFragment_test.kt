@@ -1,15 +1,22 @@
 package com.vinaooo.revenger.ui.retromenu3
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.ImageView
 import androidx.fragment.app.FragmentActivity
 import androidx.test.core.app.ApplicationProvider
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.managers.SaveStateManager
 import com.vinaooo.revenger.managers.SessionSlotTracker
 import com.vinaooo.revenger.models.SaveSlotData
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import java.io.File
+import java.util.Base64
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -317,5 +324,128 @@ class SaveStateGridFragment_test {
 
         assertEquals(9, fragment.slotViewCount)
         assertEquals(3, fragment.getCurrentSelectedIndex())
+    }
+
+    // ========== SCREENSHOT LOADING (createSlotView -> applyScreenshot) ==========
+    //
+    // applyScreenshot() was extracted from createSlotView() to resolve a NestedBlockDepth
+    // finding; these tests characterize its 4 branches (no file, decode returns null, valid
+    // file, decode throws) through the real createSlotView()/populateGrid() flow rather than via
+    // reflection, since the ImageView it configures is public API on the inflated slot view.
+
+    private fun occupiedSlot(slotNumber: Int, screenshotFile: File?) =
+            SaveSlotData(
+                    slotNumber = slotNumber,
+                    name = "Save $slotNumber",
+                    timestamp = null,
+                    romName = "rom",
+                    stateFile = null,
+                    screenshotFile = screenshotFile,
+                    isEmpty = false
+            )
+
+    private fun mockedSaveStateManagerWithSlot(slot: SaveSlotData): SaveStateManager {
+        val slots =
+                (1..SaveStateManager.TOTAL_SLOTS).map { n ->
+                    if (n == slot.slotNumber) slot else SaveSlotData.empty(n)
+                }
+        val manager = mockk<SaveStateManager>(relaxed = true)
+        every { manager.getAllSlots() } returns slots
+        return manager
+    }
+
+    private fun injectSaveStateManager(manager: SaveStateManager) {
+        val field = SaveStateGridFragment::class.java.getDeclaredField("saveStateManager")
+        field.isAccessible = true
+        field.set(fragment, manager)
+    }
+
+    private fun writeValidPng(): File {
+        // Minimal 1x1 transparent PNG - valid enough for BitmapFactory to decode under Robolectric.
+        val pngBytes =
+                Base64.getDecoder()
+                        .decode(
+                                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+                        )
+        savesDir.mkdirs()
+        val file = File(savesDir, "valid_screenshot.png")
+        file.writeBytes(pngBytes)
+        return file
+    }
+
+    /**
+     * ImageView has no Robolectric shadow in this version (it runs on the real instrumented
+     * framework class), so there is no tracked "last resource id" on the view itself, and
+     * VectorDrawable.draw() is a no-op under this Robolectric graphics mode, ruling out a pixel
+     * comparison. ShadowDrawable.getCreatedFromResId() is set by Robolectric itself whenever a
+     * Drawable is resolved from a resource id (regardless of drawable type), so it reliably
+     * identifies which drawable resource setImageResource() used.
+     */
+    private fun assertShowsDrawableResource(view: ImageView, resId: Int) {
+        val actual = org.robolectric.Shadows.shadowOf(view.drawable!!)
+        assertEquals(resId, actual.createdFromResId)
+    }
+
+    @Test
+    fun `slot ocupado sem screenshotFile exibe icone de sem screenshot`() {
+        injectSaveStateManager(mockedSaveStateManagerWithSlot(occupiedSlot(1, screenshotFile = null)))
+
+        fragment.triggerRefresh()
+
+        val screenshot = fragment.slotViewAt(0).findViewById<ImageView>(R.id.slot_screenshot)
+        assertShowsDrawableResource(screenshot, R.drawable.ic_no_screenshot)
+    }
+
+    @Test
+    fun `slot ocupado cujo decode retorna null exibe icone de sem screenshot`() {
+        // A real nonexistent/unreadable file cannot be used to force this branch: Robolectric's
+        // BitmapFactory.decodeFile() returns a non-null fake bitmap for any input in this test
+        // environment, regardless of whether the file exists or is valid image data - unlike
+        // real Android, where decodeFile() is documented to return null on failure. Mock the
+        // static call directly to exercise the null-result branch deterministically.
+        mockkStatic(BitmapFactory::class)
+        try {
+            every { BitmapFactory.decodeFile(any<String>()) } returns null
+            val validFile = writeValidPng()
+            injectSaveStateManager(mockedSaveStateManagerWithSlot(occupiedSlot(1, validFile)))
+
+            fragment.triggerRefresh()
+
+            val screenshot = fragment.slotViewAt(0).findViewById<ImageView>(R.id.slot_screenshot)
+            assertShowsDrawableResource(screenshot, R.drawable.ic_no_screenshot)
+        } finally {
+            unmockkStatic(BitmapFactory::class)
+        }
+    }
+
+    @Test
+    fun `slot ocupado com screenshotFile valido exibe o bitmap decodificado`() {
+        val validFile = writeValidPng()
+        injectSaveStateManager(mockedSaveStateManagerWithSlot(occupiedSlot(1, validFile)))
+
+        fragment.triggerRefresh()
+
+        val screenshot = fragment.slotViewAt(0).findViewById<ImageView>(R.id.slot_screenshot)
+        // A successfully decoded bitmap is set directly via setImageBitmap - a BitmapDrawable,
+        // not the ic_no_screenshot vector drawable used by the other 3 branches.
+        assertTrue(screenshot.drawable is android.graphics.drawable.BitmapDrawable)
+    }
+
+    @Test
+    fun `slot ocupado cujo decode lanca excecao exibe icone de sem screenshot sem propagar a excecao`() {
+        mockkStatic(BitmapFactory::class)
+        try {
+            every { BitmapFactory.decodeFile(any<String>()) } throws
+                    RuntimeException("corrupt native decode")
+            val validFile = writeValidPng()
+            injectSaveStateManager(mockedSaveStateManagerWithSlot(occupiedSlot(1, validFile)))
+
+            fragment.triggerRefresh()
+
+            val screenshot = fragment.slotViewAt(0).findViewById<ImageView>(R.id.slot_screenshot)
+            assertShowsDrawableResource(screenshot, R.drawable.ic_no_screenshot)
+        } finally {
+            unmockkStatic(BitmapFactory::class)
+        }
     }
 }
