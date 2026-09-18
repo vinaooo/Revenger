@@ -3,10 +3,12 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Application
 import android.os.Looper
 import android.view.KeyEvent
+import android.view.MotionEvent
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.test.core.app.ApplicationProvider
 import com.swordfish.libretrodroid.GLRetroView
+import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.controllers.SpeedController
@@ -21,6 +23,7 @@ import com.vinaooo.revenger.ui.retromenu3.MenuStateManager
 import com.vinaooo.revenger.ui.retromenu3.MenuSystemState
 import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.RetroViewUtils
 import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
 import io.mockk.Called
@@ -29,11 +32,13 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.unmockkObject
 import io.mockk.verify
 import io.mockk.verifyOrder
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertSame
@@ -79,6 +84,14 @@ class GameActivityViewModel_test {
         val field = target.javaClass.getDeclaredField(fieldName)
         field.isAccessible = true
         @Suppress("UNCHECKED_CAST") return field.get(target) as T
+    }
+
+    /** Invokes a private, single-overload method by name -- used for the GamePad-event routing
+     * helpers, which have no public entry point of their own. */
+    private fun <T> invokePrivate(target: Any, methodName: String, vararg args: Any?): T {
+        val method = target.javaClass.declaredMethods.first { it.name == methodName }
+        method.isAccessible = true
+        @Suppress("UNCHECKED_CAST") return method.invoke(target, *args) as T
     }
 
     /**
@@ -594,5 +607,88 @@ class GameActivityViewModel_test {
         viewModel.resetGameCentralized { completed = true }
 
         assertTrue(completed)
+    }
+
+    // --- handleGamePadEvent / setupGamePads ---
+    //
+    // Characterization coverage for the GamePad-event routing that used to be duplicated verbatim
+    // inline in setupGamePads's left/right GamePad callbacks (detekt LongMethod), now shared via
+    // handleGamePadEvent/handleGamePadDirectionEvent/buildDpadMotionEvent.
+
+    @Test
+    fun `handleGamePadEvent com Button delega para controllerInput e retorna o resultado`() {
+        val controllerInput = mockk<ControllerInput>(relaxed = true)
+        every { controllerInput.processGamePadButtonEvent(99, KeyEvent.ACTION_DOWN) } returns true
+        setPrivateField(viewModel, "controllerInput", controllerInput)
+
+        val result =
+                invokePrivate<Boolean>(
+                        viewModel,
+                        "handleGamePadEvent",
+                        Event.Button(99, KeyEvent.ACTION_DOWN, 0)
+                )
+
+        assertTrue(result)
+        verify { controllerInput.processGamePadButtonEvent(99, KeyEvent.ACTION_DOWN) }
+    }
+
+    @Test
+    fun `handleGamePadEvent com Direction e menu fechado nao intercepta`() {
+        val controllerInput = mockk<ControllerInput>(relaxed = true)
+        setPrivateField(viewModel, "controllerInput", controllerInput)
+        val navigationController = mockk<NavigationController>(relaxed = true)
+        every { navigationController.isMenuActive() } returns false
+        viewModel.navigationController = navigationController
+
+        val result =
+                invokePrivate<Boolean>(
+                        viewModel,
+                        "handleGamePadEvent",
+                        Event.Direction(0, 1f, 0f, 0)
+                )
+
+        assertFalse(result)
+        verify(exactly = 0) { controllerInput.processMotionEvent(any(), any()) }
+    }
+
+    @Test
+    fun `handleGamePadEvent com Direction e menu aberto converte para MotionEvent e intercepta`() {
+        val controllerInput = mockk<ControllerInput>(relaxed = true)
+        setPrivateField(viewModel, "controllerInput", controllerInput)
+        val navigationController = mockk<NavigationController>(relaxed = true)
+        every { navigationController.isMenuActive() } returns true
+        viewModel.navigationController = navigationController
+        val (retroView, _) = mockRetroView(frameRendered = true, frameSpeed = 1)
+        viewModel.retroView = retroView
+
+        val motionEventSlot = slot<MotionEvent>()
+        every { controllerInput.processMotionEvent(capture(motionEventSlot), any()) } returns true
+
+        val result =
+                invokePrivate<Boolean>(
+                        viewModel,
+                        "handleGamePadEvent",
+                        Event.Direction(0, 0.7f, -0.4f, 0)
+                )
+
+        assertTrue(result)
+        val captured = motionEventSlot.captured
+        assertEquals(0.7f, captured.getAxisValue(MotionEvent.AXIS_HAT_X))
+        assertEquals(-0.4f, captured.getAxisValue(MotionEvent.AXIS_HAT_Y))
+    }
+
+    @Test
+    fun `handleGamePadEvent com outro tipo de evento nao intercepta`() {
+        val result =
+                invokePrivate<Boolean>(
+                        viewModel,
+                        "handleGamePadEvent",
+                        com.swordfish.radialgamepad.library.event.Event.Gesture(
+                                0,
+                                com.swordfish.radialgamepad.library.event.GestureType.SINGLE_TAP
+                        )
+                )
+
+        assertFalse(result)
     }
 }

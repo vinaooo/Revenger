@@ -1463,6 +1463,64 @@ class GameActivityViewModel(application: Application) :
         }
     }
 
+    /**
+     * Routes a virtual GamePad event to [controllerInput], the same way for both the left and
+     * right pad (their callbacks used to carry two verbatim copies of this logic).
+     */
+    private fun handleGamePadEvent(event: Event): Boolean =
+            when (event) {
+                is Event.Button -> controllerInput.processGamePadButtonEvent(event.id, event.action)
+                is Event.Direction -> handleGamePadDirectionEvent(event)
+                else -> false // Other event types are not intercepted
+            }
+
+    /**
+     * While a menu is open, DPAD/analog direction events are converted into a synthetic
+     * [MotionEvent] and routed through [ControllerInput]'s menu-navigation path instead of being
+     * dispatched natively by the GamePad.
+     */
+    private fun handleGamePadDirectionEvent(event: Event.Direction): Boolean {
+        if (!isAnyMenuActive()) {
+            // Menu is closed. Do not intercept. Let GamePad natively dispatch its axes directly.
+            return false
+        }
+        // Process motion and return true to intercept the directional event while the menu is open
+        controllerInput.processMotionEvent(buildDpadMotionEvent(event), retroView!!)
+        return true
+    }
+
+    /** Create a synthetic MotionEvent for DPAD/analog direction, using PointerCoords. */
+    private fun buildDpadMotionEvent(event: Event.Direction): MotionEvent {
+        val pointerCoords = MotionEvent.PointerCoords()
+        pointerCoords.x = 0f
+        pointerCoords.y = 0f
+        pointerCoords.pressure = 1f
+        pointerCoords.size = 1f
+        pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_X, event.xAxis)
+        pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_Y, event.yAxis)
+
+        val pointerProperties = MotionEvent.PointerProperties()
+        pointerProperties.id = 0
+        pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
+
+        return MotionEvent.obtain(
+                android.os.SystemClock.uptimeMillis(),
+                android.os.SystemClock.uptimeMillis(),
+                MotionEvent.ACTION_MOVE,
+                1,
+                arrayOf(pointerProperties),
+                arrayOf(pointerCoords),
+                0,
+                0,
+                1f,
+                1f,
+                0,
+                0,
+                InputDevice.SOURCE_JOYSTICK,
+                0
+        )
+    }
+
     /** Subscribe the GamePads to the RetroView */
     fun setupGamePads(
             activity: ComponentActivity,
@@ -1472,128 +1530,9 @@ class GameActivityViewModel(application: Application) :
         val context = getApplication<Application>().applicationContext
 
         val gamePadConfig = GamePadConfig(context, appConfig)
-        leftGamePad =
-                GamePad(context, gamePadConfig.left) { event: Event ->
-                    val intercepted =
-                            when (event) {
-                                is Event.Button ->
-                                        controllerInput.processGamePadButtonEvent(
-                                                event.id,
-                                                event.action
-                                        )
-                                is Event.Direction -> {
-                                    if (isAnyMenuActive()) {
-                                        // Create synthetic MotionEvent for DPAD using PointerCoords
-                                        val pointerCoords = MotionEvent.PointerCoords()
-                                        pointerCoords.x = 0f
-                                        pointerCoords.y = 0f
-                                        pointerCoords.pressure = 1f
-                                        pointerCoords.size = 1f
-                                        pointerCoords.setAxisValue(
-                                                MotionEvent.AXIS_HAT_X,
-                                                event.xAxis
-                                        )
-                                        pointerCoords.setAxisValue(
-                                                MotionEvent.AXIS_HAT_Y,
-                                                event.yAxis
-                                        )
-
-                                        val pointerProperties = MotionEvent.PointerProperties()
-                                        pointerProperties.id = 0
-                                        pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
-
-                                        val motionEvent =
-                                                MotionEvent.obtain(
-                                                        android.os.SystemClock.uptimeMillis(),
-                                                        android.os.SystemClock.uptimeMillis(),
-                                                        MotionEvent.ACTION_MOVE,
-                                                        1,
-                                                        arrayOf(pointerProperties),
-                                                        arrayOf(pointerCoords),
-                                                        0,
-                                                        0,
-                                                        1f,
-                                                        1f,
-                                                        0,
-                                                        0,
-                                                        InputDevice.SOURCE_JOYSTICK,
-                                                        0
-                                                )
-                                        // Process motion and return true to intercept the
-                                        // directional event while the menu is open
-                                        controllerInput.processMotionEvent(motionEvent, retroView!!)
-                                        true
-                                    } else {
-                                        // Menu is closed. Do not intercept. Let GamePad natively
-                                        // dispatch its axes directly.
-                                        false
-                                    }
-                                }
-                                else -> false // Other event types are not intercepted
-                            }
-                    intercepted // Return the boolean
-                }
+        leftGamePad = GamePad(context, gamePadConfig.left) { event: Event -> handleGamePadEvent(event) }
         rightGamePad =
-                GamePad(context, gamePadConfig.right) { event: Event ->
-                    val intercepted =
-                            when (event) {
-                                is Event.Button ->
-                                        controllerInput.processGamePadButtonEvent(
-                                                event.id,
-                                                event.action
-                                        )
-                                is Event.Direction -> {
-                                    if (isAnyMenuActive()) {
-                                        // Create synthetic MotionEvent for DPAD using PointerCoords
-                                        val pointerCoords = MotionEvent.PointerCoords()
-                                        pointerCoords.x = 0f
-                                        pointerCoords.y = 0f
-                                        pointerCoords.pressure = 1f
-                                        pointerCoords.size = 1f
-                                        pointerCoords.setAxisValue(
-                                                MotionEvent.AXIS_HAT_X,
-                                                event.xAxis
-                                        )
-                                        pointerCoords.setAxisValue(
-                                                MotionEvent.AXIS_HAT_Y,
-                                                event.yAxis
-                                        )
-
-                                        val pointerProperties = MotionEvent.PointerProperties()
-                                        pointerProperties.id = 0
-                                        pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
-
-                                        val motionEvent =
-                                                MotionEvent.obtain(
-                                                        android.os.SystemClock.uptimeMillis(),
-                                                        android.os.SystemClock.uptimeMillis(),
-                                                        MotionEvent.ACTION_MOVE,
-                                                        1,
-                                                        arrayOf(pointerProperties),
-                                                        arrayOf(pointerCoords),
-                                                        0,
-                                                        0,
-                                                        1f,
-                                                        1f,
-                                                        0,
-                                                        0,
-                                                        InputDevice.SOURCE_JOYSTICK,
-                                                        0
-                                                )
-                                        // Process motion and return true to intercept the
-                                        // directional event while the menu is open
-                                        controllerInput.processMotionEvent(motionEvent, retroView!!)
-                                        true
-                                    } else {
-                                        // Menu is closed. Do not intercept. Let GamePad natively
-                                        // dispatch its axes directly.
-                                        false
-                                    }
-                                }
-                                else -> false // Other event types are not intercepted
-                            }
-                    intercepted // Return the boolean
-                }
+                GamePad(context, gamePadConfig.right) { event: Event -> handleGamePadEvent(event) }
 
         leftGamePad?.let {
             leftContainer.addView(it.pad)
