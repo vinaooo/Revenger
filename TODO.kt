@@ -15,6 +15,19 @@
 // TODO: MenuInputHandlerImpl.setupInputHandling (ui/retromenu3/MenuInputHandler.kt) e um stub --
 //       configurar listeners de botoes virtuais e input fisico ali, hoje a configuracao passa
 //       por NavigationController.
+// TODO: Detekt - 37 issues restantes (zero em 22/09), todos concentrados em 4 arquivos grandes;
+//       os achados "baratos" (mecanicos/extracao pontual) ja foram fechados nas PRs #62-#69.
+//       Cada item abaixo precisa de testes de caracterizacao antes de qualquer split, por ter
+//       LargeClass e/ou metodos de alta complexidade ciclomatica:
+//       - input/ControllerInput.kt: LargeClass (833/600), TooManyFunctions (18/11), 4
+//         dispatchers de alta complexidade (processGamePadButtonEvent 27/15, processKeyEvent
+//         30/15, processMotionEvent 15/15), 5 ComplexCondition, ReturnCount nos 3 dispatchers.
+//       - viewmodels/GameActivityViewModel.kt: LargeClass (1332/600), TooManyFunctions (95/11),
+//         onMenuEvent complexidade 38/15, isAnyMenuActive complexidade 22/15, NestedBlockDepth e
+//         ReturnCount em processKeyEvent.
+//       - views/GameActivity.kt: LargeClass (957/600), TooManyFunctions (28/11), onCreate com
+//         124 linhas, ReturnCount em onUserLeaveHint/maybeEnterPictureInPictureAfterMenuClosed.
+//       - ui/retromenu3/navigation/KeyboardInputAdapter.kt: ReturnCount em onKeyDown/onKeyUp.
 
 // FIXME: Melhorar navegação via teclado
 // FIXME: KEYCODE_BACK/KEYCODE_ESCAPE podem disparar NavigateBack/CloseAllMenus 2x por
