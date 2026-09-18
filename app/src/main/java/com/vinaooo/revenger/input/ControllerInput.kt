@@ -388,12 +388,12 @@ class ControllerInput {
                         "│ timeSinceMenuClose: ${timeSinceMenuClose}ms (debounce: ${MENU_CLOSE_DEBOUNCE_MS}ms)"
                 )
 
-                if (hasSelectAndStart &&
-                                !comboAlreadyTriggered &&
-                                shouldHandleSelectStartCombo() &&
-                                timeSinceLastTrigger > COMBO_COOLDOWN_MS &&
+                val comboEligible = !comboAlreadyTriggered && shouldHandleSelectStartCombo()
+                val cooldownAndDebounceElapsed =
+                        timeSinceLastTrigger > COMBO_COOLDOWN_MS &&
                                 timeSinceMenuClose > MENU_CLOSE_DEBOUNCE_MS
-                ) {
+
+                if (hasSelectAndStart && comboEligible && cooldownAndDebounceElapsed) {
 
                         // ENABLED FOR DEBUG: Combo detection success logs
                         android.util.Log.d(
@@ -560,11 +560,12 @@ class ControllerInput {
                                 )
 
                                 // Reset combo flag ONLY when BOTH combo buttons are released
-                                if ((keyCode == KeyEvent.KEYCODE_BUTTON_START ||
-                                                keyCode == KeyEvent.KEYCODE_BUTTON_SELECT) &&
-                                                !keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
+                                val isComboButtonKey = keyCode in KEYCOMBO_MENU
+                                val bothComboButtonsReleased =
+                                        !keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
                                                 !keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)
-                                ) {
+
+                                if (isComboButtonKey && bothComboButtonsReleased) {
                                         if (comboAlreadyTriggered) {
                                                 android.util.Log.d(
                                                         "ControllerInput",
@@ -855,12 +856,16 @@ class ControllerInput {
                 }
 
                 // INTERCEPT DPAD (KeyEvents) for navigation when menu is open
-                if (shouldInterceptDpadForMenu() &&
-                                (keyCode == KeyEvent.KEYCODE_DPAD_UP ||
-                                        keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
-                                        keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
-                                        keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
-                ) {
+                val isDpadNavigationKey =
+                        keyCode in
+                                setOf(
+                                        KeyEvent.KEYCODE_DPAD_UP,
+                                        KeyEvent.KEYCODE_DPAD_DOWN,
+                                        KeyEvent.KEYCODE_DPAD_LEFT,
+                                        KeyEvent.KEYCODE_DPAD_RIGHT
+                                )
+
+                if (shouldInterceptDpadForMenu() && isDpadNavigationKey) {
                         if (event.action == KeyEvent.ACTION_DOWN) {
                                 when (keyCode) {
                                         KeyEvent.KEYCODE_DPAD_UP -> {
@@ -955,11 +960,10 @@ class ControllerInput {
 
                 // BLOCK START and SELECT from reaching core when combo is detected
                 // Use containsAll to check if both are present
-                if ((keyCode == KeyEvent.KEYCODE_BUTTON_START ||
-                                keyCode == KeyEvent.KEYCODE_BUTTON_SELECT) &&
-                                keyLog.containsAll(KEYCOMBO_MENU) &&
-                                keyLog.size == 2
-                ) {
+                val isComboButtonKey = keyCode in KEYCOMBO_MENU
+                val comboFullyHeld = keyLog.containsAll(KEYCOMBO_MENU) && keyLog.size == 2
+
+                if (isComboButtonKey && comboFullyHeld) {
                         android.util.Log.d(
                                 "ControllerInput",
                                 "Blocking START/SELECT from reaching core - combo detected"
@@ -1090,11 +1094,13 @@ class ControllerInput {
                                 else -> {
                                         // Return true if any supported axis is out of deadzone but
                                         // not triggering a new event
-                                        if (Math.abs(hatX) > DPAD_THRESHOLD ||
+                                        val anySupportedAxisOutOfDeadzone =
+                                                Math.abs(hatX) > DPAD_THRESHOLD ||
                                                         Math.abs(hatY) > DPAD_THRESHOLD ||
                                                         Math.abs(axisX) > LEFT_ANALOG_THRESHOLD ||
                                                         Math.abs(axisY) > LEFT_ANALOG_THRESHOLD
-                                        ) {
+
+                                        if (anySupportedAxisOutOfDeadzone) {
                                                 return true
                                         }
                                 }

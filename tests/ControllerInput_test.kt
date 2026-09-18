@@ -1,6 +1,7 @@
 package com.vinaooo.revenger.input
 
 import android.view.KeyEvent
+import android.view.MotionEvent
 import androidx.lifecycle.MutableLiveData
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.retroview.RetroView
@@ -644,5 +645,75 @@ class ControllerInput_test {
                 "Unmapped virtual button must reach the core when no menu is blocking input",
                 result
         )
+    }
+
+    // --- Coverage added while extracting ComplexCondition findings into local vals
+    // (checkMenuKeyCombo, trackKeyLogAndComboReset, and the two processKeyEvent blocks
+    // below were already covered above; these two paths had zero prior coverage). ---
+
+    @Test
+    fun `processKeyEvent intercepts a DPAD key for menu navigation when shouldInterceptDpadForMenu is true`() {
+        val controllerInput = newControllerInput()
+        controllerInput.shouldInterceptDpadForMenu = { true }
+        var upFireCount = 0
+        controllerInput.menuNavigateUpCallback = { upFireCount++ }
+        val (retroView, glRetroView) = mockRetroView()
+
+        val result =
+                controllerInput.processKeyEvent(
+                        KeyEvent.KEYCODE_DPAD_UP,
+                        KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP),
+                        retroView
+                )
+
+        assertTrue(result == true)
+        assertEquals(1, upFireCount)
+        verify(exactly = 0) { glRetroView.sendKeyEvent(any(), any(), any()) }
+    }
+
+    @Test
+    fun `processKeyEvent does not intercept a DPAD key for menu navigation when shouldInterceptDpadForMenu is false`() {
+        val controllerInput = newControllerInput()
+        controllerInput.shouldInterceptDpadForMenu = { false }
+        var upFireCount = 0
+        controllerInput.menuNavigateUpCallback = { upFireCount++ }
+        val (retroView, glRetroView) = mockRetroView()
+
+        controllerInput.processKeyEvent(
+                KeyEvent.KEYCODE_DPAD_UP,
+                KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP),
+                retroView
+        )
+
+        assertEquals(0, upFireCount)
+        verify(exactly = 1) {
+            glRetroView.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP, any())
+        }
+    }
+
+    @Test
+    fun `processMotionEvent keeps returning true without re-firing the navigation callback while a DPAD axis stays held past the deadzone`() {
+        val controllerInput = newControllerInput()
+        controllerInput.shouldInterceptDpadForMenu = { true }
+        var upFireCount = 0
+        controllerInput.menuNavigateUpCallback = { upFireCount++ }
+        val (retroView, glRetroView) = mockRetroView()
+        val event = mockk<MotionEvent>(relaxed = true)
+        every { event.getAxisValue(MotionEvent.AXIS_HAT_Y) } returns -0.5f
+        every { event.getAxisValue(MotionEvent.AXIS_HAT_X) } returns 0f
+        every { event.getAxisValue(MotionEvent.AXIS_X) } returns 0f
+        every { event.getAxisValue(MotionEvent.AXIS_Y) } returns 0f
+
+        // First call: false -> true transition fires the UP callback exactly once.
+        assertTrue(controllerInput.processMotionEvent(event, retroView) == true)
+        assertEquals(1, upFireCount)
+
+        // Second call: the axis is still held past the deadzone but there is no new
+        // transition, so this must fall into the deadzone-check "else" branch -- still
+        // consumed (true) but WITHOUT re-firing the callback or leaking to the core.
+        assertTrue(controllerInput.processMotionEvent(event, retroView) == true)
+        assertEquals(1, upFireCount)
+
+        verify(exactly = 0) { glRetroView.sendMotionEvent(any(), any(), any(), any()) }
     }
 }
