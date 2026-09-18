@@ -156,55 +156,12 @@ class AboutFragment : MenuFragmentBase() {
                 selectionArrowBack
         )
 
-        // Populate information with combined label and value
+        // Populate information with combined label and value (already applies configured
+        // capitalization to each info view internally)
         populateAboutInfo()
 
-        // Apply configured capitalization to ALL texts (title, labels, button titles)
-        val capitalizationStyle =
-                resources.getInteger(com.vinaooo.revenger.R.integer.rm_text_capitalization)
-
-        // Apply capitalization to the title
-        val titleText = aboutTitle.text.toString()
-        val capitalizedTitle =
-                when (capitalizationStyle) {
-                    1 -> {
-                        // First letter uppercase
-                        if (titleText.isNotEmpty()) {
-                            titleText.substring(0, 1).uppercase() + titleText.substring(1)
-                        } else {
-                            titleText
-                        }
-                    }
-                    2 -> titleText.uppercase() // All uppercase
-                    else -> titleText // Normal (default)
-                }
-        if (capitalizedTitle != titleText) {
-            aboutTitle.text = capitalizedTitle
-        }
-
-        // Apply capitalization to informational texts (already include label + value)
-        val infoViews = arrayOf(projectNameInfo, romNameInfo, coreNameInfo)
-        infoViews.forEach { infoView ->
-            val infoText = infoView.text.toString()
-            val capitalizedInfo =
-                    when (capitalizationStyle) {
-                        1 -> {
-                            // First letter uppercase
-                            if (infoText.isNotEmpty()) {
-                                infoText.substring(0, 1).uppercase() + infoText.substring(1)
-                            } else {
-                                infoText
-                            }
-                        }
-                        2 -> infoText.uppercase() // All uppercase
-                        else -> infoText // Normal (default)
-                    }
-            if (capitalizedInfo != infoText) {
-                infoView.text = capitalizedInfo
-            }
-        }
-
-        // Apply capitalization to menu button titles
+        // Apply configured capitalization to the remaining texts (title, button titles)
+        applyConfiguredCapitalization(aboutTitle)
         applyConfiguredCapitalization(coreVariablesTitle)
         applyConfiguredCapitalization(backTitle)
 
