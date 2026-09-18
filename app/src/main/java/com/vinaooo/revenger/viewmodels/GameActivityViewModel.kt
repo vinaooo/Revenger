@@ -496,95 +496,28 @@ class GameActivityViewModel(application: Application) :
      * the 4 set in `init {}` -- is preserved as-is.
      */
     private fun wireControllerInputMenuCallbacks() {
-        // REMOVED: Legacy callback configurations - NavigationController handles all navigation now
         controllerInput.callbacks =
                 controllerInput.callbacks.copy(
-                        // Configure gamepad menu button callback to toggle menu
-                        gamepadMenuButtonCallback = {
-                            if (isAnyMenuActive()) {
-                                // PHASE 3.4a: Use CloseAllMenus to exit directly to game
-                                // (permanently enabled)
-                                android.util.Log.d(
-                                        "GameActivityViewModel",
-                                        "[MENU_BUTTON] Closing ALL menus directly with NavigationController"
-                                )
-                                navigationController?.handleNavigationEvent(
-                                        com.vinaooo.revenger.ui.retromenu3.navigation
-                                                .NavigationEvent.CloseAllMenus(
-                                                inputSource =
-                                                        com.vinaooo.revenger.ui.retromenu3
-                                                                .navigation.InputSource
-                                                                .PHYSICAL_GAMEPAD
-                                        )
-                                )
-                            } else {
-                                // PHASE 3: Use NavigationController to open menu (permanently
-                                // enabled)
-                                navigationController?.handleNavigationEvent(
-                                        com.vinaooo.revenger.ui.retromenu3.navigation
-                                                .NavigationEvent.OpenMenu(
-                                                inputSource =
-                                                        com.vinaooo.revenger.ui.retromenu3
-                                                                .navigation.InputSource
-                                                                .PHYSICAL_GAMEPAD
-                                        )
-                                )
-                            }
-                        },
-
-                        // PHASE 3.1b: Configure navigation callbacks (permanently enabled)
-                        menuNavigateUpCallback = {
-                            navigationController?.handleNavigationEvent(
-                                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
-                                            .Navigate(
-                                            direction =
-                                                    com.vinaooo.revenger.ui.retromenu3.navigation
-                                                            .Direction.UP,
-                                            inputSource =
-                                                    com.vinaooo.revenger.ui.retromenu3.navigation
-                                                            .InputSource.PHYSICAL_GAMEPAD
-                                    )
-                            )
-                        },
-                        menuNavigateDownCallback = {
-                            navigationController?.handleNavigationEvent(
-                                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
-                                            .Navigate(
-                                            direction =
-                                                    com.vinaooo.revenger.ui.retromenu3.navigation
-                                                            .Direction.DOWN,
-                                            inputSource =
-                                                    com.vinaooo.revenger.ui.retromenu3.navigation
-                                                            .InputSource.PHYSICAL_GAMEPAD
-                                    )
-                            )
-                        },
-                        menuNavigateLeftCallback = {
-                            navigationController?.handleNavigationEvent(
-                                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
-                                            .Navigate(
-                                            direction =
-                                                    com.vinaooo.revenger.ui.retromenu3.navigation
-                                                            .Direction.LEFT,
-                                            inputSource =
-                                                    com.vinaooo.revenger.ui.retromenu3.navigation
-                                                            .InputSource.PHYSICAL_GAMEPAD
-                                    )
-                            )
-                        },
-                        menuNavigateRightCallback = {
-                            navigationController?.handleNavigationEvent(
-                                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
-                                            .Navigate(
-                                            direction =
-                                                    com.vinaooo.revenger.ui.retromenu3.navigation
-                                                            .Direction.RIGHT,
-                                            inputSource =
-                                                    com.vinaooo.revenger.ui.retromenu3.navigation
-                                                            .InputSource.PHYSICAL_GAMEPAD
-                                    )
-                            )
-                        },
+                        gamepadMenuButtonCallback = ::handleGamepadMenuButtonCallback,
+                        menuNavigateUpCallback =
+                                menuNavigateCallback(
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.Direction.UP
+                                ),
+                        menuNavigateDownCallback =
+                                menuNavigateCallback(
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.Direction
+                                                .DOWN
+                                ),
+                        menuNavigateLeftCallback =
+                                menuNavigateCallback(
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.Direction
+                                                .LEFT
+                                ),
+                        menuNavigateRightCallback =
+                                menuNavigateCallback(
+                                        com.vinaooo.revenger.ui.retromenu3.navigation.Direction
+                                                .RIGHT
+                                ),
                         menuConfirmCallback = {
                             navigationController?.handleNavigationEvent(
                                     com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
@@ -607,40 +540,64 @@ class GameActivityViewModel(application: Application) :
                             )
                         },
 
-                        // Control when to intercept DPAD for menu
-                        // CRITICAL: DO NOT check isDismissingAllMenus() here!
-                        // We need to keep intercepting buttons even during closing
-                        // to prevent ACTION_UP from leaking into the game
-                        shouldInterceptDpadForMenu = {
-                            val result =
-                                    isAnyMenuActive() // Removido: && !isDismissingAllMenus()
-                            result
-                        },
+                        // CRITICAL: DO NOT check isDismissingAllMenus() here! We need to keep
+                        // intercepting buttons even during closing to prevent ACTION_UP from
+                        // leaking into the game.
+                        shouldInterceptDpadForMenu = { isAnyMenuActive() },
 
-                        // Control when START button alone should work (only when RetroMenu3 or
-                        // SettingsMenu is REALLY open)
+                        // Only when RetroMenu3 or SettingsMenu is REALLY open.
                         shouldHandleStartButton = {
                             isAnyMenuActive() && !isDismissingAllMenus()
                         },
-
-                        // Control when to block ALL gamepad inputs (when RetroMenu3 or
-                        // SettingsMenu is open)
                         shouldBlockAllGamepadInput = { isAnyMenuActive() },
-
-                        // Control if RetroMenu3 or SettingsMenu is open for combo reset
                         isRetroMenu3Open = { isAnyMenuActive() },
-
-                        // Control if it's safe to execute menu callbacks (no critical operations
-                        // in progress)
                         isMenuOperationSafe = {
-                            val dismissingAll = isDismissingAllMenus()
-                            val fragmentDismissing =
-                                    retroMenu3Fragment?.isDismissingMenu() == true
-                            val result = !dismissingAll && !fragmentDismissing
-
-                            result
+                            !isDismissingAllMenus() &&
+                                    retroMenu3Fragment?.isDismissingMenu() != true
                         }
                 )
+    }
+
+    /** Toggle the menu open/closed in response to the physical gamepad's menu button. */
+    private fun handleGamepadMenuButtonCallback() {
+        if (isAnyMenuActive()) {
+            android.util.Log.d(
+                    "GameActivityViewModel",
+                    "[MENU_BUTTON] Closing ALL menus directly with NavigationController"
+            )
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
+        } else {
+            navigationController?.handleNavigationEvent(
+                    com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu(
+                            inputSource =
+                                    com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                            .PHYSICAL_GAMEPAD
+                    )
+            )
+        }
+    }
+
+    /**
+     * Builds a menu-navigate callback for [direction]; the four `menuNavigateXCallback` fields
+     * used to carry four verbatim copies of this same dispatch with only the direction changed.
+     */
+    private fun menuNavigateCallback(
+            direction: com.vinaooo.revenger.ui.retromenu3.navigation.Direction
+    ): () -> Unit = {
+        navigationController?.handleNavigationEvent(
+                com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.Navigate(
+                        direction = direction,
+                        inputSource =
+                                com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+                                        .PHYSICAL_GAMEPAD
+                )
+        )
     }
 
     /** Create an instance of the RetroMenu3 overlay (activated by SELECT+START) */
