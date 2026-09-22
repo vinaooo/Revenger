@@ -735,4 +735,53 @@ class ControllerInput_test {
 
         verify(exactly = 0) { glRetroView.sendMotionEvent(any(), any(), any(), any()) }
     }
+
+    @Test
+    fun `processMotionEvent returns null when the frame has not rendered yet`() {
+        val controllerInput = newControllerInput()
+        val (retroView, _) = mockRetroView(frameRendered = false)
+        val event = mockk<MotionEvent>(relaxed = true)
+
+        assertEquals(null, controllerInput.processMotionEvent(event, retroView))
+    }
+
+    @Test
+    fun `processMotionEvent sends DPAD and both analog sticks to the core when not blocked and interception is disabled`() {
+        val controllerInput = newControllerInput()
+        controllerInput.shouldInterceptDpadForMenu = { false }
+        controllerInput.shouldBlockAllGamepadInput = { false }
+        val (retroView, glRetroView) = mockRetroView()
+        val event = mockk<MotionEvent>(relaxed = true)
+        every { event.getAxisValue(MotionEvent.AXIS_HAT_X) } returns 0.2f
+        every { event.getAxisValue(MotionEvent.AXIS_HAT_Y) } returns 0.3f
+        every { event.getAxisValue(MotionEvent.AXIS_X) } returns 0.4f
+        every { event.getAxisValue(MotionEvent.AXIS_Y) } returns 0.5f
+        every { event.getAxisValue(MotionEvent.AXIS_Z) } returns 0.6f
+        every { event.getAxisValue(MotionEvent.AXIS_RZ) } returns 0.7f
+
+        assertTrue(controllerInput.processMotionEvent(event, retroView) == true)
+
+        verify(exactly = 1) {
+            glRetroView.sendMotionEvent(GLRetroView.MOTION_SOURCE_DPAD, 0.2f, 0.3f, any())
+        }
+        verify(exactly = 1) {
+            glRetroView.sendMotionEvent(GLRetroView.MOTION_SOURCE_ANALOG_LEFT, 0.4f, 0.5f, any())
+        }
+        verify(exactly = 1) {
+            glRetroView.sendMotionEvent(GLRetroView.MOTION_SOURCE_ANALOG_RIGHT, 0.6f, 0.7f, any())
+        }
+    }
+
+    @Test
+    fun `processMotionEvent does not send anything to the core while gamepad input is blocked`() {
+        val controllerInput = newControllerInput()
+        controllerInput.shouldInterceptDpadForMenu = { false }
+        controllerInput.shouldBlockAllGamepadInput = { true }
+        val (retroView, glRetroView) = mockRetroView()
+        val event = mockk<MotionEvent>(relaxed = true)
+
+        assertTrue(controllerInput.processMotionEvent(event, retroView) == true)
+
+        verify(exactly = 0) { glRetroView.sendMotionEvent(any(), any(), any(), any()) }
+    }
 }
