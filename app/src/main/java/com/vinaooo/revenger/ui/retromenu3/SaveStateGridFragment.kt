@@ -35,9 +35,12 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     protected lateinit var saveStateManager: SaveStateManager
 
     // Grid navigation state
-    protected var selectedRow = 0
-    protected var selectedCol = 0
-    protected var isBackButtonSelected = false
+    protected val gridSelectionState = GridSelectionState(GRID_ROWS, GRID_COLS)
+
+    /** Read-only compat accessor: preserves the previous field name for subclasses that only
+     * ever read it (e.g. [ExitSaveGridFragment]'s `onSelectionChanged` override). */
+    protected val isBackButtonSelected: Boolean
+        get() = gridSelectionState.isBackButtonSelected
 
     // Views
     protected lateinit var gridContainer: ViewGroup
@@ -91,9 +94,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         saveStateManager = SaveStateManager.getInstance(requireContext())
 
         // Reset grid position to (0, 0) - first slot
-        selectedRow = 0
-        selectedCol = 0
-        isBackButtonSelected = false
+        gridSelectionState.reset()
 
         setupViews(view)
         setupClickListeners()
@@ -104,12 +105,12 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         glowAnimationController.refreshIfLastUsedSlotValid { updateSelectionVisualInternal() }
 
         // Register with NavigationController with reset index
-        viewModel.navigationController?.registerFragment(this, getTotalNavigableItems())
+        viewModel.navigationController?.registerFragment(this, gridSelectionState.totalNavigableItems)
         viewModel.navigationController?.selectItem(0) // Force reset to first item
         Log.d(
                 TAG,
                 "[NAVIGATION] ${this::class.simpleName} registered with " +
-                        "${getTotalNavigableItems()} items, selection reset to 0"
+                        "${gridSelectionState.totalNavigableItems} items, selection reset to 0"
         )
     }
 
@@ -163,7 +164,8 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         // Touch on back button
         backButton.setOnClickListener {
             Log.d(TAG, "[TOUCH] Back button clicked")
-            selectBackButton()
+            gridSelectionState.selectBackButton()
+            updateSelectionVisualInternal()
             it.postDelayed({ onBackConfirmed() }, TOUCH_ACTIVATION_DELAY_MS)
         }
     }
@@ -222,7 +224,8 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         // Touch listener
         slotView.setOnClickListener {
             Log.d(TAG, "[TOUCH] Slot ${slot.slotNumber} clicked (row=$row, col=$col)")
-            selectSlot(row, col)
+            gridSelectionState.selectSlot(row, col)
+            updateSelectionVisualInternal()
             it.postDelayed(
                     {
                         val currentSlot = saveStateManager.getSlot(row * GRID_COLS + col + 1)
@@ -237,64 +240,32 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
     // ========== NAVIGATION ==========
 
-    private fun getTotalNavigableItems(): Int {
-        // 9 slots + 1 back button = 10 items
-        // But we handle 2D navigation internally
-        return GRID_ROWS * GRID_COLS + 1
-    }
-
     override fun performNavigateUp() {
-        if (isBackButtonSelected) {
-            // Move from back button to last row of grid
-            isBackButtonSelected = false
-            selectedRow = GRID_ROWS - 1
-            // Keep same column
-        } else if (selectedRow > 0) {
-            selectedRow--
-        }
+        gridSelectionState.navigateUp()
         // Bounded: don't wrap
         updateSelectionVisualInternal()
     }
 
     override fun performNavigateDown() {
-        if (!isBackButtonSelected) {
-            if (selectedRow < GRID_ROWS - 1) {
-                selectedRow++
-            } else {
-                // Move to back button
-                isBackButtonSelected = true
-            }
-        }
+        gridSelectionState.navigateDown()
         // Bounded: don't wrap when at back button
         updateSelectionVisualInternal()
-    }
-
-    /** Navigate left in the grid */
-    protected fun performNavigateLeft() {
-        if (!isBackButtonSelected && selectedCol > 0) {
-            selectedCol--
-            updateSelectionVisualInternal()
-        }
-    }
-
-    /** Navigate right in the grid */
-    protected fun performNavigateRight() {
-        if (!isBackButtonSelected && selectedCol < GRID_COLS - 1) {
-            selectedCol++
-            updateSelectionVisualInternal()
-        }
     }
 
     // Override onNavigateLeft/Right from MenuFragment interface
     override fun onNavigateLeft(): Boolean {
         Log.d(TAG, "[NAV] ← Navigate Left triggered")
-        performNavigateLeft()
+        if (gridSelectionState.navigateLeft()) {
+            updateSelectionVisualInternal()
+        }
         return true
     }
 
     override fun onNavigateRight(): Boolean {
         Log.d(TAG, "[NAV] → Navigate Right triggered")
-        performNavigateRight()
+        if (gridSelectionState.navigateRight()) {
+            updateSelectionVisualInternal()
+        }
         return true
     }
 
@@ -303,7 +274,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
             Log.d(TAG, "[ACTION] Back button confirmed")
             onBackConfirmed()
         } else {
-            val slotIndex = selectedRow * GRID_COLS + selectedCol
+            val slotIndex = gridSelectionState.row * GRID_COLS + gridSelectionState.col
             val slot = saveStateManager.getSlot(slotIndex + 1)
             Log.d(TAG, "[ACTION] Slot ${slot.slotNumber} confirmed")
             onSlotConfirmed(slot)
@@ -317,24 +288,14 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         return false
     }
 
-    private fun selectSlot(row: Int, col: Int) {
-        isBackButtonSelected = false
-        selectedRow = row
-        selectedCol = col
-        updateSelectionVisualInternal()
-    }
-
-    private fun selectBackButton() {
-        isBackButtonSelected = true
-        updateSelectionVisualInternal()
-    }
-
     // ========== VISUAL UPDATE ==========
 
     override fun updateSelectionVisualInternal() {
         // Flatten the 2D grid position to the single index the shared helper branches on.
         // -1 (an index no slot ever has) means "back button selected, no slot is".
-        val selectedSlotIndex = if (isBackButtonSelected) -1 else selectedRow * GRID_COLS + selectedCol
+        val selectedSlotIndex =
+                if (isBackButtonSelected) -1
+                else gridSelectionState.row * GRID_COLS + gridSelectionState.col
 
         // Update slot selection visuals. The "which slot is selected" branching goes through
         // the shared helper; the border/glow/text-color treatment stays fragment-specific.
@@ -409,22 +370,10 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         // Handled by performConfirm
     }
 
-    override fun getCurrentSelectedIndex(): Int {
-        return if (isBackButtonSelected) {
-            GRID_ROWS * GRID_COLS
-        } else {
-            selectedRow * GRID_COLS + selectedCol
-        }
-    }
+    override fun getCurrentSelectedIndex(): Int = gridSelectionState.currentIndex
 
     override fun setSelectedIndex(index: Int) {
-        if (index >= GRID_ROWS * GRID_COLS) {
-            isBackButtonSelected = true
-        } else {
-            isBackButtonSelected = false
-            selectedRow = index / GRID_COLS
-            selectedCol = index % GRID_COLS
-        }
+        gridSelectionState.setIndex(index)
         updateSelectionVisualInternal()
     }
 

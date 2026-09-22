@@ -59,13 +59,13 @@ class SaveStateGridFragmentTestHost : SaveStateGridFragment() {
         get() = slotViews.size
     fun slotViewAt(index: Int): View = slotViews[index]
     val row: Int
-        get() = selectedRow
+        get() = gridSelectionState.row
     val col: Int
-        get() = selectedCol
+        get() = gridSelectionState.col
     val isBackSelected: Boolean
         get() = isBackButtonSelected
     fun setCol(value: Int) {
-        selectedCol = value
+        gridSelectionState.col = value
     }
     fun triggerRefresh() = refreshGrid()
 
