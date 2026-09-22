@@ -784,4 +784,36 @@ class ControllerInput_test {
 
         verify(exactly = 0) { glRetroView.sendMotionEvent(any(), any(), any(), any()) }
     }
+
+    @Test
+    fun `processKeyEvent returns null for excluded keys instead of dispatching them`() {
+        val controllerInput = newControllerInput()
+        val (retroView, glRetroView) = mockRetroView()
+
+        val result =
+                controllerInput.processKeyEvent(
+                        KeyEvent.KEYCODE_BACK,
+                        KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK),
+                        retroView
+                )
+
+        assertEquals(null, result)
+        verify(exactly = 0) { glRetroView.sendKeyEvent(any(), any(), any()) }
+    }
+
+    @Test
+    fun `processKeyEvent returns true without dispatching when the frame has not rendered yet`() {
+        val controllerInput = newControllerInput()
+        val (retroView, glRetroView) = mockRetroView(frameRendered = false)
+
+        val result =
+                controllerInput.processKeyEvent(
+                        KeyEvent.KEYCODE_BUTTON_A,
+                        KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_A),
+                        retroView
+                )
+
+        assertTrue(result == true)
+        verify(exactly = 0) { glRetroView.sendKeyEvent(any(), any(), any()) }
+    }
 }
