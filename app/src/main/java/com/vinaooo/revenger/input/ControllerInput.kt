@@ -3,7 +3,6 @@ package com.vinaooo.revenger.input
 import android.view.InputEvent
 import android.view.KeyEvent
 import android.view.MotionEvent
-import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.retroview.RetroView
 
 class ControllerInput {
@@ -21,25 +20,9 @@ class ControllerInput {
                                 KeyEvent.KEYCODE_POWER
                         )
 
-                // Fixed threshold values for single-trigger system
-                private const val DPAD_THRESHOLD: Float = 0.1f // Physical DPAD - more responsive
-                private const val LEFT_ANALOG_THRESHOLD: Float = 0.7f // Left analog - less sensitive
-
                 /** Vendor keycode reported by some physical gamepads for their menu/hamburger button */
                 private const val GAMEPAD_MENU_BUTTON_KEYCODE = -6
         }
-
-        // Single trigger system - tracks previous state to detect transitions
-        private data class DirectionalState(
-                var up: Boolean = false,
-                var down: Boolean = false,
-                var left: Boolean = false,
-                var right: Boolean = false
-        )
-
-        // Track state for each input type to implement single-trigger navigation
-        private val dpadState = DirectionalState()
-        private val leftAnalogState = DirectionalState()
 
         /** Keys that have already triggered an action and should remain blocked until they receive ACTION_UP */
         private val blockedUntilKeyUp = mutableSetOf<Int>()
@@ -64,6 +47,12 @@ class ControllerInput {
          * the same reason as [comboTracker].
          */
         val callbackDebouncer = MenuCallbackDebouncer { callbacks }
+
+        /**
+         * DPAD/left-analog single-trigger menu navigation and pass-through to the core for
+         * `processMotionEvent`, extracted for the same reason as [comboTracker].
+         */
+        private val motionEventRouter = MotionEventRouter({ callbacks }, callbackDebouncer)
 
         /** The callback for when the user inputs the SELECT+START combo (RetroMenu3) */
         var selectStartComboCallback: () -> Unit
@@ -166,40 +155,6 @@ class ControllerInput {
         var isMenuOperationSafe: () -> Boolean
                 get() = callbacks.isMenuOperationSafe
                 set(value) { callbacks = callbacks.copy(isMenuOperationSafe = value) }
-
-        /**
-         * Check for single-trigger directional input
-         * Returns the keycode if there's a NEW press (transition from false to true)
-         * Returns null if no new input or input is being held
-         */
-        private fun checkSingleTrigger(
-                currentUp: Boolean,
-                currentDown: Boolean,
-                currentLeft: Boolean = false,
-                currentRight: Boolean = false,
-                previousState: DirectionalState
-        ): Int? {
-                var triggeredKeyCode: Int? = null
-
-                // Check transitions (false -> true)
-                if (currentUp && !previousState.up) {
-                        triggeredKeyCode = KeyEvent.KEYCODE_DPAD_UP
-                } else if (currentDown && !previousState.down) {
-                        triggeredKeyCode = KeyEvent.KEYCODE_DPAD_DOWN
-                } else if (currentLeft && !previousState.left) {
-                        triggeredKeyCode = KeyEvent.KEYCODE_DPAD_LEFT
-                } else if (currentRight && !previousState.right) {
-                        triggeredKeyCode = KeyEvent.KEYCODE_DPAD_RIGHT
-                }
-
-                // Update previous state
-                previousState.up = currentUp
-                previousState.down = currentDown
-                previousState.left = currentLeft
-                previousState.right = currentRight
-
-                return triggeredKeyCode
-        }
 
         /** Controller numbers are [1, inf), we need [0, inf) */
         private fun getPort(event: InputEvent): Int =
@@ -510,134 +465,6 @@ class ControllerInput {
                 return true
         }
 
-        fun processMotionEvent(event: MotionEvent, retroView: RetroView): Boolean? {
-                /* We're not ready yet! */
-                if (retroView.frameRendered.value == false) return null
-
-                // COMPLETELY BLOCK all controls when RetroMenu3 is open
-                // (Handled at the end of this function to ensure all events update single-trigger state first)
-                val shouldBlock = shouldBlockAllGamepadInput()
-                android.util.Log.d("ControllerInput", "🎮 processMotionEvent: shouldBlockAllGamepadInput() = $shouldBlock")
-
-                // INTERCEPT DPAD and Left Analog for menu navigation when RetroMenu3 is open
-                if (shouldInterceptDpadForMenu()) {
-                        android.util.Log.d("ControllerInput", "[INTERCEPT] 🎮 ========== DPAD/ANALOG INTERCEPTION START ==========")
-                        android.util.Log.d("ControllerInput", "[INTERCEPT] 📊 shouldInterceptDpadForMenu=${shouldInterceptDpadForMenu()}")
-
-                        val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
-                        val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
-                        val axisX = event.getAxisValue(MotionEvent.AXIS_X)
-                        val axisY = event.getAxisValue(MotionEvent.AXIS_Y)
-
-                        android.util.Log.d("ControllerInput", "[INTERCEPT] 📊 MotionEvent values:")
-                        android.util.Log.d("ControllerInput", "[INTERCEPT]   🎯 hatX=$hatX, hatY=$hatY")
-                        android.util.Log.d("ControllerInput", "[INTERCEPT]   🎯 axisX=$axisX, axisY=$axisY")
-
-                        // Check D-PAD transitions
-                        val dpadTrigger = checkSingleTrigger(
-                                currentUp = hatY < -DPAD_THRESHOLD,
-                                currentDown = hatY > DPAD_THRESHOLD,
-                                currentLeft = hatX < -DPAD_THRESHOLD,
-                                currentRight = hatX > DPAD_THRESHOLD,
-                                previousState = dpadState
-                        )
-
-                        // Check Left Analog transitions
-                        val analogTrigger = checkSingleTrigger(
-                                currentUp = axisY < -LEFT_ANALOG_THRESHOLD,
-                                currentDown = axisY > LEFT_ANALOG_THRESHOLD,
-                                currentLeft = axisX < -LEFT_ANALOG_THRESHOLD,
-                                currentRight = axisX > LEFT_ANALOG_THRESHOLD,
-                                previousState = leftAnalogState
-                        )
-
-                        // Use DPAD trigger if available, otherwise Analog
-                        val trigger = dpadTrigger ?: analogTrigger
-
-                        when (trigger) {
-                                KeyEvent.KEYCODE_DPAD_UP -> { // UP
-                                        android.util.Log.d("ControllerInput", "[INTERCEPT] ⬆️ UP detected - calling menuNavigateUpCallback")
-                                        callbackDebouncer.executeMenuCallback(
-                                                menuNavigateUpCallback,
-                                                callbackDebouncer.lastMenuNavigateUpCallbackTime
-                                        ) { callbackDebouncer.lastMenuNavigateUpCallbackTime = it }
-                                        android.util.Log.d("ControllerInput", "[INTERCEPT] ✅ UP callback completed - returning true")
-                                        return true
-                                }
-                                KeyEvent.KEYCODE_DPAD_DOWN -> { // DOWN
-                                        android.util.Log.d("ControllerInput", "[INTERCEPT] ⬇️ DOWN detected - calling menuNavigateDownCallback")
-                                        callbackDebouncer.executeMenuCallback(
-                                                menuNavigateDownCallback,
-                                                callbackDebouncer.lastMenuNavigateDownCallbackTime
-                                        ) { callbackDebouncer.lastMenuNavigateDownCallbackTime = it }
-                                        android.util.Log.d("ControllerInput", "[INTERCEPT] ✅ DOWN callback completed - returning true")
-                                        return true
-                                }
-                                KeyEvent.KEYCODE_DPAD_LEFT -> { // LEFT
-                                        android.util.Log.d("ControllerInput", "[INTERCEPT] ⬅️ LEFT detected - calling menuNavigateLeftCallback")
-                                        callbackDebouncer.executeMenuCallback(
-                                                menuNavigateLeftCallback,
-                                                callbackDebouncer.lastMenuNavigateLeftCallbackTime
-                                        ) { callbackDebouncer.lastMenuNavigateLeftCallbackTime = it }
-                                        android.util.Log.d("ControllerInput", "[INTERCEPT] ✅ LEFT callback completed - returning true")
-                                        return true
-                                }
-                                KeyEvent.KEYCODE_DPAD_RIGHT -> { // RIGHT
-                                        android.util.Log.d("ControllerInput", "[INTERCEPT] ➡️ RIGHT detected - calling menuNavigateRightCallback")
-                                        callbackDebouncer.executeMenuCallback(
-                                                menuNavigateRightCallback,
-                                                callbackDebouncer.lastMenuNavigateRightCallbackTime
-                                        ) { callbackDebouncer.lastMenuNavigateRightCallbackTime = it }
-                                        android.util.Log.d("ControllerInput", "[INTERCEPT] ✅ RIGHT callback completed - returning true")
-                                        return true
-                                }
-                                else -> {
-                                        // Return true if any supported axis is out of deadzone but
-                                        // not triggering a new event
-                                        val anySupportedAxisOutOfDeadzone =
-                                                Math.abs(hatX) > DPAD_THRESHOLD ||
-                                                        Math.abs(hatY) > DPAD_THRESHOLD ||
-                                                        Math.abs(axisX) > LEFT_ANALOG_THRESHOLD ||
-                                                        Math.abs(axisY) > LEFT_ANALOG_THRESHOLD
-
-                                        if (anySupportedAxisOutOfDeadzone) {
-                                                return true
-                                        }
-                                }
-                        }
-                } else {
-                        android.util.Log.d(
-                                "ControllerInput",
-                                "[INTERCEPT] 🚫 DPAD interception disabled - " +
-                                        "shouldInterceptDpadForMenu=${shouldInterceptDpadForMenu()}"
-                        )
-                }
-
-                // Send motion events to game ONLY if not blocked
-                if (!shouldBlock) {
-                        val port = getPort(event)
-                        retroView.view.apply {
-                                sendMotionEvent(
-                                        GLRetroView.MOTION_SOURCE_DPAD,
-                                        event.getAxisValue(MotionEvent.AXIS_HAT_X),
-                                        event.getAxisValue(MotionEvent.AXIS_HAT_Y),
-                                        port
-                                )
-                                sendMotionEvent(
-                                        GLRetroView.MOTION_SOURCE_ANALOG_LEFT,
-                                        event.getAxisValue(MotionEvent.AXIS_X),
-                                        event.getAxisValue(MotionEvent.AXIS_Y),
-                                        port
-                                )
-                                sendMotionEvent(
-                                        GLRetroView.MOTION_SOURCE_ANALOG_RIGHT,
-                                        event.getAxisValue(MotionEvent.AXIS_Z),
-                                        event.getAxisValue(MotionEvent.AXIS_RZ),
-                                        port
-                                )
-                        }
-                }
-
-                return true
-        }
+        fun processMotionEvent(event: MotionEvent, retroView: RetroView): Boolean? =
+                motionEventRouter.process(event, retroView)
 }
