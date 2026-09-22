@@ -3,9 +3,6 @@ package com.vinaooo.revenger.views
 import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.IntentFilter
-import android.app.PendingIntent
-import android.app.RemoteAction
-import android.graphics.drawable.Icon
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
 import com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
 import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
@@ -24,14 +21,12 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
-import com.swordfish.libretrodroid.GLRetroView
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.controllers.FloatingMenuButtonController
+import com.vinaooo.revenger.controllers.PipController
+import com.vinaooo.revenger.controllers.PipHost
+import com.vinaooo.revenger.controllers.PipViews
 import com.vinaooo.revenger.gamepad.GamePadAlignmentManager
 import com.vinaooo.revenger.gamepad.GamePadLayoutAdjuster
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
@@ -42,13 +37,10 @@ import com.vinaooo.revenger.viewmodels.FloatingButtonVisibilityHost
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /** Main game activity for the emulator Phase 9.4: Enhanced with SDK 36 features */
-class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
+class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
 
         companion object {
                 private const val TAG = "GameActivity"
-                private const val ACTION_PIP_QUICK_SAVE = "com.vinaooo.revenger.PIP_QUICK_SAVE"
-                private const val ACTION_PIP_SAVE = "com.vinaooo.revenger.PIP_SAVE"
-                private const val PIP_QUICK_SAVE_FRAME_TIMEOUT_MS = 2000L
 
                 // Rotation menu-recreation chain delays: staggered so each step only runs once the
                 // system/fragment-manager work the previous step kicked off has had time to settle.
@@ -58,44 +50,6 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 private const val ROTATION_SUBMENU_BASE_SETTLE_DELAY_MS = 150L
                 private const val ROTATION_SUBMENU_REGISTER_DELAY_MS = 100L
                 private const val ROTATION_SUBMENU_FOCUS_RESTORE_DELAY_MS = 600L
-        }
-        private val pipBroadcastReceiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent?) {
-                        when (intent?.action) {
-                                ACTION_PIP_QUICK_SAVE -> {
-                                        // serializeState() would deadlock while in PiP (paused GL
-                                        // thread). Leave PiP now and finish the save in
-                                        // performPendingPipQuickSave() once resumed.
-                                        pendingPipQuickSave = true
-                                        startActivity(
-                                                Intent(this@GameActivity, GameActivity::class.java).apply {
-                                                        flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                                                }
-                                        )
-                                }
-                                ACTION_PIP_SAVE -> {
-                                        val bitmap = com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getPipFrame()
-                                        if (bitmap != null) {
-                                                val config = bitmap.config ?: android.graphics.Bitmap.Config.ARGB_8888
-                                                val bitmapCopy = bitmap.copy(config, true)
-                                                com.vinaooo.revenger.utils.ScreenshotCaptureUtil
-                                                        .setManualScreenshots(bitmapCopy, bitmapCopy)
-                                                viewModel.suppressNextScreenshotCapture = true
-                                        }
-
-                                        // Open the save menu only AFTER we have fully left PiP —
-                                        // onExitedPictureInPicture() forces frameSpeed = 1, so opening
-                                        // (and pausing) the menu before that leaves the game running
-                                        // behind it. See onPictureInPictureModeChanged().
-                                        pendingPipSaveMenu = true
-                                        startActivity(
-                                                Intent(this@GameActivity, GameActivity::class.java).apply {
-                                                        flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                                                }
-                                        )
-                                }
-                        }
-                }
         }
         private lateinit var leftContainer: FrameLayout
         private lateinit var rightContainer: FrameLayout
@@ -121,16 +75,10 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                         viewModel
                 )
         }
-        private var isPipEntryRequested = false
 
-        // Set when the user taps "Quick Save" in the PiP window. serializeState() cannot run while
-        // in PiP (libretrodroid's GL thread is paused and runOnGLThread would block forever), so we
-        // leave PiP first and finish the save once the activity is resumed and a frame has rendered.
-        private var pendingPipQuickSave = false
-
-        // Set when the user taps "Save and Exit" in the PiP window — the save-slots menu is opened
-        // after PiP has fully exited so the menu's pause is not undone by onExitedPictureInPicture().
-        private var pendingPipSaveMenu = false
+        // Owns Picture-in-Picture orchestration (entering/exiting, the PiP overlay still-frame,
+        // the Quick Save / Save and Exit PiP actions). See PipController's KDoc.
+        private lateinit var pipController: PipController
 
         // Performance monitoring
         private var frameStartTime = 0L
@@ -227,6 +175,18 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 menuContainer = findViewById(R.id.menu_container)
                 loadPreviewOverlay = findViewById(R.id.load_preview_overlay)
                 pipOverlay = findViewById(R.id.pip_overlay)
+                pipController = PipController(
+                        host = this,
+                        viewModel = viewModel,
+                        appConfig = appConfig,
+                        views = PipViews(
+                                retroviewContainer = retroviewContainer,
+                                pipOverlay = pipOverlay,
+                                menuContainer = menuContainer,
+                                leftContainer = leftContainer,
+                                rightContainer = rightContainer
+                        )
+                )
 
                 // Setup load preview overlay callback
                 viewModel.loadPreviewCallback = { bitmap ->
@@ -281,8 +241,8 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                         // so a Home gesture never has to do that work mid-gesture.
                         retroView.frameRendered.observe(this) { rendered ->
                                 if (rendered == true) {
-                                        maybeCapturePipFrame(force = true)
-                                        updatePictureInPictureParams()
+                                        pipController.maybeCapturePipFrame(force = true)
+                                        pipController.updatePictureInPictureParams()
                                 }
                         }
                 }
@@ -441,7 +401,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
 
                 // Aspect ratio / source rect for PiP change with orientation — keep params current.
                 if (!isInPictureInPictureMode) {
-                        updatePictureInPictureParams()
+                        pipController.updatePictureInPictureParams()
                 }
 
                 // CRITICAL FIX: Re-register menu callbacks after rotation to prevent back button
@@ -1088,16 +1048,8 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                         }
                 }
 
-                // pipBroadcastReceiver is only unregistered on the "exited PiP" branch of
-                // onPictureInPictureModeChanged; if the Activity is destroyed while still in
-                // PiP (task swiped away, killed for memory, etc.) that branch never runs, so
-                // unregister it here too. unregisterReceiver() throws IllegalArgumentException
-                // if it was never registered (never entered PiP) -- catch that expected case.
-                try {
-                        unregisterReceiver(pipBroadcastReceiver)
-                } catch (ignoredNeverRegisteredForPip: IllegalArgumentException) {
-                        // Never entered PiP this session, or already unregistered -- expected.
-                }
+                // PiP's own broadcast receiver and overlay teardown -- see PipController.dispose().
+                pipController.dispose()
 
                 floatingMenuButtonController.dispose()
 
@@ -1110,437 +1062,39 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 // Clean up view model
                 viewModel.dispose()
                 viewModel.detachRetroView(this)
-                clearPipOverlaySnapshot()
                 ScreenshotCaptureUtil.clearPipFrame()
                 if (::audioRoutingManager.isInitialized) audioRoutingManager.abandonFocus()
                 super.onDestroy()
         }
 
         override fun onPause() {
-                // Last chance to grab a game frame while the GL surface is still valid — the PiP
-                // window relies entirely on this bitmap (the surface goes black during the
-                // transition). No-op before the first rendered frame or when PiP is disabled.
-                maybeCapturePipFrame(force = true)
+                pipController.onActivityPaused()
                 viewModel.preserveState()
                 super.onPause()
-        }
-
-        /**
-         * Refresh [ScreenshotCaptureUtil.getPipFrame] from the live GL surface. Throttled unless
-         * [force]. Called on user input while playing and right before leaving the app, so the PiP
-         * overlay always has a recent frame to show.
-         */
-        private fun maybeCapturePipFrame(force: Boolean = false) {
-                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return
-                if (!appConfig.isPipEnabled()) return
-                if (isInPictureInPictureMode) return
-                if (viewModel.retroView?.frameRendered?.value != true) return
-                val glRetroView = viewModel.retroView?.view ?: return
-                ScreenshotCaptureUtil.capturePipFrame(glRetroView, force = force)
         }
 
         override fun onResume() {
                 super.onResume()
                 frameStartTime = System.nanoTime()
-
-                // Cleanup estrito do PiP quando a Activity retorna à tela cheia
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                        try {
-                                // isInPictureInPictureMode, pipOverlay.visibility and
-                                // clearPipOverlaySnapshot() document no throwable condition, so
-                                // there is no narrower reachable type; kept as a defensive net.
-                                if (!isInPictureInPictureMode && pipOverlay.visibility == android.view.View.VISIBLE) {
-                                        Log.d(TAG, "[PIP] Cleaning stuck PiP overlay in onResume")
-                                        clearPipOverlaySnapshot()
-                                }
-                        } catch (expectedUnreachable: Exception) {
-                                Log.e(TAG, "[PIP] Error checking PiP state in onResume", expectedUnreachable)
-                        }
-
-                        // Keep PiP params (aspect ratio, actions, auto-enter) current so a Home
-                        // gesture doesn't have to arm them during the same gesture it triggers.
-                        updatePictureInPictureParams()
-
-                        // Finish a Quick Save that was requested from the PiP window.
-                        performPendingPipQuickSaveIfNeeded()
-                }
+                pipController.onActivityResumed()
         }
 
         override fun onUserLeaveHint() {
                 super.onUserLeaveHint()
-
-                val hasRenderedFirstFrame = viewModel.retroView?.frameRendered?.value == true
-                if (!hasRenderedFirstFrame) {
-                        Log.d(TAG, "[PIP] Ignoring PiP request before first frame render")
-                        return
-                }
-
-                if (!appConfig.isPipEnabled() || android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
-                        return
-                }
-
-                // Grab a frame now, while the GL surface is guaranteed valid and on-screen.
-                maybeCapturePipFrame(force = true)
-
-                if (viewModel.isAnyMenuActive()) {
-                        Log.d(TAG, "[PIP] Closing active menu before entering PiP")
-                        isPipEntryRequested = true
-                        viewModel.dismissRetroMenu3 {
-                                maybeEnterPictureInPictureAfterMenuClosed()
-                        }
-                        return
-                }
-
-                maybeEnterPictureInPictureAfterMenuClosed()
+                pipController.onUserLeaveHint()
         }
 
-        private fun maybeEnterPictureInPictureAfterMenuClosed() {
-                val hasRenderedFirstFrame = viewModel.retroView?.frameRendered?.value == true
-                if (!hasRenderedFirstFrame) {
-                        Log.d(TAG, "[PIP] Abort PiP transition: first frame not rendered yet")
-                        isPipEntryRequested = false
-                        return
-                }
-
-                if (!appConfig.isPipEnabled() || android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
-                        isPipEntryRequested = false
-                        return
-                }
-
-                if (viewModel.isAnyMenuActive()) {
-                        return
-                }
-
-                isPipEntryRequested = false
-
-                try {
-                        // Make sure we have the freshest possible frame, then paint the overlay
-                        // BEFORE the transition so the OS composites the still image, not black.
-                        maybeCapturePipFrame(force = true)
-                        showPipOverlaySnapshotIfAvailable()
-
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                                if (::gameLifecycleObserver.isInitialized) {
-                                        gameLifecycleObserver.prepareForPipTransition()
-                                }
-                                updatePictureInPictureParams()
-                                return
-                        }
-
-                        if (::gameLifecycleObserver.isInitialized) {
-                                gameLifecycleObserver.prepareForPipTransition()
-                        }
-
-                        val entered = enterPictureInPictureMode(getPipParamsBuilder().build())
-                        if (!entered) {
-                                Log.w(TAG, "[PIP] OS rejected Picture-in-Picture request")
-                                clearPipOverlaySnapshot()
-                                if (::gameLifecycleObserver.isInitialized) {
-                                        gameLifecycleObserver.clearPendingPipTransition()
-                                }
-                        }
-                        // This block also fans through maybeCapturePipFrame() and
-                        // showPipOverlaySnapshotIfAvailable() -> PipSnapshotSelector.select(),
-                        // whose fallback suppliers (bitmap decode, GL surface capture) are not
-                        // fully enumerable even after narrowing their own internal catches in this
-                        // same change; kept broad as the last line of defense before a PiP-entry
-                        // failure would otherwise crash the Activity.
-                } catch (expectedPipEntryFailure: Exception) {
-                        Log.e(TAG, "[PIP] Failed to enter Picture-in-Picture mode", expectedPipEntryFailure)
-                        clearPipOverlaySnapshot()
-                        if (::gameLifecycleObserver.isInitialized) {
-                                gameLifecycleObserver.clearPendingPipTransition()
-                        }
-                }
-        }
-
-        /**
-         * Paint [pipOverlay] with the best game frame available and make it visible. The GL surface
-         * is unreliable during and after the PiP resize, so this ImageView is the actual source of
-         * the "paused game" picture in the PiP window. Falls back through progressively older
-         * sources; only leaves the overlay hidden if nothing at all is available.
-         */
-        private fun showPipOverlaySnapshotIfAvailable() {
-                val snapshot = com.vinaooo.revenger.utils.PipSnapshotSelector.select(
-                        { ScreenshotCaptureUtil.getPipFrame() },
-                        { ScreenshotCaptureUtil.getCachedFullScreenshot() },
-                        { ScreenshotCaptureUtil.getCachedScreenshot() },
-                        { lastSlotScreenshotOrNull() }
-                )
-                if (snapshot != null) {
-                        pipOverlay.setImageBitmap(snapshot)
-                        pipOverlay.visibility = android.view.View.VISIBLE
-                        Log.d(TAG, "[PIP] PiP overlay snapshot displayed")
-                } else {
-                        Log.w(TAG, "[PIP] No snapshot available for PiP overlay")
-                }
-        }
-
-        /** Decode the most recently used save slot's thumbnail as a last-resort PiP still. */
-        private fun lastSlotScreenshotOrNull(): android.graphics.Bitmap? {
-                return try {
-                        val slot = com.vinaooo.revenger.managers.SessionSlotTracker.getInstance().getLastUsedSlot() ?: 1
-                        val file = com.vinaooo.revenger.managers.SaveStateManager
-                                .getInstance(applicationContext)
-                                .getSlot(slot)
-                                .screenshotFile
-                                ?: return null
-                        android.graphics.BitmapFactory.decodeFile(file.absolutePath)
-                        // decodeFile() itself never throws (it returns null on a bad image).
-                        // getSlot()'s require(slotNumber in 1..9) can't fail here either:
-                        // SessionSlotTracker.getLastUsedSlot() is only ever set by recordSave()/
-                        // recordLoad(), which both validate the same range before storing, and the
-                        // value is in-memory only (never persisted/corrupted); the `?: 1` fallback
-                        // is in range too. The one reachable failure left in this chain is File I/O
-                        // access being denied by the platform. This helper is called both from a
-                        // path already wrapped in a broad net (maybeEnterPictureInPictureAfterMenuClosed)
-                        // and from onPictureInPictureModeChanged, which has no enclosing try -- so
-                        // this catch is this chain's only safety net for that second call site.
-                } catch (e: SecurityException) {
-                        Log.w(TAG, "[PIP] Could not decode last-slot screenshot", e)
-                        null
-                }
-        }
-
-        private fun clearPipOverlaySnapshot() {
-                pipOverlay.visibility = android.view.View.GONE
-                pipOverlay.setImageDrawable(null)
-        }
-
-        /**
-         * Complete a Quick Save requested from the PiP window. Runs after the activity is back in
-         * the foreground (PiP handler brought it forward), waiting for one rendered frame so the GL
-         * thread is running again before [GLRetroView.serializeState] — which would deadlock while
-         * the GL thread is paused in PiP.
-         */
-        private fun performPendingPipQuickSaveIfNeeded() {
-                if (!pendingPipQuickSave) return
-                pendingPipQuickSave = false
-
-                val retroView = viewModel.retroView
-                if (retroView == null) {
-                        finishAndRemoveTask()
-                        return
-                }
-
-                lifecycleScope.launch {
-                        // Wait (bounded) until the emulator has stepped at least once post-resume.
-                        // serializeState() runs on the GL thread via a no-timeout latch, so if the
-                        // emulator never resumes we must NOT call it — abort the save instead of
-                        // hanging the app forever.
-                        val emulatorResumed = withTimeoutOrNull(PIP_QUICK_SAVE_FRAME_TIMEOUT_MS) {
-                                retroView.view.getGLRetroEvents()
-                                        .first { it == GLRetroView.GLRetroEvents.FrameRendered }
-                                true
-                        } == true
-
-                        if (!emulatorResumed) {
-                                Log.w(TAG, "[PIP] Quick save aborted: emulator did not resume in time")
-                                finishAndRemoveTask()
-                                return@launch
-                        }
-
-                        Thread {
-                                try {
-                                        val tracker = com.vinaooo.revenger.managers.SessionSlotTracker.getInstance()
-                                        val slotNumber = tracker.getLastUsedSlot() ?: 1
-                                        val stateBytes = retroView.view.serializeState()
-                                        val screenshot = ScreenshotCaptureUtil.getPipFrame()
-                                        val saveManager =
-                                                com.vinaooo.revenger.managers.SaveStateManager
-                                                        .getInstance(applicationContext)
-                                        val slotData = saveManager.getSlot(slotNumber)
-                                        saveManager.saveToSlot(
-                                                slotNumber = slotNumber,
-                                                payload = com.vinaooo.revenger.models.SaveSlotPayload(
-                                                        stateBytes = stateBytes,
-                                                        screenshot = screenshot,
-                                                        preview = screenshot,
-                                                        name = if (slotData.isEmpty) "Slot $slotNumber" else slotData.name,
-                                                        romName = getString(R.string.name)
-                                                )
-                                        )
-                                        tracker.recordSave(slotNumber)
-                                        Log.d(TAG, "[PIP] Quick save written to slot $slotNumber")
-                                        // serializeState() runs on LibretroDroid's GL thread via a blocking
-                                        // CountDownLatch; a failure inside the native call there deadlocks the
-                                        // latch rather than propagating an exception back to this thread, and
-                                        // the only checked failure mode reaching here (the library unboxing a
-                                        // null native result) surfaces as a plain NullPointerException, which
-                                        // this project's detekt config still treats as "too generic" -- so
-                                        // there is no narrower reachable type to catch. Kept as a safety net
-                                        // via detekt's documented escape hatch instead of @Suppress.
-                                } catch (expectedNativeCallFailure: Exception) {
-                                        Log.e(TAG, "[PIP] Quick save failed", expectedNativeCallFailure)
-                                } finally {
-                                        runOnUiThread { finishAndRemoveTask() }
-                                }
-                        }.start()
-                }
-        }
-        
-        @android.annotation.TargetApi(android.os.Build.VERSION_CODES.O)
-        private fun getPipParamsBuilder(): android.app.PictureInPictureParams.Builder {
-                val builder = android.app.PictureInPictureParams.Builder()
-                
-                // Otimizar a janela PIP para usar a exata proporção da plataforma
-                val platformId = appConfig.getPlatformId()
-                val pipProfile = com.vinaooo.revenger.repositories.PipConfigRepository.getProfile(platformId)
-                
-                val resolvedRatio = com.vinaooo.revenger.utils.PipAspectRatioResolver.resolve(
-                        pipProfile.ratioW, pipProfile.ratioH, retroviewContainer.width, retroviewContainer.height
-                )
-                if (resolvedRatio != null) {
-                        builder.setAspectRatio(resolvedRatio)
-                }
-
-                // Source rect hint: where the PiP window animates from/to. Without it the
-                // enter/exit animation cross-fades from a wrong rectangle and reads as a black flash.
-                val sourceRect = android.graphics.Rect()
-                if (retroviewContainer.getGlobalVisibleRect(sourceRect) && !sourceRect.isEmpty) {
-                        builder.setSourceRectHint(sourceRect)
-                }
-
-                // Adicionar botões (RemoteActions) ao PiP
-                val quickSaveIntent = PendingIntent.getBroadcast(
-                        this@GameActivity, 0, Intent(ACTION_PIP_QUICK_SAVE).apply { setPackage(packageName) },
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                val quickSaveAction = RemoteAction(
-                        Icon.createWithResource(this@GameActivity, R.drawable.ic_save_24),
-                        "Quick Save",
-                        "Quick Save",
-                        quickSaveIntent
-                )
-
-                val saveIntent = PendingIntent.getBroadcast(
-                        this@GameActivity, 1, Intent(ACTION_PIP_SAVE).apply { setPackage(packageName) },
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                val saveAction = RemoteAction(
-                        Icon.createWithResource(this@GameActivity, R.drawable.ic_empty_slot),
-                        "Save and Exit",
-                        "Save and Exit",
-                        saveIntent
-                )
-                
-                builder.setActions(listOf(quickSaveAction, saveAction))
-                return builder
-        }
-
-        @android.annotation.TargetApi(android.os.Build.VERSION_CODES.O)
-        private fun updatePictureInPictureParams() {
-                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return
-                try {
-                        val hasRenderedFirstFrame = viewModel.retroView?.frameRendered?.value == true
-                        if (!hasRenderedFirstFrame) {
-                                Log.d(TAG, "[PIP] Skipping PiP params update before first frame render")
-                                return
-                        }
-
-                        val builder = getPipParamsBuilder()
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                                // Only auto-enter PiP on Home when the feature is actually enabled.
-                                builder.setAutoEnterEnabled(appConfig.isPipEnabled())
-                        }
-                        // setPictureInPictureParams() documents IllegalArgumentException (invalid
-                        // aspect ratio) and IllegalStateException (activity not visible/eligible)
-                        // as its reachable failures; getPipParamsBuilder()'s own collaborators
-                        // (PipConfigRepository, PipAspectRatioResolver) don't throw.
-                        setPictureInPictureParams(builder.build())
-                } catch (e: IllegalArgumentException) {
-                        Log.e(TAG, "[PIP] Failed to update Picture-in-Picture params", e)
-                } catch (e: IllegalStateException) {
-                        Log.e(TAG, "[PIP] Failed to update Picture-in-Picture params", e)
-                }
-        }
-
-        private var wasGamepadVisibleBeforePip = false
-        
         override fun onPictureInPictureModeChanged(
                 isInPictureInPictureMode: Boolean,
                 newConfig: android.content.res.Configuration
         ) {
                 super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-                
-                val containers = findViewById<android.view.View>(R.id.containers)
-                val floatingBtn = findViewById<android.view.View>(R.id.floating_menu_button)
-                
-                if (isInPictureInPictureMode) {
-                        showPipOverlaySnapshotIfAvailable()
-
-                        if (::gameLifecycleObserver.isInitialized) {
-                                gameLifecycleObserver.onEnteredPictureInPicture()
-                        }
-
-                        // Registrar receiver de botoes do PiP
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                                registerReceiver(pipBroadcastReceiver, IntentFilter().apply {
-                                        addAction(ACTION_PIP_QUICK_SAVE)
-                                        addAction(ACTION_PIP_SAVE)
-                                }, Context.RECEIVER_NOT_EXPORTED)
-                        } else {
-                                registerReceiver(pipBroadcastReceiver, IntentFilter().apply {
-                                        addAction(ACTION_PIP_QUICK_SAVE)
-                                        addAction(ACTION_PIP_SAVE)
-                                })
-                        }
-                        
-                        // Memorizar se o gamepad estava visível e escondê-lo para o PiP
-                        wasGamepadVisibleBeforePip = (containers?.visibility == android.view.View.VISIBLE)
-                        if (wasGamepadVisibleBeforePip) {
-                                // Invisível para que as dimensões não quebrem
-                                containers?.visibility = android.view.View.INVISIBLE
-                        }
-                        
-                        floatingBtn?.visibility = android.view.View.GONE
-                        menuContainer.visibility = android.view.View.GONE
-                } else {
-                        if (::gameLifecycleObserver.isInitialized) {
-                                gameLifecycleObserver.onExitedPictureInPicture()
-                        }
-
-                        // Desregistrar receiver. unregisterReceiver() throws
-                        // IllegalArgumentException if it was never registered.
-                        try {
-                                unregisterReceiver(pipBroadcastReceiver)
-                        } catch (e: IllegalArgumentException) {
-                                Log.e(TAG, "Error unregistering pip receiver", e)
-                        }
-                        
-                        // Limpar overlay de imagem
-                        clearPipOverlaySnapshot()
-                        
-                        // Retornar os itens se estavam visíveis antes
-                        if (wasGamepadVisibleBeforePip) {
-                                containers?.visibility = android.view.View.VISIBLE
-                        }
-                        
-                        // Restaurar a renderização dependendo da configuração e reativar fade
-                        viewModel.updateGamePadVisibility(this, leftContainer, rightContainer, floatingBtn)
-                        restoreFloatingButtonVisibility()
-
-                        menuContainer.visibility = android.view.View.VISIBLE
-
-                        // PiP "Save and Exit": now that onExitedPictureInPicture() has run (and set
-                        // frameSpeed = 1), open the save menu — its own onMenuOpened() re-pauses the
-                        // game and that pause now sticks. Backing out of it resumes the game via the
-                        // rootless-submenu close path in NavigationEventProcessor.navigateBack().
-                        if (pendingPipSaveMenu) {
-                                pendingPipSaveMenu = false
-                                viewModel.navigationController?.handleNavigationEvent(
-                                        NavigationEvent.OpenMenu(
-                                                inputSource = InputSource.TOUCH,
-                                                targetMenu = MenuType.EXIT_SAVE_SLOTS
-                                        )
-                                )
-                        }
-                }
+                pipController.onPictureInPictureModeChanged(isInPictureInPictureMode)
         }
 
         override fun dispatchTouchEvent(event: MotionEvent): Boolean {
                 // Keep the PiP still frame fresh while the user plays (throttled internally).
-                maybeCapturePipFrame()
+                pipController.maybeCapturePipFrame()
                 return super.dispatchTouchEvent(event)
         }
 
@@ -1548,7 +1102,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 // Record frame time for performance monitoring
                 recordFrameTime()
                 floatingMenuButtonController.triggerFade()
-                maybeCapturePipFrame()
+                pipController.maybeCapturePipFrame()
 
                 return viewModel.processKeyEvent(keyCode, event) ?: super.onKeyDown(keyCode, event)
         }
@@ -1567,10 +1121,54 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost {
                 // Record frame time for performance monitoring
                 recordFrameTime()
                 floatingMenuButtonController.triggerFade()
-                maybeCapturePipFrame()
+                pipController.maybeCapturePipFrame()
 
                 return viewModel.processMotionEvent(event) ?: super.onGenericMotionEvent(event)
         }
+
+        // --- PipHost ---
+
+        override val activity: FragmentActivity get() = this
+
+        override fun isCurrentlyInPip(): Boolean = isInPictureInPictureMode
+
+        override fun enterPip(params: android.app.PictureInPictureParams): Boolean =
+                enterPictureInPictureMode(params)
+
+        override fun updatePipParams(params: android.app.PictureInPictureParams) {
+                setPictureInPictureParams(params)
+        }
+
+        override fun registerPipReceiver(receiver: BroadcastReceiver, filter: IntentFilter) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                        registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+                } else {
+                        registerReceiver(receiver, filter)
+                }
+        }
+
+        override fun unregisterPipReceiver(receiver: BroadcastReceiver) {
+                unregisterReceiver(receiver)
+        }
+
+        override fun bringTaskToFront() {
+                startActivity(
+                        Intent(this, GameActivity::class.java).apply {
+                                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                        }
+                )
+        }
+
+        override fun finishPipTask() {
+                finishAndRemoveTask()
+        }
+
+        override fun postToUiThread(action: () -> Unit) {
+                runOnUiThread(action)
+        }
+
+        override fun gameLifecycleObserverOrNull(): GameLifecycleObserver? =
+                if (::gameLifecycleObserver.isInitialized) gameLifecycleObserver else null
 
         /** Record frame time for performance monitoring */
         private fun recordFrameTime() {
