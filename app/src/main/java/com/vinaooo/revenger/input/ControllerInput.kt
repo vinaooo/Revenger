@@ -27,10 +27,6 @@ class ControllerInput {
 
                 /** Vendor keycode reported by some physical gamepads for their menu/hamburger button */
                 private const val GAMEPAD_MENU_BUTTON_KEYCODE = -6
-
-                private const val COMBO_COOLDOWN_MS = 500L // 500ms cooldown between combo detections
-                private const val MENU_CLOSE_DEBOUNCE_MS = 200L // 200ms debounce after menu closes
-                private const val MENU_CALLBACK_DEBOUNCE_MS = 150L
         }
 
         // Single trigger system - tracks previous state to detect transitions
@@ -45,58 +41,8 @@ class ControllerInput {
         private val dpadState = DirectionalState()
         private val leftAnalogState = DirectionalState()
 
-        /** Set of keys currently being held by the user */
-        private val keyLog = mutableSetOf<Int>()
-
         /** Keys that have already triggered an action and should remain blocked until they receive ACTION_UP */
         private val blockedUntilKeyUp = mutableSetOf<Int>()
-
-        /**
-         * Flag to prevent combo from being detected multiple times while buttons are held Reset
-         * only when BOTH combo buttons are released
-         */
-        private var comboAlreadyTriggered = false
-
-        /** Timestamp of last combo detection to prevent rapid re-triggers */
-        private var lastComboTriggerTime = 0L
-
-        /** Timestamp to prevent combo detection immediately after menu closes */
-        private var menuCloseDebounceTime = 0L
-
-        /**
-         * Clears the keyLog to avoid combo detection after closing the menu.
-         *
-         * IMPORTANT: Resets comboAlreadyTriggered ONLY if the menu is no longer open. If the menu
-         * is still open, keeps the flag to avoid false detections.
-         */
-        fun clearKeyLog() {
-                keyLog.clear()
-
-                // 🔧 FIX: Always reset comboAlreadyTriggered when clearing key log
-                // This ensures combo detection works properly after menu dismissal
-                // regardless of timing or menu state during the clear operation
-                comboAlreadyTriggered = false
-
-                lastComboTriggerTime = 0L // Reset cooldown timer to allow immediate combo detection
-                menuCloseDebounceTime = System.currentTimeMillis() // Set debounce timestamp
-        }
-
-        /**
-         * Clears only the menu action buttons (A, B, D-PAD) from the keyLog. Does NOT clear
-         * START/SELECT to avoid combo issues. Should be called when the menu closes to prevent
-         * "wasAlreadyPressed" false positives.
-         */
-        fun clearMenuActionButtons() {
-                // Remove only menu buttons (A, B, D-PAD), keep START/SELECT
-                keyLog.removeIf { keyCode ->
-                        keyCode == KeyEvent.KEYCODE_BUTTON_A ||
-                                keyCode == KeyEvent.KEYCODE_BUTTON_B ||
-                                keyCode == KeyEvent.KEYCODE_DPAD_UP ||
-                                keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
-                                keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
-                                keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
-                }
-        }
 
         /**
          * Bundles all of this class's external callbacks/predicates (see
@@ -106,6 +52,18 @@ class ControllerInput {
          * compiling and behaving unchanged.
          */
         var callbacks: ControllerInputCallbacks = ControllerInputCallbacks()
+
+        /**
+         * SELECT+START combo detection and key-log state, extracted to keep this class's
+         * function count within detekt's `TooManyFunctions` threshold.
+         */
+        val comboTracker = ComboKeyLogTracker { callbacks }
+
+        /**
+         * Debounced menu-callback invocation and the post-menu-close grace period, extracted for
+         * the same reason as [comboTracker].
+         */
+        val callbackDebouncer = MenuCallbackDebouncer { callbacks }
 
         /** The callback for when the user inputs the SELECT+START combo (RetroMenu3) */
         var selectStartComboCallback: () -> Unit
@@ -167,67 +125,15 @@ class ControllerInput {
                 get() = callbacks.menuBackCallback
                 set(value) { callbacks = callbacks.copy(menuBackCallback = value) }
 
-        // Debouncing timestamps for menu callbacks to prevent rapid successive calls
-        private var lastMenuBackCallbackTime: Long = 0
-        private var lastMenuConfirmCallbackTime: Long = 0
-        private var lastMenuNavigateUpCallbackTime: Long = 0
-        private var lastMenuNavigateDownCallbackTime: Long = 0
-        private var lastMenuNavigateLeftCallbackTime: Long = 0
-        private var lastMenuNavigateRightCallbackTime: Long = 0
-        private var lastStartButtonCallbackTime: Long = 0
-        private var lastGamepadMenuButtonCallbackTime: Long = 0
-
-        /** Helper function to execute menu callbacks with debouncing protection */
-        private fun executeMenuCallback(
-                callback: () -> Unit,
-                lastExecutionTime: Long,
-                updateTime: (Long) -> Unit
-        ): Boolean {
-                // First check if it's safe to execute menu operations
-                if (!isMenuOperationSafe()) {
-                        return false
-                }
-
-                val currentTime = System.currentTimeMillis()
-                if (currentTime - lastExecutionTime >= MENU_CALLBACK_DEBOUNCE_MS) {
-                        callback()
-                        updateTime(currentTime)
-                        return true
-                }
-                return false
-        }
-
-        /** Getter for comboAlreadyTriggered (for debugging) */
-        fun getComboAlreadyTriggered(): Boolean = comboAlreadyTriggered
-
-        /** Reset comboAlreadyTriggered flag (used when menu is being dismissed) */
-        fun resetComboAlreadyTriggered() {
-                comboAlreadyTriggered = false
-        }
-
-        fun updateMenuCloseDebounceTime() {
-                menuCloseDebounceTime = System.currentTimeMillis()
-        }
-
         /**
          * Clears input state to prevent event leakage during transitions. Resets
          * debounces, keyLog, combo, and KEY_DOWN/UP tracking.
          */
         fun clearPendingInputs() {
-                lastMenuBackCallbackTime = 0L
-                lastMenuConfirmCallbackTime = 0L
-                lastMenuNavigateUpCallbackTime = 0L
-                lastMenuNavigateDownCallbackTime = 0L
-                lastMenuNavigateLeftCallbackTime = 0L
-                lastMenuNavigateRightCallbackTime = 0L
-                lastStartButtonCallbackTime = 0L
-                lastGamepadMenuButtonCallbackTime = 0L
+                callbackDebouncer.reset()
 
-                keyLog.clear()
-                comboAlreadyTriggered = false
-
-                keepInterceptingUntil = 0L
-                buttonThatClosedMenu = null
+                comboTracker.keyLog.clear()
+                comboTracker.resetComboAlreadyTriggered()
 
                 blockedUntilKeyUp.clear()
 
@@ -241,19 +147,9 @@ class ControllerInput {
          * without reprocessing DOWN.
          */
         fun clearPendingInputsPreserveHeld() {
-                lastMenuBackCallbackTime = 0L
-                lastMenuConfirmCallbackTime = 0L
-                lastMenuNavigateUpCallbackTime = 0L
-                lastMenuNavigateDownCallbackTime = 0L
-                lastMenuNavigateLeftCallbackTime = 0L
-                lastMenuNavigateRightCallbackTime = 0L
-                lastStartButtonCallbackTime = 0L
-                lastGamepadMenuButtonCallbackTime = 0L
+                callbackDebouncer.reset()
 
-                comboAlreadyTriggered = false
-
-                keepInterceptingUntil = 0L
-                buttonThatClosedMenu = null
+                comboTracker.resetComboAlreadyTriggered()
 
                 android.util.Log.d("ControllerInput", "[CLEAR_STATE] partial clear preserving held keys (debounces+combo reset)")
         }
@@ -262,36 +158,6 @@ class ControllerInput {
         var shouldInterceptDpadForMenu: () -> Boolean
                 get() = callbacks.shouldInterceptDpadForMenu
                 set(value) { callbacks = callbacks.copy(shouldInterceptDpadForMenu = value) }
-
-        /**
-         * Flag to keep interception active for a period after menu closes. This prevents
-         * ACTION_UP from leaking to the game
-         */
-        private var keepInterceptingUntil: Long = 0L
-
-        /** Which button closed the menu (to block only that button during grace period) */
-        private var buttonThatClosedMenu: Int? = null
-
-        /** Activate temporary interception for X ms after menu closes */
-        fun keepInterceptingButtons(durationMs: Long = 500, closingButton: Int? = null) {
-                keepInterceptingUntil = System.currentTimeMillis() + durationMs
-                buttonThatClosedMenu = closingButton
-        }
-
-        /**
-         * Checks if a SPECIFIC button should be blocked during the grace period. Blocks only the
-         * button that closed the menu during the grace period. Does NOT block other buttons even
-         * if the menu is "technically active".
-         */
-        private fun shouldInterceptSpecificButton(keyCode: Int): Boolean {
-                val menuActive = shouldInterceptDpadForMenu()
-                val now = System.currentTimeMillis()
-                val gracePeriodActive = now < keepInterceptingUntil
-
-                // Intercept if the menu is open, or if we're still in the grace period for the
-                // specific button that closed it.
-                return menuActive || (gracePeriodActive && keyCode == buttonThatClosedMenu)
-        }
 
         /**
          * Function to check if it's safe to execute menu callbacks (no critical operations in
@@ -339,171 +205,6 @@ class ControllerInput {
         private fun getPort(event: InputEvent): Int =
                 ((event.device?.controllerNumber ?: 1) - 1).coerceAtLeast(0)
 
-        /** Check if we should be showing the user the menu */
-        private fun checkMenuKeyCombo() {
-                // Check if we have exactly the two buttons pressed
-                val hasSelectAndStart = keyLog.containsAll(KEYCOMBO_MENU) && keyLog.size == 2
-
-                // Check cooldown to avoid very fast detections
-                val currentTime = System.currentTimeMillis()
-                val timeSinceLastTrigger = currentTime - lastComboTriggerTime
-
-                // ENABLED FOR DEBUG: Combo detection logs
-                android.util.Log.d("ControllerInput", "┌─────────────────────────────────────────────────────────")
-                android.util.Log.d("ControllerInput", "│ checkMenuKeyCombo CALLED")
-                android.util.Log.d("ControllerInput", "│ keyLog: $keyLog")
-                android.util.Log.d("ControllerInput", "│ hasSelectAndStart: $hasSelectAndStart")
-                android.util.Log.d("ControllerInput", "│ comboAlreadyTriggered: $comboAlreadyTriggered")
-                android.util.Log.d("ControllerInput", "│ timeSinceLastTrigger: ${timeSinceLastTrigger}ms (cooldown: ${COMBO_COOLDOWN_MS}ms)")
-                android.util.Log.d("ControllerInput", "│ shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()}")
-                android.util.Log.d("ControllerInput", "│ SELECT pressed: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)}")
-                android.util.Log.d("ControllerInput", "│ START pressed: ${keyLog.contains(KeyEvent.KEYCODE_BUTTON_START)}")
-                val timeSinceMenuClose = currentTime - menuCloseDebounceTime
-                android.util.Log.d("ControllerInput", "│ timeSinceMenuClose: ${timeSinceMenuClose}ms (debounce: ${MENU_CLOSE_DEBOUNCE_MS}ms)")
-
-                val comboEligible = !comboAlreadyTriggered && shouldHandleSelectStartCombo()
-                val cooldownAndDebounceElapsed =
-                        timeSinceLastTrigger > COMBO_COOLDOWN_MS &&
-                                timeSinceMenuClose > MENU_CLOSE_DEBOUNCE_MS
-
-                if (hasSelectAndStart && comboEligible && cooldownAndDebounceElapsed) {
-
-                        // ENABLED FOR DEBUG: Combo detection success logs
-                        android.util.Log.d("ControllerInput", "│ ✅ ALL CONDITIONS MET - COMBO DETECTED!")
-                        android.util.Log.d("ControllerInput", "│    - hasSelectAndStart: $hasSelectAndStart")
-                        android.util.Log.d("ControllerInput", "│    - comboAlreadyTriggered: $comboAlreadyTriggered")
-                        android.util.Log.d("ControllerInput", "│    - shouldHandleSelectStartCombo(): ${shouldHandleSelectStartCombo()}")
-                        android.util.Log.d("ControllerInput", "│    - timeSinceLastTrigger: ${timeSinceLastTrigger}ms > ${COMBO_COOLDOWN_MS}ms")
-                        android.util.Log.d("ControllerInput", "│    - timeSinceMenuClose: ${timeSinceMenuClose}ms > ${MENU_CLOSE_DEBOUNCE_MS}ms")
-                        comboAlreadyTriggered = true // Mark combo as triggered
-                        lastComboTriggerTime = currentTime
-                        android.util.Log.d("ControllerInput", "│ 🔵 comboAlreadyTriggered SET TO TRUE at timestamp: $lastComboTriggerTime")
-                        selectStartComboCallback()
-                        android.util.Log.d("ControllerInput", "│ comboAlreadyTriggered NOW: true, timestamp: $lastComboTriggerTime")
-                } else {
-                        // ENABLED FOR DEBUG: Combo rejection logs
-                        android.util.Log.d("ControllerInput", "❌ COMBO REJECTED - Checking missing conditions:")
-                        android.util.Log.d("ControllerInput", "   hasSelectAndStart: $hasSelectAndStart (precisa ser true)")
-                        android.util.Log.d("ControllerInput", "   comboAlreadyTriggered: $comboAlreadyTriggered (precisa ser false)")
-                        android.util.Log.d(
-                                "ControllerInput",
-                                "   shouldHandleSelectStartCombo(): " +
-                                        "${shouldHandleSelectStartCombo()} (precisa ser true)"
-                        )
-                        android.util.Log.d(
-                                "ControllerInput",
-                                "   timeSinceLastTrigger: ${timeSinceLastTrigger}ms " +
-                                        "(precisa ser > ${COMBO_COOLDOWN_MS}ms)"
-                        )
-                        android.util.Log.d(
-                                "ControllerInput",
-                                "   timeSinceMenuClose: ${timeSinceMenuClose}ms " +
-                                        "(precisa ser > ${MENU_CLOSE_DEBOUNCE_MS}ms)"
-                        )
-
-                        if (comboAlreadyTriggered) {
-                                // DISABLED: Phase 5.1f - Performance optimization
-                                // android.util.Log.d(
-                                //         "ControllerInput",
-                                //         "│    - comboAlreadyTriggered = true (already triggered)"
-                                // )
-                                // 🔍 DEBUGGING: Only log as RARE BUG if menu is NOT open
-                                // If shouldHandleSelectStartCombo() = true, menu is closed (should
-                                // have been reset)
-                                // If shouldHandleSelectStartCombo() = false, menu is open (expected
-                                // behavior)
-                                if (shouldHandleSelectStartCombo()) {
-                                        // Menu is CLOSED but flag is still true - this may happen
-                                        // due to timing
-                                        // The flag will be reset by onMenuClosedCallback, but this
-                                        // check happens first
-                                        android.util.Log.d(
-                                                "ControllerInput",
-                                                "│    ℹ️  Menu closed, comboAlreadyTriggered=true " +
-                                                        "(will be reset by callback)"
-                                        )
-                                        android.util.Log.d(
-                                                "ControllerInput",
-                                                "│       lastComboTriggerTime: $lastComboTriggerTime " +
-                                                        "(${timeSinceLastTrigger}ms ago)"
-                                        )
-                                        android.util.Log.d("ControllerInput", "│       This is expected timing - callback will reset flag")
-                                } else {
-                                        // Menu is OPEN - this is expected, not a bug
-                                }
-                        }
-                }
-        }
-
-        /**
-         * Handles BUTTON_A-as-menu-confirm interception, shared by [processGamePadButtonEvent]
-         * and [processKeyEvent]. Returns true if this call intercepted the event (caller should
-         * return true immediately); false if [keyCode]/[action] don't match (caller should
-         * continue its own logic).
-         */
-        private fun interceptButtonAConfirm(keyCode: Int, action: Int): Boolean {
-                if (keyCode != KeyEvent.KEYCODE_BUTTON_A || !shouldInterceptDpadForMenu()) {
-                        return false
-                }
-
-                android.util.Log.d("ControllerInput", "🔴 BUTTON_A intercepted - shouldInterceptDpadForMenu()=true")
-                if (action == KeyEvent.ACTION_DOWN) {
-                        android.util.Log.d("ControllerInput", "   → Executing menuConfirmCallback")
-                        // NOTE: We do NOT block A here because it does not always close the menu
-                        // Blocking will be done in onMenuClosedCallback
-                        executeMenuCallback(menuConfirmCallback, lastMenuConfirmCallbackTime) {
-                                lastMenuConfirmCallbackTime = it
-                        }
-                }
-                // CRITICAL: Consume BOTH ACTION_DOWN and ACTION_UP so ACTION_UP doesn't leak to
-                // the core
-                return true
-        }
-
-        /**
-         * Tracks [keyLog] membership and resets [comboAlreadyTriggered] once both combo buttons
-         * are released, shared by [processGamePadButtonEvent] and [processKeyEvent]. Returns true
-         * if this was a repeated ACTION_DOWN that should be swallowed (caller should return true
-         * immediately without further processing this key).
-         */
-        private fun trackKeyLogAndComboReset(keyCode: Int, action: Int): Boolean {
-                when (action) {
-                        KeyEvent.ACTION_DOWN -> {
-                                val wasAlreadyPressed = keyLog.contains(keyCode)
-                                keyLog.add(keyCode)
-                                android.util.Log.d(
-                                        "ControllerInput",
-                                        "⬇️  ACTION_DOWN: keyCode=$keyCode, " +
-                                                "wasAlreadyPressed=$wasAlreadyPressed, keyLog=$keyLog"
-                                )
-
-                                // If the button was already pressed, don't check combo again
-                                if (wasAlreadyPressed) {
-                                        android.util.Log.d("ControllerInput", "   🔴 BLOCKED - Button was already pressed (repeat)")
-                                        return true
-                                }
-                        }
-                        KeyEvent.ACTION_UP -> {
-                                keyLog.remove(keyCode)
-                                android.util.Log.d("ControllerInput", "⬆️  ACTION_UP: keyCode=$keyCode, keyLog=$keyLog")
-
-                                // Reset combo flag ONLY when BOTH combo buttons are released
-                                val isComboButtonKey = keyCode in KEYCOMBO_MENU
-                                val bothComboButtonsReleased =
-                                        !keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
-                                                !keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)
-
-                                if (isComboButtonKey && bothComboButtonsReleased) {
-                                        if (comboAlreadyTriggered) {
-                                                android.util.Log.d("ControllerInput", "BOTH combo buttons released, resetting comboAlreadyTriggered")
-                                        }
-                                        comboAlreadyTriggered = false
-                                }
-                        }
-                }
-                return false
-        }
-
         fun processGamePadButtonEvent(keyCode: Int, action: Int): Boolean {
                 val keyName =
                         when (keyCode) {
@@ -517,7 +218,7 @@ class ControllerInput {
 
                 // INTERCEPT BUTTON A for confirmation when menu is open
                 // During grace period, DO NOT block A (only open menu blocks)
-                if (interceptButtonAConfirm(keyCode, action)) {
+                if (callbackDebouncer.interceptButtonAConfirm(keyCode, action)) {
                         android.util.Log.d("ControllerInput", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                         return true // Event intercepted - don't send to core
                 }
@@ -525,7 +226,7 @@ class ControllerInput {
                 // INTERCEPT BUTTON B to go back when menu is open
                 val shouldInterceptB =
                         keyCode == KeyEvent.KEYCODE_BUTTON_B &&
-                                shouldInterceptSpecificButton(keyCode)
+                                callbackDebouncer.shouldInterceptSpecificButton(keyCode)
                 if (shouldInterceptB) {
                         android.util.Log.d(
                                 "ControllerInput",
@@ -535,7 +236,7 @@ class ControllerInput {
 
                         if (action == KeyEvent.ACTION_DOWN) {
                                 // Check if already added to keyLog (hold/repeat)
-                                val alreadyPressed = keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
+                                val alreadyPressed = comboTracker.keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
                                 if (alreadyPressed) {
                                         android.util.Log.d("ControllerInput", "   ↪️ B already in keyLog (hold) - consuming DOWN without callback")
                                         return true
@@ -543,15 +244,15 @@ class ControllerInput {
 
                                 // Primeira vez pressionando: adicionar ao keyLog e executar
                                 // callback
-                                keyLog.add(KeyEvent.KEYCODE_BUTTON_B)
+                                comboTracker.keyLog.add(KeyEvent.KEYCODE_BUTTON_B)
                                 android.util.Log.d("ControllerInput", "   → First B DOWN - executing menuBackCallback")
-                                executeMenuCallback(menuBackCallback, lastMenuBackCallbackTime) {
-                                        lastMenuBackCallbackTime = it
+                                callbackDebouncer.executeMenuCallback(menuBackCallback, callbackDebouncer.lastMenuBackCallbackTime) {
+                                        callbackDebouncer.lastMenuBackCallbackTime = it
                                 }
                         } else if (action == KeyEvent.ACTION_UP) {
                                 // ACTION_UP: remove from keyLog to allow new interaction
-                                val wasPressed = keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
-                                keyLog.remove(KeyEvent.KEYCODE_BUTTON_B)
+                                val wasPressed = comboTracker.keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
+                                comboTracker.keyLog.remove(KeyEvent.KEYCODE_BUTTON_B)
 
                                 if (wasPressed) {
                                         android.util.Log.d("ControllerInput", "   → B ACTION_UP - cleared from keyLog")
@@ -567,12 +268,12 @@ class ControllerInput {
                 if (keyCode == KeyEvent.KEYCODE_BUTTON_START && shouldHandleStartButton()) {
                         if (action == KeyEvent.ACTION_DOWN) {
                                 android.util.Log.d("ControllerInput", "START (GamePad) pressed while menu open - CLOSING MENU")
-                                android.util.Log.d("ControllerInput", "   keyLog BEFORE startButtonCallback: $keyLog")
-                                android.util.Log.d("ControllerInput", "   comboAlreadyTriggered BEFORE: $comboAlreadyTriggered")
-                                executeMenuCallback(
+                                android.util.Log.d("ControllerInput", "   keyLog BEFORE startButtonCallback: ${comboTracker.keyLog}")
+                                android.util.Log.d("ControllerInput", "   comboAlreadyTriggered BEFORE: ${comboTracker.getComboAlreadyTriggered()}")
+                                callbackDebouncer.executeMenuCallback(
                                         startButtonCallback,
-                                        lastStartButtonCallbackTime
-                                ) { lastStartButtonCallbackTime = it }
+                                        callbackDebouncer.lastStartButtonCallbackTime
+                                ) { callbackDebouncer.lastStartButtonCallbackTime = it }
                                 android.util.Log.d("ControllerInput", "   startButtonCallback() completed")
                         }
                         return true // Event intercepted - don't send to core
@@ -582,10 +283,10 @@ class ControllerInput {
                 if (keyCode == GAMEPAD_MENU_BUTTON_KEYCODE && shouldHandleGamepadMenuButton()) {
                         if (action == KeyEvent.ACTION_DOWN) {
                                 android.util.Log.d("ControllerInput", "GAMEPAD MENU BUTTON (☰) pressed - toggling menu")
-                                executeMenuCallback(
+                                callbackDebouncer.executeMenuCallback(
                                         gamepadMenuButtonCallback,
-                                        lastGamepadMenuButtonCallbackTime
-                                ) { lastGamepadMenuButtonCallbackTime = it }
+                                        callbackDebouncer.lastGamepadMenuButtonCallbackTime
+                                ) { callbackDebouncer.lastGamepadMenuButtonCallbackTime = it }
                         }
                         return true // Event intercepted - don't send to core
                 }
@@ -604,12 +305,12 @@ class ControllerInput {
                 }
 
                 /* Keep track of user input events */
-                if (trackKeyLogAndComboReset(keyCode, action)) {
+                if (comboTracker.trackKeyLogAndComboReset(keyCode, action)) {
                         android.util.Log.d("ControllerInput", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                         return true // Event intercepted (repeated press)
                 }
 
-                checkMenuKeyCombo()
+                comboTracker.checkMenuKeyCombo()
 
                 android.util.Log.d("ControllerInput", "🔍 After checkMenuKeyCombo - checking final decision...")
 
@@ -619,8 +320,8 @@ class ControllerInput {
                                 keyCode == KeyEvent.KEYCODE_BUTTON_SELECT)
                 ) {
                         // If both buttons are pressed (combo active), intercept the events
-                        if (keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
-                                        keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)
+                        if (comboTracker.keyLog.contains(KeyEvent.KEYCODE_BUTTON_START) &&
+                                        comboTracker.keyLog.contains(KeyEvent.KEYCODE_BUTTON_SELECT)
                         ) {
                                 android.util.Log.d("ControllerInput", "� Blocking $keyName (part of SELECT+START combo) - preventing leak to core")
                                 android.util.Log.d("ControllerInput", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -653,17 +354,17 @@ class ControllerInput {
                 if (keyCode == KeyEvent.KEYCODE_BUTTON_START && shouldHandleStartButton()) {
                         if (event.action == KeyEvent.ACTION_DOWN) {
                                 android.util.Log.d("ControllerInput", "🛑 START pressed while menu open - CLOSING MENU")
-                                android.util.Log.d("ControllerInput", "   keyLog BEFORE startButtonCallback: $keyLog")
-                                android.util.Log.d("ControllerInput", "   comboAlreadyTriggered BEFORE: $comboAlreadyTriggered")
-                                executeMenuCallback(
+                                android.util.Log.d("ControllerInput", "   keyLog BEFORE startButtonCallback: ${comboTracker.keyLog}")
+                                android.util.Log.d("ControllerInput", "   comboAlreadyTriggered BEFORE: ${comboTracker.getComboAlreadyTriggered()}")
+                                callbackDebouncer.executeMenuCallback(
                                         startButtonCallback,
-                                        lastStartButtonCallbackTime
-                                ) { lastStartButtonCallbackTime = it }
+                                        callbackDebouncer.lastStartButtonCallbackTime
+                                ) { callbackDebouncer.lastStartButtonCallbackTime = it }
                                 // 🔧 BUGFIX: Reset comboAlreadyTriggered when START closes menu
                                 // At this point we KNOW the user is CLOSING the menu, not trying to
                                 // open it
                                 // So it's safe to reset the flag immediately
-                                comboAlreadyTriggered = false
+                                comboTracker.resetComboAlreadyTriggered()
                                 android.util.Log.d("ControllerInput", "   ✅ comboAlreadyTriggered reset to false (START closed menu)")
                                 android.util.Log.d("ControllerInput", "   startButtonCallback() completed")
                         }
@@ -672,33 +373,33 @@ class ControllerInput {
 
                 // INTERCEPT BUTTON A for confirmation when menu is open
                 // During grace period, DO NOT block A (only open menu blocks)
-                if (interceptButtonAConfirm(keyCode, event.action)) {
+                if (callbackDebouncer.interceptButtonAConfirm(keyCode, event.action)) {
                         return true // Consume the event, don't send to core
                 }
 
                 // INTERCEPT BUTTON B to go back when menu is open
-                if (keyCode == KeyEvent.KEYCODE_BUTTON_B && shouldInterceptSpecificButton(keyCode)
+                if (keyCode == KeyEvent.KEYCODE_BUTTON_B && callbackDebouncer.shouldInterceptSpecificButton(keyCode)
                 ) {
                         android.util.Log.d(
                                 "ControllerInput",
                                 "🔵 BUTTON_B intercepted in processKeyEvent - " +
                                         "action=${event.action} (DOWN=0, UP=1), shouldIntercept=true"
                         )
-                        val alreadyPressed = keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
+                        val alreadyPressed = comboTracker.keyLog.contains(KeyEvent.KEYCODE_BUTTON_B)
                         if (event.action == KeyEvent.ACTION_DOWN) {
                                 if (alreadyPressed) {
                                         android.util.Log.d("ControllerInput", "   ↪️ B already pressed (hold) - consuming without callback")
                                         return true
                                 }
                                 // Track hold so submenu→main transitions keep state
-                                keyLog.add(KeyEvent.KEYCODE_BUTTON_B)
+                                comboTracker.keyLog.add(KeyEvent.KEYCODE_BUTTON_B)
                                 android.util.Log.d("ControllerInput", "BUTTON_B intercepted for menu back")
-                                executeMenuCallback(menuBackCallback, lastMenuBackCallbackTime) {
-                                        lastMenuBackCallbackTime = it
+                                callbackDebouncer.executeMenuCallback(menuBackCallback, callbackDebouncer.lastMenuBackCallbackTime) {
+                                        callbackDebouncer.lastMenuBackCallbackTime = it
                                 }
                         } else {
                                 android.util.Log.d("ControllerInput", "🚫 BUTTON_B ACTION_UP intercepted - blocking from reaching game")
-                                keyLog.remove(KeyEvent.KEYCODE_BUTTON_B)
+                                comboTracker.keyLog.remove(KeyEvent.KEYCODE_BUTTON_B)
                         }
                         // CRITICAL: Bloquear TANTO ACTION_DOWN quanto ACTION_UP
                         // Isso impede que o ACTION_UP vaze para o jogo
@@ -724,10 +425,10 @@ class ControllerInput {
                                                         "DPAD UP (KeyEvent) intercepted for menu " +
                                                                 "navigation - calling callback"
                                                 )
-                                                executeMenuCallback(
+                                                callbackDebouncer.executeMenuCallback(
                                                         menuNavigateUpCallback,
-                                                        lastMenuNavigateUpCallbackTime
-                                                ) { lastMenuNavigateUpCallbackTime = it }
+                                                        callbackDebouncer.lastMenuNavigateUpCallbackTime
+                                                ) { callbackDebouncer.lastMenuNavigateUpCallbackTime = it }
                                                 android.util.Log.d("ControllerInput", "DPAD UP (KeyEvent) callback completed")
                                         }
                                         KeyEvent.KEYCODE_DPAD_DOWN -> {
@@ -736,10 +437,10 @@ class ControllerInput {
                                                         "DPAD DOWN (KeyEvent) intercepted for menu " +
                                                                 "navigation - calling callback"
                                                 )
-                                                executeMenuCallback(
+                                                callbackDebouncer.executeMenuCallback(
                                                         menuNavigateDownCallback,
-                                                        lastMenuNavigateDownCallbackTime
-                                                ) { lastMenuNavigateDownCallbackTime = it }
+                                                        callbackDebouncer.lastMenuNavigateDownCallbackTime
+                                                ) { callbackDebouncer.lastMenuNavigateDownCallbackTime = it }
                                                 android.util.Log.d("ControllerInput", "DPAD DOWN (KeyEvent) callback completed")
                                         }
                                         KeyEvent.KEYCODE_DPAD_LEFT -> {
@@ -748,10 +449,10 @@ class ControllerInput {
                                                         "DPAD LEFT (KeyEvent) intercepted for menu " +
                                                                 "navigation - calling callback"
                                                 )
-                                                executeMenuCallback(
+                                                callbackDebouncer.executeMenuCallback(
                                                         menuNavigateLeftCallback,
-                                                        lastMenuNavigateLeftCallbackTime
-                                                ) { lastMenuNavigateLeftCallbackTime = it }
+                                                        callbackDebouncer.lastMenuNavigateLeftCallbackTime
+                                                ) { callbackDebouncer.lastMenuNavigateLeftCallbackTime = it }
                                                 android.util.Log.d("ControllerInput", "DPAD LEFT (KeyEvent) callback completed")
                                         }
                                         KeyEvent.KEYCODE_DPAD_RIGHT -> {
@@ -760,10 +461,10 @@ class ControllerInput {
                                                         "DPAD RIGHT (KeyEvent) intercepted for menu " +
                                                                 "navigation - calling callback"
                                                 )
-                                                executeMenuCallback(
+                                                callbackDebouncer.executeMenuCallback(
                                                         menuNavigateRightCallback,
-                                                        lastMenuNavigateRightCallbackTime
-                                                ) { lastMenuNavigateRightCallbackTime = it }
+                                                        callbackDebouncer.lastMenuNavigateRightCallbackTime
+                                                ) { callbackDebouncer.lastMenuNavigateRightCallbackTime = it }
                                                 android.util.Log.d("ControllerInput", "DPAD RIGHT (KeyEvent) callback completed")
                                         }
                                 }
@@ -787,16 +488,16 @@ class ControllerInput {
                 val port = getPort(event)
 
                 /* Keep track of user input events */
-                if (trackKeyLogAndComboReset(keyCode, event.action)) {
+                if (comboTracker.trackKeyLogAndComboReset(keyCode, event.action)) {
                         return true // Ignore repeated event
                 }
 
-                checkMenuKeyCombo()
+                comboTracker.checkMenuKeyCombo()
 
                 // BLOCK START and SELECT from reaching core when combo is detected
                 // Use containsAll to check if both are present
                 val isComboButtonKey = keyCode in KEYCOMBO_MENU
-                val comboFullyHeld = keyLog.containsAll(KEYCOMBO_MENU) && keyLog.size == 2
+                val comboFullyHeld = comboTracker.keyLog.containsAll(KEYCOMBO_MENU) && comboTracker.keyLog.size == 2
 
                 if (isComboButtonKey && comboFullyHeld) {
                         android.util.Log.d("ControllerInput", "Blocking START/SELECT from reaching core - combo detected")
@@ -856,37 +557,37 @@ class ControllerInput {
                         when (trigger) {
                                 KeyEvent.KEYCODE_DPAD_UP -> { // UP
                                         android.util.Log.d("ControllerInput", "[INTERCEPT] ⬆️ UP detected - calling menuNavigateUpCallback")
-                                        executeMenuCallback(
+                                        callbackDebouncer.executeMenuCallback(
                                                 menuNavigateUpCallback,
-                                                lastMenuNavigateUpCallbackTime
-                                        ) { lastMenuNavigateUpCallbackTime = it }
+                                                callbackDebouncer.lastMenuNavigateUpCallbackTime
+                                        ) { callbackDebouncer.lastMenuNavigateUpCallbackTime = it }
                                         android.util.Log.d("ControllerInput", "[INTERCEPT] ✅ UP callback completed - returning true")
                                         return true
                                 }
                                 KeyEvent.KEYCODE_DPAD_DOWN -> { // DOWN
                                         android.util.Log.d("ControllerInput", "[INTERCEPT] ⬇️ DOWN detected - calling menuNavigateDownCallback")
-                                        executeMenuCallback(
+                                        callbackDebouncer.executeMenuCallback(
                                                 menuNavigateDownCallback,
-                                                lastMenuNavigateDownCallbackTime
-                                        ) { lastMenuNavigateDownCallbackTime = it }
+                                                callbackDebouncer.lastMenuNavigateDownCallbackTime
+                                        ) { callbackDebouncer.lastMenuNavigateDownCallbackTime = it }
                                         android.util.Log.d("ControllerInput", "[INTERCEPT] ✅ DOWN callback completed - returning true")
                                         return true
                                 }
                                 KeyEvent.KEYCODE_DPAD_LEFT -> { // LEFT
                                         android.util.Log.d("ControllerInput", "[INTERCEPT] ⬅️ LEFT detected - calling menuNavigateLeftCallback")
-                                        executeMenuCallback(
+                                        callbackDebouncer.executeMenuCallback(
                                                 menuNavigateLeftCallback,
-                                                lastMenuNavigateLeftCallbackTime
-                                        ) { lastMenuNavigateLeftCallbackTime = it }
+                                                callbackDebouncer.lastMenuNavigateLeftCallbackTime
+                                        ) { callbackDebouncer.lastMenuNavigateLeftCallbackTime = it }
                                         android.util.Log.d("ControllerInput", "[INTERCEPT] ✅ LEFT callback completed - returning true")
                                         return true
                                 }
                                 KeyEvent.KEYCODE_DPAD_RIGHT -> { // RIGHT
                                         android.util.Log.d("ControllerInput", "[INTERCEPT] ➡️ RIGHT detected - calling menuNavigateRightCallback")
-                                        executeMenuCallback(
+                                        callbackDebouncer.executeMenuCallback(
                                                 menuNavigateRightCallback,
-                                                lastMenuNavigateRightCallbackTime
-                                        ) { lastMenuNavigateRightCallbackTime = it }
+                                                callbackDebouncer.lastMenuNavigateRightCallbackTime
+                                        ) { callbackDebouncer.lastMenuNavigateRightCallbackTime = it }
                                         android.util.Log.d("ControllerInput", "[INTERCEPT] ✅ RIGHT callback completed - returning true")
                                         return true
                                 }

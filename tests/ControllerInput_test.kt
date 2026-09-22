@@ -66,7 +66,7 @@ class ControllerInput_test {
                 KeyEvent.ACTION_DOWN
         )
         assertEquals(1, fireCount)
-        assertTrue(controllerInput.getComboAlreadyTriggered())
+        assertTrue(controllerInput.comboTracker.getComboAlreadyTriggered())
 
         // Simulate repeated polls while both keys remain held, with no key-up or clear
         // call in between. Wait out the 500ms cooldown window entirely first -- if the
@@ -81,7 +81,7 @@ class ControllerInput_test {
         }
 
         assertEquals(1, fireCount)
-        assertTrue(controllerInput.getComboAlreadyTriggered())
+        assertTrue(controllerInput.comboTracker.getComboAlreadyTriggered())
     }
 
     @Test
@@ -171,7 +171,7 @@ class ControllerInput_test {
                 KeyEvent.KEYCODE_BUTTON_START,
                 KeyEvent.ACTION_DOWN
         )
-        assertTrue(controllerInput.getComboAlreadyTriggered())
+        assertTrue(controllerInput.comboTracker.getComboAlreadyTriggered())
 
         // Set a debounce timestamp for menuConfirmCallback.
         controllerInput.processGamePadButtonEvent(
@@ -180,10 +180,10 @@ class ControllerInput_test {
         )
         assertEquals(1, fireCount)
 
-        controllerInput.clearKeyLog()
+        controllerInput.comboTracker.clearKeyLog()
 
         // Latch is reset.
-        assertFalse(controllerInput.getComboAlreadyTriggered())
+        assertFalse(controllerInput.comboTracker.getComboAlreadyTriggered())
 
         // Debounce timer is NOT reset: an immediate repeat call is still blocked.
         controllerInput.processGamePadButtonEvent(
@@ -215,6 +215,25 @@ class ControllerInput_test {
                 KeyEvent.ACTION_DOWN
         )
         assertEquals(2, fireCount)
+    }
+
+    @Test
+    fun `clearPendingInputs also resets the combo latch`() {
+        val controllerInput = newControllerInput()
+        controllerInput.shouldHandleSelectStartCombo = { true }
+        controllerInput.processGamePadButtonEvent(
+                KeyEvent.KEYCODE_BUTTON_SELECT,
+                KeyEvent.ACTION_DOWN
+        )
+        controllerInput.processGamePadButtonEvent(
+                KeyEvent.KEYCODE_BUTTON_START,
+                KeyEvent.ACTION_DOWN
+        )
+        assertTrue(controllerInput.comboTracker.getComboAlreadyTriggered())
+
+        controllerInput.clearPendingInputs()
+
+        assertFalse(controllerInput.comboTracker.getComboAlreadyTriggered())
     }
 
     @Test
@@ -473,7 +492,7 @@ class ControllerInput_test {
                 retroView
         )
         assertEquals(1, comboFireCount)
-        assertTrue(controllerInput.getComboAlreadyTriggered())
+        assertTrue(controllerInput.comboTracker.getComboAlreadyTriggered())
 
         // Releasing only SELECT: START is still held, so the latch must NOT reset yet.
         controllerInput.processKeyEvent(
@@ -481,7 +500,7 @@ class ControllerInput_test {
                 KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_SELECT),
                 retroView
         )
-        assertTrue(controllerInput.getComboAlreadyTriggered())
+        assertTrue(controllerInput.comboTracker.getComboAlreadyTriggered())
 
         // Releasing START too: now NEITHER combo button remains held, so the latch resets.
         controllerInput.processKeyEvent(
@@ -489,7 +508,7 @@ class ControllerInput_test {
                 KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BUTTON_START),
                 retroView
         )
-        assertFalse(controllerInput.getComboAlreadyTriggered())
+        assertFalse(controllerInput.comboTracker.getComboAlreadyTriggered())
     }
 
     // --- Divergence-pinning tests: these two spots LOOK like duplicates between
@@ -514,7 +533,7 @@ class ControllerInput_test {
                 KeyEvent.KEYCODE_BUTTON_START,
                 KeyEvent.ACTION_DOWN
         )
-        assertTrue(gamePadInput.getComboAlreadyTriggered())
+        assertTrue(gamePadInput.comboTracker.getComboAlreadyTriggered())
 
         // Simulate the menu now being open, and START being pressed again to close it.
         gamePadInput.shouldHandleStartButton = { true }
@@ -524,7 +543,7 @@ class ControllerInput_test {
         )
         assertTrue(
                 "GamePad path must NOT reset comboAlreadyTriggered immediately on START-close",
-                gamePadInput.getComboAlreadyTriggered()
+                gamePadInput.comboTracker.getComboAlreadyTriggered()
         )
 
         // --- KeyEvent path: explicitly resets comboAlreadyTriggered right after firing
@@ -544,7 +563,7 @@ class ControllerInput_test {
                 KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START),
                 retroView
         )
-        assertTrue(keyEventInput.getComboAlreadyTriggered())
+        assertTrue(keyEventInput.comboTracker.getComboAlreadyTriggered())
 
         keyEventInput.shouldHandleStartButton = { true }
         keyEventInput.processKeyEvent(
@@ -554,7 +573,7 @@ class ControllerInput_test {
         )
         assertFalse(
                 "KeyEvent path MUST reset comboAlreadyTriggered immediately on START-close",
-                keyEventInput.getComboAlreadyTriggered()
+                keyEventInput.comboTracker.getComboAlreadyTriggered()
         )
     }
 
