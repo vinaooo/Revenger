@@ -1,14 +1,10 @@
 package com.vinaooo.revenger.ui.retromenu3
 
 import android.util.Log
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -21,7 +17,6 @@ import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
-import java.io.File
 
 /**
  * Base fragment for save state grid displays.
@@ -56,17 +51,13 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     // Slot views (3x3 = 9 items)
     protected val slotViews = mutableListOf<View>()
 
-    // Glow animation tracking
-    private var activeGlowAnimator: ValueAnimator? = null
-    private var lastAnimatedGlowView: View? = null  // Track which slot is being animated
+    // Glow animation state, delegated to a dedicated controller
+    private val glowAnimationController = GlowAnimationController()
 
     companion object {
         private const val TAG = "SaveStateGridFragment"
         const val GRID_COLS = 3
         const val GRID_ROWS = 3
-        private const val GLOW_DIM_ALPHA = 0.3f
-        private const val GLOW_BRIGHT_ALPHA = 1.0f
-        private const val GLOW_ANIMATION_DURATION_MS = 1500L
     }
 
     // ========== ABSTRACT METHODS ==========
@@ -110,7 +101,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         updateSelectionVisualInternal()
 
         // Apply glow effect to last-used slot (if context available)
-        applyGlowToLastUsedSlot()
+        glowAnimationController.refreshIfLastUsedSlotValid { updateSelectionVisualInternal() }
 
         // Register with NavigationController with reset index
         viewModel.navigationController?.registerFragment(this, getTotalNavigableItems())
@@ -125,8 +116,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     override fun onDestroyView() {
         Log.d(TAG, "[NAVIGATION] ${this::class.simpleName} onDestroyView")
         // Stop and clean up glow animations
-        stopGlowAnimation()
-        lastAnimatedGlowView = null
+        glowAnimationController.stop()
         slotViews.forEach { slotView ->
             val glowView = slotView.findViewById<View?>(R.id.slot_glow_indicator)
             glowView?.animation?.cancel()
@@ -138,7 +128,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     override fun onPause() {
         Log.d(TAG, "[LIFECYCLE] ${this::class.simpleName} onPause")
         // Pause glow animation when fragment is not visible
-        stopGlowAnimation()
+        glowAnimationController.stop()
         super.onPause()
     }
 
@@ -146,7 +136,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         super.onResume()
         Log.d(TAG, "[LIFECYCLE] ${this::class.simpleName} onResume")
         // Resume glow animation when fragment becomes visible again
-        applyGlowToLastUsedSlot()
+        glowAnimationController.refreshIfLastUsedSlotValid { updateSelectionVisualInternal() }
     }
 
     // ========== SETUP ==========
@@ -215,7 +205,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
             name.text = getString(R.string.slot_empty)
             slotContent.setBackgroundResource(R.drawable.slot_background_empty)
         } else {
-            applyScreenshot(screenshot, slot.screenshotFile)
+            SlotScreenshotLoader.load(screenshot, slot.screenshotFile)
             name.text = slot.getDisplayName()
             slotContent.setBackgroundResource(R.drawable.slot_background_occupied)
         }
@@ -243,38 +233,6 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         }
 
         return slotView
-    }
-
-    /**
-     * Loads the slot's screenshot, falling back to the "no screenshot" icon when the file is
-     * absent, unreadable, or fails to decode.
-     */
-    private fun applyScreenshot(screenshot: ImageView, screenshotFile: File?) {
-        if (screenshotFile == null) {
-            screenshot.setImageResource(R.drawable.ic_no_screenshot)
-            return
-        }
-        try {
-            val bitmap = BitmapFactory.decodeFile(screenshotFile.absolutePath)
-            if (bitmap != null) {
-                screenshot.setImageBitmap(bitmap)
-            } else {
-                screenshot.setImageResource(R.drawable.ic_no_screenshot)
-            }
-            // BitmapFactory.decodeFile() is documented to return null on failure rather
-            // than throw, and this call passes no Options that could trigger an
-            // IllegalArgumentException; in practice some OEM/OS-version combinations have
-            // been known to surface a corrupt screenshot file as an unchecked,
-            // undocumented RuntimeException from native decode code instead of the null
-            // contract, so this stays a safety net via detekt's own escape-hatch naming.
-        } catch (expectedNativeDecodeFailure: Exception) {
-            Log.e(
-                    TAG,
-                    "Failed to load screenshot: ${expectedNativeDecodeFailure.message}",
-                    expectedNativeDecodeFailure
-            )
-            screenshot.setImageResource(R.drawable.ic_no_screenshot)
-        }
     }
 
     // ========== NAVIGATION ==========
@@ -421,36 +379,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         selectionBorder.visibility = if (isSelected) View.VISIBLE else View.GONE
 
         // ===== GLOW INDICATOR (White Pulsing) =====
-        // Glow is visible ONLY when:
-        // 1. Slot is the last-used slot
-        // 2. Slot is NOT selected (selection takes visual precedence)
-        if (isLastUsed && !isSelected) {
-            glowView.visibility = View.VISIBLE
-
-            // Only start animation if this is a different slot than currently animating
-            // This prevents restarting the animation on every updateSelectionVisualInternal() call
-            if (lastAnimatedGlowView != glowView) {
-                // Stop previous animation if different slot
-                if (lastAnimatedGlowView != null) {
-                    activeGlowAnimator?.cancel()
-                    activeGlowAnimator = null
-                    lastAnimatedGlowView?.alpha = 1.0f
-                }
-                // Start new animation on this slot
-                startGlowAnimation(glowView)
-                lastAnimatedGlowView = glowView
-            }
-        } else {
-            glowView.visibility = View.GONE
-
-            // Only stop animation if this was the animated slot
-            if (lastAnimatedGlowView == glowView) {
-                activeGlowAnimator?.cancel()
-                activeGlowAnimator = null
-                lastAnimatedGlowView = null
-            }
-            glowView.alpha = 1.0f
-        }
+        glowAnimationController.apply(glowView, isLastUsed, isSelected)
 
         // ===== TEXT COLOR =====
         slotName.setTextColor(
@@ -467,80 +396,6 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
      */
     protected open fun onSelectionChanged(slotIndex: Int) {
         // Default: no-op. Subclasses (e.g., LoadSlotsFragment) can override.
-    }
-
-    // ========== GLOW ANIMATION METHODS ==========
-
-    /**
-     * Start a pulsing animation on the glow indicator view.
-     * 
-     * Animation properties:
-     * - Alpha: 0.3f → 1.0f → 0.3f (30% to 100% opacity)
-     * - Duration: 1500ms per cycle
-     * - Interpolator: AccelerateDecelerate (smooth easing)
-     * - Repeat: Infinite
-     * 
-     * @param glowView The View containing the glow indicator drawable
-     */
-    private fun startGlowAnimation(glowView: View) {
-        // Cancel any previously active animator
-        activeGlowAnimator?.cancel()
-
-        activeGlowAnimator = ObjectAnimator.ofFloat(
-                glowView,
-                "alpha",
-                GLOW_DIM_ALPHA,
-                GLOW_BRIGHT_ALPHA,
-                GLOW_DIM_ALPHA
-        ).apply {
-            duration = GLOW_ANIMATION_DURATION_MS  // 1.5 seconds per cycle
-            interpolator = AccelerateDecelerateInterpolator()  // Smooth pulse effect
-            repeatCount = ValueAnimator.INFINITE
-            repeatMode = ValueAnimator.RESTART
-            start()
-        }
-
-        Log.d(TAG, "Started glow animation on view")
-    }
-
-    /**
-     * Stop the active glow animation and reset opacity to full.
-     */
-    private fun stopGlowAnimation() {
-        if (activeGlowAnimator != null) {
-            activeGlowAnimator?.cancel()
-            activeGlowAnimator = null
-            Log.d(TAG, "Stopped glow animation")
-        }
-    }
-
-    /**
-     * Apply glow effect to the last-used slot (if one exists).
-     * 
-     * Called during:
-     * - onViewCreated: When grid is first displayed
-     * - After save/load operations: Via updateSelectionVisualInternal()
-     * - onResume: When fragment returns to visible state
-     * 
-     * If no last-used slot context, glow remains disabled.
-     */
-    private fun applyGlowToLastUsedSlot() {
-        val lastSlot = SessionSlotTracker.getInstance().getLastUsedSlot()
-        Log.d(TAG, "applyGlowToLastUsedSlot: lastSlot=$lastSlot")
-
-        if (lastSlot == null) {
-            Log.d(TAG, "No last used slot - glow disabled")
-            return
-        }
-
-        // Validate slot range
-        if (lastSlot !in 1..SaveStateManager.TOTAL_SLOTS) {
-            Log.w(TAG, "Invalid last slot: $lastSlot")
-            return
-        }
-
-        // Trigger visual update which will apply glow based on selection state
-        updateSelectionVisualInternal()
     }
 
     // ========== MENU INTERFACE ==========
