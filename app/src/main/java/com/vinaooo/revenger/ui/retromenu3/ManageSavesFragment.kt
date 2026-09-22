@@ -372,7 +372,8 @@ class ManageSavesFragment : SaveStateGridFragment() {
                 onConfirm = { newName ->
                     val finalName = newName.ifBlank { "Slot ${slot.slotNumber}" }
                     hideDialog()
-                    performRename(slot.slotNumber, finalName)
+                    SaveSlotOperationRunner(saveStateManager)
+                            .rename(requireContext(), slot.slotNumber, finalName) { refreshGrid() }
                 },
                 onCancel = {
                     hideDialog()
@@ -443,7 +444,8 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
             confirmButton.setOnClickListener {
                 hideDialog()
-                performDelete(slot.slotNumber)
+                SaveSlotOperationRunner(saveStateManager)
+                        .delete(requireContext(), slot.slotNumber) { refreshGrid() }
             }
 
             cancelButton.setOnClickListener { hideDialog() }
@@ -503,9 +505,20 @@ class ManageSavesFragment : SaveStateGridFragment() {
         isSelectingTargetSlot = false
         updateTitle()
 
+        val operationRunner = SaveSlotOperationRunner(saveStateManager)
         when (operation) {
-            Operation.COPY -> performCopy(sourceSlot.slotNumber, targetSlot.slotNumber)
-            Operation.MOVE -> performMove(sourceSlot.slotNumber, targetSlot.slotNumber)
+            Operation.COPY ->
+                    operationRunner.copy(
+                            requireContext(),
+                            sourceSlot.slotNumber,
+                            targetSlot.slotNumber
+                    ) { refreshGrid() }
+            Operation.MOVE ->
+                    operationRunner.move(
+                            requireContext(),
+                            sourceSlot.slotNumber,
+                            targetSlot.slotNumber
+                    ) { refreshGrid() }
             else -> {}
         }
 
@@ -552,65 +565,6 @@ class ManageSavesFragment : SaveStateGridFragment() {
         // Reset keyboard state
         retroKeyboard = null
         isKeyboardActive = false
-    }
-
-    // ========== OPERATIONS ==========
-
-    /**
-     * Runs a slot [operation] against [SaveStateManager] and reports the outcome the same way
-     * for every slot operation: on success, refresh the grid and show [successMessageRes]; on
-     * failure, show [errorMessageRes] and leave the grid untouched.
-     */
-    private fun performSlotOperation(operation: () -> Boolean, successMessageRes: Int, errorMessageRes: Int) {
-        val success = operation()
-        if (success) {
-            refreshGrid()
-            Toast.makeText(
-                            requireContext(),
-                            FontUtils.getCapitalizedString(requireContext(), successMessageRes),
-                            Toast.LENGTH_SHORT
-                    )
-                    .show()
-        } else {
-            Toast.makeText(
-                            requireContext(),
-                            FontUtils.getCapitalizedString(requireContext(), errorMessageRes),
-                            Toast.LENGTH_SHORT
-                    )
-                    .show()
-        }
-    }
-
-    private fun performRename(slotNumber: Int, newName: String) {
-        performSlotOperation(
-                { saveStateManager.renameSlot(slotNumber, newName) },
-                R.string.rename_success,
-                R.string.rename_error
-        )
-    }
-
-    private fun performCopy(fromSlot: Int, toSlot: Int) {
-        performSlotOperation(
-                { saveStateManager.copySlot(fromSlot, toSlot) },
-                R.string.copy_success,
-                R.string.copy_error
-        )
-    }
-
-    private fun performMove(fromSlot: Int, toSlot: Int) {
-        performSlotOperation(
-                { saveStateManager.moveSlot(fromSlot, toSlot) },
-                R.string.move_success,
-                R.string.move_error
-        )
-    }
-
-    private fun performDelete(slotNumber: Int) {
-        performSlotOperation(
-                { saveStateManager.deleteSlot(slotNumber) },
-                R.string.delete_success,
-                R.string.delete_error
-        )
     }
 
     companion object {
