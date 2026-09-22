@@ -101,11 +101,13 @@ class ManageSavesFragment_test {
         }
     }
 
-    // ========== performRename / performCopy / performMove / performDelete ==========
+    // ========== ManageSavesFragment wiring to SaveSlotOperationRunner ==========
     //
-    // These four private methods (see SaveStateGridFragment.saveStateManager, injected here via
-    // reflection since the field is protected) share one if/else-toast/refresh shape. The tests
-    // below mock saveStateManager to force each success/failure branch deterministically -
+    // performRename/performCopy/performMove/performDelete were extracted into
+    // SaveSlotOperationRunner (see SaveSlotOperationRunner_test.kt for the success/failure
+    // outcome-reporting coverage). The tests below instead prove the three call sites in this
+    // fragment (rename-dialog confirm, copy/move target selection, delete-dialog confirm) are
+    // still wired to construct the runner correctly and pass it the right slot numbers -
     // deleteSlot() in particular can't be forced to fail through the real filesystem-backed
     // manager, since Kotlin's File.deleteRecursively() succeeds even on a missing directory.
 
@@ -123,59 +125,47 @@ class ManageSavesFragment_test {
         field.set(fragment, manager)
     }
 
-    private fun callPerformRename(slotNumber: Int, newName: String) {
-        val method =
-                ManageSavesFragment::class.java.getDeclaredMethod(
-                        "performRename",
-                        Int::class.javaPrimitiveType,
-                        String::class.java
-                )
-        method.isAccessible = true
-        method.invoke(fragment, slotNumber, newName)
-    }
-
-    private fun callPerformCopy(fromSlot: Int, toSlot: Int) {
-        val method =
-                ManageSavesFragment::class.java.getDeclaredMethod(
-                        "performCopy",
-                        Int::class.javaPrimitiveType,
-                        Int::class.javaPrimitiveType
-                )
-        method.isAccessible = true
-        method.invoke(fragment, fromSlot, toSlot)
-    }
-
-    private fun callPerformMove(fromSlot: Int, toSlot: Int) {
-        val method =
-                ManageSavesFragment::class.java.getDeclaredMethod(
-                        "performMove",
-                        Int::class.javaPrimitiveType,
-                        Int::class.javaPrimitiveType
-                )
-        method.isAccessible = true
-        method.invoke(fragment, fromSlot, toSlot)
-    }
-
-    private fun callPerformDelete(slotNumber: Int) {
-        val method =
-                ManageSavesFragment::class.java.getDeclaredMethod(
-                        "performDelete",
-                        Int::class.javaPrimitiveType
-                )
-        method.isAccessible = true
-        method.invoke(fragment, slotNumber)
-    }
-
     private fun expectedToast(resId: Int): String =
             FontUtils.getCapitalizedString(activity, resId)
 
+    private fun callStartTargetSlotSelection(slot: SaveSlotData, operation: ManageSavesFragment.Operation) {
+        val method =
+                ManageSavesFragment::class.java.getDeclaredMethod(
+                        "startTargetSlotSelection",
+                        SaveSlotData::class.java,
+                        ManageSavesFragment.Operation::class.java
+                )
+        method.isAccessible = true
+        method.invoke(fragment, slot, operation)
+    }
+
+    private fun callHandleTargetSlotSelected(targetSlot: SaveSlotData) {
+        val method =
+                ManageSavesFragment::class.java.getDeclaredMethod(
+                        "handleTargetSlotSelected",
+                        SaveSlotData::class.java
+                )
+        method.isAccessible = true
+        method.invoke(fragment, targetSlot)
+    }
+
     @Test
-    fun `performRename com sucesso mostra toast de sucesso e atualiza grid`() {
+    fun `confirmar rename via retroKeyboard aciona SaveSlotOperationRunner e atualiza grid`() {
         val manager = mockedSaveStateManager()
         every { manager.renameSlot(1, "New Name") } returns true
         injectSaveStateManager(manager)
+        callShowOperationsMenu(occupiedSlot(1))
+        val renameButton = fragment.requireView().findViewById<RetroCardView>(R.id.operation_rename)
+        renameButton.performClick()
 
-        callPerformRename(1, "New Name")
+        val retroKeyboardField = ManageSavesFragment::class.java.getDeclaredField("retroKeyboard")
+        retroKeyboardField.isAccessible = true
+        val retroKeyboard = retroKeyboardField.get(fragment)
+        val onConfirmField = retroKeyboard.javaClass.getDeclaredField("onConfirm")
+        onConfirmField.isAccessible = true
+        @Suppress("UNCHECKED_CAST") val onConfirm = onConfirmField.get(retroKeyboard) as (String) -> Unit
+
+        onConfirm("New Name")
 
         assertEquals(1, ShadowToast.shownToastCount())
         assertEquals(expectedToast(R.string.rename_success), ShadowToast.getTextOfLatestToast())
@@ -183,25 +173,15 @@ class ManageSavesFragment_test {
     }
 
     @Test
-    fun `performRename com falha mostra toast de erro e nao atualiza grid`() {
-        val manager = mockedSaveStateManager()
-        every { manager.renameSlot(1, "New Name") } returns false
-        injectSaveStateManager(manager)
-
-        callPerformRename(1, "New Name")
-
-        assertEquals(1, ShadowToast.shownToastCount())
-        assertEquals(expectedToast(R.string.rename_error), ShadowToast.getTextOfLatestToast())
-        verify(exactly = 0) { manager.getAllSlots() }
-    }
-
-    @Test
-    fun `performDelete com sucesso mostra toast de sucesso e atualiza grid`() {
+    fun `confirmar delete via dialog aciona SaveSlotOperationRunner e atualiza grid`() {
         val manager = mockedSaveStateManager()
         every { manager.deleteSlot(3) } returns true
         injectSaveStateManager(manager)
+        callShowDeleteConfirmation(occupiedSlot(3))
 
-        callPerformDelete(3)
+        val confirmButton =
+                fragment.requireView().findViewById<RetroCardView>(R.id.dialog_confirm_button)
+        confirmButton.performClick()
 
         assertEquals(1, ShadowToast.shownToastCount())
         assertEquals(expectedToast(R.string.delete_success), ShadowToast.getTextOfLatestToast())
@@ -209,68 +189,33 @@ class ManageSavesFragment_test {
     }
 
     @Test
-    fun `performDelete com falha mostra toast de erro e nao atualiza grid`() {
-        val manager = mockedSaveStateManager()
-        every { manager.deleteSlot(3) } returns false
-        injectSaveStateManager(manager)
-
-        callPerformDelete(3)
-
-        assertEquals(1, ShadowToast.shownToastCount())
-        assertEquals(expectedToast(R.string.delete_error), ShadowToast.getTextOfLatestToast())
-        verify(exactly = 0) { manager.getAllSlots() }
-    }
-
-    @Test
-    fun `performCopy com sucesso mostra toast de sucesso e atualiza grid`() {
+    fun `selecionar slot destino para copy aciona SaveSlotOperationRunner e atualiza grid`() {
         val manager = mockedSaveStateManager()
         every { manager.copySlot(1, 2) } returns true
         injectSaveStateManager(manager)
 
-        callPerformCopy(1, 2)
+        callStartTargetSlotSelection(occupiedSlot(1), ManageSavesFragment.Operation.COPY)
+        callHandleTargetSlotSelected(SaveSlotData.empty(2))
 
-        assertEquals(1, ShadowToast.shownToastCount())
+        // startTargetSlotSelection() itself shows a "select target slot" toast first, so only
+        // the LATEST toast (from SaveSlotOperationRunner.copy()'s outcome) is asserted here.
         assertEquals(expectedToast(R.string.copy_success), ShadowToast.getTextOfLatestToast())
         verify(exactly = 1) { manager.getAllSlots() }
     }
 
     @Test
-    fun `performCopy com falha mostra toast de erro e nao atualiza grid`() {
-        val manager = mockedSaveStateManager()
-        every { manager.copySlot(1, 2) } returns false
-        injectSaveStateManager(manager)
-
-        callPerformCopy(1, 2)
-
-        assertEquals(1, ShadowToast.shownToastCount())
-        assertEquals(expectedToast(R.string.copy_error), ShadowToast.getTextOfLatestToast())
-        verify(exactly = 0) { manager.getAllSlots() }
-    }
-
-    @Test
-    fun `performMove com sucesso mostra toast de sucesso e atualiza grid`() {
+    fun `selecionar slot destino para move aciona SaveSlotOperationRunner e atualiza grid`() {
         val manager = mockedSaveStateManager()
         every { manager.moveSlot(1, 2) } returns true
         injectSaveStateManager(manager)
 
-        callPerformMove(1, 2)
+        callStartTargetSlotSelection(occupiedSlot(1), ManageSavesFragment.Operation.MOVE)
+        callHandleTargetSlotSelected(SaveSlotData.empty(2))
 
-        assertEquals(1, ShadowToast.shownToastCount())
+        // startTargetSlotSelection() itself shows a "select target slot" toast first, so only
+        // the LATEST toast (from SaveSlotOperationRunner.move()'s outcome) is asserted here.
         assertEquals(expectedToast(R.string.move_success), ShadowToast.getTextOfLatestToast())
         verify(exactly = 1) { manager.getAllSlots() }
-    }
-
-    @Test
-    fun `performMove com falha mostra toast de erro e nao atualiza grid`() {
-        val manager = mockedSaveStateManager()
-        every { manager.moveSlot(1, 2) } returns false
-        injectSaveStateManager(manager)
-
-        callPerformMove(1, 2)
-
-        assertEquals(1, ShadowToast.shownToastCount())
-        assertEquals(expectedToast(R.string.move_error), ShadowToast.getTextOfLatestToast())
-        verify(exactly = 0) { manager.getAllSlots() }
     }
 
     // ========== updateDialogSelection ==========
