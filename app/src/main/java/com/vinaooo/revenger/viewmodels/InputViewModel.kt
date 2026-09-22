@@ -87,7 +87,7 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
                 "InputViewModel",
                 "🔥 [CLEAR_INPUT_STATE] Timestamp: ${System.currentTimeMillis()}"
         )
-        controllerInput.clearKeyLog()
+        controllerInput.comboTracker.clearKeyLog()
         android.util.Log.d(
                 "InputViewModel",
                 "🔥 [CLEAR_INPUT_STATE] controllerInput.clearKeyLog() completed"

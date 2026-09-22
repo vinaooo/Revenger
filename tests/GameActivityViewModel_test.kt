@@ -177,15 +177,20 @@ class GameActivityViewModel_test {
      * start the post-close grace period -- with the exact `closingButton` value passed through so
      * that only the button that actually closed the menu gets blocked during the grace period.
      *
-     * `controllerInput` is swapped for a `spyk()` wrapping the SAME real instance (not a bare
+     * `comboTracker` and `callbackDebouncer` (the two collaborators `ControllerInput` delegates
+     * this state to) are each swapped for a `spyk()` wrapping the SAME real instance (not a bare
      * mock): every call still runs its real implementation, so ordering is verified without
-     * changing behavior.
+     * changing behavior. `mockk`'s `verifyOrder` accepts calls on more than one spy in a single
+     * block, so the cross-object order is still checked exactly as before this state was split
+     * out of `ControllerInput` itself.
      */
     @Test
     fun `fechar o menu limpa o estado do combo em ordem e bloqueia so o botao que fechou`() {
         val realControllerInput = getPrivateField<ControllerInput>(viewModel, "controllerInput")
-        val spyControllerInput = spyk(realControllerInput)
-        setPrivateField(viewModel, "controllerInput", spyControllerInput)
+        val spyComboTracker = spyk(realControllerInput.comboTracker)
+        setPrivateField(realControllerInput, "comboTracker", spyComboTracker)
+        val spyCallbackDebouncer = spyk(realControllerInput.callbackDebouncer)
+        setPrivateField(realControllerInput, "callbackDebouncer", spyCallbackDebouncer)
 
         val activity = mockk<FragmentActivity>(relaxed = true)
         viewModel.setupMenuCallback(activity)
@@ -195,11 +200,11 @@ class GameActivityViewModel_test {
         viewModel.navigationController?.onMenuClosedCallback?.invoke(closingButton)
 
         verifyOrder {
-            spyControllerInput.clearMenuActionButtons()
-            spyControllerInput.resetComboAlreadyTriggered()
-            spyControllerInput.clearKeyLog()
-            spyControllerInput.updateMenuCloseDebounceTime()
-            spyControllerInput.keepInterceptingButtons(200, closingButton = closingButton)
+            spyComboTracker.clearMenuActionButtons()
+            spyComboTracker.resetComboAlreadyTriggered()
+            spyComboTracker.clearKeyLog()
+            spyComboTracker.updateMenuCloseDebounceTime()
+            spyCallbackDebouncer.keepInterceptingButtons(200, closingButton = closingButton)
         }
 
         // Prove the exact closingButton value really reached keepInterceptingButtons: during
@@ -208,11 +213,11 @@ class GameActivityViewModel_test {
         // menuBackCallback / navigationController as a side effect.
         assertTrue(
                 "the button that closed the menu should be intercepted during the grace period",
-                spyControllerInput.processGamePadButtonEvent(closingButton, KeyEvent.ACTION_UP)
+                realControllerInput.processGamePadButtonEvent(closingButton, KeyEvent.ACTION_UP)
         )
         assertFalse(
                 "a different button should NOT be intercepted during the grace period",
-                spyControllerInput.processGamePadButtonEvent(
+                realControllerInput.processGamePadButtonEvent(
                         KeyEvent.KEYCODE_BUTTON_A,
                         KeyEvent.ACTION_UP
                 )

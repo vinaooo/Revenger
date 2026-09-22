@@ -437,17 +437,17 @@ class GameActivityViewModel(application: Application) :
         )
 
         // Limpar botões de menu do keyLog para evitar "wasAlreadyPressed" bugs
-        controllerInput.clearMenuActionButtons()
+        controllerInput.comboTracker.clearMenuActionButtons()
 
         // Reset combo state to allow SELECT+START to work again after menu closes
-        controllerInput.resetComboAlreadyTriggered()
+        controllerInput.comboTracker.resetComboAlreadyTriggered()
 
         // Clear keyLog immediately to prevent residual button states from causing combo
         // detection issues
-        controllerInput.clearKeyLog()
+        controllerInput.comboTracker.clearKeyLog()
 
         // Update menu close debounce time to prevent immediate combo detection
-        controllerInput.updateMenuCloseDebounceTime()
+        controllerInput.comboTracker.updateMenuCloseDebounceTime()
 
         android.util.Log.d(
                 "GameActivityViewModel",
@@ -458,7 +458,7 @@ class GameActivityViewModel(application: Application) :
         // 200ms covers the ~150ms hardware delay between ACTION_DOWN and ACTION_UP
         // Identified via logs: UP arrives 150ms later; 50ms was insufficient
         // Block only the button that actually closed the menu
-        controllerInput.keepInterceptingButtons(
+        controllerInput.callbackDebouncer.keepInterceptingButtons(
                 MENU_CLOSE_BUTTON_INTERCEPT_GRACE_MS,
                 closingButton = closingButton
         )
@@ -739,7 +739,7 @@ class GameActivityViewModel(application: Application) :
         android.util.Log.d(
                 "GameActivityViewModel",
                 "[CLEAR_STATE] clearControllerInputState: comboAlreadyTriggered before: " +
-                        "${controllerInput.getComboAlreadyTriggered()}"
+                        "${controllerInput.comboTracker.getComboAlreadyTriggered()}"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
@@ -764,7 +764,7 @@ class GameActivityViewModel(application: Application) :
                                     "GameActivityViewModel",
                                     "[CLEAR_STATE] clearControllerInputState: " +
                                             "comboAlreadyTriggered after: " +
-                                            "${controllerInput.getComboAlreadyTriggered()}"
+                                            "${controllerInput.comboTracker.getComboAlreadyTriggered()}"
                             )
                             android.util.Log.d(
                                     "GameActivityViewModel",
@@ -1717,7 +1717,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Clear controller key log (used by RetroMenu3Fragment on destroy) */
     fun clearControllerKeyLog() {
-        controllerInput.clearKeyLog()
+        controllerInput.comboTracker.clearKeyLog()
     }
 
     /** Check if we are currently dismissing all menus (used by RetroMenu3Fragment) */
