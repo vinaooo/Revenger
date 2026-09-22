@@ -15,7 +15,7 @@ import com.vinaooo.revenger.retroview.RetroView
  */
 class MotionEventRouter(
         private val callbacksProvider: () -> ControllerInputCallbacks,
-        private val callbackDebouncer: MenuCallbackDebouncer
+        private val callbackDebouncerProvider: () -> MenuCallbackDebouncer
 ) {
 
         companion object {
@@ -25,6 +25,7 @@ class MotionEventRouter(
         }
 
         private val callbacks get() = callbacksProvider()
+        private val callbackDebouncer get() = callbackDebouncerProvider()
 
         // Single trigger system - tracks previous state to detect transitions
         private data class DirectionalState(
