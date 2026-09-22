@@ -244,6 +244,36 @@ class PipController_test {
     }
 
     @Test
+    fun `Save and Exit abre o menu de save-slots apenas ao sair do PiP, uma unica vez`() {
+        val navigationController = mockk<com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController>(relaxed = true)
+        every { viewModel.navigationController } returns navigationController
+
+        controller.onPictureInPictureModeChanged(true)
+        val receiver = requireNotNull(host.registeredReceiver)
+        receiver.onReceive(context(), Intent(PipController.ACTION_PIP_SAVE))
+
+        controller.onPictureInPictureModeChanged(false)
+
+        // OpenMenu carries a `timestamp` defaulted to the construction time, so an exact-value
+        // match would flake on the millisecond -- match on the fields that matter instead.
+        verify(exactly = 1) {
+            navigationController.handleNavigationEvent(
+                    match<com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent> {
+                        it is com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.OpenMenu &&
+                                it.inputSource == com.vinaooo.revenger.ui.retromenu3.navigation.InputSource.TOUCH &&
+                                it.targetMenu == com.vinaooo.revenger.ui.retromenu3.navigation.MenuType.EXIT_SAVE_SLOTS
+                    }
+            )
+        }
+
+        // A second PiP enter/exit cycle without a new ACTION_PIP_SAVE must not reopen the menu.
+        controller.onPictureInPictureModeChanged(true)
+        controller.onPictureInPictureModeChanged(false)
+
+        verify(exactly = 1) { navigationController.handleNavigationEvent(any()) }
+    }
+
+    @Test
     fun `onPictureInPictureModeChanged false restaura o menu e desregistra o receiver`() {
         controller.onPictureInPictureModeChanged(true)
         val receiver = host.registeredReceiver

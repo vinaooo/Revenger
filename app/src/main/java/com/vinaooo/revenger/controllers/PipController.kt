@@ -24,7 +24,9 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
  * overlay still-frame, the Quick Save / Save and Exit PiP actions and their broadcast receiver,
  * and keeping [android.app.PictureInPictureParams] current. Extracted out of `GameActivity` to
  * keep it within detekt's `TooManyFunctions`/`ReturnCount` thresholds; `GameActivity`'s lifecycle
- * overrides now delegate to this controller after calling `super`.
+ * overrides now delegate to this controller, each at the same point in the override body the
+ * inline code used to run (see each method's own KDoc for its exact call-site position relative
+ * to `super`).
  */
 class PipController(
         private val host: PipHost,
@@ -90,7 +92,7 @@ class PipController(
                 clearPipOverlaySnapshot()
         }
 
-        /** Call from `GameActivity.onPause()`. */
+        /** Call from `GameActivity.onPause()`, before `super.onPause()`. */
         fun onActivityPaused() {
                 // Last chance to grab a game frame while the GL surface is still valid — the PiP
                 // window relies entirely on this bitmap (the surface goes black during the
@@ -98,7 +100,7 @@ class PipController(
                 maybeCapturePipFrame(force = true)
         }
 
-        /** Call from `GameActivity.onResume()`. No-op below SDK O. */
+        /** Call from `GameActivity.onResume()`, after `super.onResume()`. No-op below SDK O. */
         fun onActivityResumed() {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
@@ -125,7 +127,7 @@ class PipController(
                 }
         }
 
-        /** Call from `GameActivity.onUserLeaveHint()`. */
+        /** Call from `GameActivity.onUserLeaveHint()`, after `super.onUserLeaveHint()`. */
         fun onUserLeaveHint() {
                 if (viewModel.retroView?.frameRendered?.value != true) {
                         Log.d(TAG, "[PIP] Ignoring PiP request before first frame render")
@@ -243,8 +245,8 @@ class PipController(
                         }
                         // setPictureInPictureParams() documents IllegalArgumentException (invalid
                         // aspect ratio) and IllegalStateException (activity not visible/eligible)
-                        // as its reachable failures; getPipParamsBuilder()'s own collaborators
-                        // (PipConfigRepository, PipAspectRatioResolver) don't throw.
+                        // as its reachable failures; PipParamsFactory.newBuilder()'s own
+                        // collaborators (PipConfigRepository, PipAspectRatioResolver) don't throw.
                         host.updatePipParams(builder.build())
                 } catch (e: IllegalArgumentException) {
                         Log.e(TAG, "[PIP] Failed to update Picture-in-Picture params", e)
