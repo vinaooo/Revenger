@@ -297,6 +297,27 @@ class GameActivityViewModel_test {
     }
 
     /**
+     * Regression test: `unregisterSettingsMenuFragment` must DEACTIVATE the Settings menu type,
+     * not activate it. Added after a manual edit briefly swapped `activateMenu`/`deactivateMenu`
+     * during an inlining pass (caught before merge by a different bug injection) -- no existing
+     * test actually asserted on `unregisterSettingsMenuFragment`'s `menuStateManager` effect, only
+     * that other code calls it (`SubmenuCoordinator_test.kt`, against a mocked `viewModel`).
+     */
+    @Test
+    fun `unregisterSettingsMenuFragment desativa o menu de settings`() {
+        mockMenuViewModel()
+        mockMenuManager()
+        val fragment = mockk<SettingsMenuFragment>(relaxed = true)
+        viewModel.registerSettingsMenuFragment(fragment)
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+
+        viewModel.unregisterSettingsMenuFragment()
+
+        assertFalse(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+        assertFalse(viewModel.isSettingsMenuOpen())
+    }
+
+    /**
      * Pinning test: unlike Progress/Exit's rotation variants, Settings' rotation variant calls
      * NEITHER `menuViewModel.registerSettingsMenuFragment` NOR `activateSettingsMenu()`.
      */
