@@ -1554,49 +1554,58 @@ class GameActivityViewModel(application: Application) :
                 "[KEY-EVENT] keyCode=$keyCode, action=${event.action}, navigationSystemActive=true"
         )
 
-        // PHASE 4.1c: Check for keyboard input (permanently enabled)
-        if (keyboardInputAdapter != null) {
-            // Check if this is a navigation key
-            if (keyboardInputAdapter!!.isNavigationKey(keyCode)) {
-                // PHASE 4.2c: Allow F12 even when menu is closed (to open menu)
-                // But Backspace (DEL) only works when menu is OPEN (to navigate back)
-                val isMenuActive = isAnyMenuActive()
-                val shouldProcessKeyboard = isMenuActive || keyCode == KeyEvent.KEYCODE_F12
-
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "[PHASE4] Navigation key check: keyCode=$keyCode, " +
-                                "action=${event.action}, isMenuActive=$isMenuActive, " +
-                                "shouldProcess=$shouldProcessKeyboard"
-                )
-
-                if (shouldProcessKeyboard) {
-                    android.util.Log.d(
-                            "GameActivityViewModel",
-                            "[PHASE4] Routing key event to KeyboardInputAdapter: " +
-                                    "keyCode=$keyCode, action=${event.action}"
-                    )
-                    // Route to keyboard adapter based on action type
-                    val consumed =
-                            when (event.action) {
-                                KeyEvent.ACTION_DOWN ->
-                                        keyboardInputAdapter!!.onKeyDown(keyCode, event)
-                                KeyEvent.ACTION_UP -> keyboardInputAdapter!!.onKeyUp(keyCode, event)
-                                else -> false
-                            }
-                    if (consumed) {
-                        return true // Event was consumed by menu navigation
-                    }
-                }
-            }
+        if (tryConsumeKeyboardNavigation(keyCode, event) == true) {
+            return true // Event was consumed by menu navigation
         }
 
         // Process normally via ControllerInput (for game inputs)
-        retroView?.let {
-            return controllerInput.processKeyEvent(keyCode, event, it)
+        val retroView = retroView
+        return if (retroView != null) {
+            controllerInput.processKeyEvent(keyCode, event, retroView)
+        } else {
+            false
         }
+    }
 
-        return false
+    /**
+     * PHASE 4.1c: routes [keyCode]/[event] to [keyboardInputAdapter] when it's a navigation key
+     * the keyboard path should currently handle, returning whether it consumed the event.
+     * Returns `null` when the keyboard path doesn't apply at all (no adapter, not a navigation
+     * key, or the menu-active/F12 gate says not to route it there) and `false` when it applied
+     * but the adapter didn't consume the event; [processKeyEvent] treats both the same way
+     * (falls through to `ControllerInput`), so the distinction only matters to callers that care
+     * why. Extracted out of [processKeyEvent] to keep that function within detekt's
+     * `NestedBlockDepth`/`ReturnCount` thresholds.
+     */
+    private fun tryConsumeKeyboardNavigation(keyCode: Int, event: KeyEvent): Boolean? {
+        val adapter = keyboardInputAdapter ?: return null
+        if (!adapter.isNavigationKey(keyCode)) return null
+
+        // PHASE 4.2c: Allow F12 even when menu is closed (to open menu)
+        // But Backspace (DEL) only works when menu is OPEN (to navigate back)
+        val isMenuActive = isAnyMenuActive()
+        val shouldProcessKeyboard = isMenuActive || keyCode == KeyEvent.KEYCODE_F12
+
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[PHASE4] Navigation key check: keyCode=$keyCode, " +
+                        "action=${event.action}, isMenuActive=$isMenuActive, " +
+                        "shouldProcess=$shouldProcessKeyboard"
+        )
+
+        if (!shouldProcessKeyboard) return null
+
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[PHASE4] Routing key event to KeyboardInputAdapter: " +
+                        "keyCode=$keyCode, action=${event.action}"
+        )
+        // Route to keyboard adapter based on action type
+        return when (event.action) {
+            KeyEvent.ACTION_DOWN -> adapter.onKeyDown(keyCode, event)
+            KeyEvent.ACTION_UP -> adapter.onKeyUp(keyCode, event)
+            else -> false
+        }
     }
 
     /** Process a motion event and return the result */
