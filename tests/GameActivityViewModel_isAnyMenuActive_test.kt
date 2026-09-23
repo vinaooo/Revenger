@@ -82,7 +82,7 @@ class GameActivityViewModel_isAnyMenuActive_test {
 
         val settingsFragment = mockk<SettingsMenuFragment>(relaxed = true)
         every { settingsFragment.isAdded } returns true
-        setPrivateField(viewModel, "settingsMenuFragment", settingsFragment)
+        viewModel.registerSettingsMenuFragment(settingsFragment)
 
         assertEquals(false, viewModel.isAnyMenuActive())
     }
@@ -109,7 +109,7 @@ class GameActivityViewModel_isAnyMenuActive_test {
     fun `fragmento de submenu ativo ainda retorna false sem navigationController`() {
         val fragment = mockk<SettingsMenuFragment>(relaxed = true)
         every { fragment.isAdded } returns true
-        setPrivateField(viewModel, "settingsMenuFragment", fragment)
+        viewModel.registerSettingsMenuFragment(fragment)
 
         assertEquals(false, viewModel.isAnyMenuActive())
     }
