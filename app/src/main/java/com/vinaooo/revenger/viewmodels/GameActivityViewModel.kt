@@ -180,75 +180,6 @@ class GameActivityViewModel(application: Application) :
     // ===== CENTRALIZED STATE MANAGEMENT =====
     // Distributed state migrated to MenuStateManager
 
-    /** Activate settings menu */
-    private fun activateSettingsMenu() {
-        menuStateManager.activateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
-        )
-    }
-
-    /** Deactivate settings menu */
-    private fun deactivateSettingsMenu() {
-        menuStateManager.deactivateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
-        )
-    }
-
-    /** Activate progress menu */
-    private fun activateProgressMenu() {
-        menuStateManager.activateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU
-        )
-    }
-
-    /** Deactivate progress menu */
-    private fun deactivateProgressMenu() {
-        menuStateManager.deactivateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU
-        )
-    }
-
-    /** Activate exit menu */
-    private fun activateExitMenu() {
-        menuStateManager.activateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
-        )
-    }
-
-    /** Deactivate exit menu */
-    private fun deactivateExitMenu() {
-        menuStateManager.deactivateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
-        )
-    }
-
-    /** Activate about menu */
-    private fun activateAboutMenu() {
-        menuStateManager.activateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
-        )
-    }
-
-    /** Deactivate about menu */
-    private fun deactivateAboutMenu() {
-        menuStateManager.deactivateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
-        )
-    }
-
-
-    /** Deactivate core variables menu */
-    private fun deactivateCoreVariablesMenu() {
-        menuStateManager.deactivateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.CORE_VARIABLES_MENU
-        )
-    }
-
-    /** Set dismissing all menus flag */
-    private fun setDismissingAllMenus(dismissing: Boolean) {
-        menuStateManager.setDismissingAllMenus(dismissing)
-    }
-
     // Centralized Menu State Manager (must be initialized first for MenuManager)
     private val menuStateManager: com.vinaooo.revenger.ui.retromenu3.MenuStateManager =
             com.vinaooo.revenger.ui.retromenu3.MenuStateManager()
@@ -904,7 +835,9 @@ class GameActivityViewModel(application: Application) :
     fun dismissSettingsMenu() {
         dismissSubmenuFragment(settingsMenuFragment, "SettingsMenu") {
             settingsMenuFragment = null
-            deactivateSettingsMenu()
+            menuStateManager.deactivateMenu(
+                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
+            )
             // Navigate back to main menu when dismissing Settings submenu
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
         }
@@ -914,7 +847,9 @@ class GameActivityViewModel(application: Application) :
     fun dismissProgress() {
         dismissSubmenuFragment(progressFragment, "Progress") {
             progressFragment = null
-            deactivateProgressMenu()
+            menuStateManager.deactivateMenu(
+                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU
+            )
             // Navigate back to main menu when dismissing Progress submenu
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
         }
@@ -924,7 +859,9 @@ class GameActivityViewModel(application: Application) :
     fun dismissExit() {
         dismissSubmenuFragment(exitFragment, "Exit") {
             exitFragment = null
-            deactivateExitMenu()
+            menuStateManager.deactivateMenu(
+                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
+            )
             // Navigate back to main menu when dismissing Exit submenu
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
         }
@@ -934,7 +871,9 @@ class GameActivityViewModel(application: Application) :
     fun dismissAboutMenu() {
         dismissSubmenuFragment(aboutFragment, "About") {
             aboutFragment = null
-            deactivateAboutMenu()
+            menuStateManager.deactivateMenu(
+                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
+            )
             // Navigate back to main menu when dismissing About submenu
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
         }
@@ -945,7 +884,9 @@ class GameActivityViewModel(application: Application) :
     fun dismissCoreVariablesMenu() {
         dismissSubmenuFragment(coreVariablesFragment, "CoreVariables") {
             coreVariablesFragment = null
-            deactivateCoreVariablesMenu()
+            menuStateManager.deactivateMenu(
+                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.CORE_VARIABLES_MENU
+            )
             // Navigate back to main menu when dismissing CoreVariables submenu
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
         }
@@ -1025,7 +966,9 @@ class GameActivityViewModel(application: Application) :
                 ),
                 setFragmentRef = { settingsMenuFragment = it },
                 notifyMenuViewModel = { menuViewModel.registerSettingsMenuFragment(fragment) },
-                activate = { activateSettingsMenu() }
+                activate = { menuStateManager.activateMenu(
+                        com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
+                ) }
         )
     }
 
@@ -1036,7 +979,9 @@ class GameActivityViewModel(application: Application) :
                 "[UNREGISTER] ⚙️ unregisterSettingsMenuFragment: Clearing SettingsMenuFragment reference"
         )
         settingsMenuFragment = null
-        deactivateSettingsMenu()
+        menuStateManager.deactivateMenu(
+                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
+        )
         // Unregister from MenuManager
         menuManager.unregisterFragment(com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU)
         android.util.Log.d(
@@ -1073,7 +1018,9 @@ class GameActivityViewModel(application: Application) :
                 ),
                 setFragmentRef = { progressFragment = it },
                 notifyMenuViewModel = { menuViewModel.registerProgressFragment(fragment) },
-                activate = { activateProgressMenu() }
+                activate = { menuStateManager.activateMenu(
+                        com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU
+                ) }
         )
     }
 
@@ -1105,7 +1052,9 @@ class GameActivityViewModel(application: Application) :
                 ),
                 setFragmentRef = { exitFragment = it },
                 notifyMenuViewModel = { menuViewModel.registerExitFragment(fragment) },
-                activate = { activateExitMenu() }
+                activate = { menuStateManager.activateMenu(
+                        com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
+                ) }
         )
     }
 
@@ -1137,7 +1086,9 @@ class GameActivityViewModel(application: Application) :
                 ),
                 setFragmentRef = { aboutFragment = it },
                 notifyMenuViewModel = null,
-                activate = { activateAboutMenu() }
+                activate = { menuStateManager.activateMenu(
+                        com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
+                ) }
         )
     }
 
@@ -1749,35 +1700,35 @@ class GameActivityViewModel(application: Application) :
                 // Main menu is always active when RetroMenu3 is open
                 // No need to activate/deactivate here
             }
-            com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> {
-                activateSettingsMenu()
-            }
-            com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> {
-                activateProgressMenu()
-            }
-            com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> {
-                activateAboutMenu()
-            }
-            com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
-                activateExitMenu()
-            }
+            com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU ->
+                    menuStateManager.activateMenu(
+                            com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU)
+            com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU ->
+                    menuStateManager.activateMenu(
+                            com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU)
+            com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU ->
+                    menuStateManager.activateMenu(
+                            com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU)
+            com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU ->
+                    menuStateManager.activateMenu(
+                            com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU)
             else -> {}
         }
 
         // Deactivate previous menu if it was a submenu
         when (event.from) {
-            com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU -> {
-                deactivateSettingsMenu()
-            }
-            com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU -> {
-                deactivateProgressMenu()
-            }
-            com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU -> {
-                deactivateAboutMenu()
-            }
-            com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU -> {
-                deactivateExitMenu()
-            }
+            com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU ->
+                    menuStateManager.deactivateMenu(
+                            com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU)
+            com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU ->
+                    menuStateManager.deactivateMenu(
+                            com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU)
+            com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU ->
+                    menuStateManager.deactivateMenu(
+                            com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU)
+            com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU ->
+                    menuStateManager.deactivateMenu(
+                            com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU)
             else -> {
                 // No deactivation needed for MAIN_MENU or other states
             }
