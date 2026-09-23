@@ -4,10 +4,6 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.RevengerApplication
-import com.vinaooo.revenger.ui.retromenu3.AboutFragment
-import com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment
-import com.vinaooo.revenger.ui.retromenu3.ExitFragment
-import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
 import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
@@ -22,25 +18,18 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Characterization tests for [GameActivityViewModel.isAnyMenuActive], written against the
- * unmodified implementation before it is restructured to resolve its `LongMethod`/
- * `CyclomaticComplexMethod` detekt findings. They pin the decision the current code makes so a
- * later extraction can be proven behavior-preserving:
+ * Characterization tests for [GameActivityViewModel.isAnyMenuActive]:
  *
- * - When `navigationController` is set, its `isMenuActive()` result is authoritative and the
- *   fragment-tracking fallback below it is never consulted, even if fragment state disagrees.
- * - When `navigationController` is `null` (the fallback path -- a fresh `GameActivityViewModel`'s
- *   natural state before `setupMenuCallback()`/`initializeNavigationControllerIfNeeded` first
- *   runs, and the state every existing unit test constructs), each of the five submenu fragments
- *   (`aboutFragment`, `coreVariablesFragment`, `settingsMenuFragment`, `progressFragment`,
- *   `exitFragment`) independently makes the result `true` when added, with `retroMenu3Fragment`
- *   left `null` -- proving the seemingly-redundant individual terms in the final OR-chain are each
- *   load-bearing on their own, not merely implied by `menuSystemActive`.
- *
- * `forceMainMenuActive` is not exercised in isolation here: it requires `retroMenu3Fragment` to
- * exist and be added, which already makes `retroMenu3Open` (and therefore the result) `true` on
- * its own via the `retroMenu3Fragment` added/active test below -- isolating it would just
- * re-assert that same case under a different name.
+ * - When `navigationController` is set, its `isMenuActive()` result is authoritative, even when
+ *   fragment state disagrees.
+ * - When `navigationController` is `null` (a fresh `GameActivityViewModel`'s natural state before
+ *   `setupMenuCallback()`/`initializeNavigationControllerIfNeeded` first runs, and the state every
+ *   existing unit test constructs), the result is always `false`, regardless of fragment state.
+ *   This used to be a fragment-tracking fallback computing activity from `retroMenu3Fragment` and
+ *   five submenu fragments; on-device logging (menu open/navigate/close/background/foreground)
+ *   confirmed that fallback was never reached in practice -- every real caller of
+ *   `isAnyMenuActive()` runs after `setupMenuCallback()` has already set `navigationController` --
+ *   so it was replaced with a flat `false`.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -73,7 +62,7 @@ class GameActivityViewModel_isAnyMenuActive_test {
     }
 
     // ---------------------------------------------------------------------------------------
-    // Fast path: navigationController set -> authoritative, fragment fallback never consulted
+    // Fast path: navigationController set -> authoritative
     // ---------------------------------------------------------------------------------------
 
     @Test
@@ -99,7 +88,7 @@ class GameActivityViewModel_isAnyMenuActive_test {
     }
 
     // ---------------------------------------------------------------------------------------
-    // Fallback path: navigationController == null (fresh ViewModel's default state)
+    // navigationController == null: always false, regardless of fragment state
     // ---------------------------------------------------------------------------------------
 
     @Test
@@ -108,63 +97,18 @@ class GameActivityViewModel_isAnyMenuActive_test {
     }
 
     @Test
-    fun `retroMenu3Fragment adicionado retorna true`() {
+    fun `retroMenu3Fragment adicionado ainda retorna false sem navigationController`() {
         val fragment = mockk<RetroMenu3Fragment>(relaxed = true)
         every { fragment.isAdded } returns true
         setPrivateField(viewModel, "retroMenu3Fragment", fragment)
 
-        assertEquals(true, viewModel.isAnyMenuActive())
+        assertEquals(false, viewModel.isAnyMenuActive())
     }
 
     @Test
-    fun `aboutFragment adicionado sozinho retorna true`() {
-        val fragment = mockk<AboutFragment>(relaxed = true)
-        every { fragment.isAdded } returns true
-        setPrivateField(viewModel, "aboutFragment", fragment)
-
-        assertEquals(true, viewModel.isAnyMenuActive())
-    }
-
-    @Test
-    fun `coreVariablesFragment adicionado sozinho retorna true`() {
-        val fragment = mockk<CoreVariablesFragment>(relaxed = true)
-        every { fragment.isAdded } returns true
-        setPrivateField(viewModel, "coreVariablesFragment", fragment)
-
-        assertEquals(true, viewModel.isAnyMenuActive())
-    }
-
-    @Test
-    fun `settingsMenuFragment adicionado sozinho retorna true`() {
+    fun `fragmento de submenu ativo ainda retorna false sem navigationController`() {
         val fragment = mockk<SettingsMenuFragment>(relaxed = true)
         every { fragment.isAdded } returns true
-        setPrivateField(viewModel, "settingsMenuFragment", fragment)
-
-        assertEquals(true, viewModel.isAnyMenuActive())
-    }
-
-    @Test
-    fun `progressFragment adicionado sozinho retorna true`() {
-        val fragment = mockk<ProgressFragment>(relaxed = true)
-        every { fragment.isAdded } returns true
-        setPrivateField(viewModel, "progressFragment", fragment)
-
-        assertEquals(true, viewModel.isAnyMenuActive())
-    }
-
-    @Test
-    fun `exitFragment adicionado sozinho retorna true`() {
-        val fragment = mockk<ExitFragment>(relaxed = true)
-        every { fragment.isAdded } returns true
-        setPrivateField(viewModel, "exitFragment", fragment)
-
-        assertEquals(true, viewModel.isAnyMenuActive())
-    }
-
-    @Test
-    fun `fragmento de submenu nao adicionado nao ativa o menu`() {
-        val fragment = mockk<SettingsMenuFragment>(relaxed = true)
-        every { fragment.isAdded } returns false
         setPrivateField(viewModel, "settingsMenuFragment", fragment)
 
         assertEquals(false, viewModel.isAnyMenuActive())
