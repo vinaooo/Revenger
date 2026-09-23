@@ -797,16 +797,20 @@ class GameActivityViewModel(application: Application) :
             return navControllerActive
         }
 
+        return isAnyMenuActiveViaFragmentFallback()
+    }
+
+    /** Menu-activity detection used when [navigationController] is `null`. */
+    private fun isAnyMenuActiveViaFragmentFallback(): Boolean {
         val retroMenu3Open = isRetroMenu3Open()
 
         // CRITICAL FIX: Remove isResumed requirement - isAdded is enough
         // This eliminates the race condition where Fragment is visible but not yet resumed
-        val aboutFragmentActive = aboutFragment != null && aboutFragment?.isAdded == true
-        val coreVariablesFragmentActive = coreVariablesFragment != null && coreVariablesFragment?.isAdded == true
-        val settingsFragmentActive =
-                settingsMenuFragment != null && settingsMenuFragment?.isAdded == true
-        val progressFragmentActive = progressFragment != null && progressFragment?.isAdded == true
-        val exitFragmentActive = exitFragment != null && exitFragment?.isAdded == true
+        val aboutFragmentActive = isFragmentActive(aboutFragment)
+        val coreVariablesFragmentActive = isFragmentActive(coreVariablesFragment)
+        val settingsFragmentActive = isFragmentActive(settingsMenuFragment)
+        val progressFragmentActive = isFragmentActive(progressFragment)
+        val exitFragmentActive = isFragmentActive(exitFragment)
 
         // CRITICAL: If we're in the middle of dismissing submenus but the main menu should still be
         // active,
@@ -823,11 +827,13 @@ class GameActivityViewModel(application: Application) :
         // CRITICAL FIX: If RetroMenu3 is not added but exists (replaced by submenu),
         // and there's an active submenu, the menu system should still be considered active
         val hasActiveSubmenu =
-                settingsFragmentActive ||
-                        progressFragmentActive ||
-                        aboutFragmentActive ||
-                        coreVariablesFragmentActive ||
+                computeHasActiveSubmenu(
+                        settingsFragmentActive,
+                        progressFragmentActive,
+                        aboutFragmentActive,
+                        coreVariablesFragmentActive,
                         exitFragmentActive
+                )
         val menuSystemActive = retroMenu3Open || (retroMenu3FragmentExists && hasActiveSubmenu)
 
         // SIMPLIFIED: Menu is active if any of these is true
@@ -841,66 +847,93 @@ class GameActivityViewModel(application: Application) :
                         exitFragmentActive ||
                         forceMainMenuActive
 
-        android.util.Log.d("GameActivityViewModel", "[ACTIVE] 📊 Menu states:")
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[ACTIVE]   🎮 retroMenu3Open=$retroMenu3Open (isAdded=${retroMenu3Fragment?.isAdded})"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[ACTIVE]   🔧 retroMenu3FragmentExists=$retroMenu3FragmentExists"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[ACTIVE]   📱 hasActiveSubmenu=$hasActiveSubmenu"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[ACTIVE]   🎯 menuSystemActive=$menuSystemActive"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[ACTIVE]   📋 aboutFragmentActive=$aboutFragmentActive " +
-                        "(ref=${aboutFragment != null}, added=${aboutFragment?.isAdded}, " +
-                        "resumed=${aboutFragment?.isResumed})"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[ACTIVE]   📋 coreVariablesFragmentActive=$coreVariablesFragmentActive " +
-                        "(ref=${coreVariablesFragment != null}, " +
-                        "added=${coreVariablesFragment?.isAdded}, " +
-                        "resumed=${coreVariablesFragment?.isResumed})"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[ACTIVE]   ⚙️ settingsFragmentActive=$settingsFragmentActive " +
-                        "(ref=${settingsMenuFragment != null}, " +
-                        "added=${settingsMenuFragment?.isAdded}, " +
-                        "resumed=${settingsMenuFragment?.isResumed})"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[ACTIVE]   💾 progressFragmentActive=$progressFragmentActive " +
-                        "(ref=${progressFragment != null}, added=${progressFragment?.isAdded}, " +
-                        "resumed=${progressFragment?.isResumed})"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[ACTIVE]   🚪 exitFragmentActive=$exitFragmentActive " +
-                        "(ref=${exitFragment != null}, added=${exitFragment?.isAdded}, " +
-                        "resumed=${exitFragment?.isResumed})"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[ACTIVE]   🔄 dismissingSubmenu=$dismissingSubmenu, forceMainMenuActive=$forceMainMenuActive"
-        )
-        android.util.Log.d("GameActivityViewModel", "[ACTIVE] ✅ RESULT: isAnyMenuActive=$result")
+        val state =
+                MenuActivityFallbackState(
+                        retroMenu3Open = retroMenu3Open,
+                        retroMenu3FragmentExists = retroMenu3FragmentExists,
+                        hasActiveSubmenu = hasActiveSubmenu,
+                        menuSystemActive = menuSystemActive,
+                        aboutFragmentActive = aboutFragmentActive,
+                        coreVariablesFragmentActive = coreVariablesFragmentActive,
+                        settingsFragmentActive = settingsFragmentActive,
+                        progressFragmentActive = progressFragmentActive,
+                        exitFragmentActive = exitFragmentActive,
+                        dismissingSubmenu = dismissingSubmenu,
+                        forceMainMenuActive = forceMainMenuActive,
+                        result = result
+                )
+        logMenuActivityFallbackSummary(state)
+        logMenuActivityFallbackFragmentDetails(state)
 
         android.util.Log.d(
                 "GameActivityViewModel",
                 "[ACTIVE] 🔍 isAnyMenuActive: ========== CHECK COMPLETED =========="
         )
         return result
+    }
+
+    private fun logMenuActivityFallbackSummary(state: MenuActivityFallbackState) {
+        android.util.Log.d("GameActivityViewModel", "[ACTIVE] 📊 Menu states:")
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   🎮 retroMenu3Open=${state.retroMenu3Open} (isAdded=${retroMenu3Fragment?.isAdded})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   🔧 retroMenu3FragmentExists=${state.retroMenu3FragmentExists}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   📱 hasActiveSubmenu=${state.hasActiveSubmenu}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   🎯 menuSystemActive=${state.menuSystemActive}"
+        )
+    }
+
+    private fun logMenuActivityFallbackFragmentDetails(state: MenuActivityFallbackState) {
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   📋 aboutFragmentActive=${state.aboutFragmentActive} " +
+                        "(ref=${aboutFragment != null}, added=${aboutFragment?.isAdded}, " +
+                        "resumed=${aboutFragment?.isResumed})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   📋 coreVariablesFragmentActive=${state.coreVariablesFragmentActive} " +
+                        "(ref=${coreVariablesFragment != null}, " +
+                        "added=${coreVariablesFragment?.isAdded}, " +
+                        "resumed=${coreVariablesFragment?.isResumed})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   ⚙️ settingsFragmentActive=${state.settingsFragmentActive} " +
+                        "(ref=${settingsMenuFragment != null}, " +
+                        "added=${settingsMenuFragment?.isAdded}, " +
+                        "resumed=${settingsMenuFragment?.isResumed})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   💾 progressFragmentActive=${state.progressFragmentActive} " +
+                        "(ref=${progressFragment != null}, added=${progressFragment?.isAdded}, " +
+                        "resumed=${progressFragment?.isResumed})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   🚪 exitFragmentActive=${state.exitFragmentActive} " +
+                        "(ref=${exitFragment != null}, added=${exitFragment?.isAdded}, " +
+                        "resumed=${exitFragment?.isResumed})"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE]   🔄 dismissingSubmenu=${state.dismissingSubmenu}, " +
+                        "forceMainMenuActive=${state.forceMainMenuActive}"
+        )
+        android.util.Log.d(
+                "GameActivityViewModel",
+                "[ACTIVE] ✅ RESULT: isAnyMenuActive=${state.result}"
+        )
     }
 
     /** Helper method to dismiss submenu fragments with common cleanup logic */
@@ -1991,3 +2024,37 @@ class GameActivityViewModel(application: Application) :
         retroMenu3Fragment = null
     }
 }
+
+/** Whether a fragment is attached and non-null. */
+private fun isFragmentActive(fragment: androidx.fragment.app.Fragment?): Boolean =
+        fragment != null && fragment.isAdded
+
+/** Whether any submenu fragment is active. */
+private fun computeHasActiveSubmenu(
+        settingsFragmentActive: Boolean,
+        progressFragmentActive: Boolean,
+        aboutFragmentActive: Boolean,
+        coreVariablesFragmentActive: Boolean,
+        exitFragmentActive: Boolean
+): Boolean =
+        settingsFragmentActive ||
+                progressFragmentActive ||
+                aboutFragmentActive ||
+                coreVariablesFragmentActive ||
+                exitFragmentActive
+
+/** Values logged by [GameActivityViewModel]'s menu-fallback logging helpers. */
+private data class MenuActivityFallbackState(
+        val retroMenu3Open: Boolean,
+        val retroMenu3FragmentExists: Boolean,
+        val hasActiveSubmenu: Boolean,
+        val menuSystemActive: Boolean,
+        val aboutFragmentActive: Boolean,
+        val coreVariablesFragmentActive: Boolean,
+        val settingsFragmentActive: Boolean,
+        val progressFragmentActive: Boolean,
+        val exitFragmentActive: Boolean,
+        val dismissingSubmenu: Boolean,
+        val forceMainMenuActive: Boolean,
+        val result: Boolean
+)
