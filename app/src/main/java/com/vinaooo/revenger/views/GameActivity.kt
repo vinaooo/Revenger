@@ -115,14 +115,32 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 // CRITICAL: Apply orientation in TWO steps to eliminate flash:
                 // 1. Force Configuration BEFORE super.onCreate() (chooses correct layout)
                 // 2. Apply requestedOrientation for persistence
-                val configOrientation = appConfig.getOrientation()
                 com.vinaooo.revenger.utils.OrientationManager.forceConfigurationBeforeSetContent(
                         this,
-                        configOrientation
+                        appConfig.getOrientation()
                 )
 
                 super.onCreate(savedInstanceState)
 
+                initializeCoreServices(startTime)
+
+                setContentView(R.layout.activity_game)
+                android.util.Log.e(
+                        "STARTUP_TIMING",
+                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setContentView() completed"
+                )
+
+                initializeViewsControllersAndInput()
+                setupRetroViewAndObservers(startTime)
+                finishGamePadAndMenuSetup(startTime)
+        }
+
+        /**
+         * `onCreate` step: audio focus, orientation reapply, screenshot context, and SDK
+         * compatibility/feature setup. Extracted (alongside the other `onCreate` steps below) to
+         * keep `onCreate` itself within detekt's `LongMethod` threshold.
+         */
+        private fun initializeCoreServices(startTime: Long) {
                 val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
                 audioRoutingManager = AudioRoutingManager(audioManager)
                 audioRoutingManager.requestFocus()
@@ -150,13 +168,13 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
 
                 // Phase 9.4: Initialize SDK 36 features
                 initializeSdk36Features()
+        }
 
-                setContentView(R.layout.activity_game)
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setContentView() completed"
-                )
-
+        /**
+         * `onCreate` step: system bars theming, view lookups, `PipController`/`RotationController`
+         * construction, gamepad alignment, and input listener registration.
+         */
+        private fun initializeViewsControllersAndInput() {
                 // Configure status/navigation bars based on current theme
                 configureSystemBarsForTheme()
 
@@ -192,8 +210,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 }
 
                 // Get gamepad container reference
-                val gamepadContainers = findViewById<android.widget.LinearLayout>(R.id.containers)
-                gamePadContainer = gamepadContainers
+                gamePadContainer = findViewById(R.id.containers)
 
                 // Initialize GamePad alignment manager
                 alignmentManager = GamePadAlignmentManager(appConfig)
@@ -205,7 +222,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 }
 
                 // Pass gamepad container reference to ViewModel
-                viewModel.setGamePadContainer(gamepadContainers)
+                viewModel.setGamePadContainer(gamePadContainer)
 
                 /* Use immersive mode when we change the window insets */
                 window.decorView.setOnApplyWindowInsetsListener { view, windowInsets ->
@@ -222,6 +239,13 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                         rightContainer,
                         findViewById(R.id.floating_menu_button)
                 )
+        }
+
+        /**
+         * `onCreate` step: wires up the `RetroView`, the PiP-aware lifecycle observer, and the
+         * first-frame-rendered PiP priming.
+         */
+        private fun setupRetroViewAndObservers(startTime: Long) {
                 viewModel.setupRetroView(this, retroviewContainer)
                 viewModel.retroView?.let { retroView ->
                         gameLifecycleObserver = GameLifecycleObserver(retroView)
@@ -243,6 +267,13 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                         "STARTUP_TIMING",
                         "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupRetroView() completed"
                 )
+        }
+
+        /**
+         * `onCreate` step: gamepad setup/reveal and the RetroMenu3 wiring that closes out
+         * `onCreate`.
+         */
+        private fun finishGamePadAndMenuSetup(startTime: Long) {
                 viewModel.setupGamePads(this, leftContainer, rightContainer)
                 android.util.Log.e(
                         "STARTUP_TIMING",
@@ -250,7 +281,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 )
 
                 // Force gamepad positioning based on orientation
-                gamePadLayoutAdjuster.adjustPositionForOrientation(gamepadContainers)
+                gamePadLayoutAdjuster.adjustPositionForOrientation(gamePadContainer)
 
                 // Setup Floating Menu Button
                 floatingMenuButtonController.setup()
