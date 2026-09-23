@@ -143,7 +143,6 @@ class GameActivityViewModel(application: Application) :
     private var progressFragment: ProgressFragment? = null
     private var exitFragment: ExitFragment? = null
     private var aboutFragment: AboutFragment? = null
-    private var coreVariablesFragment: com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment? = null
 
     // ===== LOAD PREVIEW OVERLAY =====
 
@@ -875,19 +874,6 @@ class GameActivityViewModel(application: Application) :
                     com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
             )
             // Navigate back to main menu when dismissing About submenu
-            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
-        }
-    }
-
-
-    /** Dismiss the Core Variables submenu */
-    fun dismissCoreVariablesMenu() {
-        dismissSubmenuFragment(coreVariablesFragment, "CoreVariables") {
-            coreVariablesFragment = null
-            menuStateManager.deactivateMenu(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.CORE_VARIABLES_MENU
-            )
-            // Navigate back to main menu when dismissing CoreVariables submenu
             menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
         }
     }
