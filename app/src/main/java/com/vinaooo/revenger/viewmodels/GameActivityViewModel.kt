@@ -38,6 +38,10 @@ import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
+import com.vinaooo.revenger.viewmodels.menu.PlaybackStateController
+import com.vinaooo.revenger.viewmodels.menu.PlaybackStateFacade
+import com.vinaooo.revenger.viewmodels.menu.SaveLoadCentralizedController
+import com.vinaooo.revenger.viewmodels.menu.SaveLoadCentralizedFacade
 import com.vinaooo.revenger.viewmodels.menu.SaveLoadOrchestrator
 import com.vinaooo.revenger.viewmodels.menu.ScreenshotPreviewController
 import com.vinaooo.revenger.viewmodels.menu.ScreenshotPreviewFacade
@@ -55,7 +59,9 @@ class GameActivityViewModel(application: Application) :
         MenuManager.MenuManagerListener,
         SubmenuFragmentRegistration,
         SubmenuFragmentDismissal,
-        ScreenshotPreviewFacade {
+        ScreenshotPreviewFacade,
+        SaveLoadCentralizedFacade,
+        PlaybackStateFacade {
 
     companion object {
         // Grace period after the menu closes during which button interception stays active.
@@ -212,6 +218,19 @@ class GameActivityViewModel(application: Application) :
                     loadPreviewCallback = { loadPreviewCallback },
                     isScreenshotCaptureSuppressed = { suppressNextScreenshotCapture },
                     clearScreenshotCaptureSuppression = { suppressNextScreenshotCapture = false }
+            )
+    private val saveLoadCentralizedController =
+            SaveLoadCentralizedController(
+                    saveLoadOrchestrator = saveLoadOrchestrator,
+                    retroView = { retroView },
+                    retroViewUtils = { retroViewUtils },
+                    markSkipNextTempStateLoad = { skipNextTempStateLoad = true }
+            )
+    private val playbackStateController =
+            PlaybackStateController(
+                    audioViewModel = audioViewModel,
+                    speedViewModel = speedViewModel,
+                    shaderViewModel = shaderViewModel
             )
 
     private var compositeDisposable = CompositeDisposable()
@@ -864,56 +883,39 @@ class GameActivityViewModel(application: Application) :
      * Centralized load state implementation with improved debugging FIX: Temporarily unpause ONLY
      * during load, without sending signals to core
      */
-    fun loadStateCentralized(onComplete: (() -> Unit)? = null) {
-        if (saveLoadOrchestrator.loadState(retroView, retroViewUtils, onComplete)) {
-            skipNextTempStateLoad = true
-        }
-    }
+    override fun loadStateCentralized(onComplete: (() -> Unit)?) =
+            saveLoadCentralizedController.loadStateCentralized(onComplete)
 
     /**
      * Centralized save state implementation with improved debugging FIX: Removed unnecessary delay
      * that could cause timing issues
      */
-    fun saveStateCentralized(onComplete: (() -> Unit)? = null, keepPaused: Boolean = false) {
-        saveLoadOrchestrator.saveState(retroView, retroViewUtils, keepPaused, onComplete)
-    }
+    override fun saveStateCentralized(onComplete: (() -> Unit)?, keepPaused: Boolean) =
+            saveLoadCentralizedController.saveStateCentralized(onComplete, keepPaused)
 
     /**
      * Centralized reset game implementation with improved debugging FIX: Ensure that reset really
      * restarts the game from the beginning
      */
-    fun resetGameCentralized(onComplete: (() -> Unit)? = null) {
-        saveLoadOrchestrator.resetGame(retroView, onComplete)
-    }
+    override fun resetGameCentralized(onComplete: (() -> Unit)?) =
+            saveLoadCentralizedController.resetGameCentralized(onComplete)
 
     /** Check if save state exists for UI state management */
-    fun hasSaveState(): Boolean {
-        return retroViewUtils?.hasSaveState() ?: false
-    }
+    override fun hasSaveState(): Boolean = saveLoadCentralizedController.hasSaveState()
 
     /** Get current audio state for UI management */
-    fun getAudioState(): Boolean {
-        return audioViewModel.getAudioState()
-    }
+    override fun getAudioState(): Boolean = playbackStateController.getAudioState()
 
     /** Get current fast forward state for UI management */
-    fun getFastForwardState(): Boolean {
-        return speedViewModel.getFastForwardState()
-    }
+    override fun getFastForwardState(): Boolean = playbackStateController.getFastForwardState()
 
     /** Toggle shader for visual effects */
-    fun onToggleShader(): String {
-        return shaderViewModel.toggleShader()
-    }
+    override fun onToggleShader(): String = playbackStateController.onToggleShader()
 
     /** Get current shader state for UI management */
-    fun getShaderState(): String {
-        return shaderViewModel.getShaderState()
-    }
-    
-    fun getShaderDisplayName(): String {
-        return shaderViewModel.getCurrentShaderDisplayName()
-    }
+    override fun getShaderState(): String = playbackStateController.getShaderState()
+
+    override fun getShaderDisplayName(): String = playbackStateController.getShaderDisplayName()
 
     // ========== SCREENSHOT CAPTURE FOR SAVE STATES ==========
 
