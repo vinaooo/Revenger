@@ -39,13 +39,20 @@ import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
 import com.vinaooo.revenger.viewmodels.menu.SaveLoadOrchestrator
+import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentDismisser
+import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentDismissal
+import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentRegistrar
+import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentRegistration
+import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentState
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class GameActivityViewModel(application: Application) :
         AndroidViewModel(application),
         SettingsMenuListener,
         AboutListener,
-        MenuManager.MenuManagerListener {
+        MenuManager.MenuManagerListener,
+        SubmenuFragmentRegistration,
+        SubmenuFragmentDismissal {
 
     companion object {
         // Grace period after the menu closes during which button interception stays active.
@@ -136,14 +143,6 @@ class GameActivityViewModel(application: Application) :
     // RetroMenu3 fragment (activated by SELECT+START combo)
     private var retroMenu3Fragment: RetroMenu3Fragment? = null
 
-    // Settings submenu fragment
-    private var settingsMenuFragment: SettingsMenuFragment? = null
-
-    // New submenu fragments
-    private var progressFragment: ProgressFragment? = null
-    private var exitFragment: ExitFragment? = null
-    private var aboutFragment: AboutFragment? = null
-
     // ===== LOAD PREVIEW OVERLAY =====
 
     /**
@@ -188,6 +187,26 @@ class GameActivityViewModel(application: Application) :
 
     /** Get the MenuManager instance */
     fun getMenuManager(): MenuManager = menuManager
+
+    // menuManager/menuViewModel are passed as providers, not direct references, because tests
+    // replace those fields by reflection after this ViewModel (and these delegates) are built.
+    private val submenuFragmentState = SubmenuFragmentState()
+    private val submenuFragmentRegistrar =
+            SubmenuFragmentRegistrar(
+                    state = submenuFragmentState,
+                    menuManager = { menuManager },
+                    menuStateManager = menuStateManager,
+                    menuViewModel = { menuViewModel },
+                    isAnyMenuActive = { isAnyMenuActive() }
+            )
+    private val submenuFragmentDismisser =
+            SubmenuFragmentDismisser(
+                    state = submenuFragmentState,
+                    menuManager = { menuManager },
+                    menuStateManager = menuStateManager,
+                    isRetroMenu3Open = { isRetroMenu3Open() },
+                    isDismissingAllMenus = { isDismissingAllMenus() }
+            )
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput()
@@ -734,365 +753,66 @@ class GameActivityViewModel(application: Application) :
         return false
     }
 
-    /** Helper method to dismiss submenu fragments with common cleanup logic */
-    private fun dismissSubmenuFragment(
-            fragment: androidx.fragment.app.Fragment?,
-            fragmentName: String,
-            activeFlagSetter: () -> Unit
-    ) {
-        android.util.Log.d("GameActivityViewModel", "dismiss${fragmentName}: Starting")
-
-        // Check if fragment is still valid and added
-        if (fragment == null || !fragment.isAdded) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "dismiss${fragmentName}: Fragment is null or not added, skipping dismiss"
-            )
-            return
-        }
-
-        // IMPORTANT: Since submenu fragments were added to the back stack,
-        // we must use popBackStack() instead of manual remove()
-        // This ensures FragmentManager properly manages the hierarchy
-
-        // Check if there's anything in the back stack before trying to remove
-        val activity = fragment.activity
-        if (activity != null) {
-            val fragmentManager = activity.supportFragmentManager
-            val backStackCount = fragmentManager.backStackEntryCount
-
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "dismiss${fragmentName}: backStackCount = $backStackCount"
-            )
-
-            if (backStackCount > 0) {
-                // Use popBackStack to remove the fragment correctly
-                android.util.Log.d(
-                        "GameActivityViewModel",
-                        "dismiss${fragmentName}: Calling popBackStackImmediate()"
-                )
-                fragmentManager.popBackStackImmediate()
-            } else {
-                android.util.Log.w(
-                        "GameActivityViewModel",
-                        "dismiss${fragmentName}: Back stack is empty, nothing to pop"
-                )
-            }
-        }
-
-        // Clear the fragment reference and flag
-        activeFlagSetter()
-
-        // CRITICAL FIX: After dismissing submenu, ensure main menu is visible
-        // BUT only if we're NOT in the middle of dismissing ALL menus (START button case)
-        val retroMenu3OpenBefore = isRetroMenu3Open()
-        if (isRetroMenu3Open() && !isDismissingAllMenus()) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "dismiss${fragmentName}: Main menu restoration handled by " +
-                            "BackStackChangeListener (retroMenu3Open=$retroMenu3OpenBefore)"
-            )
-            // REMOVED: retroMenu3Fragment?.restoreMainMenu()
-            // The BackStackChangeListener in RetroMenu3Fragment will handle menu restoration
-        } else {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "dismiss${fragmentName}: NOT showing main menu " +
-                            "(dismissingAll=${isDismissingAllMenus()}, " +
-                            "retroMenu3Open=$retroMenu3OpenBefore)"
-            )
-        }
-
-        android.util.Log.d("GameActivityViewModel", "dismiss${fragmentName}: Completed")
-    }
-
     /** Check if the Settings submenu is currently open */
-    fun isSettingsMenuOpen(): Boolean {
-        val isOpen = settingsMenuFragment != null
-        if (settingsMenuFragment != null) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "isSettingsMenuOpen check: fragment=${settingsMenuFragment}, " +
-                            "isAdded=${settingsMenuFragment?.isAdded}, result=$isOpen"
-            )
-        }
-        return isOpen
-    }
+    override fun isSettingsMenuOpen(): Boolean = submenuFragmentDismisser.isSettingsMenuOpen()
 
     /** Check if the Progress submenu is currently open */
-    fun isProgressMenuOpen(): Boolean {
-        return progressFragment != null
-    }
+    override fun isProgressMenuOpen(): Boolean = submenuFragmentDismisser.isProgressMenuOpen()
 
     /** Check if the Exit submenu is currently open */
-    fun isExitMenuOpen(): Boolean {
-        return exitFragment != null
-    }
+    override fun isExitMenuOpen(): Boolean = submenuFragmentDismisser.isExitMenuOpen()
 
     /** Dismiss the Settings submenu */
-    fun dismissSettingsMenu() {
-        dismissSubmenuFragment(settingsMenuFragment, "SettingsMenu") {
-            settingsMenuFragment = null
-            menuStateManager.deactivateMenu(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
-            )
-            // Navigate back to main menu when dismissing Settings submenu
-            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
-        }
-    }
+    override fun dismissSettingsMenu() = submenuFragmentDismisser.dismissSettingsMenu()
 
     /** Dismiss the Progress submenu */
-    fun dismissProgress() {
-        dismissSubmenuFragment(progressFragment, "Progress") {
-            progressFragment = null
-            menuStateManager.deactivateMenu(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU
-            )
-            // Navigate back to main menu when dismissing Progress submenu
-            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
-        }
-    }
+    override fun dismissProgress() = submenuFragmentDismisser.dismissProgress()
 
     /** Dismiss the Exit submenu */
-    fun dismissExit() {
-        dismissSubmenuFragment(exitFragment, "Exit") {
-            exitFragment = null
-            menuStateManager.deactivateMenu(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
-            )
-            // Navigate back to main menu when dismissing Exit submenu
-            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
-        }
-    }
+    override fun dismissExit() = submenuFragmentDismisser.dismissExit()
 
     /** Dismiss the About submenu */
-    fun dismissAboutMenu() {
-        dismissSubmenuFragment(aboutFragment, "About") {
-            aboutFragment = null
-            menuStateManager.deactivateMenu(
-                    com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
-            )
-            // Navigate back to main menu when dismissing About submenu
-            menuManager.navigateToState(com.vinaooo.revenger.ui.retromenu3.MenuState.MAIN_MENU)
-        }
-    }
+    override fun dismissAboutMenu() = submenuFragmentDismisser.dismissAboutMenu()
 
     /** Dismiss ALL menus in cascade order (submenus first, then main menu) */
     // REMOVED: dismissAllMenus() - NavigationController handles menu dismissal now
 
-    /**
-     * Shared implementation for the 8 `registerXFragment`/`registerXFragmentForRotation`
-     * methods below. Each one does some subset of: set the fragment field, notify `menuViewModel`,
-     * activate the corresponding menu state, and register with `menuManager` -- always in that
-     * order. The exact combination of [notifyMenuViewModel] and [activate] is NOT uniform across
-     * fragment types (e.g. Settings' rotation variant passes both as null, while Progress/Exit's
-     * still pass a non-null [notifyMenuViewModel]); callers must reproduce their original
-     * per-method combination exactly, not "clean it up".
-     *
-     * The two log lines' wording is driven by whether [activate] is null, matching the original
-     * per-method log text: methods that activate a state log "Registering X - isAdded=...,
-     * isResumed=..." / "Registration completed - isAnyMenuActive=...", while the `ForRotation`
-     * methods (which never activate) log "Registering without state activation" / "Completed
-     * (state NOT changed)".
-     */
-    private data class SubmenuRegistrationMeta(
-            val menuState: com.vinaooo.revenger.ui.retromenu3.MenuState,
-            val methodLabel: String,
-            val emoji: String,
-            val fragmentClassName: String
-    )
-
-    private fun <F> registerSubmenuFragment(
-            fragment: F,
-            meta: SubmenuRegistrationMeta,
-            setFragmentRef: (F) -> Unit,
-            notifyMenuViewModel: (() -> Unit)?,
-            activate: (() -> Unit)?
-    ) where F : androidx.fragment.app.Fragment, F : com.vinaooo.revenger.ui.retromenu3.MenuFragment {
-        if (activate != null) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[REGISTER] ${meta.emoji} ${meta.methodLabel}: Registering ${meta.fragmentClassName} - " +
-                            "isAdded=${fragment.isAdded}, isResumed=${fragment.isResumed}"
-            )
-        } else {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[REGISTER] ${meta.emoji} ${meta.methodLabel}: Registering without state activation"
-            )
-        }
-        setFragmentRef(fragment)
-        notifyMenuViewModel?.invoke()
-        activate?.invoke()
-        // Register with MenuManager
-        menuManager.registerFragment(meta.menuState, fragment)
-        if (activate != null) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[REGISTER] ${meta.emoji} ${meta.methodLabel}: Registration completed - isAnyMenuActive=${isAnyMenuActive()}"
-            )
-        } else {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "[REGISTER] ${meta.emoji} ${meta.methodLabel}: Completed (state NOT changed)"
-            )
-        }
-    }
-
     /** Register the SettingsMenuFragment when it's created */
-    fun registerSettingsMenuFragment(fragment: SettingsMenuFragment) {
-        registerSubmenuFragment(
-                fragment,
-                SubmenuRegistrationMeta(
-                        com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU,
-                        "registerSettingsMenuFragment",
-                        "⚙️",
-                        "SettingsMenuFragment"
-                ),
-                setFragmentRef = { settingsMenuFragment = it },
-                notifyMenuViewModel = { menuViewModel.registerSettingsMenuFragment(fragment) },
-                activate = { menuStateManager.activateMenu(
-                        com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
-                ) }
-        )
-    }
+    override fun registerSettingsMenuFragment(fragment: SettingsMenuFragment) =
+            submenuFragmentRegistrar.registerSettingsMenuFragment(fragment)
 
     /** Unregister SettingsMenuFragment when closing via BACK */
-    fun unregisterSettingsMenuFragment() {
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[UNREGISTER] ⚙️ unregisterSettingsMenuFragment: Clearing SettingsMenuFragment reference"
-        )
-        settingsMenuFragment = null
-        menuStateManager.deactivateMenu(
-                com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.SETTINGS_MENU
-        )
-        // Unregister from MenuManager
-        menuManager.unregisterFragment(com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU)
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[UNREGISTER] ⚙️ unregisterSettingsMenuFragment: Unregistration completed"
-        )
-    }
+    override fun unregisterSettingsMenuFragment() =
+            submenuFragmentRegistrar.unregisterSettingsMenuFragment()
 
     /** Register SettingsMenuFragment for rotation recreation (without activating state) */
-    fun registerSettingsMenuFragmentForRotation(fragment: SettingsMenuFragment) {
-        registerSubmenuFragment(
-                fragment,
-                SubmenuRegistrationMeta(
-                        com.vinaooo.revenger.ui.retromenu3.MenuState.SETTINGS_MENU,
-                        "registerSettingsMenuFragmentForRotation",
-                        "⚙️",
-                        "SettingsMenuFragment"
-                ),
-                setFragmentRef = { settingsMenuFragment = it },
-                notifyMenuViewModel = null,
-                activate = null
-        )
-    }
+    override fun registerSettingsMenuFragmentForRotation(fragment: SettingsMenuFragment) =
+            submenuFragmentRegistrar.registerSettingsMenuFragmentForRotation(fragment)
 
     /** Register the ProgressFragment when it's created */
-    fun registerProgressFragment(fragment: ProgressFragment) {
-        registerSubmenuFragment(
-                fragment,
-                SubmenuRegistrationMeta(
-                        com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU,
-                        "registerProgressFragment",
-                        "💾",
-                        "ProgressFragment"
-                ),
-                setFragmentRef = { progressFragment = it },
-                notifyMenuViewModel = { menuViewModel.registerProgressFragment(fragment) },
-                activate = { menuStateManager.activateMenu(
-                        com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.PROGRESS_MENU
-                ) }
-        )
-    }
+    override fun registerProgressFragment(fragment: ProgressFragment) =
+            submenuFragmentRegistrar.registerProgressFragment(fragment)
 
     /** Register ProgressFragment for rotation recreation (without activating state) */
-    fun registerProgressFragmentForRotation(fragment: ProgressFragment) {
-        registerSubmenuFragment(
-                fragment,
-                SubmenuRegistrationMeta(
-                        com.vinaooo.revenger.ui.retromenu3.MenuState.PROGRESS_MENU,
-                        "registerProgressFragmentForRotation",
-                        "💾",
-                        "ProgressFragment"
-                ),
-                setFragmentRef = { progressFragment = it },
-                notifyMenuViewModel = { menuViewModel.registerProgressFragment(fragment) },
-                activate = null
-        )
-    }
+    override fun registerProgressFragmentForRotation(fragment: ProgressFragment) =
+            submenuFragmentRegistrar.registerProgressFragmentForRotation(fragment)
 
     /** Register the ExitFragment when it's created */
-    fun registerExitFragment(fragment: ExitFragment) {
-        registerSubmenuFragment(
-                fragment,
-                SubmenuRegistrationMeta(
-                        com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU,
-                        "registerExitFragment",
-                        "🚪",
-                        "ExitFragment"
-                ),
-                setFragmentRef = { exitFragment = it },
-                notifyMenuViewModel = { menuViewModel.registerExitFragment(fragment) },
-                activate = { menuStateManager.activateMenu(
-                        com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.EXIT_MENU
-                ) }
-        )
-    }
+    override fun registerExitFragment(fragment: ExitFragment) =
+            submenuFragmentRegistrar.registerExitFragment(fragment)
 
     /** Register ExitFragment for rotation recreation (without activating state) */
-    fun registerExitFragmentForRotation(fragment: ExitFragment) {
-        registerSubmenuFragment(
-                fragment,
-                SubmenuRegistrationMeta(
-                        com.vinaooo.revenger.ui.retromenu3.MenuState.EXIT_MENU,
-                        "registerExitFragmentForRotation",
-                        "🚪",
-                        "ExitFragment"
-                ),
-                setFragmentRef = { exitFragment = it },
-                notifyMenuViewModel = { menuViewModel.registerExitFragment(fragment) },
-                activate = null
-        )
-    }
+    override fun registerExitFragmentForRotation(fragment: ExitFragment) =
+            submenuFragmentRegistrar.registerExitFragmentForRotation(fragment)
 
     /** Register the AboutFragment when it's created */
-    fun registerAboutFragment(fragment: AboutFragment) {
-        registerSubmenuFragment(
-                fragment,
-                SubmenuRegistrationMeta(
-                        com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU,
-                        "registerAboutFragment",
-                        "📋",
-                        "AboutFragment"
-                ),
-                setFragmentRef = { aboutFragment = it },
-                notifyMenuViewModel = null,
-                activate = { menuStateManager.activateMenu(
-                        com.vinaooo.revenger.ui.retromenu3.MenuSystemState.MenuType.ABOUT_MENU
-                ) }
-        )
-    }
+    override fun registerAboutFragment(fragment: AboutFragment) =
+            submenuFragmentRegistrar.registerAboutFragment(fragment)
 
     /** Register AboutFragment for rotation recreation (without activating state) */
-    fun registerAboutFragmentForRotation(fragment: AboutFragment) {
-        registerSubmenuFragment(
-                fragment,
-                SubmenuRegistrationMeta(
-                        com.vinaooo.revenger.ui.retromenu3.MenuState.ABOUT_MENU,
-                        "registerAboutFragmentForRotation",
-                        "📋",
-                        "AboutFragment"
-                ),
-                setFragmentRef = { aboutFragment = it },
-                notifyMenuViewModel = null,
-                activate = null
-        )
-    }
+    override fun registerAboutFragmentForRotation(fragment: AboutFragment) =
+            submenuFragmentRegistrar.registerAboutFragmentForRotation(fragment)
+
 
     // Implementation of GameMenuBottomSheet.GameMenuListener interface
     // REMOVED: RetroMenu3Listener implementation - migrated to unified MenuAction/MenuEvent system
@@ -1109,7 +829,7 @@ class GameActivityViewModel(application: Application) :
         )
         android.util.Log.d(
                 "GameActivityViewModel",
-                "onBackToMainMenu: settingsMenuFragment = $settingsMenuFragment"
+                "onBackToMainMenu: settingsMenuFragment = ${submenuFragmentState.settingsMenuFragment}"
         )
 
         // Simply close the submenu using popBackStack
@@ -1795,10 +1515,7 @@ class GameActivityViewModel(application: Application) :
 
         // Clear fragment references to prevent memory leaks
         retroMenu3Fragment = null
-        settingsMenuFragment = null
-        progressFragment = null
-        aboutFragment = null
-        exitFragment = null
+        submenuFragmentState.clearAll()
 
         // Clear container references
         menuContainerView = null

@@ -90,6 +90,20 @@ class GameActivityViewModel_test {
         @Suppress("UNCHECKED_CAST") return field.get(target) as T
     }
 
+    /**
+     * Reads the currently registered `aboutFragment` from the private `submenuFragmentState`
+     * field -- there is no public `isAboutMenuOpen()` accessor (unlike Settings/Progress/Exit),
+     * so this is the only way to assert on it from outside `GameActivityViewModel`.
+     */
+    private fun registeredAboutFragment(): AboutFragment? {
+        val state =
+                getPrivateField<
+                        com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentState>(
+                        viewModel, "submenuFragmentState"
+                )
+        return state.aboutFragment
+    }
+
     /** Invokes a private, single-overload method by name -- used for the GamePad-event routing
      * helpers, which have no public entry point of their own. */
     private fun <T> invokePrivate(target: Any, methodName: String, vararg args: Any?): T {
@@ -578,7 +592,7 @@ class GameActivityViewModel_test {
 
         viewModel.registerAboutFragment(fragment)
 
-        assertSame(fragment, getPrivateField<AboutFragment?>(viewModel, "aboutFragment"))
+        assertSame(fragment, registeredAboutFragment())
         assertTrue(isMenuTypeActive(MenuSystemState.MenuType.ABOUT_MENU))
         verify { menuViewModelMock wasNot Called }
         verify(exactly = 1) { menuManagerMock.registerFragment(MenuState.ABOUT_MENU, fragment) }
@@ -592,7 +606,7 @@ class GameActivityViewModel_test {
 
         viewModel.registerAboutFragmentForRotation(fragment)
 
-        assertSame(fragment, getPrivateField<AboutFragment?>(viewModel, "aboutFragment"))
+        assertSame(fragment, registeredAboutFragment())
         assertFalse(isMenuTypeActive(MenuSystemState.MenuType.ABOUT_MENU))
         verify { menuViewModelMock wasNot Called }
         verify(exactly = 1) { menuManagerMock.registerFragment(MenuState.ABOUT_MENU, fragment) }
