@@ -297,11 +297,9 @@ class GameActivityViewModel_test {
     }
 
     /**
-     * Regression test: `unregisterSettingsMenuFragment` must DEACTIVATE the Settings menu type,
-     * not activate it. Added after a manual edit briefly swapped `activateMenu`/`deactivateMenu`
-     * during an inlining pass (caught before merge by a different bug injection) -- no existing
-     * test actually asserted on `unregisterSettingsMenuFragment`'s `menuStateManager` effect, only
-     * that other code calls it (`SubmenuCoordinator_test.kt`, against a mocked `viewModel`).
+     * Asserts `unregisterSettingsMenuFragment` deactivates the Settings menu type in
+     * `menuStateManager`, not just that it gets called (`SubmenuCoordinator_test.kt` only checks
+     * the latter, against a mocked `viewModel`).
      */
     @Test
     fun `unregisterSettingsMenuFragment desativa o menu de settings`() {
@@ -315,6 +313,176 @@ class GameActivityViewModel_test {
 
         assertFalse(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
         assertFalse(viewModel.isSettingsMenuOpen())
+    }
+
+    // -------------------------------------------------------------------------------------
+    // Characterization tests for the private `dismissSubmenuFragment` helper, pinned via its
+    // public callers (`dismissSettingsMenu`/`dismissProgress`/`dismissExit`/`dismissAboutMenu`)
+    // before any refactor touches it.
+    // -------------------------------------------------------------------------------------
+
+    /**
+     * A registered fragment that is no longer added (e.g. already detached) makes
+     * `dismissSubmenuFragment` return early: the field, menu-active state and current menu are
+     * all left untouched.
+     */
+    @Test
+    fun `dismissSettingsMenu nao faz nada quando o fragmento nao esta mais added`() {
+        val menuManagerMock = mockMenuManager()
+        mockMenuViewModel()
+        val fragment = mockk<SettingsMenuFragment>(relaxed = true)
+        every { fragment.isAdded } returns false
+        viewModel.registerSettingsMenuFragment(fragment)
+
+        viewModel.dismissSettingsMenu()
+
+        assertTrue(viewModel.isSettingsMenuOpen())
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+        verify(exactly = 0) { menuManagerMock.navigateToState(any()) }
+    }
+
+    /**
+     * An added fragment with no attached `Activity` skips the back-stack pop entirely (the
+     * `activity != null` guard), but still clears its field, deactivates its menu type and
+     * navigates back to the main menu.
+     */
+    @Test
+    fun `dismissSettingsMenu sem activity anexada ainda limpa o estado mas nao tenta pop`() {
+        val menuManagerMock = mockMenuManager()
+        mockMenuViewModel()
+        val fragment = mockk<SettingsMenuFragment>(relaxed = true)
+        every { fragment.isAdded } returns true
+        every { fragment.activity } returns null
+        viewModel.registerSettingsMenuFragment(fragment)
+
+        viewModel.dismissSettingsMenu()
+
+        assertFalse(viewModel.isSettingsMenuOpen())
+        assertFalse(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+        verify(exactly = 1) { menuManagerMock.navigateToState(MenuState.MAIN_MENU) }
+    }
+
+    /** A non-empty back stack is popped exactly once. */
+    @Test
+    fun `dismissSettingsMenu com back stack nao vazio chama popBackStackImmediate`() {
+        mockMenuManager()
+        mockMenuViewModel()
+        val fragmentManager = mockk<androidx.fragment.app.FragmentManager>(relaxed = true)
+        every { fragmentManager.backStackEntryCount } returns 1
+        val activity = mockk<FragmentActivity>(relaxed = true)
+        every { activity.supportFragmentManager } returns fragmentManager
+        val fragment = mockk<SettingsMenuFragment>(relaxed = true)
+        every { fragment.isAdded } returns true
+        every { fragment.activity } returns activity
+        viewModel.registerSettingsMenuFragment(fragment)
+
+        viewModel.dismissSettingsMenu()
+
+        verify(exactly = 1) { fragmentManager.popBackStackImmediate() }
+    }
+
+    /** An empty back stack is left alone -- `popBackStackImmediate` is never called. */
+    @Test
+    fun `dismissSettingsMenu com back stack vazio nao chama popBackStackImmediate`() {
+        mockMenuManager()
+        mockMenuViewModel()
+        val fragmentManager = mockk<androidx.fragment.app.FragmentManager>(relaxed = true)
+        every { fragmentManager.backStackEntryCount } returns 0
+        val activity = mockk<FragmentActivity>(relaxed = true)
+        every { activity.supportFragmentManager } returns fragmentManager
+        val fragment = mockk<SettingsMenuFragment>(relaxed = true)
+        every { fragment.isAdded } returns true
+        every { fragment.activity } returns activity
+        viewModel.registerSettingsMenuFragment(fragment)
+
+        viewModel.dismissSettingsMenu()
+
+        verify(exactly = 0) { fragmentManager.popBackStackImmediate() }
+        assertFalse(viewModel.isSettingsMenuOpen())
+    }
+
+    /**
+     * Each `dismissX` must clear only its own fragment field and menu type -- guards against a
+     * copy-paste mistake in the eventual extraction touching the wrong one.
+     */
+    @Test
+    fun `dismissSettingsMenu nao afeta o estado do menu de Progress`() {
+        mockMenuManager()
+        mockMenuViewModel()
+        val settingsFragment = mockk<SettingsMenuFragment>(relaxed = true)
+        every { settingsFragment.isAdded } returns true
+        every { settingsFragment.activity } returns null
+        viewModel.registerSettingsMenuFragment(settingsFragment)
+        val progressFragment = mockk<ProgressFragment>(relaxed = true)
+        every { progressFragment.isAdded } returns true
+        every { progressFragment.activity } returns null
+        viewModel.registerProgressFragment(progressFragment)
+
+        viewModel.dismissSettingsMenu()
+
+        assertFalse(viewModel.isSettingsMenuOpen())
+        assertTrue(viewModel.isProgressMenuOpen())
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.PROGRESS_MENU))
+    }
+
+    @Test
+    fun `dismissProgress nao afeta o estado do menu de Settings`() {
+        mockMenuManager()
+        mockMenuViewModel()
+        val settingsFragment = mockk<SettingsMenuFragment>(relaxed = true)
+        every { settingsFragment.isAdded } returns true
+        every { settingsFragment.activity } returns null
+        viewModel.registerSettingsMenuFragment(settingsFragment)
+        val progressFragment = mockk<ProgressFragment>(relaxed = true)
+        every { progressFragment.isAdded } returns true
+        every { progressFragment.activity } returns null
+        viewModel.registerProgressFragment(progressFragment)
+
+        viewModel.dismissProgress()
+
+        assertFalse(viewModel.isProgressMenuOpen())
+        assertTrue(viewModel.isSettingsMenuOpen())
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+    }
+
+    @Test
+    fun `dismissExit nao afeta o estado do menu de Settings`() {
+        mockMenuManager()
+        mockMenuViewModel()
+        val settingsFragment = mockk<SettingsMenuFragment>(relaxed = true)
+        every { settingsFragment.isAdded } returns true
+        every { settingsFragment.activity } returns null
+        viewModel.registerSettingsMenuFragment(settingsFragment)
+        val exitFragment = mockk<ExitFragment>(relaxed = true)
+        every { exitFragment.isAdded } returns true
+        every { exitFragment.activity } returns null
+        viewModel.registerExitFragment(exitFragment)
+
+        viewModel.dismissExit()
+
+        assertFalse(viewModel.isExitMenuOpen())
+        assertTrue(viewModel.isSettingsMenuOpen())
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
+    }
+
+    @Test
+    fun `dismissAboutMenu nao afeta o estado do menu de Settings`() {
+        mockMenuManager()
+        mockMenuViewModel()
+        val settingsFragment = mockk<SettingsMenuFragment>(relaxed = true)
+        every { settingsFragment.isAdded } returns true
+        every { settingsFragment.activity } returns null
+        viewModel.registerSettingsMenuFragment(settingsFragment)
+        val aboutFragment = mockk<AboutFragment>(relaxed = true)
+        every { aboutFragment.isAdded } returns true
+        every { aboutFragment.activity } returns null
+        viewModel.registerAboutFragment(aboutFragment)
+
+        viewModel.dismissAboutMenu()
+
+        assertFalse(isMenuTypeActive(MenuSystemState.MenuType.ABOUT_MENU))
+        assertTrue(viewModel.isSettingsMenuOpen())
+        assertTrue(isMenuTypeActive(MenuSystemState.MenuType.SETTINGS_MENU))
     }
 
     /**
