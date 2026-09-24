@@ -186,6 +186,32 @@ class GameActivityViewModel_test {
     }
 
     /**
+     * `suppressNextScreenshotCapture` is set directly by `PipController` (`viewModel.
+     * suppressNextScreenshotCapture = true`) to skip the next save-state screenshot. Pins that
+     * contract through the ViewModel's public API: the capture is skipped, the callback still
+     * reports success, and the flag resets so the capture after that runs normally again.
+     */
+    @Test
+    fun `captureScreenshotForSaveState suprimido pula a captura e reseta a flag`() {
+        mockkObject(ScreenshotCaptureUtil)
+        every { ScreenshotCaptureUtil.captureAndCacheScreenshot(any(), any()) } just Runs
+        every { ScreenshotCaptureUtil.capturePipFrame(any(), any()) } just Runs
+        viewModel.retroView = mockk<RetroView>(relaxed = true)
+        viewModel.suppressNextScreenshotCapture = true
+
+        var firstResult: Boolean? = null
+        viewModel.captureScreenshotForSaveState { firstResult = it }
+
+        assertTrue(firstResult == true)
+        assertFalse(viewModel.suppressNextScreenshotCapture)
+        verify { ScreenshotCaptureUtil wasNot Called }
+
+        viewModel.captureScreenshotForSaveState()
+
+        verify(exactly = 1) { ScreenshotCaptureUtil.captureAndCacheScreenshot(any(), any()) }
+    }
+
+    /**
      * Test 2: closing the menu must, in order, clear the menu action buttons, reset the
      * already-triggered combo flag, clear the key log, update the debounce time, and only then
      * start the post-close grace period -- with the exact `closingButton` value passed through so

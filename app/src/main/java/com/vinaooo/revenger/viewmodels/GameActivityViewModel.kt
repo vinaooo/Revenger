@@ -39,6 +39,8 @@ import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
 import com.vinaooo.revenger.viewmodels.menu.SaveLoadOrchestrator
+import com.vinaooo.revenger.viewmodels.menu.ScreenshotPreviewController
+import com.vinaooo.revenger.viewmodels.menu.ScreenshotPreviewFacade
 import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentDismisser
 import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentDismissal
 import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentRegistrar
@@ -52,7 +54,8 @@ class GameActivityViewModel(application: Application) :
         AboutListener,
         MenuManager.MenuManagerListener,
         SubmenuFragmentRegistration,
-        SubmenuFragmentDismissal {
+        SubmenuFragmentDismissal,
+        ScreenshotPreviewFacade {
 
     companion object {
         // Grace period after the menu closes during which button interception stays active.
@@ -155,25 +158,21 @@ class GameActivityViewModel(application: Application) :
      * Show the load preview overlay with the given bitmap. Used when user navigates between slots
      * in Load State grid.
      */
-    fun showLoadPreview(bitmap: android.graphics.Bitmap) {
-        loadPreviewCallback?.invoke(bitmap)
-    }
+    override fun showLoadPreview(bitmap: android.graphics.Bitmap) =
+            screenshotPreviewController.showLoadPreview(bitmap)
 
     /**
      * Hide the load preview overlay. Called when navigating away from Load State or when menu
      * closes.
      */
-    fun hideLoadPreview() {
-        loadPreviewCallback?.invoke(null)
-    }
+    override fun hideLoadPreview() = screenshotPreviewController.hideLoadPreview()
 
     /**
      * Get the cached full-screen screenshot (with black bars) for preview overlay. Used when saving
      * to slot — the full screenshot is saved alongside the cropped one.
      */
-    fun getCachedFullScreenshot(): android.graphics.Bitmap? {
-        return com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getCachedFullScreenshot()
-    }
+    override fun getCachedFullScreenshot(): android.graphics.Bitmap? =
+            screenshotPreviewController.getCachedFullScreenshot()
 
     // ===== CENTRALIZED STATE MANAGEMENT =====
     // Distributed state migrated to MenuStateManager
@@ -206,6 +205,13 @@ class GameActivityViewModel(application: Application) :
                     menuStateManager = menuStateManager,
                     isRetroMenu3Open = { isRetroMenu3Open() },
                     isDismissingAllMenus = { isDismissingAllMenus() }
+            )
+    private val screenshotPreviewController =
+            ScreenshotPreviewController(
+                    retroView = { retroView },
+                    loadPreviewCallback = { loadPreviewCallback },
+                    isScreenshotCaptureSuppressed = { suppressNextScreenshotCapture },
+                    clearScreenshotCaptureSuppression = { suppressNextScreenshotCapture = false }
             )
 
     private var compositeDisposable = CompositeDisposable()
@@ -919,40 +925,18 @@ class GameActivityViewModel(application: Application) :
      *
      * @param onCaptured Optional callback when capture completes
      */
-    fun captureScreenshotForSaveState(onCaptured: ((Boolean) -> Unit)? = null) {
-        if (suppressNextScreenshotCapture) {
-            suppressNextScreenshotCapture = false
-            onCaptured?.invoke(true)
-            return
-        }
-
-        retroView?.view?.let { glRetroView ->
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                com.vinaooo.revenger.utils.ScreenshotCaptureUtil.captureAndCacheScreenshot(
-                        glRetroView,
-                        onCaptured
-                )
-                // Menu-open is a clean pause point with a valid surface — refresh the PiP still too.
-                com.vinaooo.revenger.utils.ScreenshotCaptureUtil.capturePipFrame(glRetroView, force = true)
-            } else {
-                onCaptured?.invoke(false)
-            }
-        }
-                ?: onCaptured?.invoke(false)
-    }
+    override fun captureScreenshotForSaveState(onCaptured: ((Boolean) -> Unit)?) =
+            screenshotPreviewController.captureScreenshotForSaveState(onCaptured)
 
     /** Get cached screenshot for save operation. Returns null if no screenshot was captured. */
-    fun getCachedScreenshot(): android.graphics.Bitmap? {
-        return com.vinaooo.revenger.utils.ScreenshotCaptureUtil.getCachedScreenshot()
-    }
+    override fun getCachedScreenshot(): android.graphics.Bitmap? =
+            screenshotPreviewController.getCachedScreenshot()
 
     /**
      * Clear cached screenshot when menu closes without saving. Frees memory used by the cached
      * bitmap.
      */
-    fun clearCachedScreenshot() {
-        com.vinaooo.revenger.utils.ScreenshotCaptureUtil.clearCachedScreenshot()
-    }
+    override fun clearCachedScreenshot() = screenshotPreviewController.clearCachedScreenshot()
 
     /** Hide the system bars */
     fun immersive(window: Window) {
