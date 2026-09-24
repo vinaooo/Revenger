@@ -31,10 +31,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Characterization tests for the branches of [GameActivityViewModel.onMenuEvent] /
- * `handleMenuAction` / `handleMenuStateChanged` / `dismissCurrentMenuState` that
- * `GameActivityViewModel_test.kt` doesn't already cover (TOGGLE_*, SAVE/LOAD/RESET routing,
- * BACK in the non-Settings submenus, the ignored actions, and StateChanged for the non-Settings
+ * Characterization tests for the branches of [GameActivityViewModel.onMenuEvent] that
+ * `GameActivityViewModel_test.kt` doesn't already cover (TOGGLE_*, SAVE/LOAD/RESET routing, BACK
+ * in the non-Settings submenus, the ignored actions, and StateChanged for the non-Settings
  * submenus). Written BEFORE extracting this cluster into dedicated classes under
  * `viewmodels/menu/`.
  */
