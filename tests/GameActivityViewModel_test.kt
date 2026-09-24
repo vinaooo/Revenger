@@ -930,12 +930,12 @@ class GameActivityViewModel_test {
         assertFalse(result)
     }
 
-    // --- onMenuEvent / handleMenuAction / handleMenuStateChanged / dismissCurrentMenuState ---
+    // --- onMenuEvent: Action/StateChanged dispatch to MenuActionDispatcher/MenuStateChangeHandler
+    // ---
     //
-    // Characterization coverage for the boundaries extracted out of onMenuEvent (detekt
-    // CyclomaticComplexMethod/LongMethod): one test per top-level MenuEvent branch dispatched to
-    // its new handler, plus representative MenuAction sub-branches and dismissCurrentMenuState's
-    // per-state routing.
+    // Characterization coverage for onMenuEvent's top-level branches: one test per branch
+    // dispatched to its handler, plus representative MenuAction sub-branches and the BACK
+    // action's per-state dismiss routing.
 
     @Test
     fun `onMenuEvent com Action NAVIGATE delega para menuManager navigateToState`() {
