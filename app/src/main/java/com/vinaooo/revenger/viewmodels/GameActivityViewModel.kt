@@ -827,30 +827,6 @@ class GameActivityViewModel(application: Application) :
     // PUBLIC METHODS FOR ACCESS TO MODULAR CONTROLLERS
 
     /**
-     * Gets reference to AudioController for use in other components. Allows modular access to audio
-     * functionalities
-     */
-    fun getAudioController(): AudioController? {
-        return audioController
-    }
-
-    /**
-     * Gets reference to SpeedController for use in other components. Allows modular access to speed
-     * functionalities
-     */
-    fun getSpeedController(): SpeedController? {
-        return speedController
-    }
-
-    /**
-     * Gets reference to ShaderController for use in other components. Allows modular access to
-     * shader functionalities
-     */
-    fun getShaderController(): ShaderController? {
-        return shaderController
-    }
-
-    /**
      * Audio control using modular controller
      * @param enabled true to turn on, false to turn off
      */
@@ -866,11 +842,6 @@ class GameActivityViewModel(application: Application) :
         retroView?.let { speedController?.setSpeed(it.view, speed) }
     }
 
-    /** Ativa fast forward usando controller modular */
-    fun enableFastForward() {
-        speedViewModel.enableFastForward(retroView?.view)
-    }
-
     /** Clear controller key log (used by RetroMenu3Fragment on destroy) */
     fun clearControllerKeyLog() {
         controllerInput.comboTracker.clearKeyLog()
@@ -879,39 +850,6 @@ class GameActivityViewModel(application: Application) :
     /** Check if we are currently dismissing all menus (used by RetroMenu3Fragment) */
     fun isDismissingAllMenus(): Boolean {
         return menuStateManager.isDismissingAllMenus()
-    }
-
-    /** Update the current menu state in MenuManager */
-    fun updateMenuState(newState: com.vinaooo.revenger.ui.retromenu3.MenuState) {
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[STATE] 🔄 updateMenuState: Changing to $newState"
-        )
-        menuManager.navigateToState(newState)
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[STATE] ✅ updateMenuState: State changed to $newState"
-        )
-    }
-
-    fun unregisterFragment(state: com.vinaooo.revenger.ui.retromenu3.MenuState) {
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[FRAGMENT] unregisterFragment: Unregistering fragment for state $state"
-        )
-        menuManager.unregisterFragment(state)
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[FRAGMENT] unregisterFragment: Fragment unregistered"
-        )
-    }
-
-    fun getCurrentMenuState(): com.vinaooo.revenger.ui.retromenu3.MenuState {
-        return menuManager.getCurrentState()
-    }
-
-    fun getCurrentFragment(): com.vinaooo.revenger.ui.retromenu3.MenuFragment? {
-        return menuManager.getCurrentFragment()
     }
 
     // ===== MenuManagerListener Implementation =====
@@ -1068,11 +1006,6 @@ class GameActivityViewModel(application: Application) :
                 menuManager.back()
             }
         }
-    }
-
-    /** Desativa fast forward usando controller modular */
-    fun disableFastForward() {
-        speedViewModel.disableFastForward(retroView?.view)
     }
 
     /** Define fast forward enabled/disabled sem aplicar imediatamente (usado pelo menu Settings) */
