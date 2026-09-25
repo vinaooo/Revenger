@@ -126,8 +126,10 @@ class GamePadInputController(
             // Menu is closed. Do not intercept. Let GamePad natively dispatch its axes directly.
             return false
         }
+        // The menu is open, so the event is still intercepted even if the RetroView is not ready
+        val view = retroView() ?: return true
         // Process motion and return true to intercept the directional event while the menu is open
-        controllerInput().processMotionEvent(buildDpadMotionEvent(event), retroView()!!)
+        controllerInput().processMotionEvent(buildDpadMotionEvent(event), view)
         return true
     }
 

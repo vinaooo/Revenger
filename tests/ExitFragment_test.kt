@@ -81,6 +81,24 @@ class ExitFragment_test {
         }
     }
 
+    // Regression: Save and Exit used `tracker.getLastUsedSlot()!!`. Without a slot recorded in
+    // this session it must take the "no slot context" branch (navigate to the save grid) instead
+    // of the auto-save branch, and must not throw.
+    @Test
+    fun `confirmar Save and Exit sem slot na sessao nao lanca excecao`() {
+        com.vinaooo.revenger.managers.SessionSlotTracker.clearInstance()
+        assertNull(com.vinaooo.revenger.managers.SessionSlotTracker.getInstance().getLastUsedSlot())
+        fragment.setSelectedIndex(0)
+
+        try {
+            fragment.onConfirm()
+        } catch (e: Exception) {
+            fail("onConfirm() without a slot context should not throw: ${e.message}")
+        } finally {
+            com.vinaooo.revenger.managers.SessionSlotTracker.clearInstance()
+        }
+    }
+
     // Regression test for the narrowed IllegalStateException catch in
     // MenuFragmentBase.onPause(): after the fragment is removed from the FragmentManager,
     // requireActivity() throws IllegalStateException ("Fragment ... not attached to a context"),

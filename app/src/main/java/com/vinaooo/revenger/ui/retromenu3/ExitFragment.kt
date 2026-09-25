@@ -236,10 +236,10 @@ class ExitFragment : MenuFragmentBase() {
 
                 val tracker = com.vinaooo.revenger.managers.SessionSlotTracker.getInstance()
 
-                if (tracker.hasSlotContext()) {
+                val slotNumber = tracker.getLastUsedSlot()
+                if (slotNumber != null) {
                     // Scenario 1: User already saved/loaded during this session
                     // Auto-save to the last used slot
-                    val slotNumber = tracker.getLastUsedSlot()!!
                     android.util.Log.d(TAG, "[ACTION] Auto-saving to last used slot $slotNumber")
                     performAutoSaveAndExit(slotNumber)
                 } else {

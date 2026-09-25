@@ -33,8 +33,9 @@ object DefaultSettingsRepository {
         try {
             val jsonString = loadJsonFromAssets(context)
             val jsonArray = JSONArray(jsonString)
-            profiles = DefaultSettingsProfile.parseProfiles(jsonArray)
-            Log.d(TAG, "Loaded ${profiles!!.size} platform profiles")
+            val loadedProfiles = DefaultSettingsProfile.parseProfiles(jsonArray)
+            profiles = loadedProfiles
+            Log.d(TAG, "Loaded ${loadedProfiles.size} platform profiles")
         } catch (e: IOException) {
             Log.e(TAG, "Failed to load default settings", e)
             profiles = emptyList()

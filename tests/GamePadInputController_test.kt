@@ -246,6 +246,24 @@ class GamePadInputController_test {
         assertEquals(-0.4f, captured.getAxisValue(MotionEvent.AXIS_HAT_Y))
     }
 
+    // Regression: this path used `retroView()!!`, which threw a NullPointerException when a
+    // direction event arrived with the menu open before the RetroView was created.
+    @Test
+    fun `handleGamePadEvent com Direction e menu aberto sem retroView intercepta sem lancar`() {
+        isMenuActive = true
+        currentRetroView = null
+
+        val result =
+                invokePrivate<Boolean>(
+                        controller,
+                        "handleGamePadEvent",
+                        Event.Direction(0, 1f, 0f, 0)
+                )
+
+        assertTrue(result)
+        verify(exactly = 0) { currentControllerInput.processMotionEvent(any(), any()) }
+    }
+
     @Test
     fun `handleGamePadEvent com outro tipo de evento nao intercepta`() {
         val result =
