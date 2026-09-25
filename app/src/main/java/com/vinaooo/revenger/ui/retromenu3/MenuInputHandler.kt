@@ -13,10 +13,12 @@ interface MenuInputHandler {
     fun handleMenuItemSelected(item: MenuItem)
 }
 
-/** Implementation of MenuInputHandler, delegating callback-driven actions to MenuCallbackManager. */
+/**
+ * Implementation of MenuInputHandler. Selection moves go through [MenuStateController]; every
+ * confirmed item is turned into a [MenuAction] executed by [MenuActionHandler].
+ */
 class MenuInputHandlerImpl(
         private val stateController: MenuStateController,
-        private val callbackManager: MenuCallbackManager,
         private val actionHandler: MenuActionHandler
 ) : MenuInputHandler {
 
@@ -65,14 +67,12 @@ class MenuInputHandlerImpl(
                 actionHandler.executeAction(MenuAction.RESET)
             }
             MenuAction.SAVE_STATE -> {
-                MenuLogger.action("MenuInputHandler: SAVE_STATE selected - calling callback")
-                callbackManager.onSaveState()
+                MenuLogger.action("MenuInputHandler: SAVE_STATE selected - opening progress menu")
                 // Open progress submenu for save state selection
                 actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.PROGRESS_MENU))
             }
             MenuAction.TOGGLE_AUDIO -> {
-                MenuLogger.action("MenuInputHandler: TOGGLE_AUDIO selected - calling callback")
-                callbackManager.onToggleAudio()
+                MenuLogger.action("MenuInputHandler: TOGGLE_AUDIO selected - opening settings menu")
                 // Trigger settings menu click for UI feedback
                 actionHandler.executeAction(MenuAction.NAVIGATE(MenuState.SETTINGS_MENU))
             }

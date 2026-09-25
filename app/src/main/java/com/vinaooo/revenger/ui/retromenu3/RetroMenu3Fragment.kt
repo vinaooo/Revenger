@@ -11,7 +11,6 @@ import com.vinaooo.revenger.ui.retromenu3.callbacks.ProgressListener
 import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.ui.retromenu3.callbacks.ExitListener
 import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
-import com.vinaooo.revenger.ui.retromenu3.callbacks.RetroMenu3Listener
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
 /**
@@ -71,11 +70,8 @@ class RetroMenu3Fragment :
         /** Check if menu is currently being dismissed */
         fun isDismissingMenu(): Boolean = isDismissingMenu
         private lateinit var stateController: MenuStateController
-        private lateinit var callbackManager: MenuCallbackManager
         private lateinit var actionHandler: MenuActionHandler
         lateinit var menuViews: MenuViews
-
-        private val menuListener: RetroMenu3Listener? = null
 
         /** Get the animation controller for external access */
         fun getAnimationController(): MenuAnimationController {
@@ -112,9 +108,7 @@ class RetroMenu3Fragment :
 
                 // Agora inicializar os outros managers que dependem dos anteriores
                 stateController = MenuStateControllerImpl(this, animationController)
-                callbackManager = MenuCallbackManagerImpl(menuListener)
-                inputHandler =
-                        MenuInputHandlerImpl(stateController, callbackManager, actionHandler)
+                inputHandler = MenuInputHandlerImpl(stateController, actionHandler)
 
                 // Initialize lifecycle manager last (depends on others)
                 lifecycleManager =

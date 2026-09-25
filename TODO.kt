@@ -38,11 +38,6 @@
 // FIXME: GameActivity.kt (createFragmentForRotationState/registerSubmenuAndSyncNavigationAfterRotation)
 //        só re-registra Settings/Progress/About/Exit no ViewModel e restaura foco após rotação;
 //        SaveSlots/LoadSlots/ManageSaves/ExitSaveGrid ficam sem registro e sem foco restaurado.
-// FIXME: Campos nunca atribuídos, sempre null (achados via VarCouldBeVal, PR #104):
-//        - InputViewModel.leftGamePad/rightGamePad -- getLeftGamePad()/getRightGamePad() sempre
-//          retornam null; os pads reais vivem em viewmodels/menu/GamePadInputController.
-//        - RetroMenu3Fragment.menuListener -- MenuCallbackManagerImpl sempre recebe listener null.
-//        Decidir se é estado morto (remover) ou bug latente (conectar).
 
 // [ ]: Fazer
 // [x]: Feito
