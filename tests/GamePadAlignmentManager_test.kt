@@ -133,4 +133,16 @@ class GamePadAlignmentManager_test {
         assertFalse(valid)
         assertTrue(message.contains("Erro ao validar offsets"))
     }
+
+    @Test
+    fun `validateOffsets com excecao sem mensagem usa o tipo da excecao em vez de null`() {
+        val appConfig = mockk<AppConfig>()
+        every { appConfig.gamePadConfigModel } throws IllegalStateException()
+
+        val (valid, message) = GamePadAlignmentManager(appConfig).validateOffsets()
+
+        assertFalse(valid)
+        assertTrue(message.endsWith("IllegalStateException"))
+        assertFalse(message.contains("null"))
+    }
 }
