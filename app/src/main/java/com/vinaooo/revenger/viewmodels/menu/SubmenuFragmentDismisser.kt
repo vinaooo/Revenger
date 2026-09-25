@@ -39,8 +39,8 @@ class SubmenuFragmentDismisser(
         if (state.settingsMenuFragment != null) {
             android.util.Log.d(
                     "GameActivityViewModel",
-                    "isSettingsMenuOpen check: fragment=${state.settingsMenuFragment}, " +
-                            "isAdded=${state.settingsMenuFragment?.isAdded}, result=$isOpen"
+                    "isSettingsMenuOpen check: fragment=${state.settingsMenuFragment ?: "none"}, " +
+                            "isAdded=${state.settingsMenuFragment?.isAdded == true}, result=$isOpen"
             )
         }
         return isOpen

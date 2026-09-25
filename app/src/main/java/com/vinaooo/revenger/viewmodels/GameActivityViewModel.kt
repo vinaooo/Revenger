@@ -498,15 +498,15 @@ class GameActivityViewModel(application: Application) :
         android.util.Log.d("GameActivityViewModel", "onBackToMainMenu: User wants to go back")
         android.util.Log.d(
                 "GameActivityViewModel",
-                "onBackToMainMenu: retroMenu3Fragment = $retroMenu3Fragment"
+                "onBackToMainMenu: retroMenu3Fragment = ${retroMenu3Fragment ?: "none"}"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
-                "onBackToMainMenu: retroMenu3Fragment.isAdded = ${retroMenu3Fragment?.isAdded}"
+                "onBackToMainMenu: retroMenu3Fragment.isAdded = ${retroMenu3Fragment?.isAdded == true}"
         )
         android.util.Log.d(
                 "GameActivityViewModel",
-                "onBackToMainMenu: settingsMenuFragment = ${submenuFragmentState.settingsMenuFragment}"
+                "onBackToMainMenu: settingsMenuFragment = ${submenuFragmentState.settingsMenuFragment ?: "none"}"
         )
 
         // Simply close the submenu using popBackStack
