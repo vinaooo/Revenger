@@ -536,7 +536,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
             // Log parent before removal
             val parentBefore = dialog.parent
-            Log.d(TAG, "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName}")
+            Log.d(TAG, "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName ?: "none"}")
 
             // Immediately hide and remove
             dialog.visibility = View.GONE
@@ -546,7 +546,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
             val parentAfter = dialog.parent
             Log.d(
                     TAG,
-                    "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName} " +
+                    "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName ?: "none"} " +
                             "isDialogVisible=${isDialogVisible}"
             )
             // View/ViewGroup.removeView() teardown here doesn't have a known reachable failure

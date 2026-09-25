@@ -79,7 +79,7 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
 
             Log.d(
                     "MenuFragmentBase",
-                    "[LIFECYCLE] onPause() - clearPendingInputsPreserveHeld() for ${this::class.simpleName}"
+                    "[LIFECYCLE] onPause() - clearPendingInputsPreserveHeld() for ${javaClass.simpleName}"
             )
         } catch (e: IllegalStateException) {
             // requireActivity() throws IllegalStateException if the fragment is no longer

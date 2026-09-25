@@ -118,7 +118,7 @@ class MenuLifecycleManagerImpl(
             // documented escape hatch instead of @Suppress.
         } catch (expectedSetupFailure: Exception) {
             MenuLogger.lifecycle(
-                    "MenuLifecycleManager.onViewCreated - ERROR: ${expectedSetupFailure.message}"
+                    "MenuLifecycleManager.onViewCreated - ERROR: ${expectedSetupFailure.message.orEmpty()}"
             )
             throw expectedSetupFailure
         }
