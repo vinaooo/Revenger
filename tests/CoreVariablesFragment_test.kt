@@ -1,9 +1,14 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.content.res.Configuration
+import android.content.res.Resources
+import android.view.ContextThemeWrapper
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.AppConfig
+import com.vinaooo.revenger.R
 import com.vinaooo.revenger.RevengerApplication
 import io.mockk.every
 import io.mockk.mockk
@@ -107,5 +112,35 @@ class CoreVariablesFragment_test {
     @Test
     fun `getMenuItems tem titulos nao vazios`() {
         fragment.getMenuItems().forEach { item -> assertFalse(item.title.isEmpty()) }
+    }
+
+    @Test
+    fun `onCreateView infla o layout com orientacao indefinida`() {
+        // Regression: core_variables.xml only existed in layout-land/ and layout-port/, so a
+        // configuration matching neither threw Resources.NotFoundException (lint's
+        // MissingDefaultResource).
+        val config = Configuration(activity.resources.configuration).apply {
+            orientation = Configuration.ORIENTATION_UNDEFINED
+        }
+        // Robolectric fills in an orientation for createConfigurationContext(), so the
+        // configuration is pinned on a Resources instance built directly instead.
+        @Suppress("DEPRECATION")
+        val undefinedOrientationResources =
+                Resources(activity.assets, activity.resources.displayMetrics, config)
+        val undefinedOrientationContext =
+                object : ContextThemeWrapper(activity, activity.theme) {
+                    override fun getResources() = undefinedOrientationResources
+                }
+        assertEquals(
+                Configuration.ORIENTATION_UNDEFINED,
+                undefinedOrientationContext.resources.configuration.orientation
+        )
+
+        val view =
+                CoreVariablesFragment()
+                        .onCreateView(LayoutInflater.from(undefinedOrientationContext), null, null)
+
+        assertNotNull(view.findViewById(R.id.core_variables_list))
+        assertNotNull(view.findViewById(R.id.variable_back))
     }
 }
