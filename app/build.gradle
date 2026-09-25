@@ -185,6 +185,12 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
+            // RepoRootKotlinFiles_test checks the repo root, so a new or deleted *.kt there must
+            // rerun the tests instead of leaving the task up to date.
+            all { test ->
+                test.inputs.files(rootProject.fileTree(rootProject.projectDir) { include '*.kt' })
+                        .withPropertyName('repoRootKotlinFiles')
+            }
         }
     }
 
