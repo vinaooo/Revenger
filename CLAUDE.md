@@ -28,6 +28,8 @@ Tests — **unit test sources live in `tests/` at the repo root**, wired in via 
 ./gradlew connectedDebugAndroidTest                                      # instrumented tests, needs a device
 ```
 
+`connectedDebugAndroidTest` includes `EmulatorSmokeTest`, which runs the real packaged core and ROM (no mocks): first frame, then state save/load round trips. It needs a full build with the ROM and core staged, so don't pass `-PskipAssetStaging`.
+
 **Every change must include tests.** Adding a class or method → add tests for it. Fixing a bug → add a regression test that fails without the fix. Changing existing behavior → update the tests that cover it. If the code you're touching has no test yet, write one as part of the change instead of deferring it — see `definitions/Code.md` for testing conventions and patterns (mocking Android framework classes, resetting stateful singletons between tests, etc.).
 
 Coverage: `./gradlew koverHtmlReportDebug -PskipAssetStaging` writes the report to `app/build/reports/kover/htmlDebug/`. `koverVerifyDebug` runs as part of `./gradlew check` and fails it if debug coverage drops below the floor in `app/build.gradle` (`kover { … verify { rule … } }`: 72% lines, 56% branches). When coverage grows, raise the floor; never lower it to get a change through.
