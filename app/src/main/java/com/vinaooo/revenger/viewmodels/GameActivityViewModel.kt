@@ -62,6 +62,7 @@ import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentRegistrar
 import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentRegistration
 import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentState
 import io.reactivex.rxjava3.disposables.CompositeDisposable
+import java.lang.ref.WeakReference
 
 class GameActivityViewModel(application: Application) :
         AndroidViewModel(application),
@@ -133,15 +134,26 @@ class GameActivityViewModel(application: Application) :
 
     private val saveLoadOrchestrator = SaveLoadOrchestrator()
 
+    // The two container views below belong to the Activity's view tree, which this ViewModel can
+    // outlive, so they are held weakly (lint StaticFieldLeak). GameActivity.onCreate sets both
+    // again whenever the Activity is recreated.
+
     // Menu container reference (from activity layout) - delegated to MenuViewModel
-    private var menuContainerView: FrameLayout? = null
+    private var menuContainerViewRef: WeakReference<FrameLayout>? = null
+    private var menuContainerView: FrameLayout?
+        get() = menuContainerViewRef?.get()
         set(value) {
-            field = value
+            menuContainerViewRef = value?.let(::WeakReference)
             // FUTURE: value?.let { menuViewModel.setMenuContainer(container = it) }
         }
 
     // GamePad container reference (needed to force it on top of menu)
-    private var gamePadContainerView: android.widget.LinearLayout? = null
+    private var gamePadContainerViewRef: WeakReference<android.widget.LinearLayout>? = null
+    private var gamePadContainerView: android.widget.LinearLayout?
+        get() = gamePadContainerViewRef?.get()
+        set(value) {
+            gamePadContainerViewRef = value?.let(::WeakReference)
+        }
 
     // RetroMenu3 fragment (activated by SELECT+START combo)
     private var retroMenu3Fragment: RetroMenu3Fragment? = null

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.input.ControllerInput
+import java.lang.ref.WeakReference
 
 /**
  * ViewModel specialized in input and control management. Responsible for gamepads,
@@ -33,7 +34,14 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
     private val controllerInput = ControllerInput()
     private val appConfig = RevengerApplication.appConfig
 
-    private var gamePadContainerView: android.widget.LinearLayout? = null
+    // Held weakly: this ViewModel can outlive the Activity whose view tree owns the container
+    // (lint StaticFieldLeak). The attached view tree keeps it alive while the Activity is.
+    private var gamePadContainerViewRef: WeakReference<android.widget.LinearLayout>? = null
+    private var gamePadContainerView: android.widget.LinearLayout?
+        get() = gamePadContainerViewRef?.get()
+        set(value) {
+            gamePadContainerViewRef = value?.let(::WeakReference)
+        }
 
     // ControllerInput callbacks
     private var selectStartComboCallback: (() -> Unit)? = null

@@ -180,7 +180,12 @@ class GameActivityViewModel_retroMenu3Lifecycle_test {
 
         viewModel.setMenuContainer(container)
 
-        assertSame(container, getPrivateField<FrameLayout?>(viewModel, "menuContainerView"))
+        // Held through a WeakReference (the ViewModel can outlive the Activity's view tree).
+        assertSame(
+                container,
+                getPrivateField<java.lang.ref.WeakReference<FrameLayout>?>(viewModel, "menuContainerViewRef")
+                        ?.get()
+        )
         verify(exactly = 1) { menuViewModelMock.setMenuContainer(container) }
     }
 
@@ -207,7 +212,8 @@ class GameActivityViewModel_retroMenu3Lifecycle_test {
 
         assertSame(
                 container,
-                getPrivateField<LinearLayout?>(viewModel, "gamePadContainerView")
+                getPrivateField<java.lang.ref.WeakReference<LinearLayout>?>(viewModel, "gamePadContainerViewRef")
+                        ?.get()
         )
     }
 
