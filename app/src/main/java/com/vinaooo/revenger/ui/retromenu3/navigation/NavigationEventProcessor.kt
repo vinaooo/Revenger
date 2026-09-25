@@ -65,6 +65,9 @@ class NavigationEventProcessor(
 
     companion object {
         private const val TAG = "NavigationEventProcessor"
+
+        /** Formats an optional key code for logs, spelling out a missing one as "none". */
+        private fun describeKey(keyCode: Int?): String = keyCode?.toString() ?: "none"
     }
 
     /** Processes a navigation event. */
@@ -74,7 +77,7 @@ class NavigationEventProcessor(
                     TAG,
                     "[PROCESS_EVENT] ts=${System.currentTimeMillis()} " +
                             "thread=${Thread.currentThread().name} event=$event " +
-                            "lastAction=$lastActionButton currentMenu=${stateManager.currentMenu} " +
+                            "lastAction=${describeKey(lastActionButton)} currentMenu=${stateManager.currentMenu} " +
                             "backStack=${fragmentAdapter.getBackStackCount()}"
             )
             // This only formats and logs a diagnostic string (getBackStackCount() is a pure read)
@@ -98,7 +101,7 @@ class NavigationEventProcessor(
             is NavigationEvent.ActivateSelected -> {
                 Log.d(
                         TAG,
-                        "[MENU_EVENT] ActivateSelected: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
+                        "[MENU_EVENT] ActivateSelected: keyCode=${describeKey(event.keyCode)}, inputSource=${event.inputSource}"
                 )
                 lastActionButton = event.keyCode // Save button that activated
                 activateItem()
@@ -106,7 +109,7 @@ class NavigationEventProcessor(
             is NavigationEvent.NavigateBack -> {
                 Log.d(
                         TAG,
-                        "[MENU_EVENT] NavigateBack: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
+                        "[MENU_EVENT] NavigateBack: keyCode=${describeKey(event.keyCode)}, inputSource=${event.inputSource}"
                 )
                 lastActionButton = event.keyCode // Save button that returned
                 navigateBack()
@@ -118,7 +121,7 @@ class NavigationEventProcessor(
             is NavigationEvent.CloseAllMenus -> {
                 Log.d(
                         TAG,
-                        "[MENU_EVENT] CloseAllMenus: keyCode=${event.keyCode}, inputSource=${event.inputSource}"
+                        "[MENU_EVENT] CloseAllMenus: keyCode=${describeKey(event.keyCode)}, inputSource=${event.inputSource}"
                 )
                 lastActionButton = event.keyCode // Save button that closed
                 closeAllMenus()
@@ -390,7 +393,7 @@ class NavigationEventProcessor(
     /** Close all menus. */
     private fun closeAllMenus() {
         Log.d(TAG, "[MENU_CLOSE] Closing all menus")
-        Log.d(TAG, "[MENU_CLOSE] lastActionButton: $lastActionButton")
+        Log.d(TAG, "[MENU_CLOSE] lastActionButton: ${describeKey(lastActionButton)}")
 
         Log.d(TAG, "[MENU_CLOSE] Resetting combo state before menu close")
         onMenuClosed(lastActionButton)
@@ -467,7 +470,7 @@ class NavigationEventProcessor(
 
     /** Fecha o menu externamente. */
     fun closeMenuExternal(closingButton: Int? = null) {
-        Log.d(TAG, "[CLOSE_EXTERNAL] Closing menu externally, button: $closingButton")
+        Log.d(TAG, "[CLOSE_EXTERNAL] Closing menu externally, button: ${describeKey(closingButton)}")
 
         fragmentAdapter.hideMenu()
         stateManager.unregisterFragment()
