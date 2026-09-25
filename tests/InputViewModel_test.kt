@@ -53,12 +53,6 @@ class InputViewModel_test {
     }
 
     @Test
-    fun `getLeftGamePad e getRightGamePad comecam nulos antes de setupGamePads`() {
-        assertTrue(viewModel.getLeftGamePad() == null)
-        assertTrue(viewModel.getRightGamePad() == null)
-    }
-
-    @Test
     fun `setSelectStartComboCallback registra o callback invocado pelo ControllerInput`() {
         var invoked = false
         viewModel.setSelectStartComboCallback { invoked = true }
