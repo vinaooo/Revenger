@@ -177,7 +177,7 @@ class RotationController(
 
                 Log.d(TAG, "[ORIENTATION] Estado do menu: $currentState")
                 Log.d(TAG, "[ORIENTATION] Backstack count: ${fragmentManager.backStackEntryCount}")
-                Log.d(TAG, "[ORIENTATION] Visible fragment: ${visibleFragment?.javaClass?.simpleName}")
+                Log.d(TAG, "[ORIENTATION] Visible fragment: ${visibleFragment?.javaClass?.simpleName ?: "none"}")
 
                 // CRITICAL: Only recreate fragments if menu is actually open
                 if (visibleFragment == null || visibleFragment !is MenuFragment) {

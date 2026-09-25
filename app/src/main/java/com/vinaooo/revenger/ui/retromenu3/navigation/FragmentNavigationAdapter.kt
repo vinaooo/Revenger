@@ -233,8 +233,8 @@ class MenuFragmentPresenter(private val fragmentManager: FragmentManager) {
             val found = fragmentManager.findFragmentByTag(TAG_MAIN_MENU)
             Log.d(
                     TAG,
-                    "[SHOW] Main menu added - fragment=${found?.javaClass?.simpleName} " +
-                            "isAdded=${found?.isAdded} " +
+                    "[SHOW] Main menu added - fragment=${found?.javaClass?.simpleName ?: "none"} " +
+                            "isAdded=${found?.isAdded == true} " +
                             "backStack=${fragmentManager.backStackEntryCount}"
             )
             // findFragmentByTag() and backStackEntryCount are pure reads with no documented

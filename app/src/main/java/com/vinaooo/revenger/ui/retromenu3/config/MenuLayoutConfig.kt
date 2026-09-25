@@ -512,7 +512,7 @@ object MenuLayoutConfig : ProportionsParsing by ProportionsParser {
      * @param view A view raiz do menu (FrameLayout ou similar)
      */
     fun applyProportionsToMenuLayout(view: View) {
-        Log.d(TAG, "applyProportionsToMenuLayout: applying to ${view::class.simpleName}")
+        Log.d(TAG, "applyProportionsToMenuLayout: applying to ${view.javaClass.simpleName}")
         try {
             // Obter proporções baseado na orientação
             val proportions = getConfiguredProportions(view)

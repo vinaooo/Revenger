@@ -165,7 +165,7 @@ object LogSaver {
         try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             val versionCode = packageInfo.longVersionCode
-            builder.append("App Version: ${packageInfo.versionName} ($versionCode)\n")
+            builder.append("App Version: ${packageInfo.versionName ?: "unknown"} ($versionCode)\n")
             builder.append("Package Name: ${context.packageName}\n")
             val isDebugBuild = context.packageName.contains("debug", ignoreCase = true)
             builder.append("Build Type: ${if (isDebugBuild) "Debug" else "Release"}\n")
@@ -292,9 +292,9 @@ object LogSaver {
 
             relevantLines.joinToString("\n")
         } catch (e: IOException) {
-            "Unable to capture system logs: ${e.message}"
+            "Unable to capture system logs: ${e.message ?: e.javaClass.simpleName}"
         } catch (e: SecurityException) {
-            "Error capturing system logs: ${e.message}"
+            "Error capturing system logs: ${e.message ?: e.javaClass.simpleName}"
         }
     }
 }

@@ -70,13 +70,14 @@ object DefaultSettingsRepository {
         profileList: List<DefaultSettingsProfile>,
         platformId: String?
     ): DefaultSettingsProfile? {
-        if (platformId.isNullOrEmpty()) return null
+        val id = platformId ?: return null
+        if (id.isEmpty()) return null
 
-        val profile = profileList.find { it.platformId == platformId }
+        val profile = profileList.find { it.platformId == id }
         if (profile != null) {
-            Log.d(TAG, "Found profile by platformId: $platformId")
+            Log.d(TAG, "Found profile by platformId: $id")
         } else {
-            Log.w(TAG, "No profile found for platformId: $platformId")
+            Log.w(TAG, "No profile found for platformId: $id")
         }
         return profile
     }

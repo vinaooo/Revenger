@@ -323,7 +323,7 @@ class RetroMenu3Fragment :
                                                 Log.d(
                                                         "RetroMenu3Fragment",
                                                         "[DISMISS] After remove requested, " +
-                                                                "fragmentById=$afterName backStack=$backStack"
+                                                                "fragmentById=${afterName ?: "none"} backStack=$backStack"
                                                 )
                                                 // Execute callback after animation and fragment removal
                                                 onAnimationEnd?.invoke()

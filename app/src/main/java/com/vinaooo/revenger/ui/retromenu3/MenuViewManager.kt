@@ -505,7 +505,7 @@ class MenuViewManager(
         Log.d(
                 TAG,
                 "[VIEW] setupDynamicTitle - menuTitleTextView initialized: " +
-                        "${menuTitleTextView != null}, id: ${titleTextView?.id}"
+                        "${menuTitleTextView != null}, id: ${titleTextView?.id ?: "none"}"
         )
         val titleStyle = fragment.resources.getInteger(R.integer.rm_title_style)
 

@@ -44,13 +44,13 @@ class MenuCloseHandler(
             Log.d(
                     "GameActivityViewModel",
                     "🔥 [ON_MENU_CLOSED_CALLBACK] ts=${System.currentTimeMillis()} " +
-                            "thread=${Thread.currentThread().name} closingButton=$closingButton"
+                            "thread=${Thread.currentThread().name} closingButton=${closingButton ?: "none"}"
             )
             val menuFragment = activity.supportFragmentManager.findFragmentById(R.id.menu_container)
             Log.d(
                     "GameActivityViewModel",
                     "🔥 [ON_MENU_CLOSED_CALLBACK] Fragment in container=" +
-                            "${menuFragment?.javaClass?.simpleName} " +
+                            "${menuFragment?.javaClass?.simpleName ?: "none"} " +
                             "backStack=${activity.supportFragmentManager.backStackEntryCount}"
             )
         } catch (expectedDiagnosticLoggingFailure: Throwable) {
@@ -66,7 +66,7 @@ class MenuCloseHandler(
                 "GameActivityViewModel",
                 "🔥 [ON_MENU_CLOSED_CALLBACK] Timestamp: ${System.currentTimeMillis()}"
         )
-        Log.d("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] closingButton: $closingButton")
+        Log.d("GameActivityViewModel", "🔥 [ON_MENU_CLOSED_CALLBACK] closingButton: ${closingButton ?: "none"}")
 
         val input = controllerInput()
 

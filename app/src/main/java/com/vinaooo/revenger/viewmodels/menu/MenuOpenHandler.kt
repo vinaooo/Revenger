@@ -31,7 +31,7 @@ class MenuOpenHandler(
                     activity.supportFragmentManager.findFragmentById(R.id.menu_container)
             Log.d(
                     "GameActivityViewModel",
-                    "[ON_MENU_OPENED] Fragment in container=${menuFragment?.javaClass?.simpleName} " +
+                    "[ON_MENU_OPENED] Fragment in container=${menuFragment?.javaClass?.simpleName ?: "none"} " +
                             "backStack=${activity.supportFragmentManager.backStackEntryCount}"
             )
         } catch (expectedDiagnosticLoggingFailure: Throwable) {

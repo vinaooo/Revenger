@@ -37,7 +37,7 @@ object SlotScreenshotLoader {
                 } catch (expectedNativeDecodeFailure: Exception) {
                         Log.e(
                                 TAG,
-                                "Failed to load screenshot: ${expectedNativeDecodeFailure.message}",
+                                "Failed to load screenshot: ${expectedNativeDecodeFailure.message.orEmpty()}",
                                 expectedNativeDecodeFailure
                         )
                         screenshot.setImageResource(R.drawable.ic_no_screenshot)

@@ -375,8 +375,8 @@ class MenuFragmentRegistry(private val stateManager: MenuStateManager) : MenuFra
                 Log.d(
                         TAG,
                         "[FRAGMENT] getCurrentFragment: state=${stateManager.getCurrentState()}, " +
-                                "fragment=${it?.javaClass?.simpleName}, " +
-                                "isAdded=${(it as? androidx.fragment.app.Fragment)?.isAdded}"
+                                "fragment=${it?.javaClass?.simpleName ?: "none"}, " +
+                                "isAdded=${(it as? androidx.fragment.app.Fragment)?.isAdded == true}"
                 )
             }
 
@@ -496,7 +496,7 @@ class MenuManager(
             Log.w(
                     "MenuManager",
                     "[NAV] Navigate up: Fragment not available or not attached - " +
-                            "fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, " +
+                            "fragment=${fragment ?: "none"}, isAdded=$isAdded, hasContext=$hasContext, " +
                             "isVisible=$isVisible, isResumed=$isResumed"
             )
             false
@@ -517,7 +517,7 @@ class MenuManager(
             Log.w(
                     "MenuManager",
                     "[NAV] navigateDown: Fragment not available or not attached - " +
-                            "fragment=$fragment, isAdded=$isAdded, hasContext=$hasContext, " +
+                            "fragment=${fragment ?: "none"}, isAdded=$isAdded, hasContext=$hasContext, " +
                             "isVisible=$isVisible, isResumed=$isResumed"
             )
             false
@@ -545,9 +545,9 @@ class MenuManager(
                 Log.w(
                         "MenuManager",
                         "[CONFIRM] ⚠️ Fragment not available or not attached - " +
-                                "fragment=$fragment, " +
-                                "isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, " +
-                                "context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
+                                "fragment=${fragment ?: "none"}, " +
+                                "isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded == true}, " +
+                                "context=${(fragment as? androidx.fragment.app.Fragment)?.context ?: "none"}"
                 )
                 false
             }
@@ -585,9 +585,9 @@ class MenuManager(
                         Log.w(
                                 "MenuManager",
                                 "[NAV] back: Fragment not available or not attached - " +
-                                        "fragment=$fragment, " +
-                                        "isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded}, " +
-                                        "context=${(fragment as? androidx.fragment.app.Fragment)?.context}"
+                                        "fragment=${fragment ?: "none"}, " +
+                                        "isAdded=${(fragment as? androidx.fragment.app.Fragment)?.isAdded == true}, " +
+                                        "context=${(fragment as? androidx.fragment.app.Fragment)?.context ?: "none"}"
                         )
                         false
                     }

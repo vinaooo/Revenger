@@ -159,7 +159,7 @@ class GamePadAlignmentManager(private val appConfig: AppConfig) {
             // enumerable from here; kept broad via the escape hatch.
         } catch (expectedConfigReadFailure: Exception) {
             Log.w(TAG, "Error validating offsets", expectedConfigReadFailure)
-            Pair(false, "Erro ao validar offsets: ${expectedConfigReadFailure.message}")
+            Pair(false, "Erro ao validar offsets: ${expectedConfigReadFailure.message ?: expectedConfigReadFailure.javaClass.simpleName}")
         }
     }
 }

@@ -160,7 +160,7 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             dialog.animate().cancel()
             dialog.visibility = View.GONE
             val parentBefore = dialog.parent
-            Log.d("SaveSlotsFragment", "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName}")
+            Log.d("SaveSlotsFragment", "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName ?: "none"}")
             (dialog.parent as? ViewGroup)?.removeView(dialog)
             Log.d("SaveSlotsFragment", "[DIALOG] hideNamingDialog removal requested; backStack? N/A")
             // View./ViewGroup.removeView() teardown here doesn't have a known reachable failure
@@ -382,10 +382,10 @@ class SaveSlotsFragment : SaveStateGridFragment() {
             // Immediately hide and remove
             dialog.visibility = View.GONE
             val parentBefore = dialog.parent
-            Log.d("SaveSlotsFragment", "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName}")
+            Log.d("SaveSlotsFragment", "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName ?: "none"}")
             (dialog.parent as? ViewGroup)?.removeView(dialog)
             val parentAfter = dialog.parent
-            Log.d("SaveSlotsFragment", "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName}")
+            Log.d("SaveSlotsFragment", "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName ?: "none"}")
             // Same rationale as hideNamingDialog(): no known reachable failure mode for this view
             // teardown, kept as a deliberate safety net via detekt's own escape-hatch naming.
         } catch (ignoredViewTeardownFailure: Throwable) {

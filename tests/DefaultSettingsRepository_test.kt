@@ -132,6 +132,16 @@ class DefaultSettingsRepository_test {
     }
 
     @Test
+    fun `findProfile com platformId nulo busca direto por extensao`() {
+        putProfiles(profileJson("platform_a", "\".rom_a\""))
+        DefaultSettingsRepository.initialize(context)
+
+        val profile = DefaultSettingsRepository.findProfile(null, ".rom_a")
+
+        assertEquals("platform_a", profile?.platformId)
+    }
+
+    @Test
     fun `findProfile normaliza extensao sem ponto adicionando o prefixo`() {
         putProfiles(profileJson("platform_a", "\".rom_a\""))
         DefaultSettingsRepository.initialize(context)

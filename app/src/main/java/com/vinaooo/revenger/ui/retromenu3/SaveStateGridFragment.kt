@@ -109,13 +109,13 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         viewModel.navigationController?.selectItem(0) // Force reset to first item
         Log.d(
                 TAG,
-                "[NAVIGATION] ${this::class.simpleName} registered with " +
+                "[NAVIGATION] ${javaClass.simpleName} registered with " +
                         "${gridSelectionState.totalNavigableItems} items, selection reset to 0"
         )
     }
 
     override fun onDestroyView() {
-        Log.d(TAG, "[NAVIGATION] ${this::class.simpleName} onDestroyView")
+        Log.d(TAG, "[NAVIGATION] ${javaClass.simpleName} onDestroyView")
         // Stop and clean up glow animations
         glowAnimationController.stop()
         slotViews.forEach { slotView ->
@@ -127,7 +127,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
     }
 
     override fun onPause() {
-        Log.d(TAG, "[LIFECYCLE] ${this::class.simpleName} onPause")
+        Log.d(TAG, "[LIFECYCLE] ${javaClass.simpleName} onPause")
         // Pause glow animation when fragment is not visible
         glowAnimationController.stop()
         super.onPause()
@@ -135,7 +135,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
 
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "[LIFECYCLE] ${this::class.simpleName} onResume")
+        Log.d(TAG, "[LIFECYCLE] ${javaClass.simpleName} onResume")
         // Resume glow animation when fragment becomes visible again
         glowAnimationController.refreshIfLastUsedSlotValid { updateSelectionVisualInternal() }
     }

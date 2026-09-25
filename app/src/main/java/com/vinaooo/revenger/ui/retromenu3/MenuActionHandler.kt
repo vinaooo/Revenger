@@ -113,12 +113,15 @@ class MenuActionHandler(
                                 // still needs to log and report to the user rather than crash on.
                         } catch (expectedUnreachable: Exception) {
                                 MenuLogger.e("[ACTION] ❌ Exception while saving log", expectedUnreachable)
+                                val reason =
+                                        expectedUnreachable.message
+                                                ?: expectedUnreachable.javaClass.simpleName
 
                                 // Show error message on main thread
                                 withContext(Dispatchers.Main) {
                                         android.widget.Toast.makeText(
                                                         context,
-                                                        "Error saving log: ${expectedUnreachable.message}",
+                                                        "Error saving log: $reason",
                                                         android.widget.Toast.LENGTH_SHORT
                                                 )
                                                 .show()
