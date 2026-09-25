@@ -23,8 +23,8 @@ import org.robolectric.annotation.Config
 
 /**
  * Characterization tests for [GameActivityViewModel.processKeyEvent] and the
- * [GameActivityViewModel.tryConsumeKeyboardNavigation] helper split out of it. Written to pin
- * down the routing decision (keyboard-navigation adapter vs. `ControllerInput` fallback) across a
+ * `KeyMotionInputRouter.tryConsumeKeyboardNavigation` helper it delegates to. Written to pin down
+ * the routing decision (keyboard-navigation adapter vs. `ControllerInput` fallback) across a
  * detekt-driven restructuring (flattening nested `if`s into guard clauses, and reshaping the
  * return statements to stay within `NestedBlockDepth`/`ReturnCount` thresholds) that was meant to
  * be behavior-preserving.
@@ -63,8 +63,19 @@ class GameActivityViewModel_processKeyEvent_test {
         field.set(target, value)
     }
 
+    private fun <T> getPrivateField(target: Any, fieldName: String): T {
+        val field = target.javaClass.getDeclaredField(fieldName)
+        field.isAccessible = true
+        @Suppress("UNCHECKED_CAST") return field.get(target) as T
+    }
+
     private fun tryConsumeKeyboardNavigation(keyCode: Int, event: KeyEvent): Boolean? =
-            invokePrivate(viewModel, "tryConsumeKeyboardNavigation", keyCode, event)
+            invokePrivate(
+                    getPrivateField(viewModel, "keyMotionInputRouter"),
+                    "tryConsumeKeyboardNavigation",
+                    keyCode,
+                    event
+            )
 
     private fun keyEvent(action: Int, keyCode: Int) = KeyEvent(action, keyCode)
 
