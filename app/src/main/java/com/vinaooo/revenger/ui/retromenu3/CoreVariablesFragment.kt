@@ -105,7 +105,7 @@ class CoreVariablesFragment : MenuFragmentBase() {
         arrowViews.clear()
         titleViews.clear()
 
-        val vars = com.vinaooo.revenger.RevengerApplication.appConfig.getVariables()?.split(",") ?: emptyList()
+        val vars = com.vinaooo.revenger.RevengerApplication.appConfig.getVariables().split(",")
         val inflater = LayoutInflater.from(requireContext())
         var insertIndex = 0
 
