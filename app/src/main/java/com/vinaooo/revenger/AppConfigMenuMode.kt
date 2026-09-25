@@ -28,7 +28,7 @@ class AppConfigMenuModeImpl(private val sources: ConfigSources) : AppConfigMenuM
 
     override fun getMenuModeFab(): String {
         val match = Regex("fab=([\\w-]+)").find(resolvedMenuMode())
-        return match?.groups?.get(1)?.value ?: ""
+        return match?.groups?.get(1)?.value.orEmpty()
     }
 
     override fun getMenuModeGamepad(): Boolean = tokens().contains("gamepad")

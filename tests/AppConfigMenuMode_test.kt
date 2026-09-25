@@ -81,6 +81,20 @@ class AppConfigMenuMode_test {
     }
 
     @Test
+    fun `menu_mode com flags mas sem token fab retorna fab vazio`() {
+        val menu = menuModeImpl("combo,gamepad,back")
+
+        assertEquals("", menu.getMenuModeFab())
+    }
+
+    @Test
+    fun `menu_mode com token fab sem valor retorna fab vazio`() {
+        val menu = menuModeImpl("combo,fab=")
+
+        assertEquals("", menu.getMenuModeFab())
+    }
+
+    @Test
     fun `menu_mode ignora espacos ao redor de cada token`() {
         val menu = menuModeImpl(" combo , gamepad , back ")
 
