@@ -173,6 +173,18 @@ class ManageSavesFragment_test {
     }
 
     @Test
+    fun `abrir rename preenche o campo de texto com o nome atual do slot`() {
+        injectSaveStateManager(mockedSaveStateManager())
+        callShowOperationsMenu(occupiedSlot(2))
+        val renameButton = fragment.requireView().findViewById<RetroCardView>(R.id.operation_rename)
+        renameButton.performClick()
+
+        val editText = fragment.requireView().findViewById<RetroEditText>(R.id.rename_edit_text)
+
+        assertEquals("Save 2", editText.getTextContent())
+    }
+
+    @Test
     fun `confirmar delete via dialog aciona SaveSlotOperationRunner e atualiza grid`() {
         val manager = mockedSaveStateManager()
         every { manager.deleteSlot(3) } returns true

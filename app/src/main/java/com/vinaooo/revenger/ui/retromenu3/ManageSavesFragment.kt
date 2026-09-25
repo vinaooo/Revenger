@@ -381,7 +381,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
             )
 
             // Set initial text
-            retroKeyboard?.setText(slot.name ?: "")
+            retroKeyboard?.setText(slot.name)
 
             container.addView(dialog)
             
