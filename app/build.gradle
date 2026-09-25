@@ -231,6 +231,13 @@ detekt {
     buildUponDefaultConfig = true
 }
 
+// `check` only runs the plain `detekt` task by default. `detektMain` adds type resolution, which
+// is required for rules like NullableToStringCall, UnsafeCallOnNullableType and VarCouldBeVal, so
+// it is part of `check` too to keep those findings at zero.
+tasks.named("check") {
+    dependsOn("detektMain")
+}
+
 // Report-only coverage, scoped to the debug variant only (skip building/testing release
 // just to measure coverage). No koverVerify gate: no baseline exists yet.
 kover {
