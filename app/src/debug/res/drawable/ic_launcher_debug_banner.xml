@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Debug-only launcher badge: a red strip with "DEBUG" in white pixel letters, drawn on top of
+    the generated adaptive-icon foreground (108x108 canvas). The letters (x 30-78, y 64-74) stay
+    inside the 66dp safe zone so no launcher mask clips them.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFD32F2F"
+        android:pathData="M0,60h108v18h-108z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M30,64h6v2h-6zM30,66h2v2h-2zM36,66h2v2h-2zM30,68h2v2h-2zM36,68h2v2h-2zM30,70h2v2h-2zM36,70h2v2h-2zM30,72h6v2h-6zM40,64h8v2h-8zM40,66h2v2h-2zM40,68h6v2h-6zM40,70h2v2h-2zM40,72h8v2h-8zM50,64h6v2h-6zM50,66h2v2h-2zM56,66h2v2h-2zM50,68h6v2h-6zM50,70h2v2h-2zM56,70h2v2h-2zM50,72h6v2h-6zM60,64h2v2h-2zM66,64h2v2h-2zM60,66h2v2h-2zM66,66h2v2h-2zM60,68h2v2h-2zM66,68h2v2h-2zM60,70h2v2h-2zM66,70h2v2h-2zM62,72h4v2h-4zM72,64h6v2h-6zM70,66h2v2h-2zM70,68h2v2h-2zM74,68h4v2h-4zM70,70h2v2h-2zM76,70h2v2h-2zM72,72h6v2h-6z" />
+</vector>

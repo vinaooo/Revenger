@@ -2,8 +2,6 @@ package com.vinaooo.revenger.performance
 
 import android.app.Activity
 import android.content.Context
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -14,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.TextView
+import com.vinaooo.revenger.utils.BuildTypeDetector
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -212,17 +211,7 @@ class DebugOverlayController(
     }
 
     /** Check if this is a debug build */
-    private fun isDebugBuild(context: Context): Boolean {
-        return try {
-            // Check if app was installed via Android Studio (debuggable)
-            val appInfo = context.packageManager.getApplicationInfo(context.packageName, 0)
-            (appInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
-        } catch (e: PackageManager.NameNotFoundException) {
-            Log.w(TAG, "Could not read own application info", e)
-            // Fallback: check package name for debug indicators
-            context.packageName.contains("debug", ignoreCase = true)
-        }
-    }
+    private fun isDebugBuild(context: Context): Boolean = BuildTypeDetector.isDebuggable(context)
 
     /** Get boolean config value from resources */
     private fun getConfigBoolean(context: Context, key: String): Boolean {

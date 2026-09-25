@@ -167,6 +167,9 @@ android {
 
     buildTypes {
         debug {
+            // Installs next to the release build instead of replacing it, so
+            // connectedDebugAndroidTest never uninstalls the player's copy (and its saves).
+            applicationIdSuffix = ".debug"
             debuggable = true         // Attribute, not method
             minifyEnabled = false
             shrinkResources = false

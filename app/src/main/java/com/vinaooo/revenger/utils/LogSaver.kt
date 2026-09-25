@@ -167,7 +167,7 @@ object LogSaver {
             val versionCode = packageInfo.longVersionCode
             builder.append("App Version: ${packageInfo.versionName ?: "unknown"} ($versionCode)\n")
             builder.append("Package Name: ${context.packageName}\n")
-            val isDebugBuild = context.packageName.contains("debug", ignoreCase = true)
+            val isDebugBuild = BuildTypeDetector.isDebuggable(context)
             builder.append("Build Type: ${if (isDebugBuild) "Debug" else "Release"}\n")
         } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
             android.util.Log.w(TAG, "Could not read package info", e)

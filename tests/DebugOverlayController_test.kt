@@ -1,12 +1,17 @@
 package com.vinaooo.revenger.performance
 
+import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.os.Handler
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import java.util.concurrent.ConcurrentHashMap
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,6 +22,7 @@ import org.robolectric.annotation.Config
  * Tests for [DebugOverlayController]'s update-runnable lifecycle. `startDebugOverlayUpdates` is
  * private and only reached through `showDebugOverlay` after a resource/config check, so it is
  * invoked by reflection; the [Handler] is a mock, so the posted runnable never actually runs.
+ * The private `isDebugBuild` fallback is also reached by reflection.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -76,5 +82,29 @@ class DebugOverlayController_test {
         controller.hideDebugOverlay()
 
         verify(exactly = 0) { handler.removeCallbacks(any<Runnable>()) }
+    }
+
+    private fun isDebugBuild(context: Context): Boolean {
+        val method = controller.javaClass.getDeclaredMethod("isDebugBuild", Context::class.java)
+        method.isAccessible = true
+        return method.invoke(controller, context) as Boolean
+    }
+
+    private fun contextWith(flags: Int, packageName: String): Context {
+        val info = ApplicationInfo().apply {
+            this.flags = flags
+            this.packageName = packageName
+        }
+        return mockk { every { applicationInfo } returns info }
+    }
+
+    @Test
+    fun `isDebugBuild segue FLAG_DEBUGGABLE`() {
+        assertTrue(isDebugBuild(contextWith(ApplicationInfo.FLAG_DEBUGGABLE, "com.example.app")))
+    }
+
+    @Test
+    fun `isDebugBuild ignora debug no nome do pacote de um release`() {
+        assertFalse(isDebugBuild(contextWith(0, "com.example.app.debug")))
     }
 }
