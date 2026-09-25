@@ -46,7 +46,9 @@ import org.json.JSONException
  */
 class SaveStateManager
 private constructor(
-        private val context: Context,
+        // A plain parameter, not a property: it's only read during construction (filesDir), so
+        // this long-lived singleton keeps no Context reference (lint StaticFieldLeak).
+        context: Context,
         private val fileLayout: SlotFileLayout = SlotFileLayout(File(context.filesDir, SAVES_DIR)),
         private val metadataStore: SlotMetadataStore = SlotMetadataStore()
 ) : SlotQueryOperations by SlotQueryStore(fileLayout, metadataStore, slotLock, TOTAL_SLOTS) {

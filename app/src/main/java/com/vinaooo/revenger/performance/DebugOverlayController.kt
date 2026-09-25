@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.TextView
 import com.vinaooo.revenger.utils.BuildTypeDetector
+import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -57,7 +58,15 @@ class DebugOverlayController(
         private const val BACKGROUND_COLOR = "#CC000000"
     }
 
-    private var debugOverlayView: TextView? = null
+    // Held weakly: this controller lives in the process-wide AdvancedPerformanceProfiler object,
+    // while the overlay TextView belongs to an Activity's view tree, which keeps it alive for as
+    // long as it is attached (lint StaticFieldLeak).
+    private var debugOverlayViewRef: WeakReference<TextView>? = null
+    private var debugOverlayView: TextView?
+        get() = debugOverlayViewRef?.get()
+        set(value) {
+            debugOverlayViewRef = value?.let(::WeakReference)
+        }
     private var debugOverlayUpdateRunnable: Runnable? = null
 
     override fun showDebugOverlay(context: Context) {

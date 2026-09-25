@@ -57,16 +57,19 @@ object ScreenshotCaptureUtil :
     private const val TAG = "ScreenshotCaptureUtil"
 
     /**
-     * Cached context for reading config values.
+     * Whether [setContext] has run. The aspect ratio itself comes from
+     * `RevengerApplication.appConfig`, so only this flag is kept, not the Context: this object
+     * lives for the whole process (lint StaticFieldLeak).
      */
-    private var cachedContext: Context? = null
+    private var contextConfigured = false
 
     /**
-     * Set the context for reading config values.
+     * Enables config-based aspect-ratio lookup for captures.
      * Should be called from GameActivity.onCreate().
      */
+    @Suppress("UNUSED_PARAMETER")
     fun setContext(context: Context) {
-        cachedContext = context.applicationContext
+        contextConfigured = true
     }
 
     /**
@@ -143,8 +146,7 @@ object ScreenshotCaptureUtil :
      * initialized.
      */
     private fun resolveGameAspectRatio(): Float {
-        val context = cachedContext
-        if (context == null) {
+        if (!contextConfigured) {
             Log.w(TAG, "Context not set, using default aspect ratio")
             return AspectRatios.DEFAULT
         }
