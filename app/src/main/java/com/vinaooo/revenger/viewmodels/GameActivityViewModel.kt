@@ -597,7 +597,9 @@ class GameActivityViewModel(application: Application) :
         /* Check if the config permits it */
         if (!appConfig.getFullscreen()) return
 
-        with(window.insetsController!!) {
+        val insetsController = window.insetsController ?: return
+
+        with(insetsController) {
             hide(WindowInsets.Type.systemBars())
             systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }

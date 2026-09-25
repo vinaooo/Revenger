@@ -144,7 +144,7 @@ class DebugOverlayController(
     /** Start updating debug overlay */
     private fun startDebugOverlayUpdates() {
         Log.d(TAG, "startDebugOverlayUpdates called")
-        debugOverlayUpdateRunnable =
+        val runnable =
                 object : Runnable {
                     override fun run() {
                         val view = debugOverlayView
@@ -164,7 +164,8 @@ class DebugOverlayController(
                         }
                     }
                 }
-        handler.post(debugOverlayUpdateRunnable!!)
+        debugOverlayUpdateRunnable = runnable
+        handler.post(runnable)
         Log.d(TAG, "Overlay update runnable posted")
     }
 

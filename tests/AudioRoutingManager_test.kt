@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -73,5 +74,16 @@ class AudioRoutingManagerTest {
         manager.abandonFocus()
 
         assertNotNull(shadowAudioManager.lastAbandonedAudioFocusRequest)
+    }
+
+    @Test
+    fun `abandonFocus libera exatamente a mesma request passada a requestFocus`() {
+        shadowAudioManager.setNextFocusRequestResponse(AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
+        manager.requestFocus()
+        val requested = shadowAudioManager.lastAudioFocusRequest.audioFocusRequest
+
+        manager.abandonFocus()
+
+        assertSame(requested, shadowAudioManager.lastAbandonedAudioFocusRequest)
     }
 }
