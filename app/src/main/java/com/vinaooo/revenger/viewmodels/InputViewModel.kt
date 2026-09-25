@@ -34,8 +34,8 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
     private val appConfig = RevengerApplication.appConfig
 
     // References to gamepads
-    private var leftGamePad: GamePad? = null
-    private var rightGamePad: GamePad? = null
+    private val leftGamePad: GamePad? = null
+    private val rightGamePad: GamePad? = null
     private var gamePadContainerView: android.widget.LinearLayout? = null
 
     // ControllerInput callbacks

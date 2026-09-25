@@ -9,7 +9,7 @@ class MenuConfigurationBuilder {
 
     private var menuId: String = ""
     private var title: String = ""
-    private var items: MutableList<MenuItem> = mutableListOf()
+    private val items: MutableList<MenuItem> = mutableListOf()
     private var defaultSelectedIndex: Int = 0
     private var allowNavigation: Boolean = true
     private var showBackButton: Boolean = true

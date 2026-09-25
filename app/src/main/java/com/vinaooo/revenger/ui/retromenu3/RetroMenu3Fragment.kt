@@ -75,7 +75,7 @@ class RetroMenu3Fragment :
         private lateinit var actionHandler: MenuActionHandler
         lateinit var menuViews: MenuViews
 
-        private var menuListener: RetroMenu3Listener? = null
+        private val menuListener: RetroMenu3Listener? = null
 
         /** Get the animation controller for external access */
         fun getAnimationController(): MenuAnimationController {

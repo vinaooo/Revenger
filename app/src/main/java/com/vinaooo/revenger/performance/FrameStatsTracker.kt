@@ -34,7 +34,7 @@ class FrameStatsTracker : FrameStatsProvider {
         private const val FPS_SMOOTHING_FACTOR = 0.1
     }
 
-    private var frameTimeData = mutableListOf<Long>()
+    private val frameTimeData = mutableListOf<Long>()
 
     // Frame timing for emulator FPS calculation
     private var lastFrameTime = 0L

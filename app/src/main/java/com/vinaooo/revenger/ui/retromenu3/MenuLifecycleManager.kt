@@ -49,8 +49,6 @@ class MenuLifecycleManagerImpl(
     private val menuViewManager get() = collaborators.menuViewManager
     private val actionHandler get() = collaborators.actionHandler
 
-    private lateinit var menuViews: MenuViews
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?): View {
         MenuLogger.lifecycle("MenuLifecycleManager: onCreateView START")
         return inflater.inflate(R.layout.retro_menu3, container, false)
