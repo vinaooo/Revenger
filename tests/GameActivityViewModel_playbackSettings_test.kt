@@ -13,7 +13,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,8 +21,10 @@ import org.robolectric.annotation.Config
 
 /**
  * Characterization tests for [GameActivityViewModel.setAudioEnabled], [setGameSpeed] and
- * [setFastForwardEnabled] -- the playback-settings setters, written before extracting this
- * cluster into a dedicated class under `viewmodels/menu/`.
+ * [setFastForwardEnabled] -- the playback-settings setters, which delegate to
+ * `PlaybackSettingsController`. Reflects into the ViewModel's own `audioViewModel`/
+ * `speedController`/`speedViewModel`/`sharedPreferences` fields, which the controller reads
+ * through provider lambdas, so a swap here reaches it.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -160,6 +161,6 @@ class GameActivityViewModel_playbackSettings_test {
 
         viewModel.setFastForwardEnabled(true)
 
-        assertFalse(false) // no exception thrown is the assertion
+        verify(exactly = 1) { speedViewModel.enableFastForward(null) }
     }
 }

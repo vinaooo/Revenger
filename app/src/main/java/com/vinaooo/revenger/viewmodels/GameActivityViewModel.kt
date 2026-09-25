@@ -28,7 +28,6 @@ import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
 import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
 import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
-import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
 import com.vinaooo.revenger.viewmodels.menu.GamePadInputController
 import com.vinaooo.revenger.viewmodels.menu.GamePadInputFacade
@@ -42,6 +41,8 @@ import com.vinaooo.revenger.viewmodels.menu.MenuOpenHandler
 import com.vinaooo.revenger.viewmodels.menu.MenuStateChangeHandler
 import com.vinaooo.revenger.viewmodels.menu.MenuToggleActions
 import com.vinaooo.revenger.viewmodels.menu.NavigationControllerInitializer
+import com.vinaooo.revenger.viewmodels.menu.PlaybackSettingsController
+import com.vinaooo.revenger.viewmodels.menu.PlaybackSettingsFacade
 import com.vinaooo.revenger.viewmodels.menu.PlaybackStateController
 import com.vinaooo.revenger.viewmodels.menu.PlaybackStateFacade
 import com.vinaooo.revenger.viewmodels.menu.RetroMenu3ContainerConfig
@@ -77,7 +78,8 @@ class GameActivityViewModel(application: Application) :
         RetroMenu3ToggleFacade,
         MenuNavigationCallbackWiringFacade,
         GamePadInputFacade,
-        KeyMotionInputFacade {
+        KeyMotionInputFacade,
+        PlaybackSettingsFacade {
 
     private val resources = application.resources
     private val appConfig = RevengerApplication.appConfig
@@ -323,6 +325,16 @@ class GameActivityViewModel(application: Application) :
                     keyboardInputAdapter = { keyboardInputAdapter },
                     isAnyMenuActive = { isAnyMenuActive() },
                     appConfig = appConfig
+            )
+    // audioViewModel/speedViewModel are passed as providers, even though they're `val`s, because
+    // tests replace those fields by reflection after this ViewModel (and this delegate) are built.
+    private val playbackSettingsController =
+            PlaybackSettingsController(
+                    retroView = { retroView },
+                    speedController = { speedController },
+                    sharedPreferences = { sharedPreferences },
+                    audioViewModel = { audioViewModel },
+                    speedViewModel = { speedViewModel }
             )
 
     private var compositeDisposable = CompositeDisposable()
@@ -699,23 +711,11 @@ class GameActivityViewModel(application: Application) :
         shaderController?.let { shaderViewModel.setShaderController(it) }
     }
 
-    // PUBLIC METHODS FOR ACCESS TO MODULAR CONTROLLERS
+    /** Audio control using modular controller */
+    override fun setAudioEnabled(enabled: Boolean) = playbackSettingsController.setAudioEnabled(enabled)
 
-    /**
-     * Audio control using modular controller
-     * @param enabled true to turn on, false to turn off
-     */
-    fun setAudioEnabled(enabled: Boolean) {
-        audioViewModel.setAudioEnabled(retroView?.view, enabled)
-    }
-
-    /**
-     * Controle de velocidade usando controller modular
-     * @param speed velocidade desejada (1 = normal, > 1 = fast forward)
-     */
-    fun setGameSpeed(speed: Int) {
-        retroView?.let { speedController?.setSpeed(it.view, speed) }
-    }
+    /** Controle de velocidade usando controller modular */
+    override fun setGameSpeed(speed: Int) = playbackSettingsController.setGameSpeed(speed)
 
     /** Clear controller key log (used by RetroMenu3Fragment on destroy) */
     fun clearControllerKeyLog() {
@@ -762,17 +762,8 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Define fast forward enabled/disabled sem aplicar imediatamente (usado pelo menu Settings) */
-    fun setFastForwardEnabled(enabled: Boolean) {
-        if (enabled) {
-            speedViewModel.enableFastForward(null) // Pass null to avoid immediate application
-            // Also save the speed value to preferences for menu closure restoration
-            sharedPreferences?.edit()?.putInt(PreferencesConstants.PREF_FRAME_SPEED, 2)?.apply()
-        } else {
-            speedViewModel.disableFastForward(null) // Pass null to avoid immediate application
-            // Also save the speed value to preferences for menu closure restoration
-            sharedPreferences?.edit()?.putInt(PreferencesConstants.PREF_FRAME_SPEED, 1)?.apply()
-        }
-    }
+    override fun setFastForwardEnabled(enabled: Boolean) =
+            playbackSettingsController.setFastForwardEnabled(enabled)
 
     /**
      * Cleanup method called when ViewModel is being destroyed. Prevents memory leaks by clearing
