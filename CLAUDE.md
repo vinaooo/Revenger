@@ -17,6 +17,8 @@ Build/run (Android SDK expected at `~/Android/Sdk`; set in `local.properties`):
 ./gradlew clean                  # also deletes app/src/main/jniLibs (downloaded cores)
 ```
 
+Debug builds install as `<applicationId>.debug`, and their launcher icon carries a red "DEBUG" banner (`app/src/debug/res/`). A debug install and a release install of the same game live side by side, so `installDebug` and `connectedDebugAndroidTest` never touch the release app or its saves.
+
 Tests — **unit test sources live in `tests/` at the repo root**, wired in via `sourceSets { test.java.srcDirs += "../tests" }`. Files are named `*_test.kt`; many test method names are in Portuguese. Instrumented tests are under `app/src/androidTest/`.
 
 ```bash

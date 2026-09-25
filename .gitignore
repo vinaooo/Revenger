@@ -48,6 +48,9 @@ retromenu3_debug*
 revenger_debug*
 *log*
 *debug*
+# ...but keep the debug build type's source set (e.g. the DEBUG launcher-icon badge)
+!/app/src/debug/
+!/app/src/debug/**
 submenu_nav*
 temp_apk/DEPRECATED_CODE_ANALYSIS.md
 
