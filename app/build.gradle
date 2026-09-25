@@ -241,8 +241,10 @@ tasks.named("check") {
     dependsOn("detektMain")
 }
 
-// Report-only coverage, scoped to the debug variant only (skip building/testing release
-// just to measure coverage). No koverVerify gate: no baseline exists yet.
+// Coverage is measured on the debug variant only (no need to build/test release just to
+// measure it). koverVerifyDebug runs as part of `check` and fails the build if coverage drops
+// below the floor. The floor sits just under the baseline (2026-09-25: 73.7% lines, 57.9%
+// branches); raise it when coverage grows, never lower it to make a change pass.
 kover {
     reports {
         // Generated ViewBinding classes carry no hand-written logic; excluding them
@@ -255,6 +257,21 @@ kover {
         variant("debug") {
             html {
                 onCheck = false
+            }
+            verify {
+                onCheck = true
+                rule("Minimum debug coverage") {
+                    bound {
+                        coverageUnits = kotlinx.kover.gradle.plugin.dsl.CoverageUnit.LINE
+                        aggregationForGroup = kotlinx.kover.gradle.plugin.dsl.AggregationType.COVERED_PERCENTAGE
+                        minValue = 72
+                    }
+                    bound {
+                        coverageUnits = kotlinx.kover.gradle.plugin.dsl.CoverageUnit.BRANCH
+                        aggregationForGroup = kotlinx.kover.gradle.plugin.dsl.AggregationType.COVERED_PERCENTAGE
+                        minValue = 56
+                    }
+                }
             }
         }
     }

@@ -30,6 +30,8 @@ Tests — **unit test sources live in `tests/` at the repo root**, wired in via 
 
 **Every change must include tests.** Adding a class or method → add tests for it. Fixing a bug → add a regression test that fails without the fix. Changing existing behavior → update the tests that cover it. If the code you're touching has no test yet, write one as part of the change instead of deferring it — see `definitions/Code.md` for testing conventions and patterns (mocking Android framework classes, resetting stateful singletons between tests, etc.).
 
+Coverage: `./gradlew koverHtmlReportDebug -PskipAssetStaging` writes the report to `app/build/reports/kover/htmlDebug/`. `koverVerifyDebug` runs as part of `./gradlew check` and fails it if debug coverage drops below the floor in `app/build.gradle` (`kover { … verify { rule … } }`: 72% lines, 56% branches). When coverage grows, raise the floor; never lower it to get a change through.
+
 Static analysis: `./gradlew detekt detektMain` (config: `detekt.yml`, `maxIssues: 0`). `detektMain` is the type‑resolution run (catches `NullableToStringCall`, `UnsafeCallOnNullableType`, `VarCouldBeVal`, …); both must stay at 0 issues and both run as part of `./gradlew check`. Android lint has `abortOnError = false`.
 
 App icons: `python3 icons/scripts/master_icon.py` (also runs automatically as the `generateIcons` Gradle task before every build) scrapes console/game art from SteamGridDB/IGDB. `./pick_icon.sh` opens an interactive HTML picker when the auto‑pick is bad. Needs Python + Pillow (a `venv/` is checked out).
