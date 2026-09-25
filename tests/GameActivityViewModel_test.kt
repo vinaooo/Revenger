@@ -851,17 +851,18 @@ class GameActivityViewModel_test {
     //
     // Characterization coverage for the GamePad-event routing that used to be duplicated verbatim
     // inline in setupGamePads's left/right GamePad callbacks (detekt LongMethod), now shared via
-    // handleGamePadEvent/handleGamePadDirectionEvent/buildDpadMotionEvent.
+    // GamePadInputController's handleGamePadEvent/handleGamePadDirectionEvent/buildDpadMotionEvent.
 
     @Test
     fun `handleGamePadEvent com Button delega para controllerInput e retorna o resultado`() {
         val controllerInput = mockk<ControllerInput>(relaxed = true)
         every { controllerInput.processGamePadButtonEvent(99, KeyEvent.ACTION_DOWN) } returns true
         setPrivateField(viewModel, "controllerInput", controllerInput)
+        val gamePadInputController = getPrivateField<Any>(viewModel, "gamePadInputController")
 
         val result =
                 invokePrivate<Boolean>(
-                        viewModel,
+                        gamePadInputController,
                         "handleGamePadEvent",
                         Event.Button(99, KeyEvent.ACTION_DOWN, 0)
                 )
@@ -877,10 +878,11 @@ class GameActivityViewModel_test {
         val navigationController = mockk<NavigationController>(relaxed = true)
         every { navigationController.isMenuActive() } returns false
         viewModel.navigationController = navigationController
+        val gamePadInputController = getPrivateField<Any>(viewModel, "gamePadInputController")
 
         val result =
                 invokePrivate<Boolean>(
-                        viewModel,
+                        gamePadInputController,
                         "handleGamePadEvent",
                         Event.Direction(0, 1f, 0f, 0)
                 )
@@ -898,13 +900,14 @@ class GameActivityViewModel_test {
         viewModel.navigationController = navigationController
         val (retroView, _) = mockRetroView(frameRendered = true, frameSpeed = 1)
         viewModel.retroView = retroView
+        val gamePadInputController = getPrivateField<Any>(viewModel, "gamePadInputController")
 
         val motionEventSlot = slot<MotionEvent>()
         every { controllerInput.processMotionEvent(capture(motionEventSlot), any()) } returns true
 
         val result =
                 invokePrivate<Boolean>(
-                        viewModel,
+                        gamePadInputController,
                         "handleGamePadEvent",
                         Event.Direction(0, 0.7f, -0.4f, 0)
                 )
@@ -917,9 +920,11 @@ class GameActivityViewModel_test {
 
     @Test
     fun `handleGamePadEvent com outro tipo de evento nao intercepta`() {
+        val gamePadInputController = getPrivateField<Any>(viewModel, "gamePadInputController")
+
         val result =
                 invokePrivate<Boolean>(
-                        viewModel,
+                        gamePadInputController,
                         "handleGamePadEvent",
                         com.swordfish.radialgamepad.library.event.Event.Gesture(
                                 0,

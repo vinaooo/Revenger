@@ -34,10 +34,12 @@ import org.robolectric.annotation.Config
  * Characterization tests for the parts of the gamepad/keyboard input-dispatch cluster that
  * `GameActivityViewModel_test.kt`/`GameActivityViewModel_processKeyEvent_test.kt` don't already
  * cover: `updateGamePadVisibility`'s show/hide x FAB-mode combinations, `processMotionEvent`'s
- * null/non-null `retroView` branches, and the three `shouldHandle*` methods' `AppConfig`
- * pass-through. `setupGamePads` builds real `GamePad`/`RadialGamePad` views, so it's covered by
- * the new class's own test file instead. Written BEFORE extracting this cluster into dedicated
- * classes under `viewmodels/menu/`.
+ * null/non-null `retroView` branches, `shouldHandleBackButton`'s `AppConfig` pass-through, and the
+ * `init{}`-block wiring of `controllerInput.shouldHandleSelectStartCombo`/
+ * `shouldHandleGamepadMenuButton` to `KeyMotionInputRouter` (exercised through the ViewModel's own
+ * real `ControllerInput` instance, not a mock, so a swap between the two callbacks would fail
+ * here). `setupGamePads` builds real `GamePad`/`RadialGamePad` views, so it's covered by the new
+ * class's own test file instead.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -55,6 +57,12 @@ class GameActivityViewModel_inputDispatch_test {
         val field = target.javaClass.getDeclaredField(fieldName)
         field.isAccessible = true
         field.set(target, value)
+    }
+
+    private fun <T> getPrivateField(target: Any, fieldName: String): T {
+        val field = target.javaClass.getDeclaredField(fieldName)
+        field.isAccessible = true
+        @Suppress("UNCHECKED_CAST") return field.get(target) as T
     }
 
     @Before
@@ -201,23 +209,32 @@ class GameActivityViewModel_inputDispatch_test {
         assertTrue(vm.shouldHandleBackButton())
     }
 
+    // These two exercise the `init{}`-block wiring end-to-end through the ViewModel's own real
+    // `ControllerInput` instance (never mocked here), so a swap between the two callbacks -- e.g.
+    // `shouldHandleSelectStartCombo` wired to `shouldHandleGamepadMenuButton`'s check -- fails
+    // here even though both delegate to the same `KeyMotionInputRouter`.
+
     @Test
-    fun `shouldHandleSelectStartCombo retorna appConfig getMenuModeCombo`() {
+    fun `controllerInput shouldHandleSelectStartCombo esta ligado ao AppConfig getMenuModeCombo`() {
         val appConfig = mockk<AppConfig>(relaxed = true)
         every { appConfig.getMenuModeCombo() } returns false
-        setRevengerAppConfig(appConfig)
-        val vm = GameActivityViewModel(ApplicationProvider.getApplicationContext())
-
-        assertFalse(vm.shouldHandleSelectStartCombo())
-    }
-
-    @Test
-    fun `shouldHandleGamepadMenuButton retorna appConfig getMenuModeGamepad`() {
-        val appConfig = mockk<AppConfig>(relaxed = true)
         every { appConfig.getMenuModeGamepad() } returns true
         setRevengerAppConfig(appConfig)
         val vm = GameActivityViewModel(ApplicationProvider.getApplicationContext())
+        val controllerInput = getPrivateField<ControllerInput>(vm, "controllerInput")
 
-        assertTrue(vm.shouldHandleGamepadMenuButton())
+        assertFalse(controllerInput.shouldHandleSelectStartCombo())
+    }
+
+    @Test
+    fun `controllerInput shouldHandleGamepadMenuButton esta ligado ao AppConfig getMenuModeGamepad`() {
+        val appConfig = mockk<AppConfig>(relaxed = true)
+        every { appConfig.getMenuModeCombo() } returns false
+        every { appConfig.getMenuModeGamepad() } returns true
+        setRevengerAppConfig(appConfig)
+        val vm = GameActivityViewModel(ApplicationProvider.getApplicationContext())
+        val controllerInput = getPrivateField<ControllerInput>(vm, "controllerInput")
+
+        assertTrue(controllerInput.shouldHandleGamepadMenuButton())
     }
 }

@@ -3,7 +3,6 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Activity
 import android.app.Application
 import android.util.Log
-import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.Window
@@ -13,15 +12,11 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
-import com.swordfish.radialgamepad.library.event.Event
 import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.controllers.AudioController
 import com.vinaooo.revenger.controllers.ShaderController
 import com.vinaooo.revenger.controllers.SpeedController
-import com.vinaooo.revenger.gamepad.GamePad
-import com.vinaooo.revenger.gamepad.GamePadConfig
 import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.retromenu3.AboutFragment
@@ -35,6 +30,10 @@ import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.RetroViewUtils
+import com.vinaooo.revenger.viewmodels.menu.GamePadInputController
+import com.vinaooo.revenger.viewmodels.menu.GamePadInputFacade
+import com.vinaooo.revenger.viewmodels.menu.KeyMotionInputFacade
+import com.vinaooo.revenger.viewmodels.menu.KeyMotionInputRouter
 import com.vinaooo.revenger.viewmodels.menu.MenuActionDispatcher
 import com.vinaooo.revenger.viewmodels.menu.MenuCloseHandler
 import com.vinaooo.revenger.viewmodels.menu.MenuNavigationCallbackWiring
@@ -76,7 +75,9 @@ class GameActivityViewModel(application: Application) :
         RetroMenu3FragmentLifecycleFacade,
         RetroMenu3ContainerConfigFacade,
         RetroMenu3ToggleFacade,
-        MenuNavigationCallbackWiringFacade {
+        MenuNavigationCallbackWiringFacade,
+        GamePadInputFacade,
+        KeyMotionInputFacade {
 
     private val resources = application.resources
     private val appConfig = RevengerApplication.appConfig
@@ -129,15 +130,6 @@ class GameActivityViewModel(application: Application) :
         }
 
     private val saveLoadOrchestrator = SaveLoadOrchestrator()
-
-    // Legacy references for backward compatibility
-    private var leftGamePad: GamePad? = null
-    // FUTURE: get() = inputViewModel.getLeftGamePad()
-    // FUTURE: set(value) { value?.let { inputViewModel.setLeftGamePad(it) } }
-
-    private var rightGamePad: GamePad? = null
-    // FUTURE: get() = inputViewModel.getRightGamePad()
-    // FUTURE: set(value) { value?.let { inputViewModel.setRightGamePad(it) } }
 
     // Menu container reference (from activity layout) - delegated to MenuViewModel
     private var menuContainerView: FrameLayout? = null
@@ -315,6 +307,23 @@ class GameActivityViewModel(application: Application) :
                     isAnyMenuActive = { isAnyMenuActive() },
                     isRetroMenu3Open = { isRetroMenu3Open() }
             )
+    private val gamePadInputController =
+            GamePadInputController(
+                    applicationContext = getApplication<Application>().applicationContext,
+                    appConfig = appConfig,
+                    retroView = { retroView },
+                    isAnyMenuActive = { isAnyMenuActive() },
+                    controllerInput = { controllerInput },
+                    gamePadContainerView = { gamePadContainerView }
+            )
+    private val keyMotionInputRouter =
+            KeyMotionInputRouter(
+                    controllerInput = { controllerInput },
+                    retroView = { retroView },
+                    keyboardInputAdapter = { keyboardInputAdapter },
+                    isAnyMenuActive = { isAnyMenuActive() },
+                    appConfig = appConfig
+            )
 
     private var compositeDisposable = CompositeDisposable()
     private val controllerInput = ControllerInput()
@@ -332,7 +341,9 @@ class GameActivityViewModel(application: Application) :
         // All ViewModels and managers are now initialized as val at declaration
 
         // Set the callback to check if SELECT+START combo should work
-        controllerInput.shouldHandleSelectStartCombo = { shouldHandleSelectStartCombo() }
+        controllerInput.shouldHandleSelectStartCombo = {
+            keyMotionInputRouter.shouldHandleSelectStartCombo()
+        }
 
         // Set the callback for SELECT+START combo to open menu via NavigationController
         controllerInput.selectStartComboCallback = {
@@ -358,7 +369,9 @@ class GameActivityViewModel(application: Application) :
         }
 
         // Set the callback to check if gamepad menu button should work
-        controllerInput.shouldHandleGamepadMenuButton = { shouldHandleGamepadMenuButton() }
+        controllerInput.shouldHandleGamepadMenuButton = {
+            keyMotionInputRouter.shouldHandleGamepadMenuButton()
+        }
     }
 
     /** Configure menu callback with activity reference */
@@ -611,183 +624,33 @@ class GameActivityViewModel(application: Application) :
         }
     }
 
-    /**
-     * Routes a virtual GamePad event to [controllerInput], the same way for both the left and
-     * right pad (their callbacks used to carry two verbatim copies of this logic).
-     */
-    private fun handleGamePadEvent(event: Event): Boolean =
-            when (event) {
-                is Event.Button -> controllerInput.processGamePadButtonEvent(event.id, event.action)
-                is Event.Direction -> handleGamePadDirectionEvent(event)
-                else -> false // Other event types are not intercepted
-            }
-
-    /**
-     * While a menu is open, DPAD/analog direction events are converted into a synthetic
-     * [MotionEvent] and routed through [ControllerInput]'s menu-navigation path instead of being
-     * dispatched natively by the GamePad.
-     */
-    private fun handleGamePadDirectionEvent(event: Event.Direction): Boolean {
-        if (!isAnyMenuActive()) {
-            // Menu is closed. Do not intercept. Let GamePad natively dispatch its axes directly.
-            return false
-        }
-        // Process motion and return true to intercept the directional event while the menu is open
-        controllerInput.processMotionEvent(buildDpadMotionEvent(event), retroView!!)
-        return true
-    }
-
-    /** Create a synthetic MotionEvent for DPAD/analog direction, using PointerCoords. */
-    private fun buildDpadMotionEvent(event: Event.Direction): MotionEvent {
-        val pointerCoords = MotionEvent.PointerCoords()
-        pointerCoords.x = 0f
-        pointerCoords.y = 0f
-        pointerCoords.pressure = 1f
-        pointerCoords.size = 1f
-        pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_X, event.xAxis)
-        pointerCoords.setAxisValue(MotionEvent.AXIS_HAT_Y, event.yAxis)
-
-        val pointerProperties = MotionEvent.PointerProperties()
-        pointerProperties.id = 0
-        pointerProperties.toolType = MotionEvent.TOOL_TYPE_FINGER
-
-        return MotionEvent.obtain(
-                android.os.SystemClock.uptimeMillis(),
-                android.os.SystemClock.uptimeMillis(),
-                MotionEvent.ACTION_MOVE,
-                1,
-                arrayOf(pointerProperties),
-                arrayOf(pointerCoords),
-                0,
-                0,
-                1f,
-                1f,
-                0,
-                0,
-                InputDevice.SOURCE_JOYSTICK,
-                0
-        )
-    }
-
     /** Subscribe the GamePads to the RetroView */
-    fun setupGamePads(
+    override fun setupGamePads(
             activity: ComponentActivity,
             leftContainer: FrameLayout,
             rightContainer: FrameLayout
-    ) {
-        val context = getApplication<Application>().applicationContext
-
-        val gamePadConfig = GamePadConfig(context, appConfig)
-        leftGamePad = GamePad(context, gamePadConfig.left) { event: Event -> handleGamePadEvent(event) }
-        rightGamePad =
-                GamePad(context, gamePadConfig.right) { event: Event -> handleGamePadEvent(event) }
-
-        leftGamePad?.let {
-            leftContainer.addView(it.pad)
-            retroView?.let { retroView -> it.subscribe(activity.lifecycleScope, retroView.view) }
-        }
-
-        rightGamePad?.let {
-            rightContainer.addView(it.pad)
-            retroView?.let { retroView -> it.subscribe(activity.lifecycleScope, retroView.view) }
-        }
-    }
+    ) = gamePadInputController.setupGamePads(activity, leftContainer, rightContainer)
 
     /** Hide the on-screen GamePads and toggle Floating Menu Button if applicable */
-    fun updateGamePadVisibility(
+    override fun updateGamePadVisibility(
             activity: Activity,
             leftContainer: FrameLayout,
             rightContainer: FrameLayout,
-            floatingButton: android.view.View? = null
-    ) {
-        val shouldShow = com.vinaooo.revenger.gamepad.GamePad.shouldShowGamePads(activity, appConfig)
-        val visibility = if (shouldShow) android.view.View.VISIBLE else android.view.View.GONE
-
-        gamePadContainerView?.visibility = visibility
-        leftContainer.visibility = visibility
-        rightContainer.visibility = visibility
-
-        floatingButton?.let {
-            val configValue = appConfig.getMenuModeFab().lowercase()
-            if (configValue != "disabled" && !shouldShow) {
-                it.visibility = android.view.View.VISIBLE
-            } else {
-                it.visibility = android.view.View.GONE
-            }
-        }
-    }
+            floatingButton: android.view.View?
+    ) = gamePadInputController.updateGamePadVisibility(
+            activity,
+            leftContainer,
+            rightContainer,
+            floatingButton
+    )
 
     /** Process a key event and return the result */
-    fun processKeyEvent(keyCode: Int, event: KeyEvent): Boolean? {
-        // DEBUG: Log ALL key events to diagnose Backspace issue
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[KEY-EVENT] keyCode=$keyCode, action=${event.action}, navigationSystemActive=true"
-        )
-
-        if (tryConsumeKeyboardNavigation(keyCode, event) == true) {
-            return true // Event was consumed by menu navigation
-        }
-
-        // Process normally via ControllerInput (for game inputs)
-        val retroView = retroView
-        return if (retroView != null) {
-            controllerInput.processKeyEvent(keyCode, event, retroView)
-        } else {
-            false
-        }
-    }
-
-    /**
-     * PHASE 4.1c: routes [keyCode]/[event] to [keyboardInputAdapter] when it's a navigation key
-     * the keyboard path should currently handle, returning whether it consumed the event.
-     * Returns `null` when the keyboard path doesn't apply at all (no adapter, not a navigation
-     * key, or the menu-active/F12 gate says not to route it there) and `false` when it applied
-     * but the adapter didn't consume the event; [processKeyEvent] treats both the same way
-     * (falls through to `ControllerInput`), so the distinction only matters to callers that care
-     * why. Extracted out of [processKeyEvent] to keep that function within detekt's
-     * `NestedBlockDepth`/`ReturnCount` thresholds.
-     */
-    private fun tryConsumeKeyboardNavigation(keyCode: Int, event: KeyEvent): Boolean? {
-        val adapter = keyboardInputAdapter ?: return null
-        if (!adapter.isNavigationKey(keyCode)) return null
-
-        // PHASE 4.2c: Allow F12 even when menu is closed (to open menu)
-        // But Backspace (DEL) only works when menu is OPEN (to navigate back)
-        val isMenuActive = isAnyMenuActive()
-        val shouldProcessKeyboard = isMenuActive || keyCode == KeyEvent.KEYCODE_F12
-
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[PHASE4] Navigation key check: keyCode=$keyCode, " +
-                        "action=${event.action}, isMenuActive=$isMenuActive, " +
-                        "shouldProcess=$shouldProcessKeyboard"
-        )
-
-        if (!shouldProcessKeyboard) return null
-
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "[PHASE4] Routing key event to KeyboardInputAdapter: " +
-                        "keyCode=$keyCode, action=${event.action}"
-        )
-        // Route to keyboard adapter based on action type
-        return when (event.action) {
-            KeyEvent.ACTION_DOWN -> adapter.onKeyDown(keyCode, event)
-            KeyEvent.ACTION_UP -> adapter.onKeyUp(keyCode, event)
-            else -> false
-        }
-    }
+    override fun processKeyEvent(keyCode: Int, event: KeyEvent): Boolean? =
+            keyMotionInputRouter.processKeyEvent(keyCode, event)
 
     /** Process a motion event and return the result */
-    fun processMotionEvent(event: MotionEvent): Boolean? {
-        // Process normally via ControllerInput
-        retroView?.let {
-            return controllerInput.processMotionEvent(event, it)
-        }
-
-        return false
-    }
+    override fun processMotionEvent(event: MotionEvent): Boolean? =
+            keyMotionInputRouter.processMotionEvent(event)
 
     /** Deallocate the old RetroView */
     fun detachRetroView(activity: ComponentActivity) {
@@ -817,19 +680,7 @@ class GameActivityViewModel(application: Application) :
     }
 
     /** Check if menu should respond to back button based on menu_mode_back */
-    fun shouldHandleBackButton(): Boolean {
-        return appConfig.getMenuModeBack()
-    }
-
-    /** Check if menu should respond to SELECT+START combo based on menu_mode_combo */
-    fun shouldHandleSelectStartCombo(): Boolean {
-        return appConfig.getMenuModeCombo()
-    }
-
-    /** Check if menu should respond to gamepad menu button based on menu_mode_gamepad */
-    fun shouldHandleGamepadMenuButton(): Boolean {
-        return appConfig.getMenuModeGamepad()
-    }
+    override fun shouldHandleBackButton(): Boolean = keyMotionInputRouter.shouldHandleBackButton()
 
     /**
      * Inicializa os controllers modulares com as mesmas SharedPreferences do RetroViewUtils Garante
@@ -948,8 +799,7 @@ class GameActivityViewModel(application: Application) :
         // Clear other references
         retroView = null
         retroViewUtils = null
-        leftGamePad = null
-        rightGamePad = null
+        gamePadInputController.clear()
 
         // Clear controllers
         audioController = null
