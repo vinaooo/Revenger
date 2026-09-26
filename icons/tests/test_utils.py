@@ -137,3 +137,28 @@ def test_load_env_without_env_file_changes_nothing(env_dir):
     utils.load_env()
 
     assert dict(os.environ) == before
+
+
+# ---------------------------------------------------------------------------------------------
+# ensure_env_loaded
+# ---------------------------------------------------------------------------------------------
+
+
+def test_ensure_env_loaded_calls_load_env_once(monkeypatch):
+    calls = []
+    monkeypatch.setattr(utils, "load_env", lambda: calls.append(1))
+    monkeypatch.setattr(utils, "_env_loaded", False)
+
+    utils.ensure_env_loaded()
+    utils.ensure_env_loaded()
+
+    assert calls == [1]
+
+
+def test_ensure_env_loaded_reads_the_env_file(env_dir, monkeypatch):
+    (env_dir / ".env").write_text("REVENGER_TEST_A=lazy\n")
+    monkeypatch.setattr(utils, "_env_loaded", False)
+
+    utils.ensure_env_loaded()
+
+    assert os.environ["REVENGER_TEST_A"] == "lazy"

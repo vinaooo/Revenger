@@ -5,10 +5,14 @@ import requests
 from io import BytesIO
 from PIL import Image
 from urllib.parse import quote
-from utils import load_env, clean_rom_name
+from utils import ensure_env_loaded, clean_rom_name
 
-load_env()
-SGDB_API_KEY = os.environ.get("SGDB_API_KEY")
+
+def _api_key():
+    """The SteamGridDB key, read when needed (not at import) so tests never load icons/.env."""
+    ensure_env_loaded()
+    return os.environ.get("SGDB_API_KEY")
+
 
 def _safe_json(response):
     """Parses a response body as JSON, treating a non-JSON body (rate limiting,
@@ -21,8 +25,12 @@ def _safe_json(response):
         return {}
 
 def search_sgdb_by_text(game_name):
+    api_key = _api_key()
+    if not api_key:
+        logging.warning("    [SGDB] ⚠️ SGDB_API_KEY is not set, skipping SteamGridDB.")
+        return None
     url = f"https://www.steamgriddb.com/api/v2/search/autocomplete/{quote(game_name, safe='')}"
-    headers = {"Authorization": f"Bearer {SGDB_API_KEY}"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     try:
         response = requests.get(url, headers=headers, timeout=10)
     except requests.exceptions.RequestException as e:
@@ -36,7 +44,7 @@ def search_sgdb_by_text(game_name):
 
 def fetch_steamgriddb_icon(sgdb_id, interactive=False):
     url = f"https://www.steamgriddb.com/api/v2/icons/game/{sgdb_id}?mimes=image/png"
-    headers = {"Authorization": f"Bearer {SGDB_API_KEY}"}
+    headers = {"Authorization": f"Bearer {_api_key()}"}
     try:
         response = requests.get(url, headers=headers, timeout=10)
     except requests.exceptions.RequestException as e:
@@ -83,7 +91,7 @@ def fetch_sgdb_multiple_icons(rom_name, limit=5):
         return images
         
     url = f"https://www.steamgriddb.com/api/v2/icons/game/{sgdb_id}?mimes=image/png"
-    headers = {"Authorization": f"Bearer {SGDB_API_KEY}"}
+    headers = {"Authorization": f"Bearer {_api_key()}"}
     try:
         response = requests.get(url, headers=headers, timeout=10)
     except requests.exceptions.RequestException as e:
