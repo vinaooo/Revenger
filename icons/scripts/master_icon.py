@@ -393,7 +393,10 @@ def main():
         generate_android_icons(img)
         logging.info("✅ Process complete!")
     else:
+        # Fail the build (generateIcons) instead of silently keeping whatever icons were there.
+        # The typography fallback works offline, so this only happens on a real breakage.
         logging.error("❌ All methods failed. Could not generate icon.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
