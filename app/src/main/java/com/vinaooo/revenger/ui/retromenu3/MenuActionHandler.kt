@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.vinaooo.revenger.utils.MenuLogger
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -11,11 +12,14 @@ import kotlinx.coroutines.withContext
 /**
  * Specialized class to process menu actions in the RetroMenu3Fragment. Responsible for executing
  * all menu actions (continue, reset, submenus, etc.) through a unified interface.
+ *
+ * @param ioDispatcher where blocking work (writing the log file) runs; replaceable in tests.
  */
 class MenuActionHandler(
         private val fragment: Fragment,
         private val viewModel: GameActivityViewModel,
-        private val submenuCoordinator: SubmenuCoordinator
+        private val submenuCoordinator: SubmenuCoordinator,
+        private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
         /** Executes a menu action based on MenuAction */
@@ -71,12 +75,15 @@ class MenuActionHandler(
         private fun executeSaveLog() {
                 MenuLogger.action("💾 Starting log file save process")
 
-                // Run in background thread to avoid blocking UI
+                // The file and logcat I/O run on ioDispatcher; the toasts back on the main thread
+                // (lifecycleScope's dispatcher).
                 val context = fragment.requireContext()
                 fragment.lifecycleScope.launch {
                         try {
                                 val filePath =
-                                        com.vinaooo.revenger.utils.LogSaver.saveCompleteLog(context)
+                                        withContext(ioDispatcher) {
+                                                com.vinaooo.revenger.utils.LogSaver.saveCompleteLog(context)
+                                        }
 
                                 if (filePath != null) {
                                         MenuLogger.action(

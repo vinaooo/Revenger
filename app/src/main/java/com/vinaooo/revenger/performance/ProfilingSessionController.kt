@@ -115,12 +115,12 @@ class ProfilingSessionController(
 
         // Basic metrics available on all versions
         val memoryInfo = hardwareMetrics.getMemoryInfo(context)
-        performanceData["memory_used_mb"] = memoryInfo.used / BYTES_PER_KILOBYTE / BYTES_PER_KILOBYTE
+        performanceData[DebugOverlayText.MEMORY_USED_MB_KEY] = memoryInfo.used / BYTES_PER_KILOBYTE / BYTES_PER_KILOBYTE
         performanceData["memory_available_mb"] =
                 memoryInfo.available / BYTES_PER_KILOBYTE / BYTES_PER_KILOBYTE
 
         val cpuUsage = hardwareMetrics.getCpuUsage()
-        performanceData["cpu_usage_percent"] = cpuUsage
+        performanceData[DebugOverlayText.CPU_USAGE_PERCENT_KEY] = cpuUsage
 
         when (level) {
             ProfileLevel.ADVANCED -> {

@@ -13,7 +13,12 @@ import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
 import io.mockk.verifyOrder
+import java.util.concurrent.Executors
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -60,8 +65,9 @@ class MenuActionHandler_test {
         return fragment
     }
 
-    private fun handlerWith(fragment: Fragment) =
-            MenuActionHandler(fragment, viewModel, submenuCoordinator)
+    // Unconfined runs the log I/O inline, so the SAVE_LOG tests below finish in one looper idle.
+    private fun handlerWith(fragment: Fragment, ioDispatcher: CoroutineDispatcher = Dispatchers.Unconfined) =
+            MenuActionHandler(fragment, viewModel, submenuCoordinator, ioDispatcher)
 
     // --- CONTINUE ---
 
@@ -216,5 +222,33 @@ class MenuActionHandler_test {
     @Suppress("ThrowingExceptionsWithoutMessageOrCause")
     fun `SAVE_LOG com excecao sem mensagem mostra o tipo da excecao`() {
         assertEquals("Error saving log: IllegalStateException", saveLogWith { throw IllegalStateException() })
+    }
+
+    @Test
+    fun `SAVE_LOG grava o arquivo fora da thread principal e mostra o toast na principal`() {
+        val mainThread = Thread.currentThread()
+        var saveThread: Thread? = null
+        val executor = Executors.newSingleThreadExecutor()
+        mockkObject(LogSaver)
+        try {
+            every { LogSaver.saveCompleteLog(any()) } answers {
+                saveThread = Thread.currentThread()
+                "/some/dir/revenger_log.txt"
+            }
+            handlerWith(attachedFragment(), executor.asCoroutineDispatcher()).executeAction(MenuAction.SAVE_LOG)
+
+            // The save hops to the executor and back; idle the main looper until the toast shows.
+            val deadline = System.currentTimeMillis() + 5_000
+            while (ShadowToast.getTextOfLatestToast() == null && System.currentTimeMillis() < deadline) {
+                shadowOf(Looper.getMainLooper()).idle()
+                Thread.yield()
+            }
+
+            assertEquals("Log saved: revenger_log.txt", ShadowToast.getTextOfLatestToast())
+            assertNotEquals(mainThread, saveThread)
+        } finally {
+            unmockkObject(LogSaver)
+            executor.shutdownNow()
+        }
     }
 }

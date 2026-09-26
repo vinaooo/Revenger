@@ -62,8 +62,8 @@ object ScreenshotGeometry {
     /**
      * Auto-crop black borders from a bitmap.
      *
-     * Some LibRetro cores (e.g., picodrive for Master System) render frames with
-     * small black borders that don't match the reported aspect ratio exactly.
+     * Some LibRetro cores render frames with small black borders that don't match the
+     * reported aspect ratio exactly.
      * This method detects and removes those borders by scanning pixel brightness.
      *
      * Only crops if borders are detected (brightness threshold < 10).

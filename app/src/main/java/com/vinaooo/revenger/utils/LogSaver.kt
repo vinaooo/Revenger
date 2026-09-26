@@ -1,37 +1,57 @@
 package com.vinaooo.revenger.utils
 
 import android.content.Context
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Environment
-import android.util.DisplayMetrics
 import android.view.WindowManager
 import java.io.File
 import java.io.IOException
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
-/** Utility for saving system logs with device information */
+/**
+ * Saves a report (device, app and configuration info plus the recent system log) to Downloads.
+ * The report's text and formatting rules live in [LogReport]; this object only reads the values
+ * from the framework and writes the file.
+ */
 object LogSaver {
 
     private const val TAG = "LogSaver"
-    private const val BYTES_PER_KILOBYTE = 1024
-    private const val MAX_LOG_LINES = 1000
 
-    /** Saves a complete log file with device information and system logs */
-    fun saveCompleteLog(context: Context): String? {
+    /** Where the app's packaged ROM lives in assets (same path `RetroView` loads it from). */
+    private const val ROM_ASSET_DIR = "rom"
+
+    private val LOGCAT_COMMAND = arrayOf("logcat", "-d", "-v", "time", "*:V")
+
+    /**
+     * Saves a complete log file with device information and system logs to the public Downloads
+     * directory. Blocks on file and process I/O, so call it off the main thread.
+     *
+     * @return the saved file's absolute path, or null if it couldn't be written
+     */
+    fun saveCompleteLog(context: Context): String? =
+            writeLog(
+                    context = context,
+                    outputDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    now = Date(),
+                    systemLogs = { captureSystemLogs() }
+            )
+
+    /** [saveCompleteLog] with its output directory, clock and log source injectable (for tests). */
+    internal fun writeLog(context: Context, outputDir: File, now: Date, systemLogs: () -> String): String? {
         return try {
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val filename = "revenger_log_$timestamp.txt"
-
-            val downloadDir =
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val logFile = File(downloadDir, filename)
-
-            val logContent = buildLogContent(context)
-
-            logFile.writeText(logContent)
+            val logFile = File(outputDir, LogReport.fileName(now))
+            logFile.writeText(
+                    LogReport.build(
+                            generatedAt = now,
+                            sections =
+                                    LogReport.Sections(
+                                            deviceInfo = getDeviceInfo(context),
+                                            appInfo = getAppInfo(context),
+                                            configurationInfo = getConfigurationInfo(context),
+                                            systemLogs = systemLogs()
+                                    )
+                    )
+            )
 
             android.util.Log.d(TAG, "Log saved successfully to: ${logFile.absolutePath}")
             logFile.absolutePath
@@ -42,54 +62,6 @@ object LogSaver {
             android.util.Log.e(TAG, "Failed to save log file", e)
             null
         }
-    }
-
-    /** Builds the complete log content with all information */
-    private fun buildLogContent(context: Context): String {
-        val builder = StringBuilder()
-
-        // Header
-        builder.append("========================================\n")
-        builder.append("        REVENGER LOG REPORT\n")
-        builder.append("========================================\n\n")
-
-        // Timestamp
-        builder.append(
-                "Generated at: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())}\n\n"
-        )
-
-        // Device Information
-        builder.append("========================================\n")
-        builder.append("        DEVICE INFORMATION\n")
-        builder.append("========================================\n\n")
-
-        builder.append(getDeviceInfo(context))
-        builder.append("\n")
-
-        // Application Information
-        builder.append("========================================\n")
-        builder.append("        APPLICATION INFORMATION\n")
-        builder.append("========================================\n\n")
-
-        builder.append(getAppInfo(context))
-        builder.append("\n")
-
-        // Configuration Information
-        builder.append("========================================\n")
-        builder.append("        CONFIGURATION INFORMATION\n")
-        builder.append("========================================\n\n")
-
-        builder.append(getConfigurationInfo(context))
-        builder.append("\n")
-
-        // System Logs
-        builder.append("========================================\n")
-        builder.append("        SYSTEM LOGS\n")
-        builder.append("========================================\n\n")
-
-        builder.append(getSystemLogs())
-
-        return builder.toString()
     }
 
     /** Collects device information */
@@ -113,47 +85,20 @@ object LogSaver {
         builder.append("Serial: $serial\n")
         builder.append("Board: ${Build.BOARD}\n")
         builder.append("Bootloader: ${Build.BOOTLOADER}\n")
-        val supportedAbis = Build.SUPPORTED_ABIS.joinToString(", ")
-        builder.append("Supported ABIs: $supportedAbis\n")
+        builder.append("Supported ABIs: ${Build.SUPPORTED_ABIS.joinToString(", ")}\n")
 
         // Screen information
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val windowMetrics = windowManager.currentWindowMetrics
-        val displayMetrics =
-                DisplayMetrics().apply {
-                    widthPixels = windowMetrics.bounds.width()
-                    heightPixels = windowMetrics.bounds.height()
-                    density = context.resources.displayMetrics.density
-                    densityDpi = context.resources.displayMetrics.densityDpi
-                }
-
-        val width = displayMetrics.widthPixels
-        val height = displayMetrics.heightPixels
-        val density = displayMetrics.density
-        val densityDpi = displayMetrics.densityDpi
-
-        builder.append("Screen Size: ${width}x${height} pixels\n")
-        builder.append("Screen Density: ${density} (${densityDpi} dpi)\n")
-
-        // Orientation
-        val orientation = context.resources.configuration.orientation
-        val orientationStr =
-                when (orientation) {
-                    Configuration.ORIENTATION_PORTRAIT -> "Portrait"
-                    Configuration.ORIENTATION_LANDSCAPE -> "Landscape"
-                    else -> "Unknown"
-                }
-        builder.append("Screen Orientation: $orientationStr\n")
-
-        // Memory
-        val runtime = Runtime.getRuntime()
-        val totalMemory = runtime.totalMemory() / BYTES_PER_KILOBYTE / BYTES_PER_KILOBYTE
-        val freeMemory = runtime.freeMemory() / BYTES_PER_KILOBYTE / BYTES_PER_KILOBYTE
-        val maxMemory = runtime.maxMemory() / BYTES_PER_KILOBYTE / BYTES_PER_KILOBYTE
-
+        val bounds = windowManager.currentWindowMetrics.bounds
+        val displayMetrics = context.resources.displayMetrics
+        builder.append("Screen Size: ${bounds.width()}x${bounds.height()} pixels\n")
+        builder.append("Screen Density: ${displayMetrics.density} (${displayMetrics.densityDpi} dpi)\n")
         builder.append(
-                "Memory - Total: ${totalMemory}MB, Free: ${freeMemory}MB, Max: ${maxMemory}MB\n"
+                "Screen Orientation: ${LogReport.orientationName(context.resources.configuration.orientation)}\n"
         )
+
+        val runtime = Runtime.getRuntime()
+        builder.append(LogReport.memoryLine(runtime.totalMemory(), runtime.freeMemory(), runtime.maxMemory()))
 
         return builder.toString()
     }
@@ -182,8 +127,6 @@ object LogSaver {
         val builder = StringBuilder()
 
         try {
-            val resources = context.resources
-
             // Settings from config.xml
             val configName = com.vinaooo.revenger.RevengerApplication.appConfig.getName()
             val configCore = com.vinaooo.revenger.RevengerApplication.appConfig.getCore()
@@ -196,17 +139,12 @@ object LogSaver {
             builder.append("LibRetro Core: $configCore\n")
             builder.append("ROM File: $configRom\n")
 
-            // Check if ROM exists. getIdentifier() returns 0 (not an exception) when not
-            // found; openRawResource() then throws Resources.NotFoundException for that id.
+            // The build packages the ROM under assets/rom/ (RetroView loads it from there).
             try {
-                val romStream =
-                        resources.openRawResource(
-                                resources.getIdentifier(configRom, "raw", context.packageName)
-                        )
-                romStream.close()
+                context.assets.open("$ROM_ASSET_DIR/$configRom").close()
                 builder.append("ROM Status: Available\n")
-            } catch (e: android.content.res.Resources.NotFoundException) {
-                android.util.Log.w(TAG, "ROM resource not found: $configRom", e)
+            } catch (e: IOException) {
+                android.util.Log.w(TAG, "ROM asset not found: $configRom", e)
                 builder.append("ROM Status: Not found or inaccessible\n")
             }
             // RevengerApplication.appConfig is a lateinit var; accessing it before
@@ -228,8 +166,12 @@ object LogSaver {
             val inputManager =
                     context.getSystemService(Context.INPUT_SERVICE) as
                             android.hardware.input.InputManager
-            val (hasPhysicalGamepad, hasVirtualGamepad) = classifyConnectedGamepads(inputManager)
-            describeInputMethod(hasPhysicalGamepad, hasVirtualGamepad)
+            val devices = mutableListOf<LogReport.InputDeviceSummary>()
+            for (deviceId in inputManager.inputDeviceIds) {
+                val device = inputManager.getInputDevice(deviceId) ?: continue
+                devices += LogReport.InputDeviceSummary(device.name, device.sources)
+            }
+            LogReport.describeInputMethod(devices)
             // Some OEM input-driver implementations of InputManager/InputDevice are known to
             // throw unpredictable RuntimeExceptions for buggy virtual devices; not enumerable
             // from here, so kept broad via the escape hatch.
@@ -240,57 +182,14 @@ object LogSaver {
     }
 
     /**
-     * Walks the connected input devices and classifies them as physical vs. virtual gamepads.
-     * @return a (hasPhysicalGamepad, hasVirtualGamepad) pair
+     * Captures the recent system log by running [command] (logcat by default) and keeping its
+     * last [LogReport.MAX_LOG_LINES] lines; on failure, a line saying why.
      */
-    private fun classifyConnectedGamepads(
-            inputManager: android.hardware.input.InputManager
-    ): Pair<Boolean, Boolean> {
-        var hasPhysicalGamepad = false
-        var hasVirtualGamepad = false
-
-        for (deviceId in inputManager.inputDeviceIds) {
-            val device = inputManager.getInputDevice(deviceId)
-            if (device == null || !isGamepadSource(device.sources)) continue
-
-            if (device.name.contains("virtual", ignoreCase = true)) {
-                hasVirtualGamepad = true
-            } else {
-                hasPhysicalGamepad = true
-            }
-        }
-
-        return hasPhysicalGamepad to hasVirtualGamepad
-    }
-
-    /** Whether an [android.view.InputDevice.getSources] bitmask reports a gamepad/joystick. */
-    private fun isGamepadSource(sources: Int): Boolean {
-        return sources and android.view.InputDevice.SOURCE_GAMEPAD != 0 ||
-                sources and android.view.InputDevice.SOURCE_JOYSTICK != 0
-    }
-
-    /** Renders the final human-readable input method description. */
-    private fun describeInputMethod(hasPhysicalGamepad: Boolean, hasVirtualGamepad: Boolean): String {
-        return when {
-            hasPhysicalGamepad && hasVirtualGamepad -> "Physical + Virtual Gamepad"
-            hasPhysicalGamepad -> "Physical Gamepad"
-            hasVirtualGamepad -> "Virtual Gamepad"
-            else -> "Touch/Other Input"
-        }
-    }
-
-    /** Captures system logs using logcat */
-    private fun getSystemLogs(): String {
+    internal fun captureSystemLogs(command: Array<String> = LOGCAT_COMMAND): String {
         return try {
-            val process = Runtime.getRuntime().exec("logcat -d -v time *:V")
-            val inputStream = process.inputStream
-            val logs = inputStream.bufferedReader().use { it.readText() }
-
-            // Filter only relevant logs (last 1000 lines to avoid being too large)
-            val lines = logs.lines()
-            val relevantLines = lines.takeLast(MAX_LOG_LINES)
-
-            relevantLines.joinToString("\n")
+            val process = Runtime.getRuntime().exec(command)
+            val logs = process.inputStream.bufferedReader().use { it.readText() }
+            LogReport.lastLines(logs)
         } catch (e: IOException) {
             "Unable to capture system logs: ${e.message ?: e.javaClass.simpleName}"
         } catch (e: SecurityException) {
