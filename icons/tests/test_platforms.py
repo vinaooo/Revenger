@@ -8,7 +8,6 @@ import hashlib
 import json
 import os
 import re
-import sys
 
 import pytest
 
@@ -61,22 +60,6 @@ DENYLIST_SHA256 = {
 }
 
 
-def _import_master_icon(monkeypatch):
-    """Imports master_icon without reading the real icons/.env.
-
-    fetch_icon and fetch_smart call load_env() at import time; with utils.load_env replaced by a
-    no-op first, the fresh import binds the no-op instead.
-    """
-    import utils
-
-    monkeypatch.setattr(utils, "load_env", lambda: None)
-    for name in ("master_icon", "fetch_icon", "fetch_smart"):
-        sys.modules.pop(name, None)
-    import master_icon
-
-    return master_icon
-
-
 # ---------------------------------------------------------------------------------------------
 # The real data file and the image directory
 # ---------------------------------------------------------------------------------------------
@@ -103,26 +86,22 @@ def test_every_platform_in_the_data_file_uses_a_known_shape():
     assert all(isinstance(v, int) for v in REAL_DATA["igdb_platform_ids"].values())
 
 
-def test_every_mapped_platform_loads_its_console_image(monkeypatch):
-    master_icon = _import_master_icon(monkeypatch)
+def test_every_mapped_platform_loads_its_console_image(master_icon):
     for platform in REAL_DATA["console_icons"]:
         img = master_icon.fetch_console_fallback(platform)
         assert img is not None and img.mode == "RGBA" and img.size[0] > 0, platform
 
 
-def test_fetch_console_fallback_returns_none_for_an_unknown_platform(monkeypatch):
-    master_icon = _import_master_icon(monkeypatch)
+def test_fetch_console_fallback_returns_none_for_an_unknown_platform(master_icon):
     assert master_icon.fetch_console_fallback("not-a-platform") is None
 
 
-def test_fetch_console_fallback_returns_none_when_the_mapped_file_is_missing(monkeypatch):
-    master_icon = _import_master_icon(monkeypatch)
+def test_fetch_console_fallback_returns_none_when_the_mapped_file_is_missing(master_icon, monkeypatch):
     monkeypatch.setattr(platforms, "console_icon_file", lambda platform: "platform_999.png")
     assert master_icon.fetch_console_fallback("any") is None
 
 
-def test_master_icon_determine_platform_delegates_to_the_data_file(monkeypatch):
-    master_icon = _import_master_icon(monkeypatch)
+def test_master_icon_determine_platform_delegates_to_the_data_file(master_icon):
     ext, platform = next(iter(REAL_DATA["extension_to_platform"].items()))
     assert master_icon.determine_platform("", f"Some Game.{ext}") == platform
 

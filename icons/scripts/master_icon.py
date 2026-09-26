@@ -24,10 +24,25 @@ MIPMAP_SIZES = {
 }
 
 import json
-def parse_config_xml(config_file_path=None):
-    """Parses config.json to determine core and rom name."""
+def _default_settings_path_for(config_file_path):
+    """default_settings.json of the same assets tree as config_file_path (assets/config/config.json
+    -> assets/default_settings.json); the project's own file when that tree has none."""
+    sibling = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(config_file_path))), "default_settings.json")
+    if os.path.exists(sibling):
+        return sibling
+    return os.path.join(PROJECT_ROOT, "app", "src", "main", "assets", "default_settings.json")
+
+
+def parse_config_xml(config_file_path=None, default_settings_path=None):
+    """Parses config.json to determine core and rom name.
+
+    default_settings_path defaults to the default_settings.json of the same assets tree as the
+    config (see _default_settings_path_for).
+    """
     if not config_file_path:
         config_file_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "assets", "config", "config.json")
+    if not default_settings_path:
+        default_settings_path = _default_settings_path_for(config_file_path)
         
     try:
         with open(config_file_path, 'r', encoding='utf-8') as f:
@@ -47,9 +62,8 @@ def parse_config_xml(config_file_path=None):
             rom_value = config_data.get('rom', "")
             ext = "." + rom_value.split('.')[-1].lower() if '.' in rom_value else ''
             
-            default_file_path = os.path.join(PROJECT_ROOT, "app", "src", "main", "assets", "default_settings.json")
-            if os.path.exists(default_file_path):
-                with open(default_file_path, 'r', encoding='utf-8') as f:
+            if os.path.exists(default_settings_path):
+                with open(default_settings_path, 'r', encoding='utf-8') as f:
                     default_data = json.load(f)
                     
                 profile = None
@@ -133,9 +147,10 @@ def make_round_image(img):
     round_img.paste(img, (0, 0), mask=mask)
     return round_img
 
-def generate_android_icons(img):
-    """Generates and saves mipmap icons from the base image."""
-    res_dir = os.path.join(PROJECT_ROOT, "app", "src", "main", "res")
+def generate_android_icons(img, res_dir=None):
+    """Generates and saves mipmap icons from the base image into res_dir (default: the app's res)."""
+    if res_dir is None:
+        res_dir = os.path.join(PROJECT_ROOT, "app", "src", "main", "res")
 
     # Assegura que todas as imagens enviadas ao Android são rigorosamente Quadrados Perfeitos e Preenchidos
     img = make_perfect_square(img)
