@@ -6,7 +6,6 @@ import android.content.IntentFilter
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
 import com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
 import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
-import android.content.pm.PackageManager
 import android.hardware.input.InputManager
 import com.vinaooo.revenger.managers.GameLifecycleObserver
 import com.vinaooo.revenger.managers.AudioRoutingManager
@@ -35,7 +34,11 @@ import com.vinaooo.revenger.gamepad.GamePadLayoutAdjuster
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.privacy.EnhancedPrivacyManager
 import com.vinaooo.revenger.utils.AndroidCompatibility
+import com.vinaooo.revenger.utils.FrameTimeRecorder
+import com.vinaooo.revenger.utils.PermissionResults
 import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
+import com.vinaooo.revenger.utils.StartupTimer
+import com.vinaooo.revenger.utils.SystemBarsAppearance
 import com.vinaooo.revenger.viewmodels.FloatingButtonVisibilityHost
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -75,7 +78,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
         private lateinit var pipController: PipController
 
         // Performance monitoring
-        private var frameStartTime = 0L
+        private val frameTimeRecorder = FrameTimeRecorder()
 
         // GamePad container reference for orientation changes
         private lateinit var gamePadContainer: android.widget.LinearLayout
@@ -90,32 +93,13 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
         private val permissionLauncher =
                 registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
                         permissions ->
-                        val allGranted = permissions.all { it.value }
-                        val grantResults =
-                                if (allGranted) {
-                                        IntArray(permissions.size).apply {
-                                                fill(PackageManager.PERMISSION_GRANTED)
-                                        }
-                                } else {
-                                        IntArray(permissions.size).apply {
-                                                fill(PackageManager.PERMISSION_DENIED)
-                                        }
-                                }
+                        val grantResults = PermissionResults.toGrantResults(permissions)
                         EnhancedPrivacyManager.handlePermissionResult(grantResults) { _ -> }
                 }
 
         override fun onCreate(savedInstanceState: Bundle?) {
-                val startTime = System.currentTimeMillis()
-                android.util.Log.e(
-                        "GAME_ACTIVITY",
-                        "🚨🚨🚨🚨🚨 GAME_ACTIVITY ONCREATE CALLED - NEW APK VERSION 🚨🚨🚨🚨🚨"
-                )
-                android.util.Log.e("GAME_ACTIVITY", "📅 TIMESTAMP: ${java.util.Date()}")
-                android.util.Log.e(
-                        "GAME_ACTIVITY",
-                        "🔧 APK VERSION: DEBUG WITH EXTENSIVE LOGGING - REV ${System.currentTimeMillis()}"
-                )
-                android.util.Log.e("STARTUP_TIMING", "⏱️ [T+0ms] GameActivity.onCreate() START")
+                val startupTimer = StartupTimer(System.currentTimeMillis())
+                startupTimer.mark("GameActivity.onCreate() START")
 
                 // CRITICAL: Apply orientation in TWO steps to eliminate flash:
                 // 1. Force Configuration BEFORE super.onCreate() (chooses correct layout)
@@ -127,17 +111,14 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
 
                 super.onCreate(savedInstanceState)
 
-                initializeCoreServices(startTime)
+                initializeCoreServices(startupTimer)
 
                 setContentView(R.layout.activity_game)
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setContentView() completed"
-                )
+                startupTimer.mark("setContentView() completed")
 
                 initializeViewsControllersAndInput()
-                setupRetroViewAndObservers(startTime)
-                finishGamePadAndMenuSetup(startTime)
+                setupRetroViewAndObservers(startupTimer)
+                finishGamePadAndMenuSetup(startupTimer)
         }
 
         /**
@@ -145,28 +126,18 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
          * compatibility/feature setup. Extracted (alongside the other `onCreate` steps below) to
          * keep `onCreate` itself within detekt's `LongMethod` threshold.
          */
-        private fun initializeCoreServices(startTime: Long) {
+        private fun initializeCoreServices(startupTimer: StartupTimer) {
                 val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
                 audioRoutingManager = AudioRoutingManager(audioManager)
                 audioRoutingManager.requestFocus()
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] forceConfiguration() completed"
-                )
+                startupTimer.mark("forceConfiguration() completed")
 
                 viewModel.setConfigOrientation(this)
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setConfigOrientation() completed"
-                )
+                startupTimer.mark("setConfigOrientation() completed")
 
                 // Initialize ScreenshotCaptureUtil with context for aspect ratio detection
                 ScreenshotCaptureUtil.setContext(this)
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] " +
-                                "ScreenshotCaptureUtil.setContext() completed"
-                )
+                startupTimer.mark("ScreenshotCaptureUtil.setContext() completed")
 
                 // Apply conditional features based on Android version
                 AndroidCompatibility.applyConditionalFeatures()
@@ -205,13 +176,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
 
                 // Setup load preview overlay callback
                 viewModel.loadPreviewCallback = { bitmap ->
-                        if (bitmap != null) {
-                                loadPreviewOverlay.setImageBitmap(bitmap)
-                                loadPreviewOverlay.visibility = android.view.View.VISIBLE
-                        } else {
-                                loadPreviewOverlay.visibility = android.view.View.GONE
-                                loadPreviewOverlay.setImageDrawable(null)
-                        }
+                        LoadPreviewOverlayBinder.bind(loadPreviewOverlay, bitmap)
                 }
 
                 // Get gamepad container reference
@@ -250,7 +215,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
          * `onCreate` step: wires up the `RetroView`, the PiP-aware lifecycle observer, and the
          * first-frame-rendered PiP priming.
          */
-        private fun setupRetroViewAndObservers(startTime: Long) {
+        private fun setupRetroViewAndObservers(startupTimer: StartupTimer) {
                 viewModel.setupRetroView(this, retroviewContainer)
                 viewModel.retroView?.let { retroView ->
                         gameLifecycleObserver = GameLifecycleObserver(retroView)
@@ -268,22 +233,16 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                                 }
                         }
                 }
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupRetroView() completed"
-                )
+                startupTimer.mark("setupRetroView() completed")
         }
 
         /**
          * `onCreate` step: gamepad setup/reveal and the RetroMenu3 wiring that closes out
          * `onCreate`.
          */
-        private fun finishGamePadAndMenuSetup(startTime: Long) {
+        private fun finishGamePadAndMenuSetup(startupTimer: StartupTimer) {
                 viewModel.setupGamePads(this, leftContainer, rightContainer)
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupGamePads() completed"
-                )
+                startupTimer.mark("setupGamePads() completed")
 
                 // Force gamepad positioning based on orientation
                 gamePadLayoutAdjuster.adjustPositionForOrientation(gamePadContainer)
@@ -299,21 +258,11 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 }
 
                 viewModel.prepareRetroMenu3()
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] prepareRetroMenu3() completed"
-                )
+                startupTimer.mark("prepareRetroMenu3() completed")
                 viewModel.setupMenuCallback(this)
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] setupMenuCallback() completed"
-                )
+                startupTimer.mark("setupMenuCallback() completed")
                 viewModel.setMenuContainer(menuContainer)
-                android.util.Log.e(
-                        "STARTUP_TIMING",
-                        "⏱️ [T+${System.currentTimeMillis() - startTime}ms] onCreate() COMPLETE - " +
-                                "Total: ${System.currentTimeMillis() - startTime}ms"
-                )
+                startupTimer.mark("onCreate() COMPLETE")
         }
 
         override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
@@ -350,30 +299,9 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
 
         /** Configure status/navigation bars based on current theme for optimal visibility */
         private fun configureSystemBarsForTheme() {
-                // Detect if we're using dark theme
-                val isDarkTheme =
-                        resources.configuration.uiMode and
-                                android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
-                                android.content.res.Configuration.UI_MODE_NIGHT_YES
-
-                // In dark theme: use light icons (true) for better visibility on dark backgrounds
-                // In light theme: use dark icons (false) for better visibility on light backgrounds
-                val lightIcons = isDarkTheme
-
-                // Apply the configuration
                 window.decorView.windowInsetsController?.setSystemBarsAppearance(
-                        if (lightIcons)
-                                android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                        else 0,
-                        android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                )
-
-                // Also set for navigation bar if supported
-                window.decorView.windowInsetsController?.setSystemBarsAppearance(
-                        if (lightIcons)
-                                android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-                        else 0,
-                        android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                        SystemBarsAppearance.forUiMode(resources.configuration.uiMode),
+                        SystemBarsAppearance.MASK
                 )
         }
 
@@ -456,7 +384,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
 
         override fun onResume() {
                 super.onResume()
-                frameStartTime = System.nanoTime()
+                frameTimeRecorder.reset(System.nanoTime())
                 pipController.onActivityResumed()
         }
 
@@ -553,12 +481,9 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
 
         /** Record frame time for performance monitoring */
         private fun recordFrameTime() {
-                val currentTime = System.nanoTime()
-                if (frameStartTime > 0) {
-                        val frameTime = currentTime - frameStartTime
-                        AdvancedPerformanceProfiler.recordFrameTime(frameTime)
+                frameTimeRecorder.record(System.nanoTime())?.let {
+                        AdvancedPerformanceProfiler.recordFrameTime(it)
                 }
-                frameStartTime = currentTime
         }
 
         /**
