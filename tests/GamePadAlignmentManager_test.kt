@@ -134,6 +134,8 @@ class GamePadAlignmentManager_test {
         assertTrue(message.contains("Erro ao validar offsets"))
     }
 
+    // The exception deliberately has no message: that's the case under test.
+    @Suppress("ThrowingExceptionsWithoutMessageOrCause")
     @Test
     fun `validateOffsets com excecao sem mensagem usa o tipo da excecao em vez de null`() {
         val appConfig = mockk<AppConfig>()

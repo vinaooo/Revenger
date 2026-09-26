@@ -82,7 +82,7 @@ class SubmenuCoordinator_test {
 
     private var selectedIndexToReport = 0
     private var restoredIndex: Int? = null
-    private var showMainMenuCalls = mutableListOf<Boolean>()
+    private val showMainMenuCalls = mutableListOf<Boolean>()
 
     @Before
     fun setUp() {

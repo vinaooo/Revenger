@@ -10,6 +10,7 @@ import io.mockk.unmockkStatic
 import io.mockk.verify
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
+import java.io.InputStream
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -33,6 +34,16 @@ class AppConfig_test {
     private lateinit var context: Context
     private lateinit var assetManager: AssetManager
 
+    /**
+     * Serves [path] from [assetContents], throwing like AssetManager does for a missing file.
+     * (`getOrElse`, not `?: throw`: detekt's test-task type resolution flags the latter's return
+     * as UnreachableCode.)
+     */
+    private fun openAsset(path: String): InputStream {
+        val json = assetContents.getOrElse(path) { throw FileNotFoundException(path) }
+        return ByteArrayInputStream(json.toByteArray())
+    }
+
     @Before
     fun setUp() {
         mockkStatic(Log::class)
@@ -45,11 +56,7 @@ class AppConfig_test {
         assetContents.clear()
 
         assetManager = mockk()
-        every { assetManager.open(any()) } answers {
-            val path = firstArg<String>()
-            val json = assetContents[path] ?: throw FileNotFoundException(path)
-            ByteArrayInputStream(json.toByteArray())
-        }
+        every { assetManager.open(any()) } answers { openAsset(firstArg()) }
 
         context = mockk()
         every { context.assets } returns assetManager

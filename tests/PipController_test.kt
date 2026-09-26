@@ -75,9 +75,7 @@ class PipController_test {
             // Mirrors the real Android contract: unregistering a receiver that isn't currently
             // registered throws IllegalArgumentException. PipController.dispose() relies on this
             // to safely no-op when PiP was never entered this session.
-            if (registeredReceiver == null) {
-                throw IllegalArgumentException("Receiver not registered")
-            }
+            require(registeredReceiver != null) { "Receiver not registered" }
             unregisteredReceiver = receiver
             registeredReceiver = null
         }

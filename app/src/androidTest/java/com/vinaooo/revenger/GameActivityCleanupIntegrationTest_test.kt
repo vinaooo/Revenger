@@ -141,36 +141,18 @@ class CriticalBehaviorValidationTest {
     /** Validate that there are no UninitializedPropertyAccessExceptions */
     @Test
     fun testNoUninitializedPropertyException() {
-        var exceptionThrown = false
-
+        // Any access to an uninitialized property throws here and fails the test with its trace.
         activityRule.scenario.onActivity { activity ->
-            try {
-                // Any access to uninitialized properties would throw here
-                val viewModel = ViewModelProvider(activity)[GameActivityViewModel::class.java]
-                assert(viewModel != null) { "ViewModel should be initialized" }
-            } catch (e: UninitializedPropertyAccessException) {
-                exceptionThrown = true
-            }
+            val viewModel = ViewModelProvider(activity)[GameActivityViewModel::class.java]
+            assert(viewModel != null) { "ViewModel should be initialized" }
         }
-
-        assert(!exceptionThrown) { "UninitializedPropertyAccessException was thrown" }
     }
 
     /** Validate that there are no ClassCastExceptions */
     @Test
     fun testNoClassCastException() {
-        var exceptionThrown = false
-
-        activityRule.scenario.onActivity { activity ->
-            try {
-                // ViewModelProvider eliminated impossible casts
-                assert(!activity.isDestroyed)
-            } catch (e: ClassCastException) {
-                exceptionThrown = true
-            }
-        }
-
-        assert(!exceptionThrown) { "ClassCastException was thrown" }
+        // ViewModelProvider eliminated impossible casts; a ClassCastException here fails the test.
+        activityRule.scenario.onActivity { activity -> assert(!activity.isDestroyed) }
     }
 
     /** Validate that ViewModels are accessible */
@@ -188,19 +170,11 @@ class CriticalBehaviorValidationTest {
     /** Validate that there are no unnecessary NullPointerExceptions */
     @Test
     fun testNoUnexpectedNullPointerException() {
-        var nullPointerThrown = false
-
+        // retroView may be null by design; reading it must not throw. A NullPointerException here
+        // fails the test with its trace.
         activityRule.scenario.onActivity { activity ->
-            try {
-                // Acessar propriedades que deveriam estar inicializadas
-                val retroView = ViewModelProvider(activity)[GameActivityViewModel::class.java].retroView
-                // May be null by design, but should not throw exception
-            } catch (e: NullPointerException) {
-                nullPointerThrown = true
-            }
+            ViewModelProvider(activity)[GameActivityViewModel::class.java].retroView
         }
-
-        assert(!nullPointerThrown) { "NullPointerException was thrown unnecessarily" }
     }
 }
 

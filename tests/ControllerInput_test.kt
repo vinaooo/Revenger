@@ -578,7 +578,7 @@ class ControllerInput_test {
     }
 
     @Test
-    fun `DIVERGENCE - holding a third button with the SELECT+START combo blocks the event on the GamePad path but lets it leak to the core on the KeyEvent path`() {
+    fun `DIVERGENCE - a third button held with SELECT+START is blocked on the GamePad path but leaks to the core on the KeyEvent path`() {
         val thirdButton = KeyEvent.KEYCODE_BUTTON_L1
 
         // --- GamePad path: the leak-block's condition is just contains(START) &&

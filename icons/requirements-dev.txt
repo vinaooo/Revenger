@@ -1,0 +1,2 @@
+# Test-only dependencies for the icon scripts: pip install -r icons/requirements-dev.txt
+pytest>=8

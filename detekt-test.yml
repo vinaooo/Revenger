@@ -1,0 +1,72 @@
+# Test-source overlay for detekt. It is layered on top of detekt.yml for the test tasks only
+# (detektTest, detektDebugUnitTest, detektReleaseUnitTest, detektDebugAndroidTest; see
+# app/build.gradle), so production code keeps the full ruleset.
+#
+# Why an overlay: detekt's defaults already exempt tests from several of these rules, but only via
+# excludes such as '**/test/**' and '**/androidTest/**'. Unit tests here live in tests/ at the repo
+# root, which those patterns don't match, so the exemptions never applied.
+#
+# Only rules whose findings are idiomatic in tests are relaxed; each has a one-line reason. Rules
+# that catch real bugs (UnreachableCode, VarCouldBeVal, SwallowedException, UseRequire, ...) stay
+# active and their findings were fixed.
+
+naming:
+  # Test names are backtick sentences (`saveToSlot cria arquivo de estado`).
+  FunctionNaming:
+    active: false
+  # Test classes are named after their file, with the repo's `_test` suffix (SaveSlotData_test),
+  # optionally split by aspect (GameActivityViewModel_immersive_test).
+  ClassNaming:
+    classPattern: '[A-Z][a-zA-Z0-9]*(_[a-z][a-zA-Z0-9]*)?(_test)?'
+  # tests/ is one flat directory holding every package, so paths can't mirror package names.
+  InvalidPackageDeclaration:
+    active: false
+  # Files follow `<Name>_test.kt`; instrumented classes are `<Name>Test` so the runner lists them
+  # by their usual name.
+  MatchingDeclarationName:
+    active: false
+
+style:
+  # Fixtures are literal data: slot numbers, frame counts, pixel sizes, ratios.
+  MagicNumber:
+    active: false
+  # Imports like org.junit.Assert.* are the norm in tests (detekt's default excludes tests too).
+  WildcardImport:
+    active: false
+
+complexity:
+  # A test class holds one function per case; its size tracks the class under test.
+  TooManyFunctions:
+    active: false
+  LargeClass:
+    active: false
+  # A test body lists its arrange/act/assert steps in order; splitting it hides the scenario.
+  LongMethod:
+    active: false
+  # Fixture builders take one defaulted parameter per field, called with named arguments.
+  LongParameterList:
+    active: false
+
+empty-blocks:
+  # No-op overrides are how fakes and callback stubs ignore the calls a test doesn't care about.
+  EmptyFunctionBlock:
+    ignoreOverridden: true
+
+exceptions:
+  # `catch (e: Exception) { fail("... ${e.message}") }` reports any throw as a test failure
+  # (detekt's default excludes tests too).
+  TooGenericExceptionCaught:
+    active: false
+
+potential-bugs:
+  # `!!` in a test is a deliberate fail-fast: an NPE there is a test failure with a stack trace.
+  UnsafeCallOnNullableType:
+    active: false
+  # Only fires on failure-message strings, where printing "null" is the useful output.
+  NullableToStringCall:
+    active: false
+
+coroutines:
+  # Tests pick their dispatcher on purpose (Unconfined, Default) instead of injecting one.
+  InjectDispatcher:
+    active: false
