@@ -22,6 +22,8 @@ import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.controllers.FloatingMenuButtonController
+import com.vinaooo.revenger.controllers.GameInputHost
+import com.vinaooo.revenger.controllers.GameInputRouter
 import com.vinaooo.revenger.controllers.InputDeviceWatcher
 import com.vinaooo.revenger.controllers.PipController
 import com.vinaooo.revenger.controllers.PipHost
@@ -79,6 +81,22 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
 
         // Performance monitoring
         private val frameTimeRecorder = FrameTimeRecorder()
+
+        // Key and motion routing: frame time, button fade, PiP frame, then the ViewModel.
+        private val inputRouter =
+                GameInputRouter(
+                        object : GameInputHost {
+                                override fun recordFrame() = recordFrameTime()
+                                override fun triggerButtonFade() =
+                                        floatingMenuButtonController.triggerFade()
+                                override fun capturePipFrame() =
+                                        pipController.maybeCapturePipFrame()
+                                override fun processKey(keyCode: Int, event: KeyEvent) =
+                                        viewModel.processKeyEvent(keyCode, event)
+                                override fun processMotion(event: MotionEvent) =
+                                        viewModel.processMotionEvent(event)
+                        }
+                )
 
         // GamePad container reference for orientation changes
         private lateinit var gamePadContainer: android.widget.LinearLayout
@@ -401,20 +419,11 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 pipController.onPictureInPictureModeChanged(isInPictureInPictureMode)
         }
 
-        override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-                // Keep the PiP still frame fresh while the user plays (throttled internally).
-                pipController.maybeCapturePipFrame()
-                return super.dispatchTouchEvent(event)
-        }
+        override fun dispatchTouchEvent(event: MotionEvent): Boolean =
+                inputRouter.dispatchTouchEvent { super.dispatchTouchEvent(event) }
 
-        override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-                // Record frame time for performance monitoring
-                recordFrameTime()
-                floatingMenuButtonController.triggerFade()
-                pipController.maybeCapturePipFrame()
-
-                return viewModel.processKeyEvent(keyCode, event) ?: super.onKeyDown(keyCode, event)
-        }
+        override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean =
+                inputRouter.onKeyDown(keyCode, event) { super.onKeyDown(keyCode, event) }
 
         override fun restoreFloatingButtonVisibility() =
                 floatingMenuButtonController.restoreFloatingButtonVisibility()
@@ -422,18 +431,11 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
         override fun fadeFloatingButtonImmediately() =
                 floatingMenuButtonController.fadeFloatingButtonImmediately()
 
-        override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
-                return viewModel.processKeyEvent(keyCode, event) ?: super.onKeyUp(keyCode, event)
-        }
+        override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean =
+                inputRouter.onKeyUp(keyCode, event) { super.onKeyUp(keyCode, event) }
 
-        override fun onGenericMotionEvent(event: MotionEvent): Boolean {
-                // Record frame time for performance monitoring
-                recordFrameTime()
-                floatingMenuButtonController.triggerFade()
-                pipController.maybeCapturePipFrame()
-
-                return viewModel.processMotionEvent(event) ?: super.onGenericMotionEvent(event)
-        }
+        override fun onGenericMotionEvent(event: MotionEvent): Boolean =
+                inputRouter.onGenericMotionEvent(event) { super.onGenericMotionEvent(event) }
 
         // --- PipHost ---
 
