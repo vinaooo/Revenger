@@ -1,0 +1,121 @@
+{
+  "_comment": "Platform data for the icon scripts. Like config.json and default_settings.json, this file is the one place platform and core ids live; code, tests and docs refer to them only through it.",
+  "extension_to_platform": {
+    "3ds": "3ds",
+    "sfc": "snes",
+    "smc": "snes",
+    "md": "megadrive",
+    "gen": "megadrive",
+    "sms": "mastersystem",
+    "nes": "nes",
+    "n64": "n64",
+    "z64": "n64",
+    "gba": "gba",
+    "nds": "nds"
+  },
+  "ambiguous_extensions": {
+    "bin": {
+      "default": "megadrive",
+      "by_core_substring": [
+        [
+          "pcsx",
+          "ps1"
+        ],
+        [
+          "duck",
+          "ps1"
+        ]
+      ]
+    }
+  },
+  "core_to_platform": [
+    [
+      "citra",
+      "3ds"
+    ],
+    [
+      "snes9x",
+      "snes"
+    ],
+    [
+      "genesis_plus_gx",
+      "megadrive"
+    ],
+    [
+      "picodrive",
+      "megadrive"
+    ],
+    [
+      "gambatte",
+      "gb"
+    ],
+    [
+      "gearsystem",
+      "mastersystem"
+    ],
+    [
+      "mupen64plus",
+      "n64"
+    ],
+    [
+      "mgba",
+      "gba"
+    ],
+    [
+      "melonds",
+      "nds"
+    ],
+    [
+      "pcsx_rearmed",
+      "ps1"
+    ],
+    [
+      "duckstation",
+      "ps1"
+    ],
+    [
+      "play",
+      "ps2"
+    ],
+    [
+      "pcsx2",
+      "ps2"
+    ],
+    [
+      "ppsspp",
+      "psp"
+    ],
+    [
+      "dolphin",
+      "gamecube"
+    ]
+  ],
+  "console_icons": {
+    "mastersystem": "platform_128.png",
+    "megadrive": "platform_129.png",
+    "nes": "platform_118.png",
+    "snes": "platform_119.png",
+    "n64": "platform_116.png",
+    "gba": "platform_112.png",
+    "nds": "platform_117.png",
+    "3ds": "platform_115.png",
+    "ps1": "platform_135.png",
+    "ps2": "platform_136.png",
+    "psp": "platform_137.png",
+    "gb": "platform_111.png"
+  },
+  "igdb_platform_ids": {
+    "mastersystem": 64,
+    "megadrive": 29,
+    "nes": 18,
+    "snes": 19,
+    "n64": 4,
+    "gamecube": 21,
+    "gba": 24,
+    "nds": 20,
+    "3ds": 37,
+    "ps1": 7,
+    "ps2": 8,
+    "psp": 38
+  }
+}

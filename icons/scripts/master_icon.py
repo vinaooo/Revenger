@@ -8,45 +8,11 @@ from PIL import Image, ImageDraw
 from fetch_icon import fetch_sgdb_icon, fetch_sgdb_multiple_icons
 from fetch_smart import fetch_igdb_smart_icon, fetch_igdb_multiple_covers
 from generate_typo import generate_typo_icon
+import platforms
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # The script is in icons/scripts now, so root is two levels up
 PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
-
-# Console icons mapping
-CONSOLE_ICONS = {
-    "mastersystem": "sega_master_system_mark_iii_mk_3006.png",
-    "megadrive": "sega_mega_cd_sega_cd.png",
-    "nes": "nintendo_nintendo_entertainment_system_hvc_001.png",
-    "snes": "nintendo_super_nintendo_entertainment_system_sns_001.png",
-    "n64": "nintendo_nintendo_64dd.png",
-    "gba": "nintendo_game_boy_advance_agb_001_b.png",
-    "nds": "nintendo_nintendo_ds_ntr_001_b.png",
-    "3ds": "nintendo_nintendo_3ds_ctr_001_a.png",
-    "ps1": "sony_playstation.png",
-    "ps2": "sony_playstation_2_scph_90000.png",
-    "psp": "sony_playstation_portable.png",
-    "gb": "nintendo_game_boy.png"
-}
-
-# Core to platform fallback mapping
-CORE_TO_PLATFORM = {
-    "citra": "3ds",
-    "snes9x": "snes",
-    "genesis_plus_gx": "megadrive",
-    "picodrive": "megadrive",
-    "gambatte": "gb",
-    "gearsystem": "mastersystem",
-    "mupen64plus": "n64",
-    "mgba": "gba",
-    "melonds": "nds",
-    "pcsx_rearmed": "ps1",
-    "duckstation": "ps1",
-    "play": "ps2",
-    "pcsx2": "ps2",
-    "ppsspp": "psp",
-    "dolphin": "gamecube"
-}
 
 # Android mipmap sizes
 MIPMAP_SIZES = {
@@ -103,40 +69,12 @@ def parse_config_xml(config_file_path=None):
 
 
 def determine_platform(core, rom):
-    """Determines the platform from the ROM extension or libretro core."""
-    ext = rom.split('.')[-1].lower() if '.' in rom else ''
-    
-    # Check extension first
-    ext_map = {
-        "3ds": "3ds",
-        "sfc": "snes", "smc": "snes",
-        "md": "megadrive", "bin": "megadrive", "gen": "megadrive",
-        "sms": "mastersystem",
-        "nes": "nes",
-        "n64": "n64", "z64": "n64",
-        "gba": "gba",
-        "nds": "nds"
-    }
-    
-    if ext in ext_map:
-        # Avoid conflicts (e.g., .bin could be megadrive or ps1)
-        if ext == "bin":
-            if "pcsx" in core or "duck" in core:
-                return "ps1"
-            return "megadrive"
-        return ext_map[ext]
-        
-    # Fallback to core
-    core_clean = core.replace("_libretro_android", "").replace("_libretro", "")
-    for key, plat in CORE_TO_PLATFORM.items():
-        if key in core_clean:
-            return plat
-            
-    return "unknown"
+    """Determines the platform from the ROM extension or libretro core (see icons/platforms.json)."""
+    return platforms.determine_platform(core, rom)
 
 def fetch_console_fallback(platform):
     """Returns the preset console image."""
-    icon_name = CONSOLE_ICONS.get(platform)
+    icon_name = platforms.console_icon_file(platform)
     if not icon_name:
         return None
         

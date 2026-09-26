@@ -97,7 +97,7 @@ Command Pattern + State Machine. Navigable by touch D‑pad, physical gamepad, a
 - **No `print` / `println`** — use `android.util.Log` or the project's `MenuLogger`.
 - PascalCase classes, camelCase members, KDoc on public APIs. Prefer composition and small focused managers. Keep immutable state objects where practical.
 - Preserve public fragment/ViewModel contracts (backward compatibility is a stated rule). **Every change must include tests** — new classes get tests, bug fixes get a regression test, behavior changes get their existing tests updated. New manager/navigation classes specifically need both unit and integration tests.
-- **Never name specific games, companies, consoles, or brands** in code, comments, commit messages, PR descriptions, docs, or test data — not even the one currently configured. Use neutral terms: "the game", "the ROM", "the platform", "the core", "an 8‑bit console". The configured title/ROM/platform values live only in `config.json` / `default_settings.json`; refer to them by config key (`name`, `rom`, `platform`), never quote the value.
+- **Never name specific games, companies, consoles, or brands** in code, comments, commit messages, PR descriptions, docs, or test data — not even the one currently configured. Use neutral terms: "the game", "the ROM", "the platform", "the core", "an 8‑bit console". The configured title/ROM/platform values live only in `config.json` / `default_settings.json`; refer to them by config key (`name`, `rom`, `platform`), never quote the value. The same goes for the icon scripts: platform, core and extension ids live only in `icons/platforms.json`, and the console images in `icons/images/` are named `platform_NNN.png` (`icons/tests/test_platforms.py` guards both).
 
 ## Reference docs
 
