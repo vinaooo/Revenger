@@ -30,7 +30,7 @@ private val croppedScreenshotStore = CroppedScreenshotStore()
  * - Automatically crops black bars (letterbox/pillarbox) based on game aspect ratio
  * - Uses PixelCopy API for accurate GL surface capture
  * - Caches screenshots for save state operations
- * - Determines aspect ratio from LibRetro core name in config
+ * - Takes the game aspect ratio from the configured platform's PiP profile
  *
  * IMPORTANT: GLRetroView is a GLSurfaceView, so we must use PixelCopy.request(SurfaceView, ...)
  * instead of PixelCopy.request(Window, ...) to capture the actual GL content.
@@ -72,35 +72,11 @@ object ScreenshotCaptureUtil :
         contextConfigured = true
     }
 
-    /**
-     * Known aspect ratios for LibRetro cores.
-     * These are the standard PAR-corrected aspect ratios for each system.
-     */
-    private object AspectRatios {
-        // SNES: 8:7 pixel aspect ratio, 256x224 -> 4:3 display
-        const val SNES = 4f / 3f
+    /** Aspect ratio used until the platform's is known (no [setContext] yet, or no config). */
+    private const val DEFAULT_ASPECT_RATIO = 4f / 3f
 
-        // Game Boy: 160x144 -> 10:9 display
-        const val GAME_BOY = 10f / 9f
-
-        // Game Boy Color: Same as Game Boy
-        const val GAME_BOY_COLOR = GAME_BOY
-
-        // Game Boy Advance: 240x160 -> 3:2 display
-        const val GAME_BOY_ADVANCE = 3f / 2f
-
-        // Sega Master System: 256x192 -> 4:3 display
-        const val MASTER_SYSTEM = 4f / 3f
-
-        // Sega Mega Drive / Genesis: 320x224 -> 4:3 display
-        const val MEGA_DRIVE = 4f / 3f
-
-        // NES: 256x240 -> 4:3 display
-        const val NES = 4f / 3f
-
-        // Default fallback
-        const val DEFAULT = 4f / 3f
-    }
+    /** Issues the PixelCopy requests; replaced by a fake in tests. */
+    internal var pixelCopier: PixelCopier = SystemPixelCopier
 
     /**
      * Capture screenshot of the GLRetroView game area using PixelCopy API.
@@ -120,14 +96,10 @@ object ScreenshotCaptureUtil :
             val gameRect = resolveCaptureRect(width, height, callback) ?: return
             val target = prepareCaptureTarget(glRetroView, gameRect, callback) ?: return
 
-            // Use PixelCopy with source rect to capture only the game content area
-            PixelCopy.request(
-                    target.surfaceView,
-                    target.rect, // Only capture the game content area
-                    target.bitmap,
-                    { copyResult -> onGameScreenCopyResult(copyResult, target, width, height, callback) },
-                    Handler(Looper.getMainLooper())
-            )
+            // Copy only the game content area (the source rect)
+            pixelCopier.copy(target.surfaceView, target.rect, target.bitmap) { copyResult ->
+                onGameScreenCopyResult(copyResult, target, width, height, callback)
+            }
             // PixelCopy.request() documents throwing IllegalArgumentException when the source
             // surface isn't laid out or attached to a window; the dimension/validity checks above
             // rule out the other documented causes (invalid rect, immutable/hardware bitmap).
@@ -142,13 +114,13 @@ object ScreenshotCaptureUtil :
 
     /**
      * Resolves the game's aspect ratio from the platform config (matching the PiP ratio), or
-     * [AspectRatios.DEFAULT] when no context is set yet or `RevengerApplication.appConfig` isn't
+     * [DEFAULT_ASPECT_RATIO] when no context is set yet or `RevengerApplication.appConfig` isn't
      * initialized.
      */
     private fun resolveGameAspectRatio(): Float {
         if (!contextConfigured) {
             Log.w(TAG, "Context not set, using default aspect ratio")
-            return AspectRatios.DEFAULT
+            return DEFAULT_ASPECT_RATIO
         }
         return try {
             val platformId = com.vinaooo.revenger.RevengerApplication.appConfig.getPlatformId()
@@ -160,7 +132,7 @@ object ScreenshotCaptureUtil :
             // Application.onCreate() completes throws UninitializedPropertyAccessException.
         } catch (e: UninitializedPropertyAccessException) {
             Log.w(TAG, "Could not determine aspect ratio", e)
-            AspectRatios.DEFAULT
+            DEFAULT_ASPECT_RATIO
         }
     }
 
@@ -273,21 +245,16 @@ object ScreenshotCaptureUtil :
             }
 
             // Capture entire surface — no source rect, no crop
-            PixelCopy.request(
-                    surfaceView,
-                    bitmap,
-                    { copyResult ->
-                        if (copyResult == PixelCopy.SUCCESS) {
-                            Log.d(TAG, "Full screenshot captured: ${width}x$height")
-                            callback(bitmap)
-                        } else {
-                            Log.e(TAG, "Full PixelCopy failed with result: $copyResult")
-                            bitmap.recycle()
-                            callback(null)
-                        }
-                    },
-                    Handler(Looper.getMainLooper())
-            )
+            pixelCopier.copy(surfaceView, null, bitmap) { copyResult ->
+                if (copyResult == PixelCopy.SUCCESS) {
+                    Log.d(TAG, "Full screenshot captured: ${width}x$height")
+                    callback(bitmap)
+                } else {
+                    Log.e(TAG, "Full PixelCopy failed with result: $copyResult")
+                    bitmap.recycle()
+                    callback(null)
+                }
+            }
             // Same rationale as captureGameScreen(): PixelCopy.request()'s only documented
             // failure not already ruled out by the checks above is IllegalArgumentException.
         } catch (e: IllegalArgumentException) {
@@ -323,6 +290,27 @@ object ScreenshotCaptureUtil :
         } catch (expectedViewDrawFailure: Exception) {
             Log.e(TAG, "Fallback screenshot capture failed", expectedViewDrawFailure)
             null
+        }
+    }
+}
+
+/** The PixelCopy request [ScreenshotCaptureUtil] makes, behind an interface so tests can fake it. */
+internal fun interface PixelCopier {
+    /**
+     * Copies [source] (only [srcRect] of it, or the whole surface when null) into [dest], then
+     * reports the [PixelCopy] result code to [onResult] on the main thread.
+     */
+    fun copy(source: SurfaceView, srcRect: Rect?, dest: Bitmap, onResult: (Int) -> Unit)
+}
+
+/** [PixelCopier] over the real [PixelCopy] API, delivering results on the main looper. */
+internal object SystemPixelCopier : PixelCopier {
+    override fun copy(source: SurfaceView, srcRect: Rect?, dest: Bitmap, onResult: (Int) -> Unit) {
+        val handler = Handler(Looper.getMainLooper())
+        if (srcRect == null) {
+            PixelCopy.request(source, dest, { onResult(it) }, handler)
+        } else {
+            PixelCopy.request(source, srcRect, dest, { onResult(it) }, handler)
         }
     }
 }

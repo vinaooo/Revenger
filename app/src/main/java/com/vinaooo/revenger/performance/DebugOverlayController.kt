@@ -2,7 +2,6 @@ package com.vinaooo.revenger.performance
 
 import android.app.Activity
 import android.content.Context
-import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
@@ -12,7 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.TextView
-import com.vinaooo.revenger.utils.BuildTypeDetector
+import com.vinaooo.revenger.RevengerApplication
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
 
@@ -32,11 +31,16 @@ interface DebugOverlay {
  * Builds, updates and tears down the on-screen FPS/frame-time/memory/CPU debug overlay, extracted
  * from [AdvancedPerformanceProfiler] purely to keep that object under the project's function-count
  * threshold (and to break up the overlay-construction logic that used to live in one long method).
+ * The overlay text is formatted by [DebugOverlayText].
+ *
+ * @param isOverlayEnabled whether the overlay may be shown at all: the `performance_overlay`
+ *   config key by default.
  */
 class DebugOverlayController(
         private val handler: Handler,
         private val performanceData: ConcurrentHashMap<String, Any>,
         private val frameStatsProvider: FrameStatsProvider,
+        private val isOverlayEnabled: () -> Boolean = ::isPerformanceOverlayConfigured,
         private val isProfilingActive: () -> Boolean
 ) : DebugOverlay {
 
@@ -70,9 +74,8 @@ class DebugOverlayController(
     private var debugOverlayUpdateRunnable: Runnable? = null
 
     override fun showDebugOverlay(context: Context) {
-        Log.d(TAG, "showDebugOverlay called - checking config")
-        if (!shouldShowPerformanceOverlay(context)) {
-            Log.d(TAG, "shouldShowPerformanceOverlay returned false")
+        if (!isOverlayEnabled()) {
+            Log.d(TAG, "performance_overlay is off, not showing the overlay")
             return
         }
 
@@ -157,7 +160,8 @@ class DebugOverlayController(
                     override fun run() {
                         val view = debugOverlayView
                         if (isProfilingActive() && view != null) {
-                            val debugText = buildOverlayText()
+                            val debugText =
+                                    DebugOverlayText.format(frameStatsProvider.getFrameStats(), performanceData)
                             view.text = debugText
                             Log.d(TAG, "Overlay text updated: $debugText")
                             // Update every UPDATE_INTERVAL_MS
@@ -176,66 +180,17 @@ class DebugOverlayController(
         handler.post(runnable)
         Log.d(TAG, "Overlay update runnable posted")
     }
+}
 
-    /** Formats the FPS/frame-time/memory/CPU text shown on the overlay. */
-    private fun buildOverlayText(): String {
-        val frameStats = frameStatsProvider.getFrameStats()
-        val memoryInfo = performanceData["memory_used_mb"] as? Long ?: 0L
-        val cpuUsage = performanceData["cpu_usage_percent"] as? Double ?: 0.0
-
-        return if (frameStats.averageFps > 0) {
-            """
-            FPS: ${"%.1f".format(frameStats.averageFps)}
-            Frame Time: ${"%.2f".format(frameStats.averageFrameTimeMs)}ms
-            Dropped: ${frameStats.droppedFrames}
-            Memory: ${memoryInfo}MB
-            CPU: ${"%.1f".format(cpuUsage)}%
-            """.trimIndent()
-        } else {
-            """
-            FPS: Collecting data...
-            Frame Time: --
-            Dropped: --
-            Memory: ${memoryInfo}MB
-            CPU: ${"%.1f".format(cpuUsage)}%
-            """.trimIndent()
-        }
-    }
-
-    /** Check if performance overlay should be shown */
-    private fun shouldShowPerformanceOverlay(context: Context): Boolean {
-        // Check config setting first (even in debug builds)
-        return try {
-            val configValue = getConfigBoolean(context, "performance_overlay")
-            Log.d(TAG, "Config value for performance_overlay: $configValue")
-            configValue
-            // getConfigBoolean() handles its own resource-lookup failures internally and does not
-            // rethrow, so nothing is actually reachable here today; kept as a defensive net in
-            // case that internal contract changes.
-        } catch (expectedUnreachable: Exception) {
-            Log.e(TAG, "Error reading config", expectedUnreachable)
-            // Only fallback to debug behavior if config reading fails
-            isDebugBuild(context)
-        }
-    }
-
-    /** Check if this is a debug build */
-    private fun isDebugBuild(context: Context): Boolean = BuildTypeDetector.isDebuggable(context)
-
-    /** Get boolean config value from resources */
-    private fun getConfigBoolean(context: Context, key: String): Boolean {
-        return try {
-            val resources = context.resources
-            val resId = resources.getIdentifier(key, "bool", context.packageName)
-            if (resId != 0) {
-                resources.getBoolean(resId)
-            } else {
-                Log.w(TAG, "Resource ID not found for $key")
-                false
-            }
-        } catch (e: Resources.NotFoundException) {
-            Log.e(TAG, "Error reading boolean $key", e)
+/**
+ * The `performance_overlay` config key, read through [RevengerApplication.appConfig] like every
+ * other setting. False while the config isn't initialized yet.
+ */
+internal fun isPerformanceOverlayConfigured(): Boolean =
+        try {
+            RevengerApplication.appConfig.getPerformanceOverlay()
+            // appConfig is a lateinit var set in Application.onCreate().
+        } catch (e: UninitializedPropertyAccessException) {
+            Log.w("PerformanceProfiler", "AppConfig not initialized, overlay off", e)
             false
         }
-    }
-}
