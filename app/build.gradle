@@ -265,6 +265,63 @@ tasks.named("check") {
     dependsOn("detektTest")
 }
 
+// Python/shell tests for the icon scripts (icons/tests, pytest), part of `check`. They run in their
+// own venv under build/, rebuilt only when the requirements change, so they depend neither on the
+// system pip (blocked by PEP 668 on recent distros) nor on the repo's local venv/.
+def scriptsVenvDir = file("$rootDir/build/scripts-venv")
+def scriptsVenvStamp = new File(scriptsVenvDir, ".requirements-installed")
+def scriptsRequirements = files("$rootDir/icons/requirements.txt", "$rootDir/icons/requirements-dev.txt")
+
+tasks.register("setupScriptsVenv", Exec) {
+    description = "Creates the venv that testScripts runs in (build/scripts-venv)."
+    inputs.files(scriptsRequirements)
+    outputs.file(scriptsVenvStamp)
+    workingDir = rootDir
+    commandLine "sh", "-c",
+            "python3 -m venv --clear '${scriptsVenvDir}' && " +
+            "'${scriptsVenvDir}/bin/pip' install --quiet --disable-pip-version-check " +
+            "-r icons/requirements.txt -r icons/requirements-dev.txt && " +
+            "touch '${scriptsVenvStamp}'"
+    doFirst {
+        def found = false
+        try {
+            def probe = ["python3", "-c", "import venv"].execute()
+            probe.waitFor()
+            found = probe.exitValue() == 0
+        } catch (IOException ignored) {
+            found = false
+        }
+        if (!found) {
+            throw new GradleException(
+                    "testScripts needs python3 with the venv module on PATH to test icons/scripts " +
+                    "(e.g. `sudo apt install python3 python3-venv`).")
+        }
+    }
+}
+
+tasks.register("testScripts", Exec) {
+    group = "verification"
+    description = "Runs the pytest suite for the icon scripts and pick_icon.sh (icons/tests)."
+    dependsOn("setupScriptsVenv")
+    def pythonSources = fileTree("$rootDir/icons") {
+        include "scripts/**/*.py", "tests/**/*.py"
+        exclude "**/__pycache__/**"
+    }
+    inputs.files(pythonSources).withPropertyName("pythonSources")
+    inputs.files(fileTree(rootDir) { include "*.sh" }).withPropertyName("shellScripts")
+    inputs.files(scriptsRequirements, "$rootDir/ruff.toml").withPropertyName("toolConfig")
+    def report = file("$rootDir/build/test-results/scripts/pytest.xml")
+    outputs.file(report)
+    workingDir = rootDir
+    environment "PYTHONDONTWRITEBYTECODE", "1"
+    commandLine "${scriptsVenvDir}/bin/python", "-m", "pytest", "icons/tests",
+            "-p", "no:cacheprovider", "-q", "--junitxml=${report}"
+}
+
+tasks.named("check") {
+    dependsOn("testScripts")
+}
+
 // Screenshot goldens for tests/*Screenshot_test.kt are committed next to the tests. Record them
 // with `recordRoborazziDebug`; `check` verifies them (roborazzi.test.verify in gradle.properties).
 roborazzi {

@@ -5,7 +5,7 @@ import requests
 import re
 from PIL import Image, ImageFilter
 from io import BytesIO
-from utils import load_env, clean_rom_name
+from utils import load_env
 
 load_env()
 CLIENT_ID = os.environ.get("IGDB_CLIENT_ID")

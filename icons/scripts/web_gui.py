@@ -1,5 +1,4 @@
 import http.server
-import socketserver
 import threading
 import webbrowser
 import base64
@@ -354,7 +353,7 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(html.encode("utf-8"))
         
     def do_POST(self):
-        global selected_image, server_instance
+        global selected_image
         if self.path == '/select':
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
