@@ -148,6 +148,10 @@ class RotationMenuIntegrationTest {
         return submenu
     }
 
+    /** A new instance of [expectedType] (not [original]) on top of a one-entry backstack. */
+    private fun isRebuiltSubmenu(fragment: Fragment, expectedType: Class<out Fragment>, original: Fragment) =
+            fragment.javaClass == expectedType && fragment !== original && backStackCount() == 1
+
     /**
      * Rotates with [state]'s submenu open and asserts the recreation chain rebuilt a *new* instance
      * of the *same* fragment type on top of a one-entry backstack.
@@ -173,13 +177,9 @@ class RotationMenuIntegrationTest {
         // Poll for the rebuilt hierarchy, then let everything settle and re-assert, so a
         // transient intermediate state cannot be mistaken for the final one.
         var rebuilt: Fragment? = null
-        for (attempt in 0 until POLL_ATTEMPTS) {
+        for (ignored in 0 until POLL_ATTEMPTS) {
             val fragment = containerFragment()
-            if (fragment != null &&
-                            fragment.javaClass == expectedType &&
-                            fragment !== original &&
-                            backStackCount() == 1
-            ) {
+            if (fragment != null && isRebuiltSubmenu(fragment, expectedType, original)) {
                 rebuilt = fragment
                 break
             }

@@ -3,6 +3,7 @@ plugins {
     id('kotlin-android')
     id 'io.gitlab.arturbosch.detekt' version '1.23.6'
     id 'org.jetbrains.kotlinx.kover' version '0.9.9'
+    id 'io.github.takahirom.roborazzi' version '1.75.0'
 }
 
 /**
@@ -245,6 +246,29 @@ detekt {
 // it is part of `check` too to keep those findings at zero.
 tasks.named("check") {
     dependsOn("detektMain")
+}
+
+// Test sources get detekt-test.yml layered on top of detekt.yml: it relaxes only rules whose
+// findings are idiomatic in tests (backtick names, fixture numbers, `!!`, stub overrides; each
+// has its reason in that file). The test tasks with type resolution are part of `check` too, at
+// the same 0-issue bar as production code.
+// afterEvaluate: the plugin registers the per-variant tasks, and sets their config from the
+// `detekt {}` block, only once the Android variants exist; configuring them earlier is overwritten.
+afterEvaluate {
+    tasks.withType(io.gitlab.arturbosch.detekt.Detekt).matching {
+        it.name.endsWith("UnitTest") || it.name.endsWith("AndroidTest")
+    }.configureEach {
+        config.setFrom(files("$rootDir/detekt.yml", "$rootDir/detekt-test.yml"))
+    }
+}
+tasks.named("check") {
+    dependsOn("detektTest")
+}
+
+// Screenshot goldens for tests/*Screenshot_test.kt are committed next to the tests. Record them
+// with `recordRoborazziDebug`; `check` verifies them (roborazzi.test.verify in gradle.properties).
+roborazzi {
+    outputDir = file("$rootDir/tests/screenshots")
 }
 
 // Coverage is measured on the debug variant only (no need to build/test release just to
@@ -526,6 +550,9 @@ implementation "com.google.code.gson:gson:2.10.1"
     testImplementation 'androidx.test.ext:junit:1.2.1'
     testImplementation 'androidx.fragment:fragment-testing:1.8.5'
     testImplementation 'org.robolectric:robolectric:4.13'
+    // Screenshot tests for the RetroMenu3 pixel UI (tests/*Screenshot_test.kt)
+    testImplementation 'io.github.takahirom.roborazzi:roborazzi:1.75.0'
+    testImplementation 'io.github.takahirom.roborazzi:roborazzi-junit-rule:1.75.0'
     testImplementation 'io.mockk:mockk:1.13.12'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
     testImplementation 'androidx.lifecycle:lifecycle-runtime-testing:2.9.4'

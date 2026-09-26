@@ -37,7 +37,7 @@ class PipSnapshotSelector_test {
             },
             {
                 thirdCalled = true
-                throw IllegalStateException("should never be invoked")
+                error("should never be invoked")
             }
         )
 

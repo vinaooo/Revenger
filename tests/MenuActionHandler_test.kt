@@ -40,7 +40,10 @@ class MenuActionHandler_test {
         submenuCoordinator = mockk(relaxed = true)
     }
 
-    /** A RetroMenu3Fragment mock whose dismissMenuPublic immediately runs its callback, as the real implementation eventually does once the exit animation completes. */
+    /**
+     * A RetroMenu3Fragment mock whose dismissMenuPublic immediately runs its callback, as the real
+     * implementation eventually does once the exit animation completes.
+     */
     private fun retroMenu3FragmentThatDismissesImmediately(): RetroMenu3Fragment {
         val fragment = mockk<RetroMenu3Fragment>(relaxed = true)
         val callback = slot<() -> Unit>()
