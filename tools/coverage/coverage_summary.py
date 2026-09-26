@@ -4,10 +4,16 @@ Inputs, all optional (a missing one is shown as "not measured"):
 - --kotlin: Kover XML (JaCoCo format), from koverXmlReportDebug
 - --python: coverage.py XML (Cobertura format), from pytest --cov --cov-report=xml
 - --shell:  JSON from tools/coverage/shell_coverage.py
+- --kotlin-instrumented: JaCoCo XML from createDebugAndroidTestCoverageReport (needs a device)
 
 Writes a Markdown table to --output and prints it. The "All code" row adds up lines across the
 three languages; branches are only summed where a tool measures them (Kotlin, Python).
+
+The instrumented row is shown after the total and kept out of it: it measures the same Kotlin
+lines as the unit-test row, so adding it would count them twice. coverageAll doesn't produce it
+(it needs a device), so its row says when that report was generated.
 """
+import datetime
 import argparse
 import json
 import os
@@ -20,7 +26,7 @@ def _counts(covered, valid):
 
 
 def read_kover(path):
-    """{"lines": ..., "branches": ...} from the report-level counters of a Kover XML report."""
+    """{"lines": ..., "branches": ...} from the report-level counters of a Kover or JaCoCo XML report."""
     root = ET.parse(path).getroot()
     result = {}
     for counter in root.findall("counter"):  # direct children only: the whole-report totals
@@ -61,16 +67,31 @@ def combine(languages):
     return total
 
 
-def render(languages):
+def _row(name, data):
+    if data is None:
+        return f"| {name} | not measured | not measured |"
+    return f"| {name} | {_percent(data.get('lines'))} | {_percent(data.get('branches'))} |"
+
+
+def render(languages, separate=None):
+    """The table: one row per language, the "All code" total, then [separate] rows (not totalled)."""
     rows = ["| Code | Lines | Branches |", "|---|---|---|"]
-    for name, data in languages.items():
-        if data is None:
-            rows.append(f"| {name} | not measured | not measured |")
-        else:
-            rows.append(f"| {name} | {_percent(data.get('lines'))} | {_percent(data.get('branches'))} |")
+    rows += [_row(name, data) for name, data in languages.items()]
     total = combine(languages)
     rows.append(f"| **All code** | **{_percent(total.get('lines'))}** | {_percent(total.get('branches'))} |")
+    rows += [_row(name, data) for name, data in (separate or {}).items()]
     return "\n".join(rows) + "\n"
+
+
+INSTRUMENTED_NAME = "Kotlin (app, instrumented tests; not in All code)"
+
+
+def _instrumented_row_name(path):
+    """[INSTRUMENTED_NAME], plus when the report was generated if it exists."""
+    if path and os.path.exists(path):
+        generated = datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d %H:%M")
+        return f"{INSTRUMENTED_NAME[:-1]}; report of {generated})"
+    return INSTRUMENTED_NAME
 
 
 def _load(reader, path):
@@ -84,6 +105,7 @@ def main(argv=None):
     parser.add_argument("--kotlin")
     parser.add_argument("--python")
     parser.add_argument("--shell")
+    parser.add_argument("--kotlin-instrumented")
     parser.add_argument("--output", required=True)
     args = parser.parse_args(argv)
 
@@ -92,7 +114,10 @@ def main(argv=None):
         "Python (icons/scripts)": _load(read_cobertura, args.python),
         "Shell (*.sh)": _load(read_shell, args.shell),
     }
-    table = render(languages)
+    separate = {
+        _instrumented_row_name(args.kotlin_instrumented): _load(read_kover, args.kotlin_instrumented),
+    }
+    table = render(languages, separate)
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
     with open(args.output, "w", encoding="utf-8") as f:
         f.write("# Coverage summary\n\n" + table)

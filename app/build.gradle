@@ -172,6 +172,11 @@ android {
             // connectedDebugAndroidTest never uninstalls the player's copy (and its saves).
             applicationIdSuffix = ".debug"
             debuggable = true         // Attribute, not method
+            // JaCoCo coverage for the instrumented tests, only when asked for: it instruments the
+            // debug APK, so plain installDebug/connectedDebugAndroidTest builds stay as they were.
+            // `./gradlew createDebugAndroidTestCoverageReport -PinstrumentedCoverage` (device needed)
+            // writes the report coverageAll shows as its own row.
+            enableAndroidTestCoverage = project.hasProperty("instrumentedCoverage")
             minifyEnabled = false
             shrinkResources = false
             signingConfig = signingConfigs.debug
@@ -330,8 +335,11 @@ tasks.named("check") {
 // Coverage for all code: `./gradlew coverageAll -PskipAssetStaging` measures Kotlin (Kover, unit
 // tests), Python (pytest-cov, with branches) and shell (xtrace, tools/coverage/shell_coverage.py)
 // and writes build/reports/coverage/summary.md. Not part of `check`; the Kotlin floor is enforced
-// by koverVerifyDebug.
+// by koverVerifyDebug. If an instrumented-test JaCoCo report exists (see enableAndroidTestCoverage
+// above) it is shown as an extra row, outside the "All code" total.
 def coverageDir = file("$rootDir/build/reports/coverage")
+def instrumentedCoverageXml =
+        layout.buildDirectory.file("reports/coverage/androidTest/debug/connected/report.xml")
 def shellTraceDir = new File(coverageDir, "shell-traces")
 
 tasks.register("coverageScripts", Exec) {
@@ -375,6 +383,7 @@ tasks.register("coverageAll", Exec) {
             "--kotlin", layout.buildDirectory.file("reports/kover/reportDebug.xml").get().asFile.path,
             "--python", "${coverageDir}/python.xml",
             "--shell", "${coverageDir}/shell.json",
+            "--kotlin-instrumented", instrumentedCoverageXml.get().asFile.path,
             "--output", "${coverageDir}/summary.md"
 }
 
@@ -492,7 +501,11 @@ tasks.whenTaskAdded { task ->
     // Excludes AGP-internal tasks like bundleDebugClassesToCompileJar/bundleDebugClassesToRuntimeJar,
     // which also start with "bundle" but run during every compile (not just AAB bundling) and would
     // otherwise finalize cleanupRom before mergeDebugAssets/packageDebug ever consume the staged ROM.
-    if ((task.name.startsWith('assemble') || task.name.startsWith('bundle') || task.name.startsWith('install'))
+    // "connected" covers connectedDebugAndroidTest (and createDebugAndroidTestCoverageReport, which
+    // runs it): it packages the APK through packageDebug, not assemble*/install*, so without this
+    // the ROM stayed staged in app/src/main/assets/rom after every instrumented run.
+    if ((task.name.startsWith('assemble') || task.name.startsWith('bundle') || task.name.startsWith('install')
+            || task.name.startsWith('connected'))
             && !task.name.contains('Classes')) {
         task.finalizedBy cleanupRom
     }

@@ -1,5 +1,7 @@
 """Tests for tools/coverage/coverage_summary.py with small hand-written reports."""
+import datetime
 import json
+import os
 
 import coverage_summary
 
@@ -88,3 +90,35 @@ def test_missing_inputs_are_shown_as_not_measured(tmp_path, capsys):
     printed = capsys.readouterr().out
     assert "| Python (icons/scripts) | not measured | not measured |" in printed
     assert "| **All code** | **–** | – |" in printed
+
+
+def test_instrumented_report_is_its_own_row_and_stays_out_of_the_total(tmp_path, capsys):
+    kotlin, python, shell = _files(tmp_path)
+    instrumented = tmp_path / "report.xml"
+    instrumented.write_text(KOVER.replace('type="LINE" missed="25" covered="75"', 'type="LINE" missed="60" covered="40"'))
+    generated = datetime.datetime(2026, 9, 26, 21, 30)
+    os.utime(instrumented, (generated.timestamp(), generated.timestamp()))
+
+    coverage_summary.main([
+        "--kotlin", str(kotlin), "--python", str(python), "--shell", str(shell),
+        "--kotlin-instrumented", str(instrumented), "--output", str(tmp_path / "s.md"),
+    ])
+
+    rows = capsys.readouterr().out.splitlines()
+    assert rows[-2] == "| **All code** | **78.5% (102/130)** | 70.0% (14/20) |"
+    assert rows[-1] == (
+        "| Kotlin (app, instrumented tests; not in All code; report of 2026-09-26 21:30) "
+        "| 40.0% (40/100) | 60.0% (6/10) |"
+    )
+
+
+def test_without_instrumented_report_the_row_says_not_measured(tmp_path, capsys):
+    kotlin, python, shell = _files(tmp_path)
+
+    coverage_summary.main([
+        "--kotlin", str(kotlin), "--kotlin-instrumented", str(tmp_path / "missing.xml"),
+        "--output", str(tmp_path / "s.md"),
+    ])
+
+    rows = capsys.readouterr().out.splitlines()
+    assert rows[-1] == "| Kotlin (app, instrumented tests; not in All code) | not measured | not measured |"
