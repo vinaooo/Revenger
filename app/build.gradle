@@ -367,7 +367,13 @@ kover {
 task generateIcons(type: Exec) {
     def pythonScript = file("${rootProject.projectDir.path}/icons/scripts/master_icon.py")
     def configFile = file("${rootProject.projectDir.path}/app/src/main/assets/config/config.json")
-    commandLine 'python3', pythonScript.absolutePath, '--config', configFile.absolutePath
+    def iconArgs = ['python3', pythonScript.absolutePath, '--config', configFile.absolutePath]
+    // The script reuses the icon it auto-picked for this ROM on an earlier build (icons/.cache);
+    // -PrefreshIcons scrapes SteamGridDB/IGDB again.
+    if (project.hasProperty('refreshIcons')) {
+        iconArgs << '--refresh'
+    }
+    commandLine iconArgs
     doFirst {
         println "🎨 Generating App Icons using python script..."
     }
