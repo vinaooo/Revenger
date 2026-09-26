@@ -24,6 +24,8 @@ import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.controllers.FloatingMenuButtonController
 import com.vinaooo.revenger.controllers.GameInputHost
 import com.vinaooo.revenger.controllers.GameInputRouter
+import com.vinaooo.revenger.controllers.GameSessionParts
+import com.vinaooo.revenger.controllers.GameSessionTeardown
 import com.vinaooo.revenger.controllers.InputDeviceWatcher
 import com.vinaooo.revenger.controllers.PipController
 import com.vinaooo.revenger.controllers.PipHost
@@ -369,30 +371,33 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
         }
 
         override fun onDestroy() {
-                // Remove auto-rotate change listener
-                rotationController.dispose()
-
-                // InputManager is process-wide: an unregistered listener would keep this Activity.
-                if (::inputDeviceWatcher.isInitialized) inputDeviceWatcher.dispose()
-
-                // PiP's own broadcast receiver and overlay teardown -- see PipController.dispose().
-                pipController.dispose()
-
-                floatingMenuButtonController.dispose()
-
-                // Stop performance profiling
-                AdvancedPerformanceProfiler.stopProfiling()
-
-                // Hide debug overlay
-                AdvancedPerformanceProfiler.hideDebugOverlay()
-
-                // Clean up view model
-                viewModel.dispose()
-                viewModel.detachRetroView(this)
-                ScreenshotCaptureUtil.clearPipFrame()
-                if (::audioRoutingManager.isInitialized) audioRoutingManager.abandonFocus()
+                GameSessionTeardown().run(sessionParts)
                 super.onDestroy()
         }
+
+        /** What `onDestroy` cleans up, in `GameSessionTeardown.stepsFor`'s order. */
+        private val sessionParts =
+                object : GameSessionParts {
+                        override val inputDeviceWatcher: InputDeviceWatcher?
+                                get() = with(this@GameActivity) {
+                                        if (::inputDeviceWatcher.isInitialized) inputDeviceWatcher
+                                        else null
+                                }
+                        override val audioRoutingManager: AudioRoutingManager?
+                                get() = with(this@GameActivity) {
+                                        if (::audioRoutingManager.isInitialized) audioRoutingManager
+                                        else null
+                                }
+
+                        override fun disposeRotation() = rotationController.dispose()
+                        override fun disposePip() = pipController.dispose()
+                        override fun disposeFloatingButton() = floatingMenuButtonController.dispose()
+                        override fun stopProfiling() = AdvancedPerformanceProfiler.stopProfiling()
+                        override fun hideDebugOverlay() = AdvancedPerformanceProfiler.hideDebugOverlay()
+                        override fun disposeViewModel() = viewModel.dispose()
+                        override fun detachRetroView() = viewModel.detachRetroView(this@GameActivity)
+                        override fun clearPipFrame() = ScreenshotCaptureUtil.clearPipFrame()
+                }
 
         override fun onPause() {
                 pipController.onActivityPaused()
