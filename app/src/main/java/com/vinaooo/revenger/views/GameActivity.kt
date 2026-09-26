@@ -17,7 +17,6 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.FrameLayout
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.fragment.app.FragmentActivity
@@ -29,6 +28,8 @@ import com.vinaooo.revenger.controllers.PipController
 import com.vinaooo.revenger.controllers.PipHost
 import com.vinaooo.revenger.controllers.PipViews
 import com.vinaooo.revenger.controllers.RotationController
+import com.vinaooo.revenger.controllers.SystemBackCallback
+import com.vinaooo.revenger.controllers.SystemBackHost
 import com.vinaooo.revenger.gamepad.GamePadAlignmentManager
 import com.vinaooo.revenger.gamepad.GamePadLayoutAdjuster
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
@@ -389,65 +390,22 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                         }
                 inputDeviceWatcher.register()
 
-                /* Setup back pressed handling - check menu state and mode */
+                /* Route the system back through the menu -- see SystemBackCallback */
                 onBackPressedDispatcher.addCallback(
                         this,
-                        object : OnBackPressedCallback(true) {
-                                override fun handleOnBackPressed() {
-                                        // PHASE 3.4a: Route Android system back through
-                                        // NavigationController (permanently enabled)
-                                        Log.d(
-                                                TAG,
-                                                "[BACK] PHASE 3: Routing Android back through NavigationController"
-                                        )
-
-                                        // If menu is open, navigate back through controller
-                                        if (viewModel.isAnyMenuActive()) {
+                        SystemBackCallback(
+                                object : SystemBackHost {
+                                        override fun isMenuActive() = viewModel.isAnyMenuActive()
+                                        override fun shouldHandleBack() =
+                                                viewModel.shouldHandleBackButton()
+                                        override fun sendNavigationEvent(event: NavigationEvent) {
                                                 viewModel.navigationController
-                                                        ?.handleNavigationEvent(
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .navigation.NavigationEvent
-                                                                        .NavigateBack(
-                                                                                inputSource =
-                                                                                        com.vinaooo
-                                                                                                .revenger
-                                                                                                .ui
-                                                                                                .retromenu3
-                                                                                                .navigation
-                                                                                                .InputSource
-                                                                                                .SYSTEM_BACK,
-                                                                                keyCode =
-                                                                                        android.view
-                                                                                                .KeyEvent
-                                                                                                .KEYCODE_BACK
-                                                                        )
-                                                        )
+                                                        ?.handleNavigationEvent(event)
                                         }
-                                        // If menu is not open, check if back should open
-                                        // menu
-                                        else if (viewModel.shouldHandleBackButton()) {
-                                                viewModel.navigationController
-                                                        ?.handleNavigationEvent(
-                                                                com.vinaooo.revenger.ui.retromenu3
-                                                                        .navigation.NavigationEvent
-                                                                        .OpenMenu(
-                                                                                inputSource =
-                                                                                        com.vinaooo
-                                                                                                .revenger
-                                                                                                .ui
-                                                                                                .retromenu3
-                                                                                                .navigation
-                                                                                                .InputSource
-                                                                                                .SYSTEM_BACK
-                                                                        )
-                                                        )
-                                        } else {
-                                                // Use default back button behavior
-                                                isEnabled = false
+                                        override fun dispatchDefaultBack() =
                                                 onBackPressedDispatcher.onBackPressed()
-                                        }
                                 }
-                        }
+                        )
                 )
         }
 
