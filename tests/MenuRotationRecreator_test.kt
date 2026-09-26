@@ -32,8 +32,8 @@ import org.robolectric.annotation.Config
  * `SubmenuCoordinator_test` (see its header comment), these tests deliberately never idle the
  * looper far enough to execute those commits, and instead pin step 0/1 of the chain: the
  * system-settle delay, the "menu was dismissed during the delay" abort conditions, and the
- * backstack/fragment cleanup that step 1 performs before handing off to the (untested-here)
- * rebuild step.
+ * backstack/fragment cleanup that step 1 performs before handing off to the rebuild step. The
+ * rebuild itself, with the real fragments, is covered by `MenuRotationRecreatorRebuild_test`.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])

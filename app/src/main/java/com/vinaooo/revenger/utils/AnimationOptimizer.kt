@@ -1,43 +1,13 @@
 package com.vinaooo.revenger.utils
 
-import android.animation.Animator
 import android.view.View
-import android.view.ViewPropertyAnimator
-import androidx.core.util.Pools
 
 /**
- * Animation optimizer for the RetroMenu3 menu system. Uses ViewPropertyAnimator for better
- * performance and object pools to reduce allocations.
+ * Batch view animation for the RetroMenu3 menu system (the menu's animate-in/out, through
+ * [ViewUtils.animateMenuViewsBatchOptimized]). Uses ViewPropertyAnimator with a hardware layer
+ * for the duration of each animation.
  */
 object AnimationOptimizer {
-
-    // Max number of pooled listener instances kept for reuse; sized to comfortably cover the
-    // menu's simultaneous animations without unbounded growth.
-    private const val ANIMATOR_LISTENER_POOL_MAX_SIZE = 8
-
-    // Pool of ViewPropertyAnimator listeners to reduce allocations
-    private val animatorListenerPool =
-            Pools.SimplePool<AnimationEndListener>(ANIMATOR_LISTENER_POOL_MAX_SIZE)
-
-    /** Optimized animation using ViewPropertyAnimator with listener pool */
-    fun animateViewOptimized(
-            view: View,
-            toAlpha: Float,
-            toScale: Float,
-            duration: Long = 200,
-            onEnd: (() -> Unit)? = null
-    ): ViewPropertyAnimator {
-        // Usar hardware layer para melhor performance
-        view.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-
-        return view.animate()
-                .alpha(toAlpha)
-                .scaleX(toScale)
-                .scaleY(toScale)
-                .setDuration(duration)
-                .setInterpolator(android.view.animation.DecelerateInterpolator())
-                .setListener(getAnimationEndListener(view, onEnd))
-    }
 
     /** Optimized batch animation using ViewPropertyAnimator */
     fun animateViewsBatchOptimized(
@@ -198,55 +168,5 @@ object AnimationOptimizer {
                 "AnimationOptimizer",
                 "🎬 [BATCH_ANIM] ===== BATCH ANIMATION INITIATED ====="
         )
-    }
-
-    /** Obtains a listener from the pool or creates a new one */
-    private fun getAnimationEndListener(
-            view: View,
-            onEnd: (() -> Unit)?
-    ): Animator.AnimatorListener {
-        return animatorListenerPool.acquire()?.apply {
-            this.view = view
-            this.onEnd = onEnd
-        }
-                ?: AnimationEndListener(view, onEnd)
-    }
-
-    /** Reusable listener for ViewPropertyAnimator animations */
-    private class AnimationEndListener(var view: View? = null, var onEnd: (() -> Unit)? = null) :
-            Animator.AnimatorListener {
-
-        // Animator.AnimatorListener requires overriding every callback; this reusable
-        // listener only cares about end/cancel to restore layer type and return to the pool.
-        @Suppress("EmptyFunctionBlock")
-        override fun onAnimationStart(animation: Animator) {}
-
-        override fun onAnimationEnd(animation: Animator) {
-            // Restaurar layer type
-            view?.setLayerType(View.LAYER_TYPE_NONE, null)
-            onEnd?.invoke()
-            // Limpar referências e devolver ao pool
-            view = null
-            onEnd = null
-            animatorListenerPool.release(this)
-        }
-
-        override fun onAnimationCancel(animation: Animator) {
-            // Restaurar layer type mesmo se cancelado
-            view?.setLayerType(View.LAYER_TYPE_NONE, null)
-            // Limpar referências e devolver ao pool
-            view = null
-            onEnd = null
-            animatorListenerPool.release(this)
-        }
-
-        @Suppress("EmptyFunctionBlock")
-        override fun onAnimationRepeat(animation: Animator) {}
-    }
-
-    /** Clears the pools when needed (call from Activity onDestroy) */
-    fun clearPools() {
-        // Not strictly necessary, but helps with memory cleanup
-        MenuLogger.performance("Animation pools cleared")
     }
 }
