@@ -301,25 +301,78 @@ tasks.register("setupScriptsVenv", Exec) {
 
 tasks.register("testScripts", Exec) {
     group = "verification"
-    description = "Runs the pytest suite for the icon scripts and pick_icon.sh (icons/tests)."
+    description = "Runs the pytest suite for the icon scripts, pick_icon.sh and tools/coverage."
     dependsOn("setupScriptsVenv")
     def pythonSources = fileTree("$rootDir/icons") {
         include "scripts/**/*.py", "tests/**/*.py", "platforms.json", "images/**"
         exclude "**/__pycache__/**"
     }
     inputs.files(pythonSources).withPropertyName("pythonSources")
+    inputs.files(fileTree("$rootDir/tools") { include "**/*.py"; exclude "**/__pycache__/**" })
+            .withPropertyName("toolSources")
     inputs.files(fileTree(rootDir) { include "*.sh" }).withPropertyName("shellScripts")
     inputs.files(scriptsRequirements, "$rootDir/ruff.toml").withPropertyName("toolConfig")
     def report = file("$rootDir/build/test-results/scripts/pytest.xml")
     outputs.file(report)
     workingDir = rootDir
     environment "PYTHONDONTWRITEBYTECODE", "1"
-    commandLine "${scriptsVenvDir}/bin/python", "-m", "pytest", "icons/tests",
+    commandLine "${scriptsVenvDir}/bin/python", "-m", "pytest", "icons/tests", "tools/tests",
             "-p", "no:cacheprovider", "-q", "--junitxml=${report}"
 }
 
 tasks.named("check") {
     dependsOn("testScripts")
+}
+
+// Coverage for all code: `./gradlew coverageAll -PskipAssetStaging` measures Kotlin (Kover, unit
+// tests), Python (pytest-cov, with branches) and shell (xtrace, tools/coverage/shell_coverage.py)
+// and writes build/reports/coverage/summary.md. Not part of `check`; the Kotlin floor is enforced
+// by koverVerifyDebug.
+def coverageDir = file("$rootDir/build/reports/coverage")
+def shellTraceDir = new File(coverageDir, "shell-traces")
+
+tasks.register("coverageScripts", Exec) {
+    group = "verification"
+    description = "Runs the script tests with Python and shell coverage (build/reports/coverage)."
+    dependsOn("setupScriptsVenv")
+    outputs.upToDateWhen { false }
+    workingDir = rootDir
+    environment "PYTHONDONTWRITEBYTECODE", "1"
+    environment "COVERAGE_FILE", new File(coverageDir, ".coverage").path
+    environment "SHELL_COVERAGE_TRACE_DIR", shellTraceDir.path
+    commandLine "${scriptsVenvDir}/bin/python", "-m", "pytest", "icons/tests", "tools/tests",
+            "-p", "no:cacheprovider", "-q",
+            "--cov=icons/scripts", "--cov-branch",
+            "--cov-report=xml:${coverageDir}/python.xml",
+            "--cov-report=html:${coverageDir}/python-html"
+    doFirst {
+        delete(shellTraceDir)
+        coverageDir.mkdirs()
+    }
+}
+
+tasks.register("coverageShellReport", Exec) {
+    description = "Turns the shell traces from coverageScripts into build/reports/coverage/shell.json."
+    dependsOn("coverageScripts")
+    outputs.upToDateWhen { false }
+    workingDir = rootDir
+    def scripts = fileTree(rootDir) { include "*.sh" }.files.collect { it.name }.sort()
+    commandLine(["${scriptsVenvDir}/bin/python", "tools/coverage/shell_coverage.py",
+                 "--trace-dir", shellTraceDir.path,
+                 "--output", "${coverageDir}/shell.json"] + scripts)
+}
+
+tasks.register("coverageAll", Exec) {
+    group = "verification"
+    description = "Kotlin + Python + shell coverage summary (build/reports/coverage/summary.md)."
+    dependsOn("koverXmlReportDebug", "coverageShellReport")
+    outputs.upToDateWhen { false }
+    workingDir = rootDir
+    commandLine "${scriptsVenvDir}/bin/python", "tools/coverage/coverage_summary.py",
+            "--kotlin", layout.buildDirectory.file("reports/kover/reportDebug.xml").get().asFile.path,
+            "--python", "${coverageDir}/python.xml",
+            "--shell", "${coverageDir}/shell.json",
+            "--output", "${coverageDir}/summary.md"
 }
 
 // Screenshot goldens for tests/*Screenshot_test.kt are committed next to the tests. Record them

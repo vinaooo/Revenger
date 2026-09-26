@@ -1,4 +1,4 @@
-"""Keeps the icon scripts lint-clean with the repo's pinned ruff config (ruff.toml).
+"""Keeps the icon scripts and tools/ lint-clean with the repo's pinned ruff config (ruff.toml).
 
 ruff is in icons/requirements-dev.txt, so `./gradlew testScripts` always runs this; a bare
 `pytest` without the dev requirements skips it.
@@ -27,7 +27,7 @@ def test_icon_scripts_pass_ruff_with_the_repo_config():
         pytest.skip("ruff not installed (pip install -r icons/requirements-dev.txt)")
 
     result = subprocess.run(
-        [ruff, "check", "--no-cache", "--config", os.path.join(REPO_ROOT, "ruff.toml"), "icons"],
+        [ruff, "check", "--no-cache", "--config", os.path.join(REPO_ROOT, "ruff.toml"), "icons", "tools"],
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,

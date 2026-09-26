@@ -2,6 +2,9 @@
 
 A stub `python3` placed first on PATH stands in for the icon scripts: it records its cwd and
 arguments in $STUB_LOG and exits with $STUB_EXIT, so no icon script, browser or network runs.
+
+With $SHELL_COVERAGE_TRACE_DIR set (`./gradlew coverageScripts` does this), every script run here
+is traced for line coverage by tools/coverage/shell_coverage.py.
 """
 import os
 import shutil
@@ -13,6 +16,11 @@ import pytest
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PICK_ICON = os.path.join(REPO_ROOT, "pick_icon.sh")
 BASH = shutil.which("bash")
+
+sys.path.insert(0, os.path.join(REPO_ROOT, "tools", "coverage"))
+import shell_coverage  # noqa: E402
+
+COVERAGE_TRACE_DIR = os.environ.get("SHELL_COVERAGE_TRACE_DIR")
 
 pytestmark = pytest.mark.skipif(BASH is None, reason="bash not installed")
 
@@ -42,6 +50,8 @@ def stub(tmp_path):
                 "STUB_LOG": str(log),
                 "STUB_EXIT": str(exit_code),
             }
+            if COVERAGE_TRACE_DIR:
+                env.update(shell_coverage.trace_env(COVERAGE_TRACE_DIR))
             return subprocess.run(
                 [BASH, script, *args], cwd=cwd or tmp_path, env=env, capture_output=True, text=True, timeout=30,
             )
