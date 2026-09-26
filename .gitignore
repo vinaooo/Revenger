@@ -63,6 +63,9 @@ icons/.env
 # Python Cache
 __pycache__/
 .pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
 *.pyc
 *.pyo
 

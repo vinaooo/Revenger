@@ -1,0 +1,4 @@
+# Runtime dependencies of icons/scripts (the generateIcons Gradle task and pick_icon.sh).
+# pip install -r icons/requirements.txt
+requests>=2.31
+Pillow>=10.1

@@ -2,9 +2,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 import os
 import sys
-import xml.etree.ElementTree as ET
 from PIL import Image, ImageDraw
-from pathlib import Path
 
 # Import the refactored modules
 from fetch_icon import fetch_sgdb_icon, fetch_sgdb_multiple_icons
@@ -123,7 +121,8 @@ def determine_platform(core, rom):
     if ext in ext_map:
         # Avoid conflicts (e.g., .bin could be megadrive or ps1)
         if ext == "bin":
-            if "pcsx" in core or "duck" in core: return "ps1"
+            if "pcsx" in core or "duck" in core:
+                return "ps1"
             return "megadrive"
         return ext_map[ext]
         
@@ -338,10 +337,10 @@ def main():
                 return
             else:
                 logging.info("♻️ Locked ROM is different from current ROM. Dropping obsolete icon cache.")
-                try: 
+                try:
                     os.remove(override_path)
                     os.remove(rom_lock_path)
-                except: 
+                except OSError:
                     pass
 
     if args.gui_web:
@@ -358,8 +357,10 @@ def main():
         typo_img = generate_typo_icon(rom)
         
         # Padding prévio para a Web GUI mostrar o quadrado perfeito + blur nas prévias transparentes
-        if console_img: console_img = make_perfect_square(console_img)
-        if typo_img: typo_img = make_perfect_square(typo_img)
+        if console_img:
+            console_img = make_perfect_square(console_img)
+        if typo_img:
+            typo_img = make_perfect_square(typo_img)
         
         ctx = {
             "sgdb": [make_perfect_square(i) for i in sgdb_imgs] if sgdb_imgs else [],
@@ -379,8 +380,10 @@ def main():
             override_dir = os.path.join(PROJECT_ROOT, "icons", ".cache")
             override_path = os.path.join(override_dir, "custom_override_icon.png")
             rom_lock_path = os.path.join(override_dir, "last_rom.txt")
-            if os.path.exists(override_path): os.remove(override_path)
-            if os.path.exists(rom_lock_path): os.remove(rom_lock_path)
+            if os.path.exists(override_path):
+                os.remove(override_path)
+            if os.path.exists(rom_lock_path):
+                os.remove(rom_lock_path)
             
             # Switch modes so the standard cascade runs immediately below
             args.gui_web = False

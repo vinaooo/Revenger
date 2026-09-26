@@ -30,7 +30,8 @@ def generate_stable_color(game_name):
 
 def extract_initials(game_name):
     words = re.findall(r'\b\w+\b', game_name)
-    if not words: return "?"
+    if not words:
+        return "?"
     initials = [w[0].upper() for w in words[:3]]
     return "".join(initials)
 
@@ -49,7 +50,8 @@ def generate_typo_icon(rom_name):
     
     try:
         font_size = int(OUTPUT_SIZE * 0.6)
-        if len(initials) > 2: font_size = int(OUTPUT_SIZE * 0.45)
+        if len(initials) > 2:
+            font_size = int(OUTPUT_SIZE * 0.45)
         font = ImageFont.truetype(FONT_PATH, font_size)
     except Exception:
         font = ImageFont.load_default()

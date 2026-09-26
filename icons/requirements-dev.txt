@@ -1,2 +1,7 @@
-# Test-only dependencies for the icon scripts: pip install -r icons/requirements-dev.txt
+# Test-only dependencies for the icon scripts. `./gradlew testScripts` installs these (plus
+# requirements.txt) into its own venv under build/; to run pytest by hand:
+# pip install -r icons/requirements.txt -r icons/requirements-dev.txt
 pytest>=8
+pytest-cov>=5
+ruff>=0.6
+shellcheck-py>=0.10

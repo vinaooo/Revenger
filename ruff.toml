@@ -1,0 +1,7 @@
+# Lint config for the Python icon scripts (icons/). Pinned in the repo so results don't depend on
+# a developer's global ruff config. icons/tests/test_lint.py runs it as part of `./gradlew testScripts`.
+[lint]
+# E7/E9: statement and syntax errors, F: pyflakes (unused imports/names, undefined names),
+# B: bugbear (likely bugs). E4 (import position) is left out: the scripts configure logging before
+# importing their sibling modules.
+select = ["E7", "E9", "F", "B"]
