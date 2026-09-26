@@ -304,7 +304,7 @@ tasks.register("testScripts", Exec) {
     description = "Runs the pytest suite for the icon scripts and pick_icon.sh (icons/tests)."
     dependsOn("setupScriptsVenv")
     def pythonSources = fileTree("$rootDir/icons") {
-        include "scripts/**/*.py", "tests/**/*.py"
+        include "scripts/**/*.py", "tests/**/*.py", "platforms.json", "images/**"
         exclude "**/__pycache__/**"
     }
     inputs.files(pythonSources).withPropertyName("pythonSources")

@@ -6,15 +6,11 @@ import re
 from PIL import Image, ImageFilter
 from io import BytesIO
 from utils import load_env
+import platforms
 
 load_env()
 CLIENT_ID = os.environ.get("IGDB_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("IGDB_CLIENT_SECRET")
-IGDB_PLATFORMS = {
-    "mastersystem": 64, "megadrive": 29, "nes": 18, "snes": 19,
-    "n64": 4, "gamecube": 21, "gba": 24, "nds": 20, "3ds": 37,
-    "ps1": 7, "ps2": 8, "psp": 38
-}
 
 def _safe_json(response):
     """Parses a response body as JSON, treating a non-JSON body (rate limiting,
@@ -40,7 +36,7 @@ def get_token():
     return data.get("access_token") if data else None
 
 def fetch_igdb_cover(name, platform, token, interactive=False):
-    p_id = IGDB_PLATFORMS.get(platform.lower())
+    p_id = platforms.igdb_platform_id(platform)
     headers = {"Client-ID": CLIENT_ID, "Authorization": f"Bearer {token}"}
     body = f'search "{name}"; fields name, cover.url; where platforms = ({p_id}); limit 5;'
     try:
@@ -111,12 +107,12 @@ def fetch_igdb_multiple_covers(platform, rom_name, limit=5):
     clean_name = re.sub(r'\.(iso|zip|sfc|gba|nds|n64|3ds|bin|cue|sms|nds|gcm)$', '', clean_name, flags=re.IGNORECASE).strip()
     
     images = []
-    if platform.lower() not in IGDB_PLATFORMS:
+    if platforms.igdb_platform_id(platform) is None:
         return images
         
     token = get_token()
     if token:
-        p_id = IGDB_PLATFORMS.get(platform.lower())
+        p_id = platforms.igdb_platform_id(platform)
         headers = {"Client-ID": CLIENT_ID, "Authorization": f"Bearer {token}"}
         body = f'search "{clean_name}"; fields name, cover.url; where platforms = ({p_id}); limit {limit};'
         try:
@@ -144,7 +140,7 @@ def fetch_igdb_smart_icon(platform, rom_name, interactive=False):
     clean_name = re.sub(r'\([^)]*\)|\[[^\]]*\]', '', rom_name).strip()
     clean_name = re.sub(r'\.(iso|zip|sfc|gba|nds|n64|3ds|bin|cue|sms|nds|gcm)$', '', clean_name, flags=re.IGNORECASE).strip()
     
-    if platform.lower() not in IGDB_PLATFORMS:
+    if platforms.igdb_platform_id(platform) is None:
         return None
         
     token = get_token()
