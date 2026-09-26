@@ -2,7 +2,6 @@ package com.vinaooo.revenger.utils
 
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewPropertyAnimator
 
 /**
  * Utility class for common view operations used across menu fragments. Eliminates code duplication
@@ -131,24 +130,7 @@ object ViewUtils {
                 .start()
     }
 
-    /**
-     * Optimized view animation using ViewPropertyAnimator with object pooling. Replaces
-     * animateView for better performance.
-     */
-    fun animateViewOptimized(
-            view: View,
-            toAlpha: Float,
-            toScale: Float,
-            duration: Long = 200,
-            onEnd: (() -> Unit)? = null
-    ): ViewPropertyAnimator {
-        return AnimationOptimizer.animateViewOptimized(view, toAlpha, toScale, duration, onEnd)
-    }
-
-    /**
-     * Optimized batch animation using object pools. Replaces animateMenuViewsBatch for
-     * better performance.
-     */
+    /** Batch menu animation through [AnimationOptimizer.animateViewsBatchOptimized]. */
     fun animateMenuViewsBatchOptimized(
             views: Array<View>,
             toAlpha: Float,

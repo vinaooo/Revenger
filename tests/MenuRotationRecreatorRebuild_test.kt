@@ -1,0 +1,200 @@
+package com.vinaooo.revenger.controllers
+
+import android.os.Looper
+import android.view.View
+import android.widget.FrameLayout
+import androidx.fragment.app.Fragment
+import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.AboutFragment
+import com.vinaooo.revenger.ui.retromenu3.ExitFragment
+import com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment
+import com.vinaooo.revenger.ui.retromenu3.MenuManager
+import com.vinaooo.revenger.ui.retromenu3.MenuState
+import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
+import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
+import com.vinaooo.revenger.ui.retromenu3.ScreenshotHostActivity
+import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
+import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
+import com.vinaooo.revenger.viewmodels.GameActivityViewModel
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import io.mockk.verifyOrder
+import java.time.Duration
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
+import org.robolectric.android.controller.ActivityController
+import org.robolectric.annotation.Config
+
+/**
+ * The rebuild half of [MenuRotationRecreator]'s chain (steps 2-4, after the teardown that
+ * `MenuRotationRecreator_test` covers), with the real menu fragments. The host is the screenshot
+ * tests' [ScreenshotHostActivity], so those fragments get the mocked [GameActivityViewModel] from
+ * `ViewModelProvider`.
+ *
+ * Each test runs the whole chain (its delays add up to 1.1s) and checks the end state plus the
+ * order of the ViewModel calls. Intermediate times aren't asserted: committing the real menu
+ * fragments advances Robolectric's clock by itself, so "at +100ms" isn't observable.
+ */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [33])
+class MenuRotationRecreatorRebuild_test {
+
+    private val viewModel: GameActivityViewModel = mockk(relaxed = true)
+    private val navigationController: NavigationController = mockk(relaxed = true)
+    private val menuManager: MenuManager = mockk(relaxed = true)
+    private lateinit var controller: ActivityController<ScreenshotHostActivity>
+    private lateinit var activity: ScreenshotHostActivity
+    private lateinit var recreator: MenuRotationRecreator
+
+    @Before
+    fun setUp() {
+        every { viewModel.isAnyMenuActive() } returns true
+        every { viewModel.navigationController } returns navigationController
+        every { viewModel.getMenuManager() } returns menuManager
+        every { menuManager.getCurrentState() } returns MenuState.MAIN_MENU
+        every { viewModel.retroView } returns null
+        every { viewModel.getCachedScreenshot() } returns null
+
+        controller = Robolectric.buildActivity(ScreenshotHostActivity::class.java)
+        activity = controller.get()
+        activity.gameViewModel = viewModel
+        controller.create()
+        activity.setContentView(FrameLayout(activity).apply { id = R.id.menu_container })
+        controller.start().resume().visible()
+
+        recreator = MenuRotationRecreator(activity, viewModel)
+    }
+
+    @After
+    fun tearDown() {
+        controller.pause().stop().destroy()
+    }
+
+    private val fragmentManager get() = activity.supportFragmentManager
+
+    private fun advance(millis: Long) = shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(millis))
+
+    /** Puts a stand-in for the pre-rotation menu in the container, as a submenu when [asSubmenu]. */
+    private fun showBeforeRotation(asSubmenu: Boolean): Fragment {
+        val before = DummyMenuFragment()
+        val transaction = fragmentManager.beginTransaction().add(R.id.menu_container, before, "before")
+        if (asSubmenu) transaction.addToBackStack("before")
+        transaction.commit()
+        fragmentManager.executePendingTransactions()
+        return before
+    }
+
+    private fun containerFragment(): Fragment? = fragmentManager.findFragmentById(R.id.menu_container)
+
+    @Test
+    fun `sem backstack reconstroi so o menu principal e devolve o foco ao primeiro item`() {
+        val before = showBeforeRotation(asSubmenu = false)
+
+        recreator.scheduleMenuRecreationAfterRotation(before, hasBackStack = false, currentState = MenuState.MAIN_MENU)
+        advance(SETTLE_MS)
+
+        val main = containerFragment()
+        assertTrue(main is RetroMenu3Fragment)
+        assertEquals("RetroMenu3Fragment", main?.tag)
+        assertEquals(0, fragmentManager.backStackEntryCount)
+        verify { viewModel.updateRetroMenu3FragmentReference(main as RetroMenu3Fragment) }
+        verify(exactly = 0) { menuManager.navigateToState(any()) }
+
+        assertFocused(R.id.menu_continue)
+    }
+
+    /**
+     * Runs the whole submenu branch and checks what every submenu shares: the base main menu was
+     * committed and handed to the ViewModel, then the menu manager moved to [state], before the
+     * submenu went on top with one backstack entry tagged with its class name.
+     */
+    private fun rebuildSubmenu(state: MenuState): Fragment? {
+        val before = showBeforeRotation(asSubmenu = true)
+
+        recreator.scheduleMenuRecreationAfterRotation(before, hasBackStack = true, currentState = state)
+        advance(SETTLE_MS)
+
+        val submenu = containerFragment()
+        assertEquals(1, fragmentManager.backStackEntryCount)
+        assertEquals(submenu?.javaClass?.simpleName, submenu?.tag)
+        verifyOrder {
+            viewModel.updateRetroMenu3FragmentReference(any())
+            menuManager.navigateToState(state)
+            navigationController.syncState(any(), 0, false)
+        }
+        return submenu
+    }
+
+    private fun assertFocused(id: Int) = assertTrue(activity.findViewById<View>(id).isFocused)
+
+    @Test
+    fun `Settings e reconstruido sobre o menu principal, registrado e sincronizado`() {
+        val submenu = rebuildSubmenu(MenuState.SETTINGS_MENU)
+
+        assertTrue(submenu is SettingsMenuFragment)
+        verify { viewModel.registerSettingsMenuFragmentForRotation(submenu as SettingsMenuFragment) }
+        verify { navigationController.syncState(MenuType.SETTINGS, 0, false) }
+
+        assertFocused(R.id.settings_sound)
+    }
+
+    @Test
+    fun `Progress e reconstruido, registrado e sincronizado`() {
+        val submenu = rebuildSubmenu(MenuState.PROGRESS_MENU)
+
+        assertTrue(submenu is ProgressFragment)
+        verify { viewModel.registerProgressFragmentForRotation(submenu as ProgressFragment) }
+        verify { navigationController.syncState(MenuType.PROGRESS, 0, false) }
+
+        assertFocused(R.id.progress_load_state)
+    }
+
+    @Test
+    fun `About e reconstruido, registrado e sincronizado`() {
+        val submenu = rebuildSubmenu(MenuState.ABOUT_MENU)
+
+        assertTrue(submenu is AboutFragment)
+        verify { viewModel.registerAboutFragmentForRotation(submenu as AboutFragment) }
+        verify { navigationController.syncState(MenuType.ABOUT, 0, false) }
+
+        assertFocused(R.id.about_back)
+    }
+
+    @Test
+    fun `Exit e reconstruido, registrado e sincronizado`() {
+        val submenu = rebuildSubmenu(MenuState.EXIT_MENU)
+
+        assertTrue(submenu is ExitFragment)
+        verify { viewModel.registerExitFragmentForRotation(submenu as ExitFragment) }
+        verify { navigationController.syncState(MenuType.EXIT, 0, false) }
+
+        assertFocused(R.id.exit_menu_option_a)
+    }
+
+    @Test
+    fun `submenu sem registro de rotacao ainda e reconstruido e sincronizado`() {
+        val submenu = rebuildSubmenu(MenuState.MANAGE_SAVES_MENU)
+
+        assertTrue(submenu is ManageSavesFragment)
+        verify { navigationController.syncState(MenuType.MANAGE_SAVES, 0, false) }
+        verify(exactly = 0) { viewModel.registerSettingsMenuFragmentForRotation(any()) }
+        verify(exactly = 0) { viewModel.registerProgressFragmentForRotation(any()) }
+        verify(exactly = 0) { viewModel.registerAboutFragmentForRotation(any()) }
+        verify(exactly = 0) { viewModel.registerExitFragmentForRotation(any()) }
+        assertEquals(1, fragmentManager.backStackEntryCount)
+    }
+
+    private companion object {
+        /** Longer than the whole chain (250 + 100 + 150 + 600ms on the submenu branch). */
+        const val SETTLE_MS = 3_000L
+    }
+}
