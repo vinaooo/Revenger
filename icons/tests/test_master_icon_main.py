@@ -267,3 +267,169 @@ def test_gui_web_clear_override_removes_the_lock_and_runs_the_cascade(h, picker)
     assert not (h.cache / "last_rom.txt").exists()
     assert h.calls[-1] == "sgdb"  # after the picker's console/typo previews
     assert h.generated == [h.results["sgdb"]]
+
+
+# ---------------------------------------------------------------------------------------------
+# auto-pick cache (icons/.cache/auto_icon.png + auto_last_rom.txt)
+# ---------------------------------------------------------------------------------------------
+
+
+def _auto_icon(h):
+    return h.cache / "auto_icon.png"
+
+
+def _auto_rom(h):
+    return h.cache / "auto_last_rom.txt"
+
+
+def _pixel(path):
+    with Image.open(path) as image:
+        return image.convert("RGBA").getpixel((0, 0))
+
+
+def test_first_run_scrapes_and_caches_the_online_pick(h):
+    h.results["igdb"] = _image((11, 22, 33, 255))
+
+    h.run()
+
+    assert h.calls == ["sgdb", "igdb"]
+    assert _auto_rom(h).read_text() == ROM
+    assert _pixel(_auto_icon(h)) == (11, 22, 33, 255)
+
+
+def test_second_run_for_the_same_rom_makes_no_fetcher_call(h):
+    h.results["sgdb"] = _image((11, 22, 33, 255))
+    h.run()
+    h.calls.clear()
+    h.results["sgdb"] = None  # the network would now fail; the cache must not need it
+
+    h.run()
+
+    assert h.calls == []
+    assert len(h.generated) == 2
+    assert h.generated[1].getpixel((0, 0)) == (11, 22, 33, 255)
+
+
+def test_another_rom_scrapes_again_and_replaces_the_cache(h, monkeypatch):
+    h.results["sgdb"] = _image((1, 1, 1, 255))
+    h.run()
+    monkeypatch.setattr(h.module, "parse_config_xml", lambda path=None: ("core-a", "Other Game.aaa"))
+    h.results["sgdb"] = _image((2, 2, 2, 255))
+    h.calls.clear()
+
+    h.run()
+
+    assert h.calls == ["sgdb"]
+    assert _auto_rom(h).read_text() == "Other Game.aaa"
+    assert _pixel(_auto_icon(h)) == (2, 2, 2, 255)
+
+
+@pytest.mark.parametrize("argv, expected_calls", [
+    (["--refresh"], ["sgdb"]),
+    (["--force", "1"], ["sgdb"]),
+    (["--force", "4"], ["typo"]),
+    (["--interactive"], ["sgdb"]),
+])
+def test_explicit_runs_bypass_the_cache(h, argv, expected_calls):
+    h.results["sgdb"] = _image((1, 1, 1, 255))
+    h.run()
+    h.calls.clear()
+    h.results["sgdb"] = _image((2, 2, 2, 255))
+    h.results["typo"] = _image((3, 3, 3, 255))
+
+    h.run(*argv)
+
+    assert h.calls == expected_calls
+    assert h.generated[-1] is h.results[expected_calls[0]]
+
+
+def test_refresh_replaces_the_cached_pick(h):
+    h.results["sgdb"] = _image((1, 1, 1, 255))
+    h.run()
+    h.results["sgdb"] = _image((2, 2, 2, 255))
+
+    h.run("--refresh")
+
+    assert _pixel(_auto_icon(h)) == (2, 2, 2, 255)
+
+
+def test_local_fallbacks_are_not_cached(h):
+    h.results["typo"] = _image((3, 3, 3, 255))
+    h.run()
+    h.calls.clear()
+
+    h.run()
+
+    assert not _auto_icon(h).exists()
+    assert h.calls == ["sgdb", "igdb", "console", "typo"]  # online is tried again
+
+
+def test_refresh_falling_back_offline_drops_the_old_online_pick(h):
+    h.results["sgdb"] = _image((1, 1, 1, 255))
+    h.run()
+    h.results["sgdb"] = None
+    h.results["typo"] = _image((3, 3, 3, 255))
+
+    h.run("--refresh")
+
+    assert h.generated[-1] is h.results["typo"]
+    assert not _auto_icon(h).exists()
+    assert not _auto_rom(h).exists()
+
+
+def test_skip_downloads_uses_an_existing_cache(h):
+    h.results["sgdb"] = _image((1, 1, 1, 255))
+    h.run()
+    h.calls.clear()
+
+    h.run("--skip-downloads")
+
+    assert h.calls == []
+
+
+def test_web_override_beats_the_auto_cache(h):
+    h.results["sgdb"] = _image((1, 1, 1, 255))
+    h.run()
+    (h.cache / "custom_override_icon.png").unlink(missing_ok=True)
+    _image((50, 60, 70, 255)).save(h.cache / "custom_override_icon.png")
+    (h.cache / "last_rom.txt").write_text(ROM)
+    h.calls.clear()
+
+    h.run()
+
+    assert h.calls == []
+    assert h.generated[-1].getpixel((0, 0)) == (50, 60, 70, 255)
+
+
+def test_gui_web_does_not_read_the_auto_cache(h, picker):
+    h.results["sgdb"] = _image((1, 1, 1, 255))
+    h.run()
+    picker.answer = _image((7, 8, 9, 255))
+
+    h.run("--gui-web")
+
+    assert picker.context is not None
+    assert h.generated[-1] is picker.answer
+
+
+def test_corrupt_cache_is_ignored_and_replaced(h):
+    h.cache.mkdir(parents=True)
+    _auto_icon(h).write_bytes(b"not a png")
+    _auto_rom(h).write_text(ROM)
+    h.results["sgdb"] = _image((4, 5, 6, 255))
+
+    h.run()
+
+    assert h.calls == ["sgdb"]
+    assert h.generated == [h.results["sgdb"]]
+    assert _pixel(_auto_icon(h)) == (4, 5, 6, 255)
+
+
+def test_cache_image_without_rom_file_is_ignored(h):
+    h.cache.mkdir(parents=True)
+    _image((9, 9, 9, 255)).save(_auto_icon(h))
+    h.results["sgdb"] = _image((4, 5, 6, 255))
+
+    h.run()
+
+    assert h.calls == ["sgdb"]

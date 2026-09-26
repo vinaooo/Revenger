@@ -239,6 +239,55 @@ def generate_android_icons(img, res_dir=None):
 
 import argparse
 
+
+def _cache_dir():
+    return os.path.join(PROJECT_ROOT, "icons", ".cache")
+
+
+def _auto_cache_paths():
+    return (os.path.join(_cache_dir(), "auto_icon.png"),
+            os.path.join(_cache_dir(), "auto_last_rom.txt"))
+
+
+def clear_auto_cache():
+    for path in _auto_cache_paths():
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+
+
+def load_auto_cache(rom):
+    """The icon the cascade picked online for `rom` on an earlier build, or None.
+
+    A cache for another ROM, or one that can't be read, is deleted so the cascade replaces it.
+    """
+    icon_path, rom_path = _auto_cache_paths()
+    if not (os.path.exists(icon_path) and os.path.exists(rom_path)):
+        return None
+    try:
+        with open(rom_path, "r", encoding="utf-8") as f:
+            cached_rom = f.read().strip()
+        if cached_rom != rom:
+            logging.info("♻️ Auto-picked icon cache belongs to another ROM. Dropping it.")
+            clear_auto_cache()
+            return None
+        with Image.open(icon_path) as cached:
+            return cached.convert("RGBA")
+    except (OSError, ValueError) as e:
+        logging.warning(f"⚠️ Auto-picked icon cache is unreadable ({e}). Dropping it.")
+        clear_auto_cache()
+        return None
+
+
+def save_auto_cache(img, rom):
+    icon_path, rom_path = _auto_cache_paths()
+    os.makedirs(_cache_dir(), exist_ok=True)
+    img.save(icon_path, "PNG")
+    with open(rom_path, "w", encoding="utf-8") as f:
+        f.write(rom)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Master Icon Creation Orchestrator")
     parser.add_argument("--force", type=int, choices=[1, 2, 3, 4], 
@@ -251,8 +300,12 @@ def main():
                         help="Start a local web server to pick the icon from ALL generators entirely graphically.")
     parser.add_argument("--config", type=str, 
                         help="Optional absolute path to config.xml. If omitted, assumes default Revenger project structure.")
-    
+    parser.add_argument("--refresh", action="store_true",
+                        help="Ignore the cached auto-picked icon and scrape again (Gradle: -PrefreshIcons).")
+
     args = parser.parse_args()
+    # The auto-pick cache only stands in for a plain cascade run; any explicit choice scrapes again.
+    use_auto_cache = not (args.refresh or args.force or args.interactive or args.gui_web)
     
     logging.info("🚀 Master Icon Creation Orchestrator")
     
@@ -295,6 +348,14 @@ def main():
                     os.remove(rom_lock_path)
                 except OSError:
                     pass
+
+    if use_auto_cache:
+        img = load_auto_cache(rom)
+        if img:
+            logging.info(f"📦 Using the icon auto-picked for {rom} on an earlier build (--refresh to scrape again).")
+            generate_android_icons(img)
+            logging.info("✅ Process complete (Using Cached Auto-Pick)!")
+            return
 
     if args.gui_web:
         logging.info("🚀 [WEB GUI] Launching interactive showcase... Fetching all possible variations.")
@@ -365,6 +426,14 @@ def main():
                 if not img:
                     logging.info("🔍 Match not found or failed. Attempting Method 2: IGDB Smart Icon (fetch_smart)...")
                     img = fetch_igdb_smart_icon(platform, rom, interactive=args.interactive)
+
+                # Cache online picks so the next build skips the network. A local fallback is not
+                # cached: the next build tries online again (and a stale online pick is dropped so
+                # the icon doesn't flip back to it).
+                if img:
+                    save_auto_cache(img, rom)
+                else:
+                    clear_auto_cache()
             else:
                 logging.info("⏭️ Skipping online download methods (SGDB, IGDB)...")
                 
