@@ -16,6 +16,15 @@ then
     exit 1
 fi
 
-python3 icons/scripts/master_icon.py --gui-web "$@"
+# The repo root is where this script lives. Resolve it instead of cd-ing there, so the script
+# works from any directory and relative arguments (e.g. --config) still mean the caller's cwd.
+repo_root="$(cd "$(dirname "$0")" && pwd)" || exit 1
+
+python3 "$repo_root/icons/scripts/master_icon.py" --gui-web "$@"
+status=$?
+if [ "$status" -ne 0 ]; then
+    echo "❌ Icon selection failed (exit $status)."
+    exit "$status"
+fi
 
 echo "[Revenger] Selection complete!"
