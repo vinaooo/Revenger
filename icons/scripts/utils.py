@@ -15,6 +15,18 @@ def load_env():
                         key, val = line.split('=', 1)
                         os.environ[key.strip()] = val.strip().strip("'\"")
 
+_env_loaded = False
+
+
+def ensure_env_loaded():
+    """Calls load_env() once per process. The fetchers call this before reading an API key, so
+    importing them never reads icons/.env."""
+    global _env_loaded
+    if not _env_loaded:
+        load_env()
+        _env_loaded = True
+
+
 def clean_rom_name(file_name):
     """Removes platform extensions and metadata tags from a ROM filename."""
     name_without_tags = re.sub(r'\([^)]*\)|\[[^\]]*\]', '', file_name)

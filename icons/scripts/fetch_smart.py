@@ -5,12 +5,16 @@ import requests
 import re
 from PIL import Image, ImageFilter
 from io import BytesIO
-from utils import load_env
+from utils import ensure_env_loaded
 import platforms
 
-load_env()
-CLIENT_ID = os.environ.get("IGDB_CLIENT_ID")
-CLIENT_SECRET = os.environ.get("IGDB_CLIENT_SECRET")
+
+def _credentials():
+    """(client id, client secret) for IGDB, read when needed (not at import) so tests never load
+    icons/.env."""
+    ensure_env_loaded()
+    return os.environ.get("IGDB_CLIENT_ID"), os.environ.get("IGDB_CLIENT_SECRET")
+
 
 def _safe_json(response):
     """Parses a response body as JSON, treating a non-JSON body (rate limiting,
@@ -23,9 +27,13 @@ def _safe_json(response):
         return None
 
 def get_token():
+    client_id, client_secret = _credentials()
+    if not client_id or not client_secret:
+        logging.warning("    [IGDB] ⚠️ IGDB_CLIENT_ID / IGDB_CLIENT_SECRET not set, skipping IGDB.")
+        return None
     try:
         res = requests.post("https://id.twitch.tv/oauth2/token", params={
-            "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET, "grant_type": "client_credentials"
+            "client_id": client_id, "client_secret": client_secret, "grant_type": "client_credentials"
         }, timeout=10)
     except requests.exceptions.RequestException as e:
         logging.warning(f"    [IGDB] ⚠️ Request failed: {e}")
@@ -37,7 +45,7 @@ def get_token():
 
 def fetch_igdb_cover(name, platform, token, interactive=False):
     p_id = platforms.igdb_platform_id(platform)
-    headers = {"Client-ID": CLIENT_ID, "Authorization": f"Bearer {token}"}
+    headers = {"Client-ID": _credentials()[0], "Authorization": f"Bearer {token}"}
     body = f'search "{name}"; fields name, cover.url; where platforms = ({p_id}); limit 5;'
     try:
         res = requests.post("https://api.igdb.com/v4/games", headers=headers, data=body, timeout=10)
@@ -102,7 +110,6 @@ def generate_smart_icon_image(content):
 
 def fetch_igdb_multiple_covers(platform, rom_name, limit=5):
     """Busca em lote as capas do IGDB e processa gerando ícones Smart (PIL Image)"""
-    import re
     clean_name = re.sub(r'\([^)]*\)|\[[^\]]*\]', '', rom_name).strip()
     clean_name = re.sub(r'\.(iso|zip|sfc|gba|nds|n64|3ds|bin|cue|sms|nds|gcm)$', '', clean_name, flags=re.IGNORECASE).strip()
     
@@ -113,7 +120,7 @@ def fetch_igdb_multiple_covers(platform, rom_name, limit=5):
     token = get_token()
     if token:
         p_id = platforms.igdb_platform_id(platform)
-        headers = {"Client-ID": CLIENT_ID, "Authorization": f"Bearer {token}"}
+        headers = {"Client-ID": _credentials()[0], "Authorization": f"Bearer {token}"}
         body = f'search "{clean_name}"; fields name, cover.url; where platforms = ({p_id}); limit {limit};'
         try:
             res = requests.post("https://api.igdb.com/v4/games", headers=headers, data=body, timeout=10)
@@ -148,7 +155,7 @@ def fetch_igdb_smart_icon(platform, rom_name, interactive=False):
         url, officially_named = fetch_igdb_cover(clean_name, platform, token, interactive)
         if url:
             try:
-                img_data = requests.get(url).content
+                img_data = requests.get(url, timeout=10).content
                 return generate_smart_icon_image(img_data)
             except Exception:
                 return None
