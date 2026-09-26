@@ -17,13 +17,25 @@ def image_to_base64(img):
     img_copy.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
+# The picker only ever serves this machine's browser. Binding every interface ("") would let anyone
+# on the local network open the page and pick the app icon with a POST.
+HOST = "127.0.0.1"
+
+
 def find_free_port():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("", 0))
+        s.bind((HOST, 0))
         return s.getsockname()[1]
 
-selected_image = None
-server_instance = None
+
+class WebPickerServer(http.server.HTTPServer):
+    """Serves the picker page for `context` and keeps the developer's choice in `selected`."""
+
+    def __init__(self, server_address, RequestHandlerClass, context):
+        super().__init__(server_address, RequestHandlerClass)
+        self.context = context
+        self.selected = None
+
 
 class IconPickerHandler(http.server.BaseHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -353,7 +365,6 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(html.encode("utf-8"))
         
     def do_POST(self):
-        global selected_image
         if self.path == '/select':
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
@@ -361,19 +372,19 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
             
             if "custom_base64" in data:
                 b64_data = data["custom_base64"].split(",")[1]
-                selected_image = Image.open(BytesIO(base64.b64decode(b64_data))).convert("RGBA")
+                self.server.selected = Image.open(BytesIO(base64.b64decode(b64_data))).convert("RGBA")
             elif "action" in data and data["action"] == "clear_override":
-                selected_image = "CLEAR_OVERRIDE"
+                self.server.selected = "CLEAR_OVERRIDE"
             elif "action" in data and data["action"] == "cancel":
-                selected_image = "CANCEL"
+                self.server.selected = "CANCEL"
             else:
                 group = data.get("group")
                 index = int(data.get("index"))
                 if group in self.server.context:
                     if isinstance(self.server.context[group], list):
-                        selected_image = self.server.context[group][index]
+                        self.server.selected = self.server.context[group][index]
                     else:
-                        selected_image = self.server.context[group]
+                        self.server.selected = self.server.context[group]
                         
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -381,7 +392,7 @@ class IconPickerHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(b'{"status":"success"}')
             
             # Encerrar o servidor num background thread logo após a resposta
-            threading.Thread(target=server_instance.shutdown, daemon=True).start()
+            threading.Thread(target=self.server.shutdown, daemon=True).start()
 
 
 def start_web_picker(context_dict):
@@ -389,29 +400,22 @@ def start_web_picker(context_dict):
     Inicia o servidor e bloqueia a thread principal até uma escolha ser feita.
     context_dict possuirá as chaves: 'sgdb' (lista), 'igdb' (lista), 'console' (img), 'typo' (img)
     """
-    global selected_image, server_instance
-    selected_image = None
-    
     port = find_free_port()
-    
-    class WebPickerServer(http.server.HTTPServer):
-        def __init__(self, server_address, RequestHandlerClass, context):
-            super().__init__(server_address, RequestHandlerClass)
-            self.context = context
-            
-    server_instance = WebPickerServer(("", port), IconPickerHandler, context_dict)
-    
-    print(f"\n🌐 [Web UI] Local server started at http://localhost:{port}")
+    server_instance = WebPickerServer((HOST, port), IconPickerHandler, context_dict)
+    url = f"http://{HOST}:{port}"
+
+    print(f"\n🌐 [Web UI] Local server started at {url}")
     print("🌐 The browser should open automatically. If not, click the link above.")
     print("⏳ Waiting for developer's decision in the browser...")
     print("⌨️  Press Ctrl+C in this terminal to strictly abort the process without changes.\n")
     
     # Abrir navegador
-    webbrowser.open(f"http://localhost:{port}")
+    webbrowser.open(url)
     
     try:
         # Bloquear servidor até o .shutdown() ser chamado via do_POST
         server_instance.serve_forever()
+        server_instance.server_close()
     except KeyboardInterrupt:
         print("\n\n⏹️ [Web UI] Aborted by the user. Closing local server...")
         server_instance.server_close()
@@ -419,4 +423,4 @@ def start_web_picker(context_dict):
         sys.exit(0)
     
     print("✅ [Web UI] Input received! Formatting Mipmaps...")
-    return selected_image
+    return server_instance.selected
