@@ -24,6 +24,7 @@ import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.controllers.FloatingMenuButtonController
+import com.vinaooo.revenger.controllers.InputDeviceWatcher
 import com.vinaooo.revenger.controllers.PipController
 import com.vinaooo.revenger.controllers.PipHost
 import com.vinaooo.revenger.controllers.PipViews
@@ -80,6 +81,9 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
 
         // Owns auto-rotate listening, orientation reapply, and rotation-triggered menu recreation.
         private lateinit var rotationController: RotationController
+
+        // Refreshes gamepad visibility when controllers connect, disconnect or change.
+        private lateinit var inputDeviceWatcher: InputDeviceWatcher
 
         // Modern permission launcher (replaces deprecated onRequestPermissionsResult)
         private val permissionLauncher =
@@ -372,38 +376,18 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 )
         }
 
-        /** Listen for new controller additions and removals */
+        /** Listen for new controller additions and removals, and route the system back */
         private fun registerInputListener() {
-                val inputManager = getSystemService(INPUT_SERVICE) as InputManager
-                inputManager.registerInputDeviceListener(
-                        object : InputManager.InputDeviceListener {
-                                override fun onInputDeviceAdded(deviceId: Int) {
-                                        viewModel.updateGamePadVisibility(
-                                                this@GameActivity,
-                                                leftContainer,
-                                                rightContainer,
-                                                findViewById(R.id.floating_menu_button)
-                                        )
-                                }
-                                override fun onInputDeviceRemoved(deviceId: Int) {
-                                        viewModel.updateGamePadVisibility(
-                                                this@GameActivity,
-                                                leftContainer,
-                                                rightContainer,
-                                                findViewById(R.id.floating_menu_button)
-                                        )
-                                }
-                                override fun onInputDeviceChanged(deviceId: Int) {
-                                        viewModel.updateGamePadVisibility(
-                                                this@GameActivity,
-                                                leftContainer,
-                                                rightContainer,
-                                                findViewById(R.id.floating_menu_button)
-                                        )
-                                }
-                        },
-                        null
-                )
+                inputDeviceWatcher =
+                        InputDeviceWatcher(getSystemService(INPUT_SERVICE) as InputManager) {
+                                viewModel.updateGamePadVisibility(
+                                        this,
+                                        leftContainer,
+                                        rightContainer,
+                                        findViewById(R.id.floating_menu_button)
+                                )
+                        }
+                inputDeviceWatcher.register()
 
                 /* Setup back pressed handling - check menu state and mode */
                 onBackPressedDispatcher.addCallback(
@@ -483,6 +467,9 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
         override fun onDestroy() {
                 // Remove auto-rotate change listener
                 rotationController.dispose()
+
+                // InputManager is process-wide: an unregistered listener would keep this Activity.
+                if (::inputDeviceWatcher.isInitialized) inputDeviceWatcher.dispose()
 
                 // PiP's own broadcast receiver and overlay teardown -- see PipController.dispose().
                 pipController.dispose()
