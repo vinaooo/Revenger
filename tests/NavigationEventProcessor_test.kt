@@ -239,4 +239,284 @@ class NavigationEventProcessor_test {
         assertEquals(MenuType.MAIN, stateManager.currentMenu)
         verify { fragmentAdapter.showMenu(MenuType.MAIN) }
     }
+
+    // --- processEvent: cada tipo de evento chega à ação certa ---
+
+    @Test
+    fun `Navigate UP e DOWN delegam ao fragment e sincronizam o indice`() {
+        val fragment = fakeFragment(selectedIndex = 4)
+        stateManager.registerFragment(fragment, itemCount = 6)
+
+        processor.processEvent(NavigationEvent.Navigate(Direction.UP, inputSource = InputSource.KEYBOARD))
+        processor.processEvent(NavigationEvent.Navigate(Direction.DOWN, inputSource = InputSource.KEYBOARD))
+
+        verify { fragment.onNavigateUp() }
+        verify { fragment.onNavigateDown() }
+        assertEquals(4, stateManager.selectedItemIndex)
+    }
+
+    @Test
+    fun `navigateUp sem fragment registrado volta o indice para zero`() {
+        stateManager.updateSelectedIndex(3)
+
+        processor.navigateUp()
+
+        assertEquals(0, stateManager.selectedItemIndex)
+    }
+
+    @Test
+    fun `Navigate LEFT e RIGHT so sincronizam o indice quando o fragment trata o evento`() {
+        val fragment = fakeFragment(selectedIndex = 5)
+        every { fragment.onNavigateLeft() } returns true
+        every { fragment.onNavigateRight() } returns false
+        stateManager.registerFragment(fragment, itemCount = 9)
+
+        processor.processEvent(NavigationEvent.Navigate(Direction.RIGHT, inputSource = InputSource.TOUCH))
+        assertEquals(0, stateManager.selectedItemIndex)
+
+        processor.processEvent(NavigationEvent.Navigate(Direction.LEFT, inputSource = InputSource.TOUCH))
+        assertEquals(5, stateManager.selectedItemIndex)
+    }
+
+    @Test
+    fun `Navigate LEFT e RIGHT sem fragment nao alteram nada`() {
+        stateManager.updateSelectedIndex(2)
+
+        processor.navigateLeft()
+        processor.navigateRight()
+
+        assertEquals(2, stateManager.selectedItemIndex)
+    }
+
+    @Test
+    fun `SelectItem seleciona o indice e atualiza o visual`() {
+        val fragment = fakeFragment()
+        stateManager.registerFragment(fragment, itemCount = 4)
+
+        processor.processEvent(NavigationEvent.SelectItem(3, inputSource = InputSource.TOUCH))
+
+        assertEquals(3, stateManager.selectedItemIndex)
+        verify { fragment.setSelectedIndex(3) }
+    }
+
+    @Test
+    fun `ActivateSelected em CONTINUE repassa o botao que fechou o menu`() {
+        stateManager.updateSelectedIndex(MenuIndices.CONTINUE)
+
+        processor.processEvent(NavigationEvent.ActivateSelected(keyCode = 96, inputSource = InputSource.PHYSICAL_GAMEPAD))
+
+        assertEquals(listOf<Int?>(96), menuClosedCalls)
+        assertTrue(eventQueue.isEmpty())
+    }
+
+    @Test
+    fun `NavigateBack no menu principal repassa o botao de voltar ao fechar`() {
+        processor.processEvent(NavigationEvent.NavigateBack(keyCode = 97, inputSource = InputSource.PHYSICAL_GAMEPAD))
+
+        assertEquals(listOf<Int?>(97), menuClosedCalls)
+        verify { fragmentAdapter.hideMenu() }
+    }
+
+    @Test
+    fun `CloseAllMenus volta ao principal, limpa a pilha e esquece o botao depois de fechar`() {
+        stateManager.pushCurrentState()
+        stateManager.updateCurrentMenu(MenuType.SETTINGS)
+        stateManager.updateSelectedIndex(2)
+        stateManager.registerFragment(fakeFragment(), itemCount = 3)
+
+        processor.processEvent(NavigationEvent.CloseAllMenus(keyCode = 108, inputSource = InputSource.PHYSICAL_GAMEPAD))
+
+        assertEquals(listOf<Int?>(108), menuClosedCalls)
+        assertEquals(MenuType.MAIN, stateManager.currentMenu)
+        assertEquals(0, stateManager.selectedItemIndex)
+        assertTrue(stateManager.isStackEmpty())
+        assertNull(stateManager.currentFragment)
+
+        processor.navigateBack() // closes again at MAIN: the old button must not be reused
+        assertEquals(listOf<Int?>(108, null), menuClosedCalls)
+    }
+
+    @Test
+    fun `OpenMenu com destino abre direto no submenu e limpa a pilha antiga`() {
+        stateManager.pushCurrentState()
+        stateManager.updateSelectedIndex(4)
+
+        processor.processEvent(
+                NavigationEvent.OpenMenu(targetMenu = MenuType.PROGRESS, inputSource = InputSource.EMULATED_GAMEPAD)
+        )
+
+        assertEquals(MenuType.PROGRESS, stateManager.currentMenu)
+        assertEquals(0, stateManager.selectedItemIndex)
+        assertTrue(stateManager.isStackEmpty())
+        verify { fragmentAdapter.showMenu(MenuType.PROGRESS) }
+    }
+
+    // --- activateItem: itens do menu principal ---
+
+    @Test
+    fun `activateItem nos itens de submenu navega para o submenu correspondente`() {
+        val targets =
+                mapOf(
+                        MenuIndices.PROGRESS to MenuType.PROGRESS,
+                        MenuIndices.SETTINGS to MenuType.SETTINGS,
+                        MenuIndices.ABOUT to MenuType.ABOUT,
+                        MenuIndices.EXIT to MenuType.EXIT,
+                )
+        for ((index, menu) in targets) {
+            stateManager.clearStack()
+            stateManager.updateCurrentMenu(MenuType.MAIN)
+            stateManager.updateSelectedIndex(index)
+
+            processor.activateItem()
+
+            assertEquals(menu, stateManager.currentMenu)
+            assertEquals(0, stateManager.selectedItemIndex)
+            assertEquals(MenuState(MenuType.MAIN, index), stateManager.popState())
+            verify { fragmentAdapter.showMenu(menu) }
+        }
+    }
+
+    @Test
+    fun `activateItem em RESET delega ao fragment e continua no menu principal`() {
+        for (handled in listOf(true, false)) {
+            val fragment = fakeFragment()
+            every { fragment.onConfirm() } returns handled
+            stateManager.registerFragment(fragment, itemCount = MenuIndices.TOTAL_ITEMS)
+            stateManager.updateSelectedIndex(MenuIndices.RESET)
+
+            processor.activateItem()
+
+            verify { fragment.onConfirm() }
+            assertEquals(MenuType.MAIN, stateManager.currentMenu)
+            assertTrue(stateManager.isStackEmpty())
+        }
+        verify(exactly = 0) { fragmentAdapter.showMenu(any()) }
+    }
+
+    @Test
+    fun `activateItem em RESET sem fragment nao faz nada`() {
+        stateManager.updateSelectedIndex(MenuIndices.RESET)
+
+        processor.activateItem()
+
+        assertEquals(MenuType.MAIN, stateManager.currentMenu)
+        assertTrue(menuClosedCalls.isEmpty())
+    }
+
+    @Test
+    fun `activateItem com indice desconhecido nao navega nem fecha`() {
+        stateManager.updateSelectedIndex(MenuIndices.TOTAL_ITEMS + 3)
+
+        processor.activateItem()
+
+        assertEquals(MenuType.MAIN, stateManager.currentMenu)
+        assertTrue(stateManager.isStackEmpty())
+        assertTrue(menuClosedCalls.isEmpty())
+        verify(exactly = 0) { fragmentAdapter.showMenu(any()) }
+        verify(exactly = 0) { fragmentAdapter.hideMenu() }
+    }
+
+    @Test
+    fun `activateItem em submenu sem fragment nao falha`() {
+        stateManager.updateCurrentMenu(MenuType.ABOUT)
+
+        processor.activateItem()
+
+        assertEquals(MenuType.ABOUT, stateManager.currentMenu)
+    }
+
+    // --- navigateBack restaurando da pilha ---
+
+    @Test
+    fun `navigateBack de volta ao principal esquece o botao de acao anterior`() {
+        stateManager.updateSelectedIndex(MenuIndices.SETTINGS)
+        processor.processEvent(NavigationEvent.ActivateSelected(keyCode = 96, inputSource = InputSource.PHYSICAL_GAMEPAD))
+        every { fragmentAdapter.navigateBack() } returns true
+
+        assertTrue(processor.navigateBack()) // SETTINGS -> MAIN, stack now empty
+        assertEquals(MenuType.MAIN, stateManager.currentMenu)
+        assertEquals(MenuIndices.SETTINGS, stateManager.selectedItemIndex)
+
+        processor.navigateBack() // closes: the button from the earlier activation is gone
+        assertEquals(listOf<Int?>(null), menuClosedCalls)
+    }
+
+    @Test
+    fun `navigateBack devolve o resultado do adapter ao restaurar um submenu intermediario`() {
+        stateManager.pushCurrentState() // MAIN
+        stateManager.updateCurrentMenu(MenuType.PROGRESS)
+        stateManager.pushCurrentState() // PROGRESS
+        stateManager.updateCurrentMenu(MenuType.SAVE_SLOTS)
+        every { fragmentAdapter.navigateBack() } returns false
+
+        assertEquals(false, processor.navigateBack())
+        assertEquals(MenuType.PROGRESS, stateManager.currentMenu)
+        assertTrue(menuClosedCalls.isEmpty())
+    }
+
+    // --- updateSelectionVisual ---
+
+    @Test
+    fun `updateSelectionVisual sem fragment nao falha`() {
+        processor.updateSelectionVisual()
+
+        assertNull(stateManager.currentFragment)
+    }
+
+    @Test
+    fun `updateSelectionVisual com fragment desanexado limpa a referencia`() {
+        val fragment = fakeFragment()
+        every { fragment.setSelectedIndex(any()) } throws IllegalStateException("not attached")
+        stateManager.registerFragment(fragment, itemCount = 3)
+
+        processor.updateSelectionVisual()
+
+        assertNull(stateManager.currentFragment)
+        assertEquals(0, stateManager.currentMenuItemCount)
+    }
+
+    // --- navigateToSubmenu / closeMenuExternal ---
+
+    @Test
+    fun `navigateToSubmenu empilha o estado atual por padrao`() {
+        stateManager.updateCurrentMenu(MenuType.PROGRESS)
+        stateManager.updateSelectedIndex(1)
+
+        processor.navigateToSubmenu(MenuType.SAVE_SLOTS)
+
+        assertEquals(MenuType.SAVE_SLOTS, stateManager.currentMenu)
+        assertEquals(0, stateManager.selectedItemIndex)
+        assertEquals(MenuState(MenuType.PROGRESS, 1), stateManager.popState())
+        verify { fragmentAdapter.showMenu(MenuType.SAVE_SLOTS) }
+    }
+
+    @Test
+    fun `navigateToSubmenu sem salvar estado nao mexe na pilha`() {
+        stateManager.updateCurrentMenu(MenuType.PROGRESS)
+
+        processor.navigateToSubmenu(MenuType.LOAD_SLOTS, saveCurrentState = false)
+
+        assertEquals(MenuType.LOAD_SLOTS, stateManager.currentMenu)
+        assertTrue(stateManager.isStackEmpty())
+    }
+
+    @Test
+    fun `closeMenuExternal esconde o menu, limpa a fila e repassa o botao`() {
+        stateManager.registerFragment(fakeFragment(), itemCount = 3)
+        eventQueue.enqueue(NavigationEvent.Navigate(Direction.DOWN, inputSource = InputSource.KEYBOARD))
+
+        processor.closeMenuExternal(closingButton = 4)
+
+        verify { fragmentAdapter.hideMenu() }
+        assertNull(stateManager.currentFragment)
+        assertTrue(eventQueue.isEmpty())
+        assertEquals(listOf<Int?>(4), menuClosedCalls)
+    }
+
+    @Test
+    fun `closeMenuExternal sem botao notifica null`() {
+        processor.closeMenuExternal()
+
+        assertEquals(listOf<Int?>(null), menuClosedCalls)
+    }
 }
