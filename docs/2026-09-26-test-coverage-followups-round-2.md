@@ -70,7 +70,7 @@ Today it writes to the slot last used this session, or **slot 1** when none was 
 - Also: record the save in `SessionSlotTracker` only when `saveToSlot` returns true (today a failed write is still recorded).
 - Tests: saves written the way older versions wrote them (no date, no metadata, corrupt date, a migrated single save), and the full-slots case.
 
-### [x] 3a. `fix/save-slot-error-paths`: Manage Saves on damaged slots — this PR
+### [x] 3a. `fix/save-slot-error-paths`: Manage Saves on damaged slots — PR #153
 Found while starting item 3, each confirmed with a test:
 - Rename on a save with a corrupt `metadata.json` threw an uncaught `JSONException` (an app crash from Manage Saves). A save with no `metadata.json` couldn't be renamed at all.
 - Copy/Move from a save with corrupt metadata failed after the target was already overwritten: Move left the save in both slots and reported an error.
@@ -78,9 +78,11 @@ Found while starting item 3, each confirmed with a test:
 
 Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") and write a repaired one. A failed copy removes its partial target. Delete returns the real result. When Move can't delete the source, it reports failure and the save stays in both slots, so nothing is lost. The unreachable `SecurityException`/`JSONException` catches are gone.
 
-### [ ] 3. `test/save-state-manager-errors`: `SaveStateManager`
+### [x] 3. `test/save-state-manager-errors`: `SaveStateManager` — this PR
 - The remaining error paths: `saveToSlot` (preview image, write failure), `loadFromSlot` (empty slot, read failure), the slot-number checks, `backfillMissingTimestamps` write failure, `SlotMetadataStore` leftovers (blank date, legacy-migration failure). Use a temp folder.
 - Delete the methods only tests call: `updateScreenshot`, `hasAnySave`, `getFirstEmptySlot`, `getOccupiedSlotCount`.
+- Also removed: the legacy migration's unreachable `SecurityException` catch.
+- Left untested on purpose: `copySlot` when the source slot folder is a plain file (`listFiles()` returns null), which the app never creates.
 
 ### [ ] 4. `test/button-routers`: `KeyEventRouter`, `MotionEventRouter`, `GamePadButtonRouter`
 - `interceptButtonB` (both copies), `fireDpadCallback`, `fireTriggerCallback`, `checkSingleTrigger`, `computeDirectionTrigger`, `isAnyAxisOutOfDeadzone`.

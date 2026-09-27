@@ -169,8 +169,6 @@ class SlotMetadataStore {
             Log.d(TAG, "Legacy save state migrated successfully to slot 1")
         } catch (e: IOException) {
             Log.e(TAG, "Failed to migrate legacy save state", e)
-        } catch (e: SecurityException) {
-            Log.e(TAG, "Failed to migrate legacy save state", e)
         }
     }
 }

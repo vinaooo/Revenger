@@ -1,7 +1,6 @@
 package com.vinaooo.revenger.managers
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.util.Log
 import com.vinaooo.revenger.models.SaveSlotPayload
 import java.io.File
@@ -33,8 +32,8 @@ import java.time.Instant
  * ```
  *
  * Slot path/file resolution, image writing and metadata JSON handling are delegated to
- * [SlotFileLayout] and [SlotMetadataStore]; the read-only slot queries ([getAllSlots], [getSlot],
- * [hasAnySave], [getFirstEmptySlot], [getOccupiedSlotCount]) are delegated to [SlotQueryStore] via
+ * [SlotFileLayout] and [SlotMetadataStore]; the read-only slot queries ([getAllSlots], [getSlot])
+ * are delegated to [SlotQueryStore] via
  * Kotlin interface delegation (`by`), so this class's own public surface stays identical for
  * existing callers while its function count stays under the project's threshold.
  *
@@ -283,33 +282,6 @@ private constructor(
         }
     }
 
-    /**
-     * Update screenshot for an existing slot
-     *
-     * @param slotNumber Slot to update
-     * @param screenshot New screenshot bitmap
-     * @return true if update was successful
-     */
-    fun updateScreenshot(slotNumber: Int, screenshot: Bitmap): Boolean {
-        require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
-
-        return synchronized(slotLock) {
-            val slotDir = fileLayout.slotDirectory(slotNumber)
-            if (!slotDir.exists()) {
-                Log.w(TAG, "Slot $slotNumber does not exist")
-                false
-            } else {
-                try {
-                    fileLayout.writeWebpImage(fileLayout.screenshotFile(slotNumber), screenshot)
-                    Log.d(TAG, "Screenshot updated for slot $slotNumber")
-                    true
-                } catch (e: IOException) {
-                    Log.e(TAG, "Failed to update screenshot for slot $slotNumber", e)
-                    false
-                }
-            }
-        }
-    }
     /**
      * Gives every occupied slot that has no readable save date (missing or corrupt
      * `metadata.json`, missing or unparseable `timestamp`) one, taken from its state file's

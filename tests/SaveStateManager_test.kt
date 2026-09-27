@@ -213,40 +213,78 @@ class SaveStateManager_test {
         assertFalse(manager.renameSlot(8, "Cannot Rename"))
     }
 
-    // ========== SCREENSHOT UPDATE ==========
-
-    @Test
-    fun `updateScreenshot em slot existente sobrescreve a imagem e retorna true`() {
-        val initialScreenshot = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)
-        manager.saveToSlot(
-                2,
-                SaveSlotPayload("state".toByteArray(), initialScreenshot, name = "With Slot")
-        )
-        val initialLength = manager.getSlot(2).screenshotFile!!.length()
-
-        val newScreenshot = Bitmap.createBitmap(160, 144, Bitmap.Config.ARGB_8888)
-        val result = manager.updateScreenshot(2, newScreenshot)
-
-        assertTrue(result)
-        val slot = manager.getSlot(2)
-        assertNotNull(slot.screenshotFile)
-        assertTrue(slot.screenshotFile!!.exists())
-        assertTrue(
-                "screenshot file must reflect the new (larger) image, not the original",
-                slot.screenshotFile!!.length() > initialLength
-        )
-    }
-
-    @Test
-    fun `updateScreenshot em slot vazio retorna false`() {
-        val screenshot = Bitmap.createBitmap(160, 144, Bitmap.Config.ARGB_8888)
-
-        val result = manager.updateScreenshot(4, screenshot)
-
-        assertFalse(result)
-    }
-
     // ========== ERROR PATHS ==========
+
+    @Test
+    fun `saveToSlot com preview grava o preview do slot`() {
+        val preview = Bitmap.createBitmap(8, 6, Bitmap.Config.ARGB_8888)
+
+        assertTrue(manager.saveToSlot(3, SaveSlotPayload("data".toByteArray(), preview = preview)))
+
+        val previewFile = manager.getSlot(3).previewFile
+        assertNotNull(previewFile)
+        assertTrue(previewFile!!.length() > 0)
+    }
+
+    @Test
+    fun `saveToSlot sem preview nao cria arquivo de preview`() {
+        manager.saveToSlot(3, SaveSlotPayload("data".toByteArray()))
+
+        assertNull(manager.getSlot(3).previewFile)
+    }
+
+    @Test
+    fun `loadFromSlot de slot vazio retorna null`() {
+        assertNull(manager.loadFromSlot(5))
+    }
+
+    @Test
+    fun `loadFromSlot devolve os bytes salvos`() {
+        manager.saveToSlot(5, SaveSlotPayload(byteArrayOf(9, 8, 7)))
+
+        assertArrayEquals(byteArrayOf(9, 8, 7), manager.loadFromSlot(5))
+    }
+
+    @Test
+    fun `loadFromSlot que nao consegue ler o state retorna null`() {
+        File(savesDir, "slot_5/state.bin").mkdirs()
+
+        assertNull(manager.loadFromSlot(5))
+    }
+
+    @Test
+    fun `moveSlot de slot vazio retorna false e nao cria o destino`() {
+        assertFalse(manager.moveSlot(5, 6))
+
+        assertFalse(File(savesDir, "slot_6").exists())
+    }
+
+    @Test
+    fun `backfillMissingTimestamps que nao consegue gravar a data segue sem lancar`() {
+        manager.saveToSlot(2, SaveSlotPayload(byteArrayOf(1)))
+        File(savesDir, "slot_2/metadata.json").apply { delete(); mkdirs() }
+
+        assertEquals(0, manager.backfillMissingTimestamps())
+    }
+
+    @Test
+    fun `operacoes com numero de slot fora de 1 a 9 lancam excecao`() {
+        val payload = SaveSlotPayload(byteArrayOf(1))
+        val calls = listOf<(Int) -> Unit>(
+                { manager.saveToSlot(it, payload) },
+                { manager.loadFromSlot(it) },
+                { manager.deleteSlot(it) },
+                { manager.renameSlot(it, "Name") },
+                { manager.copySlot(it, 1) },
+                { manager.copySlot(1, it) }
+        )
+        for (call in calls) {
+            for (invalid in listOf(0, 10)) {
+                assertThrows(IllegalArgumentException::class.java) { call(invalid) }
+            }
+        }
+        assertThrows(IllegalArgumentException::class.java) { manager.copySlot(4, 4) }
+    }
 
     // Regression test for the narrowed IOException catch in saveToSlot: forces a real I/O
     // failure (the slot directory can't be created because a plain file already occupies that
