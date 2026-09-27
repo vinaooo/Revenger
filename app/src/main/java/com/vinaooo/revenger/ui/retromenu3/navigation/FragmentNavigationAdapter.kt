@@ -310,8 +310,8 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
      * Hides the current menu.
      *
      * This operation:
-     * 1. Removes the fragment from the container
-     * 2. Commits the transaction with commitAllowingStateLoss()
+     * 1. Pops the whole backstack (the submenus), which brings the main menu back
+     * 2. Removes the fragment left in the container, with commitAllowingStateLoss()
      *
      * IMPORTANT: Does not destroy the fragment, only removes it from the screen. This preserves state for
      * possible future restoration.
@@ -319,7 +319,25 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
     fun hideMenu() {
         Log.d(TAG, "[HIDE] Hiding current menu")
 
-        // Encontrar fragment atual no container
+        // Pop the submenus first. Popping reverses the transaction that replaced the main menu, so
+        // it puts the main menu back in the container; removing the current fragment before this
+        // (as this used to) left that main menu there after the menu was "closed", and the next
+        // open reused it as already visible.
+        if (fragmentManager.backStackEntryCount > 0) {
+            try {
+                Log.d(TAG, "[HIDE] Clearing backstack items: ${fragmentManager.backStackEntryCount}")
+                fragmentManager.popBackStackImmediate(
+                        null,
+                        androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+                )
+            } catch (e: IllegalStateException) {
+                // popBackStackImmediate() throws IllegalStateException if called after the
+                // FragmentManager's state has already been saved.
+                Log.e(TAG, "[HIDE] Exception while clearing backstack", e)
+            }
+        }
+
+        // Then remove whatever is left in the container (the main menu).
         val currentFragment = fragmentManager.findFragmentById(menuContainerId)
 
         if (currentFragment != null && currentFragment.isAdded) {
@@ -334,21 +352,6 @@ class FragmentNavigationAdapter(private val activity: FragmentActivity) {
             }
         } else {
             Log.w(TAG, "[HIDE] No menu to hide (currentFragment=null or not added)")
-        }
-
-        // Catch the case where backstack wasn't cleared
-        if (fragmentManager.backStackEntryCount > 0) {
-            try {
-                Log.d(TAG, "[HIDE] Clearing remaining backstack items: ${fragmentManager.backStackEntryCount}")
-                fragmentManager.popBackStackImmediate(
-                        null,
-                        androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
-                )
-            } catch (e: IllegalStateException) {
-                // popBackStackImmediate() throws IllegalStateException if called after the
-                // FragmentManager's state has already been saved.
-                Log.e(TAG, "[HIDE] Exception while clearing backstack", e)
-            }
         }
     }
 
