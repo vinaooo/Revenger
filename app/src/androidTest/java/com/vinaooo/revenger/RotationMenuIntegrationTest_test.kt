@@ -8,9 +8,13 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.ui.retromenu3.AboutFragment
+import com.vinaooo.revenger.ui.retromenu3.MenuIndices
 import com.vinaooo.revenger.ui.retromenu3.MenuState
+import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
 import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
+import com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
+import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 import com.vinaooo.revenger.views.GameActivity
 import org.junit.Assert.assertEquals
@@ -128,6 +132,16 @@ class RotationMenuIntegrationTest {
                     fm.executePendingTransactions()
                     viewModel.registerSettingsMenuFragment(fragment)
                 }
+                MenuState.PROGRESS_MENU -> {
+                    val fragment = ProgressFragment.newInstance()
+                    submenu = fragment
+                    fm.beginTransaction()
+                            .replace(R.id.menu_container, fragment, "ProgressFragment")
+                            .addToBackStack("ProgressFragment")
+                            .commitAllowingStateLoss()
+                    fm.executePendingTransactions()
+                    viewModel.registerProgressFragment(fragment)
+                }
                 MenuState.ABOUT_MENU -> {
                     val fragment = AboutFragment.newInstance()
                     submenu = fragment
@@ -213,6 +227,70 @@ class RotationMenuIntegrationTest {
         assertRotationRebuildsSubmenu(MenuState.SETTINGS_MENU, SettingsMenuFragment::class.java)
     }
 
+    /** Rotating with the progress submenu open rebuilds a progress submenu. */
+    @Test
+    fun rotacao_com_submenu_de_progress_aberto_recria_o_mesmo_tipo_de_fragment() {
+        assertRotationRebuildsSubmenu(MenuState.PROGRESS_MENU, ProgressFragment::class.java)
+    }
+
+    /**
+     * After the rotation rebuild, the system back still works: it leaves the rebuilt submenu for
+     * the main menu. Unlike the tests above, the submenu is opened through real
+     * `NavigationController` events, so the navigation stack knows the main menu is underneath.
+     */
+    @Test
+    fun back_depois_da_rotacao_volta_do_submenu_para_o_menu_principal() {
+        sendNavigationEvent(NavigationEvent.OpenMenu(inputSource = InputSource.TOUCH))
+        awaitContainerFragment(RetroMenu3Fragment::class.java)
+        sendNavigationEvent(
+                NavigationEvent.SelectItem(index = MenuIndices.SETTINGS, inputSource = InputSource.TOUCH)
+        )
+        sendNavigationEvent(NavigationEvent.ActivateSelected(inputSource = InputSource.TOUCH))
+        val original = awaitContainerFragment(SettingsMenuFragment::class.java)
+
+        assertTrue(
+                "rotation did not produce a configuration change - the test would be vacuous",
+                rotateAndConfirmConfigurationChanged()
+        )
+        waitForContainer("a rebuilt settings submenu") {
+            it is SettingsMenuFragment && it !== original
+        }
+        Thread.sleep(submenuChainWorstCaseMs + SETTLE_MARGIN_MS)
+
+        activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+
+        waitForContainer("the main menu after back") { it is RetroMenu3Fragment && backStackCount() == 0 }
+        var menuActive = false
+        activityRule.scenario.onActivity {
+            menuActive = ViewModelProvider(it)[GameActivityViewModel::class.java].isAnyMenuActive()
+        }
+        assertTrue("the menu should still be open on the main menu", menuActive)
+    }
+
+    private fun sendNavigationEvent(event: NavigationEvent) {
+        activityRule.scenario.onActivity {
+            ViewModelProvider(it)[GameActivityViewModel::class.java]
+                    .navigationController
+                    ?.handleNavigationEvent(event)
+        }
+        Thread.sleep(EVENT_GAP_MS)
+    }
+
+    private fun waitForContainer(what: String, condition: (Fragment?) -> Boolean): Fragment? {
+        repeat(POLL_ATTEMPTS) {
+            val fragment = containerFragment()
+            if (condition(fragment)) return fragment
+            Thread.sleep(POLL_INTERVAL_MS)
+        }
+        throw AssertionError("Timed out waiting for $what (container=${containerFragment()?.javaClass?.simpleName})")
+    }
+
+    private fun awaitContainerFragment(type: Class<out Fragment>): Fragment {
+        val fragment = checkNotNull(waitForContainer(type.simpleName) { type.isInstance(it) })
+        Thread.sleep(EVENT_GAP_MS)
+        return fragment
+    }
+
     /** Rotating with the about submenu open rebuilds an about submenu. */
     @Test
     fun rotacao_com_submenu_de_about_aberto_recria_o_mesmo_tipo_de_fragment() {
@@ -254,5 +332,6 @@ class RotationMenuIntegrationTest {
         const val POLL_ATTEMPTS = 60
         const val POLL_INTERVAL_MS = 100L
         const val SETTLE_MARGIN_MS = 1500L
+        const val EVENT_GAP_MS = 400L
     }
 }
