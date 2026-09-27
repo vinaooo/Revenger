@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Bitmap
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -13,6 +14,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.test.core.app.ApplicationProvider
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.AppConfig
+import com.vinaooo.revenger.R
 import com.vinaooo.revenger.managers.GameLifecycleObserver
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
@@ -33,12 +35,12 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * [PipController] owns the two functions that used to live on `GameActivity` and were flagged by
- * detekt's `ReturnCount` rule (`onUserLeaveHint`, `maybeEnterPictureInPictureAfterMenuClosed`),
- * restructured here to 2 raw `return`s each. These tests pin the branching those functions
- * perform -- SDK S+ auto-enter vs. direct `enterPictureInPictureMode`, the OS-rejects-entry
- * cleanup path, and the deferred-until-menu-closed flow -- so that restructuring cannot silently
- * change behavior.
+ * [PipController] owns Picture-in-Picture for `GameActivity`. These tests pin its decisions:
+ * when PiP may be entered (first frame rendered, PiP enabled, menu closed), SDK S+ auto-enter vs.
+ * direct `enterPictureInPictureMode`, the cleanup when entry is rejected or fails, what entering
+ * and leaving PiP hides and restores, the two PiP action buttons (Quick Save runs once the
+ * activity resumes, Save and Exit opens the save menu once PiP is left), and the stuck-overlay
+ * cleanup on resume. The quick-save executor itself is covered by `PipQuickSaveExecutor_test`.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -48,6 +50,8 @@ class PipController_test {
         var isInPip = false
         var enterPipCalls = mutableListOf<PictureInPictureParams>()
         var enterPipResult = true
+        var enterPipError: RuntimeException? = null
+        var updatePipParamsError: RuntimeException? = null
         var updatePipParamsCalls = 0
         var registeredReceiver: BroadcastReceiver? = null
         var unregisteredReceiver: BroadcastReceiver? = null
@@ -60,11 +64,13 @@ class PipController_test {
 
         override fun enterPip(params: PictureInPictureParams): Boolean {
             enterPipCalls.add(params)
+            enterPipError?.let { throw it }
             return enterPipResult
         }
 
         override fun updatePipParams(params: PictureInPictureParams) {
             updatePipParamsCalls++
+            updatePipParamsError?.let { throw it }
         }
 
         override fun registerPipReceiver(receiver: BroadcastReceiver, filter: IntentFilter) {
@@ -103,6 +109,7 @@ class PipController_test {
     private lateinit var retroView: RetroView
     private lateinit var glRetroView: GLRetroView
     private lateinit var views: PipViews
+    private lateinit var quickSaveExecutor: PipQuickSaveExecutor
     private lateinit var controller: PipController
 
     @Before
@@ -137,7 +144,8 @@ class PipController_test {
                 rightContainer = FrameLayout(context)
         )
 
-        controller = PipController(host, viewModel, appConfig, views)
+        quickSaveExecutor = mockk(relaxed = true)
+        controller = PipController(host, viewModel, appConfig, views, quickSaveExecutor)
     }
 
     @After
@@ -284,21 +292,236 @@ class PipController_test {
     }
 
     @Test
-    fun `receiver de PIP_QUICK_SAVE agenda quick save e traz a task para frente`() {
+    fun `receiver de PIP_QUICK_SAVE traz a task para frente e o save roda uma vez no resume`() {
         controller.onPictureInPictureModeChanged(true)
         val receiver = requireNotNull(host.registeredReceiver)
 
         receiver.onReceive(context(), Intent(PipController.ACTION_PIP_QUICK_SAVE))
 
         assertEquals(1, host.bringTaskToFrontCalls)
+        verify(exactly = 0) { quickSaveExecutor.execute() }
 
-        // onActivityResumed() should now run the deferred quick save; with retroView present it
-        // launches a coroutine rather than finishing immediately, so just assert it was consumed
-        // (pendingPipQuickSave is private, so this is observed indirectly via no double-trigger).
-        every { viewModel.retroView } returns null
+        controller.onActivityResumed()
         controller.onActivityResumed()
 
-        assertEquals(1, host.finishPipTaskCalls)
+        verify(exactly = 1) { quickSaveExecutor.execute() }
+    }
+
+    @Test
+    fun `resume sem Quick Save pendente nao salva`() {
+        controller.onActivityResumed()
+
+        verify(exactly = 0) { quickSaveExecutor.execute() }
+    }
+
+    @Test
+    fun `receiver de PIP_SAVE com frame guarda o frame como screenshot do save e suprime a proxima captura`() {
+        val frame = Bitmap.createBitmap(4, 3, Bitmap.Config.ARGB_8888)
+        every { ScreenshotCaptureUtil.getPipFrame() } returns frame
+        every { ScreenshotCaptureUtil.setManualScreenshots(any(), any()) } returns Unit
+        controller.onPictureInPictureModeChanged(true)
+
+        requireNotNull(host.registeredReceiver).onReceive(context(), Intent(PipController.ACTION_PIP_SAVE))
+
+        verify {
+            ScreenshotCaptureUtil.setManualScreenshots(
+                    match { it !== frame && it.width == 4 && it.height == 3 },
+                    any()
+            )
+        }
+        verify { viewModel.suppressNextScreenshotCapture = true }
+        assertEquals(1, host.bringTaskToFrontCalls)
+    }
+
+    @Test
+    fun `receiver de PIP_SAVE sem frame nao troca os screenshots`() {
+        controller.onPictureInPictureModeChanged(true)
+
+        requireNotNull(host.registeredReceiver).onReceive(context(), Intent(PipController.ACTION_PIP_SAVE))
+
+        verify(exactly = 0) { ScreenshotCaptureUtil.setManualScreenshots(any(), any()) }
+        verify(exactly = 0) { viewModel.suppressNextScreenshotCapture = any() }
+        assertEquals(1, host.bringTaskToFrontCalls)
+    }
+
+    @Test
+    fun `receiver ignora acoes desconhecidas`() {
+        controller.onPictureInPictureModeChanged(true)
+
+        requireNotNull(host.registeredReceiver).onReceive(context(), Intent("some.other.ACTION"))
+        controller.onActivityResumed()
+
+        assertEquals(0, host.bringTaskToFrontCalls)
+        verify(exactly = 0) { quickSaveExecutor.execute() }
+    }
+
+    @Test
+    fun `resume fora do PiP limpa um overlay que ficou visivel`() {
+        views.pipOverlay.visibility = View.VISIBLE
+
+        controller.onActivityResumed()
+
+        assertEquals(View.GONE, views.pipOverlay.visibility)
+    }
+
+    @Test
+    fun `resume ainda em PiP mantem o overlay`() {
+        host.isInPip = true
+        views.pipOverlay.visibility = View.VISIBLE
+
+        controller.onActivityResumed()
+
+        assertEquals(View.VISIBLE, views.pipOverlay.visibility)
+    }
+
+    @Test
+    fun `entrar em PiP mostra o ultimo frame no overlay`() {
+        val frame = Bitmap.createBitmap(4, 3, Bitmap.Config.ARGB_8888)
+        every { ScreenshotCaptureUtil.getPipFrame() } returns frame
+
+        controller.onPictureInPictureModeChanged(true)
+
+        assertEquals(View.VISIBLE, views.pipOverlay.visibility)
+    }
+
+    @Test
+    fun `sem nenhum frame disponivel o overlay continua escondido`() {
+        views.pipOverlay.visibility = View.GONE
+
+        controller.onPictureInPictureModeChanged(true)
+
+        assertEquals(View.GONE, views.pipOverlay.visibility)
+    }
+
+    @Test
+    fun `o gamepad visivel e escondido no PiP e volta ao sair`() {
+        val (containers, floatingButton) = installActivityViews(containersVisibility = View.VISIBLE)
+
+        controller.onPictureInPictureModeChanged(true)
+
+        assertEquals(View.INVISIBLE, containers.visibility)
+        assertEquals(View.GONE, floatingButton.visibility)
+
+        controller.onPictureInPictureModeChanged(false)
+
+        assertEquals(View.VISIBLE, containers.visibility)
+    }
+
+    @Test
+    fun `o gamepad escondido antes do PiP continua escondido ao sair`() {
+        val (containers, _) = installActivityViews(containersVisibility = View.GONE)
+
+        controller.onPictureInPictureModeChanged(true)
+        controller.onPictureInPictureModeChanged(false)
+
+        assertEquals(View.GONE, containers.visibility)
+    }
+
+    @Test
+    fun `sair do PiP sem receiver registrado nao lanca e restaura o menu`() {
+        controller.onPictureInPictureModeChanged(false)
+
+        assertEquals(View.VISIBLE, views.menuContainer.visibility)
+        assertEquals(1, host.restoreFloatingButtonVisibilityCalls)
+    }
+
+    @Test
+    fun `se entrar em PiP lanca o overlay e limpo e a transicao pendente e cancelada`() {
+        host.enterPipError = IllegalStateException("activity not eligible")
+        val observer = mockk<GameLifecycleObserver>(relaxed = true)
+        host.gameLifecycleObserver = observer
+        every { ScreenshotCaptureUtil.getPipFrame() } returns Bitmap.createBitmap(4, 3, Bitmap.Config.ARGB_8888)
+
+        controller.onUserLeaveHint()
+
+        assertEquals(View.GONE, views.pipOverlay.visibility)
+        verify { observer.clearPendingPipTransition() }
+    }
+
+    @Test
+    fun `se o primeiro frame some enquanto o menu fecha a entrada em PiP e abortada`() {
+        every { viewModel.isAnyMenuActive() } returns true
+        val onMenuClosed = slotCallback()
+        controller.onUserLeaveHint()
+
+        every { viewModel.isAnyMenuActive() } returns false
+        every { retroView.frameRendered } returns MutableLiveData(false)
+        onMenuClosed()
+
+        assertTrue(host.enterPipCalls.isEmpty())
+    }
+
+    @Test
+    fun `se o menu reabre antes do callback a entrada em PiP e abortada`() {
+        every { viewModel.isAnyMenuActive() } returns true
+        val onMenuClosed = slotCallback()
+        controller.onUserLeaveHint()
+
+        onMenuClosed()
+
+        assertTrue(host.enterPipCalls.isEmpty())
+    }
+
+    @Test
+    @Config(sdk = [31])
+    fun `updatePictureInPictureParams antes do primeiro frame nao atualiza`() {
+        every { retroView.frameRendered } returns MutableLiveData(false)
+
+        controller.updatePictureInPictureParams()
+
+        assertEquals(0, host.updatePipParamsCalls)
+    }
+
+    @Test
+    @Config(sdk = [31])
+    fun `updatePictureInPictureParams engole as falhas documentadas do SO`() {
+        host.updatePipParamsError = IllegalStateException("activity not visible")
+        controller.updatePictureInPictureParams()
+
+        host.updatePipParamsError = IllegalArgumentException("invalid aspect ratio")
+        controller.updatePictureInPictureParams()
+
+        assertEquals(2, host.updatePipParamsCalls)
+    }
+
+    @Test
+    fun `onActivityPaused forca a captura do frame do PiP`() {
+        controller.onActivityPaused()
+
+        verify { ScreenshotCaptureUtil.capturePipFrame(glRetroView, force = true) }
+    }
+
+    @Test
+    fun `maybeCapturePipFrame nao captura antes do primeiro frame`() {
+        every { retroView.frameRendered } returns MutableLiveData(false)
+
+        controller.maybeCapturePipFrame(force = true)
+
+        verify(exactly = 0) { ScreenshotCaptureUtil.capturePipFrame(any(), any()) }
+    }
+
+    @Test
+    fun `maybeCapturePipFrame nao captura com PiP desabilitado`() {
+        every { appConfig.isPipEnabled() } returns false
+
+        controller.maybeCapturePipFrame(force = true)
+
+        verify(exactly = 0) { ScreenshotCaptureUtil.capturePipFrame(any(), any()) }
+    }
+
+    // Gives the activity the two views PipController looks up by id, and returns them.
+    private fun installActivityViews(containersVisibility: Int): Pair<View, View> {
+        val activity = host.activity
+        val containers = FrameLayout(activity).apply {
+            id = R.id.containers
+            visibility = containersVisibility
+        }
+        val floatingButton = View(activity).apply { id = R.id.floating_menu_button }
+        activity.setContentView(FrameLayout(activity).apply {
+            addView(containers)
+            addView(floatingButton)
+        })
+        return containers to floatingButton
     }
 
     @Test

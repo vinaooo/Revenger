@@ -2,22 +2,21 @@
 
 Source: `./gradlew koverXmlReportDebug -PskipAssetStaging` on `develop` @ `2aef786` (after PR #147). Written after every item in `2026-09-26-kotlin-coverage-followups.md`, `2026-09-25-test-battery-followups.md`, `2026-09-26-test-battery-followups-icon-scripts.md` and `2026-09-26-gameactivity-decomposition-plan.md` was done.
 
+**Revised 2026-09-27** after checking every claim against the code (see "What the first draft got wrong"). The plan below replaces the first draft's item list.
+
 ## How to work through this list
 
 - **One branch and one PR per item**, each branched from the latest `develop`. Open every PR against `develop`, never `master`.
 - **After opening a PR, stop and wait for the user to merge it** before starting the next item.
-- **Ask before on-device runs** (items 11–12).
 - Every change includes tests (see `CLAUDE.md`). Never name games, platforms or brands anywhere.
 - Before each PR:
   - run `./gradlew check -PskipAssetStaging`
-  - put the before/after coverage numbers for the touched files in the PR
+  - put the before/after coverage numbers in the PR
 - Run `claude-usage` between items.
 - **When a test finds a real bug:** stop, report it, and fix it in its own PR with a regression test (as #143 was split from #144), unless the user says to fold it in.
+- **Dead code gets deleted, not tested.** Before testing a method, check that something calls it.
+- **Don't test impossible branches.** `minSdk` is 30, so an `SDK_INT < O` check can never be true: delete it.
 - Mark each item `[x]` here with its PR number when it's done.
-
-## Estimate
-
-About **10–12 PRs** for the core plan (items 1–10, with items 3 and 4 possibly split in two), **+2** optional device items (11–12), and **0–2** bug-fix PRs if the new tests find something. Expected result: Kotlin unit coverage from 87.4% / 68.6% to roughly **90–91% lines / 74–76% branches**.
 
 ## Baseline
 
@@ -29,147 +28,93 @@ About **10–12 PRs** for the core plan (items 1–10, with items 3 and 4 possib
 | **All code** | **88.2% (9223/10453)** | 70.1% (2642/3771) |
 | Kotlin (instrumented tests, not in All code) | 42.7% (5178/12130) | 20.4% (843/4129) |
 
-The Kover floor is 87 / 68.
+The Kover floor is 87 / 68. The only Kover exclusion is generated ViewBinding code.
 
-### Where the 1,216 missed Kotlin lines are
+Expected result: roughly **91–92% lines / 75–78% branches**. Deleting dead code shrinks the total as well as adding covered lines.
 
-| File | Lines covered | Lines missed | Branches missed | Unit-testable? |
-|---|---|---|---|---|
-| `views/GameActivity` | 0% | 195 | 34 | device only |
-| `viewmodels/GameActivityViewModel` | 68.4% | 94 | 53 | yes |
-| `retroview/RetroView` | 18.6% | 83 | 28 | device only |
-| `ui/splash/CRTBootView` | 69.3% | 43 | 6 | mostly device |
-| `gamepad/GamePad` | 55.6% | 36 | 29 | yes |
-| `utils/RetroViewUtils` | 0% | 32 | 22 | device only |
-| `input/KeyEventRouter` | 70.9% | 30 | 18 | yes |
-| `controllers/PipQuickSaveExecutor` | 16.7% | 30 | 7 | yes, needs a seam |
-| `input/MotionEventRouter` | 79.8% | 24 | 28 | yes |
-| `performance/ProfilingSessionController` | 47.8% | 24 | 11 | yes |
-| `privacy/EnhancedPrivacyManager` | 0% | 24 | 12 | yes |
-| `gamepad/GamePadConfig` | 82.3% | 22 | 0 | yes |
-| `ui/retromenu3/RetroEditText` | 68.6% | 22 | 14 | `onDraw` only |
-| `utils/ViewUtils` | 31.2% | 22 | 2 | yes |
-| `ui/retromenu3/MenuSystem` | 89.7% | 21 | **73** | yes |
-| `controllers/PipController` | 83.6% | 19 | 44 | yes |
-| `utils/FontUtils` | 54.8% | 19 | 17 | yes |
-| `utils/OrientationManager` | 41.9% | 18 | 11 | yes (Robolectric) |
-| `ui/retromenu3/SaveSlotsFragment` | 94.6% | 14 | **59** | yes |
+## What the first draft got wrong
 
-## TODO (recommended order)
+| First draft | Verdict | What the code shows |
+|---|---|---|
+| Test `EnhancedPrivacyManager` per API level | Wrong: delete | Empty placeholder bodies. Deleted in #150 with the permission plumbing that only fed it. |
+| `GamePadConfig`'s 22 missed lines are unbuilt layouts | Wrong | They were getters Kotlin generated for constants nobody outside the class read. Made private in #150. |
+| `RetroViewUtils` is device-only | Wrong | `RetroView` is mocked in about 10 unit tests already. Its preserve logic is unit-testable. |
+| `MenuSystem`'s 73 branches are guards | Mostly noise | They're in `MenuManager`: each of 6 methods builds a log message from four `(fragment as? Fragment)?.isX == true` checks. One helper removes most of them (item 8). |
+| PiP's `getString(R.string.name)` breaks the `AppConfig` rule | Not a bug | `R.string.name` is generated from config `name` (`resValue`); 6 places read it the same way. |
+| PiP Quick Save needs a seam | Right | Done in item 2. The seam also exposed the slot-1 overwrite (item 2b). |
+| Key and motion routers | Right, incomplete | `interceptButtonB` exists twice (`KeyEventRouter`, `GamePadButtonRouter`) with slightly different non-DOWN handling. |
 
-### [ ] 1. `test/pip-quick-save-executor`: the PiP Quick Save path
-- **Why first:** it writes the player's save. A bug here loses progress, and it's at 16.7%.
-- **What's missed:** the whole body of the coroutine (lines and 7 branches of `execute`):
-  - the save written to the last used slot, or slot 1 when there is none
-  - an empty slot named "Slot N", while a used slot keeps its name
-  - `recordSave` called
-  - the abort when no frame arrives within `FRAME_TIMEOUT_MS`
-  - the `catch` when `serializeState()` throws
-  - `finishPipTask` always posted
-- **Seam needed:** the save runs on a raw `Thread` and reaches the `SessionSlotTracker`, `SaveStateManager` and `ScreenshotCaptureUtil` singletons. Add constructor parameters with production defaults: a background runner (`(Runnable) -> Unit`, default `Thread(it).start()`) and the save collaborators. Tests then run it synchronously with fakes. Keep the public constructor used by `PipController` working.
-- **Check while there:** `romName` comes from `getString(R.string.name)`. `CLAUDE.md` says components query `AppConfig`, never resources. Confirm whether this should be `AppConfig`'s `name`. If it's a real inconsistency, fix it in its own PR.
+Missed by the first draft: `SaveStateManager` error paths (28 branches, the code that writes saves), `ManageSavesFragment` (54) and `ExitSaveGridFragment` (45) with dialog code copied across three fragments, `SubmenuCoordinator` (20), and about 30 unused methods.
 
-### [ ] 2. `test/input-event-routers`: `KeyEventRouter` and `MotionEventRouter`
-- **Why:** controller input players use constantly. 46 branches missed between them.
-- **`KeyEventRouter`:** `interceptButtonB` (15 lines, 7 branches) and `fireDpadCallback` (9 lines).
-- **`MotionEventRouter`:**
-  - `fireTriggerCallback` (15 lines)
-  - `checkSingleTrigger` (9 branches)
-  - `computeDirectionTrigger` (8 branches)
-  - `isAnyAxisOutOfDeadzone` (6 branches)
-- Test the deadzone edges exactly (just inside, on, just outside the threshold) and each direction/trigger combination.
-- Split into two PRs if the diff gets large.
+## TODO (in order)
 
-### [ ] 3. `test/game-activity-viewmodel-remaining`: `GameActivityViewModel`
-- **Why:** the largest block of real logic left (94 lines, 53 branches).
-- **What's missed:**
-  - `onBackToMainMenu` (17 lines, 8 branches)
-  - `onMenuEvent` (12 / 11)
-  - `preserveState` (10 branches)
-  - `initializeControllers` (8 / 6)
-  - `setupRetroView` and its lambda (14 / 10)
-  - `onCleared` (16 lines)
-  - `setConfigOrientation`
-  - `onAboutBackToMainMenu`
-  - the two `init` lambdas
-- Probably two PRs: **3a** menu events and back-to-main (`onMenuEvent`, `onBackToMainMenu`, `onAboutBackToMainMenu`); **3b** lifecycle and setup (`preserveState`, `initializeControllers`, `setupRetroView`, `onCleared`, `setConfigOrientation`).
-- Reuse the fixtures in the existing `GameActivityViewModel_*_test.kt` files. Add a new file per topic rather than growing one.
+### [x] 1. `chore/remove-dead-code-2`: delete code nothing calls — PR #150
+- Privacy placeholders, permission plumbing, `applyConditionalFeatures`, about 25 unused helpers, `GamePadConfig` constants made private.
+- Coverage 87.4% / 68.6% → 88.1% / 69.6% with no new tests.
+- Kept on purpose: getters that tests use to observe state, and public contracts (`AppConfig`, callback interfaces, ViewModel methods, `MenuFragmentBase`).
 
-### [ ] 4. `test/gamepad-events`: `GamePad` and `GamePadConfig`
-- **`GamePad`:**
-  - `handleButtonEvent` (18 lines, 12 branches)
-  - `handleDirectionEvent` (12 / 7)
-  - `eventHandler`
-  - `hasExternalPhysicalController` (4 branches), which decides whether the on-screen pad shows
-- **`GamePadConfig`:** 22 lines missed, no branches. Likely the button/layout definitions for configurations the current tests don't build.
+### [ ] 2. `test/pip-quick-save`: PiP Quick Save and `PipController`
+- `PipQuickSaveExecutor` gets seams (background runner, slot store, PiP frame, frame timeout) with production defaults, and tests for every path: slot choice, slot name, screenshot, timeout abort, `serializeState()` failure, the task always finished once.
+- `PipController` takes the executor as an optional constructor parameter. Tests for both PiP action buttons, the stuck-overlay cleanup, gamepad hide/restore, and entry failures.
+- The impossible `SDK_INT < O` checks and `@TargetApi(O)` in `PipController` and `PipParamsFactory` are deleted.
 
-### [ ] 5. `test/menu-system-branches`: `MenuSystem`
-- 90% of lines but **73 branches missed**, the most in the project. Mostly the "not ready / null fragment / wrong state" guards.
-- List the uncovered branches from the Kover HTML first, then add one test per guard. Don't chase branches that are only Kotlin null-safety bytecode.
+### [ ] 2b. `fix/pip-quick-save-slot`: where PiP Quick Save writes
+Today it writes to the slot last used this session, or **slot 1** when none was used, overwriting whatever is there. The rule the user chose:
+1. A slot saved or loaded since this launch → that slot. ("This launch" only: the tracker stays in memory, Save and Exit is unchanged.)
+2. Otherwise → the first empty slot.
+3. All slots full → the slot with the oldest save date.
+4. A slot with no readable date (missing or corrupt `metadata.json`): use its `state.bin` file date and write that date into `metadata.json`, creating the file with the name the menu already shows ("Slot N") if it's missing. A tie goes to the lower slot number.
+- **Compatible with older versions:** no change to folders, file names, or `metadata.json` keys and date format. Older versions ignore keys they don't know, so a downgraded APK still reads every save.
+- `PipLastSlotScreenshotResolver` (the PiP still-frame) uses the same slot choice, so the thumbnail matches the slot being written.
+- Also: record the save in `SessionSlotTracker` only when `saveToSlot` returns true (today a failed write is still recorded).
+- Tests: saves written the way older versions wrote them (no date, no metadata, corrupt date, a migrated single save), and the full-slots case.
 
-### [ ] 6. `test/save-slots-fragment-branches`: `SaveSlotsFragment` and the other fragments
-- **`SaveSlotsFragment`** (59 branches missed):
-  - `hideDialog` (11)
-  - `performConfirm` (8)
-  - the naming dialog show/hide (6 + 6)
-  - `updateDialogSelection` (6)
-  - `performNavigateUp` / `performNavigateDown` (4 + 4)
-  - `performSave`
-- **Also:**
-  - `ExitFragment.performAutoSaveAndExit` and `performConfirm`
-  - `CoreVariablesFragment.setupViews`, `handleItemClick` and `updateSelectionVisualInternal`
-  - `RetroKeyboard.handleDpadEvent`
-- Use the shared `tests/MenuFragmentHost.kt`. If a UI change is involved, rerun the Roborazzi goldens; there shouldn't be one.
+### [ ] 3. `test/save-state-manager-errors`: `SaveStateManager`
+- The error paths of the code that writes saves: `copySlot` (9 branches), `saveToSlot` and `loadFromSlot` (4 each), `deleteSlot`, `renameSlot`, `updateScreenshot` (3 each). Use a temp folder.
 
-### [ ] 7. `test/pip-controller-branches`: `PipController`
-- 19 lines and **44 branches** missed: the guard chains (API level, PiP disabled, already in PiP, no frame yet) and the mode-change paths.
-- Could merge into item 1 if that PR stays small.
+### [ ] 4. `test/button-routers`: `KeyEventRouter`, `MotionEventRouter`, `GamePadButtonRouter`
+- `interceptButtonB` (both copies), `fireDpadCallback`, `fireTriggerCallback`, `checkSingleTrigger`, `computeDirectionTrigger`, `isAnyAxisOutOfDeadzone`.
+- Deadzone edges exactly (just inside, on, just outside). Pin both B-button variants as they are.
 
-### [ ] 8. `test/privacy-and-profiling`: `EnhancedPrivacyManager` and `ProfilingSessionController`
-- **`EnhancedPrivacyManager`** (0%):
-  - `hasStoragePermissions` (per API level, 4 branches)
-  - `hasBasicPermissions`
-  - `initializePrivacyControls`
-  - Use Robolectric `@Config(sdk = [...])` for the API branches.
-  - First check whether it's still used anywhere. If it's dead code, propose removing it instead of testing it.
-- **`ProfilingSessionController`:** `collectPerformanceData` (14 lines, 7 branches), `startStandardProfiling`, and the monitoring loop's runnable. Drive it with Robolectric's main looper.
+### [ ] 5. `test/game-activity-viewmodel-remaining`: `GameActivityViewModel`
+- `onMenuEvent`, `onBackToMainMenu`, `onAboutBackToMainMenu`, `preserveState`, `initializeControllers`, `setupRetroView`, `onCleared`, `setConfigOrientation`. Split in two if the diff gets large. New test file per topic.
 
-### [ ] 9. `test/small-utils`: `ViewUtils`, `FontUtils`, `OrientationManager`, `EventQueue`
-- **`ViewUtils.animateMenuView`** (10 lines).
-- **`FontUtils`:**
-  - `applyArcadeFont`
-  - `applySelectedFont`
-  - `applyTextCapitalization`
-  - `getCapitalizedString`
-  - the selected/unselected colors
-- **`OrientationManager`:** `forceConfigurationBeforeSetContent` (11 / 6) and `applyConfigOrientation` (7 / 5), under Robolectric.
-- **`EventQueue`:** `shouldDebounce` (5 branches) and `getStats`.
-- **Also:** `MenuLayoutConfig.applyDialogVerticalPosition` / `applyVerticalProportions` and `LogSaver.getInputMethodInfo`.
+### [ ] 6. `test/gamepad-and-retroview-utils`: `GamePad` and `RetroViewUtils`
+- `GamePad`: `handleButtonEvent`, `handleDirectionEvent`, `eventHandler`, `hasExternalPhysicalController` (decides whether the on-screen pad shows).
+- `RetroViewUtils.preserveEmulatorState` (never persists frame speed 0).
 
-### [ ] 10. `chore/raise-kover-floor-4`: raise the floor
-- Run `./gradlew coverageAll -PskipAssetStaging` and raise `kover { verify { rule } }` in `app/build.gradle` to the new measured values, rounded down.
-- Update the floor numbers in `CLAUDE.md`.
-- Fill in the Result section below.
+### [ ] 7a. `refactor/shared-slot-dialogs`: one dialog helper for the save grids
+- `SaveSlotsFragment`, `ExitSaveGridFragment` and `ManageSavesFragment` copy the naming, overwrite and selection dialogs (`updateDialogSelection` and `performNavigateUp` are identical). Pin current behavior with tests first, then extract a shared helper and test it once. Rerun the Roborazzi goldens; they must not change.
 
-### [ ] 11. (optional, device) `test/device-activity-coverage`: more instrumented coverage
-- Covers the parts only a device can run: `GameActivity` (195 lines), `RetroView` (83), `RetroViewUtils` (32), `CRTBootView` (43).
-- **Ideas:**
-  - pause/resume and the SRAM flush on focus loss
-  - the shader switch through the menu
-  - fast-forward on/off
-  - rotate with the menu closed
-  - the full splash → game path, timed
-- Run `./gradlew createDebugAndroidTestCoverageReport -PinstrumentedCoverage`, then `coverageAll`, and put the instrumented row (now 42.7% / 20.4%) before and after in the PR.
+### [ ] 7. `test/save-grid-fragments`: what's left per fragment
+- The fragment-specific parts of the three grids, plus `CoreVariablesFragment`, `ExitFragment` (`performAutoSaveAndExit`, `performConfirm`) and `RetroKeyboard`.
 
-### [ ] 12. (optional, device) The key-up check from `2026-09-27-keyup-input-side-effects.md`
-- On a device with a physical controller: does a held button auto-repeat `KEY_DOWN`?
-- Record the answer in that doc. Only if the fade fix turns out to be needed, open its PR following that doc's checklist.
+### [ ] 8. `test/menu-navigation`: `MenuManager` and friends
+- First replace `MenuManager`'s repeated log-message checks with one helper, then test the real guards (no fragment, not added, no context).
+- `SubmenuCoordinator` (restoring the main-menu selection after back), `NavigationController`, `MenuOpenHandler`.
 
-## Out of scope
+### [ ] 9. `test/small-utils`
+- `FontUtils`, `OrientationManager`, `EventQueue.shouldDebounce`, `ProfilingSessionController`, `TypefaceProvider`, `MenuLayoutConfig`, `GamePadLayoutAdjuster`, `LogSaver`.
+- Delete the remaining impossible pre-API-30 checks: `RotationController`, `ScreenshotPreviewController`, `ScreenshotCaptureUtil`, `CroppedScreenshotStore`.
 
-- `RetroEditText.onDraw` (canvas drawing). The Roborazzi screenshots cover how it looks; branch-testing the draw calls adds little.
-- Kotlin null-safety and `when`-exhaustiveness branches that no input can reach. Don't write tests just to satisfy the counter.
-- Lowering the Kover floor, ever.
+### [ ] 10. `chore/raise-kover-floor-4`
+- Run `./gradlew coverageAll -PskipAssetStaging`, raise `kover { verify { rule } }` in `app/build.gradle` to the new values rounded down, update `CLAUDE.md`, fill in the Result section.
+
+**Done when** items 1–10 are merged, `check` passes with the raised floor, and every file still below 80% is either in "Won't do" with its reason or device-only.
+
+## Open decisions (not scheduled)
+
+- **The temp state is written but never read.** Since `aabe1a4` (2025-10-03) the game writes a temp state each time the menu opens or it pauses, but `RetroViewUtils.restoreEmulatorState`, its only reader, has no caller. Either wire the restore back in (progress survives Android killing the app) or stop writing the temp state. Its own PR either way.
+- **Unused public contracts.** Some `AppConfig`, callback-interface and ViewModel methods have no caller. They were kept in #150 because of the contract rule in `CLAUDE.md`.
+
+## Won't do
+
+- **Device items** (more instrumented coverage of `GameActivity`, `RetroView`, `CRTBootView`; the key-up check from `2026-09-27-keyup-input-side-effects.md`): skipped by the user's decision. They don't affect the enforced floor.
+- **`RetroEditText.onDraw` and `CRTBootView`'s draw methods.** Canvas drawing, covered visually by the Roborazzi screenshots.
+- **Bytecode-only branches** (null-safety and `when` checks no input can reach). Don't write tests to satisfy the counter.
+- **About 150 lines and 220 branches spread over small files** with fewer than 8 missed lines each, unless an item above touches them anyway.
+- **Python's 14 missed lines** (98.1%; no enforced floor).
+- **Lowering the Kover floor**, ever.
 
 ## Result
 

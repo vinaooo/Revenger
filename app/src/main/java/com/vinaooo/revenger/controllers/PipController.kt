@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.controllers
 
-import android.annotation.TargetApi
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -32,7 +31,8 @@ class PipController(
         private val host: PipHost,
         private val viewModel: GameActivityViewModel,
         private val appConfig: AppConfig,
-        private val views: PipViews
+        private val views: PipViews,
+        private val pipQuickSaveExecutor: PipQuickSaveExecutor = PipQuickSaveExecutor(host, viewModel)
 ) {
         companion object {
                 private const val TAG = "PipController"
@@ -41,7 +41,6 @@ class PipController(
         }
 
         private val pipParamsFactory = PipParamsFactory(host, views.retroviewContainer, appConfig)
-        private val pipQuickSaveExecutor = PipQuickSaveExecutor(host, viewModel)
 
         private var pendingPipQuickSave = false
         private var pendingPipSaveMenu = false
@@ -100,10 +99,8 @@ class PipController(
                 maybeCapturePipFrame(force = true)
         }
 
-        /** Call from `GameActivity.onResume()`, after `super.onResume()`. No-op below SDK O. */
+        /** Call from `GameActivity.onResume()`, after `super.onResume()`. */
         fun onActivityResumed() {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-
                 try {
                         // isCurrentlyInPip(), pipOverlay.visibility and clearPipOverlaySnapshot()
                         // document no throwable condition, so there is no narrower reachable type;
@@ -133,7 +130,7 @@ class PipController(
                         Log.d(TAG, "[PIP] Ignoring PiP request before first frame render")
                         return
                 }
-                if (!appConfig.isPipEnabled() || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+                if (!appConfig.isPipEnabled()) return
 
                 // Grab a frame now, while the GL surface is guaranteed valid and on-screen.
                 maybeCapturePipFrame(force = true)
@@ -151,12 +148,7 @@ class PipController(
                         Log.d(TAG, "[PIP] Abort PiP transition: first frame not rendered yet")
                         return
                 }
-                if (!appConfig.isPipEnabled() ||
-                                Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
-                                viewModel.isAnyMenuActive()
-                ) {
-                        return
-                }
+                if (!appConfig.isPipEnabled() || viewModel.isAnyMenuActive()) return
 
                 try {
                         // Make sure we have the freshest possible frame, then paint the overlay
@@ -194,7 +186,6 @@ class PipController(
          * overlay always has a recent frame to show.
          */
         fun maybeCapturePipFrame(force: Boolean = false) {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
                 if (!appConfig.isPipEnabled()) return
                 if (host.isCurrentlyInPip()) return
                 if (viewModel.retroView?.frameRendered?.value != true) return
@@ -229,9 +220,7 @@ class PipController(
                 views.pipOverlay.setImageDrawable(null)
         }
 
-        @TargetApi(Build.VERSION_CODES.O)
         fun updatePictureInPictureParams() {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
                 try {
                         if (viewModel.retroView?.frameRendered?.value != true) {
                                 Log.d(TAG, "[PIP] Skipping PiP params update before first frame render")
