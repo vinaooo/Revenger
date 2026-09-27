@@ -2,6 +2,8 @@ package com.vinaooo.revenger.utils
 
 import android.content.res.Configuration
 import android.view.WindowInsetsController
+import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -48,5 +50,30 @@ class SystemBarsAppearance_test {
 
         assertEquals(0, SystemBarsAppearance.forUiMode(darkTelevision))
         assertEquals(SystemBarsAppearance.MASK, SystemBarsAppearance.forUiMode(lightTelevision))
+    }
+
+    @Test
+    fun `apply sets the dark-theme appearance on the controller, masked to the bar bits`() {
+        val controller = mockk<WindowInsetsController>(relaxed = true)
+
+        SystemBarsAppearance.apply(controller, Configuration.UI_MODE_NIGHT_YES)
+
+        verify(exactly = 1) { controller.setSystemBarsAppearance(0, SystemBarsAppearance.MASK) }
+    }
+
+    @Test
+    fun `apply sets the light-theme appearance on the controller`() {
+        val controller = mockk<WindowInsetsController>(relaxed = true)
+
+        SystemBarsAppearance.apply(controller, Configuration.UI_MODE_NIGHT_NO)
+
+        verify(exactly = 1) {
+            controller.setSystemBarsAppearance(SystemBarsAppearance.MASK, SystemBarsAppearance.MASK)
+        }
+    }
+
+    @Test
+    fun `apply without a controller does nothing`() {
+        SystemBarsAppearance.apply(null, Configuration.UI_MODE_NIGHT_YES)
     }
 }

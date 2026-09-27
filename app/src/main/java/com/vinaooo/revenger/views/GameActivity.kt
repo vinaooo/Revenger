@@ -172,7 +172,11 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
          */
         private fun initializeViewsControllersAndInput() {
                 // Configure status/navigation bars based on current theme
-                configureSystemBarsForTheme()
+                // Status/navigation bar icons that contrast with the current theme
+                SystemBarsAppearance.apply(
+                        window.decorView.windowInsetsController,
+                        resources.configuration.uiMode
+                )
 
                 // Initialize views
                 leftContainer = findViewById(R.id.left_container)
@@ -289,6 +293,10 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 super.onConfigurationChanged(newConfig)
                 rotationController.reapplyOrientationIfNeeded(newConfig)
 
+                // uiMode is in configChanges, so a theme switch lands here instead of recreating
+                // the Activity: reapply the bar icon colors for the new theme.
+                SystemBarsAppearance.apply(window.decorView.windowInsetsController, newConfig.uiMode)
+
                 gamePadLayoutAdjuster.adjustPositionForOrientation(gamePadContainer)
 
                 // Aspect ratio / source rect for PiP change with orientation — keep params current.
@@ -313,14 +321,6 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 window.decorView.post {
                         AdvancedPerformanceProfiler.showDebugOverlay(this@GameActivity)
                 }
-        }
-
-        /** Configure status/navigation bars based on current theme for optimal visibility */
-        private fun configureSystemBarsForTheme() {
-                window.decorView.windowInsetsController?.setSystemBarsAppearance(
-                        SystemBarsAppearance.forUiMode(resources.configuration.uiMode),
-                        SystemBarsAppearance.MASK
-                )
         }
 
         /** Listen for new controller additions and removals, and route the system back */
