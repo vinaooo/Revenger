@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.controllers
 
-import android.annotation.TargetApi
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -25,7 +24,6 @@ class PipParamsFactory(
         private val retroviewContainer: FrameLayout,
         private val appConfig: AppConfig
 ) {
-        @TargetApi(Build.VERSION_CODES.O)
         fun newBuilder(): PictureInPictureParams.Builder {
                 val activity = host.activity
                 val builder = PictureInPictureParams.Builder()

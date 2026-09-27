@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.controllers
 
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import com.swordfish.libretrodroid.GLRetroView
@@ -19,10 +20,23 @@ import kotlinx.coroutines.withTimeoutOrNull
  * GL thread is running again before [GLRetroView.serializeState] -- which would deadlock while
  * the GL thread is paused in PiP. Extracted out of [PipController] to keep that class within
  * detekt's `TooManyFunctions` threshold.
+ *
+ * The last four parameters are seams for tests; production uses the defaults.
+ *
+ * @param runInBackground runs the save off the main thread (the save blocks on the GL thread).
+ * @param saveManager supplies the slot store the save is written to.
+ * @param pipFrame supplies the frame saved as the slot's screenshot and preview.
+ * @param frameTimeoutMs how long to wait for the emulator to render before giving up.
  */
 class PipQuickSaveExecutor(
         private val host: PipHost,
-        private val viewModel: GameActivityViewModel
+        private val viewModel: GameActivityViewModel,
+        private val runInBackground: (Runnable) -> Unit = { Thread(it).start() },
+        private val saveManager: () -> SaveStateManager = {
+                SaveStateManager.getInstance(host.activity.applicationContext)
+        },
+        private val pipFrame: () -> Bitmap? = { ScreenshotCaptureUtil.getPipFrame() },
+        private val frameTimeoutMs: Long = FRAME_TIMEOUT_MS
 ) {
         companion object {
                 private const val TAG = "PipQuickSaveExecutor"
@@ -41,7 +55,7 @@ class PipQuickSaveExecutor(
                         // serializeState() runs on the GL thread via a no-timeout latch, so if the
                         // emulator never resumes we must NOT call it — abort the save instead of
                         // hanging the app forever.
-                        val emulatorResumed = withTimeoutOrNull(FRAME_TIMEOUT_MS) {
+                        val emulatorResumed = withTimeoutOrNull(frameTimeoutMs) {
                                 retroView.view.getGLRetroEvents()
                                         .first { it == GLRetroView.GLRetroEvents.FrameRendered }
                                 true
@@ -53,15 +67,15 @@ class PipQuickSaveExecutor(
                                 return@launch
                         }
 
-                        Thread {
+                        runInBackground {
                                 try {
                                         val tracker = SessionSlotTracker.getInstance()
                                         val slotNumber = tracker.getLastUsedSlot() ?: 1
                                         val stateBytes = retroView.view.serializeState()
-                                        val screenshot = ScreenshotCaptureUtil.getPipFrame()
-                                        val saveManager = SaveStateManager.getInstance(host.activity.applicationContext)
-                                        val slotData = saveManager.getSlot(slotNumber)
-                                        saveManager.saveToSlot(
+                                        val screenshot = pipFrame()
+                                        val slots = saveManager()
+                                        val slotData = slots.getSlot(slotNumber)
+                                        slots.saveToSlot(
                                                 slotNumber = slotNumber,
                                                 payload = SaveSlotPayload(
                                                         stateBytes = stateBytes,
@@ -86,7 +100,7 @@ class PipQuickSaveExecutor(
                                 } finally {
                                         host.postToUiThread { host.finishPipTask() }
                                 }
-                        }.start()
+                        }
                 }
         }
 }
