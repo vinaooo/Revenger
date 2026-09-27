@@ -51,8 +51,8 @@ object DefaultSettingsRepository {
      * 1. By platformId if non-empty
      * 2. By extension match
      * 
-     * @param platformId Explicit platform identifier (e.g., "sms", "snes")
-     * @param extension ROM file extension with dot (e.g., ".sms", ".sfc")
+     * @param platformId Explicit platform identifier (a profile's `platform_id`)
+     * @param extension ROM file extension with dot, lowercase (as in a profile's `extensions`)
      * @return Matching profile or null if not found
      */
     fun findProfile(platformId: String?, extension: String): DefaultSettingsProfile? {
