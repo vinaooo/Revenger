@@ -41,7 +41,7 @@ class SlotFileLayout(private val savesDir: File) {
     /**
      * Writes [bitmap] as a lossy WebP file at [target]. Shared by screenshot and full-screen
      * preview saving, which previously duplicated this exact compress/write sequence. Does not
-     * catch I/O failures -- callers (`SaveStateManager.saveToSlot`/`updateScreenshot`) rely on the
+     * catch I/O failures -- callers (`SaveStateManager.saveToSlot`) rely on the
      * exception propagating so their own try/catch can report failure instead of a false success.
      */
     fun writeWebpImage(target: File, bitmap: Bitmap) {

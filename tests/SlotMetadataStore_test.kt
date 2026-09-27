@@ -2,8 +2,10 @@ package com.vinaooo.revenger.managers
 
 import org.json.JSONObject
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -11,6 +13,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.time.Instant
 
 /**
  * Unit tests for [SlotMetadataStore], extracted from [SaveStateManager] to keep that class under
@@ -105,5 +108,36 @@ class SlotMetadataStore_test {
         assertEquals("Custom", metadata.getString("name"))
         assertEquals("rom.bin", metadata.getString("romName"))
         assertEquals("", metadata.getString("description"))
+    }
+
+    @Test
+    fun `migrateLegacySaveIfNeeded que falha ao copiar mantem o arquivo legado`() {
+        val legacy = File(tempDir, "state").apply { writeBytes(byteArrayOf(4, 2)) }
+        savesDir.mkdirs()
+        layout.slotDirectory(1).writeText("a file where the slot folder should be")
+
+        store.migrateLegacySaveIfNeeded(tempDir, layout)
+
+        assertTrue("the only copy of the save must survive a failed migration", legacy.exists())
+        assertArrayEquals(byteArrayOf(4, 2), legacy.readBytes())
+    }
+
+    @Test
+    fun `parseTimestamp de texto em branco ou nulo retorna null`() {
+        assertNull(store.parseTimestamp(null))
+        assertNull(store.parseTimestamp("   "))
+    }
+
+    @Test
+    fun `backfillTimestamp mantem a description que ja existe`() {
+        val file = File(tempDir, "metadata.json")
+        file.writeText(JSONObject().put("name", "Kept").put("description", "Notes").toString())
+
+        store.backfillTimestamp(file, 2, Instant.parse("2026-01-01T00:00:00Z"))
+
+        val metadata = JSONObject(file.readText())
+        assertEquals("Kept", metadata.getString("name"))
+        assertEquals("Notes", metadata.getString("description"))
+        assertEquals("2026-01-01T00:00:00Z", metadata.getString("timestamp"))
     }
 }

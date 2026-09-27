@@ -3,7 +3,7 @@ package com.vinaooo.revenger.managers
 import com.vinaooo.revenger.models.SaveSlotData
 
 /**
- * Read-only slot queries (single slot / all slots / occupancy) for [SaveStateManager], split out
+ * Read-only slot queries (single slot / all slots) for [SaveStateManager], split out
  * purely to keep that class under the project's function-count threshold. Exposed back on
  * [SaveStateManager] via Kotlin interface delegation (`by`) so its public surface stays identical
  * -- every method here is called from outside [SaveStateManager] (menu fragments,
@@ -15,15 +15,6 @@ interface SlotQueryOperations {
 
     /** Get a specific slot by number. */
     fun getSlot(slotNumber: Int): SaveSlotData
-
-    /** Check if any slot has a save state. */
-    fun hasAnySave(): Boolean
-
-    /** Get the first empty slot number, or null if all slots are occupied. */
-    fun getFirstEmptySlot(): Int?
-
-    /** Get count of occupied slots. */
-    fun getOccupiedSlotCount(): Int
 }
 
 /**
@@ -44,15 +35,6 @@ class SlotQueryStore(
 
     override fun getSlot(slotNumber: Int): SaveSlotData =
             synchronized(slotLock) { getSlotLocked(slotNumber) }
-
-    override fun hasAnySave(): Boolean =
-            synchronized(slotLock) { (1..totalSlots).any { !getSlotLocked(it).isEmpty } }
-
-    override fun getFirstEmptySlot(): Int? =
-            synchronized(slotLock) { (1..totalSlots).firstOrNull { getSlotLocked(it).isEmpty } }
-
-    override fun getOccupiedSlotCount(): Int =
-            synchronized(slotLock) { (1..totalSlots).count { !getSlotLocked(it).isEmpty } }
 
     /** Must only be called while already holding [slotLock] (see the public methods above). */
     private fun getSlotLocked(slotNumber: Int): SaveSlotData {
