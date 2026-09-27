@@ -15,6 +15,16 @@ object SystemBarsAppearance {
         WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
             WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
 
+    /**
+     * Applies the appearance for [uiMode] to [controller] (a window's insets controller; null
+     * before the window is attached, in which case nothing happens). Called at startup and again
+     * on every configuration change, since `GameActivity` handles `uiMode` changes itself and is
+     * not recreated when the theme switches.
+     */
+    fun apply(controller: WindowInsetsController?, uiMode: Int) {
+        controller?.setSystemBarsAppearance(forUiMode(uiMode), MASK)
+    }
+
     /** The `appearance` value for [uiMode] (a `Configuration.uiMode`). */
     fun forUiMode(uiMode: Int): Int =
         if (uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES) 0
