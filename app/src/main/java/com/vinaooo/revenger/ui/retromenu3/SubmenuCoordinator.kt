@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.ui.retromenu3
 
-
 import androidx.fragment.app.Fragment
 import android.util.Log
 import com.vinaooo.revenger.R
@@ -183,12 +182,6 @@ class SubmenuCoordinator(
         this.showMainMenuCallback = showMainMenuCallback
         this.setSelectedIndexCallback = setSelectedIndexCallback
         this.getCurrentSelectedIndexCallback = getCurrentSelectedIndexCallback
-    }
-
-    fun testMethodExecution(testType: String) {
-        // HIDE THE MAIN MENU COMPLETELY
-        viewManager.hideMainMenu()
-        Log.d(TAG, "SubmenuCoordinator: testMethodExecution - Main menu hidden for $testType")
     }
 
     fun openSubmenu(submenuType: MenuState) {

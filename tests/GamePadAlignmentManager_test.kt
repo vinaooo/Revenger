@@ -72,31 +72,6 @@ class GamePadAlignmentManager_test {
         assertEquals(0, manager().calculateTopMarginLandscape(1000, -999))
     }
 
-    // --- getEmptyDialIndicesForLeft ---
-
-    @Test
-    fun `getEmptyDialIndicesForLeft retorna o indice do botao de menu (8)`() {
-        assertEquals(listOf(8), manager().getEmptyDialIndicesForLeft())
-    }
-
-    // --- getAlignmentDebugInfo ---
-
-    @Test
-    fun `getAlignmentDebugInfo com as duas configuracoes nulas`() {
-        assertEquals("LEFT: null | RIGHT: null", manager().getAlignmentDebugInfo(null, null))
-    }
-
-    @Test
-    fun `getAlignmentDebugInfo resume sockets e quantidade de dials secundarios`() {
-        val left = mockk<RadialGamePadConfig>()
-        every { left.sockets } returns 12
-        every { left.secondaryDials } returns listOf(mockk(), mockk())
-
-        val info = manager().getAlignmentDebugInfo(left, null)
-
-        assertEquals("LEFT: sockets=12, secondaryDials=2 | RIGHT: null", info)
-    }
-
     // --- validateOffsets ---
 
     @Test

@@ -22,7 +22,6 @@ class Storage(context: Context) {
     private val internalFilesDir: File = context.filesDir
     private val externalFilesDir: File? = context.getExternalFilesDir(null)
 
-    val storagePath: String = internalFilesDir.path
     val cachePath: String = (context.externalCacheDir ?: context.cacheDir).path
 
     val rom = File("$cachePath/rom")

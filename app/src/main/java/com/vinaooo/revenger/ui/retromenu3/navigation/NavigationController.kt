@@ -222,15 +222,6 @@ class NavigationController(
     }
 
     /**
-     * Limpa a fila de eventos pendentes.
-     *
-     * Útil quando o menu fecha ou quando queremos descartar inputs pendentes.
-     */
-    fun clearPendingEvents() {
-        eventQueue.clear()
-    }
-
-    /**
      * Fecha o menu externamente (não via navegação interna). Chamado quando o menu é fechado por
      * ações como Reset ou Continue.
      */

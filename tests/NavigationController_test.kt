@@ -112,19 +112,4 @@ class NavigationController_test {
 
         assertFalse(controller.isMenuActive())
     }
-
-    // --- clearPendingEvents ---
-
-    @Test
-    fun `clearPendingEvents nao lanca quando chamado sem eventos pendentes`() {
-        controller.registerFragment(fakeFragment(), itemCount = 5)
-        controller.handleNavigationEvent(selectItemEvent(index = 2, timestamp = 1_000))
-
-        controller.clearPendingEvents()
-
-        controller.handleNavigationEvent(selectItemEvent(index = 4, timestamp = 5_000))
-        val bundle = Bundle()
-        controller.saveState(bundle)
-        assertEquals(4, bundle.getInt("nav_selected_index"))
-    }
 }

@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.ui.retromenu3
 
-
 import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
@@ -25,7 +24,6 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         val COLOR_SELECTED =
                 android.graphics.Color.parseColor("#FFFF00") // Item selected during navigation
         val COLOR_PRESSED = android.graphics.Color.parseColor("#FFFFFF") // Pressed/touch item
-        val COLOR_NORMAL = android.graphics.Color.parseColor("#00000000") // Normal state
     }
 
     // Estados da view

@@ -31,7 +31,7 @@ class AudioController_test {
         prefs.edit().clear().commit()
 
         retroView = mockk(relaxed = true)
-        controller = AudioController(context, prefs)
+        controller = AudioController(prefs)
     }
 
     @Test
@@ -79,16 +79,5 @@ class AudioController_test {
         controller.initializeAudioState(retroView)
 
         verify { retroView.audioEnabled = false }
-    }
-
-    @Test
-    fun `getAudioStateDescription reflete o estado salvo`() {
-        prefs.edit().putBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, false).commit()
-        val context = ApplicationProvider.getApplicationContext<Context>()
-
-        assertEquals(
-            context.getString(com.vinaooo.revenger.R.string.audio_off),
-            controller.getAudioStateDescription(),
-        )
     }
 }

@@ -148,26 +148,6 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
         return true
     }
 
-    /**
-     * Reseta o timestamp do último evento processado.
-     *
-     * Útil quando queremos garantir que o próximo evento não sofra debounce (ex: após abrir menu).
-     */
-    @Synchronized
-    fun resetDebounceWindow() {
-        lastProcessedTimestamp = 0
-        Log.d(TAG, "Debounce window reset")
-    }
-
-    /** Retorna estatísticas da fila para debugging. */
-    fun getStats(): QueueStats {
-        return QueueStats(
-                queueSize = queue.size,
-                lastProcessedTimestamp = lastProcessedTimestamp,
-                debounceWindowMs = debounceWindowMs
-        )
-    }
-
     companion object {
         private const val TAG = "EventQueue"
 
@@ -177,9 +157,3 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
     }
 }
 
-/** Estatísticas da fila de eventos para debugging. */
-data class QueueStats(
-        val queueSize: Int,
-        val lastProcessedTimestamp: Long,
-        val debounceWindowMs: Long
-)

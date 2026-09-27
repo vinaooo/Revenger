@@ -20,22 +20,6 @@ object FontUtils : TypefaceLookup by TypefaceProvider() {
         }
     }
 
-    /** Aplica a fonte arcade a um TextView (para compatibilidade) */
-    fun applyArcadeFont(context: Context, textView: android.widget.TextView) {
-        val typeface = getArcadeTypeface(context)
-        if (typeface != null) {
-            textView.typeface = typeface
-        }
-    }
-
-    /** Applies the arcade font to multiple TextViews (for compatibility) */
-    fun applyArcadeFont(context: Context, vararg textViews: android.widget.TextView) {
-        val typeface = getArcadeTypeface(context)
-        if (typeface != null) {
-            textViews.forEach { it.typeface = typeface }
-        }
-    }
-
     /** Applies configured capitalization to the text of a TextView */
     fun applyTextCapitalization(context: Context, textView: android.widget.TextView) {
         val capitalizationStyle =
@@ -90,21 +74,5 @@ object FontUtils : TypefaceLookup by TypefaceProvider() {
             2 -> raw.uppercase()
             else -> raw
         }
-    }
-
-    /** Returns the selected text color based on RetroMenu3 configuration */
-    fun getSelectedTextColor(context: Context): Int {
-        return androidx.core.content.ContextCompat.getColor(
-                context,
-                com.vinaooo.revenger.R.color.rm_selected_color
-        )
-    }
-
-    /** Returns the color of unselected text based on RetroMenu3 configuration */
-    fun getUnselectedTextColor(context: Context): Int {
-        return androidx.core.content.ContextCompat.getColor(
-                context,
-                com.vinaooo.revenger.R.color.rm_normal_color
-        )
     }
 }

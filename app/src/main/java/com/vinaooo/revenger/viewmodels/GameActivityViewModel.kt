@@ -715,7 +715,7 @@ class GameActivityViewModel(application: Application) :
     private fun initializeControllers(activity: Activity) {
         val sharedPrefs = activity.getPreferences(android.content.Context.MODE_PRIVATE)
         sharedPreferences = sharedPrefs
-        audioController = AudioController(activity.applicationContext, sharedPrefs)
+        audioController = AudioController(sharedPrefs)
         speedController = SpeedController(activity.applicationContext, sharedPrefs, appConfig)
         shaderController = ShaderController(sharedPrefs, appConfig)
 

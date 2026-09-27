@@ -16,7 +16,6 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.FrameLayout
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.R
@@ -36,10 +35,7 @@ import com.vinaooo.revenger.controllers.SystemBackHost
 import com.vinaooo.revenger.gamepad.GamePadAlignmentManager
 import com.vinaooo.revenger.gamepad.GamePadLayoutAdjuster
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
-import com.vinaooo.revenger.privacy.EnhancedPrivacyManager
-import com.vinaooo.revenger.utils.AndroidCompatibility
 import com.vinaooo.revenger.utils.FrameTimeRecorder
-import com.vinaooo.revenger.utils.PermissionResults
 import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
 import com.vinaooo.revenger.utils.StartupTimer
 import com.vinaooo.revenger.utils.SystemBarsAppearance
@@ -109,14 +105,6 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
         // Refreshes gamepad visibility when controllers connect, disconnect or change.
         private lateinit var inputDeviceWatcher: InputDeviceWatcher
 
-        // Modern permission launcher (replaces deprecated onRequestPermissionsResult)
-        private val permissionLauncher =
-                registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-                        permissions ->
-                        val grantResults = PermissionResults.toGrantResults(permissions)
-                        EnhancedPrivacyManager.handlePermissionResult(grantResults) { _ -> }
-                }
-
         override fun onCreate(savedInstanceState: Bundle?) {
                 val startupTimer = StartupTimer(System.currentTimeMillis())
                 startupTimer.mark("GameActivity.onCreate() START")
@@ -159,11 +147,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 ScreenshotCaptureUtil.setContext(this)
                 startupTimer.mark("ScreenshotCaptureUtil.setContext() completed")
 
-                // Apply conditional features based on Android version
-                AndroidCompatibility.applyConditionalFeatures()
-
-                // Phase 9.4: Initialize SDK 36 features
-                initializeSdk36Features()
+                startPerformanceProfiling()
         }
 
         /**
@@ -307,13 +291,8 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 rotationController.maybeRecreateMenuAfterRotation()
         }
 
-        /**
-         * Initialize SDK 36 features with backward compatibility Phase 9.4: Target SDK 36 Features
-         */
-        private fun initializeSdk36Features() {
-                // Initialize enhanced privacy controls
-                EnhancedPrivacyManager.initializePrivacyControls(this)
-
+        /** Starts the performance profiler and shows its debug overlay once the layout is ready. */
+        private fun startPerformanceProfiling() {
                 // Start performance profiling
                 AdvancedPerformanceProfiler.startProfiling(this)
 
@@ -489,14 +468,6 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                 frameTimeRecorder.record(System.nanoTime())?.let {
                         AdvancedPerformanceProfiler.recordFrameTime(it)
                 }
-        }
-
-        /**
-         * Method to request permissions using modern API Call this instead of deprecated
-         * ActivityCompat.requestPermissions
-         */
-        fun requestPermissionsModern(permissions: Array<String>) {
-                permissionLauncher.launch(permissions)
         }
 
         /** Starts reverse CRT animation (shutdown) and invokes a callback when finished */

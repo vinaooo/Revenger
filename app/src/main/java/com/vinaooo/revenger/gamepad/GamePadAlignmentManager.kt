@@ -23,9 +23,6 @@ class GamePadAlignmentManager(private val appConfig: AppConfig) {
     companion object {
         private const val TAG = "GamePadAlignmentManager"
 
-        // Default indices that need to be mirrored
-        private const val MENU_INDEX = 8 // Index of MENU button (RIGHT)
-
         private const val OFFSET_PERCENT_MAX = 100
         private const val PERCENT_SCALE = 100.0
     }
@@ -76,49 +73,6 @@ class GamePadAlignmentManager(private val appConfig: AppConfig) {
         )
 
         return calculatedMargin
-    }
-
-    /**
-     * Returns the indices of Empty Dials required for the LEFT side to mirror the RIGHT
-     * side configuration.
-     *
-     * Note: This version is simplified because the Empty Dial has already been added directly
-     * in GamePadConfig.kt for index 8 (MENU). This method exists for future documentation and
-     * extensibility.
-     *
-     * @return List containing index 8 (MENU)
-     */
-    fun getEmptyDialIndicesForLeft(): List<Int> {
-        return listOf(MENU_INDEX)
-    }
-
-    /**
-     * Returns information about current alignment for logging/debug.
-     *
-     * @param leftConfig LEFT GamePad configuration
-     * @param rightConfig RIGHT GamePad configuration
-     * @return String summarizing both configurations
-     */
-    fun getAlignmentDebugInfo(
-            leftConfig: RadialGamePadConfig?,
-            rightConfig: RadialGamePadConfig?
-    ): String {
-        return buildString {
-            append("LEFT: ")
-            if (leftConfig != null) {
-                append("sockets=${leftConfig.sockets}, ")
-                append("secondaryDials=${leftConfig.secondaryDials.size}")
-            } else {
-                append("null")
-            }
-            append(" | RIGHT: ")
-            if (rightConfig != null) {
-                append("sockets=${rightConfig.sockets}, ")
-                append("secondaryDials=${rightConfig.secondaryDials.size}")
-            } else {
-                append("null")
-            }
-        }
     }
 
     /**

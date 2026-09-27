@@ -371,54 +371,8 @@ class MenuLayoutConfig_test {
         assertEquals(0.40f, (menuContainer.layoutParams as LinearLayout.LayoutParams).weight, 0.0001f)
     }
 
-    // ========== applyDialogProportions (keeps wrap_content, only positions the dialog) ==========
-
-    @Test
-    fun `applyDialogProportions posiciona o dialog sem esticar seu conteudo`() {
-        val root = FrameLayout(context)
-        val mainRow = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
-
-        val leftSpace = spacerChild()
-        val dialogContainer =
-                LinearLayout(context).apply {
-                    id = R.id.dialog_container
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 0.80f)
-                }
-        val rightSpace = spacerChild()
-
-        mainRow.addView(leftSpace)
-        mainRow.addView(dialogContainer)
-        mainRow.addView(rightSpace)
-        root.addView(mainRow)
-
-        MenuLayoutConfig.applyDialogProportions(root)
-
-        val wrapper = mainRow.getChildAt(1) as LinearLayout
-        assertSame(dialogContainer, wrapper.getChildAt(1))
-
-        // Dialog itself keeps WRAP_CONTENT height (not stretched).
-        assertEquals(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                (dialogContainer.layoutParams as LinearLayout.LayoutParams).height
-        )
-
-        // Top space uses topWeight (0.30); bottom space absorbs content+bottom (0.40+0.30=0.70).
-        assertEquals(0.30f, (wrapper.getChildAt(0).layoutParams as LinearLayout.LayoutParams).weight, 0.0001f)
-        assertEquals(0.70f, (wrapper.getChildAt(2).layoutParams as LinearLayout.LayoutParams).weight, 0.0001f)
-    }
-
-    @Test
-    fun `applyDialogProportions sem dialog_container nao lanca excecao`() {
-        val root = FrameLayout(context)
-        try {
-            MenuLayoutConfig.applyDialogProportions(root)
-        } catch (e: Exception) {
-            fail("applyDialogProportions should not throw without a dialog_container: ${e.message}")
-        }
-    }
-
     // ========== ClassCastException paths (narrowed catches around the unguarded LayoutParams
-    // casts in applyVerticalProportions / applyDialogVerticalPosition) ==========
+    // casts in applyVerticalProportions) ==========
 
     // Regression test for the narrowed ClassCastException catch in applyVerticalProportions:
     // menuContainer.layoutParams is assigned directly (bypassing the parent's automatic
@@ -444,29 +398,5 @@ class MenuLayoutConfig_test {
         // Tree must be untouched: the cast fails before removeViewAt() runs.
         assertEquals(1, parentRow.childCount)
         assertSame(menuContainer, parentRow.getChildAt(0))
-    }
-
-    // Regression test for the narrowed ClassCastException catch in applyDialogVerticalPosition
-    // (private, reached through applyDialogProportions), using the same incompatible-LayoutParams
-    // setup as above.
-    @Test
-    fun `applyDialogProportions com layoutParams de tipo incompativel no dialog_container nao lanca excecao`() {
-        val parentRow = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
-        val dialogContainer = LinearLayout(context).apply { id = R.id.dialog_container }
-        parentRow.addView(dialogContainer, ViewGroup.LayoutParams(0, 0))
-        dialogContainer.layoutParams = ViewGroup.LayoutParams(0, 0)
-
-        val root = FrameLayout(context)
-        root.addView(parentRow)
-
-        try {
-            MenuLayoutConfig.applyDialogProportions(root)
-        } catch (e: ClassCastException) {
-            fail("applyDialogProportions should catch its own ClassCastException: ${e.message}")
-        }
-
-        // Tree must be untouched: the cast fails before removeViewAt() runs.
-        assertEquals(1, parentRow.childCount)
-        assertSame(dialogContainer, parentRow.getChildAt(0))
     }
 }
