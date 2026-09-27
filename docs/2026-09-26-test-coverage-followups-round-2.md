@@ -87,10 +87,11 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
 ### [x] 4. `test/button-routers`: `KeyEventRouter`, `MotionEventRouter`, `GamePadButtonRouter`
 - `interceptButtonB` (both copies), `fireDpadCallback`, `fireTriggerCallback`, `checkSingleTrigger`, `computeDirectionTrigger`, `isAnyAxisOutOfDeadzone`.
 - Deadzone edges exactly (just inside, on, just outside). Pin both B-button variants as they are.
-- Done in this PR: `KeyEventRouter_test`, `GamePadButtonRouter_test`, `MotionEventRouter_test`. No bugs found. The two B-button variants really differ: on the key-event path any non-DOWN action releases B, on the gamepad path only UP does. Both are pinned.
+- Done in PR #155: `KeyEventRouter_test`, `GamePadButtonRouter_test`, `MotionEventRouter_test`. No bugs found. The two B-button variants really differ: on the key-event path any non-DOWN action releases B, on the gamepad path only UP does. Both are pinned.
 
-### [ ] 5. `test/game-activity-viewmodel-remaining`: `GameActivityViewModel`
+### [x] 5. `test/game-activity-viewmodel-remaining`: `GameActivityViewModel`
 - `onMenuEvent`, `onBackToMainMenu`, `onAboutBackToMainMenu`, `preserveState`, `initializeControllers`, `setupRetroView`, `onCleared`, `setConfigOrientation`. Split in two if the diff gets large. New test file per topic.
+- Done in this PR: `GameActivityViewModel_retroViewLifecycle_test` and `GameActivityViewModel_menuRouting_test`. `setupRetroView` builds its view through a new `retroViewFactory` seam, because the real view loads the native core. Left as they are: `hasSaveState` and `getShaderState`, one-line interface methods with no caller (see Open decisions, unused public contracts).
 
 ### [ ] 6. `test/gamepad-and-retroview-utils`: `GamePad` and `RetroViewUtils`
 - `GamePad`: `handleButtonEvent`, `handleDirectionEvent`, `eventHandler`, `hasExternalPhysicalController` (decides whether the on-screen pad shows).

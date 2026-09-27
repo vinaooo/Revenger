@@ -126,6 +126,14 @@ class GameActivityViewModel(application: Application) :
             // FUTURE: gameStateViewModel.setRetroView(value)
         }
 
+    /**
+     * Builds the emulator view in [setupRetroView]. Tests replace it with a mock, because the real
+     * view loads the native core.
+     */
+    internal var retroViewFactory: (ComponentActivity) -> RetroView = { activity ->
+        RetroView(activity, viewModelScope, appConfig)
+    }
+
     private var retroViewUtils: RetroViewUtils? = null
         set(value) {
             field = value
@@ -619,7 +627,7 @@ class GameActivityViewModel(application: Application) :
 
     /** Hook the RetroView with the GLRetroView instance */
     fun setupRetroView(activity: ComponentActivity, container: FrameLayout) {
-        retroView = RetroView(activity, viewModelScope, appConfig)
+        retroView = retroViewFactory(activity)
         retroViewUtils = RetroViewUtils(activity)
 
         // Initialize controllers with the same SharedPreferences that RetroViewUtils uses
