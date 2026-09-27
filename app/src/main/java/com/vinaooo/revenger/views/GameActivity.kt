@@ -303,8 +303,6 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
          * Initialize SDK 36 features with backward compatibility Phase 9.4: Target SDK 36 Features
          */
         private fun initializeSdk36Features() {
-                // Dynamic theming is now handled automatically by Material 3 theme inheritance
-
                 // Initialize enhanced privacy controls
                 EnhancedPrivacyManager.initializePrivacyControls(this)
 

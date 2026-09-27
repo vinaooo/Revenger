@@ -12,7 +12,6 @@ class RevengerApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Dynamic theme is now handled automatically by Material 3 theme inheritance
 
         // Initialize default settings repository
         DefaultSettingsRepository.initialize(this)

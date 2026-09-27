@@ -26,7 +26,7 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
  * - Touch: Highlight + 100ms activation delay
  *
  * **Visual**:
- * - Informational design with Material Design 3
+ * - Informational layout in the RetroMenu3 style
  * - Reads config.xml for dynamic data
  * - Typography optimized for readability
  *
