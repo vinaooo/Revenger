@@ -53,19 +53,20 @@ Missed by the first draft: `SaveStateManager` error paths (28 branches, the code
 - Coverage 87.4% / 68.6% → 88.1% / 69.6% with no new tests.
 - Kept on purpose: getters that tests use to observe state, and public contracts (`AppConfig`, callback interfaces, ViewModel methods, `MenuFragmentBase`).
 
-### [ ] 2. `test/pip-quick-save`: PiP Quick Save and `PipController`
+### [x] 2. `test/pip-quick-save`: PiP Quick Save and `PipController` — PR #151
 - `PipQuickSaveExecutor` gets seams (background runner, slot store, PiP frame, frame timeout) with production defaults, and tests for every path: slot choice, slot name, screenshot, timeout abort, `serializeState()` failure, the task always finished once.
 - `PipController` takes the executor as an optional constructor parameter. Tests for both PiP action buttons, the stuck-overlay cleanup, gamepad hide/restore, and entry failures.
 - The impossible `SDK_INT < O` checks and `@TargetApi(O)` in `PipController` and `PipParamsFactory` are deleted.
 
-### [ ] 2b. `fix/pip-quick-save-slot`: where PiP Quick Save writes
+### [x] 2b. `fix/pip-quick-save-slot`: where PiP Quick Save writes — this PR
 Today it writes to the slot last used this session, or **slot 1** when none was used, overwriting whatever is there. The rule the user chose:
 1. A slot saved or loaded since this launch → that slot. ("This launch" only: the tracker stays in memory, Save and Exit is unchanged.)
 2. Otherwise → the first empty slot.
 3. All slots full → the slot with the oldest save date.
 4. A slot with no readable date (missing or corrupt `metadata.json`): use its `state.bin` file date and write that date into `metadata.json`, creating the file with the name the menu already shows ("Slot N") if it's missing. A tie goes to the lower slot number.
 - **Compatible with older versions:** no change to folders, file names, or `metadata.json` keys and date format. Older versions ignore keys they don't know, so a downgraded APK still reads every save.
-- `PipLastSlotScreenshotResolver` (the PiP still-frame) uses the same slot choice, so the thumbnail matches the slot being written.
+- `PipLastSlotScreenshotResolver` (the PiP still-frame) no longer falls back to slot 1 either. It shows the most recent save (the slot used last this session, else the newest save), not the Quick Save target: with every slot full the target is the *oldest* save, which would be the wrong picture of the game.
+- Both decisions live in `managers/QuickSaveSlotPicker` (pure); `SaveStateManager.backfillMissingTimestamps()` writes the missing dates.
 - Also: record the save in `SessionSlotTracker` only when `saveToSlot` returns true (today a failed write is still recorded).
 - Tests: saves written the way older versions wrote them (no date, no metadata, corrupt date, a migrated single save), and the full-slots case.
 

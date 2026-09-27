@@ -75,6 +75,23 @@ class SlotMetadataStore {
         metadataFile.writeText(metadata.toString(2))
     }
 
+    /**
+     * Writes [timestamp] into a slot's metadata, keeping every readable field (used by
+     * `backfillMissingTimestamps`). A missing or unreadable file is replaced by one holding the
+     * defaults the menu already shows for it ("Slot N"), in the same keys and ISO-8601 format as
+     * [writeNewMetadata], so older app versions read it unchanged.
+     */
+    fun backfillTimestamp(metadataFile: File, slotNumber: Int, timestamp: Instant) {
+        val metadata = readMetadata(metadataFile, slotNumber)
+        if (!metadata.has("name")) metadata.put("name", "Slot $slotNumber")
+        if (!metadata.has("slotNumber")) metadata.put("slotNumber", slotNumber)
+        if (!metadata.has("romName")) metadata.put("romName", "")
+        if (!metadata.has("playTime")) metadata.put("playTime", 0)
+        if (!metadata.has("description")) metadata.put("description", "")
+        metadata.put("timestamp", timestamp.toString())
+        metadataFile.writeText(metadata.toString(2))
+    }
+
     /** Updates just the `slotNumber` field of an existing metadata file (used by `copySlot`). */
     fun updateSlotNumber(metadataFile: File, targetSlot: Int) {
         if (!metadataFile.exists()) return

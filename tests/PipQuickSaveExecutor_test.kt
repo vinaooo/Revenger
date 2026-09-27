@@ -19,6 +19,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import io.mockk.verifyOrder
 import java.io.File
 import java.time.Duration
 import java.time.Instant
@@ -40,7 +41,8 @@ import org.robolectric.annotation.Config
 
 /**
  * [PipQuickSaveExecutor] runs the PiP window's "Quick Save" action: it waits for the emulator to
- * render a frame after leaving PiP, then writes the state to a slot on a background thread. The
+ * render a frame after leaving PiP, then writes the state on a background thread to the slot last
+ * used this session, else the first empty slot, else the oldest save. The
  * background runner, the slot store and the PiP frame are injected, so these tests run the whole
  * save synchronously and check what gets written, to which slot, and that the PiP task is always
  * finished exactly once.
@@ -95,6 +97,7 @@ class PipQuickSaveExecutor_test {
 
         saveManager = mockk(relaxed = true)
         every { saveManager.getSlot(any()) } answers { SaveSlotData.empty(firstArg()) }
+        every { saveManager.getAllSlots() } returns (1..9).map { SaveSlotData.empty(it) }
         every { saveManager.saveToSlot(capture(savedSlot), capture(payload)) } returns true
     }
 
@@ -113,11 +116,11 @@ class PipQuickSaveExecutor_test {
                     frameTimeoutMs = frameTimeoutMs
             )
 
-    private fun occupiedSlot(number: Int, name: String) =
+    private fun occupiedSlot(number: Int, name: String, savedAt: String = "2026-01-01T00:00:00Z") =
             SaveSlotData(
                     slotNumber = number,
                     name = name,
-                    timestamp = Instant.parse("2026-01-01T00:00:00Z"),
+                    timestamp = Instant.parse(savedAt),
                     romName = "",
                     stateFile = File("slot$number.state"),
                     screenshotFile = null,
@@ -135,13 +138,59 @@ class PipQuickSaveExecutor_test {
     }
 
     @Test
-    fun `sem slot usado na sessao salva no slot 1 com o nome padrao`() {
+    fun `com todos os slots vazios salva no slot 1 com o nome padrao`() {
         executor().execute()
 
         assertEquals(1, savedSlot.captured)
         assertEquals("Slot 1", payload.captured.name)
         assertArrayEquals(stateBytes, payload.captured.stateBytes)
         assertEquals(activity.getString(R.string.name), payload.captured.romName)
+        assertEquals(1, host.finishPipTaskCalls)
+    }
+
+    @Test
+    fun `sem slot usado na sessao salva no primeiro slot vazio sem sobrescrever o slot 1`() {
+        every { saveManager.getAllSlots() } returns
+                listOf(occupiedSlot(1, "Older save"), occupiedSlot(2, "Slot 2")) + (3..9).map { SaveSlotData.empty(it) }
+
+        executor().execute()
+
+        assertEquals(3, savedSlot.captured)
+        assertEquals("Slot 3", payload.captured.name)
+    }
+
+    @Test
+    fun `com todos os slots cheios sobrescreve o save mais antigo e mantem o nome dele`() {
+        val slots = (1..9).map { occupiedSlot(it, "Save $it", savedAt = "2026-02-0${it}T00:00:00Z") }
+                .toMutableList()
+        slots[4] = occupiedSlot(5, "Oldest", savedAt = "2025-12-31T00:00:00Z")
+        every { saveManager.getAllSlots() } returns slots
+        every { saveManager.getSlot(5) } returns slots[4]
+
+        executor().execute()
+
+        assertEquals(5, savedSlot.captured)
+        assertEquals("Oldest", payload.captured.name)
+    }
+
+    @Test
+    fun `as datas que faltam sao preenchidas antes de escolher o slot`() {
+        executor().execute()
+
+        verifyOrder {
+            saveManager.backfillMissingTimestamps()
+            saveManager.getAllSlots()
+            saveManager.saveToSlot(any(), any())
+        }
+    }
+
+    @Test
+    fun `um save que falha ao gravar nao vira o ultimo slot usado`() {
+        every { saveManager.saveToSlot(any(), any()) } returns false
+
+        executor().execute()
+
+        assertNull(tracker.getLastUsedSlot())
         assertEquals(1, host.finishPipTaskCalls)
     }
 
