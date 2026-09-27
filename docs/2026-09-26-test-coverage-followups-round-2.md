@@ -78,15 +78,16 @@ Found while starting item 3, each confirmed with a test:
 
 Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") and write a repaired one. A failed copy removes its partial target. Delete returns the real result. When Move can't delete the source, it reports failure and the save stays in both slots, so nothing is lost. The unreachable `SecurityException`/`JSONException` catches are gone.
 
-### [x] 3. `test/save-state-manager-errors`: `SaveStateManager` — this PR
+### [x] 3. `test/save-state-manager-errors`: `SaveStateManager` — PR #154
 - The remaining error paths: `saveToSlot` (preview image, write failure), `loadFromSlot` (empty slot, read failure), the slot-number checks, `backfillMissingTimestamps` write failure, `SlotMetadataStore` leftovers (blank date, legacy-migration failure). Use a temp folder.
 - Delete the methods only tests call: `updateScreenshot`, `hasAnySave`, `getFirstEmptySlot`, `getOccupiedSlotCount`.
 - Also removed: the legacy migration's unreachable `SecurityException` catch.
 - Left untested on purpose: `copySlot` when the source slot folder is a plain file (`listFiles()` returns null), which the app never creates.
 
-### [ ] 4. `test/button-routers`: `KeyEventRouter`, `MotionEventRouter`, `GamePadButtonRouter`
+### [x] 4. `test/button-routers`: `KeyEventRouter`, `MotionEventRouter`, `GamePadButtonRouter`
 - `interceptButtonB` (both copies), `fireDpadCallback`, `fireTriggerCallback`, `checkSingleTrigger`, `computeDirectionTrigger`, `isAnyAxisOutOfDeadzone`.
 - Deadzone edges exactly (just inside, on, just outside). Pin both B-button variants as they are.
+- Done in this PR: `KeyEventRouter_test`, `GamePadButtonRouter_test`, `MotionEventRouter_test`. No bugs found. The two B-button variants really differ: on the key-event path any non-DOWN action releases B, on the gamepad path only UP does. Both are pinned.
 
 ### [ ] 5. `test/game-activity-viewmodel-remaining`: `GameActivityViewModel`
 - `onMenuEvent`, `onBackToMainMenu`, `onAboutBackToMainMenu`, `preserveState`, `initializeControllers`, `setupRetroView`, `onCleared`, `setConfigOrientation`. Split in two if the diff gets large. New test file per topic.

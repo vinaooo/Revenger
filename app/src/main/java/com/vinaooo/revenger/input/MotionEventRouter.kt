@@ -47,8 +47,8 @@ class MotionEventRouter(
         private fun checkSingleTrigger(
                 currentUp: Boolean,
                 currentDown: Boolean,
-                currentLeft: Boolean = false,
-                currentRight: Boolean = false,
+                currentLeft: Boolean,
+                currentRight: Boolean,
                 previousState: DirectionalState
         ): Int? {
                 var triggeredKeyCode: Int? = null
