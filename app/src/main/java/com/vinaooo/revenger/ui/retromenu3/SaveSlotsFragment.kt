@@ -1,16 +1,9 @@
 package com.vinaooo.revenger.ui.retromenu3
 
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import android.widget.Toast
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.ui.retromenu3.callbacks.SaveSlotsListener
-import com.vinaooo.revenger.utils.FontUtils
-import com.vinaooo.revenger.utils.ViewUtils
-import android.util.Log
 
 /**
  * Fragment for saving game state to one of 9 slots.
@@ -29,18 +22,8 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
     private var listener: SaveSlotsListener? = null
 
-    // Dialog state
-    private var dialogOverlay: View? = null
-    private var isDialogVisible = false
-    private var pendingSlotNumber: Int = 0
-
-    // Dialog navigation state
-    private var dialogSelectedIndex = 0
-    private var dialogButtons: List<RetroCardView> = emptyList()
-
-    // Keyboard for naming dialog
-    private var retroKeyboard: RetroKeyboard? = null
-    private var isKeyboardActive = false
+    /** The naming and overwrite dialogs shown over the grid. */
+    internal val dialogs = SlotDialogController { view as? ViewGroup }
 
     fun setListener(listener: SaveSlotsListener) {
         this.listener = listener
@@ -50,433 +33,84 @@ class SaveSlotsFragment : SaveStateGridFragment() {
 
     override fun onSlotConfirmed(slot: SaveSlotData) {
         if (slot.isEmpty) {
-            // Empty slot: show naming dialog (optional)
             showNamingDialog(slot.slotNumber)
         } else {
-            // Occupied slot: show overwrite confirmation
             showOverwriteConfirmation(slot)
         }
     }
 
     override fun onBackConfirmed() {
-        if (isDialogVisible) {
-            hideDialog()
+        if (dialogs.isVisible) {
+            dialogs.hide()
         } else {
             // Navigate back using NavigationController - this will pop the PROGRESS state from
             // stack
-            android.util.Log.d(
-                    TAG,
-                    "[BACK] SaveSlotsFragment onBackConfirmed - using NavigationController"
-            )
+            android.util.Log.d(TAG, "[BACK] SaveSlotsFragment onBackConfirmed - using NavigationController")
             viewModel.navigationController?.navigateBack()
         }
     }
 
     override fun performBack(): Boolean {
-        if (isDialogVisible) {
-            hideDialog()
+        if (dialogs.isVisible) {
+            dialogs.hide()
             return true
         }
         // Return false to let NavigationEventProcessor handle the back navigation
         return false
     }
 
-    // ========== DIALOG NAVIGATION ==========
-
-    /** Shows a retro-styled naming dialog with keyboard for new saves. */
-    private fun showNamingDialog(slotNumber: Int) {
-        pendingSlotNumber = slotNumber
-        isDialogVisible = true
-        isKeyboardActive = true
-
-        val container = view as? ViewGroup ?: return
-
-        dialogOverlay =
-                LayoutInflater.from(requireContext())
-                        .inflate(R.layout.retro_rename_keyboard_dlg, container, false)
-
-        dialogOverlay?.let { dialog ->
-            val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
-            val retroEditText = dialog.findViewById<RetroEditText>(R.id.rename_edit_text)
-
-            titleView.text = FontUtils.getCapitalizedString(requireContext(), R.string.name_save_dialog_title)
-            
-            // Set hint text
-            retroEditText.setHintText(FontUtils.getCapitalizedString(requireContext(), R.string.save_name_hint))
-            retroEditText.setRetroHintColor(0x88888888.toInt())
-            
-            // Apply retro font
-            FontUtils.getSelectedTypeface(requireContext())?.let { typeface ->
-                retroEditText.applyTypeface(typeface)
-            }
-
-            // Apply fonts to other TextViews
-            val textViews = mutableListOf<TextView>()
-            findAllTextViews(dialog, textViews)
-            textViews.removeAll { it is RetroEditText }
-            ViewUtils.applySelectedFontToViews(requireContext(), textViews)
-
-            // Initialize RetroKeyboard
-            retroKeyboard = RetroKeyboard(
-                context = requireContext(),
-                retroEditText = retroEditText,
-                onConfirm = { newName ->
-                    val finalName = newName.ifBlank { "Slot $slotNumber" }
-                    hideNamingDialog()
-                    performSave(slotNumber, finalName)
-                },
-                onCancel = {
-                    hideNamingDialog()
-                    // Save with default name if canceled
-                    performSave(slotNumber, "Slot $slotNumber")
-                }
-            )
-
-            // Set default text (slot number)
-            retroKeyboard?.setText("Slot $slotNumber")
-
-            container.addView(dialog)
-            
-            // Apply menu proportions
-            com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyAllProportionsToMenuLayout(dialog)
-            
-            dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
-
-            // Setup keyboard
-            retroKeyboard?.setupKeyboardInView(dialog)
-        }
-    }
-
-    private fun hideNamingDialog() {
-        val dialog = dialogOverlay ?: return
-
-        try {
-            Log.d(
-                    "SaveSlotsFragment",
-                    "[DIALOG] hideNamingDialog() called ts=${System.currentTimeMillis()} " +
-                            "thread=${Thread.currentThread().name}"
-            )
-            dialog.animate().cancel()
-            dialog.visibility = View.GONE
-            val parentBefore = dialog.parent
-            Log.d("SaveSlotsFragment", "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName ?: "none"}")
-            (dialog.parent as? ViewGroup)?.removeView(dialog)
-            Log.d("SaveSlotsFragment", "[DIALOG] hideNamingDialog removal requested; backStack? N/A")
-            // View./ViewGroup.removeView() teardown here doesn't have a known reachable failure
-            // mode; this is a deliberate safety net so a rare view-tree inconsistency during
-            // dialog teardown never crashes the game, kept via detekt's own escape-hatch naming.
-        } catch (ignoredViewTeardownFailure: Throwable) {
-            Log.e("SaveSlotsFragment", "[DIALOG] Exception in hideNamingDialog", ignoredViewTeardownFailure)
-        }
-
-        dialogOverlay = null
-        isDialogVisible = false
-        isKeyboardActive = false
-        retroKeyboard = null
-    }
-
-    private fun findAllTextViews(view: View, result: MutableList<TextView>) {
-        if (view is TextView) {
-            result.add(view)
-        }
-        if (view is ViewGroup) {
-            for (i in 0 until view.childCount) {
-                findAllTextViews(view.getChildAt(i), result)
-            }
-        }
-    }
-
     override fun performNavigateUp() {
-        if (isKeyboardActive && retroKeyboard != null) {
-            retroKeyboard?.navigateUp()
-            return
-        }
-        if (isDialogVisible && dialogButtons.isNotEmpty()) {
-            if (dialogSelectedIndex > 0) {
-                dialogSelectedIndex--
-                updateDialogSelection()
-            }
-            return
-        }
-        super.performNavigateUp()
+        if (!dialogs.navigateVertical(-1)) super.performNavigateUp()
     }
 
     override fun performNavigateDown() {
-        if (isKeyboardActive && retroKeyboard != null) {
-            retroKeyboard?.navigateDown()
-            return
-        }
-        if (isDialogVisible && dialogButtons.isNotEmpty()) {
-            if (dialogSelectedIndex < dialogButtons.size - 1) {
-                dialogSelectedIndex++
-                updateDialogSelection()
-            }
-            return
-        }
-        super.performNavigateDown()
+        if (!dialogs.navigateVertical(1)) super.performNavigateDown()
     }
 
-    override fun onNavigateLeft(): Boolean {
-        if (isKeyboardActive && retroKeyboard != null) {
-            retroKeyboard?.navigateLeft()
-            return true
-        }
-        return super.onNavigateLeft()
-    }
+    override fun onNavigateLeft(): Boolean = dialogs.navigateHorizontal(toLeft = true) || super.onNavigateLeft()
 
-    override fun onNavigateRight(): Boolean {
-        if (isKeyboardActive && retroKeyboard != null) {
-            retroKeyboard?.navigateRight()
-            return true
-        }
-        return super.onNavigateRight()
-    }
+    override fun onNavigateRight(): Boolean = dialogs.navigateHorizontal(toLeft = false) || super.onNavigateRight()
 
     override fun performConfirm() {
-        if (isKeyboardActive && retroKeyboard != null) {
-            retroKeyboard?.pressCurrentKey()
-            return
-        }
-        if (isDialogVisible && dialogButtons.isNotEmpty()) {
-            dialogButtons.getOrNull(dialogSelectedIndex)?.performClick()
-            return
-        }
-        super.performConfirm()
-    }
-
-    private fun updateDialogSelection() {
-        dialogButtons.forEachIndexed { index, button ->
-            val arrow = button.findViewById<TextView>(
-                when (button.id) {
-                    R.id.dialog_confirm_button -> R.id.confirm_button_arrow
-                    R.id.dialog_cancel_button -> R.id.cancel_button_arrow
-                    else -> return@forEachIndexed
-                }
-            )
-            val textView = button.findViewById<TextView>(
-                when (button.id) {
-                    R.id.dialog_confirm_button -> R.id.confirm_button_text
-                    R.id.dialog_cancel_button -> R.id.cancel_button_text
-                    else -> return@forEachIndexed
-                }
-            )
-
-            if (index == dialogSelectedIndex) {
-                button.setState(RetroCardView.State.SELECTED)
-                arrow?.visibility = View.VISIBLE
-                textView?.setTextColor(resources.getColor(R.color.rm_selected_color, null))
-            } else {
-                button.setState(RetroCardView.State.NORMAL)
-                arrow?.visibility = View.GONE
-                textView?.setTextColor(resources.getColor(R.color.rm_text_color, null))
-            }
-        }
+        if (!dialogs.confirm()) super.performConfirm()
     }
 
     override fun onDestroyView() {
-        // Clean up keyboard
-        retroKeyboard = null
-        isKeyboardActive = false
-        
-        // Clean up any visible dialog
-        dialogOverlay?.let { dialog ->
-            (dialog.parent as? ViewGroup)?.removeView(dialog)
-        }
-        dialogOverlay = null
-        isDialogVisible = false
-        dialogButtons = emptyList()
-        dialogSelectedIndex = 0
+        dialogs.hide()
         super.onDestroyView()
     }
 
-    /** Shows a retro-styled overwrite confirmation dialog. */
-    private fun showOverwriteConfirmation(slot: SaveSlotData) {
-        pendingSlotNumber = slot.slotNumber
-        isDialogVisible = true
-
-        val container = view as? ViewGroup ?: return
-
-        // Create dialog overlay
-        dialogOverlay =
-                LayoutInflater.from(requireContext())
-                        .inflate(R.layout.retro_confirm_dlg, container, false)
-
-        // Setup dialog content
-        dialogOverlay?.let { dialog ->
-            val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
-            val messageView = dialog.findViewById<TextView>(R.id.dialog_message)
-            val confirmButton = dialog.findViewById<RetroCardView>(R.id.dialog_confirm_button)
-            val cancelButton = dialog.findViewById<RetroCardView>(R.id.dialog_cancel_button)
-            val confirmText = dialog.findViewById<TextView>(R.id.confirm_button_text)
-            val cancelText = dialog.findViewById<TextView>(R.id.cancel_button_text)
-            val confirmArrow = dialog.findViewById<TextView>(R.id.confirm_button_arrow)
-            val cancelArrow = dialog.findViewById<TextView>(R.id.cancel_button_arrow)
-
-            titleView.text = getString(R.string.overwrite_dialog_title)
-            messageView.text = getString(R.string.overwrite_dialog_message, slot.name)
-            confirmText.text = getString(R.string.dialog_overwrite)
-            cancelText.text = getString(R.string.dialog_cancel)
-
-            // Ensure the dialog message is also capitalized by the utility
-            FontUtils.applyTextCapitalization(requireContext(), messageView, confirmText, cancelText)
-
-            // Configure buttons
-            confirmButton.setUseBackgroundColor(false)
-            cancelButton.setUseBackgroundColor(false)
-
-            // Default selection on confirm
-            confirmButton.setState(RetroCardView.State.SELECTED)
-            cancelButton.setState(RetroCardView.State.NORMAL)
-            confirmArrow.visibility = View.VISIBLE
-            cancelArrow.visibility = View.GONE
-            confirmText.setTextColor(resources.getColor(R.color.rm_selected_color, null))
-            cancelText.setTextColor(resources.getColor(R.color.rm_text_color, null))
-
-            // Apply fonts
-            ViewUtils.applySelectedFontToViews(
-                    requireContext(),
-                    titleView,
-                    messageView,
-                    confirmText,
-                    cancelText,
-                    confirmArrow,
-                    cancelArrow
-            )
-            FontUtils.applyTextCapitalization(requireContext(), titleView, confirmText, cancelText)
-
-            // Click listeners
-            confirmButton.setOnClickListener {
-                hideDialog()
-                performSave(pendingSlotNumber, "Slot $pendingSlotNumber")
-            }
-
-            cancelButton.setOnClickListener { hideDialog() }
-
-            // Setup gamepad navigation for dialog
-            dialogButtons = listOf(confirmButton, cancelButton)
-            dialogSelectedIndex = 0
-            updateDialogSelection()
-
-            // Add to fragment's root view
-            container.addView(dialog)
-
-            // Animate in
-            dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
-        }
+    /** Naming dialog for an empty slot; cancelling still saves, under the default name. */
+    private fun showNamingDialog(slotNumber: Int) {
+        val defaultName = "Slot $slotNumber"
+        dialogs.showKeyboardDialog(
+                titleRes = R.string.name_save_dialog_title,
+                initialText = defaultName,
+                onConfirm = { name -> performSave(slotNumber, name.ifBlank { defaultName }) },
+                onCancel = { performSave(slotNumber, defaultName) }
+        )
     }
 
-    private fun hideDialog() {
-        val dialog = dialogOverlay ?: return
-
-        try {
-            Log.d(
-                    "SaveSlotsFragment",
-                    "[DIALOG] hideDialog() called ts=${System.currentTimeMillis()} " +
-                            "thread=${Thread.currentThread().name}"
-            )
-            // Cancel any ongoing animations
-            dialog.animate().cancel()
-
-            // Immediately hide and remove
-            dialog.visibility = View.GONE
-            val parentBefore = dialog.parent
-            Log.d("SaveSlotsFragment", "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName ?: "none"}")
-            (dialog.parent as? ViewGroup)?.removeView(dialog)
-            val parentAfter = dialog.parent
-            Log.d("SaveSlotsFragment", "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName ?: "none"}")
-            // Same rationale as hideNamingDialog(): no known reachable failure mode for this view
-            // teardown, kept as a deliberate safety net via detekt's own escape-hatch naming.
-        } catch (ignoredViewTeardownFailure: Throwable) {
-            Log.e("SaveSlotsFragment", "[DIALOG] Exception while hiding dialog", ignoredViewTeardownFailure)
-        }
-
-        // Reset state
-        dialogOverlay = null
-        isDialogVisible = false
-        dialogButtons = emptyList()
-        dialogSelectedIndex = 0
+    private fun showOverwriteConfirmation(slot: SaveSlotData) {
+        val text =
+                ConfirmDialogText(
+                        title = getString(R.string.overwrite_dialog_title),
+                        message = getString(R.string.overwrite_dialog_message, slot.name),
+                        confirmLabel = getString(R.string.dialog_overwrite),
+                        cancelLabel = getString(R.string.dialog_cancel)
+                )
+        dialogs.showConfirmDialog(text) { performSave(slot.slotNumber, "Slot ${slot.slotNumber}") }
     }
 
     private fun performSave(slotNumber: Int, name: String) {
-        val retroView = viewModel.retroView
-        if (retroView == null) {
-            android.util.Log.e("SaveSlotsFragment", "RetroView is null, cannot save")
-            val message = FontUtils.getCapitalizedString(requireContext(), R.string.save_error)
-            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        try {
-            // Get serialized state
-            val stateBytes = retroView.view.serializeState()
-
-            // Get cached screenshot
-            val screenshot = viewModel.getCachedScreenshot()
-
-            // Get cached full-screen screenshot for load preview overlay
-            val preview = viewModel.getCachedFullScreenshot()
-
-            // Get ROM name from config
-            val romName =
-                    try {
-                        getString(R.string.name)
-                    } catch (e: android.content.res.Resources.NotFoundException) {
-                        Log.w("SaveSlotsFragment", "R.string.name not found, using fallback name", e)
-                        "Unknown Game"
-                    } catch (e: IllegalStateException) {
-                        Log.w(
-                                "SaveSlotsFragment",
-                                "Fragment not attached while resolving ROM name, using fallback name",
-                                e
-                        )
-                        "Unknown Game"
-                    }
-
-            // Save to slot
-            val success =
-                    saveStateManager.saveToSlot(
-                            slotNumber = slotNumber,
-                            payload = com.vinaooo.revenger.models.SaveSlotPayload(
-                                    stateBytes = stateBytes,
-                                    screenshot = screenshot,
-                                    preview = preview,
-                                    name = name,
-                                    romName = romName
-                            )
-                    )
-
-            if (success) {
-                android.util.Log.d("SaveSlotsFragment", "Save successful to slot $slotNumber")
-                com.vinaooo.revenger.managers.SessionSlotTracker.getInstance().recordSave(slotNumber)
-                refreshGrid()
-                val message =
-                        FontUtils.getCapitalizedString(requireContext(), R.string.save_success, slotNumber)
-                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                listener?.onSaveCompleted(slotNumber)
-            } else {
-                android.util.Log.e("SaveSlotsFragment", "Save failed to slot $slotNumber")
-                val message = FontUtils.getCapitalizedString(requireContext(), R.string.save_error)
-                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-            }
-            // serializeState() runs on LibretroDroid's GL thread via a blocking CountDownLatch; a
-            // failure inside the native call there deadlocks the latch rather than propagating an
-            // exception back to this thread, and the only checked failure mode reaching here (the
-            // library unboxing a null native result) surfaces as a plain NullPointerException,
-            // which this project's detekt config still treats as "too generic" -- so there is no
-            // narrower reachable type to catch. Kept as a safety net via detekt's documented
-            // escape hatch instead of @Suppress.
-        } catch (expectedNativeCallFailure: Exception) {
-            android.util.Log.e("SaveSlotsFragment", "Error saving state", expectedNativeCallFailure)
-            val message = FontUtils.getCapitalizedString(requireContext(), R.string.save_error)
-            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+        if (CurrentGameSlotSaver(requireContext(), viewModel, saveStateManager).save(slotNumber, name)) {
+            refreshGrid()
+            listener?.onSaveCompleted(slotNumber)
         }
     }
 
     companion object {
         private const val TAG = "SaveSlotsFragment"
-        private const val DIALOG_FADE_IN_DURATION_MS = 150L
 
         fun newInstance(): SaveSlotsFragment {
             return SaveSlotsFragment()

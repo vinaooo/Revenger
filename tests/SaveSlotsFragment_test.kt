@@ -119,17 +119,9 @@ class SaveSlotsFragment_test {
 
     private fun rootView(): View = fragment.requireView()
 
-    private fun dialogVisible(): Boolean =
-            SaveSlotsFragment::class.java.getDeclaredField("isDialogVisible").let {
-                it.isAccessible = true
-                it.getBoolean(fragment)
-            }
+    private fun dialogVisible(): Boolean = fragment.dialogs.isVisible
 
-    private fun retroKeyboard(): RetroKeyboard {
-        val field = SaveSlotsFragment::class.java.getDeclaredField("retroKeyboard")
-        field.isAccessible = true
-        return field.get(fragment) as RetroKeyboard
-    }
+    private fun retroKeyboard(): RetroKeyboard = checkNotNull(fragment.dialogs.keyboard)
 
     @Suppress("UNCHECKED_CAST")
     private fun keyboardOnConfirm(): (String) -> Unit =
