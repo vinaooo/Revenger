@@ -11,8 +11,8 @@ object ViewUtils {
 
     /**
      * Recursively sets z=0, elevation=0, and translationZ=0 on all views to ensure menu stays below
-     * gamepad layer. This is necessary because Material Design components have default elevation
-     * that overrides XML attributes.
+     * gamepad layer. Some views (cards, buttons) get a default elevation from their style that
+     * overrides the XML attributes.
      *
      * @param view The root view to process recursively
      */

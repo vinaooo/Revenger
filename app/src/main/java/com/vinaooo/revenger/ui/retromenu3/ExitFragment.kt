@@ -32,7 +32,7 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
  *
  * **Visual**:
  * - Critical design using attention colors (red for Exit)
- * - Consistent Material Design 3
+ * - Same RetroCardView styling as the rest of RetroMenu3
  *
  * **Phase 3.3**: cleaned up 43 lines of legacy code.
  *

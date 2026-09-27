@@ -28,7 +28,7 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
  * - Touch: Immediate highlight + 100ms activation delay
  *
  * **Visual**:
- * - Design identical to RetroMenu3 with Material Design 3
+ * - Design identical to RetroMenu3
  * - RetroCardView with selection animations
  * - Visual ON/OFF state indicators
  *

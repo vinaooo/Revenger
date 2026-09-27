@@ -12,7 +12,7 @@ object AndroidCompatibility {
     private const val ANDROID_15_API_LEVEL = 35
     private const val ANDROID_16_API_LEVEL = 36
 
-    /** Check if running on Android 12+ (API 31) Features: Material You, Dynamic Colors, etc. */
+    /** Check if running on Android 12+ (API 31) */
     fun isAndroid12Plus(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     /**

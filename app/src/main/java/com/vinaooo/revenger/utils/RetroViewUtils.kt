@@ -63,14 +63,7 @@ class RetroViewUtils(
         retroView.view.frameSpeed = if (retroView.view.frameSpeed == 1) fastForwardSpeed else 1
     }
 
-    /** Check if fast forward is currently active Required for Material You menu state tracking */
-    fun isFastForwardActive(): Boolean {
-        return sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) > 1
-    }
-
-    /**
-     * Check if a save state exists Required for Material You menu to show/hide load state option
-     */
+    /** Check if a non-empty save state exists (the load option depends on it) */
     fun hasSaveState(): Boolean {
         val exists = storage.state.exists()
         val length = if (exists) storage.state.length() else 0
