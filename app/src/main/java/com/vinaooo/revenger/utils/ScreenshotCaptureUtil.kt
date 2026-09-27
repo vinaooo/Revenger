@@ -263,35 +263,6 @@ object ScreenshotCaptureUtil :
         }
     }
 
-    /**
-     * Capture screenshot synchronously using View.drawToBitmap fallback. Use only when PixelCopy is
-     * not available or fails.
-     *
-     * @param view The view to capture
-     * @return Bitmap of the view, or null on failure
-     */
-    fun captureViewFallback(view: View): Bitmap? {
-        return try {
-            val width = view.width
-            val height = view.height
-
-            if (width <= 0 || height <= 0) {
-                Log.w(TAG, "Invalid view dimensions for fallback: ${width}x$height")
-                return null
-            }
-
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            val canvas = android.graphics.Canvas(bitmap)
-            view.draw(canvas)
-            bitmap
-            // view.draw() dispatches into an arbitrary caller-supplied View's onDraw() /
-            // dispatchDraw() override, which isn't enumerable from this generic fallback utility;
-            // kept broad via the escape hatch.
-        } catch (expectedViewDrawFailure: Exception) {
-            Log.e(TAG, "Fallback screenshot capture failed", expectedViewDrawFailure)
-            null
-        }
-    }
 }
 
 /** The PixelCopy request [ScreenshotCaptureUtil] makes, behind an interface so tests can fake it. */

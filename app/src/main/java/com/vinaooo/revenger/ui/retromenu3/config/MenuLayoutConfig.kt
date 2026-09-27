@@ -1,6 +1,5 @@
 package com.vinaooo.revenger.ui.retromenu3.config
 
-
 import android.content.res.Configuration
 import android.view.View
 import android.util.Log
@@ -227,8 +226,8 @@ object MenuLayoutFinder {
 }
 
 /**
- * Builds the vertical `[Space, Content, Space]` wrapper structure shared by
- * [MenuLayoutConfig.applyVerticalProportions] and [MenuLayoutConfig.applyDialogVerticalPosition].
+ * Builds the vertical `[Space, Content, Space]` wrapper structure used by
+ * [MenuLayoutConfig.applyVerticalProportions].
  * Split out of [MenuLayoutConfig] (already private/internal members) so that object stays under
  * the project's function-count threshold.
  */
@@ -629,64 +628,5 @@ object MenuLayoutConfig : ProportionsParsing by ProportionsParser {
         } catch (expectedUnreachable: Exception) {
             Log.e(TAG, "Erro ao aplicar todas as proporções do menu", expectedUnreachable)
         }
-    }
-
-    /**
-     * Aplica proporções a um dialog mantendo wrap_content para altura.
-     * Diferente de applyAllProportionsToMenuLayout, esta função apenas adiciona
-     * espaço no topo (baseado em topWeight) sem esticar o conteúdo.
-     *
-     * @param view A view raiz do dialog (FrameLayout ou similar)
-     */
-    fun applyDialogProportions(view: View) {
-        try {
-            // Aplicar proporções horizontais
-            applyProportionsToMenuLayout(view)
-
-            // Aplicar proporções verticais (apenas posicionamento, sem esticar)
-            val verticalProportions = getConfiguredVerticalProportions(view) ?: return
-
-            // Encontrar o container vertical do dialog
-            val dialogContainer = view.findViewById<android.widget.LinearLayout>(R.id.dialog_container) ?: return
-
-            applyDialogVerticalPosition(dialogContainer, verticalProportions)
-            // Every callee above already catches its own failures instead of propagating, so
-            // nothing reaches this catch in practice; kept as a safety net against a future
-            // change to one of those callees.
-        } catch (expectedUnreachable: Exception) {
-            Log.e(TAG, "Erro ao aplicar proporções do dialog", expectedUnreachable)
-        }
-    }
-
-    /**
-     * Aplica posicionamento vertical a um dialog sem esticar seu conteúdo.
-     * Usa apenas o topWeight para criar espaço acima do dialog.
-     */
-    private fun applyDialogVerticalPosition(
-            dialogContainer: android.widget.LinearLayout,
-            proportions: VerticalProportions
-    ) {
-        val parent =
-                dialogContainer.parent as? android.widget.LinearLayout
-                        ?: return VerticalLayoutWrapper.warn(
-                                "⚠️ Parent do dialog container não é LinearLayout"
-                        )
-
-        // Verificar se o parent é horizontal
-        if (parent.orientation != android.widget.LinearLayout.HORIZONTAL) {
-            return VerticalLayoutWrapper.warn("⚠️ Parent não é horizontal")
-        }
-
-        val containerIndex = parent.indexOfChild(dialogContainer)
-        if (containerIndex == -1) {
-            return VerticalLayoutWrapper.warn("⚠️ Dialog container não encontrado no parent")
-        }
-
-        VerticalLayoutWrapper.wrapDialogContainerVertically(
-                dialogContainer,
-                parent,
-                containerIndex,
-                proportions
-        )
     }
 }

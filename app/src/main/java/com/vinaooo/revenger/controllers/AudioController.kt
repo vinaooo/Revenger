@@ -1,9 +1,7 @@
 package com.vinaooo.revenger.controllers
 
-import android.content.Context
 import android.content.SharedPreferences
 import com.swordfish.libretrodroid.GLRetroView
-import com.vinaooo.revenger.R
 import com.vinaooo.revenger.utils.PreferencesConstants
 import androidx.core.content.edit
 
@@ -11,10 +9,7 @@ import androidx.core.content.edit
  * Modular controller to manage emulator audio functionalities. Allows centralized sound control
  * that can be reused across different parts of the system
  */
-class AudioController(
-        private val context: Context,
-        private val sharedPreferences: SharedPreferences
-) {
+class AudioController(private val sharedPreferences: SharedPreferences) {
     /**
      * Toggles the audio state (on/off)
      * @param retroView RetroView where to apply the change
@@ -74,30 +69,6 @@ class AudioController(
       sharedPreferences.edit(commit = true) {
         putBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, enabled)
         // Use commit() instead of apply() to ensure synchronization
-        }
-    }
-
-    /**
-     * Gets textual description of the current audio state
-     * @return String with current state ("Audio ON" or "Audio OFF")
-     */
-    fun getAudioStateDescription(): String {
-        return if (getAudioState()) {
-            context.getString(R.string.audio_on)
-        } else {
-            context.getString(R.string.audio_off)
-        }
-    }
-
-    /**
-     * Gets appropriate icon ID for the current audio state
-     * @return Resource ID of the icon
-     */
-    fun getAudioIconResource(): Int {
-        return if (getAudioState()) {
-            R.drawable.ic_volume_up_24
-        } else {
-            R.drawable.ic_volume_off_24
         }
     }
 }

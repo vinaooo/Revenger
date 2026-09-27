@@ -17,40 +17,39 @@ import com.vinaooo.revenger.R
 class GamePadConfig(context: Context, private val appConfig: AppConfig) {
         companion object {
 
-                val BUTTON_START = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_START, label = "+")
+                private val BUTTON_START = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_START, label = "+")
 
-                val BUTTON_SELECT = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_SELECT, label = "-")
+                private val BUTTON_SELECT = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_SELECT, label = "-")
 
-                val BUTTON_L1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_L1, label = "L1")
+                private val BUTTON_L1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_L1, label = "L1")
 
-                val BUTTON_R1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_R1, label = "R1")
+                private val BUTTON_R1 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_R1, label = "R1")
 
-                val BUTTON_L2 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_L2, label = "L2")
+                private val BUTTON_L2 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_L2, label = "L2")
 
-                val BUTTON_R2 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_R2, label = "R2")
+                private val BUTTON_R2 = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_R2, label = "R2")
 
-                val BUTTON_A = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_A, label = "A")
+                private val BUTTON_A = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_A, label = "A")
 
-                val BUTTON_B = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_B, label = "B")
+                private val BUTTON_B = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_B, label = "B")
 
-                val BUTTON_X = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_X, label = "X")
+                private val BUTTON_X = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_X, label = "X")
 
-                val BUTTON_Y = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_Y, label = "Y")
+                private val BUTTON_Y = ButtonConfig(id = KeyEvent.KEYCODE_BUTTON_Y, label = "Y")
 
                 // Fake buttons for filling empty sockets
-                val BUTTON_F1 = ButtonConfig(id = -1, label = "0")
-                val BUTTON_F2 = ButtonConfig(id = -2, label = "1")
-                val BUTTON_F3 = ButtonConfig(id = -3, label = "3")
-                val BUTTON_F4 = ButtonConfig(id = -4, label = "5")
-                val BUTTON_F5 = ButtonConfig(id = -5, label = "7")
-                val BUTTON_F6 = ButtonConfig(id = -6, label = "☰")
-                val BUTTON_F7 = ButtonConfig(id = -7, label = "9")
-                val BUTTON_F8 = ButtonConfig(id = -8, label = "10")
-                val BUTTON_F9 = ButtonConfig(id = -9, label = "11")
-                val BUTTON_F10 = ButtonConfig(id = -10, label = "6")
+                private val BUTTON_F1 = ButtonConfig(id = -1, label = "0")
+                private val BUTTON_F2 = ButtonConfig(id = -2, label = "1")
+                private val BUTTON_F4 = ButtonConfig(id = -4, label = "5")
+                private val BUTTON_F5 = ButtonConfig(id = -5, label = "7")
+                private val BUTTON_F6 = ButtonConfig(id = -6, label = "☰")
+                private val BUTTON_F7 = ButtonConfig(id = -7, label = "9")
+                private val BUTTON_F8 = ButtonConfig(id = -8, label = "10")
+                private val BUTTON_F9 = ButtonConfig(id = -9, label = "11")
+                private val BUTTON_F10 = ButtonConfig(id = -10, label = "6")
 
-                val LEFT_DPAD = PrimaryDialConfig.Cross(CrossConfig(GLRetroView.MOTION_SOURCE_DPAD))
-                val LEFT_ANALOG = PrimaryDialConfig.Stick(GLRetroView.MOTION_SOURCE_ANALOG_LEFT)
+                private val LEFT_DPAD = PrimaryDialConfig.Cross(CrossConfig(GLRetroView.MOTION_SOURCE_DPAD))
+                private val LEFT_ANALOG = PrimaryDialConfig.Stick(GLRetroView.MOTION_SOURCE_ANALOG_LEFT)
 
                 // Total sockets around the radial pad (clock positions 0-11).
                 private const val TOTAL_SOCKET_COUNT = 12

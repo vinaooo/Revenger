@@ -13,8 +13,6 @@ class RetroViewUtils(
 
     private val storage = Storage.getInstance(activity)
     private val sharedPreferences = activity.getPreferences(Context.MODE_PRIVATE)
-    private val fastForwardSpeed =
-            com.vinaooo.revenger.RevengerApplication.appConfig.getFastForwardMultiplier()
 
     fun restoreEmulatorState(
             retroView: RetroView,
@@ -57,10 +55,6 @@ class RetroViewUtils(
             }
             putBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, retroView.view.audioEnabled)
         }
-    }
-
-    fun fastForward(retroView: RetroView) {
-        retroView.view.frameSpeed = if (retroView.view.frameSpeed == 1) fastForwardSpeed else 1
     }
 
     /** Check if a non-empty save state exists (the load option depends on it) */

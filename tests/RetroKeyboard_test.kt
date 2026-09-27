@@ -63,29 +63,6 @@ class RetroKeyboard_test {
     }
 
     @Test
-    fun `handleDpadEvent com DPAD_DOWN delega para navigateDown`() {
-        val handled = keyboard.handleDpadEvent(KeyEvent.KEYCODE_DPAD_DOWN)
-
-        assertTrue(handled)
-        assertEquals(1, keyboard.getCurrentRow())
-    }
-
-    @Test
-    fun `handleDpadEvent com BUTTON_A pressiona a tecla atualmente selecionada`() {
-        // Row 0, col 0 is "1" on the real layout.
-        keyboard.handleDpadEvent(KeyEvent.KEYCODE_BUTTON_A)
-
-        assertEquals("1", retroEditText.getTextContent())
-    }
-
-    @Test
-    fun `handleDpadEvent com BUTTON_B chama onCancel`() {
-        keyboard.handleDpadEvent(KeyEvent.KEYCODE_BUTTON_B)
-
-        assertEquals(1, cancelCalls)
-    }
-
-    @Test
     fun `setText define o conteudo inicial do RetroEditText`() {
         keyboard.setText("Slot 1")
 

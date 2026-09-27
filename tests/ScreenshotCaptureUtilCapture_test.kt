@@ -1,12 +1,9 @@
 package com.vinaooo.revenger.utils
 
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
 import android.view.PixelCopy
-import android.view.View
-import androidx.test.core.app.ApplicationProvider
 import com.swordfish.libretrodroid.GLRetroView
 import io.mockk.every
 import io.mockk.mockk
@@ -185,33 +182,5 @@ class ScreenshotCaptureUtilCapture_test {
 
         assertEquals(1, callbacks)
         assertNull(delivered)
-    }
-
-    // --- captureViewFallback ---
-
-    private fun laidOutView(width: Int, height: Int, draw: (Canvas) -> Unit = {}): View =
-            object : View(ApplicationProvider.getApplicationContext()) {
-                override fun onDraw(canvas: Canvas) = draw(canvas)
-            }.apply { layout(0, 0, width, height) }
-
-    @Test
-    fun `fallback desenha a view num bitmap do tamanho dela`() {
-        val bitmap = ScreenshotCaptureUtil.captureViewFallback(laidOutView(30, 20) { it.drawColor(Color.BLUE) })
-
-        assertNotNull(bitmap)
-        assertEquals(30, bitmap?.width)
-        assertEquals(20, bitmap?.height)
-    }
-
-    @Test
-    fun `fallback de view sem tamanho devolve null`() {
-        assertNull(ScreenshotCaptureUtil.captureViewFallback(laidOutView(0, 20)))
-    }
-
-    @Test
-    fun `fallback de view que falha ao desenhar devolve null`() {
-        val view = laidOutView(30, 20) { error("draw failure") }
-
-        assertNull(ScreenshotCaptureUtil.captureViewFallback(view))
     }
 }

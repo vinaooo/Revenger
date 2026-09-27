@@ -11,10 +11,9 @@ import org.robolectric.annotation.Config
 import org.robolectric.util.ReflectionHelpers
 
 /**
- * Tests for [AndroidCompatibility]'s SDK level thresholds. These lock the named constants
- * extracted from former magic numbers (ANDROID_14_API_LEVEL = 34, ANDROID_15_API_LEVEL = 35,
- * ANDROID_16_API_LEVEL = 36) so a future accidental change to one of those boundary values fails
- * a test instead of passing silently.
+ * Tests for [AndroidCompatibility]'s SDK level thresholds, so a future accidental change to one of
+ * the boundary values (API 31, and the named ANDROID_16_API_LEVEL = 36) fails a test instead of
+ * passing silently.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -32,27 +31,15 @@ class AndroidCompatibility_test {
     }
 
     @Test
-    fun `isAndroid14Plus e falso abaixo da api 34`() {
-        setSdkInt(33)
-        assertFalse(AndroidCompatibility.isAndroid14Plus())
+    fun `isAndroid12Plus e falso abaixo da api 31`() {
+        setSdkInt(30)
+        assertFalse(AndroidCompatibility.isAndroid12Plus())
     }
 
     @Test
-    fun `isAndroid14Plus e verdadeiro exatamente na api 34`() {
-        setSdkInt(34)
-        assertTrue(AndroidCompatibility.isAndroid14Plus())
-    }
-
-    @Test
-    fun `isAndroid15Plus e falso abaixo da api 35`() {
-        setSdkInt(34)
-        assertFalse(AndroidCompatibility.isAndroid15Plus())
-    }
-
-    @Test
-    fun `isAndroid15Plus e verdadeiro exatamente na api 35`() {
-        setSdkInt(35)
-        assertTrue(AndroidCompatibility.isAndroid15Plus())
+    fun `isAndroid12Plus e verdadeiro exatamente na api 31`() {
+        setSdkInt(31)
+        assertTrue(AndroidCompatibility.isAndroid12Plus())
     }
 
     @Test

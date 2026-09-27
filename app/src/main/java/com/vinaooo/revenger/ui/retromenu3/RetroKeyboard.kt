@@ -1,8 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3
 
-
 import android.content.Context
-import android.view.KeyEvent
 import android.util.Log
 import android.view.View
 import android.widget.TextView
@@ -289,40 +287,6 @@ class RetroKeyboard(
     private fun onBackspacePressed() {
         retroEditText.deleteChar()
         Log.d(TAG, "Backspace pressed, new text: ${retroEditText.getTextContent()}")
-    }
-
-    /**
-     * Handles D-pad navigation
-     * @return true if the event was handled
-     */
-    fun handleDpadEvent(keyCode: Int): Boolean {
-        return when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_UP -> {
-                navigateUp()
-                true
-            }
-            KeyEvent.KEYCODE_DPAD_DOWN -> {
-                navigateDown()
-                true
-            }
-            KeyEvent.KEYCODE_DPAD_LEFT -> {
-                navigateLeft()
-                true
-            }
-            KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                navigateRight()
-                true
-            }
-            KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_ENTER -> {
-                pressCurrentKey()
-                true
-            }
-            KeyEvent.KEYCODE_BUTTON_B -> {
-                onCancel()
-                true
-            }
-            else -> false
-        }
     }
 
     /**
