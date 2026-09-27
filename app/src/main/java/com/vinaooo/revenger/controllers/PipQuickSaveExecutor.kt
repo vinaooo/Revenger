@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.managers.QuickSaveSlotPicker
 import com.vinaooo.revenger.managers.SaveStateManager
 import com.vinaooo.revenger.managers.SessionSlotTracker
 import com.vinaooo.revenger.models.SaveSlotPayload
@@ -15,11 +16,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
- * Completes a Quick Save requested from the PiP window. Runs after the activity is back in the
- * foreground (the PiP action handler brought it forward), waiting for one rendered frame so the
- * GL thread is running again before [GLRetroView.serializeState] -- which would deadlock while
- * the GL thread is paused in PiP. Extracted out of [PipController] to keep that class within
- * detekt's `TooManyFunctions` threshold.
+ * Completes a Quick Save requested from the PiP window. The slot is chosen by
+ * [QuickSaveSlotPicker.target]: the slot last used this session, else the first empty one, else
+ * the oldest save.
+ *
+ * Runs after the activity is back in the foreground (the PiP action handler brought it
+ * forward), waiting for one rendered frame so the GL thread is running again before
+ * [GLRetroView.serializeState] -- which would deadlock while the GL thread is paused in PiP.
+ * Extracted out of [PipController] to keep that class within detekt's `TooManyFunctions`
+ * threshold.
  *
  * The last four parameters are seams for tests; production uses the defaults.
  *
@@ -70,12 +75,18 @@ class PipQuickSaveExecutor(
                         runInBackground {
                                 try {
                                         val tracker = SessionSlotTracker.getInstance()
-                                        val slotNumber = tracker.getLastUsedSlot() ?: 1
+                                        val slots = saveManager()
+                                        // Undated slots get their file date first, so "oldest
+                                        // save" is well defined when every slot is full.
+                                        slots.backfillMissingTimestamps()
+                                        val slotNumber = QuickSaveSlotPicker.target(
+                                                tracker.getLastUsedSlot(),
+                                                slots.getAllSlots()
+                                        )
                                         val stateBytes = retroView.view.serializeState()
                                         val screenshot = pipFrame()
-                                        val slots = saveManager()
                                         val slotData = slots.getSlot(slotNumber)
-                                        slots.saveToSlot(
+                                        val saved = slots.saveToSlot(
                                                 slotNumber = slotNumber,
                                                 payload = SaveSlotPayload(
                                                         stateBytes = stateBytes,
@@ -85,8 +96,12 @@ class PipQuickSaveExecutor(
                                                         romName = host.activity.getString(R.string.name)
                                                 )
                                         )
-                                        tracker.recordSave(slotNumber)
-                                        Log.d(TAG, "[PIP] Quick save written to slot $slotNumber")
+                                        if (saved) {
+                                                tracker.recordSave(slotNumber)
+                                                Log.d(TAG, "[PIP] Quick save written to slot $slotNumber")
+                                        } else {
+                                                Log.w(TAG, "[PIP] Quick save to slot $slotNumber failed")
+                                        }
                                         // serializeState() runs on LibretroDroid's GL thread via a blocking
                                         // CountDownLatch; a failure inside the native call there deadlocks the
                                         // latch rather than propagating an exception back to this thread, and

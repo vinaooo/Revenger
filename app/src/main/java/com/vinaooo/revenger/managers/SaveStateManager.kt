@@ -6,6 +6,7 @@ import android.util.Log
 import com.vinaooo.revenger.models.SaveSlotPayload
 import java.io.File
 import java.io.IOException
+import java.time.Instant
 import org.json.JSONException
 
 /**
@@ -313,4 +314,33 @@ private constructor(
             }
         }
     }
+    /**
+     * Gives every occupied slot that has no readable save date (missing or corrupt
+     * `metadata.json`, missing or unparseable `timestamp`) one, taken from its state file's
+     * last-modified time, so "the oldest save" is well defined for [QuickSaveSlotPicker]. A slot
+     * whose file date is unknown is left as it is. Written in the same keys and date format older
+     * app versions read.
+     *
+     * @return how many slots got a date
+     */
+    fun backfillMissingTimestamps(): Int =
+            synchronized(slotLock) {
+                getAllSlots().count { slot ->
+                    val modified = slot.stateFile?.lastModified() ?: 0L
+                    if (slot.isEmpty || slot.timestamp != null || modified <= 0L) {
+                        return@count false
+                    }
+                    try {
+                        metadataStore.backfillTimestamp(
+                                fileLayout.metadataFile(slot.slotNumber),
+                                slot.slotNumber,
+                                Instant.ofEpochMilli(modified)
+                        )
+                        true
+                    } catch (e: IOException) {
+                        Log.e(TAG, "Failed to write a date for slot ${slot.slotNumber}", e)
+                        false
+                    }
+                }
+            }
 }
