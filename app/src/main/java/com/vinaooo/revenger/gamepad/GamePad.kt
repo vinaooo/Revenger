@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.hardware.display.DisplayManager
 import android.view.Display
 import android.view.InputDevice
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.swordfish.libretrodroid.GLRetroView
 import com.swordfish.radialgamepad.library.RadialGamePad
@@ -103,7 +104,13 @@ class GamePad(
         }
     }
 
-    private fun eventHandler(event: Event, retroView: GLRetroView) {
+    /**
+     * Routes one on-screen pad event: the interception callback first, then the core. Called by
+     * [subscribe] for each event the pad emits; tests call it directly, since the pad's own event
+     * flow comes from touch input.
+     */
+    @VisibleForTesting
+    internal fun eventHandler(event: Event, retroView: GLRetroView) {
         when (event) {
             is Event.Button -> handleButtonEvent(event, retroView)
             is Event.Direction -> handleDirectionEvent(event, retroView)

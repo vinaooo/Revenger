@@ -91,11 +91,12 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
 
 ### [x] 5. `test/game-activity-viewmodel-remaining`: `GameActivityViewModel`
 - `onMenuEvent`, `onBackToMainMenu`, `onAboutBackToMainMenu`, `preserveState`, `initializeControllers`, `setupRetroView`, `onCleared`, `setConfigOrientation`. Split in two if the diff gets large. New test file per topic.
-- Done in this PR: `GameActivityViewModel_retroViewLifecycle_test` and `GameActivityViewModel_menuRouting_test`. `setupRetroView` builds its view through a new `retroViewFactory` seam, because the real view loads the native core. Left as they are: `hasSaveState` and `getShaderState`, one-line interface methods with no caller (see Open decisions, unused public contracts).
+- Done in PR #156: `GameActivityViewModel_retroViewLifecycle_test` and `GameActivityViewModel_menuRouting_test`. `setupRetroView` builds its view through a new `retroViewFactory` seam, because the real view loads the native core. Left as they are: `hasSaveState` and `getShaderState`, one-line interface methods with no caller (see Open decisions, unused public contracts).
 
-### [ ] 6. `test/gamepad-and-retroview-utils`: `GamePad` and `RetroViewUtils`
+### [x] 6. `test/gamepad-and-retroview-utils`: `GamePad` and `RetroViewUtils`
 - `GamePad`: `handleButtonEvent`, `handleDirectionEvent`, `eventHandler`, `hasExternalPhysicalController` (decides whether the on-screen pad shows).
 - `RetroViewUtils.preserveEmulatorState` (never persists frame speed 0).
+- Done in this PR: `GamePad_test` (event routing, joystick-only and non-controller devices) and `RetroViewUtils_test`. `GamePad.eventHandler` is now `internal` for tests, since the pad's own event flow comes from touch input; `subscribe` stays untested. Deleted: `RetroViewUtils.getAudioState` and `getFastForwardState`, which nothing called (Settings reads both through `PlaybackStateController`). `restoreEmulatorState` stays untested until the temp-state decision (see Open decisions).
 
 ### [ ] 7a. `refactor/shared-slot-dialogs`: one dialog helper for the save grids
 - `SaveSlotsFragment`, `ExitSaveGridFragment` and `ManageSavesFragment` copy the naming, overwrite and selection dialogs (`updateDialogSelection` and `performNavigateUp` are identical). Pin current behavior with tests first, then extract a shared helper and test it once. Rerun the Roborazzi goldens; they must not change.

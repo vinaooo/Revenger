@@ -65,14 +65,4 @@ class RetroViewUtils(
 
         return result
     }
-
-    /** Get the current audio state from preferences */
-    fun getAudioState(): Boolean {
-        return sharedPreferences.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true)
-    }
-
-    /** Get the current fast forward state from preferences */
-    fun getFastForwardState(): Boolean {
-        return sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1) > 1
-    }
 }
