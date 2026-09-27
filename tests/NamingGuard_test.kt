@@ -11,7 +11,8 @@ import org.junit.Test
 
 /**
  * Enforces the naming rule in `CLAUDE.md`: no game, platform, core or brand names in Kotlin
- * sources (`app/src/main/java`, `tests/`, `app/src/androidTest/`).
+ * sources (`app/src/main/java`, `tests/`, `app/src/androidTest/`) or in the Markdown docs
+ * (`docs/`).
  *
  * This file names nothing itself. The denylist is built at runtime from the files where those
  * values are allowed to live: `icons/platforms.json` (platform, core and extension ids),
@@ -20,8 +21,8 @@ import org.junit.Test
  * SHA-256 hashes from `icons/tests/brand_denylist_sha256.txt`, shared with the icon scripts' guard.
  *
  * Matching is by whole tokens, case-insensitive, with camelCase split, so an id never matches
- * inside a longer word. A multi-word id (a title, a core with underscores) matches only as the
- * same token sequence.
+ * inside a longer word. Accented letters belong to the word (some docs are in Portuguese). A
+ * multi-word id (a title, a core with underscores) matches only as the same token sequence.
  */
 class NamingGuard_test {
 
@@ -30,7 +31,10 @@ class NamingGuard_test {
             generateSequence(File(System.getProperty("user.dir")).absoluteFile) { it.parentFile }
                 .first { File(it, "settings.gradle").isFile }
 
-        private val SCANNED_ROOTS = listOf("app/src/main/java", "tests", "app/src/androidTest")
+        private val SCANNED_ROOTS =
+            listOf("app/src/main/java", "tests", "app/src/androidTest", "docs")
+
+        private val SCANNED_EXTENSIONS = setOf("kt", "java", "md")
 
         /**
          * Ids that are also ordinary words; matching them would flag everyday code (a save-file
@@ -46,7 +50,7 @@ class NamingGuard_test {
                 DOC_FILE_NAME.replace(text, " ")
                     .replace(Regex("([a-z0-9])([A-Z])"), "$1 $2")
                     .replace(Regex("([A-Z]+)([A-Z][a-z])"), "$1 $2")
-            return Regex("[a-z0-9]+").findAll(split.lowercase()).map { it.value }.toList()
+            return Regex("[\\p{L}\\p{N}]+").findAll(split.lowercase()).map { it.value }.toList()
         }
 
         /** True if [id]'s tokens appear consecutively in [lineTokens]. */
@@ -116,7 +120,7 @@ class NamingGuard_test {
             SCANNED_ROOTS.map { File(repoRoot, it) }
                 .flatMap { root ->
                     root.walk().filter {
-                        it.isFile && it.extension in setOf("kt", "java") && it.name != SELF
+                        it.isFile && it.extension in SCANNED_EXTENSIONS && it.name != SELF
                     }
                 }
 
@@ -138,14 +142,14 @@ class NamingGuard_test {
     // --- the real sources ---
 
     @Test
-    fun `no configured game, platform or core id appears in Kotlin sources`() {
+    fun `no configured game, platform or core id appears in Kotlin sources or docs`() {
         val hits = findHits(sourceFiles(), configuredIds(), emptySet())
 
         assertEquals("Neutral wording needed (see CLAUDE.md) at: $hits", emptyList<String>(), hits)
     }
 
     @Test
-    fun `no denylisted brand or title word appears in Kotlin sources`() {
+    fun `no denylisted brand or title word appears in Kotlin sources or docs`() {
         val hits = findHits(sourceFiles(), emptySet(), hashedWords())
 
         assertEquals("Neutral wording needed (see CLAUDE.md) at: $hits", emptyList<String>(), hits)
@@ -159,6 +163,7 @@ class NamingGuard_test {
         assertTrue(hashedWords().size >= 36)
         assertTrue(hashedWords().all { it.matches(Regex("[0-9a-f]{64}")) })
         assertTrue("the scanned roots exist", sourceFiles().size > 100)
+        assertTrue("the docs are scanned", sourceFiles().any { it.extension == "md" })
     }
 
     // --- the matcher, on made-up ids ---
@@ -174,6 +179,12 @@ class NamingGuard_test {
     @Test
     fun `tokens split an acronym from the next word`() {
         assertEquals(listOf("xyz", "parser"), tokens("XYZParser"))
+    }
+
+    @Test
+    fun `an accented letter stays inside its word`() {
+        assertEquals(listOf("genérico", "não"), tokens("Genérico não"))
+        assertTrue(!containsId(tokens("um emulador genérico"), tokens("gen")))
     }
 
     @Test
