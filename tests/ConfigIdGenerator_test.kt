@@ -42,4 +42,12 @@ class ConfigIdGenerator_test {
 
         assertEquals(first, second)
     }
+
+    @Test
+    fun `the KDoc example holds`() {
+        assertEquals(
+            "my_game_part_2_some_core",
+            ConfigIdGenerator.generate("My Game: Part 2", "some_core")
+        )
+    }
 }

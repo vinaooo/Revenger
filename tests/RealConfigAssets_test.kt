@@ -145,7 +145,7 @@ class RealConfigAssets_test {
     @Test
     fun `extensoes sao minusculas, com ponto e nao vazias`() {
         // DefaultSettingsRepository lowercases the ROM's extension (with its dot) and looks for an
-        // exact match, so an entry like "SMC" or "smc" could never match.
+        // exact match, so an entry like "EXT" or "ext" could never match.
         profileObjects().forEachIndexed { index, json ->
             val extensions = json.getJSONArray("extensions")
             assertTrue("Profile at index $index has no extensions", extensions.length() > 0)

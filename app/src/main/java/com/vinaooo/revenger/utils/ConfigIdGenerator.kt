@@ -5,7 +5,7 @@ package com.vinaooo.revenger.utils
  * Converts both strings to lowercase, removes special characters,
  * and combines them with an underscore.
  *
- * Example: "Sonic The Hedgehog" + "picodrive" -> "sonic_the_hedgehog_picodrive"
+ * Example: "My Game: Part 2" + "some_core" -> "my_game_part_2_some_core"
  */
 object ConfigIdGenerator {
     fun generate(name: String, core: String): String {
