@@ -105,8 +105,8 @@ Command Pattern + State Machine. Navigable by touch D‑pad, physical gamepad, a
 
 ## Reference docs
 
-- `docs/ANALISE_PROJETO.md` — project deep‑dive (Portuguese)
-- `docs/BUILD_DEPLOY_2026-08-27.md` — build/deploy notes and SDK setup troubleshooting
+- `docs/2026-08-27-project-analysis-pt.md` — project deep‑dive (Portuguese)
+- `docs/2026-08-27-first-build-and-sdk-setup-pt.md` — build/deploy notes and SDK setup troubleshooting
 - `definitions/config.md`, `definitions/config_manual.md` — config key reference
 - `definitions/Code.md` — architecture and maintenance guide
 - `TODO.kt` — roadmap notes (used with the TODO Tree VS Code extension)

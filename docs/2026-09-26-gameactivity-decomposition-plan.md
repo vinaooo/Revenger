@@ -1,6 +1,6 @@
 # Next big job: shrink and test the emulator screen — 2026-09-26
 
-Source: a read-only survey of `views/GameActivity.kt` and the startup screens, made after the coverage follow-ups (`docs/COVERAGE_FOLLOWUPS_2026-09-26.md`, PRs #128–#134) were done.
+Source: a read-only survey of `views/GameActivity.kt` and the startup screens, made after the coverage follow-ups (`docs/2026-09-26-kotlin-coverage-followups.md`, PRs #128–#134) were done.
 
 ## How to work through this list
 

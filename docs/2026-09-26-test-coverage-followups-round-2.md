@@ -1,6 +1,6 @@
 # Test and coverage follow-ups, round 2 — 2026-09-26
 
-Source: `./gradlew koverXmlReportDebug -PskipAssetStaging` on `develop` @ `2aef786` (after PR #147). Written after every item in `COVERAGE_FOLLOWUPS_2026-09-26.md`, `TEST_BATTERY_FOLLOWUPS_2026-09-2{5,6}.md` and `GAMEACTIVITY_DECOMPOSITION_2026-09-26.md` was done.
+Source: `./gradlew koverXmlReportDebug -PskipAssetStaging` on `develop` @ `2aef786` (after PR #147). Written after every item in `2026-09-26-kotlin-coverage-followups.md`, `2026-09-25-test-battery-followups.md`, `2026-09-26-test-battery-followups-icon-scripts.md` and `2026-09-26-gameactivity-decomposition-plan.md` was done.
 
 ## How to work through this list
 
@@ -161,7 +161,7 @@ The Kover floor is 87 / 68.
   - the full splash → game path, timed
 - Run `./gradlew createDebugAndroidTestCoverageReport -PinstrumentedCoverage`, then `coverageAll`, and put the instrumented row (now 42.7% / 20.4%) before and after in the PR.
 
-### [ ] 12. (optional, device) The key-up check from `KEYUP_INPUT_SIDE_EFFECTS_2026-09-27.md`
+### [ ] 12. (optional, device) The key-up check from `2026-09-27-keyup-input-side-effects.md`
 - On a device with a physical controller: does a held button auto-repeat `KEY_DOWN`?
 - Record the answer in that doc. Only if the fade fix turns out to be needed, open its PR following that doc's checklist.
 

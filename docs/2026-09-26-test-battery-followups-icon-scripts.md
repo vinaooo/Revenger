@@ -1,6 +1,6 @@
 # Test battery follow-ups — 2026-09-26
 
-Handoff for a new session. Source: the full test battery run on `develop` @ `9d3cdfc`, after PRs #108–#118, which closed every item of `TEST_BATTERY_FOLLOWUPS_2026-09-25.md`. This battery also covers the **Python icon scripts** (`icons/scripts/*.py`) and the **shell script** (`pick_icon.sh`). The TODO list below prepares tests for both.
+Handoff for a new session. Source: the full test battery run on `develop` @ `9d3cdfc`, after PRs #108–#118, which closed every item of `2026-09-25-test-battery-followups.md`. This battery also covers the **Python icon scripts** (`icons/scripts/*.py`) and the **shell script** (`pick_icon.sh`). The TODO list below prepares tests for both.
 
 ## How to work through this list
 
