@@ -504,22 +504,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
         /** Starts reverse CRT animation (shutdown) and invokes a callback when finished */
         fun startShutdownAnimation(onComplete: () -> Unit) {
                 Log.d(TAG, "Starting shutdown animation")
-
-                val crtShutdownView =
-                        findViewById<com.vinaooo.revenger.ui.splash.CRTBootView>(
-                                R.id.crt_shutdown_view
-                        )
-
-                // Make overlay visible
-                crtShutdownView.visibility = android.view.View.VISIBLE
-
-                // Set callback for when animation finishes
-                crtShutdownView.onAnimationEndListener = {
-                        Log.d(TAG, "Shutdown animation completed")
-                        onComplete()
-                }
-
-                // Start reverse animation
-                crtShutdownView.startReverseAnimation()
+                findViewById<com.vinaooo.revenger.ui.splash.CRTBootView>(R.id.crt_shutdown_view)
+                        .playShutdown(onComplete)
         }
 }
