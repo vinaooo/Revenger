@@ -58,7 +58,7 @@ Missed by the first draft: `SaveStateManager` error paths (28 branches, the code
 - `PipController` takes the executor as an optional constructor parameter. Tests for both PiP action buttons, the stuck-overlay cleanup, gamepad hide/restore, and entry failures.
 - The impossible `SDK_INT < O` checks and `@TargetApi(O)` in `PipController` and `PipParamsFactory` are deleted.
 
-### [x] 2b. `fix/pip-quick-save-slot`: where PiP Quick Save writes — this PR
+### [x] 2b. `fix/pip-quick-save-slot`: where PiP Quick Save writes — PR #152
 Today it writes to the slot last used this session, or **slot 1** when none was used, overwriting whatever is there. The rule the user chose:
 1. A slot saved or loaded since this launch → that slot. ("This launch" only: the tracker stays in memory, Save and Exit is unchanged.)
 2. Otherwise → the first empty slot.
@@ -70,8 +70,17 @@ Today it writes to the slot last used this session, or **slot 1** when none was 
 - Also: record the save in `SessionSlotTracker` only when `saveToSlot` returns true (today a failed write is still recorded).
 - Tests: saves written the way older versions wrote them (no date, no metadata, corrupt date, a migrated single save), and the full-slots case.
 
+### [x] 3a. `fix/save-slot-error-paths`: Manage Saves on damaged slots — this PR
+Found while starting item 3, each confirmed with a test:
+- Rename on a save with a corrupt `metadata.json` threw an uncaught `JSONException` (an app crash from Manage Saves). A save with no `metadata.json` couldn't be renamed at all.
+- Copy/Move from a save with corrupt metadata failed after the target was already overwritten: Move left the save in both slots and reported an error.
+- Delete ignored `deleteRecursively()`'s result and always reported success, so Move could too.
+
+Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") and write a repaired one. A failed copy removes its partial target. Delete returns the real result. When Move can't delete the source, it reports failure and the save stays in both slots, so nothing is lost. The unreachable `SecurityException`/`JSONException` catches are gone.
+
 ### [ ] 3. `test/save-state-manager-errors`: `SaveStateManager`
-- The error paths of the code that writes saves: `copySlot` (9 branches), `saveToSlot` and `loadFromSlot` (4 each), `deleteSlot`, `renameSlot`, `updateScreenshot` (3 each). Use a temp folder.
+- The remaining error paths: `saveToSlot` (preview image, write failure), `loadFromSlot` (empty slot, read failure), the slot-number checks, `backfillMissingTimestamps` write failure, `SlotMetadataStore` leftovers (blank date, legacy-migration failure). Use a temp folder.
+- Delete the methods only tests call: `updateScreenshot`, `hasAnySave`, `getFirstEmptySlot`, `getOccupiedSlotCount`.
 
 ### [ ] 4. `test/button-routers`: `KeyEventRouter`, `MotionEventRouter`, `GamePadButtonRouter`
 - `interceptButtonB` (both copies), `fireDpadCallback`, `fireTriggerCallback`, `checkSingleTrigger`, `computeDirectionTrigger`, `isAnyAxisOutOfDeadzone`.

@@ -14,10 +14,12 @@ import org.json.JSONObject
  * internally -- not part of any public contract -- so it is a plain composed collaborator rather
  * than an interface-delegated one.
  *
- * The write methods ([writeNewMetadata], [updateSlotNumber], [updateName]) deliberately do not
- * catch I/O/JSON failures themselves: callers (`SaveStateManager.saveToSlot`/`copySlot`/
- * `renameSlot`) already wrap their calls in their own narrowed try/catch, and swallowing the
- * exception here would turn a failed write into a false "success".
+ * The write methods ([writeNewMetadata], [updateSlotNumber], [updateName], [backfillTimestamp])
+ * deliberately do not catch write failures themselves: callers (`SaveStateManager.saveToSlot`/
+ * `copySlot`/`renameSlot`) already wrap their calls in their own narrowed try/catch, and swallowing
+ * the exception here would turn a failed write into a false "success". A corrupt or unreadable
+ * existing file is not a failure: the update methods read it the way the menu shows it ("Slot N")
+ * and write a repaired file.
  */
 class SlotMetadataStore {
 
@@ -82,29 +84,42 @@ class SlotMetadataStore {
      * [writeNewMetadata], so older app versions read it unchanged.
      */
     fun backfillTimestamp(metadataFile: File, slotNumber: Int, timestamp: Instant) {
+        val metadata = readWithDefaults(metadataFile, slotNumber)
+        metadata.put("timestamp", timestamp.toString())
+        metadataFile.writeText(metadata.toString(2))
+    }
+
+    /**
+     * Updates the `slotNumber` field of a copied metadata file (used by `copySlot`). A slot copied
+     * without a metadata file stays without one; a corrupt one is repaired for [targetSlot].
+     */
+    fun updateSlotNumber(metadataFile: File, targetSlot: Int) {
+        if (!metadataFile.exists()) return
+        val metadata = readWithDefaults(metadataFile, targetSlot)
+        metadata.put("slotNumber", targetSlot)
+        metadataFile.writeText(metadata.toString(2))
+    }
+
+    /**
+     * Updates the `name` field of a slot's metadata file (used by `renameSlot`), repairing it if
+     * corrupt.
+     */
+    fun updateName(metadataFile: File, slotNumber: Int, newName: String) {
+        val metadata = readWithDefaults(metadataFile, slotNumber)
+        metadata.put("name", newName)
+        metadataFile.writeText(metadata.toString(2))
+    }
+
+    // The slot's metadata with every field the menu reads, using the defaults it shows for a
+    // missing or unreadable one; the `timestamp` stays missing if unknown.
+    private fun readWithDefaults(metadataFile: File, slotNumber: Int): JSONObject {
         val metadata = readMetadata(metadataFile, slotNumber)
         if (!metadata.has("name")) metadata.put("name", "Slot $slotNumber")
         if (!metadata.has("slotNumber")) metadata.put("slotNumber", slotNumber)
         if (!metadata.has("romName")) metadata.put("romName", "")
         if (!metadata.has("playTime")) metadata.put("playTime", 0)
         if (!metadata.has("description")) metadata.put("description", "")
-        metadata.put("timestamp", timestamp.toString())
-        metadataFile.writeText(metadata.toString(2))
-    }
-
-    /** Updates just the `slotNumber` field of an existing metadata file (used by `copySlot`). */
-    fun updateSlotNumber(metadataFile: File, targetSlot: Int) {
-        if (!metadataFile.exists()) return
-        val metadata = JSONObject(metadataFile.readText())
-        metadata.put("slotNumber", targetSlot)
-        metadataFile.writeText(metadata.toString(2))
-    }
-
-    /** Updates just the `name` field of an existing metadata file (used by `renameSlot`). */
-    fun updateName(metadataFile: File, newName: String) {
-        val metadata = JSONObject(metadataFile.readText())
-        metadata.put("name", newName)
-        metadataFile.writeText(metadata.toString(2))
+        return metadata
     }
 
     /**

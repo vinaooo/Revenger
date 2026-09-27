@@ -7,7 +7,6 @@ import com.vinaooo.revenger.models.SaveSlotPayload
 import java.io.File
 import java.io.IOException
 import java.time.Instant
-import org.json.JSONException
 
 /**
  * Manages multiple save state slots (1-9) with metadata and screenshots.
@@ -168,26 +167,26 @@ private constructor(
      * Delete a save from a specific slot
      *
      * @param slotNumber Slot to delete (1-9)
-     * @return true if deletion was successful
+     * @return true if the slot is empty afterwards; false if any of its files could not be deleted
      */
     fun deleteSlot(slotNumber: Int): Boolean {
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
         return synchronized(slotLock) {
-            val slotDir = fileLayout.slotDirectory(slotNumber)
-            try {
-                slotDir.deleteRecursively()
+            val deleted = fileLayout.slotDirectory(slotNumber).deleteRecursively()
+            if (deleted) {
                 Log.d(TAG, "Slot $slotNumber deleted")
-                true
-            } catch (e: SecurityException) {
-                Log.e(TAG, "Failed to delete slot $slotNumber", e)
-                false
+            } else {
+                Log.e(TAG, "Failed to delete slot $slotNumber")
             }
+            deleted
         }
     }
 
     /**
-     * Copy save from one slot to another
+     * Copy save from one slot to another, replacing whatever the target held. A corrupt source
+     * `metadata.json` is copied repaired (see [SlotMetadataStore.updateSlotNumber]). If the copy
+     * fails, the partly written target is removed, so it never holds half a save.
      *
      * @param sourceSlot Source slot number
      * @param targetSlot Target slot number
@@ -223,12 +222,7 @@ private constructor(
                     true
                 } catch (e: IOException) {
                     Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
-                    false
-                } catch (e: SecurityException) {
-                    Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
-                    false
-                } catch (e: JSONException) {
-                    Log.e(TAG, "Failed to copy slot $sourceSlot to $targetSlot", e)
+                    targetDir.deleteRecursively()
                     false
                 }
             }
@@ -245,6 +239,9 @@ private constructor(
      * `synchronized` blocks on the *same* monitor nest safely, so the inner locks taken by
      * `copySlot`/`deleteSlot` are just reentrant no-ops here.
      *
+     * If the source can't be deleted after a successful copy, this returns false and both slots
+     * hold the save: the save is never lost, and the menu doesn't report a move that didn't finish.
+     *
      * @param sourceSlot Source slot number
      * @param targetSlot Target slot number
      * @return true if move was successful
@@ -259,7 +256,8 @@ private constructor(
             }
 
     /**
-     * Rename a save slot
+     * Rename a save slot. A save whose `metadata.json` is missing or corrupt (shown in the menu as
+     * "Slot N") gets a repaired file holding the new name.
      *
      * @param slotNumber Slot to rename
      * @param newName New name for the slot
@@ -269,14 +267,12 @@ private constructor(
         require(slotNumber in 1..TOTAL_SLOTS) { "Slot number must be between 1 and $TOTAL_SLOTS" }
 
         return synchronized(slotLock) {
-            val metadataFile = fileLayout.metadataFile(slotNumber)
-
-            if (!metadataFile.exists()) {
-                Log.w(TAG, "Slot $slotNumber has no metadata")
+            if (!fileLayout.stateFile(slotNumber).exists()) {
+                Log.w(TAG, "Slot $slotNumber is empty")
                 false
             } else {
                 try {
-                    metadataStore.updateName(metadataFile, newName)
+                    metadataStore.updateName(fileLayout.metadataFile(slotNumber), slotNumber, newName)
                     Log.d(TAG, "Slot $slotNumber renamed to '$newName'")
                     true
                 } catch (e: IOException) {
