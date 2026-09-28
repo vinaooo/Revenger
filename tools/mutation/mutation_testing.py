@@ -20,6 +20,10 @@ How it works:
     full        the whole unit-test suite (at most --full-jobs at once, they are memory-heavy)
   A mutant is only reported as survived after the full suite passes with it, so a narrow test
   selection costs time, never a wrong result.
+- Memory, not CPU, bounds --jobs: every worktree runs its own Gradle daemon (heap capped by
+  --gradle-heap instead of the 8 GB in gradle.properties) and its own Robolectric test JVM (2 GB
+  heap, about 3 GB while running the full suite). With 24 GB of RAM and a console-only desktop,
+  --jobs 3 peaked at about 19 GB; a fourth worktree would swap.
 - A timeout (for example a mutant that makes a loop endless) counts as killed. The test task
   gets a Gradle timeout through an init script, so only that worktree's test JVM is stopped.
 - Results are appended to <report-dir>/mutants.jsonl as they finish; a rerun skips mutants
@@ -314,19 +318,24 @@ allprojects {{
 """
 
 
-def gradle_command(test_classes, init_script):
-    """Gradle arguments for one run; an empty `test_classes` runs the whole suite."""
-    command = ["./gradlew", "testDebugUnitTest", "-PskipAssetStaging", "-q", "--offline",
+DAEMON_JVM_ARGS = "-Xmx{heap} -XX:+UseG1GC -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8"
+
+
+def gradle_command(test_classes, init_script, heap):
+    """Gradle arguments for one run; an empty `test_classes` runs the whole suite. `heap` caps the
+    worktree's Gradle daemon (it replaces the org.gradle.jvmargs of gradle.properties)."""
+    command = ["./gradlew", f"-Dorg.gradle.jvmargs={DAEMON_JVM_ARGS.format(heap=heap)}",
+               "testDebugUnitTest", "-PskipAssetStaging", "-q", "--offline",
                "--init-script", init_script]
     for name in test_classes:
         command += ["--tests", f"*.{name}"]
     return command
 
 
-def run_gradle(worktree, test_classes, init_script, timeout):
+def run_gradle(worktree, test_classes, init_script, timeout, heap):
     """Runs the tests in `worktree`; returns an outcome from classify()."""
     try:
-        process = subprocess.run(gradle_command(test_classes, init_script), cwd=worktree,
+        process = subprocess.run(gradle_command(test_classes, init_script, heap), cwd=worktree,
                                  capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
         return TIMEOUT
@@ -565,8 +574,10 @@ def parse_args(argv):
     parser.add_argument("--changed", action="store_true", help="mutate only the lines this branch changed")
     parser.add_argument("files", nargs="*", default=[], help="Kotlin files to mutate")
     parser.add_argument("--base", default="origin/develop", help="branch --changed compares against")
-    parser.add_argument("--jobs", type=int, default=4, help="parallel worktrees (default 4)")
+    parser.add_argument("--jobs", type=int, default=3, help="parallel worktrees (default 3)")
     parser.add_argument("--full-jobs", type=int, default=3, help="parallel full-suite runs (default 3)")
+    parser.add_argument("--gradle-heap", default="3g",
+                        help="max heap of each worktree's Gradle daemon (default 3g)")
     parser.add_argument("--timeout", type=int, default=600, help="seconds per test run (default 600)")
     parser.add_argument("--workdir", default=DEFAULT_WORKDIR, help="where the worktrees live")
     parser.add_argument("--report-dir", default="build/reports/mutation", help="jsonl + summary.md")
@@ -625,7 +636,8 @@ def main(argv=None, runner=run_gradle):
                       f"{mutant.file}:{mutant.line} {mutant.operator}", flush=True)
 
             errors = run_mutants(todo, index, worktrees,
-                                 lambda wt, classes: runner(wt, classes, init_script, args.timeout),
+                                 lambda wt, classes: runner(wt, classes, init_script, args.timeout,
+                                                                 args.gradle_heap),
                                  args.full_jobs, record)
             for mutant, error in errors:
                 print(f"error: {mutant.file}:{mutant.line} {mutant.operator}: {error}", file=sys.stderr)
