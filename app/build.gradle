@@ -309,7 +309,7 @@ tasks.register("setupScriptsVenv", Exec) {
 
 tasks.register("testScripts", Exec) {
     group = "verification"
-    description = "Runs the pytest suite for the icon scripts, pick_icon.sh and tools/coverage."
+    description = "Runs the pytest suite for the icon scripts, pick_icon.sh, tools/coverage and tools/mutation."
     dependsOn("setupScriptsVenv")
     def pythonSources = fileTree("$rootDir/icons") {
         include "scripts/**/*.py", "tests/**/*.py", "platforms.json", "images/**"
