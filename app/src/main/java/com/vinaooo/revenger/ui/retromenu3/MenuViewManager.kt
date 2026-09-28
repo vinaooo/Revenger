@@ -433,7 +433,6 @@ class MenuItemSelectionStyler(private val fragment: Fragment) {
  * **Responsibilities**:
  * - Initial configuration of all menu views
  * - Visual update of selection (colors, arrows, highlight)
- * - Management of entry/exit animations
  * - Dynamic visual state (enabled/disabled items)
  *
  * **Manager Pattern**: Centralizes all menu UI logic in a dedicated class.
@@ -441,7 +440,6 @@ class MenuItemSelectionStyler(private val fragment: Fragment) {
  * **Integration**:
  * - Works with MenuViewInitializer for initial setup
  * - Uses FontUtils and ViewUtils for styling
- * - Coordinates with MenuAnimationController for transitions
  *
  * **Phase 3**: Supports multi-input (gamepad, keyboard, touch) with unified visual feedback.
  *
@@ -554,33 +552,6 @@ class MenuViewManager(
         updateSelectionVisual(0)
 
         visibilityController.attachContainer(menuContainerView, menuItemViews)
-    }
-
-    /** Atualiza o estado visual do menu (itens dinâmicos, estados, etc.) */
-    fun updateMenuState() {
-        // Main menu no longer has dynamic options - everything was moved to submenus
-    }
-
-    /** Anima a entrada do menu na tela */
-    fun animateMenuIn() {
-        // Use optimized batch animation for better performance
-        ViewUtils.animateMenuViewsBatchOptimized(
-                arrayOf(menuContainerView),
-                toAlpha = 1f,
-                toScale = 1f,
-                duration = 200
-        )
-    }
-
-    /** Animate the menu exiting the screen */
-    fun animateMenuOut(onEnd: () -> Unit) {
-        // Use optimized batch animation with callback
-        ViewUtils.animateMenuViewsBatchOptimized(
-                arrayOf(menuContainerView),
-                toAlpha = 0f,
-                toScale = 0.8f,
-                duration = 150
-        ) { onEnd() }
     }
 
     /** Update the selection visual based on the current index */

@@ -59,20 +59,4 @@ class MenuViewModel(application: Application) :
 
     fun isSettingsMenuOpen(): Boolean =
             menuStateManager.isMenuActive(MenuSystemState.MenuType.SETTINGS_MENU)
-
-    fun isProgressMenuOpen(): Boolean =
-            menuStateManager.isMenuActive(MenuSystemState.MenuType.PROGRESS_MENU)
-
-    fun isExitMenuOpen(): Boolean =
-            menuStateManager.isMenuActive(MenuSystemState.MenuType.EXIT_MENU)
-
-    // ========== PRIVATE METHODS ==========
-
-    private fun activateMenu(menuType: MenuSystemState.MenuType) {
-        menuStateManager.activateMenu(menuType)
-    }
-
-    private fun deactivateMenu(menuType: MenuSystemState.MenuType) {
-        menuStateManager.deactivateMenu(menuType)
-    }
 }

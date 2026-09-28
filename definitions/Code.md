@@ -47,7 +47,6 @@ RetroMenu3Fragment (UI)
 │   ├── NavigationStateManager (state ownership)
 │   └── MenuViewManager (UI Updates with RetroCardView)
 ├── RetroCardView (Custom UI Component)
-├── AnimationOptimizer (Performance)
 └── Test Suite (Unit + Integration + Robolectric)
 ```
 

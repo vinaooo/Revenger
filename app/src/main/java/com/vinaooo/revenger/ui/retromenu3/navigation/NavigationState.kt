@@ -140,13 +140,6 @@ class NavigationStack {
         stack.clear()
     }
 
-    /**
-     * Peek at the top of the stack without removing it.
-     *
-     * @return MenuState at the top, or null if the stack is empty
-     */
-    fun peek(): MenuState? = stack.lastOrNull()
-
     /** Serializa a pilha para um Bundle. */
     fun toBundle(prefix: String = "stack_"): Bundle {
         return Bundle().apply {

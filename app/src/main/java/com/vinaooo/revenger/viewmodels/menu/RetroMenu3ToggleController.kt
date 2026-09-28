@@ -34,10 +34,6 @@ class RetroMenu3ToggleController(
 ) : RetroMenu3ToggleFacade {
 
     companion object {
-        // Delay before clearing state after dismissing the RetroMenu3 fragment, to let the
-        // pending fragment removal complete first.
-        private const val RETRO_MENU3_FRAGMENT_REMOVAL_SETTLE_DELAY_MS = 200L
-
         // Delay before clearing controller input state, to let the pending fragment
         // destruction complete first.
         private const val CONTROLLER_STATE_CLEAR_FRAGMENT_DESTROY_SETTLE_DELAY_MS = 200L
@@ -85,29 +81,6 @@ class RetroMenu3ToggleController(
 
             onAnimationEnd?.invoke()
         }
-
-        // CRITICAL: Add small delay before clearing keyLog to ensure fragment is fully removed
-        // This prevents comboAlreadyTriggered from staying true when menu closes
-        Handler(Looper.getMainLooper())
-                .postDelayed(
-                        {
-                            Log.d(
-                                    "GameActivityViewModel",
-                                    "[DISMISS_MAIN] dismissRetroMenu3: DELAYED - " +
-                                            "isRetroMenu3Open after delay: ${isRetroMenu3Open()}"
-                            )
-                            Log.d(
-                                    "GameActivityViewModel",
-                                    "[DISMISS_MAIN] dismissRetroMenu3: DELAYED - clearing keyLog now"
-                            )
-
-                            Log.d(
-                                    "GameActivityViewModel",
-                                    "[DISMISS_MAIN] dismissRetroMenu3: Menu dismissed"
-                            )
-                        },
-                        RETRO_MENU3_FRAGMENT_REMOVAL_SETTLE_DELAY_MS
-                ) // Delay to ensure fragment removal is complete
 
         Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Completed")
     }

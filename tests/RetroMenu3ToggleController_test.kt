@@ -10,6 +10,7 @@ import com.vinaooo.revenger.viewmodels.InputViewModel
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -123,6 +124,13 @@ class RetroMenu3ToggleController_test {
         controller.dismissRetroMenu3 { animationEndCalled = true }
 
         assertFalse(animationEndCalled)
+    }
+
+    @Test
+    fun `dismissRetroMenu3 nao agenda trabalho atrasado no main looper`() {
+        controller.dismissRetroMenu3()
+
+        assertEquals(java.time.Duration.ZERO, shadowOf(Looper.getMainLooper()).nextScheduledTaskTime)
     }
 
     // ---------------------------------------------------------------------------------------
