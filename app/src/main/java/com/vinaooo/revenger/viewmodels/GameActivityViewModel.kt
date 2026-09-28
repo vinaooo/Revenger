@@ -237,8 +237,7 @@ class GameActivityViewModel(application: Application) :
             SaveLoadCentralizedController(
                     saveLoadOrchestrator = saveLoadOrchestrator,
                     retroView = { retroView },
-                    retroViewUtils = { retroViewUtils },
-                    markSkipNextTempStateLoad = { skipNextTempStateLoad = true }
+                    retroViewUtils = { retroViewUtils }
             )
     private val playbackStateController =
             PlaybackStateController(
@@ -365,9 +364,6 @@ class GameActivityViewModel(application: Application) :
     private var speedController: SpeedController? = null
     private var shaderController: ShaderController? = null
     private var sharedPreferences: android.content.SharedPreferences? = null
-
-    // Flag to prevent tempState from overwriting a manual Load State
-    private var skipNextTempStateLoad = false
 
     init {
         // All ViewModels and managers are now initialized as val at declaration

@@ -21,7 +21,6 @@ import java.time.Instant
  * ```
  * /data/data/com.vinaooo.revenger.{config_id}/files/
  * ├── state           # [LEGACY] Single save file (migrated on first run)
- * ├── tempstate       # Temporary state between sessions
  * ├── sram            # Persistent game memory
  * └── saves/          # Multi-slot save directory
  *     ├── slot_1/

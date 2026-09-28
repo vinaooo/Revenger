@@ -14,20 +14,16 @@ interface SaveLoadCentralizedFacade {
 /**
  * Implementation of [SaveLoadCentralizedFacade]. [retroView] and [retroViewUtils] are read lazily
  * via providers, not captured at construction time, since both are mutated on the owning
- * ViewModel after construction. [markSkipNextTempStateLoad] likewise writes back to the
- * ViewModel's own flag rather than owning a copy of it.
+ * ViewModel after construction.
  */
 class SaveLoadCentralizedController(
         private val saveLoadOrchestrator: SaveLoadOrchestrator,
         private val retroView: () -> RetroView?,
-        private val retroViewUtils: () -> RetroViewUtils?,
-        private val markSkipNextTempStateLoad: () -> Unit
+        private val retroViewUtils: () -> RetroViewUtils?
 ) : SaveLoadCentralizedFacade {
 
     override fun loadStateCentralized(onComplete: (() -> Unit)?) {
-        if (saveLoadOrchestrator.loadState(retroView(), retroViewUtils(), onComplete)) {
-            markSkipNextTempStateLoad()
-        }
+        saveLoadOrchestrator.loadState(retroView(), retroViewUtils(), onComplete)
     }
 
     override fun saveStateCentralized(onComplete: (() -> Unit)?, keepPaused: Boolean) {

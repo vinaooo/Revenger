@@ -9,6 +9,7 @@ import java.io.IOException
 class Storage(context: Context) {
     companion object {
         private const val TAG = "Storage"
+        private const val LEFTOVER_TEMP_STATE = "tempstate"
 
         @Volatile private var instance: Storage? = null
 
@@ -27,23 +28,33 @@ class Storage(context: Context) {
     val rom = File("$cachePath/rom")
     val sram = File(internalFilesDir, "sram")
     val state = File(internalFilesDir, "state")
-    val tempState = File(internalFilesDir, "tempstate")
 
     init {
         ensureParentDirectories()
         migrateLegacyFile("state", state)
-        migrateLegacyFile("tempstate", tempState)
         migrateLegacyFile("sram", sram)
+        deleteLeftoverTempState()
     }
 
     private fun ensureParentDirectories() {
-        listOf(rom.parentFile, sram.parentFile, state.parentFile, tempState.parentFile)
+        listOf(rom.parentFile, sram.parentFile, state.parentFile)
                 .filterNotNull()
                 .forEach { parent ->
                     if (!parent.exists()) {
                         parent.mkdirs()
                     }
                 }
+    }
+
+    /**
+     * Older versions wrote a full emulator snapshot to `tempstate` on every menu open and pause,
+     * but nothing read it back. Delete the leftover copies (current and legacy location).
+     */
+    private fun deleteLeftoverTempState() {
+        listOfNotNull(internalFilesDir, externalFilesDir)
+                .map { File(it, LEFTOVER_TEMP_STATE) }
+                .filter { it.exists() && !it.delete() }
+                .forEach { Log.w(TAG, "Could not delete leftover ${it.path}") }
     }
 
     private fun migrateLegacyFile(fileName: String, target: File) {

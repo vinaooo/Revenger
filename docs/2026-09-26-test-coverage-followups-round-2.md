@@ -146,7 +146,7 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
 
 ## Open decisions (not scheduled)
 
-- **The temp state is written but never read.** Since `aabe1a4` (2025-10-03) the game writes a temp state each time the menu opens or it pauses, but `RetroViewUtils.restoreEmulatorState`, its only reader, has no caller. Either wire the restore back in (progress survives Android killing the app) or stop writing the temp state. Its own PR either way.
+- **The temp state is written but never read.** Decided 2026-09-27: stop writing it. `a183a39` (2025-10-03) had removed the startup restore on purpose, so the game starts fresh and only a manual Load State restores a snapshot. Done in its own PR (`fix/stop-writing-temp-state`): the SRAM flush and speed/audio settings stay, the snapshot, its reader, the skip flag and the unused `GameStateViewModel` are gone, and `Storage` deletes the leftover file.
 - **Unused public contracts.** Some `AppConfig`, callback-interface and ViewModel methods have no caller. They were kept in #150 because of the contract rule in `CLAUDE.md`.
 
 ## Won't do
@@ -182,4 +182,4 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
   - canvas drawing: `RetroEditText` (68.6%, `onDraw`);
   - waiting on the temp-state open decision: `RetroViewUtils` (57.1%, `restoreEmulatorState`);
   - fewer than 8 missed lines: `FeatureFlags` (1 line), `AppConfigFakeButtons` (5), `MenuLogger` (3).
-- The open decisions (the temp state that is written but never read; unused public contracts) are still unscheduled.
+- Open decisions: the temp state was settled afterwards (stop writing it); unused public contracts are next.

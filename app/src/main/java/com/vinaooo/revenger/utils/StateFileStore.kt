@@ -6,7 +6,7 @@ import com.vinaooo.revenger.retroview.RetroView
 import java.io.IOException
 
 /**
- * Raw save-state/temp-state/SRAM file I/O for [RetroViewUtils], split out purely to keep that
+ * Raw save-state/SRAM file I/O for [RetroViewUtils], split out purely to keep that
  * class under the project's function-count threshold. Exposed back on [RetroViewUtils] via Kotlin
  * interface delegation (`by`) so its public surface stays identical -- [loadState] and [saveState]
  * are called from outside that file (e.g. `SaveLoadOrchestrator`); the rest are currently only
@@ -19,11 +19,7 @@ interface StateFileOperations {
 
     fun loadState(retroView: RetroView)
 
-    fun loadTempState(retroView: RetroView)
-
     fun saveState(retroView: RetroView)
-
-    fun saveTempState(retroView: RetroView)
 
     fun saveSRAM(retroView: RetroView)
 }
@@ -60,20 +56,6 @@ class StateFileStore(private val storage: Storage) : StateFileOperations {
         retroView.view.unserializeState(stateBytes)
     }
 
-    override fun loadTempState(retroView: RetroView) {
-        if (!storage.tempState.exists()) {
-            return
-        }
-
-        val stateBytes = storage.tempState.inputStream().use { it.readBytes() }
-
-        if (stateBytes.isEmpty()) {
-            return
-        }
-
-        retroView.view.unserializeState(stateBytes)
-    }
-
     override fun saveState(retroView: RetroView) {
         try {
             val stateBytes = retroView.view.serializeState()
@@ -91,12 +73,6 @@ class StateFileStore(private val storage: Storage) : StateFileOperations {
         } catch (expectedNativeCallFailure: Exception) {
             Log.e(TAG, "Failed to save state", expectedNativeCallFailure)
         }
-    }
-
-    override fun saveTempState(retroView: RetroView) {
-        val stateBytes = retroView.view.serializeState()
-
-        storage.tempState.outputStream().use { it.write(stateBytes) }
     }
 
     override fun saveSRAM(retroView: RetroView) {

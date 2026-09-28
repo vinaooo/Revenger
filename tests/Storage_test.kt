@@ -12,7 +12,8 @@ import org.robolectric.annotation.Config
 import java.io.File
 
 /**
- * Unit tests for [Storage], focused on the legacy-file migration performed in its `init` block.
+ * Unit tests for [Storage]'s `init` block: the legacy-file migration and the cleanup of the
+ * leftover `tempstate` snapshot older versions wrote.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -68,5 +69,25 @@ class Storage_test {
         } finally {
             context.filesDir.setWritable(true)
         }
+    }
+
+    @Test
+    fun `apaga o tempstate que versoes antigas deixaram, nos dois diretorios`() {
+        val leftovers =
+                listOf(File(context.filesDir, "tempstate"), File(context.getExternalFilesDir(null)!!, "tempstate"))
+        leftovers.forEach { it.writeText("old snapshot") }
+
+        Storage(context)
+
+        leftovers.forEach { assertFalse(it.path, it.exists()) }
+    }
+
+    @Test
+    fun `sem tempstate antigo a construcao segue normal`() {
+        File(context.filesDir, "tempstate").delete()
+
+        val storage = Storage(context)
+
+        assertTrue(storage.sram.parentFile!!.exists())
     }
 }

@@ -8,7 +8,6 @@ import com.vinaooo.revenger.retroview.RetroView
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import io.mockk.verifyOrder
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -57,13 +56,12 @@ class RetroViewUtils_test {
     }
 
     @Test
-    fun `preserveEmulatorState grava a SRAM e o estado temporario`() {
+    fun `preserveEmulatorState grava a SRAM sem tirar um snapshot do emulador`() {
         utils.preserveEmulatorState(retroView)
 
-        verifyOrder {
-            stateFiles.saveSRAM(retroView)
-            stateFiles.saveTempState(retroView)
-        }
+        verify(exactly = 1) { stateFiles.saveSRAM(retroView) }
+        verify(exactly = 0) { stateFiles.saveState(any()) }
+        verify(exactly = 0) { glRetroView.serializeState() }
     }
 
     @Test
