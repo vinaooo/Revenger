@@ -82,19 +82,23 @@ _NOT_A_CALL = re.compile(
 
 @dataclass(frozen=True)
 class Mutant:
-    """One changed line. `line` is 1-based; `mutated` is the full replacement line text."""
+    """One changed line. `line` is 1-based; `mutated` is the full replacement line text.
+    `occurrence` tells apart the same operator applied at different places on one line (0 for the
+    first match, 1 for the second, ...)."""
 
     file: str
     line: int
     operator: str
     original: str
     mutated: str
+    occurrence: int = 0
 
     @property
     def key(self):
-        """Stable across runs as long as the line itself is unchanged."""
+        """Stable across runs as long as the line itself is unchanged, and unique per mutant."""
         digest = hashlib.sha1(self.original.strip().encode("utf-8")).hexdigest()[:12]
-        return f"{self.file}:{self.line}:{self.operator}:{digest}"
+        key = f"{self.file}:{self.line}:{self.operator}:{digest}"
+        return f"{key}:{self.occurrence}" if self.occurrence else key
 
 
 def _code_spans(line):
@@ -144,11 +148,13 @@ def mutants_for_line(file, number, line, previous="", following=""):
     found = []
     spans = _code_spans(line)
     for pattern, replacement in _OPERATORS:
+        occurrence = 0
         for start, end in spans:
             for match in pattern.finditer(line, start, end):
                 mutated = line[: match.start()] + replacement + line[match.end():]
                 operator = f"{match.group(0).strip()} -> {replacement.strip()}"
-                found.append(Mutant(file, number, operator, line, mutated))
+                found.append(Mutant(file, number, operator, line, mutated, occurrence))
+                occurrence += 1
     if _is_call_statement(_code_only(line), _code_only(previous), _code_only(following)):
         indent = line[: len(line) - len(line.lstrip())]
         found.append(Mutant(file, number, "remove call", line, indent + "Unit"))
