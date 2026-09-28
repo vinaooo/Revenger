@@ -61,7 +61,7 @@ Shader names are mapped three times: twice in `RetroView` (`applyShaderInRealtim
 ### [x] 3. `test/retro-view`: `RetroView` (#174)
 Using the spike's setup: ROM copy (and the missing-ROM error), the configured shader, the core variables (including malformed entries and values containing `=`), SRAM loading when the file exists, `dynamicShader`, the frame-rendered and FPS listeners, and pause/resume/destroy.
 
-### [ ] 4. `test/game-activity`: `GameActivity`
+### [x] 4. `test/game-activity`: `GameActivity` (#175)
 Using the spike's setup: the create → destroy lifecycle, input dispatch (`onKeyDown`, `onKeyUp`, `onGenericMotionEvent`, `dispatchTouchEvent`), the `PipHost` methods, `onConfigurationChanged`, saved-state handling, `onUserLeaveHint`, `onPictureInPictureModeChanged`, and `startShutdownAnimation`.
 
 ### [ ] 5. `test/menu-fragment-branches`: the menu fragments
