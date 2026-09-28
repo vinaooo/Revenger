@@ -51,6 +51,34 @@ class RetroKeyboard_test {
                 LayoutInflater.from(fragment.requireContext())
                         .inflate(R.layout.retro_keyboard, null)
         keyboard.setupKeyboardInView(view)
+        keyboardView = view
+    }
+
+    private lateinit var keyboardView: android.view.View
+
+    private fun tap(id: Int) = keyboardView.findViewById<android.view.View>(id).performClick()
+
+    @Test
+    fun `tocar nas teclas digita e apaga`() {
+        keyboard.setText("a")
+
+        tap(R.id.key_q)
+        tap(R.id.key_7)
+        assertEquals("aQ7", retroEditText.getTextContent())
+
+        tap(R.id.key_backspace)
+        assertEquals("aQ", retroEditText.getTextContent())
+    }
+
+    @Test
+    fun `tocar em OK confirma o texto e em cancelar cancela`() {
+        keyboard.setText("abc")
+
+        tap(R.id.key_ok)
+        tap(R.id.key_cancel)
+
+        assertEquals("abc", confirmedText)
+        assertEquals(1, cancelCalls)
     }
 
     @Test

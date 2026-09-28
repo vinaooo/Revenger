@@ -98,13 +98,24 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
 - `RetroViewUtils.preserveEmulatorState` (never persists frame speed 0).
 - Done in PR #157: `GamePad_test` (event routing, joystick-only and non-controller devices) and `RetroViewUtils_test`. `GamePad.eventHandler` is now `internal` for tests, since the pad's own event flow comes from touch input; `subscribe` stays untested. Deleted: `RetroViewUtils.getAudioState` and `getFastForwardState`, which nothing called (Settings reads both through `PlaybackStateController`). `restoreEmulatorState` stays untested until the temp-state decision (see Open decisions).
 
-### [x] 7a. `refactor/shared-slot-dialogs`: one dialog helper for the save grids — this PR
+### [x] 7a. `refactor/shared-slot-dialogs`: one dialog helper for the save grids — done in PR #158
 - `SaveSlotsFragment`, `ExitSaveGridFragment` and `ManageSavesFragment` copy the naming, overwrite and selection dialogs (`updateDialogSelection` and `performNavigateUp` are identical). Pin current behavior with tests first, then extract a shared helper and test it once. Rerun the Roborazzi goldens; they must not change.
 - Done: `SlotDialogController` (dialog state and input routing) and `SlotDialogViews` (building the naming, confirm and highlight views) replace the three copies. `CurrentGameSlotSaver` replaces the save routine copied in `SaveSlotsFragment` and `ExitSaveGridFragment`. The 76 existing grid tests pass with only accessor changes, and the goldens are unchanged.
 - Found and **not** changed (the user decides): overwriting an occupied slot from Save State or Save and Exit renames the save to "Slot N"; PiP Quick Save keeps the name.
 
-### [ ] 7. `test/save-grid-fragments`: what's left per fragment
+### [x] 7. `test/save-grid-fragments`: what's left per fragment — this PR
 - The fragment-specific parts of the three grids, plus `CoreVariablesFragment`, `ExitFragment` (`performAutoSaveAndExit`, `performConfirm`) and `RetroKeyboard`.
+- Done:
+  - Touch on grid slots and the grid's back button (select now, act after the delay).
+  - `RetroKeyboard`'s touch keys (type, backspace, OK, cancel).
+  - Manage Saves: a blank rename falls back to "Slot N".
+  - `CoreVariablesFragment`: registration, wrap-around navigation, touch, and "only back acts" (new `CoreVariablesFragmentActions_test`).
+  - `ExitFragment` auto-save keeps the slot's existing name, and still exits when the write fails.
+- Deleted:
+  - The "Unknown Game" fallbacks in `ExitFragment` and `CurrentGameSlotSaver`: `R.string.name` is a `resValue` the build always generates.
+  - `CoreVariablesFragment`'s empty `onDestroyView` and empty `else`.
+- `CoreVariablesFragment`'s hand-rolled title capitalization is replaced by `FontUtils.applyTextCapitalization`, the same helper every other menu uses. The output is identical for the configured style (2, all uppercase).
+- Left: the kill-process lambdas (they need a real `GameActivity`), the `when` `else` branches no index or operation can reach, and empty callbacks.
 
 ### [ ] 8. `test/menu-navigation`: `MenuManager` and friends
 - First replace `MenuManager`'s repeated log-message checks with one helper, then test the real guards (no fragment, not added, no context).

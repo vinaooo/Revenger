@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.utils.ViewUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -56,10 +57,6 @@ class CoreVariablesFragment : MenuFragmentBase() {
         viewModel.navigationController?.registerFragment(this, getMenuItems().size)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-    }
-
     private fun setupViews(view: View) {
         variablesContainer = view.findViewById(R.id.variables_container)
         coreVariablesList = view.findViewById(R.id.core_variables_list)
@@ -80,23 +77,8 @@ class CoreVariablesFragment : MenuFragmentBase() {
 
         loadVariables()
 
-        // Apply capitalization
-        val capitalizationStyle = resources.getInteger(com.vinaooo.revenger.R.integer.rm_text_capitalization)
-        val titleText = coreVariablesTitle.text.toString()
-        val capitalizedTitle = when (capitalizationStyle) {
-            1 ->
-                    if (titleText.isNotEmpty()) {
-                        titleText.substring(0, 1).uppercase() + titleText.substring(1)
-                    } else {
-                        titleText
-                    }
-            2 -> titleText.uppercase()
-            else -> titleText
-        }
-        if (capitalizedTitle != titleText) {
-            coreVariablesTitle.text = capitalizedTitle
-        }
-        
+        FontUtils.applyTextCapitalization(requireContext(), coreVariablesTitle)
+
         updateSelectionVisualInternal()
     }
 
@@ -169,11 +151,9 @@ class CoreVariablesFragment : MenuFragmentBase() {
     }
 
     private fun handleItemClick(index: Int) {
-        // Last index is back button
+        // Only the last item (back) acts; the variable rows are read-only.
         if (index == cardViews.size - 1) {
             viewModel.navigationController?.navigateBack()
-        } else {
-            // handle variable click
         }
     }
 

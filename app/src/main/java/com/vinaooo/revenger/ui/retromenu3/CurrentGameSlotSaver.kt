@@ -1,7 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3
 
 import android.content.Context
-import android.content.res.Resources
 import android.util.Log
 import android.widget.Toast
 import com.vinaooo.revenger.R
@@ -42,7 +41,7 @@ class CurrentGameSlotSaver(
                                             screenshot = viewModel.getCachedScreenshot(),
                                             preview = viewModel.getCachedFullScreenshot(),
                                             name = name,
-                                            romName = romName()
+                                            romName = context.getString(R.string.name)
                                     )
                     )
                     // serializeState() runs on LibretroDroid's GL thread via a blocking
@@ -68,21 +67,11 @@ class CurrentGameSlotSaver(
         return saved
     }
 
-    // The configured game name, or a generic label if the resource is missing.
-    private fun romName(): String =
-            try {
-                context.getString(R.string.name)
-            } catch (e: Resources.NotFoundException) {
-                Log.w(TAG, "R.string.name not found, using fallback name", e)
-                FALLBACK_ROM_NAME
-            }
-
     private fun showToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
     private companion object {
         const val TAG = "CurrentGameSlotSaver"
-        const val FALLBACK_ROM_NAME = "Unknown Game"
     }
 }
