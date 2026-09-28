@@ -266,6 +266,19 @@ class KeyboardInputAdapter_test {
         capturedEvents(times = 1)
     }
 
+    @Test
+    fun `KEY_UP com o mesmo eventTime do ultimo evento e ignorado e nao reseta o ciclo`() {
+        val code = KeyEvent.KEYCODE_DPAD_LEFT
+        adapter.onKeyDown(code, keyEvent(KeyEvent.ACTION_DOWN, code, eventTime = 300))
+        assertTrue(hasNavigatedInCycle(code))
+
+        // Mesmo eventTime do último evento processado: reentrega, não um KEY_UP novo.
+        val consumed = adapter.onKeyUp(code, keyEvent(KeyEvent.ACTION_UP, code, eventTime = 300))
+
+        assertTrue(consumed)
+        assertTrue(hasNavigatedInCycle(code))
+    }
+
     // --- Teclas de ação (onKeyDown) ---
 
     @Test

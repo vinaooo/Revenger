@@ -417,4 +417,17 @@ class FloatingMenuButtonController_test {
 
         controller.dispose()
     }
+
+    @Test
+    fun `triggerFade agenda a restauracao mesmo sem setup`() {
+        val controller = newController()
+        every { viewModel.isAnyMenuActive() } returns false
+
+        controller.triggerFade()
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(200))
+        assertEquals(0.3f, floatingButton.alpha)
+
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(10000 + 500))
+        assertEquals(1.0f, floatingButton.alpha)
+    }
 }

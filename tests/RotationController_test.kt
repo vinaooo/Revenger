@@ -1,5 +1,7 @@
 package com.vinaooo.revenger.controllers
 
+import android.os.Looper
+import android.content.Intent
 import android.content.res.Configuration
 import android.provider.Settings
 import android.widget.FrameLayout
@@ -101,6 +103,43 @@ class RotationController_test {
     fun `dispose chamado duas vezes nao lanca excecao na segunda vez`() {
         controller.register()
         controller.dispose()
+        controller.dispose()
+    }
+
+    private fun broadcast(action: String) {
+        activity.sendBroadcast(Intent(action))
+        shadowOf(Looper.getMainLooper()).idle()
+    }
+
+    @Test
+    fun `receiver registrado reaplica a orientacao quando a configuracao do sistema muda`() {
+        controller.register()
+
+        broadcast(Intent.ACTION_CONFIGURATION_CHANGED)
+
+        verify(exactly = 1) { viewModel.setConfigOrientation(activity) }
+        controller.dispose()
+    }
+
+    @Test
+    fun `receiver ignora outras acoes e para de ouvir depois do dispose`() {
+        controller.register()
+        broadcast(Intent.ACTION_SCREEN_ON)
+
+        controller.dispose()
+        broadcast(Intent.ACTION_CONFIGURATION_CHANGED)
+
+        verify(exactly = 0) { viewModel.setConfigOrientation(any()) }
+    }
+
+    @Test
+    fun `falha ao reaplicar a orientacao nao derruba o app`() {
+        every { viewModel.setConfigOrientation(any()) } throws IllegalStateException("boom")
+        controller.register()
+
+        broadcast(Intent.ACTION_CONFIGURATION_CHANGED)
+
+        verify(exactly = 1) { viewModel.setConfigOrientation(activity) }
         controller.dispose()
     }
 

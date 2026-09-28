@@ -20,8 +20,7 @@ object PipConfigRepository {
     private const val FALLBACK_ASPECT_RATIO_HEIGHT = 3
 
     private var platformsConfig: Map<String, PipConfigProfile>? = null
-    var defaultConfig: PipConfigProfile? = null
-        private set
+    private var defaultConfig: PipConfigProfile? = null
 
     /**
      * Initialize and load configurations from assets.

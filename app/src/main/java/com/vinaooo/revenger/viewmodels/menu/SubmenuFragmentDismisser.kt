@@ -22,29 +22,16 @@ interface SubmenuFragmentDismissal {
 /**
  * Implementation of [SubmenuFragmentDismissal]. [menuManager] is read lazily via a provider, not
  * captured at construction time, because callers may replace that dependency by reflection (in
- * tests) after this dismisser is already built. [isRetroMenu3Open] and [isDismissingAllMenus] stay
- * as callbacks into the owning ViewModel, since `retroMenu3Fragment` and the dismiss-all-menus flag
- * live outside this cluster.
+ * tests) after this dismisser is already built. Restoring the main menu after a dismiss is left
+ * to the BackStackChangeListener in `RetroMenu3Fragment`.
  */
 class SubmenuFragmentDismisser(
         private val state: SubmenuFragmentState,
         private val menuManager: () -> MenuManager,
-        private val menuStateManager: MenuStateManager,
-        private val isRetroMenu3Open: () -> Boolean,
-        private val isDismissingAllMenus: () -> Boolean
+        private val menuStateManager: MenuStateManager
 ) : SubmenuFragmentDismissal {
 
-    override fun isSettingsMenuOpen(): Boolean {
-        val isOpen = state.settingsMenuFragment != null
-        if (state.settingsMenuFragment != null) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "isSettingsMenuOpen check: fragment=${state.settingsMenuFragment ?: "none"}, " +
-                            "isAdded=${state.settingsMenuFragment?.isAdded == true}, result=$isOpen"
-            )
-        }
-        return isOpen
-    }
+    override fun isSettingsMenuOpen(): Boolean = state.settingsMenuFragment != null
 
     override fun isProgressMenuOpen(): Boolean = state.progressFragment != null
 
@@ -99,26 +86,6 @@ class SubmenuFragmentDismisser(
 
         // Clear the fragment reference and flag
         activeFlagSetter()
-
-        // CRITICAL FIX: After dismissing submenu, ensure main menu is visible
-        // BUT only if we're NOT in the middle of dismissing ALL menus (START button case)
-        val retroMenu3OpenBefore = isRetroMenu3Open()
-        if (isRetroMenu3Open() && !isDismissingAllMenus()) {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "dismiss${fragmentName}: Main menu restoration handled by " +
-                            "BackStackChangeListener (retroMenu3Open=$retroMenu3OpenBefore)"
-            )
-            // REMOVED: retroMenu3Fragment?.restoreMainMenu()
-            // The BackStackChangeListener in RetroMenu3Fragment will handle menu restoration
-        } else {
-            android.util.Log.d(
-                    "GameActivityViewModel",
-                    "dismiss${fragmentName}: NOT showing main menu " +
-                            "(dismissingAll=${isDismissingAllMenus()}, " +
-                            "retroMenu3Open=$retroMenu3OpenBefore)"
-            )
-        }
 
         android.util.Log.d("GameActivityViewModel", "dismiss${fragmentName}: Completed")
     }

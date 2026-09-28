@@ -152,4 +152,24 @@ class PipConfigRepository_test {
         assertEquals(4, profile.ratioW)
         assertEquals(3, profile.ratioH)
     }
+
+    @Test
+    fun `initialize com JSON malformado cai para o default hardcoded 4x3`() {
+        assetContents["pip_config.json"] = """{"default": {"ratio_w": 16"""
+
+        PipConfigRepository.initialize(context)
+
+        val profile = PipConfigRepository.getProfile("platform_a")
+        assertEquals(4, profile.ratioW)
+        assertEquals(3, profile.ratioH)
+    }
+
+    @Test
+    fun `getProfile antes de initialize devolve o default hardcoded 4x3`() {
+        val empty = PipConfigRepository.getProfile(null)
+        val named = PipConfigRepository.getProfile("platform_a")
+
+        assertEquals(4 to 3, empty.ratioW to empty.ratioH)
+        assertEquals(4 to 3, named.ratioW to named.ratioH)
+    }
 }

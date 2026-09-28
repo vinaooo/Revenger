@@ -183,4 +183,62 @@ class ScreenshotCaptureUtilCapture_test {
         assertEquals(1, callbacks)
         assertNull(delivered)
     }
+
+    @Test
+    fun `captura do jogo com altura zero falha sem copiar`() {
+        ScreenshotCaptureUtil.captureGameScreen(retroView(height = 0), callback)
+
+        assertEquals(0, copyCalls)
+        assertEquals(1, callbacks)
+        assertNull(delivered)
+    }
+
+    @Test
+    fun `captura do jogo numa view estreita demais para a area do jogo falha sem copiar`() {
+        // 1px de largura em 4:3: a area do jogo teria 0px de altura.
+        ScreenshotCaptureUtil.captureGameScreen(retroView(width = 1), callback)
+
+        assertEquals(0, copyCalls)
+        assertEquals(1, callbacks)
+        assertNull(delivered)
+    }
+
+    @Test
+    fun `captura da tela inteira com largura zero falha sem copiar`() {
+        ScreenshotCaptureUtil.captureFullScreen(retroView(width = 0), callback)
+
+        assertEquals(0, copyCalls)
+        assertEquals(1, callbacks)
+        assertNull(delivered)
+    }
+
+    // --- stores ligados ao ScreenshotCaptureUtil ---
+
+    @Test
+    fun `capturePipFrame guarda a tela inteira como frame do PiP`() {
+        try {
+            ScreenshotCaptureUtil.capturePipFrame(retroView(), force = true)
+
+            assertEquals(1, copyCalls)
+            assertNull(copiedRect)
+            assertEquals(800, ScreenshotCaptureUtil.getPipFrame()?.width)
+        } finally {
+            ScreenshotCaptureUtil.updatePipFrame(null)
+        }
+    }
+
+    @Test
+    fun `captureAndCacheScreenshot guarda o recorte do jogo e a tela inteira`() {
+        var captured: Boolean? = null
+        try {
+            ScreenshotCaptureUtil.captureAndCacheScreenshot(retroView()) { captured = it }
+
+            assertEquals(2, copyCalls)
+            assertEquals(640, ScreenshotCaptureUtil.getCachedScreenshot()?.width)
+            assertEquals(800, ScreenshotCaptureUtil.getCachedFullScreenshot()?.width)
+            assertEquals(true, captured)
+        } finally {
+            ScreenshotCaptureUtil.clearCachedScreenshot()
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.vinaooo.revenger.utils
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Rect
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -131,5 +132,19 @@ class ScreenshotGeometry_test {
         val result = ScreenshotGeometry.autoCropBlackBorders(bitmap)
 
         assertSame(bitmap, result)
+    }
+
+    @Test
+    fun `jogo mais largo que a view recebe faixas em cima e embaixo`() {
+        val rect = ScreenshotGeometry.calculateGameContentRect(400, 600, 2f)
+
+        assertEquals(Rect(0, 200, 400, 400), rect)
+    }
+
+    @Test
+    fun `jogo mais alto que a view recebe faixas nas laterais`() {
+        val rect = ScreenshotGeometry.calculateGameContentRect(800, 300, 4f / 3f)
+
+        assertEquals(Rect(200, 0, 600, 300), rect)
     }
 }

@@ -55,4 +55,17 @@ class ScreenshotCaptureUtilAspectRatio_test {
         val profile = PipConfigRepository.getProfile(RevengerApplication.appConfig.getPlatformId())
         assertEquals(profile.ratioW.toFloat() / profile.ratioH.toFloat(), resolveGameAspectRatio(), 0.0001f)
     }
+
+    @Test
+    fun `com setContext mas sem AppConfig inicializado usa a proporcao padrao`() {
+        val appConfigField = RevengerApplication::class.java.getDeclaredField("appConfig").apply { isAccessible = true }
+        val original = appConfigField.get(null)
+        flagField.setBoolean(ScreenshotCaptureUtil, true)
+        appConfigField.set(null, null)
+        try {
+            assertEquals(4f / 3f, resolveGameAspectRatio(), 0.0001f)
+        } finally {
+            appConfigField.set(null, original)
+        }
+    }
 }

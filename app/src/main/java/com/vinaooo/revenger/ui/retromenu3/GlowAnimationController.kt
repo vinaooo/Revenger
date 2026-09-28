@@ -4,7 +4,6 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
-import com.vinaooo.revenger.managers.SaveStateManager
 import com.vinaooo.revenger.managers.SessionSlotTracker
 
 /**
@@ -84,16 +83,15 @@ class GlowAnimationController {
         }
 
         /**
-         * Invokes [onValid] only when [SessionSlotTracker] reports a last-used slot that falls
-         * within the valid slot range -- the caller is expected to pass a refresh callback that
-         * re-renders the grid (which is what actually triggers [apply] to show the glow).
+         * Invokes [onValid] only when [SessionSlotTracker] reports a last-used slot (the tracker
+         * only records slots in the valid range) -- the caller is expected to pass a refresh
+         * callback that re-renders the grid (which is what actually triggers [apply] to show the
+         * glow).
          */
         fun refreshIfLastUsedSlotValid(onValid: () -> Unit) {
-                val lastSlot = SessionSlotTracker.getInstance().getLastUsedSlot() ?: return
-                if (lastSlot !in 1..SaveStateManager.TOTAL_SLOTS) {
-                        return
+                if (SessionSlotTracker.getInstance().getLastUsedSlot() != null) {
+                        onValid()
                 }
-                onValid()
         }
 
         companion object {

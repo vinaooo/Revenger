@@ -38,8 +38,10 @@ class FloatingMenuButtonController(
         private const val INACTIVITY_RESTORE_DELAY_MS = 10000L
     }
 
-    private var fadeHandler: Handler? = null
-    private var fadeRunnable: Runnable? = null
+    private val fadeHandler = Handler(Looper.getMainLooper())
+    private val fadeRunnable = Runnable {
+        floatingButton.animate().alpha(VISIBLE_ALPHA).setDuration(RESTORE_ANIMATION_DURATION_MS).start()
+    }
 
     /** Set up the floating menu button config and listener */
     fun setup() {
@@ -77,12 +79,6 @@ class FloatingMenuButtonController(
             Log.d(TAG, "Floating menu button clicked.")
             viewModel.toggleMainMenu()
         }
-
-        // Setup fade handler
-        fadeHandler = Handler(Looper.getMainLooper())
-        fadeRunnable = Runnable {
-            floatingButton.animate().alpha(VISIBLE_ALPHA).setDuration(RESTORE_ANIMATION_DURATION_MS).start()
-        }
     }
 
     /**
@@ -96,17 +92,15 @@ class FloatingMenuButtonController(
         // Fade button to 30% alpha
         floatingButton.animate().alpha(DIMMED_ALPHA).setDuration(FADE_TRANSITION_DURATION_MS).start()
 
-        // Cancel any pending restorative fades, and schedule a new one in 10s
-        fadeRunnable?.let { runnable ->
-            fadeHandler?.removeCallbacks(runnable)
-            fadeHandler?.postDelayed(runnable, INACTIVITY_RESTORE_DELAY_MS)
-        }
+        // Cancel any pending restorative fade, and schedule a new one in 10s
+        fadeHandler.removeCallbacks(fadeRunnable)
+        fadeHandler.postDelayed(fadeRunnable, INACTIVITY_RESTORE_DELAY_MS)
     }
 
     override fun restoreFloatingButtonVisibility() {
         if (floatingButton.visibility != View.VISIBLE) return
 
-        fadeRunnable?.let { runnable -> fadeHandler?.removeCallbacks(runnable) }
+        fadeHandler.removeCallbacks(fadeRunnable)
         floatingButton.animate().alpha(VISIBLE_ALPHA).setDuration(FADE_TRANSITION_DURATION_MS).start()
     }
 
@@ -114,10 +108,8 @@ class FloatingMenuButtonController(
         if (floatingButton.visibility != View.VISIBLE) return
 
         floatingButton.animate().alpha(DIMMED_ALPHA).setDuration(FADE_TRANSITION_DURATION_MS).start()
-        fadeRunnable?.let { runnable ->
-            fadeHandler?.removeCallbacks(runnable)
-            fadeHandler?.postDelayed(runnable, INACTIVITY_RESTORE_DELAY_MS)
-        }
+        fadeHandler.removeCallbacks(fadeRunnable)
+        fadeHandler.postDelayed(fadeRunnable, INACTIVITY_RESTORE_DELAY_MS)
     }
 
     /**
@@ -127,6 +119,6 @@ class FloatingMenuButtonController(
      * up to 10s after the Activity is gone.
      */
     fun dispose() {
-        fadeRunnable?.let { runnable -> fadeHandler?.removeCallbacks(runnable) }
+        fadeHandler.removeCallbacks(fadeRunnable)
     }
 }

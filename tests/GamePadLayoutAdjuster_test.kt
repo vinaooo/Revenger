@@ -1,5 +1,8 @@
 package com.vinaooo.revenger.gamepad
 
+import org.robolectric.Robolectric
+import android.view.ViewGroup
+import android.app.Activity
 import android.app.Application
 import android.os.Looper
 import android.view.Gravity
@@ -347,6 +350,36 @@ class GamePadLayoutAdjuster_test {
         assertEquals(0.5f, (container.getChildAt(1).layoutParams as LinearLayout.LayoutParams).weight)
 
         shadowOf(Looper.getMainLooper()).idle()
+    }
+
+    @Test
+    fun `adjustPositionForOrientation em landscape iguala as alturas e aplica o offset depois do layout`() {
+        RuntimeEnvironment.setQualifiers("+land")
+        seedAppConfig(landscapeOffset = 25)
+        val activity = Robolectric.buildActivity(Activity::class.java).setup().visible().get()
+        val parent = FrameLayout(activity)
+        val container = LinearLayout(activity).apply { layoutParams = FrameLayout.LayoutParams(1080, 200) }
+        val left = FrameLayout(activity).apply {
+            id = R.id.left_container
+            layoutParams = LinearLayout.LayoutParams(0, 100, 0.25f)
+        }
+        val right = FrameLayout(activity).apply {
+            id = R.id.right_container
+            layoutParams = LinearLayout.LayoutParams(0, 150, 0.25f)
+        }
+        container.addView(left)
+        container.addView(View(activity).apply { layoutParams = LinearLayout.LayoutParams(0, 0, 0.5f) })
+        container.addView(right)
+        parent.addView(container)
+        activity.setContentView(parent, ViewGroup.LayoutParams(1080, 1000))
+        shadowOf(Looper.getMainLooper()).idle()
+
+        adjuster.adjustPositionForOrientation(container)
+        shadowOf(Looper.getMainLooper()).idle()
+
+        assertEquals(150, left.minimumHeight)
+        // (1000 - 200) * 25 / 100
+        assertEquals(200, (container.layoutParams as FrameLayout.LayoutParams).topMargin)
     }
 
     // --- applyPortraitOffset / applyLandscapeOffset: narrowed ClassCastException catch ---

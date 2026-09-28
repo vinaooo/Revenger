@@ -1,16 +1,20 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.R
+import java.time.Duration
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 /**
@@ -122,5 +126,62 @@ class MenuAnimationController_test {
                 }
             }
         }
+    }
+
+    /** View animations only run on an attached view. */
+    private fun attachMenu() = activity.setContentView(view)
+
+    private fun finishAnimations() = shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
+
+    @Test
+    fun `animateMenuIn leva o menu de alpha 0 a 1 e avisa ao terminar`() {
+        attachMenu()
+        var completed = false
+
+        controller.animateMenuIn { completed = true }
+        assertEquals(0f, menuViews.menuContainer.alpha)
+        finishAnimations()
+
+        assertEquals(1f, menuViews.menuContainer.alpha)
+        assertTrue(completed)
+    }
+
+    @Test
+    fun `animateMenuIn sem callback termina com o menu visivel`() {
+        attachMenu()
+        controller.animateMenuIn()
+        finishAnimations()
+
+        assertEquals(1f, menuViews.menuContainer.alpha)
+    }
+
+    @Test
+    fun `animateMenuOut sem callback leva o menu a alpha 0`() {
+        attachMenu()
+        controller.animateMenuOut()
+        finishAnimations()
+
+        assertEquals(0f, menuViews.menuContainer.alpha)
+    }
+
+    @Test
+    fun `dismissMenu esconde o container e avisa ao terminar`() {
+        attachMenu()
+        var completed = false
+
+        controller.dismissMenu { completed = true }
+        finishAnimations()
+
+        assertEquals(View.GONE, menuViews.menuContainer.visibility)
+        assertTrue(completed)
+    }
+
+    @Test
+    fun `dismissMenu sem callback esconde o container`() {
+        attachMenu()
+        controller.dismissMenu()
+        finishAnimations()
+
+        assertEquals(View.GONE, menuViews.menuContainer.visibility)
     }
 }
