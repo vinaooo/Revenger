@@ -84,16 +84,16 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
 - Also removed: the legacy migration's unreachable `SecurityException` catch.
 - Left untested on purpose: `copySlot` when the source slot folder is a plain file (`listFiles()` returns null), which the app never creates.
 
-### [x] 4. `test/button-routers`: `KeyEventRouter`, `MotionEventRouter`, `GamePadButtonRouter`
+### [x] 4. `test/button-routers`: `KeyEventRouter`, `MotionEventRouter`, `GamePadButtonRouter` — PR #155
 - `interceptButtonB` (both copies), `fireDpadCallback`, `fireTriggerCallback`, `checkSingleTrigger`, `computeDirectionTrigger`, `isAnyAxisOutOfDeadzone`.
 - Deadzone edges exactly (just inside, on, just outside). Pin both B-button variants as they are.
 - Done in PR #155: `KeyEventRouter_test`, `GamePadButtonRouter_test`, `MotionEventRouter_test`. No bugs found. The two B-button variants really differ: on the key-event path any non-DOWN action releases B, on the gamepad path only UP does. Both are pinned.
 
-### [x] 5. `test/game-activity-viewmodel-remaining`: `GameActivityViewModel`
+### [x] 5. `test/game-activity-viewmodel-remaining`: `GameActivityViewModel` — PR #156
 - `onMenuEvent`, `onBackToMainMenu`, `onAboutBackToMainMenu`, `preserveState`, `initializeControllers`, `setupRetroView`, `onCleared`, `setConfigOrientation`. Split in two if the diff gets large. New test file per topic.
 - Done in PR #156: `GameActivityViewModel_retroViewLifecycle_test` and `GameActivityViewModel_menuRouting_test`. `setupRetroView` builds its view through a new `retroViewFactory` seam, because the real view loads the native core. Left as they are: `hasSaveState` and `getShaderState`, one-line interface methods with no caller (see Open decisions, unused public contracts).
 
-### [x] 6. `test/gamepad-and-retroview-utils`: `GamePad` and `RetroViewUtils`
+### [x] 6. `test/gamepad-and-retroview-utils`: `GamePad` and `RetroViewUtils` — PR #157
 - `GamePad`: `handleButtonEvent`, `handleDirectionEvent`, `eventHandler`, `hasExternalPhysicalController` (decides whether the on-screen pad shows).
 - `RetroViewUtils.preserveEmulatorState` (never persists frame speed 0).
 - Done in PR #157: `GamePad_test` (event routing, joystick-only and non-controller devices) and `RetroViewUtils_test`. `GamePad.eventHandler` is now `internal` for tests, since the pad's own event flow comes from touch input; `subscribe` stays untested. Deleted: `RetroViewUtils.getAudioState` and `getFastForwardState`, which nothing called (Settings reads both through `PlaybackStateController`). `restoreEmulatorState` stays untested until the temp-state decision (see Open decisions).
@@ -139,7 +139,7 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
   - Two duplicated `when`s: capitalization in `FontUtils`, debounce windows in `EventQueue`.
 - Found: `TypefaceProvider`'s fixed pixelify, micro5 and tiny5 getters pointed at files that don't exist (so they always returned the system font), and nothing reached them. The user chose to remove them; done in their own PR (`refactor/remove-broken-font-shortcuts`).
 
-### [ ] 10. `chore/raise-kover-floor-4`
+### [x] 10. `chore/raise-kover-floor-4` — this PR
 - Run `./gradlew coverageAll -PskipAssetStaging`, raise `kover { verify { rule } }` in `app/build.gradle` to the new values rounded down, update `CLAUDE.md`, fill in the Result section.
 
 **Done when** items 1–10 are merged, `check` passes with the raised floor, and every file still below 80% is either in "Won't do" with its reason or device-only.
@@ -160,4 +160,26 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
 
 ## Result
 
-*(fill in when item 10 is done)*
+`./gradlew coverageAll -PskipAssetStaging` on `develop` @ `6ebcaa2` (after PR #163):
+
+| Code | Lines | Branches |
+|---|---|---|
+| Kotlin (app, unit tests) | **93.3%** (8282/8881) | **80.4%** (2456/3054) |
+| Python (icons/scripts) | 98.1% (742/756) | 93.1% (216/232) |
+| Shell (*.sh) | 100.0% (11/11) | – |
+| **All code** | **93.6% (9035/9648)** | 81.3% (2672/3286) |
+| Kotlin (instrumented tests, not in All code; report of 2026-09-26) | 42.7% (5178/12130) | 20.4% (843/4129) |
+
+- Kotlin went from 87.4% / 68.6% to **93.3% / 80.4%**, above the expected 91–92% / 75–78%. The Kotlin total shrank by 805 lines (9686 → 8881) and missed lines fell from 1216 to 599: dead code, impossible branches and duplicate helpers were deleted rather than tested.
+- **The Kover floor is raised from 87 / 68 to 93 / 80** (`app/build.gradle`, `CLAUDE.md`).
+- Bugs found and fixed in their own PRs:
+  - PiP Quick Save's slot (#152);
+  - Manage Saves on damaged slots (#153);
+  - overwriting renaming the slot (#162).
+- Removed after the user's decision: the broken built-in font shortcuts (#163).
+- Files still below 80% lines, each accounted for:
+  - device-only: `GameActivity` (0%), `RetroView` (18.6%), `CRTBootView` (69.3%);
+  - canvas drawing: `RetroEditText` (68.6%, `onDraw`);
+  - waiting on the temp-state open decision: `RetroViewUtils` (57.1%, `restoreEmulatorState`);
+  - fewer than 8 missed lines: `FeatureFlags` (1 line), `AppConfigFakeButtons` (5), `MenuLogger` (3).
+- The open decisions (the temp state that is written but never read; unused public contracts) are still unscheduled.
