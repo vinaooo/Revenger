@@ -90,18 +90,11 @@ class NavigationController(
             return
         }
 
-        try {
-            Log.d(
-                    TAG,
-                    "[HANDLE_EVENT] ts=${System.currentTimeMillis()} " +
-                            "thread=${Thread.currentThread().name} enqueuedEvent=$event"
-            )
-            // This only formats and logs a diagnostic string with no documented throwable
-            // condition; kept as a safety net so a logging hiccup never blocks real event
-            // processing below, via detekt's documented escape hatch.
-        } catch (expectedUnreachable: Throwable) {
-            Log.w(TAG, "[HANDLE_EVENT] failed to log event", expectedUnreachable)
-        }
+        Log.d(
+                TAG,
+                "[HANDLE_EVENT] ts=${System.currentTimeMillis()} " +
+                        "thread=${Thread.currentThread().name} enqueuedEvent=$event"
+        )
 
         // Processa o evento
         processNextEvent()
@@ -134,11 +127,7 @@ class NavigationController(
      * @throws IllegalArgumentException se o índice for negativo
      */
     override fun selectItem(index: Int) {
-        if (index < 0) {
-            Log.e(TAG, "[ERROR] Item index cannot be negative: $index")
-            throw IllegalArgumentException("Item index cannot be negative: $index")
-        }
-
+        require(index >= 0) { "Item index cannot be negative: $index" }
         processor.selectItem(index)
     }
 

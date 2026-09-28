@@ -34,12 +34,22 @@ class MenuManagerFakeFragment : Fragment(), MenuFragment {
     var backResult = true
     var currentIndex = 0
 
+    /** Runs inside [onConfirm] / [onBack], to re-enter the manager mid-operation. */
+    var duringConfirm: () -> Unit = {}
+    var duringBack: () -> Unit = {}
+
     override fun getMenuItems(): List<MenuItem> = emptyList()
     override fun onMenuItemSelected(item: MenuItem) {}
     override fun onNavigateUp(): Boolean = navigateUpResult
     override fun onNavigateDown(): Boolean = navigateDownResult
-    override fun onConfirm(): Boolean = confirmResult
-    override fun onBack(): Boolean = backResult
+    override fun onConfirm(): Boolean {
+        duringConfirm()
+        return confirmResult
+    }
+    override fun onBack(): Boolean {
+        duringBack()
+        return backResult
+    }
     override fun getCurrentSelectedIndex(): Int = currentIndex
     override fun setSelectedIndex(index: Int) {
         currentIndex = index
@@ -165,6 +175,79 @@ class MenuManager_test {
         menuManager.registerFragment(MenuState.MAIN_MENU, MenuManagerFakeFragment().apply { navigateUpResult = true })
 
         assertFalse(menuManager.navigateUp())
+    }
+
+    @Test
+    fun `um MenuFragment que nao e um Fragment do Android nunca recebe entrada`() {
+        val fragment = mockk<MenuFragment>(relaxed = true)
+        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
+
+        assertFalse(menuManager.navigateUp())
+        assertFalse(menuManager.navigateDown())
+        assertFalse(menuManager.confirm())
+        assertEquals(0, menuManager.getCurrentSelectedIndex())
+        menuManager.setSelectedIndex(2)
+
+        verify(exactly = 0) {
+            fragment.onNavigateUp()
+            fragment.onNavigateDown()
+            fragment.onConfirm()
+            fragment.getCurrentSelectedIndex()
+            fragment.setSelectedIndex(any())
+        }
+    }
+
+    @Test
+    fun `um fragment ja removido deixa de receber entrada`() {
+        val fragment = attachedFragment().apply { currentIndex = 3 }
+        activity.supportFragmentManager.beginTransaction().remove(fragment).commitNow()
+        stateManager.changeState(MenuState.SETTINGS_MENU)
+        menuManager.registerFragment(MenuState.SETTINGS_MENU, fragment)
+
+        assertFalse(menuManager.navigateDown())
+        assertFalse(menuManager.back())
+        assertEquals(0, menuManager.getCurrentSelectedIndex())
+        menuManager.setSelectedIndex(1)
+        assertEquals(3, fragment.currentIndex)
+        verify(exactly = 0) { listener.onMenuEvent(MenuEvent.MenuClosed) }
+    }
+
+    @Test
+    fun `confirm e back reentrantes durante um confirm sao ignorados`() {
+        var nested: Pair<Boolean, Boolean>? = null
+        val fragment = attachedFragment()
+        fragment.duringConfirm = { nested = menuManager.confirm() to menuManager.back() }
+        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
+
+        assertTrue(menuManager.confirm())
+
+        assertEquals(false to false, nested)
+        verify(exactly = 0) { listener.onMenuEvent(MenuEvent.MenuClosed) }
+        // The guard is released afterwards.
+        fragment.duringConfirm = {}
+        assertTrue(menuManager.confirm())
+    }
+
+    @Test
+    fun `back reentrante durante um back e ignorado`() {
+        var nested: Boolean? = null
+        val fragment = attachedFragment()
+        fragment.duringBack = { nested = menuManager.back() }
+        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
+
+        assertTrue(menuManager.back())
+
+        assertEquals(false, nested)
+        fragment.duringBack = {}
+        assertTrue(menuManager.back())
+    }
+
+    @Test
+    fun `por padrao um MenuFragment nao trata esquerda e direita`() {
+        val fragment = MenuManagerFakeFragment()
+
+        assertFalse(fragment.onNavigateLeft())
+        assertFalse(fragment.onNavigateRight())
     }
 
     @Test

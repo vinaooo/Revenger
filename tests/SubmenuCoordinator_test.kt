@@ -11,6 +11,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -72,6 +73,7 @@ class NonAboutListenerHostFragment : Fragment() {
 @Config(sdk = [30])
 class SubmenuCoordinator_test {
 
+    private lateinit var activityController: org.robolectric.android.controller.ActivityController<FragmentActivity>
     private lateinit var activity: FragmentActivity
     private lateinit var hostFragment: SubmenuCoordinatorHostFragment
     private lateinit var viewModel: GameActivityViewModel
@@ -86,7 +88,8 @@ class SubmenuCoordinator_test {
 
     @Before
     fun setUp() {
-        activity = Robolectric.buildActivity(FragmentActivity::class.java).setup().get()
+        activityController = Robolectric.buildActivity(FragmentActivity::class.java).setup()
+        activity = activityController.get()
         val root = FrameLayout(activity).apply { id = View.generateViewId() }
         activity.setContentView(root)
 
@@ -235,6 +238,18 @@ class SubmenuCoordinator_test {
         coordinator.closeCurrentSubmenu()
     }
 
+    @Test
+    fun `closeCurrentSubmenu depois do estado salvo nao derruba o app`() {
+        seedOpenSubmenuOnBackStack()
+        val coordinator = newCoordinator()
+        activityController.pause().stop().saveInstanceState(android.os.Bundle())
+        assertTrue(activity.supportFragmentManager.isStateSaved)
+
+        coordinator.closeCurrentSubmenu()
+
+        assertEquals(1, activity.supportFragmentManager.backStackEntryCount)
+    }
+
     // --- restauracao via listener de back stack ---
 
     /**
@@ -356,17 +371,9 @@ class SubmenuCoordinator_test {
     }
 
     @Test
-    fun `closeCurrentSubmenu ainda aciona a restauracao, pois isClosingSubmenuProgrammatically ja voltou a false quando o listener roda`() {
-        // CANDIDATE FINDING (see report), not a reproducible user-facing bug: closeCurrentSubmenu()
-        // sets isClosingSubmenuProgrammatically = true, then resets it to false in a `finally`
-        // block that runs synchronously right after the (asynchronous) popBackStack() call --
-        // before the back-stack-changed listener actually observes the change. So the listener's
-        // `if (isClosingSubmenuProgrammatically) return` guard is never true in practice; it is
-        // dead code. This is harmless today only because every real caller of
-        // closeCurrentSubmenu() (RetroMenu3Fragment's performBack/onBackToMainMenu/
-        // onAboutBackToMainMenu) *wants* the main menu restored anyway, and hasSubmenuOpen already
-        // provides the actual single-shot dedup (it flips false on the first restoration). This
-        // test documents that restoreMainMenuSelection() still runs after a programmatic close.
+    fun `closeCurrentSubmenu restaura o menu principal quando o pop assincrono termina`() {
+        // popBackStack() is asynchronous, so the restore happens in the back stack listener,
+        // the same path as a system back. hasSubmenuOpen keeps it to a single restore.
         seedOpenSubmenuOnBackStack()
         menuManager.navigateToState(MenuState.PROGRESS_MENU)
         val coordinator = newCoordinator()

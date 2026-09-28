@@ -18,11 +18,10 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
  * **Architecture**:
  * - **State Tracking**: Monitors back stack to detect open submenus
  * - **Selection Preservation**: Saves selected index before opening a submenu
- * - **Protection Flags**: Prevent multiple simultaneous close/restore operations
+ * - **Protection Flag**: Prevents duplicate restore operations
  *
  * **Control Flags**:
  * - `hasSubmenuOpen`: Indicates if a submenu is active
- * - `isClosingSubmenu`: Protection against multiple simultaneous closes
  * - `isRestoringSelection`: Protection against duplicate restorations
  *
  * **Integration**:
@@ -57,12 +56,6 @@ class SubmenuCoordinator(
 
     // Store the main menu selected index before opening a submenu
     private var mainMenuSelectedIndexBeforeSubmenu: Int = 0
-
-    // Flag to prevent multiple simultaneous close operations
-    private var isClosingSubmenu: Boolean = false
-
-    // Flag to indicate when submenu is being closed programmatically (not via back stack)
-    private var isClosingSubmenuProgrammatically: Boolean = false
 
     // Flag to prevent multiple restoration operations
     private var isRestoringSelection: Boolean = false
@@ -119,26 +112,18 @@ class SubmenuCoordinator(
         // IMPORTANT: Determine correct state to restore based on current state
         val currentState = menuManager.getCurrentState()
 
-        val targetState =
-                when (currentState) {
-                    MenuState.SETTINGS_MENU -> {
-                        // CRITICAL: Unregister SettingsMenuFragment to prevent re-activation
-                        viewModel.unregisterSettingsMenuFragment()
-                        MenuState.MAIN_MENU // Return from Settings to Main
-                    }
-                    MenuState.ABOUT_MENU -> MenuState.MAIN_MENU // Return from About to Main
-                    MenuState.PROGRESS_MENU -> MenuState.MAIN_MENU // Return from Progress to Main
-                    MenuState.EXIT_MENU -> MenuState.MAIN_MENU // Return from Exit to Main
-                    else -> MenuState.MAIN_MENU // Fallback to Main
-                }
+        if (currentState == MenuState.SETTINGS_MENU) {
+            // CRITICAL: Unregister SettingsMenuFragment to prevent re-activation
+            viewModel.unregisterSettingsMenuFragment()
+        }
 
         Log.d(
                 TAG,
-                "[RESTORE] $currentState -> $targetState, restoring index $mainMenuSelectedIndexBeforeSubmenu"
+                "[RESTORE] $currentState -> MAIN_MENU, restoring index $mainMenuSelectedIndexBeforeSubmenu"
         )
 
-        // Restore menu state to the appropriate parent state
-        menuManager.navigateToState(targetState)
+        // Every submenu returns to the main menu
+        menuManager.navigateToState(MenuState.MAIN_MENU)
         setSelectedIndexCallback?.invoke(mainMenuSelectedIndexBeforeSubmenu)
 
         // MARK that main restoration is complete (before postDelayed calls)
@@ -151,10 +136,7 @@ class SubmenuCoordinator(
                     pendingRestoreShowMenu = null
 
                     // SHOW THE MAIN MENU AGAIN WITH PRESERVED SELECTION
-                    // ONLY if we are returning to MAIN_MENU, not to submenus
-                    if (targetState == MenuState.MAIN_MENU) {
-                        showMainMenuCallback?.invoke(true)
-                    }
+                    showMainMenuCallback?.invoke(true)
 
                     // WAIT ANOTHER MOMENT TO ENSURE THE MENU WAS SHOWN
                     val updateVisualRunnable =
@@ -285,27 +267,17 @@ class SubmenuCoordinator(
         }
     }
 
+    /**
+     * Pops the open submenu. The pop is asynchronous: the back stack listener
+     * ([setupBackStackListener]) then restores the main menu, as it does for a system back.
+     */
     fun closeCurrentSubmenu() {
-        // Prevent multiple simultaneous close operations
-        if (isClosingSubmenu) {
-            Log.d(TAG, "[CLOSE_SUBMENU] Already closing submenu, skipping")
-            return
-        }
-
-        isClosingSubmenu = true
-        isClosingSubmenuProgrammatically = true
-
         try {
-            // Pop the back stack to close the current submenu; restoration is handled by the
-            // back stack listener.
             fragment.parentFragmentManager.popBackStack()
         } catch (e: IllegalStateException) {
             // popBackStack() throws IllegalStateException if called after the FragmentManager's
             // state has already been saved.
             Log.e(TAG, "[CLOSE_SUBMENU] ❌ Error closing submenu", e)
-        } finally {
-            isClosingSubmenu = false
-            isClosingSubmenuProgrammatically = false
         }
     }
 
@@ -319,51 +291,16 @@ class SubmenuCoordinator(
             }
 
             val backStackCount = fragment.parentFragmentManager.backStackEntryCount
-            val backStackDecreased = backStackCount < previousBackStackCount
+            // A submenu closed (the stack shrank while one was open), or the stack emptied.
+            val submenuClosed = (backStackCount < previousBackStackCount && hasSubmenuOpen) || backStackCount == 0
 
-            // If the back stack decreased (submenu closed), perform restoration
-            if (backStackDecreased && hasSubmenuOpen) {
-                // CHECK IF WE ARE IN THE MIDDLE OF closeCurrentSubmenu() (programmatic close)
-                // If so, DO NOT execute restoration logic to avoid duplication
-                if (isClosingSubmenuProgrammatically) {
-                    previousBackStackCount = backStackCount
-                    return@addOnBackStackChangedListener
-                }
-
-                // CHECK IF WE ARE IN THE MIDDLE OF dismissAllMenus (START button)
-                // If so, DO NOT show the main menu to avoid flicker
-                if (viewModel.isDismissingAllMenus()) {
-                    previousBackStackCount = backStackCount
-                    return@addOnBackStackChangedListener
-                }
-
+            // While dismissAllMenus runs (START button), don't show the main menu: it would flicker.
+            if (submenuClosed && !viewModel.isDismissingAllMenus()) {
                 Log.d(
                         TAG,
-                        "[BACK_STACK] Back stack decreased ($previousBackStackCount -> " +
-                                "$backStackCount), restoring main menu selection"
+                        "[BACK_STACK] Back stack $previousBackStackCount -> $backStackCount, " +
+                                "restoring main menu selection"
                 )
-                // USE THE NEW RESTORATION METHOD
-                restoreMainMenuSelection()
-            }
-
-            // If the back stack became empty (special case), perform restoration
-            else if (backStackCount == 0) {
-                // CHECK IF WE ARE IN THE MIDDLE OF closeCurrentSubmenu() (programmatic close)
-                // If so, DO NOT execute restoration logic to avoid duplication
-                if (isClosingSubmenuProgrammatically) {
-                    previousBackStackCount = backStackCount
-                    return@addOnBackStackChangedListener
-                }
-
-                // VERIFICAR SE ESTAMOS NO MEIO DE dismissAllMenus (START button)
-                // If so, DO NOT show the main menu to avoid flicker
-                if (viewModel.isDismissingAllMenus()) {
-                    previousBackStackCount = backStackCount
-                    return@addOnBackStackChangedListener
-                }
-
-                Log.d(TAG, "[BACK_STACK] Back stack empty, restoring main menu selection")
-                // USE THE NEW RESTORATION METHOD
                 restoreMainMenuSelection()
             }
 

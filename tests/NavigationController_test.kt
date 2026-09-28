@@ -5,6 +5,7 @@ import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.ui.retromenu3.MenuFragment
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Before
@@ -111,5 +112,57 @@ class NavigationController_test {
         controller.unregisterFragment()
 
         assertFalse(controller.isMenuActive())
+    }
+
+    // --- registerFragment / restoreState / closeMenuExternal ---
+
+    private fun controllerWithBackStack(count: Int, state: NavigationStateManager): NavigationController {
+        val adapter = mockk<FragmentNavigationAdapter>(relaxed = true)
+        every { adapter.getBackStackCount() } returns count
+        return NavigationController(activity, fragmentAdapter = adapter, stateManager = state)
+    }
+
+    @Test
+    fun `registrar com a pilha de fragments vazia marca o menu principal`() {
+        val state = NavigationStateManager().apply { updateCurrentMenu(MenuType.SETTINGS) }
+
+        controllerWithBackStack(0, state).registerFragment(fakeFragment(), itemCount = 4)
+
+        assertEquals(MenuType.MAIN, state.currentMenu)
+        assertEquals(4, state.currentMenuItemCount)
+    }
+
+    @Test
+    fun `registrar um submenu mantem o menu atual`() {
+        val state = NavigationStateManager().apply { updateCurrentMenu(MenuType.SETTINGS) }
+
+        controllerWithBackStack(1, state).registerFragment(fakeFragment(), itemCount = 4)
+
+        assertEquals(MenuType.SETTINGS, state.currentMenu)
+        assertEquals(4, state.currentMenuItemCount)
+    }
+
+    @Test
+    fun `restoreState recupera o menu e o indice salvos`() {
+        controller.registerFragment(fakeFragment(), itemCount = 5)
+        controller.syncState(MenuType.PROGRESS, selectedIndex = 3)
+        val saved = Bundle().also { controller.saveState(it) }
+
+        val restored = NavigationController(activity)
+        restored.restoreState(saved)
+
+        val bundle = Bundle().also { restored.saveState(it) }
+        assertEquals("PROGRESS", bundle.getString("nav_current_menu"))
+        assertEquals(3, bundle.getInt("nav_selected_index"))
+    }
+
+    @Test
+    fun `closeMenuExternal repassa o botao que fechou o menu ao processador`() {
+        val processor = mockk<NavigationEventProcessor>(relaxed = true)
+        val withProcessor = NavigationController(activity, processor = processor)
+
+        withProcessor.closeMenuExternal(closingButton = 7)
+
+        verify { processor.closeMenuExternal(7) }
     }
 }
