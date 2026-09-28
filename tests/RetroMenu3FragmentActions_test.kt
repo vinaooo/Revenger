@@ -229,6 +229,35 @@ class RetroMenu3FragmentActions_test {
         assertEquals(1, calls)
     }
 
+    // Regression: a second dismiss during the close animation used to start another animation,
+    // which replaced the first one's listener, so the first caller's callback (for example
+    // Reset's resetGameCentralized) was never called.
+    @Test
+    fun `dois dismiss seguidos chamam os dois callbacks uma vez cada`() {
+        var first = 0
+        var second = 0
+
+        fragment.dismissMenuPublic { first++ }
+        fragment.dismissMenuPublic { second++ }
+        host.advance(SETTLE_MS)
+
+        assertEquals(1, first)
+        assertEquals(1, second)
+        assertFalse(fragment.isAdded)
+    }
+
+    @Test
+    fun `isDismissingMenu fica verdadeiro ate o fim da animacao de fechar`() {
+        fragment.dismissMenuPublic()
+
+        assertTrue(fragment.isDismissingMenu())
+
+        host.advance(SETTLE_MS)
+
+        assertFalse(fragment.isDismissingMenu())
+        assertFalse(fragment.isAdded)
+    }
+
     @Test
     fun `fragment removido antes do fim da animacao ainda chama o callback`() {
         var calls = 0

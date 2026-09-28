@@ -58,8 +58,13 @@ class RetroMenu3Fragment :
         private lateinit var animationController: MenuAnimationController
         private lateinit var inputHandler: MenuInputHandler
 
-        // Protection against simultaneous dismiss operations
+        // Protection against simultaneous dismiss operations: true from the start of the dismiss
+        // until its close animation ends.
         private var isDismissingMenu = false
+
+        // Callbacks of every dismiss request made while one is in progress; all run once, when
+        // the close animation ends.
+        private val pendingDismissCallbacks = mutableListOf<() -> Unit>()
 
         /** Check if menu is currently being dismissed */
         fun isDismissingMenu(): Boolean = isDismissingMenu
@@ -272,12 +277,18 @@ class RetroMenu3Fragment :
                 }
         }
 
+        /**
+         * Animates the menu out and removes this fragment, then runs [onAnimationEnd]. A request
+         * made while a dismiss is already animating doesn't start a second animation (which would
+         * replace the first one's listener and drop its callback); its callback joins the pending
+         * ones and runs when the running animation ends.
+         */
         private fun dismissMenu(onAnimationEnd: (() -> Unit)? = null) {
-                // Prevent simultaneous dismiss operations
+                onAnimationEnd?.let { pendingDismissCallbacks.add(it) }
                 if (isDismissingMenu) {
                         android.util.Log.d(
                                 "RetroMenu3Fragment",
-                                "[DISMISS] dismissMenu() already in progress, ignoring"
+                                "[DISMISS] dismissMenu() already in progress, callback queued"
                         )
                         return
                 }
@@ -285,56 +296,63 @@ class RetroMenu3Fragment :
                 isDismissingMenu = true
                 android.util.Log.d("RetroMenu3Fragment", "[DISMISS] Starting dismissMenu operation")
 
+                var animationStarted = false
                 try {
                         // Delegate animation to controller, then remove fragment
-                        getAnimationController().dismissMenu {
-                                // Check if fragment is still associated with a fragment manager
-                                // before removing
-                                try {
-                                        val ts = System.currentTimeMillis()
-                                        Log.d(
-                                                "RetroMenu3Fragment",
-                                                "[DISMISS] Animation end callback ts=$ts isAdded=$isAdded"
-                                        )
-                                        if (isAdded) {
-                                                android.util.Log.d(
-                                                        "RetroMenu3Fragment",
-                                                        "[DISMISS] Fragment still associated with manager, removing..."
-                                                )
-                                                parentFragmentManager.beginTransaction().remove(this).commit()
-                                                val after =
-                                                        parentFragmentManager.findFragmentById(
-                                                                com.vinaooo.revenger.R.id.menu_container
-                                                        )
-                                                val afterName = after?.javaClass?.simpleName
-                                                val backStack = parentFragmentManager.backStackEntryCount
-                                                Log.d(
-                                                        "RetroMenu3Fragment",
-                                                        "[DISMISS] After remove requested, " +
-                                                                "fragmentById=${afterName ?: "none"} backStack=$backStack"
-                                                )
-                                                // Execute callback after animation and fragment removal
-                                                onAnimationEnd?.invoke()
-                                        } else {
-                                                android.util.Log.w(
-                                                        "RetroMenu3Fragment",
-                                                        "[DISMISS] Fragment not associated with manager, " +
-                                                                "skipping removal"
-                                                )
-                                                // Execute callback even if fragment removal failed
-                                                onAnimationEnd?.invoke()
-                                        }
-                                } catch (expectedDismissFailure: Throwable) { // also guards onAnimationEnd
-                                        Log.e("RetroMenu3Fragment", "[DISMISS] Exception during dismiss callback", expectedDismissFailure)
-                                        onAnimationEnd?.invoke()
-                                }
-                        }
+                        getAnimationController().dismissMenu { finishDismiss() }
+                        animationStarted = true
                 } finally {
-                        isDismissingMenu = false
-                        android.util.Log.d(
+                        if (!animationStarted) {
+                                isDismissingMenu = false
+                                pendingDismissCallbacks.clear()
+                        }
+                }
+        }
+
+        /** End of the close animation: removes the fragment and runs every pending callback. */
+        private fun finishDismiss() {
+                isDismissingMenu = false
+                android.util.Log.d("RetroMenu3Fragment", "[DISMISS] DismissMenu operation flag reset")
+                val callbacks = pendingDismissCallbacks.toList()
+                pendingDismissCallbacks.clear()
+                val runCallbacks = { callbacks.forEach { it() } }
+                // Check if fragment is still associated with a fragment manager before removing
+                try {
+                        val ts = System.currentTimeMillis()
+                        Log.d(
                                 "RetroMenu3Fragment",
-                                "[DISMISS] DismissMenu operation flag reset"
+                                "[DISMISS] Animation end callback ts=$ts isAdded=$isAdded"
                         )
+                        if (isAdded) {
+                                android.util.Log.d(
+                                        "RetroMenu3Fragment",
+                                        "[DISMISS] Fragment still associated with manager, removing..."
+                                )
+                                parentFragmentManager.beginTransaction().remove(this).commit()
+                                val after =
+                                        parentFragmentManager.findFragmentById(
+                                                com.vinaooo.revenger.R.id.menu_container
+                                        )
+                                val afterName = after?.javaClass?.simpleName
+                                val backStack = parentFragmentManager.backStackEntryCount
+                                Log.d(
+                                        "RetroMenu3Fragment",
+                                        "[DISMISS] After remove requested, " +
+                                                "fragmentById=${afterName ?: "none"} backStack=$backStack"
+                                )
+                        } else {
+                                android.util.Log.w(
+                                        "RetroMenu3Fragment",
+                                        "[DISMISS] Fragment not associated with manager, " +
+                                                "skipping removal"
+                                )
+                        }
+                        // Execute callbacks after animation and fragment removal (or even if
+                        // removal was skipped)
+                        runCallbacks()
+                } catch (expectedDismissFailure: Throwable) { // also guards the callbacks
+                        Log.e("RetroMenu3Fragment", "[DISMISS] Exception during dismiss callback", expectedDismissFailure)
+                        runCallbacks()
                 }
         }
 
