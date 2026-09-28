@@ -143,11 +143,11 @@ class ExitSaveGridFragment_test {
                 it.get(fragment)
             }
 
-    private fun dialogVisible(): Boolean = privateField("isDialogVisible") as Boolean
+    private fun dialogVisible(): Boolean = fragment.dialogs.isVisible
 
     private fun exitEnabled(): Boolean = privateField("exitEnabled") as Boolean
 
-    private fun retroKeyboard(): RetroKeyboard = privateField("retroKeyboard") as RetroKeyboard
+    private fun retroKeyboard(): RetroKeyboard = checkNotNull(fragment.dialogs.keyboard)
 
     @Suppress("UNCHECKED_CAST")
     private fun keyboardOnConfirm(): (String) -> Unit =
@@ -529,7 +529,7 @@ class ExitSaveGridFragment_test {
         activity.supportFragmentManager.beginTransaction().remove(fragment).commitNow()
 
         assertFalse(dialogVisible())
-        assertNull(privateField("retroKeyboard"))
+        assertNull(fragment.dialogs.keyboard)
         assertFalse(fragment.isAdded)
     }
 }

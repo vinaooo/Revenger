@@ -158,9 +158,7 @@ class ManageSavesFragment_test {
         val renameButton = fragment.requireView().findViewById<RetroCardView>(R.id.operation_rename)
         renameButton.performClick()
 
-        val retroKeyboardField = ManageSavesFragment::class.java.getDeclaredField("retroKeyboard")
-        retroKeyboardField.isAccessible = true
-        val retroKeyboard = retroKeyboardField.get(fragment)
+        val retroKeyboard = checkNotNull(fragment.dialogs.keyboard)
         val onConfirmField = retroKeyboard.javaClass.getDeclaredField("onConfirm")
         onConfirmField.isAccessible = true
         @Suppress("UNCHECKED_CAST") val onConfirm = onConfirmField.get(retroKeyboard) as (String) -> Unit
@@ -268,20 +266,8 @@ class ManageSavesFragment_test {
         method.invoke(fragment, slot)
     }
 
-    private fun setDialogSelectedIndex(index: Int) {
-        val field = ManageSavesFragment::class.java.getDeclaredField("dialogSelectedIndex")
-        field.isAccessible = true
-        field.set(fragment, index)
-    }
-
-    private fun callUpdateDialogSelection() {
-        val method = ManageSavesFragment::class.java.getDeclaredMethod("updateDialogSelection")
-        method.isAccessible = true
-        method.invoke(fragment)
-    }
-
     @Test
-    fun `updateDialogSelection marca o botao selecionado e sua seta no menu de operacoes`() {
+    fun `mover a selecao marca o botao selecionado e sua seta no menu de operacoes`() {
         val manager = mockedSaveStateManager()
         injectSaveStateManager(manager)
         callShowOperationsMenu(occupiedSlot(1))
@@ -297,8 +283,7 @@ class ManageSavesFragment_test {
         assertEquals(RetroCardView.State.NORMAL, deleteButton.getState())
         assertEquals(View.GONE, deleteArrow.visibility)
 
-        setDialogSelectedIndex(3) // delete
-        callUpdateDialogSelection()
+        repeat(3) { fragment.onNavigateDown() } // to Delete
 
         assertEquals(RetroCardView.State.NORMAL, renameButton.getState())
         assertEquals(View.GONE, renameArrow.visibility)
@@ -307,7 +292,7 @@ class ManageSavesFragment_test {
     }
 
     @Test
-    fun `updateDialogSelection marca o botao selecionado e sua seta no dialogo de confirmacao de delete`() {
+    fun `mover a selecao marca o botao selecionado e sua seta no dialogo de confirmacao de delete`() {
         val manager = mockedSaveStateManager()
         injectSaveStateManager(manager)
         callShowDeleteConfirmation(occupiedSlot(1))
@@ -325,8 +310,7 @@ class ManageSavesFragment_test {
         assertEquals(RetroCardView.State.SELECTED, cancelButton.getState())
         assertEquals(View.VISIBLE, cancelArrow.visibility)
 
-        setDialogSelectedIndex(0) // confirm
-        callUpdateDialogSelection()
+        fragment.onNavigateUp() // to Delete (confirm)
 
         assertEquals(RetroCardView.State.SELECTED, confirmButton.getState())
         assertEquals(View.VISIBLE, confirmArrow.visibility)

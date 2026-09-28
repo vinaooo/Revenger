@@ -1,17 +1,13 @@
 package com.vinaooo.revenger.ui.retromenu3
 
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import android.util.Log
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.ui.retromenu3.callbacks.ManageSavesListener
 import com.vinaooo.revenger.utils.FontUtils
-import com.vinaooo.revenger.utils.ViewUtils
 
 /**
  * Fragment for managing save slots (rename, copy, move, delete).
@@ -29,16 +25,13 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
     private var listener: ManageSavesListener? = null
 
-    // Dialog/Operation state
-    private var dialogOverlay: View? = null
-    private var isDialogVisible = false
+    /** The operations, rename and delete dialogs shown over the grid. */
+    internal val dialogs = SlotDialogController { view as? ViewGroup }
+
+    // Copy/move target selection state
     private var pendingSlot: SaveSlotData? = null
     private var pendingOperation: Operation? = null
     private var isSelectingTargetSlot = false
-
-    // Dialog navigation state
-    private var dialogSelectedIndex = 0
-    private var dialogButtons: List<RetroCardView> = emptyList()
 
     enum class Operation {
         RENAME,
@@ -52,16 +45,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
     }
 
     override fun onDestroyView() {
-        // Clean up any visible dialog
-        dialogOverlay?.let { dialog ->
-            (dialog.parent as? ViewGroup)?.removeView(dialog)
-        }
-        dialogOverlay = null
-        isDialogVisible = false
-        dialogButtons = emptyList()
-        dialogSelectedIndex = 0
-        retroKeyboard = null
-        isKeyboardActive = false
+        dialogs.hide()
         super.onDestroyView()
     }
 
@@ -92,7 +76,7 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
     override fun onBackConfirmed() {
         when {
-            isDialogVisible -> hideDialog()
+            dialogs.isVisible -> dialogs.hide()
             isSelectingTargetSlot -> {
                 isSelectingTargetSlot = false
                 pendingOperation = null
@@ -118,8 +102,8 @@ class ManageSavesFragment : SaveStateGridFragment() {
 
     override fun performBack(): Boolean {
         return when {
-            isDialogVisible -> {
-                hideDialog()
+            dialogs.isVisible -> {
+                dialogs.hide()
                 true
             }
             isSelectingTargetSlot -> {
@@ -143,91 +127,19 @@ class ManageSavesFragment : SaveStateGridFragment() {
     // ========== DIALOG NAVIGATION ==========
 
     override fun performNavigateUp() {
-        if (isKeyboardActive && retroKeyboard != null) {
-            retroKeyboard?.navigateUp()
-            return
-        }
-        if (isDialogVisible && dialogButtons.isNotEmpty()) {
-            if (dialogSelectedIndex > 0) {
-                dialogSelectedIndex--
-                updateDialogSelection()
-            }
-            return
-        }
-        super.performNavigateUp()
+        if (!dialogs.navigateVertical(-1)) super.performNavigateUp()
     }
 
     override fun performNavigateDown() {
-        if (isKeyboardActive && retroKeyboard != null) {
-            retroKeyboard?.navigateDown()
-            return
-        }
-        if (isDialogVisible && dialogButtons.isNotEmpty()) {
-            if (dialogSelectedIndex < dialogButtons.size - 1) {
-                dialogSelectedIndex++
-                updateDialogSelection()
-            }
-            return
-        }
-        super.performNavigateDown()
+        if (!dialogs.navigateVertical(1)) super.performNavigateDown()
     }
 
-    override fun onNavigateLeft(): Boolean {
-        if (isKeyboardActive && retroKeyboard != null) {
-            retroKeyboard?.navigateLeft()
-            return true
-        }
-        return super.onNavigateLeft()
-    }
+    override fun onNavigateLeft(): Boolean = dialogs.navigateHorizontal(toLeft = true) || super.onNavigateLeft()
 
-    override fun onNavigateRight(): Boolean {
-        if (isKeyboardActive && retroKeyboard != null) {
-            retroKeyboard?.navigateRight()
-            return true
-        }
-        return super.onNavigateRight()
-    }
+    override fun onNavigateRight(): Boolean = dialogs.navigateHorizontal(toLeft = false) || super.onNavigateRight()
 
     override fun performConfirm() {
-        if (isKeyboardActive && retroKeyboard != null) {
-            retroKeyboard?.pressCurrentKey()
-            return
-        }
-        if (isDialogVisible && dialogButtons.isNotEmpty()) {
-            dialogButtons.getOrNull(dialogSelectedIndex)?.performClick()
-            return
-        }
-        super.performConfirm()
-    }
-
-    private fun updateDialogSelection() {
-        dialogButtons.forEachIndexed { index, button ->
-            val (arrowId, textId) =
-                    when (button.id) {
-                        R.id.operation_rename -> R.id.rename_arrow to R.id.rename_text
-                        R.id.operation_copy -> R.id.copy_arrow to R.id.copy_text
-                        R.id.operation_move -> R.id.move_arrow to R.id.move_text
-                        R.id.operation_delete -> R.id.delete_arrow to R.id.delete_text
-                        R.id.operation_cancel -> R.id.cancel_arrow to R.id.cancel_text
-                        R.id.dialog_confirm_button ->
-                                R.id.confirm_button_arrow to R.id.confirm_button_text
-                        R.id.dialog_cancel_button ->
-                                R.id.cancel_button_arrow to R.id.cancel_button_text
-                        else -> return@forEachIndexed
-                    }
-            val arrow = button.findViewById<TextView>(arrowId)
-            val textView = button.findViewById<TextView>(textId)
-
-            if (index == dialogSelectedIndex) {
-                button.setState(RetroCardView.State.SELECTED)
-                arrow?.visibility = View.VISIBLE
-                textView?.setTextColor(resources.getColor(R.color.rm_selected_color, null))
-            } else {
-                button.setState(RetroCardView.State.NORMAL)
-                arrow?.visibility = View.GONE
-                textView?.setTextColor(resources.getColor(R.color.rm_text_color, null))
-            }
-        }
+        if (!dialogs.confirm()) super.performConfirm()
     }
 
     private fun updateTitle() {
@@ -247,217 +159,60 @@ class ManageSavesFragment : SaveStateGridFragment() {
     /** Shows a retro-styled operations menu for the selected slot. */
     private fun showOperationsMenu(slot: SaveSlotData) {
         pendingSlot = slot
-        isDialogVisible = true
-
-        val container = view as? ViewGroup ?: return
-
-        // Create dialog overlay
-        dialogOverlay =
-                LayoutInflater.from(requireContext())
-                        .inflate(R.layout.retro_operations_menu, container, false)
-
-        dialogOverlay?.let { dialog ->
-            val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
-            val renameButton = dialog.findViewById<RetroCardView>(R.id.operation_rename)
-            val copyButton = dialog.findViewById<RetroCardView>(R.id.operation_copy)
-            val moveButton = dialog.findViewById<RetroCardView>(R.id.operation_move)
-            val deleteButton = dialog.findViewById<RetroCardView>(R.id.operation_delete)
-            val cancelButton = dialog.findViewById<RetroCardView>(R.id.operation_cancel)
-
-            titleView.text = getString(R.string.operations_dialog_title, slot.getDisplayName())
-
-            // Configure buttons
-            listOf(renameButton, copyButton, moveButton, deleteButton, cancelButton).forEach {
-                it.setUseBackgroundColor(false)
+        dialogs.showDialog(R.layout.retro_operations_menu) { dialog ->
+            dialog.findViewById<TextView>(R.id.dialog_title).text =
+                    getString(R.string.operations_dialog_title, slot.getDisplayName())
+            dialog.findViewById<LinearLayout>(R.id.operations_container)?.let {
+                SlotDialogViews.styleTexts(SlotDialogViews.textViewsIn(it))
             }
 
-            // Apply fonts
-            dialog.findViewById<LinearLayout>(R.id.operations_container)?.let { container ->
-                val textViews = mutableListOf<TextView>()
-                findAllTextViews(container, textViews)
-                ViewUtils.applySelectedFontToViews(requireContext(), textViews)
-                FontUtils.applyTextCapitalization(requireContext(), textViews)
-            }
-
-            // Click listeners
-            renameButton.setOnClickListener {
-                hideDialog()
-                showRenameDialog(slot)
-            }
-
-            copyButton.setOnClickListener {
-                hideDialog()
-                startTargetSlotSelection(slot, Operation.COPY)
-            }
-
-            moveButton.setOnClickListener {
-                hideDialog()
-                startTargetSlotSelection(slot, Operation.MOVE)
-            }
-
-            deleteButton.setOnClickListener {
-                hideDialog()
-                showDeleteConfirmation(slot)
-            }
-
-            cancelButton.setOnClickListener { hideDialog() }
-
-            // Setup gamepad navigation for dialog
-            dialogButtons = listOf(renameButton, copyButton, moveButton, deleteButton, cancelButton)
-            dialogSelectedIndex = 0
-            updateDialogSelection()
-
-            // Add to fragment's root view
-            container.addView(dialog)
-
-            // Animate in
-            dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
-        }
-    }
-
-    private fun findAllTextViews(view: View, list: MutableList<TextView>) {
-        if (view is TextView) {
-            list.add(view)
-        } else if (view is ViewGroup) {
-            for (i in 0 until view.childCount) {
-                findAllTextViews(view.getChildAt(i), list)
+            val actions =
+                    listOf<Pair<Int, () -> Unit>>(
+                            R.id.operation_rename to { showRenameDialog(slot) },
+                            R.id.operation_copy to { startTargetSlotSelection(slot, Operation.COPY) },
+                            R.id.operation_move to { startTargetSlotSelection(slot, Operation.MOVE) },
+                            R.id.operation_delete to { showDeleteConfirmation(slot) },
+                            R.id.operation_cancel to {}
+                    )
+            actions.map { (id, action) ->
+                dialog.findViewById<RetroCardView>(id).apply {
+                    setUseBackgroundColor(false)
+                    setOnClickListener {
+                        dialogs.hide()
+                        action()
+                    }
+                }
             }
         }
     }
-
-    // Keyboard instance for rename dialog
-    private var retroKeyboard: RetroKeyboard? = null
-    private var isKeyboardActive = false
 
     private fun showRenameDialog(slot: SaveSlotData) {
         pendingSlot = slot
-        isDialogVisible = true
-        isKeyboardActive = true
-
-        val container = view as? ViewGroup ?: return
-
-        dialogOverlay =
-                LayoutInflater.from(requireContext())
-                        .inflate(R.layout.retro_rename_keyboard_dlg, container, false)
-
-        dialogOverlay?.let { dialog ->
-            val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
-            val retroEditText = dialog.findViewById<RetroEditText>(R.id.rename_edit_text)
-
-            titleView.text = FontUtils.getCapitalizedString(requireContext(), R.string.rename_dialog_title)
-            
-            // Set hint text for RetroEditText
-            retroEditText.setHintText(FontUtils.getCapitalizedString(requireContext(), R.string.save_name_hint))
-            retroEditText.setRetroHintColor(0x88888888.toInt())
-            
-            // Apply retro font to RetroEditText
-            FontUtils.getSelectedTypeface(requireContext())?.let { typeface ->
-                retroEditText.applyTypeface(typeface)
-            }
-
-            // Apply fonts to other TextViews (excluding RetroEditText)
-            val textViews = mutableListOf<TextView>()
-            findAllTextViews(dialog, textViews)
-            // Remove RetroEditText from list since we handle it separately
-            textViews.removeAll { it is RetroEditText }
-            ViewUtils.applySelectedFontToViews(requireContext(), textViews)
-            // Ensure configured capitalization on dialog texts
-            FontUtils.applyTextCapitalization(requireContext(), textViews)
-
-            // Initialize RetroKeyboard
-            retroKeyboard = RetroKeyboard(
-                context = requireContext(),
-                retroEditText = retroEditText,
+        dialogs.showKeyboardDialog(
+                titleRes = R.string.rename_dialog_title,
+                initialText = slot.name,
                 onConfirm = { newName ->
                     val finalName = newName.ifBlank { "Slot ${slot.slotNumber}" }
-                    hideDialog()
                     SaveSlotOperationRunner(saveStateManager)
                             .rename(requireContext(), slot.slotNumber, finalName) { refreshGrid() }
                 },
-                onCancel = {
-                    hideDialog()
-                }
-            )
-
-            // Set initial text
-            retroKeyboard?.setText(slot.name)
-
-            container.addView(dialog)
-            
-            // Apply same proportions as other RetroMenu3 menus
-            com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.applyAllProportionsToMenuLayout(dialog)
-            
-            dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
-
-            // Setup keyboard click listeners and initial selection
-            retroKeyboard?.setupKeyboardInView(dialog)
-        }
+                onCancel = {}
+        )
     }
 
+    /** Delete confirmation, with Cancel selected by default for safety. */
     private fun showDeleteConfirmation(slot: SaveSlotData) {
         pendingSlot = slot
-        isDialogVisible = true
-
-        val container = view as? ViewGroup ?: return
-
-        dialogOverlay =
-                LayoutInflater.from(requireContext())
-                        .inflate(R.layout.retro_confirm_dlg, container, false)
-
-        dialogOverlay?.let { dialog ->
-            val titleView = dialog.findViewById<TextView>(R.id.dialog_title)
-            val messageView = dialog.findViewById<TextView>(R.id.dialog_message)
-            val confirmButton = dialog.findViewById<RetroCardView>(R.id.dialog_confirm_button)
-            val cancelButton = dialog.findViewById<RetroCardView>(R.id.dialog_cancel_button)
-            val confirmText = dialog.findViewById<TextView>(R.id.confirm_button_text)
-            val cancelText = dialog.findViewById<TextView>(R.id.cancel_button_text)
-            val confirmArrow = dialog.findViewById<TextView>(R.id.confirm_button_arrow)
-            val cancelArrow = dialog.findViewById<TextView>(R.id.cancel_button_arrow)
-
-            titleView.text = getString(R.string.delete_dialog_title)
-            messageView.text =
-                    FontUtils.getCapitalizedString(
-                            requireContext(),
-                            R.string.delete_dialog_message,
-                            slot.name
-                    )
-            confirmText.text = getString(R.string.dialog_delete)
-            cancelText.text = getString(R.string.dialog_cancel)
-
-            confirmButton.setUseBackgroundColor(false)
-            cancelButton.setUseBackgroundColor(false)
-
-            // Default selection on cancel (safer)
-            confirmButton.setState(RetroCardView.State.NORMAL)
-            cancelButton.setState(RetroCardView.State.SELECTED)
-            confirmArrow.visibility = View.GONE
-            cancelArrow.visibility = View.VISIBLE
-            confirmText.setTextColor(resources.getColor(R.color.rm_text_color, null))
-            cancelText.setTextColor(resources.getColor(R.color.rm_selected_color, null))
-
-            val textViews = mutableListOf<TextView>()
-            findAllTextViews(dialog, textViews)
-            ViewUtils.applySelectedFontToViews(requireContext(), textViews)
-            FontUtils.applyTextCapitalization(requireContext(), textViews)
-
-            confirmButton.setOnClickListener {
-                hideDialog()
-                SaveSlotOperationRunner(saveStateManager)
-                        .delete(requireContext(), slot.slotNumber) { refreshGrid() }
-            }
-
-            cancelButton.setOnClickListener { hideDialog() }
-
-            // Setup gamepad navigation for dialog (cancel selected by default for safety)
-            dialogButtons = listOf(confirmButton, cancelButton)
-            dialogSelectedIndex = 1  // Cancel selected by default
-            updateDialogSelection()
-
-            container.addView(dialog)
-            dialog.alpha = 0f
-            dialog.animate().alpha(1f).setDuration(DIALOG_FADE_IN_DURATION_MS).start()
+        val text =
+                ConfirmDialogText(
+                        title = getString(R.string.delete_dialog_title),
+                        message = getString(R.string.delete_dialog_message, slot.name),
+                        confirmLabel = getString(R.string.dialog_delete),
+                        cancelLabel = getString(R.string.dialog_cancel)
+                )
+        dialogs.showConfirmDialog(text, selectCancel = true) {
+            SaveSlotOperationRunner(saveStateManager)
+                    .delete(requireContext(), slot.slotNumber) { refreshGrid() }
         }
     }
 
@@ -526,50 +281,8 @@ class ManageSavesFragment : SaveStateGridFragment() {
         pendingOperation = null
     }
 
-    private fun hideDialog() {
-        val dialog = dialogOverlay ?: return
-
-        try {
-            Log.d(TAG, "[DIALOG] hideDialog() called - dialogOverlay present")
-            // Cancel any ongoing animations
-            dialog.animate().cancel()
-
-            // Log parent before removal
-            val parentBefore = dialog.parent
-            Log.d(TAG, "[DIALOG] parent before remove=${parentBefore?.javaClass?.simpleName ?: "none"}")
-
-            // Immediately hide and remove
-            dialog.visibility = View.GONE
-            (dialog.parent as? ViewGroup)?.removeView(dialog)
-
-            // Verify removal
-            val parentAfter = dialog.parent
-            Log.d(
-                    TAG,
-                    "[DIALOG] parent after remove=${parentAfter?.javaClass?.simpleName ?: "none"} " +
-                            "isDialogVisible=${isDialogVisible}"
-            )
-            // View/ViewGroup.removeView() teardown here doesn't have a known reachable failure
-            // mode; this is a deliberate safety net so a rare view-tree inconsistency during
-            // dialog teardown never crashes the game, kept via detekt's own escape-hatch naming.
-        } catch (ignoredViewTeardownFailure: Throwable) {
-            Log.e(TAG, "[DIALOG] Exception while hiding dialog", ignoredViewTeardownFailure)
-        }
-
-        // Reset state
-        dialogOverlay = null
-        isDialogVisible = false
-        dialogButtons = emptyList()
-        dialogSelectedIndex = 0
-
-        // Reset keyboard state
-        retroKeyboard = null
-        isKeyboardActive = false
-    }
-
     companion object {
         private const val TAG = "ManageSavesFragment"
-        private const val DIALOG_FADE_IN_DURATION_MS = 150L
 
         fun newInstance(): ManageSavesFragment {
             return ManageSavesFragment()

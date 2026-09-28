@@ -96,10 +96,12 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
 ### [x] 6. `test/gamepad-and-retroview-utils`: `GamePad` and `RetroViewUtils`
 - `GamePad`: `handleButtonEvent`, `handleDirectionEvent`, `eventHandler`, `hasExternalPhysicalController` (decides whether the on-screen pad shows).
 - `RetroViewUtils.preserveEmulatorState` (never persists frame speed 0).
-- Done in this PR: `GamePad_test` (event routing, joystick-only and non-controller devices) and `RetroViewUtils_test`. `GamePad.eventHandler` is now `internal` for tests, since the pad's own event flow comes from touch input; `subscribe` stays untested. Deleted: `RetroViewUtils.getAudioState` and `getFastForwardState`, which nothing called (Settings reads both through `PlaybackStateController`). `restoreEmulatorState` stays untested until the temp-state decision (see Open decisions).
+- Done in PR #157: `GamePad_test` (event routing, joystick-only and non-controller devices) and `RetroViewUtils_test`. `GamePad.eventHandler` is now `internal` for tests, since the pad's own event flow comes from touch input; `subscribe` stays untested. Deleted: `RetroViewUtils.getAudioState` and `getFastForwardState`, which nothing called (Settings reads both through `PlaybackStateController`). `restoreEmulatorState` stays untested until the temp-state decision (see Open decisions).
 
-### [ ] 7a. `refactor/shared-slot-dialogs`: one dialog helper for the save grids
+### [x] 7a. `refactor/shared-slot-dialogs`: one dialog helper for the save grids — this PR
 - `SaveSlotsFragment`, `ExitSaveGridFragment` and `ManageSavesFragment` copy the naming, overwrite and selection dialogs (`updateDialogSelection` and `performNavigateUp` are identical). Pin current behavior with tests first, then extract a shared helper and test it once. Rerun the Roborazzi goldens; they must not change.
+- Done: `SlotDialogController` (dialog state and input routing) and `SlotDialogViews` (building the naming, confirm and highlight views) replace the three copies. `CurrentGameSlotSaver` replaces the save routine copied in `SaveSlotsFragment` and `ExitSaveGridFragment`. The 76 existing grid tests pass with only accessor changes, and the goldens are unchanged.
+- Found and **not** changed (the user decides): overwriting an occupied slot from Save State or Save and Exit renames the save to "Slot N"; PiP Quick Save keeps the name.
 
 ### [ ] 7. `test/save-grid-fragments`: what's left per fragment
 - The fragment-specific parts of the three grids, plus `CoreVariablesFragment`, `ExitFragment` (`performAutoSaveAndExit`, `performConfirm`) and `RetroKeyboard`.
