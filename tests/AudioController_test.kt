@@ -4,10 +4,8 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.utils.PreferencesConstants
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -35,17 +33,6 @@ class AudioController_test {
     }
 
     @Test
-    fun `toggleAudio inverte o estado atual do retroView e persiste`() {
-        every { retroView.audioEnabled } returns true
-
-        val newState = controller.toggleAudio(retroView)
-
-        assertFalse(newState)
-        verify { retroView.audioEnabled = false }
-        assertFalse(prefs.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true))
-    }
-
-    @Test
     fun `setAudioEnabled aplica o valor no retroView e persiste`() {
         controller.setAudioEnabled(retroView, false)
 
@@ -63,13 +50,6 @@ class AudioController_test {
         prefs.edit().putBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, false).commit()
 
         assertFalse(controller.getAudioState())
-    }
-
-    @Test
-    fun `getAudioState com retroView le diretamente da view`() {
-        every { retroView.audioEnabled } returns false
-
-        assertFalse(controller.getAudioState(retroView))
     }
 
     @Test

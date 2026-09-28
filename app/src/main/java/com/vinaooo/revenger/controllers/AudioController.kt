@@ -11,21 +11,6 @@ import androidx.core.content.edit
  */
 class AudioController(private val sharedPreferences: SharedPreferences) {
     /**
-     * Toggles the audio state (on/off)
-     * @param retroView RetroView where to apply the change
-     * @return new audio state (true = on, false = off)
-     */
-    fun toggleAudio(retroView: GLRetroView): Boolean {
-        val newState = !retroView.audioEnabled
-        retroView.audioEnabled = newState
-
-        // Salvar o novo estado imediatamente
-        saveAudioState(newState)
-
-        return newState
-    }
-
-    /**
      * Sets the audio state
      * @param retroView RetroView where to apply the change
      * @param enabled true to turn on, false to turn off
@@ -41,15 +26,6 @@ class AudioController(private val sharedPreferences: SharedPreferences) {
      */
     fun getAudioState(): Boolean {
         return sharedPreferences.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true)
-    }
-
-    /**
-     * Gets the current audio state directly from RetroView
-     * @param retroView RetroView to check the state
-     * @return true if audio is enabled, false otherwise
-     */
-    fun getAudioState(retroView: GLRetroView): Boolean {
-        return retroView.audioEnabled
     }
 
     /**
