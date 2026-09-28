@@ -536,11 +536,6 @@ class RetroMenu3Fragment :
                 }
         }
 
-        override fun onMenuItemSelected(item: MenuItem) {
-                // Use MenuActionHandler to execute actions
-                actionHandler.executeAction(item.action)
-        }
-
         override fun onAboutBackToMainMenu() {
                 // Fechar submenu About e voltar ao menu principal
                 submenuCoordinator.closeCurrentSubmenu()

@@ -40,9 +40,6 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
     /** Retorna a lista padronizada de itens do menu */
     abstract override fun getMenuItems(): List<MenuItem>
 
-    /** Abstract method to handle menu item selection */
-    abstract override fun onMenuItemSelected(item: MenuItem)
-
     /** Abstract method for fragment-specific up navigation */
     protected abstract fun performNavigateUp()
 

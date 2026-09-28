@@ -56,6 +56,12 @@ class RetroMenu3FragmentActions_test {
 
     private fun arrow(id: Int): View = fragment.requireView().findViewById(id)
 
+    /** Selects the main menu item at [index] and confirms it, as the gamepad does. */
+    private fun openSubmenuThroughConfirm(index: Int) {
+        fragment.setSelectedIndex(index)
+        fragment.onConfirm()
+    }
+
     @Test
     fun `registra o fragment no NavigationController com os 6 itens do menu`() {
         verify { host.navigationController.registerFragment(fragment, 6) }
@@ -97,9 +103,7 @@ class RetroMenu3FragmentActions_test {
     @Test
     fun `abrir e fechar um submenu restaura o item selecionado do menu principal`() {
         fragment.setSelectedIndex(3)
-        fragment.onMenuItemSelected(
-                MenuItem("settings", "settings", action = MenuAction.NAVIGATE(MenuState.SETTINGS_MENU))
-        )
+        fragment.onConfirm()
         fragmentManager.executePendingTransactions()
         assertEquals(1, fragmentManager.backStackEntryCount)
         verify { menuManager.navigateToState(MenuState.SETTINGS_MENU) }
@@ -119,9 +123,7 @@ class RetroMenu3FragmentActions_test {
 
     @Test
     fun `onBack com submenu aberto fecha o submenu`() {
-        fragment.onMenuItemSelected(
-                MenuItem("about", "about", action = MenuAction.NAVIGATE(MenuState.ABOUT_MENU))
-        )
+        openSubmenuThroughConfirm(4) // about
         fragmentManager.executePendingTransactions()
 
         assertTrue(fragment.onBack())
@@ -137,9 +139,7 @@ class RetroMenu3FragmentActions_test {
 
     @Test
     fun `onAboutBackToMainMenu fecha o submenu aberto`() {
-        fragment.onMenuItemSelected(
-                MenuItem("exit", "exit", action = MenuAction.NAVIGATE(MenuState.EXIT_MENU))
-        )
+        openSubmenuThroughConfirm(5) // exit
         fragmentManager.executePendingTransactions()
         assertEquals(1, fragmentManager.backStackEntryCount)
 
@@ -306,9 +306,7 @@ class RetroMenu3FragmentActions_test {
 
     @Test
     fun `remover o fragment com restauracao pendente nao dispara callbacks sem view`() {
-        fragment.onMenuItemSelected(
-                MenuItem("progress", "progress", action = MenuAction.NAVIGATE(MenuState.PROGRESS_MENU))
-        )
+        openSubmenuThroughConfirm(2) // progress
         fragmentManager.executePendingTransactions()
         fragmentManager.popBackStack()
         fragmentManager.executePendingTransactions()

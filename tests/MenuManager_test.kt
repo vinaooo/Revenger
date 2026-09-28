@@ -21,7 +21,6 @@ import org.robolectric.annotation.Config
  */
 class MenuManagerFakeFragment : Fragment(), MenuFragment {
     override fun getMenuItems(): List<MenuItem> = emptyList()
-    override fun onMenuItemSelected(item: MenuItem) {}
     override fun onNavigateUp(): Boolean = true
     override fun onNavigateDown(): Boolean = true
     override fun onConfirm(): Boolean = true
