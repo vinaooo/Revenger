@@ -64,7 +64,7 @@ Using the spike's setup: ROM copy (and the missing-ROM error), the configured sh
 ### [x] 4. `test/game-activity`: `GameActivity` (#175)
 Using the spike's setup: the create → destroy lifecycle, input dispatch (`onKeyDown`, `onKeyUp`, `onGenericMotionEvent`, `dispatchTouchEvent`), the `PipHost` methods, `onConfigurationChanged`, saved-state handling, `onUserLeaveHint`, `onPictureInPictureModeChanged`, and `startShutdownAnimation`.
 
-### [ ] 5. `test/menu-fragment-branches`: the menu fragments
+### [x] 5. `test/menu-fragment-branches`: the menu fragments (#178)
 Missed branches in `ExitFragment`, `ProgressFragment`, `AboutFragment`, `RetroMenu3Fragment`, `MenuFragmentBase`, `SubmenuCoordinator`, `RetroKeyboard`, `CoreVariablesFragment`, `ExitSaveGridFragment`, `ManageSavesFragment` and `SettingsMenuFragment`.
 
 ### [ ] 6. `test/controllers-and-utils`: the rest
