@@ -103,7 +103,7 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
 - Done: `SlotDialogController` (dialog state and input routing) and `SlotDialogViews` (building the naming, confirm and highlight views) replace the three copies. `CurrentGameSlotSaver` replaces the save routine copied in `SaveSlotsFragment` and `ExitSaveGridFragment`. The 76 existing grid tests pass with only accessor changes, and the goldens are unchanged.
 - Found and **not** changed (the user decides): overwriting an occupied slot from Save State or Save and Exit renames the save to "Slot N"; PiP Quick Save keeps the name.
 
-### [x] 7. `test/save-grid-fragments`: what's left per fragment — this PR
+### [x] 7. `test/save-grid-fragments`: what's left per fragment — done in PR #159
 - The fragment-specific parts of the three grids, plus `CoreVariablesFragment`, `ExitFragment` (`performAutoSaveAndExit`, `performConfirm`) and `RetroKeyboard`.
 - Done:
   - Touch on grid slots and the grid's back button (select now, act after the delay).
@@ -117,9 +117,14 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
 - `CoreVariablesFragment`'s hand-rolled title capitalization is replaced by `FontUtils.applyTextCapitalization`, the same helper every other menu uses. The output is identical for the configured style (2, all uppercase).
 - Left: the kill-process lambdas (they need a real `GameActivity`), the `when` `else` branches no index or operation can reach, and empty callbacks.
 
-### [ ] 8. `test/menu-navigation`: `MenuManager` and friends
+### [x] 8. `test/menu-navigation`: `MenuManager` and friends — this PR
 - First replace `MenuManager`'s repeated log-message checks with one helper, then test the real guards (no fragment, not added, no context).
 - `SubmenuCoordinator` (restoring the main-menu selection after back), `NavigationController`, `MenuOpenHandler`.
+- Done:
+  - `MenuManager`: one `attachedFragment(action)` helper replaces the five copied guard-and-log blocks, so `MenuSystem.kt` goes from 73 missed branches to 5. New tests: a `MenuFragment` that isn't an Android `Fragment`, a removed fragment, and re-entrant confirm/back.
+  - `SubmenuCoordinator`: `isClosingSubmenu` and `isClosingSubmenuProgrammatically` are deleted. `popBackStack()` is asynchronous, so both were already false by the time anything read them; `hasSubmenuOpen` is what prevents a double restore. The back-stack listener's two identical branches are merged, and the restore `when` (every branch was `MAIN_MENU`) became one `if` for Settings. New test: closing after the state is saved doesn't crash.
+  - `NavigationController`: tests for submenu vs main registration, `restoreState` and `closeMenuExternal`. Deleted a try/catch around a log call, and `selectItem` uses `require`.
+  - `MenuOpenHandler`: deleted the two try/catch blocks around log calls.
 
 ### [ ] 9. `test/small-utils`
 - `FontUtils`, `OrientationManager`, `EventQueue.shouldDebounce`, `ProfilingSessionController`, `TypefaceProvider`, `MenuLayoutConfig`, `GamePadLayoutAdjuster`, `LogSaver`.

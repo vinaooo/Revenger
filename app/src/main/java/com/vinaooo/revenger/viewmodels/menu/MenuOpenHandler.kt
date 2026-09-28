@@ -21,29 +21,12 @@ class MenuOpenHandler(
 ) {
 
     fun handleMenuOpened(activity: FragmentActivity) {
-        try {
-            Log.d(
-                    "GameActivityViewModel",
-                    "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} " +
-                            "thread=${Thread.currentThread().name} - menu opened callback start"
-            )
-            val menuFragment =
-                    activity.supportFragmentManager.findFragmentById(R.id.menu_container)
-            Log.d(
-                    "GameActivityViewModel",
-                    "[ON_MENU_OPENED] Fragment in container=${menuFragment?.javaClass?.simpleName ?: "none"} " +
-                            "backStack=${activity.supportFragmentManager.backStackEntryCount}"
-            )
-        } catch (expectedDiagnosticLoggingFailure: Throwable) {
-            // This block only formats debug strings from trivial fragment-manager getters; there
-            // is no narrower reachable type, and Throwable is itself on detekt's generic-exception
-            // list, so the name-based escape hatch is used instead of guessing one.
-            Log.w(
-                    "GameActivityViewModel",
-                    "[ON_MENU_OPENED] failed to log fragment manager state",
-                    expectedDiagnosticLoggingFailure
-            )
-        }
+        val menuFragment = activity.supportFragmentManager.findFragmentById(R.id.menu_container)
+        Log.d(
+                TAG,
+                "[ON_MENU_OPENED] Fragment in container=${menuFragment?.javaClass?.simpleName ?: "none"} " +
+                        "backStack=${activity.supportFragmentManager.backStackEntryCount}"
+        )
 
         // Capturar screenshot ANTES de pausar para save states
         captureScreenshotForSaveState()
@@ -53,20 +36,9 @@ class MenuOpenHandler(
         retroView()?.let { speedController()?.pause(it.view) }
 
         (activity as? FloatingButtonVisibilityHost)?.restoreFloatingButtonVisibility()
+    }
 
-        try {
-            Log.d(
-                    "GameActivityViewModel",
-                    "[ON_MENU_OPENED] ts=${System.currentTimeMillis()} - menu opened callback completed"
-            )
-        } catch (expectedDiagnosticLoggingFailure: Throwable) {
-            // Same rationale as the catch above: purely diagnostic logging with no narrower
-            // reachable type.
-            Log.w(
-                    "GameActivityViewModel",
-                    "[ON_MENU_OPENED] failed to log completion",
-                    expectedDiagnosticLoggingFailure
-            )
-        }
+    private companion object {
+        const val TAG = "GameActivityViewModel"
     }
 }
