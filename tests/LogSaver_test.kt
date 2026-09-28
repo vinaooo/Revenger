@@ -6,7 +6,9 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
+import android.hardware.input.InputManager
 import android.os.Environment
+import android.view.InputDevice
 import androidx.test.core.app.ApplicationProvider
 import com.vinaooo.revenger.RevengerApplication
 import io.mockk.every
@@ -187,5 +189,43 @@ class LogSaver_test {
         } finally {
             File(path).delete()
         }
+    }
+
+    private fun inputMethodInfo(inputManager: InputManager): String {
+        val context = mockk<Context> { every { getSystemService(Context.INPUT_SERVICE) } returns inputManager }
+        val method = LogSaver.javaClass.getDeclaredMethod("getInputMethodInfo", Context::class.java)
+        method.isAccessible = true
+        return method.invoke(LogSaver, context) as String
+    }
+
+    @Test
+    fun `metodo de entrada considera os dispositivos conectados e pula os que sumiram`() {
+        val pad = mockk<InputDevice> {
+            every { name } returns "Pad"
+            every { sources } returns InputDevice.SOURCE_GAMEPAD
+        }
+        val inputManager = mockk<InputManager> {
+            every { inputDeviceIds } returns intArrayOf(1, 2)
+            every { getInputDevice(1) } returns pad
+            every { getInputDevice(2) } returns null
+        }
+
+        assertEquals("Physical Gamepad", inputMethodInfo(inputManager))
+    }
+
+    @Test
+    fun `falha ao consultar os dispositivos de entrada e reportada sem derrubar o log`() {
+        val inputManager = mockk<InputManager> { every { inputDeviceIds } throws IllegalStateException("driver") }
+
+        assertEquals("Unable to determine", inputMethodInfo(inputManager))
+    }
+
+    @Test
+    fun `writeLog devolve null quando o acesso ao armazenamento e negado`() {
+        val path = LogSaver.writeLog(contextWithRom(present = true), tempDir.root, at) {
+            throw SecurityException("denied")
+        }
+
+        assertNull(path)
     }
 }

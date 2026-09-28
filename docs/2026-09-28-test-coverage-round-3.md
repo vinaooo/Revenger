@@ -67,7 +67,7 @@ Using the spike's setup: the create → destroy lifecycle, input dispatch (`onKe
 ### [x] 5. `test/menu-fragment-branches`: the menu fragments (#178)
 Missed branches in `ExitFragment`, `ProgressFragment`, `AboutFragment`, `RetroMenu3Fragment`, `MenuFragmentBase`, `SubmenuCoordinator`, `RetroKeyboard`, `CoreVariablesFragment`, `ExitSaveGridFragment`, `ManageSavesFragment` and `SettingsMenuFragment`.
 
-### [ ] 6. `test/controllers-and-utils`: the rest
+### [x] 6. `test/controllers-and-utils`: the rest (#179)
 `PipController`, `GamePadLayoutAdjuster`, `ScreenshotGeometry`, `ScreenshotCaptureUtil`, `ShaderController`, `RotationController`, `LogSaver`, `PipConfigRepository`, `SplashActivity`, `NavigationEventProcessor`, `KeyboardInputAdapter`, `FloatingMenuButtonController`, `GlowAnimationController`, `MenuAnimationController`, `SaveLoadOrchestrator`, `MenuCloseHandler`, `SubmenuFragmentDismisser`.
 
 ### [ ] 7. `chore/raise-kover-floor-5`

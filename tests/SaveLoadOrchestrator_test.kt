@@ -1,6 +1,7 @@
 package com.vinaooo.revenger.viewmodels.menu
 
 import android.os.Looper
+import androidx.lifecycle.MutableLiveData
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.utils.RetroViewUtils
@@ -10,6 +11,8 @@ import io.mockk.verify
 import io.mockk.verifyOrder
 import java.time.Duration
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -96,5 +99,122 @@ class SaveLoadOrchestrator_test {
 
         verifyOrder { utils.saveState(retroView) }
         assertEquals(0, glRetroView.frameSpeed)
+    }
+
+    private fun renderedRetroView(frameSpeed: Int, rendered: Boolean = true): Pair<RetroView, GLRetroView> {
+        val (retroView, glRetroView) = mockRetroView(frameSpeed)
+        every { retroView.frameRendered } returns MutableLiveData(rendered)
+        return retroView to glRetroView
+    }
+
+    @Test
+    fun `loadState carrega em velocidade 1 e devolve a velocidade anterior`() {
+        val (retroView, glRetroView) = renderedRetroView(frameSpeed = 0)
+        val utils = mockk<RetroViewUtils>(relaxed = true)
+        every { utils.hasSaveState() } returns true
+        var speedDuringLoad = -1
+        every { utils.loadState(retroView) } answers { speedDuringLoad = glRetroView.frameSpeed }
+        var completed = false
+
+        val loaded = SaveLoadOrchestrator().loadState(retroView, utils) { completed = true }
+
+        assertTrue(loaded)
+        assertEquals(1, speedDuringLoad)
+        assertEquals(0, glRetroView.frameSpeed)
+        assertTrue(completed)
+    }
+
+    @Test
+    fun `loadState sem callback tambem carrega`() {
+        val (retroView, _) = renderedRetroView(frameSpeed = 1)
+        val utils = mockk<RetroViewUtils>(relaxed = true)
+        every { utils.hasSaveState() } returns true
+
+        assertTrue(SaveLoadOrchestrator().loadState(retroView, utils))
+        verify(exactly = 1) { utils.loadState(retroView) }
+    }
+
+    @Test
+    fun `loadState sem save state nao carrega e avisa`() {
+        val (retroView, _) = renderedRetroView(frameSpeed = 1)
+        val utils = mockk<RetroViewUtils>(relaxed = true)
+        every { utils.hasSaveState() } returns false
+        var completed = false
+
+        assertFalse(SaveLoadOrchestrator().loadState(retroView, utils) { completed = true })
+        assertFalse(SaveLoadOrchestrator().loadState(retroView, utils))
+
+        assertTrue(completed)
+        verify(exactly = 0) { utils.loadState(any()) }
+    }
+
+    @Test
+    fun `loadState antes do primeiro frame ou sem utils nao carrega`() {
+        val (notRendered, _) = renderedRetroView(frameSpeed = 1, rendered = false)
+        val (rendered, _) = renderedRetroView(frameSpeed = 1)
+        val utils = mockk<RetroViewUtils>(relaxed = true)
+        var completions = 0
+        val orchestrator = SaveLoadOrchestrator()
+
+        assertFalse(orchestrator.loadState(notRendered, utils) { completions++ })
+        assertFalse(orchestrator.loadState(rendered, null) { completions++ })
+        assertFalse(orchestrator.loadState(null, utils))
+
+        assertEquals(2, completions)
+        verify(exactly = 0) { utils.loadState(any()) }
+    }
+
+    @Test
+    fun `saveState sem RetroView ou utils so avisa`() {
+        val (retroView, _) = mockRetroView(initialFrameSpeed = 1)
+        val utils = mockk<RetroViewUtils>(relaxed = true)
+        var completions = 0
+        val orchestrator = SaveLoadOrchestrator()
+
+        orchestrator.saveState(null, utils) { completions++ }
+        orchestrator.saveState(retroView, null) { completions++ }
+        orchestrator.saveState(null, null)
+
+        assertEquals(2, completions)
+        verify(exactly = 0) { utils.saveState(any()) }
+    }
+
+    @Test
+    fun `saveState em velocidade normal salva na hora e avisa`() {
+        val (retroView, glRetroView) = mockRetroView(initialFrameSpeed = 2)
+        val utils = mockk<RetroViewUtils>(relaxed = true)
+        var completed = false
+
+        SaveLoadOrchestrator().saveState(retroView, utils) { completed = true }
+
+        verify(exactly = 1) { utils.saveState(retroView) }
+        assertEquals(2, glRetroView.frameSpeed)
+        assertTrue(completed)
+    }
+
+    @Test
+    fun `saveState pausado avisa depois do atraso`() {
+        val (retroView, _) = mockRetroView(initialFrameSpeed = 0)
+        var completed = false
+
+        SaveLoadOrchestrator().saveState(retroView, mockk(relaxed = true)) { completed = true }
+        assertFalse(completed)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(200))
+
+        assertTrue(completed)
+    }
+
+    @Test
+    fun `resetGame reinicia o core e avisa`() {
+        val (retroView, glRetroView) = mockRetroView(initialFrameSpeed = 1)
+        var completions = 0
+        val orchestrator = SaveLoadOrchestrator()
+
+        orchestrator.resetGame(retroView) { completions++ }
+        orchestrator.resetGame(null) { completions++ }
+        orchestrator.resetGame(retroView)
+
+        verify(exactly = 2) { glRetroView.reset() }
+        assertEquals(2, completions)
     }
 }

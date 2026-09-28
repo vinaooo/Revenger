@@ -454,6 +454,30 @@ class NavigationEventProcessor_test {
         assertTrue(menuClosedCalls.isEmpty())
     }
 
+    @Test
+    fun `navigateBack no principal com pilha cheia restaura o estado anterior sem fechar`() {
+        stateManager.pushCurrentState() // MAIN, index 0
+        stateManager.updateSelectedIndex(2)
+        stateManager.pushCurrentState() // MAIN, index 2
+        every { fragmentAdapter.navigateBack() } returns true
+
+        assertEquals(true, processor.navigateBack())
+
+        assertEquals(MenuType.MAIN, stateManager.currentMenu)
+        assertEquals(2, stateManager.selectedItemIndex)
+        assertEquals(1, stateManager.getStackSize())
+        assertTrue(menuClosedCalls.isEmpty())
+    }
+
+    @Test
+    fun `navigateDown sem fragment registrado volta o indice para zero`() {
+        stateManager.updateSelectedIndex(3)
+
+        processor.navigateDown()
+
+        assertEquals(0, stateManager.selectedItemIndex)
+    }
+
     // --- updateSelectionVisual ---
 
     @Test

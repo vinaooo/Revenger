@@ -216,9 +216,7 @@ class GameActivityViewModel(application: Application) :
             SubmenuFragmentDismisser(
                     state = submenuFragmentState,
                     menuManager = { menuManager },
-                    menuStateManager = menuStateManager,
-                    isRetroMenu3Open = { isRetroMenu3Open() },
-                    isDismissingAllMenus = { isDismissingAllMenus() }
+                    menuStateManager = menuStateManager
             )
     private val screenshotPreviewController =
             ScreenshotPreviewController(

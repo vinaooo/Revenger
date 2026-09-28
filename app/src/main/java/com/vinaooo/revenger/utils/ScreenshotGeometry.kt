@@ -81,25 +81,16 @@ object ScreenshotGeometry {
 
     /**
      * Decides whether [bounds] represents a real border worth cropping and, if so, the resulting
-     * (width, height). Returns null -- logging why -- when there's nothing to crop.
+     * (width, height). Returns null -- logging why -- when there's nothing to crop. Each side is
+     * scanned at most [MAX_BORDER_CROP_RATIO] inward, so the content box always has a positive
+     * size.
      */
     private fun resolveCropSize(bounds: ContentBounds, width: Int, height: Int): Pair<Int, Int>? {
         if (isBorderNegligible(bounds, width, height)) {
-            return logCropSkipped(isError = false, "Auto-crop: No significant black borders detected")
+            Log.d(TAG, "Auto-crop: No significant black borders detected")
+            return null
         }
-
-        val cropWidth = bounds.right - bounds.left + 1
-        val cropHeight = bounds.bottom - bounds.top + 1
-        return if (cropWidth <= 0 || cropHeight <= 0) {
-            logCropSkipped(isError = true, "Auto-crop: Invalid crop dimensions, skipping")
-        } else {
-            cropWidth to cropHeight
-        }
-    }
-
-    private fun logCropSkipped(isError: Boolean, message: String): Pair<Int, Int>? {
-        if (isError) Log.w(TAG, message) else Log.d(TAG, message)
-        return null
+        return (bounds.right - bounds.left + 1) to (bounds.bottom - bounds.top + 1)
     }
 
     /** The detected non-black content box, in the source bitmap's own pixel coordinates. */

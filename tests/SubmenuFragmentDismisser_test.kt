@@ -1,6 +1,9 @@
 package com.vinaooo.revenger.viewmodels.menu
 
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import com.vinaooo.revenger.ui.retromenu3.MenuManager
+import com.vinaooo.revenger.ui.retromenu3.MenuState
 import com.vinaooo.revenger.ui.retromenu3.MenuStateManager
 import com.vinaooo.revenger.ui.retromenu3.MenuSystemState
 import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
@@ -10,6 +13,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -36,9 +40,7 @@ class SubmenuFragmentDismisser_test {
                 SubmenuFragmentDismisser(
                         state = state,
                         menuManager = { menuManagerMock },
-                        menuStateManager = menuStateManager,
-                        isRetroMenu3Open = { false },
-                        isDismissingAllMenus = { false }
+                        menuStateManager = menuStateManager
                 )
     }
 
@@ -102,9 +104,7 @@ class SubmenuFragmentDismisser_test {
                 SubmenuFragmentDismisser(
                         state = localState,
                         menuManager = { currentMenuManager },
-                        menuStateManager = MenuStateManager(),
-                        isRetroMenu3Open = { false },
-                        isDismissingAllMenus = { false }
+                        menuStateManager = MenuStateManager()
                 )
         val laterMenuManager = mockk<MenuManager>(relaxed = true)
         currentMenuManager = laterMenuManager
@@ -113,5 +113,48 @@ class SubmenuFragmentDismisser_test {
 
         verify(exactly = 1) { laterMenuManager.navigateToState(any()) }
         verify { initialMenuManager wasNot Called }
+    }
+
+    private fun addedSettingsWithBackStack(backStackCount: Int): FragmentManager {
+        val fragmentManager = mockk<FragmentManager>(relaxed = true)
+        every { fragmentManager.backStackEntryCount } returns backStackCount
+        val activity = mockk<FragmentActivity>()
+        every { activity.supportFragmentManager } returns fragmentManager
+        val fragment = mockk<SettingsMenuFragment>(relaxed = true)
+        every { fragment.isAdded } returns true
+        every { fragment.activity } returns activity
+        state.settingsMenuFragment = fragment
+        return fragmentManager
+    }
+
+    @Test
+    fun `dismiss com back stack tira o submenu da pilha`() {
+        val fragmentManager = addedSettingsWithBackStack(backStackCount = 1)
+
+        dismisser.dismissSettingsMenu()
+
+        verify(exactly = 1) { fragmentManager.popBackStackImmediate() }
+        assertNull(state.settingsMenuFragment)
+    }
+
+    @Test
+    fun `dismiss com back stack vazia nao tira nada da pilha mas limpa o campo`() {
+        val fragmentManager = addedSettingsWithBackStack(backStackCount = 0)
+
+        dismisser.dismissSettingsMenu()
+
+        verify(exactly = 0) { fragmentManager.popBackStackImmediate() }
+        assertNull(state.settingsMenuFragment)
+        verify { menuManagerMock.navigateToState(MenuState.MAIN_MENU) }
+    }
+
+    @Test
+    fun `dismiss sem fragment aberto nao faz nada`() {
+        dismisser.dismissSettingsMenu()
+        dismisser.dismissProgress()
+        dismisser.dismissExit()
+        dismisser.dismissAboutMenu()
+
+        verify { menuManagerMock wasNot Called }
     }
 }

@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.view.View
 import androidx.test.core.app.ApplicationProvider
@@ -7,6 +8,7 @@ import com.vinaooo.revenger.managers.SessionSlotTracker
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -96,6 +98,20 @@ class GlowAnimationController_test {
     }
 
     @Test
+    fun `stop cancels the running glow animation`() {
+        val controller = GlowAnimationController()
+        val glowView = View(context)
+        controller.apply(glowView, isLastUsed = true, isSelected = false)
+        val animator = activeAnimator(controller)
+        assertTrue(animator?.isStarted == true)
+
+        controller.stop()
+
+        assertFalse(animator?.isStarted == true)
+        assertNull(activeAnimator(controller))
+    }
+
+    @Test
     fun `stop does not throw when nothing is animating`() {
         val controller = GlowAnimationController()
 
@@ -122,4 +138,8 @@ class GlowAnimationController_test {
 
         assertTrue(invoked)
     }
+
+    private fun activeAnimator(controller: GlowAnimationController): ValueAnimator? =
+            GlowAnimationController::class.java.getDeclaredField("activeGlowAnimator").apply { isAccessible = true }
+                    .get(controller) as ValueAnimator?
 }

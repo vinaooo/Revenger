@@ -2,6 +2,7 @@ package com.vinaooo.revenger.views
 
 import android.os.Looper
 import com.vinaooo.revenger.R
+import java.time.Duration
 import com.vinaooo.revenger.ui.splash.CRTBootView
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -68,5 +69,17 @@ class SplashActivity_test {
         activity.onConfigurationChanged(activity.resources.configuration)
 
         assertFalse(activity.isFinishing)
+    }
+
+    private fun isReady(): Boolean =
+            SplashActivity::class.java.getDeclaredField("isReady").apply { isAccessible = true }.getBoolean(activity)
+
+    @Test
+    fun `the native splash is released once the layout has had time to settle`() {
+        assertFalse(isReady())
+
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100))
+
+        assertTrue(isReady())
     }
 }
