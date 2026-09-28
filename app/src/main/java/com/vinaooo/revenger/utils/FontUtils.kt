@@ -6,10 +6,7 @@ object FontUtils : TypefaceLookup by TypefaceProvider() {
 
     /** Aplica a fonte selecionada a um TextView */
     fun applySelectedFont(context: Context, textView: android.widget.TextView) {
-        val typeface = getSelectedTypeface(context)
-        if (typeface != null) {
-            textView.typeface = typeface
-        }
+        textView.typeface = getSelectedTypeface(context)
     }
 
     /** Applies configured capitalization to the text of a TextView */

@@ -126,7 +126,7 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
   - `NavigationController`: tests for submenu vs main registration, `restoreState` and `closeMenuExternal`. Deleted a try/catch around a log call, and `selectItem` uses `require`.
   - `MenuOpenHandler`: deleted the two try/catch blocks around log calls.
 
-### [x] 9. `test/small-utils` — this PR
+### [x] 9. `test/small-utils` — done in PR #161
 - `FontUtils`, `OrientationManager`, `EventQueue.shouldDebounce`, `ProfilingSessionController`, `TypefaceProvider`, `MenuLayoutConfig`, `GamePadLayoutAdjuster`, `LogSaver`.
 - Delete the remaining impossible pre-API-30 checks: `RotationController`, `ScreenshotPreviewController`, `ScreenshotCaptureUtil`, `CroppedScreenshotStore`.
 - Done:
@@ -137,7 +137,7 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
   - Code nothing called: `MenuLayoutConfig`'s `wrapDialogContainerVertically`, `EventQueue.peek`/`isEmpty`/`size`, `FontUtils`' vararg `applySelectedFont`, and the profiler's empty checkpoint and summary.
   - Catches that can't fire: three named `expectedUnreachable`; `NotFoundException` on strings defined in `res/values`; `NameNotFoundException` on the app's own package; `UninitializedPropertyAccessException` in the game-screen gamepad code.
   - Two duplicated `when`s: capitalization in `FontUtils`, debounce windows in `EventQueue`.
-- Found, not changed: `TypefaceProvider`'s fixed pixelify, micro5 and tiny5 paths point at files that don't exist, so those getters always return the system font. Nothing reaches them, because `getSelectedTypeface` loads `fonts/<rm_font>.ttf` first and those files exist. Whether to remove the getters (a `FontUtils` public-surface change) is the user's call.
+- Found: `TypefaceProvider`'s fixed pixelify, micro5 and tiny5 getters pointed at files that don't exist (so they always returned the system font), and nothing reached them. The user chose to remove them; done in their own PR (`refactor/remove-broken-font-shortcuts`).
 
 ### [ ] 10. `chore/raise-kover-floor-4`
 - Run `./gradlew coverageAll -PskipAssetStaging`, raise `kover { verify { rule } }` in `app/build.gradle` to the new values rounded down, update `CLAUDE.md`, fill in the Result section.
