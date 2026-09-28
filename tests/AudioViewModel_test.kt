@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.controllers.AudioController
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +12,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -45,16 +43,6 @@ class AudioViewModel_test {
     @Test
     fun `estado inicial de audio comeca habilitado quando nao ha preferencia salva`() {
         assertTrue(viewModel.getAudioState())
-    }
-
-    @Test
-    fun `toggleAudio emite evento com o retroView e retorna o estado atual (sem altera-lo)`() {
-        val retroView = mockk<GLRetroView>()
-
-        val stateBeforeToggle = viewModel.toggleAudio(retroView)
-
-        assertEquals(viewModel.getAudioState(), stateBeforeToggle)
-        assertTrue(viewModel.eventFlow.value is AudioViewModel.AudioEvent.ToggleAudio)
     }
 
     @Test

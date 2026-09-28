@@ -15,7 +15,7 @@ import android.util.Log
  * - **Navegação**: NAVIGATE(targetMenu), BACK
  * - **Utility**: SAVE_LOG, NONE (itens desabilitados)
  *
- * @see MenuManager Processa e roteia as ações
+ * @see MenuActionHandler Executa as ações
  * @see MenuFragment Produz ações via navegação do usuário
  */
 sealed class MenuAction {
@@ -41,35 +41,13 @@ sealed class MenuAction {
 }
 
 /**
- * Sistema de eventos unificado para interações de menu.
+ * Eventos que o [MenuManager] envia ao seu listener: hoje, só a mudança de estado do menu
+ * ([StateChanged]).
  *
- * **Arquitetura Event-Driven (Phase 4+)**: Substitui arquitetura híbrida de chamadas diretas +
- * callbacks por abordagem consistente event-driven. Benefícios:
- * - **Desacoplamento**: Componentes comunicam via eventos, não referências diretas
- * - **Testabilidade**: Fácil mockar e verificar fluxo de eventos
- * - **Manutenibilidade**: Adicionar novos eventos não quebra código existente
- *
- * **Tipos de Eventos**:
- * - **Navigation**: NavigateUp, NavigateDown, Confirm, Back
- * - **Action**: Action(menuAction) - wrapper para MenuAction
- * - **State**: StateChanged(from, to), MenuClosed
- *
- * @see MenuManager Processa eventos e atualiza estado
- * @see MenuAction Ações concretas executadas pelos eventos
+ * @see MenuManager.MenuManagerListener
  */
 sealed class MenuEvent {
-    // Navigation events
-    object NavigateUp : MenuEvent()
-    object NavigateDown : MenuEvent()
-    object Confirm : MenuEvent()
-    object Back : MenuEvent()
-
-    // Action events
-    data class Action(val action: MenuAction) : MenuEvent()
-
-    // State change events
     data class StateChanged(val from: MenuState, val to: MenuState) : MenuEvent()
-    object MenuClosed : MenuEvent()
 }
 
 /**
@@ -386,71 +364,21 @@ class MenuFragmentRegistry(private val stateManager: MenuStateManager) : MenuFra
 }
 
 /**
- * Sends the unified [MenuEvent]s (`NavigateUp`/`NavigateDown`/`Confirm`/`Back`/`Action`) to a
- * [MenuManager.MenuManagerListener]. Split out of [MenuManager] and exposed back on it unchanged
- * via interface delegation.
- */
-interface MenuEventSender {
-    /** Send navigation up event */
-    fun sendNavigateUp()
-
-    /** Send navigation down event */
-    fun sendNavigateDown()
-
-    /** Send confirm event */
-    fun sendConfirm()
-
-    /** Send back event */
-    fun sendBack()
-
-    /** Send menu action event */
-    fun sendAction(action: MenuAction)
-}
-
-class MenuEventDispatcher(private val listener: MenuManager.MenuManagerListener) : MenuEventSender {
-    override fun sendNavigateUp() {
-        listener.onMenuEvent(MenuEvent.NavigateUp)
-    }
-
-    override fun sendNavigateDown() {
-        listener.onMenuEvent(MenuEvent.NavigateDown)
-    }
-
-    override fun sendConfirm() {
-        listener.onMenuEvent(MenuEvent.Confirm)
-    }
-
-    override fun sendBack() {
-        listener.onMenuEvent(MenuEvent.Back)
-    }
-
-    override fun sendAction(action: MenuAction) {
-        listener.onMenuEvent(MenuEvent.Action(action))
-    }
-}
-
-/**
  * Central menu manager that coordinates all menu fragments and handles state transitions. This
  * implements the State Machine pattern for menu navigation.
  *
- * Fragment registration ([MenuFragmentRegistration]) and unified event dispatch
- * ([MenuEventSender]) are delegated to [MenuFragmentRegistry] and [MenuEventDispatcher]
- * respectively; both remain callable on `MenuManager` exactly as before.
+ * Fragment registration ([MenuFragmentRegistration]) is delegated to [MenuFragmentRegistry] and
+ * remains callable on `MenuManager` exactly as before.
  */
 class MenuManager(
         private val listener: MenuManagerListener,
         private val stateManager: MenuStateManager,
-        private val fragmentRegistry: MenuFragmentRegistration = MenuFragmentRegistry(stateManager),
-        private val eventSender: MenuEventSender = MenuEventDispatcher(listener)
-) : MenuFragmentRegistration by fragmentRegistry, MenuEventSender by eventSender {
+        private val fragmentRegistry: MenuFragmentRegistration = MenuFragmentRegistry(stateManager)
+) : MenuFragmentRegistration by fragmentRegistry {
 
     interface MenuManagerListener {
         fun onMenuEvent(event: MenuEvent)
     }
-
-    // Protection against simultaneous confirm operations
-    private var isProcessingConfirm = false
-    private var isProcessingBack = false
 
     /** Get the current menu state */
     fun getCurrentState(): MenuState = stateManager.getCurrentState()
@@ -461,103 +389,6 @@ class MenuManager(
         stateManager.changeState(newState)
         Log.d(TAG, "navigateToState: $oldState -> $newState")
         listener.onMenuEvent(MenuEvent.StateChanged(oldState, newState))
-    }
-
-    /** Handle a menu action */
-    fun handleAction(action: MenuAction) {
-        when (action) {
-            is MenuAction.NAVIGATE -> {
-                navigateToState(action.targetMenu)
-            }
-            MenuAction.BACK -> {
-                if (stateManager.getCurrentState() != MenuState.MAIN_MENU) {
-                    navigateToState(MenuState.MAIN_MENU)
-                } else {
-                    listener.onMenuEvent(MenuEvent.MenuClosed)
-                }
-            }
-            else -> {
-                listener.onMenuEvent(MenuEvent.Action(action))
-            }
-        }
-    }
-
-    /** Navigate up in current menu */
-    fun navigateUp(): Boolean = attachedFragment("navigateUp")?.onNavigateUp() ?: false
-
-    /** Navigate down in current menu */
-    fun navigateDown(): Boolean = attachedFragment("navigateDown")?.onNavigateDown() ?: false
-
-    /** Confirm current selection */
-    fun confirm(): Boolean {
-        // Prevent simultaneous confirm operations
-        if (isProcessingConfirm) {
-            Log.d(TAG, "[CONFIRM] Already in progress, ignoring")
-            return false
-        }
-
-        isProcessingConfirm = true
-        try {
-            return attachedFragment("confirm")?.onConfirm() ?: false
-        } finally {
-            isProcessingConfirm = false
-        }
-    }
-
-    /** Go back */
-    fun back(): Boolean {
-        // Prevent simultaneous back operations
-        if (isProcessingBack) {
-            Log.d(TAG, "[BACK] Already in progress, ignoring")
-            return false
-        }
-
-        // Prevent back operations while confirm is in progress (critical dismiss operation)
-        if (isProcessingConfirm) {
-            Log.d(TAG, "[BACK] confirm() in progress, ignoring back during dismiss")
-            return false
-        }
-
-        isProcessingBack = true
-        try {
-            val fragmentHandled = attachedFragment("back")?.onBack() ?: false
-            // If fragment didn't handle it (returned false) and we're in main menu, close the menu
-            if (!fragmentHandled && stateManager.getCurrentState() == MenuState.MAIN_MENU) {
-                listener.onMenuEvent(MenuEvent.MenuClosed)
-                return true
-            }
-            return fragmentHandled
-        } finally {
-            isProcessingBack = false
-        }
-    }
-
-    /** Get current selected index */
-    fun getCurrentSelectedIndex(): Int =
-            attachedFragment("getCurrentSelectedIndex")?.getCurrentSelectedIndex() ?: 0
-
-    /** Set selected index */
-    fun setSelectedIndex(index: Int) {
-        attachedFragment("setSelectedIndex")?.setSelectedIndex(index)
-    }
-
-    /**
-     * The current menu fragment when it can take input: an androidx Fragment that is added and
-     * has a context. Otherwise logs why [action] is skipped and returns null.
-     */
-    private fun attachedFragment(action: String): MenuFragment? {
-        val fragment = getCurrentFragment()
-        val androidFragment = fragment as? androidx.fragment.app.Fragment
-        if (fragment != null && androidFragment?.isAdded == true && androidFragment.context != null) {
-            return fragment
-        }
-        Log.w(
-                TAG,
-                "[NAV] $action: Fragment not available or not attached - " +
-                        "fragment=${fragment ?: "none"}, isAdded=${androidFragment?.isAdded == true}, " +
-                        "hasContext=${androidFragment?.context != null}"
-        )
-        return null
     }
 
     private companion object {

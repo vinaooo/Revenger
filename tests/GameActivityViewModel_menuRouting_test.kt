@@ -81,38 +81,6 @@ class GameActivityViewModel_menuRouting_test {
 
     // --- onMenuEvent ---
 
-    @Test
-    fun `eventos de navegacao vao para o MenuManager`() {
-        val menuManager = replacePrivateField<MenuManager>("menuManager")
-
-        viewModel.onMenuEvent(MenuEvent.NavigateUp)
-        viewModel.onMenuEvent(MenuEvent.NavigateDown)
-        viewModel.onMenuEvent(MenuEvent.Confirm)
-        viewModel.onMenuEvent(MenuEvent.Back)
-
-        verify(exactly = 1) { menuManager.navigateUp() }
-        verify(exactly = 1) { menuManager.navigateDown() }
-        verify(exactly = 1) { menuManager.confirm() }
-        verify(exactly = 1) { menuManager.back() }
-    }
-
-    @Test
-    fun `MenuClosed fecha todos os menus pelo NavigationController`() {
-        viewModel.onMenuEvent(MenuEvent.MenuClosed)
-
-        val event = sentNavigationEvent()
-        assertTrue(event is NavigationEvent.CloseAllMenus)
-        assertEquals(null, (event as NavigationEvent.CloseAllMenus).keyCode)
-        assertEquals(InputSource.PHYSICAL_GAMEPAD, event.inputSource)
-    }
-
-    @Test
-    fun `MenuClosed sem NavigationController nao falha`() {
-        viewModel.navigationController = null
-
-        viewModel.onMenuEvent(MenuEvent.MenuClosed)
-    }
-
     // --- callbacks wired into ControllerInput ---
 
     @Test
