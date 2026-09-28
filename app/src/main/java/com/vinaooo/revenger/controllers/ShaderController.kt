@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.retroview.RetroView
+import com.vinaooo.revenger.utils.ShaderType
 
 /** Controller for dynamic real-time shader management */
 class ShaderController(
@@ -17,7 +18,7 @@ class ShaderController(
     }
 
     // List of available shaders
-    val availableShaders = arrayOf("disabled", "sharp", "crt", "lcd", "upscale1", "upscale2", "upscale3")
+    val availableShaders = ShaderType.entries.map { it.configName }.toTypedArray()
 
     // Current shader
     private var currentShader: String = DEFAULT_SHADER
@@ -84,18 +85,8 @@ class ShaderController(
     fun getCurrentShader(): String = currentShader
 
     /** Get the display name of the current shader */
-    fun getCurrentShaderDisplayName(): String {
-        return when (currentShader) {
-            "disabled" -> "Disabled"
-            "sharp" -> "Sharp"
-            "crt" -> "CRT"
-            "lcd" -> "LCD"
-            "upscale1" -> "Upscale 1"
-            "upscale2" -> "Upscale 2"
-            "upscale3" -> "Upscale 3"
-            else -> "Unknown"
-        }
-    }
+    fun getCurrentShaderDisplayName(): String =
+            ShaderType.fromConfigName(currentShader)?.displayName ?: "Unknown"
 
     /** Apply the current shader to the RetroView */
     private fun applyCurrentShader() {
