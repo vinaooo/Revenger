@@ -47,34 +47,6 @@ class SpeedViewModel_test {
     }
 
     @Test
-    fun `toggleFastForward inverte o estado a cada chamada e emite o evento`() {
-        val first = viewModel.toggleFastForward()
-        assertTrue(first)
-        assertTrue(viewModel.eventFlow.value is SpeedViewModel.SpeedEvent.ToggleFastForward)
-
-        val second = viewModel.toggleFastForward()
-        assertFalse(second)
-    }
-
-    @Test
-    fun `setGameSpeed limita o valor ao intervalo 1 a 2`() {
-        viewModel.setGameSpeed(10)
-        assertEquals(2, (viewModel.eventFlow.value as SpeedViewModel.SpeedEvent.SetGameSpeed).speed)
-
-        viewModel.setGameSpeed(-5)
-        assertEquals(1, (viewModel.eventFlow.value as SpeedViewModel.SpeedEvent.SetGameSpeed).speed)
-    }
-
-    @Test
-    fun `setGameSpeed emite SetGameSpeed com o valor ja limitado`() {
-        viewModel.setGameSpeed(99)
-
-        val event = viewModel.eventFlow.value
-        assertTrue(event is SpeedViewModel.SpeedEvent.SetGameSpeed)
-        assertEquals(2, (event as SpeedViewModel.SpeedEvent.SetGameSpeed).speed)
-    }
-
-    @Test
     fun `enableFastForward com GLRetroView aplica no controller`() {
         val retroView = mockk<GLRetroView>(relaxed = true)
         val controller = mockk<SpeedController>(relaxed = true)

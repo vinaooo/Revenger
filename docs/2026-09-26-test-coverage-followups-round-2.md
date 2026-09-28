@@ -153,9 +153,8 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
   - Ten callback interfaces: `RetroMenu3Listener` and its three parents, `ExitListener`, `ProgressListener`, `SettingsMenuListener`, and the Save/Load/Manage slot listeners.
   - The `onBackToMainMenu` and `onAboutBackToMainMenu` overrides that nothing called. The Save/Load/Manage slot listeners were never wired in the app: `setListener` was only ever called from tests. `AboutListener` stays, and `RetroMenu3Fragment` still implements it.
   - Follow-ups, dead already before this PR and not part of it:
-    - `SpeedViewModel.setGameSpeed` and `toggleFastForward`, which nothing in the app calls.
+    - `SpeedViewModel.setGameSpeed` and `toggleFastForward`, which nothing in the app calls. Done in `chore/remove-unused-speed-code`, together with the repository's game-speed read and write.
     - The ViewModels' `eventFlow`s, which nothing collects.
-    - The repository's game-speed read and write, which only `SpeedViewModel` uses.
     - `hasSaveState` and `getShaderState` (item 5).
 
 ## Won't do
