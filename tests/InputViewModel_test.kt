@@ -53,10 +53,13 @@ class InputViewModel_test {
     }
 
     @Test
-    fun `clearControllerInputState emite o evento de reset do combo`() {
+    fun `clearControllerInputState limpa o key log do combo`() {
+        val keyLog = viewModel.getControllerInput().comboTracker.keyLog
+        keyLog.add(android.view.KeyEvent.KEYCODE_BUTTON_SELECT)
+
         viewModel.clearControllerInputState()
 
-        assertTrue(viewModel.eventFlow.value is InputViewModel.InputEvent.ResetComboAlreadyTriggered)
+        assertTrue(keyLog.isEmpty())
     }
 
     @Test
@@ -78,10 +81,7 @@ class InputViewModel_test {
     }
 
     @Test
-    fun `controllerInput dispara HandleSelectStartCombo quando o combo shouldHandle callback e chamado`() {
-        val handled = viewModel.getControllerInput().shouldHandleSelectStartCombo.invoke()
-
-        assertTrue(handled)
-        assertTrue(viewModel.eventFlow.value is InputViewModel.InputEvent.HandleSelectStartCombo)
+    fun `o callback shouldHandle do combo sempre aceita o combo`() {
+        assertTrue(viewModel.getControllerInput().shouldHandleSelectStartCombo.invoke())
     }
 }

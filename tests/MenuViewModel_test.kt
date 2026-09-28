@@ -1,7 +1,6 @@
 package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
-import androidx.fragment.app.FragmentActivity
 import androidx.test.core.app.ApplicationProvider
 import com.vinaooo.revenger.ui.retromenu3.MenuState
 import com.vinaooo.revenger.ui.retromenu3.MenuSystemState
@@ -11,7 +10,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -20,13 +18,11 @@ import org.robolectric.annotation.Config
 class MenuViewModel_test {
 
     private lateinit var viewModel: MenuViewModel
-    private lateinit var activity: FragmentActivity
 
     @Before
     fun setUp() {
         val app = ApplicationProvider.getApplicationContext<Application>()
         viewModel = MenuViewModel(app)
-        activity = Robolectric.buildActivity(FragmentActivity::class.java).setup().get()
     }
 
     @Test
@@ -38,31 +34,26 @@ class MenuViewModel_test {
     }
 
     @Test
-    fun `showRetroMenu3 emite o evento e marca o menu como aberto`() {
-        viewModel.showRetroMenu3(activity)
+    fun `showRetroMenu3 marca o menu como aberto`() {
+        viewModel.showRetroMenu3()
 
         assertTrue(viewModel.isRetroMenu3Open)
-        val event = viewModel.eventFlow.value
-        assertTrue(event is MenuViewModel.MenuEvent.ShowRetroMenu3)
-        assertEquals(activity, (event as MenuViewModel.MenuEvent.ShowRetroMenu3).activity)
     }
 
     @Test
-    fun `dismissRetroMenu3 fecha o menu e emite o evento`() {
-        viewModel.showRetroMenu3(activity)
+    fun `dismissRetroMenu3 fecha o menu`() {
+        viewModel.showRetroMenu3()
 
         viewModel.dismissRetroMenu3()
 
         assertFalse(viewModel.isRetroMenu3Open)
-        assertTrue(viewModel.eventFlow.value is MenuViewModel.MenuEvent.DismissRetroMenu3)
     }
 
     @Test
-    fun `dismissAllMenus marca dismissingAllMenus e emite o evento`() {
+    fun `dismissAllMenus marca dismissingAllMenus`() {
         viewModel.dismissAllMenus()
 
         assertTrue(viewModel.isDismissingAllMenus)
-        assertTrue(viewModel.eventFlow.value is MenuViewModel.MenuEvent.DismissAllMenus)
     }
 
     @Test
@@ -83,12 +74,5 @@ class MenuViewModel_test {
         viewModel.updateMenuState(MenuState.SETTINGS_MENU)
 
         assertFalse(viewModel.isSettingsMenuOpen())
-    }
-
-    @Test
-    fun `clearControllerInputState emite o evento correspondente`() {
-        viewModel.clearControllerInputState()
-
-        assertTrue(viewModel.eventFlow.value is MenuViewModel.MenuEvent.ClearControllerInputState)
     }
 }

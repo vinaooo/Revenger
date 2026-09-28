@@ -2,9 +2,6 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.gamepad.GamePad
 import com.vinaooo.revenger.input.ControllerInput
@@ -15,20 +12,6 @@ import java.lang.ref.WeakReference
  * virtual controls, and input processing.
  */
 class InputViewModel(application: Application) : AndroidViewModel(application) {
-
-    sealed class InputEvent {
-        object Idle : InputEvent()
-        object HandleSelectStartCombo : InputEvent()
-        data class SetupGamePads(
-                val activity: androidx.fragment.app.FragmentActivity,
-                val leftContainer: android.widget.FrameLayout,
-                val rightContainer: android.widget.FrameLayout
-        ) : InputEvent()
-        object ResetComboAlreadyTriggered : InputEvent()
-    }
-
-    private val _eventFlow = MutableStateFlow<InputEvent>(InputEvent.Idle)
-    val eventFlow: StateFlow<InputEvent> = _eventFlow.asStateFlow()
 
 
     private val controllerInput = ControllerInput()
@@ -48,10 +31,7 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun setupControllerInputCallbacks() {
-        controllerInput.shouldHandleSelectStartCombo = {
-            _eventFlow.value = InputEvent.HandleSelectStartCombo
-            true
-        }
+        controllerInput.shouldHandleSelectStartCombo = { true }
     }
 
     // ========== CONFIGURATION METHODS ==========
@@ -61,14 +41,6 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // ========== GAMEPAD METHODS ==========
-
-    fun setupGamePads(
-            activity: androidx.fragment.app.FragmentActivity,
-            leftContainer: android.widget.FrameLayout,
-            rightContainer: android.widget.FrameLayout
-    ) {
-        _eventFlow.value = InputEvent.SetupGamePads(activity, leftContainer, rightContainer)
-    }
 
     fun updateGamePadVisibility(shouldShow: Boolean) {
         val visibility = if (shouldShow) android.view.View.VISIBLE else android.view.View.GONE
@@ -89,7 +61,6 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
                 "InputViewModel",
                 "🔥 [CLEAR_INPUT_STATE] controllerInput.clearKeyLog() completed"
         )
-        _eventFlow.value = InputEvent.ResetComboAlreadyTriggered
         android.util.Log.d(
                 "InputViewModel",
                 "🔥 [CLEAR_INPUT_STATE] ===== clearControllerInputState() COMPLETED ====="

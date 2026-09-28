@@ -280,17 +280,16 @@ class GameActivityViewModel_retroMenu3Lifecycle_test {
     // ---------------------------------------------------------------------------------------
 
     @Test
-    fun `clearControllerInputState emite o reset do combo no InputViewModel apos o delay`() {
-        viewModel.clearControllerInputState()
-
+    fun `clearControllerInputState limpa o key log do InputViewModel apos o delay`() {
         val inputViewModel = getPrivateField<InputViewModel>(viewModel, "inputViewModel")
-        assertTrue(inputViewModel.eventFlow.value is InputViewModel.InputEvent.Idle)
+        val keyLog = inputViewModel.getControllerInput().comboTracker.keyLog
+        keyLog.add(android.view.KeyEvent.KEYCODE_BUTTON_START)
+
+        viewModel.clearControllerInputState()
+        assertTrue(keyLog.isNotEmpty())
 
         shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(250))
 
-        assertTrue(
-                inputViewModel.eventFlow.value is
-                        InputViewModel.InputEvent.ResetComboAlreadyTriggered
-        )
+        assertTrue(keyLog.isEmpty())
     }
 }

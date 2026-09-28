@@ -9,7 +9,6 @@ interface PlaybackStateFacade {
     fun getAudioState(): Boolean
     fun getFastForwardState(): Boolean
     fun onToggleShader(): String
-    fun getShaderState(): String
     fun getShaderDisplayName(): String
 }
 
@@ -25,8 +24,6 @@ class PlaybackStateController(
     override fun getFastForwardState(): Boolean = speedViewModel.getFastForwardState()
 
     override fun onToggleShader(): String = shaderViewModel.toggleShader()
-
-    override fun getShaderState(): String = shaderViewModel.getShaderState()
 
     override fun getShaderDisplayName(): String = shaderViewModel.getCurrentShaderDisplayName()
 }

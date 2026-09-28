@@ -2,11 +2,8 @@ package com.vinaooo.revenger.viewmodels.menu
 
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.utils.RetroViewUtils
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -72,21 +69,5 @@ class SaveLoadCentralizedController_test {
         controller.resetGameCentralized(onComplete)
 
         verify(exactly = 1) { saveLoadOrchestrator.resetGame(currentRetroView, onComplete) }
-    }
-
-    @Test
-    fun `hasSaveState delega para retroViewUtils`() {
-        val utils = mockk<RetroViewUtils>(relaxed = true)
-        every { utils.hasSaveState() } returns true
-        currentRetroViewUtils = utils
-
-        assertTrue(controller.hasSaveState())
-    }
-
-    @Test
-    fun `hasSaveState retorna false quando retroViewUtils e nulo`() {
-        currentRetroViewUtils = null
-
-        assertFalse(controller.hasSaveState())
     }
 }

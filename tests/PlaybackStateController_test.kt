@@ -62,13 +62,6 @@ class PlaybackStateController_test {
     }
 
     @Test
-    fun `getShaderState delega para shaderViewModel`() {
-        every { shaderViewModel.getShaderState() } returns "sharp"
-
-        assertEquals("sharp", controller.getShaderState())
-    }
-
-    @Test
     fun `getShaderDisplayName delega para shaderViewModel`() {
         every { shaderViewModel.getCurrentShaderDisplayName() } returns "Sharp"
 
