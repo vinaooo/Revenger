@@ -58,7 +58,7 @@ Found while sampling the gaps; check each one with a rename and compile before d
 ### [x] 2. `refactor/shader-type`: one shader table (#173)
 Shader names are mapped three times: twice in `RetroView` (`applyShaderInRealtime` and `getShaderConfig`) and once in `ShaderController.getCurrentShaderDisplayName`. `utils/ShaderType` already holds display and config names but lacks the three upscale shaders. Add them, give `ShaderType` a lookup by config name and the matching `ShaderConfig`, and make all three places use it. Unknown names keep today's fallbacks: Sharp for rendering, "Unknown" for the display name.
 
-### [ ] 3. `test/retro-view`: `RetroView`
+### [x] 3. `test/retro-view`: `RetroView` (#174)
 Using the spike's setup: ROM copy (and the missing-ROM error), the configured shader, the core variables (including malformed entries and values containing `=`), SRAM loading when the file exists, `dynamicShader`, the frame-rendered and FPS listeners, and pause/resume/destroy.
 
 ### [ ] 4. `test/game-activity`: `GameActivity`
