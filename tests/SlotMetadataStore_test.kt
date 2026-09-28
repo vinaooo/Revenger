@@ -140,4 +140,28 @@ class SlotMetadataStore_test {
         assertEquals("Notes", metadata.getString("description"))
         assertEquals("2026-01-01T00:00:00Z", metadata.getString("timestamp"))
     }
+
+    // Mutation testing: the slotNumber and playTime keys of a new file, and the defaults for a
+    // missing one, went unnoticed by every test. Older app versions read these keys.
+    @Test
+    fun `writeNewMetadata grava todas as chaves do formato do arquivo`() {
+        layout.slotDirectory(3).mkdirs()
+        val metadataFile = layout.metadataFile(3)
+
+        store.writeNewMetadata(metadataFile, slotNumber = 3, name = null, romName = "rom.bin")
+
+        val metadata = JSONObject(metadataFile.readText())
+        assertEquals("Slot 3", metadata.getString("name"))
+        assertEquals(3, metadata.getInt("slotNumber"))
+        assertEquals(0, metadata.getInt("playTime"))
+        assertTrue(metadata.has("timestamp"))
+    }
+
+    @Test
+    fun `readMetadata sem arquivo devolve o nome e o numero padrao do slot`() {
+        val metadata = store.readMetadata(layout.metadataFile(4), slotNumber = 4)
+
+        assertEquals("Slot 4", metadata.getString("name"))
+        assertEquals(4, metadata.getInt("slotNumber"))
+    }
 }
