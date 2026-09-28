@@ -48,7 +48,7 @@ Round 2 listed `GameActivity` and `RetroView` as device-only. Two spikes on 2026
 
 ## TODO (in order)
 
-### [ ] 1. `chore/remove-dead-code-3`: delete code nothing runs
+### [x] 1. `chore/remove-dead-code-3`: delete code nothing runs (#172)
 Found while sampling the gaps; check each one with a rename and compile before deleting:
 - `RetroMenu3ToggleController`: the delayed `Handler` block in the dismiss path only logs.
 - `MenuViewManager.updateMenuState` (empty body), and `animateMenuIn` / `animateMenuOut` if nothing calls them.

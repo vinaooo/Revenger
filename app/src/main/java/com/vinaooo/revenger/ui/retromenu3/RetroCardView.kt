@@ -45,56 +45,30 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     init {
         MenuLogger.lifecycle("RetroCardView init START")
-        try {
-            // Initial setup
-            isClickable = true
+        isClickable = true
 
-            // Transparent background to avoid interfering with child content
-            setBackgroundColor(Color.TRANSPARENT)
+        // Transparent background to avoid interfering with child content
+        setBackgroundColor(Color.TRANSPARENT)
 
-            // Orientation will be defined by XML (horizontal for menu items)
-            // Do not set default orientation to avoid XML conflicts
+        // Orientation will be defined by XML (horizontal for menu items)
+        // Do not set default orientation to avoid XML conflicts
 
-            // Do not apply internal padding for compatibility with existing layouts
-            // Padding is controlled by individual XML layouts
+        // Do not apply internal padding for compatibility with existing layouts
+        // Padding is controlled by individual XML layouts
 
-            updateVisualState()
-            MenuLogger.lifecycle("RetroCardView init COMPLETED")
-            // Neither isClickable=true, setBackgroundColor() nor updateVisualState()'s own
-            // setBackgroundColor() calls document any throwable condition, so there is no
-            // narrower reachable type; this is a defensive "fail loudly with context" wrapper for
-            // an unexpected future platform failure during view construction, kept via detekt's
-            // documented escape hatch instead of @Suppress on the catch.
-        } catch (expectedUnreachable: Exception) {
-            MenuLogger.e("RetroCardView initialization failed: ${expectedUnreachable.message.orEmpty()}", expectedUnreachable)
-            // RuntimeException is genuinely appropriate here (a should-never-happen view
-            // construction failure with no single specific expected cause), so the throw side is
-            // documented and suppressed rather than introducing a one-off exception class.
-            @Suppress("TooGenericExceptionThrown")
-            throw RuntimeException("Failed to initialize RetroCardView: ${expectedUnreachable.message.orEmpty()}", expectedUnreachable)
-        }
+        updateVisualState()
+        MenuLogger.lifecycle("RetroCardView init COMPLETED")
     }
 
     /** Define o estado visual da view */
     fun setState(state: State) {
         MenuLogger.state("setState called: $state (current: $currentState)")
-        try {
-            if (currentState != state) {
-                currentState = state
-                updateVisualState()
-                MenuLogger.state("setState completed: new state $state")
-            } else {
-                MenuLogger.state("setState skipped: state already $state")
-            }
-            // Same rationale as the init{} block: updateVisualState()'s setBackgroundColor()
-            // calls document no throwable condition, so there is no narrower reachable type.
-        } catch (expectedUnreachable: Exception) {
-            MenuLogger.e("Failed to set RetroCardView state to $state: ${expectedUnreachable.message.orEmpty()}", expectedUnreachable)
-            @Suppress("TooGenericExceptionThrown")
-            throw RuntimeException(
-                    "RetroCardView state change failed for state $state: ${expectedUnreachable.message.orEmpty()}",
-                    expectedUnreachable
-            )
+        if (currentState != state) {
+            currentState = state
+            updateVisualState()
+            MenuLogger.state("setState completed: new state $state")
+        } else {
+            MenuLogger.state("setState skipped: state already $state")
         }
     }
 
@@ -103,52 +77,38 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         MenuLogger.state(
                 "updateVisualState called, currentState: $currentState, useBackgroundColor: $useBackgroundColor"
         )
-        try {
-            when (currentState) {
-                State.NORMAL -> {
-                    // Background transparente para estado normal
+        when (currentState) {
+            State.NORMAL -> {
+                // Background transparente para estado normal
+                setBackgroundColor(Color.TRANSPARENT)
+                MenuLogger.state("updateVisualState: NORMAL - background transparent")
+            }
+            State.SELECTED -> {
+                if (useBackgroundColor) {
+                    // Yellow background for selected state (default)
+                    setBackgroundColor(colorSelected)
+                    MenuLogger.state("updateVisualState: SELECTED - background yellow")
+                } else {
+                    // Transparent background for selected state (ProgressFragment)
                     setBackgroundColor(Color.TRANSPARENT)
-                    MenuLogger.state("updateVisualState: NORMAL - background transparent")
-                }
-                State.SELECTED -> {
-                    if (useBackgroundColor) {
-                        // Yellow background for selected state (default)
-                        setBackgroundColor(colorSelected)
-                        MenuLogger.state("updateVisualState: SELECTED - background yellow")
-                    } else {
-                        // Transparent background for selected state (ProgressFragment)
-                        setBackgroundColor(Color.TRANSPARENT)
-                        MenuLogger.state(
-                                "updateVisualState: SELECTED - background transparent (no background mode)"
-                        )
-                    }
-                }
-                State.PRESSED -> {
-                    if (useBackgroundColor) {
-                        // White background for pressed state (default)
-                        setBackgroundColor(colorPressed)
-                        MenuLogger.state("updateVisualState: PRESSED - background white")
-                    } else {
-                        // Background transparente para estado pressionado (ProgressFragment)
-                        setBackgroundColor(Color.TRANSPARENT)
-                        MenuLogger.state(
-                                "updateVisualState: PRESSED - background transparent (no background mode)"
-                        )
-                    }
+                    MenuLogger.state(
+                            "updateVisualState: SELECTED - background transparent (no background mode)"
+                    )
                 }
             }
-            // setBackgroundColor() documents no throwable condition, so there is no narrower
-            // reachable type; kept as a defensive "fail loudly with context" wrapper.
-        } catch (expectedUnreachable: Exception) {
-            MenuLogger.e(
-                    "Failed to update RetroCardView visual state ($currentState): ${expectedUnreachable.message.orEmpty()}",
-                    expectedUnreachable
-            )
-            @Suppress("TooGenericExceptionThrown")
-            throw RuntimeException(
-                    "RetroCardView visual update failed for state $currentState: ${expectedUnreachable.message.orEmpty()}",
-                    expectedUnreachable
-            )
+            State.PRESSED -> {
+                if (useBackgroundColor) {
+                    // White background for pressed state (default)
+                    setBackgroundColor(colorPressed)
+                    MenuLogger.state("updateVisualState: PRESSED - background white")
+                } else {
+                    // Background transparente para estado pressionado (ProgressFragment)
+                    setBackgroundColor(Color.TRANSPARENT)
+                    MenuLogger.state(
+                            "updateVisualState: PRESSED - background transparent (no background mode)"
+                    )
+                }
+            }
         }
     }
 

@@ -88,7 +88,6 @@ class ExitFragment : MenuFragmentBase() {
 
         setupViews(view)
         setupClickListeners()
-        // REMOVED: animateMenuIn() - submenu now appears instantly without animation
 
         // REMOVED: No longer closes when touching the sides
         // Menu only closes when selecting Back

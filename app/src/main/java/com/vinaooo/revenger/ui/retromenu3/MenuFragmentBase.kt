@@ -167,17 +167,6 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
         updateSelectionVisualInternal()
     }
 
-    /** Validates that the current index is valid */
-    protected fun isValidSelection(itemsCount: Int): Boolean {
-        return _currentSelectedIndex in 0 until itemsCount
-    }
-
-    /** Resets selection to the first item */
-    protected fun resetSelection() {
-        _currentSelectedIndex = 0
-        updateSelectionVisualInternal()
-    }
-
     companion object {
         /** Delay for touch item activation in milliseconds */
         const val TOUCH_ACTIVATION_DELAY_MS = 100L

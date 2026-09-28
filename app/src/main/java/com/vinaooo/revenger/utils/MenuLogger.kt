@@ -19,28 +19,13 @@ object MenuLogger :
         d("[LIFECYCLE] $message")
     }
 
-    /** Log specifically for navigation */
-    fun navigation(message: String) {
-        d("[NAV] $message")
-    }
-
     /** Log specifically for actions */
     fun action(message: String) {
         d("[ACTION] $message")
     }
 
-    /** Log specifically for animations/dismiss */
-    fun animation(message: String) {
-        d("[ANIMATION] $message")
-    }
-
     /** Log specifically for menu state */
     fun state(message: String) {
         d("[STATE] $message")
-    }
-
-    /** Log specifically for performance */
-    fun performance(message: String) {
-        d("[PERFORMANCE] $message")
     }
 }

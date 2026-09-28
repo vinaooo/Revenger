@@ -83,15 +83,6 @@ class SpeedController(
     }
 
     /**
-     * Gets the current speed from RetroView
-     * @param retroView RetroView to check the speed
-     * @return current speed
-     */
-    fun getCurrentSpeed(retroView: GLRetroView): Int {
-        return retroView.frameSpeed
-    }
-
-    /**
      * Initializes the speed state in RetroView based on saved preferences FIX: Never apply
      * frameSpeed = 0 (paused) on initialization If savedSpeed == 0, it means the app was closed
      * with menu open In this case, restore to 1 (normal speed)

@@ -90,7 +90,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
         setupViews(view)
         setupClickListeners()
         updateMenuState()
-        // REMOVED: animateMenuIn() - submenu now appears instantly without animation
 
         // PHASE 3: Register with NavigationController for new navigation system
         viewModel.navigationController?.registerFragment(this, getMenuItems().size)

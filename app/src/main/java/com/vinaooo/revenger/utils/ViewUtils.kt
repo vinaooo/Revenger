@@ -49,15 +49,4 @@ object ViewUtils {
     ) {
         views.forEach { view -> FontUtils.applySelectedFont(context, view) }
     }
-
-    /** Batch menu animation through [AnimationOptimizer.animateViewsBatchOptimized]. */
-    fun animateMenuViewsBatchOptimized(
-            views: Array<View>,
-            toAlpha: Float,
-            toScale: Float,
-            duration: Long = 200,
-            onEnd: (() -> Unit)? = null
-    ) {
-        AnimationOptimizer.animateViewsBatchOptimized(views, toAlpha, toScale, duration, onEnd)
-    }
 }

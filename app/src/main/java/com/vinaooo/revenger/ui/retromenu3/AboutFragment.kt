@@ -93,8 +93,6 @@ class AboutFragment : MenuFragmentBase() {
 
         setupViews(view)
         setupClickListeners()
-        updateMenuState()
-        // REMOVED: animateMenuIn() - submenu now appears instantly without animation
 
         // PHASE 3: Register with NavigationController for new navigation system
         viewModel.navigationController?.registerFragment(this, getMenuItems().size)
@@ -261,10 +259,6 @@ class AboutFragment : MenuFragmentBase() {
                 ) // MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS = focus-then-activate delay
             }
         }
-    }
-
-    private fun updateMenuState() {
-        // No dynamic state to update for About menu
     }
 
     /** Navigate up in the menu */

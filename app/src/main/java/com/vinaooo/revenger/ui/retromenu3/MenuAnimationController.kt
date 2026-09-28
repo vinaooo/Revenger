@@ -12,7 +12,6 @@ interface MenuAnimationController {
         fun setMenuViews(menuViews: MenuViews)
         fun animateMenuIn(onComplete: (() -> Unit)? = null)
         fun animateMenuOut(onComplete: (() -> Unit)? = null)
-        fun animateItemSelection(fromIndex: Int, toIndex: Int, onComplete: (() -> Unit)? = null)
         fun updateSelectionVisual(selectedIndex: Int)
         fun dismissMenu(onAnimationEnd: (() -> Unit)? = null)
 }
@@ -72,17 +71,6 @@ class MenuAnimationControllerImpl : MenuAnimationController {
                                         }
                                 }
                         )
-        }
-
-        override fun animateItemSelection(fromIndex: Int, toIndex: Int, onComplete: (() -> Unit)?) {
-                MenuLogger.lifecycle(
-                        "MenuAnimationController: animateItemSelection from $fromIndex to $toIndex"
-                )
-
-                // Simple fade transition between selections
-                // Could be enhanced with more sophisticated animations in the future
-                updateSelectionVisual(toIndex)
-                onComplete?.invoke()
         }
 
         override fun updateSelectionVisual(selectedIndex: Int) {
