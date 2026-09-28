@@ -99,7 +99,7 @@ class SaveStateGridFragment_test {
         savesDir.deleteRecursively()
 
         activity =
-                Robolectric.buildActivity(FragmentActivity::class.java).create().start().resume().get()
+                Robolectric.buildActivity(FragmentActivity::class.java).create().start().resume().visible().get()
 
         val container = FrameLayout(activity).apply { id = View.generateViewId() }
         activity.setContentView(container)
@@ -256,6 +256,33 @@ class SaveStateGridFragment_test {
 
         assertEquals(1, fragment.backConfirmedCount)
         assertNull(fragment.confirmedSlot)
+    }
+
+    private fun advance(millis: Long) =
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+                    .idleFor(java.time.Duration.ofMillis(millis))
+
+    @Test
+    fun `tocar num slot seleciona na hora e confirma depois do atraso`() {
+        fragment.slotViewAt(5).performClick() // row=1, col=2 -> slot 6
+
+        assertEquals(1, fragment.row)
+        assertEquals(2, fragment.col)
+        assertNull(fragment.confirmedSlot)
+
+        advance(MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS)
+        assertEquals(6, fragment.confirmedSlot?.slotNumber)
+    }
+
+    @Test
+    fun `tocar no voltar seleciona na hora e volta depois do atraso`() {
+        fragment.requireView().findViewById<View>(R.id.grid_back_button).performClick()
+
+        assertTrue(fragment.isBackSelected)
+        assertEquals(0, fragment.backConfirmedCount)
+
+        advance(MenuFragmentBase.TOUCH_ACTIVATION_DELAY_MS)
+        assertEquals(1, fragment.backConfirmedCount)
     }
 
     @Test

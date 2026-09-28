@@ -318,20 +318,8 @@ class ExitFragment : MenuFragmentBase() {
             // Get cached screenshot
             val screenshot = viewModel.getCachedScreenshot()
 
-            // Get ROM name from config
-            val romName = try {
-                getString(R.string.name)
-            } catch (e: android.content.res.Resources.NotFoundException) {
-                android.util.Log.w(TAG, "[ACTION] R.string.name not found, using fallback name", e)
-                "Unknown Game"
-            } catch (e: IllegalStateException) {
-                android.util.Log.w(
-                    TAG,
-                    "[ACTION] Fragment not attached while resolving ROM name, using fallback name",
-                    e
-                )
-                "Unknown Game"
-            }
+            // The configured game name (a resValue the build always generates)
+            val romName = getString(R.string.name)
 
             // Save to the slot via SaveStateManager
             val saveStateManager = com.vinaooo.revenger.managers.SaveStateManager.getInstance(requireContext())

@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.managers.SaveStateManager
 import com.vinaooo.revenger.managers.SessionSlotTracker
+import com.vinaooo.revenger.models.SaveSlotPayload
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
 import io.mockk.every
@@ -14,6 +15,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import java.io.File
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -112,6 +114,41 @@ class ExitFragmentActions_test {
         assertEquals("Slot 4", slot.name)
         assertEquals(4, SessionSlotTracker.getInstance().getLastUsedSlot())
         verify { host.viewModel.dismissRetroMenu3(any()) }
+    }
+
+    private fun givenEmulatorState() {
+        val retroView = mockk<RetroView>(relaxed = true)
+        every { retroView.view.serializeState() } returns byteArrayOf(1, 2, 3)
+        every { host.viewModel.retroView } returns retroView
+    }
+
+    @Test
+    fun `Save and Exit mantem o nome que o slot ja tinha`() {
+        givenEmulatorState()
+        val manager = SaveStateManager.getInstance(context)
+        manager.saveToSlot(4, SaveSlotPayload(stateBytes = byteArrayOf(9), name = "Before the boss", romName = "rom"))
+        SessionSlotTracker.getInstance().recordSave(4)
+
+        confirm(0)
+
+        val slot = manager.getSlot(4)
+        assertEquals("Before the boss", slot.name)
+        assertEquals(context.getString(R.string.name), slot.romName)
+        assertArrayEquals(byteArrayOf(1, 2, 3), File(savesDir, "slot_4/state.bin").readBytes())
+    }
+
+    @Test
+    fun `Save and Exit fecha o menu mesmo quando a gravacao falha`() {
+        givenEmulatorState()
+        // A directory where the state file goes makes the write fail.
+        File(savesDir, "slot_5/state.bin").mkdirs()
+        SessionSlotTracker.getInstance().recordLoad(5)
+
+        confirm(0)
+
+        verify { host.viewModel.dismissRetroMenu3(any()) }
+        assertTrue(File(savesDir, "slot_5/state.bin").isDirectory)
+        assertEquals(SessionSlotTracker.OperationType.LOAD, SessionSlotTracker.getInstance().getLastOperationType())
     }
 
     @Test

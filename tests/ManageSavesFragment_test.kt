@@ -171,6 +171,24 @@ class ManageSavesFragment_test {
     }
 
     @Test
+    fun `rename com nome em branco volta ao nome padrao do slot`() {
+        val manager = mockedSaveStateManager()
+        every { manager.renameSlot(1, "Slot 1") } returns true
+        injectSaveStateManager(manager)
+        callShowOperationsMenu(occupiedSlot(1))
+        fragment.requireView().findViewById<RetroCardView>(R.id.operation_rename).performClick()
+
+        val retroKeyboard = checkNotNull(fragment.dialogs.keyboard)
+        val onConfirmField = retroKeyboard.javaClass.getDeclaredField("onConfirm")
+        onConfirmField.isAccessible = true
+        @Suppress("UNCHECKED_CAST") val onConfirm = onConfirmField.get(retroKeyboard) as (String) -> Unit
+
+        onConfirm("   ")
+
+        verify(exactly = 1) { manager.renameSlot(1, "Slot 1") }
+    }
+
+    @Test
     fun `abrir rename preenche o campo de texto com o nome atual do slot`() {
         injectSaveStateManager(mockedSaveStateManager())
         callShowOperationsMenu(occupiedSlot(2))
