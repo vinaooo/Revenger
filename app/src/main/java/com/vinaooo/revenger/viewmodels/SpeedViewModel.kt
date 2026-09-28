@@ -2,9 +2,6 @@ package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.viewModelScope
 import com.swordfish.libretrodroid.GLRetroView
 import com.vinaooo.revenger.controllers.SpeedController
@@ -14,14 +11,6 @@ import com.vinaooo.revenger.viewmodels.speed.SpeedStatePersistence
 
 /** ViewModel for the fast-forward state: keeps it, persists it and applies it to the controller. */
 class SpeedViewModel(application: Application) : AndroidViewModel(application) {
-
-    sealed class SpeedEvent {
-        object Idle : SpeedEvent()
-        data class ApplySpeedToController(val controller: SpeedController) : SpeedEvent()
-    }
-
-    private val _eventFlow = MutableStateFlow<SpeedEvent>(SpeedEvent.Idle)
-    val eventFlow: StateFlow<SpeedEvent> = _eventFlow.asStateFlow()
 
 
     private val preferencesRepository: PreferencesRepository =
@@ -88,6 +77,5 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSpeedController(controller: SpeedController) {
         speedController = controller
-        _eventFlow.value = SpeedEvent.ApplySpeedToController(controller)
     }
 }

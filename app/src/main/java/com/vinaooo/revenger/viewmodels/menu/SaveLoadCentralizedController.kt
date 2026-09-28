@@ -3,12 +3,11 @@ package com.vinaooo.revenger.viewmodels.menu
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.utils.RetroViewUtils
 
-/** Centralized save/load/reset orchestration plus save-state availability. */
+/** Centralized save/load/reset orchestration. */
 interface SaveLoadCentralizedFacade {
     fun loadStateCentralized(onComplete: (() -> Unit)? = null)
     fun saveStateCentralized(onComplete: (() -> Unit)? = null, keepPaused: Boolean = false)
     fun resetGameCentralized(onComplete: (() -> Unit)? = null)
-    fun hasSaveState(): Boolean
 }
 
 /**
@@ -33,6 +32,4 @@ class SaveLoadCentralizedController(
     override fun resetGameCentralized(onComplete: (() -> Unit)?) {
         saveLoadOrchestrator.resetGame(retroView(), onComplete)
     }
-
-    override fun hasSaveState(): Boolean = retroViewUtils()?.hasSaveState() ?: false
 }

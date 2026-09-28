@@ -154,8 +154,9 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
   - The `onBackToMainMenu` and `onAboutBackToMainMenu` overrides that nothing called. The Save/Load/Manage slot listeners were never wired in the app: `setListener` was only ever called from tests. `AboutListener` stays, and `RetroMenu3Fragment` still implements it.
   - Follow-ups, dead already before this PR and not part of it:
     - `SpeedViewModel.setGameSpeed` and `toggleFastForward`, which nothing in the app calls. Done in `chore/remove-unused-speed-code`, together with the repository's game-speed read and write.
-    - The ViewModels' `eventFlow`s, which nothing collects.
-    - `hasSaveState` and `getShaderState` (item 5).
+    - The ViewModels' `eventFlow`s, which nothing collects. Done in `chore/remove-unused-viewmodel-events` for the Speed, Input and Menu ViewModels. The Audio one stays with the menu-action path below.
+    - `hasSaveState` and `getShaderState` (item 5). Done in the same PR. `ShaderViewModel.getShaderState` stays as a getter that tests use to observe state.
+  - Found in that PR, awaiting the user's decision: the menu-action path is dead in the app. `MenuManager.handleAction`, `sendAction` and `sendNavigateUp`/`Down`/`Confirm`/`Back` have no callers (the app still compiles with them renamed). So `GameActivityViewModel.onMenuEvent` only ever receives `StateChanged` and `MenuClosed`, never `Action`, and `MenuActionDispatcher.handleAction`, `MenuToggleActions` and `AudioViewModel.toggleAudio` never run. `MenuViewModel.showRetroMenu3` has no app caller either.
 
 ## Won't do
 

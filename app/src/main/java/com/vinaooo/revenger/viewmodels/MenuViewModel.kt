@@ -9,7 +9,6 @@ import com.vinaooo.revenger.viewmodels.menu.MenuFragmentRegistration
 import com.vinaooo.revenger.viewmodels.menu.MenuFragmentRegistry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * ViewModel specialized in menu management. Responsible for all logic related to
@@ -18,17 +17,6 @@ import kotlinx.coroutines.flow.asStateFlow
 class MenuViewModel(application: Application) :
         AndroidViewModel(application),
         MenuFragmentRegistration by MenuFragmentRegistry() {
-
-    sealed class MenuEvent {
-        object Idle : MenuEvent()
-        data class ShowRetroMenu3(val activity: androidx.fragment.app.FragmentActivity) : MenuEvent()
-        object DismissRetroMenu3 : MenuEvent()
-        object DismissAllMenus : MenuEvent()
-        object ClearControllerInputState : MenuEvent()
-    }
-
-    private val _eventFlow = MutableStateFlow<MenuEvent>(MenuEvent.Idle)
-    val eventFlow: StateFlow<MenuEvent> = _eventFlow.asStateFlow()
 
 
     // Menu state with StateFlow for reactivity
@@ -55,27 +43,20 @@ class MenuViewModel(application: Application) :
 
     // ========== MENU CONTROL METHODS ==========
 
-    fun showRetroMenu3(activity: androidx.fragment.app.FragmentActivity) {
-        _eventFlow.value = MenuEvent.ShowRetroMenu3(activity)
+    fun showRetroMenu3() {
         menuStateManager.setRetroMenu3Open(true)
     }
 
     fun dismissRetroMenu3() {
         menuStateManager.setRetroMenu3Open(false)
-        _eventFlow.value = MenuEvent.DismissRetroMenu3
     }
 
     fun dismissAllMenus() {
         menuStateManager.setDismissingAllMenus(true)
-        _eventFlow.value = MenuEvent.DismissAllMenus
     }
 
     fun updateMenuState(newState: MenuState) {
         menuStateManager.changeState(newState)
-    }
-
-    fun clearControllerInputState() {
-        _eventFlow.value = MenuEvent.ClearControllerInputState
     }
 
     // ========== STATE CHECK METHODS ==========

@@ -12,7 +12,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -79,17 +78,6 @@ class SpeedViewModel_test {
 
         assertTrue(viewModel.getFastForwardState())
         verify(exactly = 0) { controller.enableFastForward(any()) }
-    }
-
-    @Test
-    fun `setSpeedController emite ApplySpeedToController com o controller informado`() {
-        val controller = mockk<SpeedController>(relaxed = true)
-
-        viewModel.setSpeedController(controller)
-
-        val event = viewModel.eventFlow.value
-        assertTrue(event is SpeedViewModel.SpeedEvent.ApplySpeedToController)
-        assertEquals(controller, (event as SpeedViewModel.SpeedEvent.ApplySpeedToController).controller)
     }
 
     // Regression test for the narrowed ClassCastException catch in loadFastForwardState(): a value

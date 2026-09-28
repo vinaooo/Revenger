@@ -523,9 +523,6 @@ class GameActivityViewModel(application: Application) :
     override fun resetGameCentralized(onComplete: (() -> Unit)?) =
             saveLoadCentralizedController.resetGameCentralized(onComplete)
 
-    /** Check if save state exists for UI state management */
-    override fun hasSaveState(): Boolean = saveLoadCentralizedController.hasSaveState()
-
     /** Get current audio state for UI management */
     override fun getAudioState(): Boolean = playbackStateController.getAudioState()
 
@@ -534,9 +531,6 @@ class GameActivityViewModel(application: Application) :
 
     /** Toggle shader for visual effects */
     override fun onToggleShader(): String = playbackStateController.onToggleShader()
-
-    /** Get current shader state for UI management */
-    override fun getShaderState(): String = playbackStateController.getShaderState()
 
     override fun getShaderDisplayName(): String = playbackStateController.getShaderDisplayName()
 
