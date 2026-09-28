@@ -127,36 +127,13 @@ class AppConfig_test {
     }
 
     @Test
-    fun `getId combina nome e core normalizados`() {
-        putBaseConfig(name = "Test Game")
-        putManualConfig()
-
-        assertEquals("test_game_test_core", AppConfig(context).getId())
-    }
-
-    @Test
-    fun `getRomName getTargetAbi e getPlatformId vem do config json`() {
+    fun `getRomName e getPlatformId vem do config json`() {
         putBaseConfig(platform = "platform_a", rom = "game.bin", targetAbi = "arm64-v8a")
 
         val config = AppConfig(context)
 
         assertEquals("game.bin", config.getRomName())
-        assertEquals("arm64-v8a", config.getTargetAbi())
         assertEquals("platform_a", config.getPlatformId())
-    }
-
-    @Test
-    fun `isDefaultMode reflete o valor de default_settings`() {
-        putBaseConfig(defaultSettings = false)
-
-        assertFalse(AppConfig(context).isDefaultMode())
-    }
-
-    @Test
-    fun `getResolvedProfile e nulo quando nao esta em modo default`() {
-        putBaseConfig(defaultSettings = false)
-
-        assertNull(AppConfig(context).getResolvedProfile())
     }
 
     // --- Regressão / bordas: parsing de menu_mode (string separada por vírgula) ---

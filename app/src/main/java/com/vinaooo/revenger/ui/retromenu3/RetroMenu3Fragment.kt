@@ -7,9 +7,6 @@ import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import android.util.Log
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.ui.retromenu3.callbacks.ProgressListener
-import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
-import com.vinaooo.revenger.ui.retromenu3.callbacks.ExitListener
 import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 
@@ -44,9 +41,6 @@ import com.vinaooo.revenger.viewmodels.GameActivityViewModel
  */
 class RetroMenu3Fragment :
         MenuFragmentBase(),
-        ProgressListener,
-        SettingsMenuListener,
-        ExitListener,
         AboutListener {
 
         // Get ViewModel reference for centralized methods
@@ -527,13 +521,6 @@ class RetroMenu3Fragment :
         override fun onMenuItemSelected(item: MenuItem) {
                 // Use MenuActionHandler to execute actions
                 actionHandler.executeAction(item.action)
-        }
-
-        // IMPLEMENTATION OF SUBMENU INTERFACES
-        override fun onBackToMainMenu() {
-                android.util.Log.d(TAG, "onBackToMainMenu: closing submenu")
-                // Fechar submenu e voltar ao menu principal
-                submenuCoordinator.closeCurrentSubmenu()
         }
 
         override fun onAboutBackToMainMenu() {

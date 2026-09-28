@@ -80,15 +80,6 @@ class AudioViewModel_test {
         verify(exactly = 0) { controller.setAudioEnabled(any(), any()) }
     }
 
-    @Test
-    fun `getAudioController retorna o controller configurado via setAudioController`() {
-        val controller = mockk<AudioController>(relaxed = true)
-
-        viewModel.setAudioController(controller)
-
-        assertEquals(controller, viewModel.getAudioController())
-    }
-
     // Regression test for the narrowed ClassCastException catch in loadAudioState(): a value of
     // the wrong type under "audio_enabled" (e.g. left over from a preferences-format change) must
     // fall back to true instead of crashing construction.

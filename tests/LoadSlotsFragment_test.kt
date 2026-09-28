@@ -11,7 +11,6 @@ import com.vinaooo.revenger.managers.SaveStateManager
 import com.vinaooo.revenger.managers.SessionSlotTracker
 import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.retroview.RetroView
-import com.vinaooo.revenger.ui.retromenu3.callbacks.LoadSlotsListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
@@ -48,7 +47,6 @@ class LoadSlotsFragment_test {
     private lateinit var fragment: LoadSlotsFragment
     private lateinit var savesDir: File
     private lateinit var imagesDir: File
-    private lateinit var listener: LoadSlotsListener
     private lateinit var viewModel: GameActivityViewModel
     private lateinit var navigationController: NavigationController
     private lateinit var retroView: RetroView
@@ -70,9 +68,7 @@ class LoadSlotsFragment_test {
         val container = FrameLayout(activity).apply { id = View.generateViewId() }
         activity.setContentView(container)
 
-        listener = mockk(relaxed = true)
         fragment = LoadSlotsFragment.newInstance()
-        fragment.setListener(listener)
         activity.supportFragmentManager
                 .beginTransaction()
                 .add(container.id, fragment, "load_slots")
@@ -221,13 +217,13 @@ class LoadSlotsFragment_test {
         assertEquals(expectedToast(R.string.slot_is_empty), ShadowToast.getTextOfLatestToast())
         verify(exactly = 0) { manager.loadFromSlot(any()) }
         verify(exactly = 0) { viewModel.showLoadPreview(any()) }
-        verify(exactly = 0) { listener.onLoadCompleted(any()) }
+        assertNull(SessionSlotTracker.getInstance().getLastUsedSlot())
     }
 
     // ========== Load outcomes ==========
 
     @Test
-    fun `load bem sucedido restaura o estado, registra o slot e notifica o listener`() {
+    fun `load bem sucedido restaura o estado e registra o slot`() {
         val manager = mockedSaveStateManager()
         mockedViewModel()
 
@@ -235,7 +231,6 @@ class LoadSlotsFragment_test {
 
         verify(exactly = 1) { manager.loadFromSlot(4) }
         verify(exactly = 1) { retroView.view.unserializeState(stateBytes) }
-        verify(exactly = 1) { listener.onLoadCompleted(4) }
         assertEquals(4, SessionSlotTracker.getInstance().getLastUsedSlot())
         assertEquals(
                 SessionSlotTracker.OperationType.LOAD,
@@ -253,7 +248,7 @@ class LoadSlotsFragment_test {
         fragment.onConfirm()
 
         verify(exactly = 1) { manager.loadFromSlot(2) }
-        verify(exactly = 1) { listener.onLoadCompleted(2) }
+        assertEquals(2, SessionSlotTracker.getInstance().getLastUsedSlot())
     }
 
     @Test
@@ -264,7 +259,7 @@ class LoadSlotsFragment_test {
         fragment.onSlotConfirmed(occupiedSlot(1))
 
         verify(exactly = 0) { manager.loadFromSlot(any()) }
-        verify(exactly = 0) { listener.onLoadCompleted(any()) }
+        assertNull(SessionSlotTracker.getInstance().getLastUsedSlot())
         assertEquals(expectedToast(R.string.load_error), ShadowToast.getTextOfLatestToast())
     }
 
@@ -276,31 +271,29 @@ class LoadSlotsFragment_test {
         fragment.onSlotConfirmed(occupiedSlot(5))
 
         verify(exactly = 0) { retroView.view.unserializeState(any()) }
-        verify(exactly = 0) { listener.onLoadCompleted(any()) }
         assertNull(SessionSlotTracker.getInstance().getLastUsedSlot())
         assertEquals(expectedToast(R.string.load_error), ShadowToast.getTextOfLatestToast())
     }
 
     @Test
-    fun `falha ao restaurar o estado mostra erro e nao notifica o listener`() {
+    fun `falha ao restaurar o estado mostra erro e nao registra o slot`() {
         mockedSaveStateManager()
         mockedViewModel { false }
 
         fragment.onSlotConfirmed(occupiedSlot(6))
 
-        verify(exactly = 0) { listener.onLoadCompleted(any()) }
         assertNull(SessionSlotTracker.getInstance().getLastUsedSlot())
         assertEquals(expectedToast(R.string.load_error), ShadowToast.getTextOfLatestToast())
     }
 
     @Test
-    fun `excecao ao restaurar o estado mostra erro e nao notifica o listener`() {
+    fun `excecao ao restaurar o estado mostra erro e nao registra o slot`() {
         mockedSaveStateManager()
         mockedViewModel { throw NullPointerException("native state unavailable") }
 
         fragment.onSlotConfirmed(occupiedSlot(7))
 
-        verify(exactly = 0) { listener.onLoadCompleted(any()) }
+        assertNull(SessionSlotTracker.getInstance().getLastUsedSlot())
         assertEquals(expectedToast(R.string.load_error), ShadowToast.getTextOfLatestToast())
     }
 
@@ -352,6 +345,6 @@ class LoadSlotsFragment_test {
 
         verify(exactly = 0) { viewModel.showLoadPreview(any()) }
         verify(exactly = 1) { manager.loadFromSlot(9) }
-        verify(exactly = 1) { listener.onLoadCompleted(9) }
+        assertEquals(9, SessionSlotTracker.getInstance().getLastUsedSlot())
     }
 }

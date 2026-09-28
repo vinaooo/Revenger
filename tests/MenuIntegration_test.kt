@@ -47,10 +47,7 @@ class MenuIntegration_test {
     }
 
     @Test
-    fun `fragment implementa todas as interfaces de listener`() {
-        assertTrue(fragment is com.vinaooo.revenger.ui.retromenu3.callbacks.ProgressListener)
-        assertTrue(fragment is com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener)
-        assertTrue(fragment is com.vinaooo.revenger.ui.retromenu3.callbacks.ExitListener)
+    fun `fragment implementa o listener do Sobre`() {
         assertTrue(fragment is com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener)
     }
 
@@ -105,17 +102,6 @@ class MenuIntegration_test {
     @Test
     fun `fragment implements MenuFragment`() {
         assertTrue(fragment is MenuFragment)
-    }
-
-    @Test
-    fun `onBackToMainMenu can be called without error`() {
-        try {
-            fragment.onBackToMainMenu()
-            // Success if no exception thrown
-            assertTrue(true)
-        } catch (e: Exception) {
-            fail("onBackToMainMenu should not throw exception: ${e.message}")
-        }
     }
 
     @Test

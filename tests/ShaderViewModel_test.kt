@@ -90,7 +90,6 @@ class ShaderViewModel_test {
         viewModel.setShaderController(controller)
 
         assertEquals("sharp", viewModel.getShaderState())
-        assertEquals(controller, viewModel.getShaderController())
     }
 
     @Test

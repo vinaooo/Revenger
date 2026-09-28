@@ -92,8 +92,6 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     fun getAudioState(): Boolean = isAudioEnabled
 
-    fun getAudioController(): AudioController? = audioController
-
     // ========== SETTERS ==========
 
     fun setAudioController(controller: AudioController) {

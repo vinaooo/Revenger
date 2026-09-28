@@ -42,9 +42,8 @@ class SpeedViewModel_test {
     }
 
     @Test
-    fun `estado inicial nao esta em fast forward e a velocidade e 1`() {
+    fun `estado inicial nao esta em fast forward`() {
         assertFalse(viewModel.getFastForwardState())
-        assertEquals(1, viewModel.getGameSpeed())
     }
 
     @Test
@@ -60,10 +59,10 @@ class SpeedViewModel_test {
     @Test
     fun `setGameSpeed limita o valor ao intervalo 1 a 2`() {
         viewModel.setGameSpeed(10)
-        assertEquals(2, viewModel.getGameSpeed())
+        assertEquals(2, (viewModel.eventFlow.value as SpeedViewModel.SpeedEvent.SetGameSpeed).speed)
 
         viewModel.setGameSpeed(-5)
-        assertEquals(1, viewModel.getGameSpeed())
+        assertEquals(1, (viewModel.eventFlow.value as SpeedViewModel.SpeedEvent.SetGameSpeed).speed)
     }
 
     @Test
@@ -116,29 +115,14 @@ class SpeedViewModel_test {
 
         viewModel.setSpeedController(controller)
 
-        assertEquals(controller, viewModel.getSpeedController())
         val event = viewModel.eventFlow.value
         assertTrue(event is SpeedViewModel.SpeedEvent.ApplySpeedToController)
         assertEquals(controller, (event as SpeedViewModel.SpeedEvent.ApplySpeedToController).controller)
     }
 
-    // Regression tests for the narrowed ClassCastException catches in loadSpeedState() and
-    // loadFastForwardState(): a value of the wrong type under the preference key (e.g. left over
-    // from a preferences-format change) must fall back to the documented default instead of
-    // crashing construction.
-    @Test
-    fun `construcao com valor de tipo errado para frame_speed usa velocidade padrao 1`() {
-        val app = ApplicationProvider.getApplicationContext<Application>()
-        app.getSharedPreferences("revenger_prefs", Application.MODE_PRIVATE)
-                .edit()
-                .putString("frame_speed", "not-an-int")
-                .commit()
-
-        val corrupted = SpeedViewModel(app)
-
-        assertEquals(1, corrupted.getGameSpeed())
-    }
-
+    // Regression test for the narrowed ClassCastException catch in loadFastForwardState(): a value
+    // of the wrong type under the preference key (e.g. left over from a preferences-format change)
+    // must fall back to the documented default instead of crashing construction.
     @Test
     fun `construcao com valor de tipo errado para fast_forward_enabled usa false como padrao`() {
         val app = ApplicationProvider.getApplicationContext<Application>()

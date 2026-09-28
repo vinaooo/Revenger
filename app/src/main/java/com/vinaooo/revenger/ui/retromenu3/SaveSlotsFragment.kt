@@ -3,7 +3,6 @@ package com.vinaooo.revenger.ui.retromenu3
 import android.view.ViewGroup
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
-import com.vinaooo.revenger.ui.retromenu3.callbacks.SaveSlotsListener
 
 /**
  * Fragment for saving game state to one of 9 slots.
@@ -20,14 +19,8 @@ import com.vinaooo.revenger.ui.retromenu3.callbacks.SaveSlotsListener
  */
 class SaveSlotsFragment : SaveStateGridFragment() {
 
-    private var listener: SaveSlotsListener? = null
-
     /** The naming and overwrite dialogs shown over the grid. */
     internal val dialogs = SlotDialogController { view as? ViewGroup }
-
-    fun setListener(listener: SaveSlotsListener) {
-        this.listener = listener
-    }
 
     override fun getTitleResId(): Int = R.string.menu_save_state
 
@@ -105,7 +98,6 @@ class SaveSlotsFragment : SaveStateGridFragment() {
     private fun performSave(slotNumber: Int, name: String) {
         if (CurrentGameSlotSaver(requireContext(), viewModel, saveStateManager).save(slotNumber, name)) {
             refreshGrid()
-            listener?.onSaveCompleted(slotNumber)
         }
     }
 

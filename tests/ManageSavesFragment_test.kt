@@ -9,7 +9,6 @@ import androidx.test.core.app.ApplicationProvider
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.managers.SaveStateManager
 import com.vinaooo.revenger.models.SaveSlotData
-import com.vinaooo.revenger.ui.retromenu3.callbacks.ManageSavesListener
 import com.vinaooo.revenger.utils.FontUtils
 import io.mockk.every
 import io.mockk.mockk
@@ -54,7 +53,6 @@ class ManageSavesFragment_test {
         activity.setContentView(container)
 
         fragment = ManageSavesFragment.newInstance()
-        fragment.setListener(mockk<ManageSavesListener>(relaxed = true))
         activity.supportFragmentManager
                 .beginTransaction()
                 .add(container.id, fragment, "manage_saves")

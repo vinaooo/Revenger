@@ -53,16 +53,6 @@ class InputViewModel_test {
     }
 
     @Test
-    fun `setSelectStartComboCallback registra o callback invocado pelo ControllerInput`() {
-        var invoked = false
-        viewModel.setSelectStartComboCallback { invoked = true }
-
-        viewModel.getControllerInput().selectStartComboCallback.invoke()
-
-        assertTrue(invoked)
-    }
-
-    @Test
     fun `clearControllerInputState emite o evento de reset do combo`() {
         viewModel.clearControllerInputState()
 

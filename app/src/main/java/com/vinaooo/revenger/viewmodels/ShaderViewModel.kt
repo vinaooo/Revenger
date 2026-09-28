@@ -86,8 +86,6 @@ class ShaderViewModel(application: Application) : AndroidViewModel(application) 
         return shaderController?.getCurrentShaderDisplayName() ?: currentShader
     }
 
-    fun getShaderController(): ShaderController? = shaderController
-
     // ========== SETTERS ==========
 
     fun setShaderController(controller: ShaderController) {

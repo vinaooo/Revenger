@@ -41,17 +41,9 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
     private val statePersistence = SpeedStatePersistence(preferencesRepository, viewModelScope)
 
     // Speed state
-    private var currentSpeed: Int = 1
     private var isFastForwardEnabled: Boolean = false
 
     init {
-        statePersistence.loadSpeedState(
-                onLoaded = { currentSpeed = it },
-                onFailure = {
-                    android.util.Log.e("SpeedViewModel", "Error loading speed state", it)
-                    currentSpeed = 1 // Default
-                }
-        )
         statePersistence.loadFastForwardState(
                 onLoaded = { isFastForwardEnabled = it },
                 onFailure = {
@@ -74,8 +66,7 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
         val validSpeed = speed.coerceIn(1, 2)
 
         _eventFlow.value = SpeedEvent.SetGameSpeed(validSpeed)
-        currentSpeed = validSpeed
-        statePersistence.saveSpeedState(currentSpeed) {
+        statePersistence.saveSpeedState(validSpeed) {
             android.util.Log.e("SpeedViewModel", "Error saving speed state", it)
         }
     }
@@ -89,10 +80,6 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
     // ========== GETTERS ==========
 
     fun getFastForwardState(): Boolean = isFastForwardEnabled
-
-    fun getGameSpeed(): Int = currentSpeed
-
-    fun getSpeedController(): SpeedController? = speedController
 
     // ========== SETTERS ==========
 

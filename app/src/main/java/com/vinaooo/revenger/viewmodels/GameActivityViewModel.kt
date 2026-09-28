@@ -25,8 +25,6 @@ import com.vinaooo.revenger.ui.retromenu3.MenuManager
 import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
 import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
-import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
-import com.vinaooo.revenger.ui.retromenu3.callbacks.SettingsMenuListener
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.utils.RetroViewUtils
 import com.vinaooo.revenger.viewmodels.menu.GamePadInputController
@@ -66,8 +64,6 @@ import java.lang.ref.WeakReference
 
 class GameActivityViewModel(application: Application) :
         AndroidViewModel(application),
-        SettingsMenuListener,
-        AboutListener,
         MenuManager.MenuManagerListener,
         SubmenuFragmentRegistration,
         SubmenuFragmentDismissal,
@@ -505,47 +501,6 @@ class GameActivityViewModel(application: Application) :
     /** Register AboutFragment for rotation recreation (without activating state) */
     override fun registerAboutFragmentForRotation(fragment: AboutFragment) =
             submenuFragmentRegistrar.registerAboutFragmentForRotation(fragment)
-
-
-    // Implementation of GameMenuBottomSheet.GameMenuListener interface
-    // REMOVED: RetroMenu3Listener implementation - migrated to unified MenuAction/MenuEvent system
-    // Implementation of SettingsMenuFragment.SettingsMenuListener interface
-    override fun onBackToMainMenu() {
-        android.util.Log.d("GameActivityViewModel", "onBackToMainMenu: User wants to go back")
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "onBackToMainMenu: retroMenu3Fragment = ${retroMenu3Fragment ?: "none"}"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "onBackToMainMenu: retroMenu3Fragment.isAdded = ${retroMenu3Fragment?.isAdded == true}"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "onBackToMainMenu: settingsMenuFragment = ${submenuFragmentState.settingsMenuFragment ?: "none"}"
-        )
-
-        // Simply close the submenu using popBackStack
-        // The OnBackStackChangedListener in RetroMenu3Fragment will handle showing the main menu
-        dismissSettingsMenu()
-
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "onBackToMainMenu: dismissSettingsMenu() called"
-        )
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "onBackToMainMenu: Back stack listener will handle showing main menu"
-        )
-    }
-
-    override fun onAboutBackToMainMenu() {
-        android.util.Log.d(
-                "GameActivityViewModel",
-                "onAboutBackToMainMenu: User wants to go back from About menu"
-        )
-        dismissAboutMenu()
-    }
 
     /**
      * Centralized load state implementation with improved debugging FIX: Temporarily unpause ONLY
