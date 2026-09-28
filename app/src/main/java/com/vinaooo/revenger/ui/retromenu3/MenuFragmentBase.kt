@@ -125,7 +125,7 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
             _currentSelectedIndex = index
 
             // PHASE 4: Log when a menu item is selected (yellow)
-            val itemTitle = if (index < menuItems.size) menuItems[index].title else "UNKNOWN"
+            val itemTitle = menuItems[index].title
             Log.d(
                     "MenuBase",
                     "[MENU-SELECTION] ✅ Item selected (YELLOW): index=$index, title='$itemTitle'"

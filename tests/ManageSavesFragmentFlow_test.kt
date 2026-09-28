@@ -12,6 +12,7 @@ import io.mockk.clearMocks
 import io.mockk.verify
 import java.io.File
 import org.junit.After
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -232,6 +233,38 @@ class ManageSavesFragmentFlow_test {
 
         assertNotNull(find(R.id.rename_edit_text))
         assertEquals("First", slot(1).name)
+    }
+
+    @Test
+    fun `cancelar o Rename fecha o teclado sem renomear`() {
+        openOperationsAndGoTo(1, button = 0)
+        fragment.onConfirm()
+        assertNotNull(find(R.id.rename_edit_text))
+
+        fragment.dialogs.keyboard?.let { keyboard ->
+            repeat(4) { keyboard.navigateDown() } // row 4 starts with CANCEL
+            keyboard.pressCurrentKey()
+        }
+
+        assertFalse(fragment.dialogs.isVisible)
+        assertEquals("First", slot(1).name)
+    }
+
+    @Test
+    fun `sem dialogo as setas movem a selecao do grid`() {
+        val start = fragment.getCurrentSelectedIndex()
+
+        assertTrue(fragment.onNavigateRight())
+        val right = fragment.getCurrentSelectedIndex()
+        assertTrue(fragment.onNavigateLeft())
+        fragment.onNavigateDown()
+        val down = fragment.getCurrentSelectedIndex()
+        fragment.onNavigateUp()
+
+        assertNotEquals(start, right)
+        assertNotEquals(start, down)
+        assertEquals(start, fragment.getCurrentSelectedIndex())
+        assertFalse(fragment.dialogs.isVisible)
     }
 
     @Test

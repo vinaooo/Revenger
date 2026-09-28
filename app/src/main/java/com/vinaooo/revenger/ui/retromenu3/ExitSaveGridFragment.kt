@@ -99,7 +99,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
         if (isBackButtonSelected && !exitEnabled) {
             backButton.setTextColor(resources.getColor(R.color.rm_disabled_color, null))
             backButton.alpha = DISABLED_EXIT_BUTTON_ALPHA
-        } else if (isBackButtonSelected && exitEnabled) {
+        } else if (isBackButtonSelected) {
             backButton.setTextColor(resources.getColor(R.color.rm_selected_color, null))
             backButton.alpha = 1.0f
         }

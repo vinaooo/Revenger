@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.R
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -116,5 +117,51 @@ class RetroKeyboard_test {
         keyboard.pressCurrentKey()
 
         assertEquals("abc", confirmedText)
+    }
+
+    @Test
+    fun `pressCurrentKey numa tecla de caractere digita o caractere`() {
+        keyboard.setText("a")
+
+        keyboard.pressCurrentKey() // row 0, col 0 is "1"
+
+        assertEquals("a1", retroEditText.getTextContent())
+    }
+
+    @Test
+    fun `pressCurrentKey no backspace apaga o ultimo caractere`() {
+        keyboard.setText("abc")
+        // Row 3 ends with backspace, after 9 other keys.
+        repeat(3) { keyboard.navigateDown() }
+        repeat(9) { keyboard.navigateRight() }
+
+        keyboard.pressCurrentKey()
+
+        assertEquals("ab", retroEditText.getTextContent())
+    }
+
+    @Test
+    fun `pressCurrentKey no cancelar chama onCancel`() {
+        repeat(4) { keyboard.navigateDown() }
+
+        keyboard.pressCurrentKey()
+
+        assertEquals(1, cancelCalls)
+        assertEquals(null, confirmedText)
+    }
+
+    @Test
+    fun `tocar numa tecla esconde o destaque e navegar pelo gamepad traz de volta`() {
+        val first = keyboardView.findViewById<android.view.View>(R.id.key_1)
+        assertTrue(first.isSelected)
+
+        tap(R.id.key_q)
+        assertFalse(first.isSelected)
+        keyboard.requestFocus()
+        assertFalse(first.isSelected)
+
+        keyboard.navigateRight()
+
+        assertTrue(keyboardView.findViewById<android.view.View>(R.id.key_2).isSelected)
     }
 }
