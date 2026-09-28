@@ -137,4 +137,23 @@ class ShaderController_test {
 
         assertEquals("Upscale 2", controller.getCurrentShaderDisplayName())
     }
+
+    @Test
+    fun `getCurrentShaderDisplayName devolve Unknown para um shader salvo que nao existe`() {
+        prefs.edit().putString("current_shader", "shader_que_nao_existe").commit()
+
+        val controller = newController()
+
+        assertEquals("Unknown", controller.getCurrentShaderDisplayName())
+    }
+
+    @Test
+    fun `availableShaders segue a ordem de ShaderType`() {
+        val controller = newController()
+
+        assertEquals(
+                listOf("disabled", "sharp", "crt", "lcd", "upscale1", "upscale2", "upscale3"),
+                controller.availableShaders.toList()
+        )
+    }
 }

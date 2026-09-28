@@ -13,6 +13,7 @@ import com.swordfish.libretrodroid.Variable
 import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
 import com.vinaooo.revenger.repositories.Storage
+import com.vinaooo.revenger.utils.ShaderType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.takeWhile
@@ -37,68 +38,28 @@ class RetroView(
         }
 
     private fun applyShaderInRealtime(shaderName: String) {
-        val shaderConfig =
-                when (shaderName) {
-                    "disabled" -> ShaderConfig.Default
-                    "sharp" -> ShaderConfig.Sharp
-                    "crt" -> ShaderConfig.CRT
-                    "lcd" -> ShaderConfig.LCD
-                    "upscale1" -> ShaderConfig.CUT()
-                    "upscale2" -> ShaderConfig.CUT2()
-                    "upscale3" -> ShaderConfig.CUT3()
-                    else -> ShaderConfig.Sharp
-                }
-
-        // Apply shader via GLRetroView property
-        view.shader = shaderConfig
+        // Apply shader via GLRetroView property; an unknown name falls back to Sharp
+        view.shader = ShaderType.fromConfigName(shaderName)?.toShaderConfig() ?: ShaderConfig.Sharp
         Log.i("RetroView", "Shader aplicado em tempo real: $shaderName")
     }
 
     /**
-     * Get shader configuration from config.xml
+     * Get shader configuration from the app config
      *
-     * Maps string values from config.xml to LibretroDroid ShaderConfig enum values. Provides
-     * fallback to Sharp shader for invalid configurations.
+     * Maps the configured shader name to its LibretroDroid [ShaderConfig] through [ShaderType].
+     * Provides fallback to Sharp shader for invalid configurations.
      *
-     * @return ShaderConfig enum value for video rendering
+     * @return ShaderConfig value for video rendering
      */
     private fun getShaderConfig(): ShaderConfig {
-        val shaderString = appConfig.getShader().lowercase()
-
-        return when (shaderString) {
-            "disabled" -> {
-                Log.i("RetroView", "Shader configurado: Disabled (sem shader aplicado)")
-                ShaderConfig.Default
-            }
-            "sharp" -> {
-                Log.i("RetroView", "Shader configured: Sharp (sharp bilinear filtering)")
-                ShaderConfig.Sharp
-            }
-            "crt" -> {
-                Log.i("RetroView", "Shader configured: CRT (CRT monitor simulation)")
-                ShaderConfig.CRT
-            }
-            "lcd" -> {
-                Log.i("RetroView", "Shader configurado: LCD (efeito de matriz LCD)")
-                ShaderConfig.LCD
-            }
-            "upscale1" -> {
-                Log.i("RetroView", "Shader configurado: CUT (Upsampling Filter 1)")
-                ShaderConfig.CUT()
-            }
-            "upscale2" -> {
-                Log.i("RetroView", "Shader configurado: CUT2 (Upsampling Filter 2)")
-                ShaderConfig.CUT2()
-            }
-            "upscale3" -> {
-                Log.i("RetroView", "Shader configurado: CUT3 (Upsampling Filter 3)")
-                ShaderConfig.CUT3()
-            }
-            else -> {
-                Log.w("RetroView", "Invalid shader configuration: '$shaderString'. Using Sharp as fallback.")
-                ShaderConfig.Sharp
-            }
+        val shaderString = appConfig.getShader()
+        val shaderType = ShaderType.fromConfigName(shaderString)
+        if (shaderType == null) {
+            Log.w("RetroView", "Invalid shader configuration: '$shaderString'. Using Sharp as fallback.")
+            return ShaderConfig.Sharp
         }
+        Log.i("RetroView", "Shader configured: ${shaderType.displayName}")
+        return shaderType.toShaderConfig()
     }
 
     private val _frameRendered = MutableLiveData(false)
