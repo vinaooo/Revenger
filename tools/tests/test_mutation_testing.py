@@ -57,6 +57,8 @@ def test_string_contents_and_trailing_comments_are_not_mutated():
     "@Suppress(\"x\") val y = a == b",
     "        Log.d(TAG, \"x\" + (a == b))",
     "        MenuLogger.debug(a == b)",
+    "        log(\"done\")",
+    "        logDebug(a == b)",
 ])
 def test_comments_imports_annotations_and_logging_are_skipped(line):
     assert mt.mutants_for_line("A.kt", 1, line) == []
@@ -350,6 +352,15 @@ def test_evaluate_reports_survived_only_after_the_full_suite():
     assert (result["status"], result["stage"]) == (mt.SURVIVED, "full")
     assert len(calls) == 3
     assert isinstance(result["secs"], float)
+
+
+def test_evaluate_times_all_stages_together(monkeypatch):
+    clock = iter([100.0, 107.5])
+    monkeypatch.setattr(mt.time, "monotonic", lambda: next(clock))
+
+    result, _, _ = _evaluate([mt.SURVIVED, mt.SURVIVED, mt.KILLED])
+
+    assert result["secs"] == 7.5
 
 
 def test_evaluate_counts_a_timeout_as_killed_and_keeps_compile_errors_apart():

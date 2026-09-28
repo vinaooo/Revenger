@@ -56,7 +56,7 @@ STAGES = ("direct", "dependents", "full")
 # ---------------------------------------------------------------------------------------------
 
 _SKIP_LINE = re.compile(
-    r"^\s*(//|\*|/\*|import\s|package\s|@)|\bLog\.[vdiwe]\(|MenuLogger\.|\bTAG\b"
+    r"^\s*(//|\*|/\*|import\s|package\s|@|log\w*\()|\bLog\.[vdiwe]\(|MenuLogger\.|\bTAG\b"
 )
 _STRING = re.compile(r'"""[\s\S]*?"""|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
 _OPERATORS = (
@@ -348,21 +348,22 @@ def plan_stages(mutant, index):
 
 def evaluate(mutant, stages, run, full_slots):
     """Runs the stages until one kills the mutant. `run(test_classes)` returns an outcome;
-    `full_slots` is a semaphore that bounds concurrent full-suite runs."""
+    `full_slots` is a semaphore that bounds concurrent full-suite runs. `secs` is the time of all
+    stages together, including any wait for a full-suite slot."""
+    start = time.monotonic()
     for stage, classes in stages:
-        start = time.monotonic()
         if stage == "full":
             with full_slots:
                 outcome = run(classes)
         else:
             outcome = run(classes)
-        seconds = round(time.monotonic() - start, 1)
         if outcome == NO_TESTS:
             continue
         if outcome != SURVIVED:
             status = KILLED if outcome == TIMEOUT else outcome
-            return {"status": status, "stage": stage, "timeout": outcome == TIMEOUT, "secs": seconds}
-    return {"status": SURVIVED, "stage": "full", "timeout": False, "secs": seconds}
+            return {"status": status, "stage": stage, "timeout": outcome == TIMEOUT,
+                    "secs": round(time.monotonic() - start, 1)}
+    return {"status": SURVIVED, "stage": "full", "timeout": False, "secs": round(time.monotonic() - start, 1)}
 
 
 def run_mutants(mutants, index, worktrees, run_in, full_jobs, on_result):
