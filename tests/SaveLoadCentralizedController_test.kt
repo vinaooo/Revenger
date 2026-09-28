@@ -16,8 +16,7 @@ import org.robolectric.annotation.Config
 /**
  * [SaveLoadCentralizedController]'s own logic is thin delegation to [SaveLoadOrchestrator]
  * (already covered by its own test suite) -- these tests pin only what's specific to this class:
- * which arguments each method forwards, and the `markSkipNextTempStateLoad` callback wiring that
- * `GameActivityViewModel`'s characterization tests already cover end-to-end.
+ * which arguments each method forwards.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -26,7 +25,6 @@ class SaveLoadCentralizedController_test {
     private lateinit var saveLoadOrchestrator: SaveLoadOrchestrator
     private var currentRetroView: RetroView? = null
     private var currentRetroViewUtils: RetroViewUtils? = null
-    private var skipNextTempStateLoadMarked = false
     private lateinit var controller: SaveLoadCentralizedController
 
     @Before
@@ -34,35 +32,23 @@ class SaveLoadCentralizedController_test {
         saveLoadOrchestrator = mockk(relaxed = true)
         currentRetroView = null
         currentRetroViewUtils = null
-        skipNextTempStateLoadMarked = false
         controller =
                 SaveLoadCentralizedController(
                         saveLoadOrchestrator = saveLoadOrchestrator,
                         retroView = { currentRetroView },
-                        retroViewUtils = { currentRetroViewUtils },
-                        markSkipNextTempStateLoad = { skipNextTempStateLoadMarked = true }
+                        retroViewUtils = { currentRetroViewUtils }
                 )
     }
 
     @Test
-    fun `loadStateCentralized marca skipNextTempStateLoad quando o load realmente aconteceu`() {
+    fun `loadStateCentralized repassa retroView, retroViewUtils e onComplete`() {
         currentRetroView = mockk(relaxed = true)
         currentRetroViewUtils = mockk(relaxed = true)
-        every { saveLoadOrchestrator.loadState(currentRetroView, currentRetroViewUtils, any()) } returns
-                true
+        val onComplete = {}
 
-        controller.loadStateCentralized()
+        controller.loadStateCentralized(onComplete)
 
-        assertTrue(skipNextTempStateLoadMarked)
-    }
-
-    @Test
-    fun `loadStateCentralized nao marca skipNextTempStateLoad quando nao houve load`() {
-        every { saveLoadOrchestrator.loadState(any(), any(), any()) } returns false
-
-        controller.loadStateCentralized()
-
-        assertFalse(skipNextTempStateLoadMarked)
+        verify(exactly = 1) { saveLoadOrchestrator.loadState(currentRetroView, currentRetroViewUtils, onComplete) }
     }
 
     @Test

@@ -644,8 +644,7 @@ class GameActivityViewModel_test {
     // Written BEFORE extracting these three methods into SaveLoadOrchestrator, to pin down:
     // every early-return guard, the exact frame-speed save/restore sequence around the actual
     // load/save, the postDelayed(200)-based unpause used only when saving a paused emulator that
-    // isn't explicitly being kept paused, and that `skipNextTempStateLoad` is only ever set when a
-    // load really happened.
+    // isn't explicitly being kept paused.
 
     /**
      * Builds a mocked [RetroView] whose [RetroView.frameRendered] value and `view.frameSpeed` are
@@ -684,7 +683,6 @@ class GameActivityViewModel_test {
 
         assertTrue(completed)
         verify(exactly = 0) { utils.loadState(any()) }
-        assertFalse(getPrivateField<Boolean>(viewModel, "skipNextTempStateLoad"))
     }
 
     @Test
@@ -699,7 +697,6 @@ class GameActivityViewModel_test {
         assertTrue(completed)
         verify(exactly = 0) { utils.loadState(any()) }
         verify(exactly = 0) { glRetroView.frameSpeed = any() }
-        assertFalse(getPrivateField<Boolean>(viewModel, "skipNextTempStateLoad"))
     }
 
     @Test
@@ -712,7 +709,6 @@ class GameActivityViewModel_test {
         viewModel.loadStateCentralized { completed = true }
 
         assertTrue(completed)
-        assertFalse(getPrivateField<Boolean>(viewModel, "skipNextTempStateLoad"))
     }
 
     @Test
@@ -727,7 +723,6 @@ class GameActivityViewModel_test {
         assertTrue(completed)
         verify(exactly = 0) { utils.loadState(any()) }
         verify(exactly = 0) { glRetroView.frameSpeed = any() }
-        assertFalse(getPrivateField<Boolean>(viewModel, "skipNextTempStateLoad"))
     }
 
     // --- loadStateCentralized: the real load path ---
@@ -747,7 +742,6 @@ class GameActivityViewModel_test {
             glRetroView.frameSpeed = 3
         }
         assertTrue(completed)
-        assertTrue(getPrivateField<Boolean>(viewModel, "skipNextTempStateLoad"))
     }
 
     // --- saveStateCentralized: paused emulator, not explicitly kept paused -> delayed save ---

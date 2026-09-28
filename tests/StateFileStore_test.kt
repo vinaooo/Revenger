@@ -36,7 +36,6 @@ class StateFileStore_test {
         // Clean slate: Storage is a process-wide singleton pattern but this test constructs its
         // own instance directly, so start from files that don't exist yet.
         storage.state.delete()
-        storage.tempState.delete()
         storage.sram.delete()
 
         store = StateFileStore(storage)
@@ -69,23 +68,6 @@ class StateFileStore_test {
     }
 
     @Test
-    fun `loadTempState desserializa o conteudo salvo do tempstate`() {
-        val bytes = byteArrayOf(9, 9, 9)
-        storage.tempState.writeBytes(bytes)
-
-        store.loadTempState(retroView)
-
-        verify { glRetroView.unserializeState(bytes) }
-    }
-
-    @Test
-    fun `loadTempState nao faz nada quando o arquivo nao existe`() {
-        store.loadTempState(retroView)
-
-        verify(exactly = 0) { glRetroView.unserializeState(any()) }
-    }
-
-    @Test
     fun `saveState escreve o resultado de serializeState no arquivo de state`() {
         val bytes = byteArrayOf(5, 6, 7)
         every { glRetroView.serializeState() } returns bytes
@@ -94,16 +76,6 @@ class StateFileStore_test {
 
         assertNotNull(storage.state.readBytes())
         org.junit.Assert.assertArrayEquals(bytes, storage.state.readBytes())
-    }
-
-    @Test
-    fun `saveTempState escreve o resultado de serializeState no arquivo de tempstate`() {
-        val bytes = byteArrayOf(4, 3, 2)
-        every { glRetroView.serializeState() } returns bytes
-
-        store.saveTempState(retroView)
-
-        org.junit.Assert.assertArrayEquals(bytes, storage.tempState.readBytes())
     }
 
     @Test

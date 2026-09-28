@@ -14,36 +14,13 @@ class RetroViewUtils(
     private val storage = Storage.getInstance(activity)
     private val sharedPreferences = activity.getPreferences(Context.MODE_PRIVATE)
 
-    fun restoreEmulatorState(
-            retroView: RetroView,
-            skipTempStateLoad: Boolean = false,
-            autoRestoreManualState: Boolean = false
-    ) {
-        // FIX: Restore frameSpeed, but ensure it never is 0 (paused)
-        // If saved frameSpeed is 0, it means app was closed with menu open
-        // In this case, restore to 1 (normal speed) to avoid black screen
-        val savedFrameSpeed = sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1)
-        retroView.view.frameSpeed = if (savedFrameSpeed == 0) 1 else savedFrameSpeed
-        retroView.view.audioEnabled =
-                sharedPreferences.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true)
-
-        // CRITICAL FIX: Do not load tempState if we just did manual Load State
-        // This prevents tempState from overwriting the save state that user just loaded
-        if (!skipTempStateLoad) {
-            val hasSave = hasSaveState()
-            val tempExists = storage.tempState.exists()
-
-            when {
-                autoRestoreManualState && hasSave -> loadState(retroView)
-                tempExists -> loadTempState(retroView)
-            }
-        }
-    }
-
+    /**
+     * Keeps what must outlive the session when the menu opens or the app pauses: the game's own
+     * save memory (SRAM) and the speed/audio settings. No emulator snapshot is taken: the game
+     * starts fresh on launch and only a manual Load State restores one.
+     */
     fun preserveEmulatorState(retroView: RetroView) {
         saveSRAM(retroView)
-
-        saveTempState(retroView)
 
         sharedPreferences.edit {
             // CRITICAL: Never save frameSpeed = 0 (paused by menu)
