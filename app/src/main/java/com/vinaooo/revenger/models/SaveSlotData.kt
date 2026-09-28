@@ -65,6 +65,9 @@ data class SaveSlotData(
         return if (isEmpty) "Empty" else name
     }
 
+    /** The name an overwrite saves under: the slot keeps its name, or "Slot N" if it has none. */
+    fun overwriteName(): String = name.ifBlank { "Slot $slotNumber" }
+
     /**
      * Returns formatted timestamp for display (dd/MM/yyyy HH:mm). Returns empty string if timestamp
      * is null.

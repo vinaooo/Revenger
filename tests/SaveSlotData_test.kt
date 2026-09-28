@@ -39,6 +39,14 @@ class SaveSlotData_test {
     }
 
     @Test
+    fun `overwriteName mantem o nome do slot e cai em Slot N quando esta em branco`() {
+        val slot = SaveSlotData.empty(4).copy(name = "Before the boss", isEmpty = false)
+
+        assertEquals("Before the boss", slot.overwriteName())
+        assertEquals("Slot 4", slot.copy(name = "  ").overwriteName())
+    }
+
+    @Test
     fun `getDisplayName retorna nome para slots ocupados`() {
         val slot = SaveSlotData(
             slotNumber = 1,

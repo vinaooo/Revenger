@@ -165,7 +165,7 @@ class ExitSaveGridFragment : SaveStateGridFragment() {
                         confirmLabel = getString(R.string.dialog_overwrite),
                         cancelLabel = getString(R.string.dialog_cancel)
                 )
-        dialogs.showConfirmDialog(text) { performSave(slot.slotNumber, "Slot ${slot.slotNumber}") }
+        dialogs.showConfirmDialog(text) { performSave(slot.slotNumber, slot.overwriteName()) }
     }
 
     override fun performNavigateUp() {
