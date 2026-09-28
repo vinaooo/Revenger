@@ -149,6 +149,33 @@ def test_mutant_key_ignores_indentation_but_not_position_or_operator():
     assert a.key.startswith("A.kt:3:== -> !=:")
 
 
+def test_the_same_operator_twice_on_a_line_gives_mutants_with_different_keys():
+    first, second = mt.mutants_for_line("A.kt", 5, "if (w > 0 && h > 0) go()")[:2]
+
+    assert (first.operator, second.operator) == ("> -> <=", "> -> <=")
+    assert first.mutated == "if (w <= 0 && h > 0) go()"
+    assert second.mutated == "if (w > 0 && h <= 0) go()"
+    assert (first.occurrence, second.occurrence) == (0, 1)
+    assert first.key != second.key
+
+
+def test_matches_in_separate_code_spans_are_counted_together():
+    mutants = mt.mutants_for_line("A.kt", 1, 'f(a == b, "x", c == d)')
+
+    assert [m.occurrence for m in mutants if m.operator == "== -> !="] == [0, 1]
+
+
+def test_resuming_skips_only_the_recorded_one_of_two_same_line_mutants(tmp_path):
+    first, second = mt.mutants_for_line("A.kt", 5, "if (w > 0 && h > 0) go()")[:2]
+    path = tmp_path / "mutants.jsonl"
+    path.write_text(json.dumps(mt.result_record(first, {"status": mt.KILLED})) + "\n")
+
+    done = mt.load_done(str(path))
+
+    assert first.key in done
+    assert second.key not in done
+
+
 # --- changed lines ----------------------------------------------------------------------------
 
 
