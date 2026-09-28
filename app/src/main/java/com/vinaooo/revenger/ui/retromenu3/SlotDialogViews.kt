@@ -55,7 +55,7 @@ internal object SlotDialogViews {
                 FontUtils.getCapitalizedString(context, titleRes)
         editText.setHintText(FontUtils.getCapitalizedString(context, R.string.save_name_hint))
         editText.setRetroHintColor(HINT_COLOR)
-        FontUtils.getSelectedTypeface(context)?.let { editText.applyTypeface(it) }
+        editText.applyTypeface(FontUtils.getSelectedTypeface(context))
         styleTexts(textViewsIn(dialog).filterNot { it is RetroEditText })
         return editText
     }
