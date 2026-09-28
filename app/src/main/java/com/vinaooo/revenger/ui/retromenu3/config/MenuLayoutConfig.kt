@@ -317,87 +317,6 @@ private object VerticalLayoutWrapper {
             Log.e(TAG, "❌ Erro ao aplicar proporções verticais", e)
         }
     }
-
-    /**
-     * Removes [dialogContainer] from [parentLinearLayout] at [containerIndex] and re-inserts it
-     * wrapped in a new vertical [android.widget.LinearLayout], keeping the dialog itself at
-     * wrap_content height while [Space, Dialog, Space] siblings position it per [proportions].
-     */
-    fun wrapDialogContainerVertically(
-            dialogContainer: android.widget.LinearLayout,
-            parentLinearLayout: android.widget.LinearLayout,
-            containerIndex: Int,
-            proportions: VerticalProportions
-    ) {
-        try {
-            // Salvar os layout params originais do container
-            val originalParams =
-                    dialogContainer.layoutParams as android.widget.LinearLayout.LayoutParams
-            val originalWeight = originalParams.weight
-
-            // Remover o container do parent
-            parentLinearLayout.removeViewAt(containerIndex)
-
-            // Criar um novo LinearLayout VERTICAL que vai substituir o container
-            val verticalWrapper =
-                    android.widget.LinearLayout(dialogContainer.context).apply {
-                        orientation = android.widget.LinearLayout.VERTICAL
-                        layoutParams =
-                                android.widget.LinearLayout.LayoutParams(
-                                        0,
-                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                                        originalWeight // Manter o mesmo peso horizontal
-                                )
-                    }
-
-            // Criar Space superior baseado no topWeight
-            val topSpace =
-                    android.widget.Space(dialogContainer.context).apply {
-                        layoutParams =
-                                android.widget.LinearLayout.LayoutParams(
-                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                                        0,
-                                        proportions.topWeight
-                                )
-                    }
-
-            // IMPORTANTE: Manter wrap_content para o dialog (não esticar)
-            dialogContainer.layoutParams =
-                    android.widget.LinearLayout.LayoutParams(
-                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-
-            // Criar Space inferior que ocupa o resto do espaço
-            val bottomSpace =
-                    android.widget.Space(dialogContainer.context).apply {
-                        layoutParams =
-                                android.widget.LinearLayout.LayoutParams(
-                                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                                        0,
-                                        proportions.contentWeight + proportions.bottomWeight
-                                )
-                    }
-
-            // Montar a estrutura vertical: [Space_topo, Dialog, Space_abaixo]
-            verticalWrapper.addView(topSpace)
-            verticalWrapper.addView(dialogContainer)
-            verticalWrapper.addView(bottomSpace)
-
-            // Adicionar o wrapper de volta no parent na mesma posição
-            parentLinearLayout.addView(verticalWrapper, containerIndex)
-
-            Log.d(
-                    TAG,
-                    "Posição vertical do dialog aplicada: top=${(proportions.topWeight * PERCENTAGE_SCALE).toInt()}%"
-            )
-        } catch (e: ClassCastException) {
-            // dialogContainer.layoutParams is force-cast to LinearLayout.LayoutParams above
-            // without an `is` guard; a caller passing a container whose parent assigned a
-            // different LayoutParams subtype hits this.
-            Log.e(TAG, "❌ Erro ao aplicar posição vertical do dialog", e)
-        }
-    }
 }
 
 /**
@@ -430,45 +349,22 @@ object MenuLayoutConfig : ProportionsParsing by ProportionsParser {
             parentLayout: android.widget.LinearLayout,
             proportions: LayoutProportions
     ) {
-        try {
-            val childCount = parentLayout.childCount
-            if (childCount < MIN_LAYOUT_CHILD_COUNT) {
-                Log.w(TAG, "⚠️ LinearLayout tem menos de 3 filhos, esperado: Space, Content, Space")
-                return
-            }
-
-            // Assumindo estrutura: [Space esquerdo, Conteúdo, Space direito]
-            val leftSpace = parentLayout.getChildAt(0)
-            val centerContent = parentLayout.getChildAt(1)
-            val rightSpace = parentLayout.getChildAt(2)
-
-            // Aplicar os pesos
-            if (leftSpace.layoutParams is android.widget.LinearLayout.LayoutParams) {
-                (leftSpace.layoutParams as android.widget.LinearLayout.LayoutParams).weight =
-                        proportions.leftWeight
-            }
-
-            if (centerContent.layoutParams is android.widget.LinearLayout.LayoutParams) {
-                (centerContent.layoutParams as android.widget.LinearLayout.LayoutParams).weight =
-                        proportions.centerWeight
-            }
-
-            if (rightSpace.layoutParams is android.widget.LinearLayout.LayoutParams) {
-                (rightSpace.layoutParams as android.widget.LinearLayout.LayoutParams).weight =
-                        proportions.rightWeight
-            }
-
-            // Requisitar layout novamente para aplicar os pesos
-            parentLayout.requestLayout()
-
-            Log.d(TAG, "Proporções aplicadas ao layout: $proportions")
-            // The layoutParams casts above are all guarded by an `is` check on the very same
-            // object one line earlier, so nothing here is reachable in practice; this catch is a
-            // deliberate safety net kept from crashing the menu over a future refactor that might
-            // break that invariant. Named per detekt's own escape hatch instead of @Suppress.
-        } catch (expectedUnreachable: Exception) {
-            Log.e(TAG, "❌ Erro ao aplicar proporções de layout", expectedUnreachable)
+        if (parentLayout.childCount < MIN_LAYOUT_CHILD_COUNT) {
+            Log.w(TAG, "⚠️ LinearLayout tem menos de 3 filhos, esperado: Space, Content, Space")
+            return
         }
+
+        // Assumindo estrutura: [Space esquerdo, Conteúdo, Space direito]
+        val weights = listOf(proportions.leftWeight, proportions.centerWeight, proportions.rightWeight)
+        weights.forEachIndexed { index, weight ->
+            (parentLayout.getChildAt(index).layoutParams as? android.widget.LinearLayout.LayoutParams)
+                    ?.weight = weight
+        }
+
+        // Requisitar layout novamente para aplicar os pesos
+        parentLayout.requestLayout()
+
+        Log.d(TAG, "Proporções aplicadas ao layout: $proportions")
     }
 
     /**
@@ -478,30 +374,25 @@ object MenuLayoutConfig : ProportionsParsing by ProportionsParser {
      * @return LayoutProportions com base na orientação, ou null se falhar
      */
     fun getConfiguredProportions(view: View): LayoutProportions? {
-        return try {
-            val resources = view.resources
-            val configuration = resources.configuration
-            val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+        val resources = view.resources
+        val configuration = resources.configuration
+        val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
-            val proportionsString =
-                    if (isPortrait) {
-                        resources.getString(R.string.rm_portrait_horizontal_proportions)
-                    } else {
-                        resources.getString(R.string.rm_landscape_horizontal_proportions)
-                    }
+        val proportionsString =
+                if (isPortrait) {
+                    resources.getString(R.string.rm_portrait_horizontal_proportions)
+                } else {
+                    resources.getString(R.string.rm_landscape_horizontal_proportions)
+                }
 
-            val proportions = parseLayoutProportions(proportionsString)
-            if (proportions != null) {
-                Log.d(
-                        TAG,
-                        "Proporções obtidas para ${if (isPortrait) "PORTRAIT" else "LANDSCAPE"}: $proportions"
-                )
-            }
-            proportions
-        } catch (e: android.content.res.Resources.NotFoundException) {
-            Log.e(TAG, "❌ Erro ao obter proporções configuradas", e)
-            null
+        val proportions = parseLayoutProportions(proportionsString)
+        if (proportions != null) {
+            Log.d(
+                    TAG,
+                    "Proporções obtidas para ${if (isPortrait) "PORTRAIT" else "LANDSCAPE"}: $proportions"
+            )
         }
+        return proportions
     }
 
     /**
@@ -512,29 +403,21 @@ object MenuLayoutConfig : ProportionsParsing by ProportionsParser {
      */
     fun applyProportionsToMenuLayout(view: View) {
         Log.d(TAG, "applyProportionsToMenuLayout: applying to ${view.javaClass.simpleName}")
-        try {
-            // Obter proporções baseado na orientação
-            val proportions = getConfiguredProportions(view)
-            if (proportions == null) {
-                Log.w(TAG, "⚠️ getConfiguredProportions returned null, aborting")
-                return
-            }
-
-            // Encontrar o LinearLayout horizontal
-            val mainLayout = MenuLayoutFinder.findMainHorizontalLayout(view)
-            if (mainLayout == null) {
-                Log.w(TAG, "⚠️ findMainHorizontalLayout returned null, aborting")
-                return
-            }
-
-            // Aplicar as proporções
-            applyLayoutProportions(mainLayout, proportions)
-            // getConfiguredProportions and applyLayoutProportions both already catch their own
-            // failures and never propagate, so nothing reaches this catch in practice; kept as a
-            // safety net against a future change to either callee.
-        } catch (expectedUnreachable: Exception) {
-            Log.e(TAG, "Erro ao aplicar proporções ao menu layout", expectedUnreachable)
+        // Obter proporções baseado na orientação
+        val proportions = getConfiguredProportions(view)
+        if (proportions == null) {
+            Log.w(TAG, "⚠️ getConfiguredProportions returned null, aborting")
+            return
         }
+
+        // Encontrar o LinearLayout horizontal
+        val mainLayout = MenuLayoutFinder.findMainHorizontalLayout(view)
+        if (mainLayout == null) {
+            Log.w(TAG, "⚠️ findMainHorizontalLayout returned null, aborting")
+            return
+        }
+
+        applyLayoutProportions(mainLayout, proportions)
     }
 
     /**
@@ -544,30 +427,25 @@ object MenuLayoutConfig : ProportionsParsing by ProportionsParser {
      * @return VerticalProportions com base na orientação, ou null se falhar
      */
     fun getConfiguredVerticalProportions(view: View): VerticalProportions? {
-        return try {
-            val resources = view.resources
-            val configuration = resources.configuration
-            val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+        val resources = view.resources
+        val configuration = resources.configuration
+        val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
-            val proportionsString =
-                    if (isPortrait) {
-                        resources.getString(R.string.rm_portrait_vertical_proportions)
-                    } else {
-                        resources.getString(R.string.rm_landscape_vertical_proportions)
-                    }
+        val proportionsString =
+                if (isPortrait) {
+                    resources.getString(R.string.rm_portrait_vertical_proportions)
+                } else {
+                    resources.getString(R.string.rm_landscape_vertical_proportions)
+                }
 
-            val proportions = parseVerticalProportions(proportionsString)
-            if (proportions != null) {
-                Log.d(
-                        TAG,
-                        "Proporções verticais obtidas para ${if (isPortrait) "PORTRAIT" else "LANDSCAPE"}: $proportions"
-                )
-            }
-            proportions
-        } catch (e: android.content.res.Resources.NotFoundException) {
-            Log.e(TAG, "❌ Erro ao obter proporções verticais configuradas", e)
-            null
+        val proportions = parseVerticalProportions(proportionsString)
+        if (proportions != null) {
+            Log.d(
+                    TAG,
+                    "Proporções verticais obtidas para ${if (isPortrait) "PORTRAIT" else "LANDSCAPE"}: $proportions"
+            )
         }
+        return proportions
     }
 
     /**
@@ -596,12 +474,12 @@ object MenuLayoutConfig : ProportionsParsing by ProportionsParser {
             )
         }
 
-        val containerIndex = parent.indexOfChild(menuContainer)
-        if (containerIndex == -1) {
-            return VerticalLayoutWrapper.warn("⚠️ Container não encontrado no parent")
-        }
-
-        VerticalLayoutWrapper.wrapContainerVertically(menuContainer, parent, containerIndex, proportions)
+        VerticalLayoutWrapper.wrapContainerVertically(
+                menuContainer,
+                parent,
+                parent.indexOfChild(menuContainer),
+                proportions
+        )
     }
 
     /**
@@ -610,23 +488,13 @@ object MenuLayoutConfig : ProportionsParsing by ProportionsParser {
      * @param view A view raiz do menu (FrameLayout ou similar)
      */
     fun applyAllProportionsToMenuLayout(view: View) {
-        try {
-            // Aplicar proporções horizontais
-            applyProportionsToMenuLayout(view)
+        applyProportionsToMenuLayout(view)
 
-            // Aplicar proporções verticais
-            val verticalProportions = getConfiguredVerticalProportions(view) ?: return
-
-            // Encontrar o container vertical do menu (pode ter IDs diferentes)
-            val menuContainer = MenuLayoutFinder.findMenuContentContainer(view) ?: return
-
+        // Encontrar o container vertical do menu (pode ter IDs diferentes)
+        val verticalProportions = getConfiguredVerticalProportions(view)
+        val menuContainer = MenuLayoutFinder.findMenuContentContainer(view)
+        if (verticalProportions != null && menuContainer != null) {
             applyVerticalProportions(menuContainer, verticalProportions)
-            // Every callee above (applyProportionsToMenuLayout, getConfiguredVerticalProportions,
-            // applyVerticalProportions) already catches its own failures and returns/no-ops
-            // instead of propagating, so nothing reaches this catch in practice; kept as a safety
-            // net against a future change to one of those callees.
-        } catch (expectedUnreachable: Exception) {
-            Log.e(TAG, "Erro ao aplicar todas as proporções do menu", expectedUnreachable)
         }
     }
 }

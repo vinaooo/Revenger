@@ -9,12 +9,10 @@ import android.util.Log
  * OrientationManager - Centralizes screen orientation application logic
  *
  * Purpose: Ensure that both SplashActivity and GameActivity apply the same
- * orientation logic based on orientation from config.xml
- *
- * orientation values:
- * - 1: Portrait only
- * - 2: Landscape only
- * - 3: Any orientation (respects system auto-rotate)
+ * orientation logic, based on the configured `orientation` value (case-insensitive):
+ * - `portrait`: portrait only
+ * - `landscape`: landscape only
+ * - `auto`: any orientation (respects system auto-rotate)
  */
 object OrientationManager {
     private const val TAG = "OrientationManager"
@@ -23,7 +21,7 @@ object OrientationManager {
      * Applies the configured screen orientation based on orientation
      *
      * @param activity Activity where orientation should be applied
-     * @param configOrientation Value of orientation (1, 2, or 3)
+     * @param configOrientation `portrait`, `landscape` or `auto`
      */
     fun applyConfigOrientation(activity: Activity, configOrientation: String) {
         // Check system auto-rotate preference
@@ -78,12 +76,12 @@ object OrientationManager {
      * without an incorrect orientation flash
      *
      * @param activity Activity where the configuration should be applied
-     * @param configOrientation Value of orientation (1, 2, or 3)
+     * @param configOrientation `portrait`, `landscape` or `auto`
      */
     fun forceConfigurationBeforeSetContent(activity: Activity, configOrientation: String) {
         // For auto mode, do not force anything - let Android decide
         if (configOrientation.lowercase() == "auto") {
-            Log.d(TAG, "Mode 3 (any orientation) - skipping configuration force")
+            Log.d(TAG, "auto orientation - skipping configuration force")
             return
         }
 

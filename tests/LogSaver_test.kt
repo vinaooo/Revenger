@@ -6,7 +6,9 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
+import android.os.Environment
 import androidx.test.core.app.ApplicationProvider
+import com.vinaooo.revenger.RevengerApplication
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -156,5 +158,34 @@ class LogSaver_test {
         val logs = LogSaver.captureSystemLogs(arrayOf("/nonexistent/command"))
 
         assertTrue(logs, logs.startsWith("Unable to capture system logs: "))
+    }
+
+    @Test
+    fun `sem AppConfig inicializado a secao de configuracao diz que nao foi possivel ler`() {
+        val field = RevengerApplication::class.java.getDeclaredField("appConfig").apply { isAccessible = true }
+        val original = field.get(null)
+        field.set(null, null)
+        try {
+            val path = LogSaver.writeLog(contextWithRom(present = true), tempDir.root, at) { "" }
+
+            assertTrue(File(checkNotNull(path)).readText().contains("Configuration: Unable to retrieve"))
+        } finally {
+            field.set(null, original)
+        }
+    }
+
+    @Test
+    fun `saveCompleteLog grava o relatorio na pasta de downloads`() {
+        val path = checkNotNull(LogSaver.saveCompleteLog(appContext))
+        try {
+            val file = File(path)
+            assertEquals(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    file.parentFile
+            )
+            assertTrue(file.readText().contains("Package Name: ${appContext.packageName}"))
+        } finally {
+            File(path).delete()
+        }
     }
 }

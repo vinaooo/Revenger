@@ -117,7 +117,7 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
 - `CoreVariablesFragment`'s hand-rolled title capitalization is replaced by `FontUtils.applyTextCapitalization`, the same helper every other menu uses. The output is identical for the configured style (2, all uppercase).
 - Left: the kill-process lambdas (they need a real `GameActivity`), the `when` `else` branches no index or operation can reach, and empty callbacks.
 
-### [x] 8. `test/menu-navigation`: `MenuManager` and friends — this PR
+### [x] 8. `test/menu-navigation`: `MenuManager` and friends — done in PR #160
 - First replace `MenuManager`'s repeated log-message checks with one helper, then test the real guards (no fragment, not added, no context).
 - `SubmenuCoordinator` (restoring the main-menu selection after back), `NavigationController`, `MenuOpenHandler`.
 - Done:
@@ -126,9 +126,18 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
   - `NavigationController`: tests for submenu vs main registration, `restoreState` and `closeMenuExternal`. Deleted a try/catch around a log call, and `selectItem` uses `require`.
   - `MenuOpenHandler`: deleted the two try/catch blocks around log calls.
 
-### [ ] 9. `test/small-utils`
+### [x] 9. `test/small-utils` — this PR
 - `FontUtils`, `OrientationManager`, `EventQueue.shouldDebounce`, `ProfilingSessionController`, `TypefaceProvider`, `MenuLayoutConfig`, `GamePadLayoutAdjuster`, `LogSaver`.
 - Delete the remaining impossible pre-API-30 checks: `RotationController`, `ScreenshotPreviewController`, `ScreenshotCaptureUtil`, `CroppedScreenshotStore`.
+- Done:
+  - New `FontUtils_test` and `OrientationManager_test`.
+  - More cases in `EventQueue`, `ProfilingSessionController` (each profile level, the repeating loop), `TypefaceProvider`, `MenuLayoutConfig` (landscape, mismatched children), `GamePadLayoutAdjuster` and `LogSaver`.
+- Deleted:
+  - The pre-API-30 checks and `@RequiresApi(O)` annotations in `RotationController`, `ScreenshotPreviewController`, `ScreenshotCaptureUtil` and `CroppedScreenshotStore`.
+  - Code nothing called: `MenuLayoutConfig`'s `wrapDialogContainerVertically`, `EventQueue.peek`/`isEmpty`/`size`, `FontUtils`' vararg `applySelectedFont`, and the profiler's empty checkpoint and summary.
+  - Catches that can't fire: three named `expectedUnreachable`; `NotFoundException` on strings defined in `res/values`; `NameNotFoundException` on the app's own package; `UninitializedPropertyAccessException` in the game-screen gamepad code.
+  - Two duplicated `when`s: capitalization in `FontUtils`, debounce windows in `EventQueue`.
+- Found, not changed: `TypefaceProvider`'s fixed pixelify, micro5 and tiny5 paths point at files that don't exist, so those getters always return the system font. Nothing reaches them, because `getSelectedTypeface` loads `fonts/<rm_font>.ttf` first and those files exist. Whether to remove the getters (a `FontUtils` public-surface change) is the user's call.
 
 ### [ ] 10. `chore/raise-kover-floor-4`
 - Run `./gradlew coverageAll -PskipAssetStaging`, raise `kover { verify { rule } }` in `app/build.gradle` to the new values rounded down, update `CLAUDE.md`, fill in the Result section.

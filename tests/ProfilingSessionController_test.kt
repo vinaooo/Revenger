@@ -4,15 +4,22 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
+import com.vinaooo.revenger.utils.AndroidCompatibility
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import io.mockk.verify
+import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
+import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 /**
@@ -33,6 +40,7 @@ class ProfilingSessionController_test {
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private lateinit var hardwareMetrics: HardwareMetricsCollector
     private lateinit var controller: ProfilingSessionController
+    private val performanceData = ConcurrentHashMap<String, Any>()
 
     @Before
     fun setUp() {
@@ -40,7 +48,7 @@ class ProfilingSessionController_test {
         controller =
                 ProfilingSessionController(
                         Handler(Looper.getMainLooper()),
-                        ConcurrentHashMap(),
+                        performanceData,
                         hardwareMetrics
                 )
     }
@@ -82,5 +90,67 @@ class ProfilingSessionController_test {
         controller.stopProfiling()
 
         assertFalse(controller.isActive())
+    }
+
+    // --- profile level per Android version, and the monitoring loop ---
+
+    @After
+    fun tearDown() {
+        unmockkObject(AndroidCompatibility)
+    }
+
+    private fun runFor(millis: Long) = shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(millis))
+
+    @Test
+    fun `no Android 11 so o monitoramento basico roda`() {
+        controller.startProfiling(context)
+        runFor(0)
+
+        verify { hardwareMetrics.startBasicSystemMonitoring() }
+        verify(exactly = 0) { hardwareMetrics.collectStandardMetrics() }
+        verify(exactly = 0) { hardwareMetrics.collectAdvancedMetrics() }
+        assertTrue(performanceData.containsKey(DebugOverlayText.MEMORY_USED_MB_KEY))
+        assertTrue(performanceData.containsKey(DebugOverlayText.CPU_USAGE_PERCENT_KEY))
+        assertTrue(performanceData.containsKey("timestamp"))
+    }
+
+    @Test
+    fun `no Android 12+ o perfil padrao coleta as metricas padrao`() {
+        mockkObject(AndroidCompatibility)
+        every { AndroidCompatibility.isAndroid12Plus() } returns true
+
+        controller.startProfiling(context)
+        runFor(0)
+
+        verify { hardwareMetrics.startBasicGpuProfiling() }
+        verify { hardwareMetrics.startStandardMemoryProfiling() }
+        verify(exactly = 1) { hardwareMetrics.collectStandardMetrics() }
+        verify(exactly = 0) { hardwareMetrics.startBasicSystemMonitoring() }
+    }
+
+    @Test
+    fun `no Android 16+ o perfil avancado coleta as metricas avancadas`() {
+        mockkObject(AndroidCompatibility)
+        every { AndroidCompatibility.isAndroid16Plus() } returns true
+        every { AndroidCompatibility.isAndroid12Plus() } returns true
+
+        controller.startProfiling(context)
+        runFor(0)
+
+        verify { hardwareMetrics.startAdvancedProfilingStubs() }
+        verify(exactly = 1) { hardwareMetrics.collectAdvancedMetrics() }
+        verify(exactly = 0) { hardwareMetrics.collectStandardMetrics() }
+    }
+
+    @Test
+    fun `a coleta se repete a cada segundo ate stopProfiling`() {
+        controller.startProfiling(context)
+        runFor(2_500)
+        verify(exactly = 3) { hardwareMetrics.getCpuUsage() }
+
+        controller.stopProfiling()
+        runFor(5_000)
+
+        verify(exactly = 3) { hardwareMetrics.getCpuUsage() }
     }
 }

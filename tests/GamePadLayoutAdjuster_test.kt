@@ -243,6 +243,19 @@ class GamePadLayoutAdjuster_test {
     }
 
     @Test
+    fun `equalizeGamePadHeights tambem ajusta o lado direito quando ele e o mais curto`() {
+        val (_, container) = buildHierarchy(parentHeight = 1000, containerHeight = 180, leftHeight = 180, rightHeight = 90)
+        // The pads themselves sit inside the containers (their sizes only go to the debug log).
+        leftContainerOf(container).addView(View(context))
+        rightContainerOf(container).addView(View(context))
+
+        callEqualizeGamePadHeights(container)
+
+        assertEquals(0, leftContainerOf(container).minimumHeight)
+        assertEquals(180, rightContainerOf(container).minimumHeight)
+    }
+
+    @Test
     fun `equalizeGamePadHeights nao faz nada quando os dois lados ja tem a mesma altura`() {
         val (_, container) = buildHierarchy(parentHeight = 1000, containerHeight = 120, leftHeight = 120, rightHeight = 120)
 

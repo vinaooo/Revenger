@@ -12,31 +12,10 @@ object FontUtils : TypefaceLookup by TypefaceProvider() {
         }
     }
 
-    /** Applies the selected font to multiple TextViews */
-    fun applySelectedFont(context: Context, vararg textViews: android.widget.TextView) {
-        val typeface = getSelectedTypeface(context)
-        if (typeface != null) {
-            textViews.forEach { it.typeface = typeface }
-        }
-    }
-
     /** Applies configured capitalization to the text of a TextView */
     fun applyTextCapitalization(context: Context, textView: android.widget.TextView) {
-        val capitalizationStyle =
-                context.resources.getInteger(
-                        com.vinaooo.revenger.R.integer.rm_text_capitalization
-                )
         val originalText = textView.text.toString()
-
-        val capitalizedText =
-                when (capitalizationStyle) {
-                    1 -> {
-                        // First letter uppercase - more robust
-                        originalText.lowercase().replaceFirstChar { it.uppercase() }
-                    }
-                    2 -> originalText.uppercase() // All uppercase
-                    else -> originalText // Normal (default)
-                }
+        val capitalizedText = capitalize(context, originalText)
 
         if (capitalizedText != originalText) {
             textView.text = capitalizedText
@@ -64,15 +43,14 @@ object FontUtils : TypefaceLookup by TypefaceProvider() {
             context.resources.getString(resId)
         }
 
-        val capitalizationStyle =
-                context.resources.getInteger(
-                        com.vinaooo.revenger.R.integer.rm_text_capitalization
-                )
-
-        return when (capitalizationStyle) {
-            1 -> raw.lowercase().replaceFirstChar { it.uppercase() }
-            2 -> raw.uppercase()
-            else -> raw
-        }
+        return capitalize(context, raw)
     }
+
+    // rm_text_capitalization: 1 = first letter only, 2 = all uppercase, anything else = unchanged.
+    private fun capitalize(context: Context, text: String): String =
+            when (context.resources.getInteger(com.vinaooo.revenger.R.integer.rm_text_capitalization)) {
+                1 -> text.lowercase().replaceFirstChar { it.uppercase() }
+                2 -> text.uppercase()
+                else -> text
+            }
 }
