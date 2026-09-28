@@ -62,9 +62,15 @@ class KeyboardInputAdapter(
         // chamadas concorrentes reais.
         private val pressCycleStates = mutableMapOf<Int, PressCycleState>()
 
-        // FIX ERRO 1: Tracking de KEY_DOWN/KEY_UP para ações (Back/Backspace)
-        // Previne vazamento de KEY_UP residual após transições de fragmento
+        // FIX ERRO 1: Tracking de KEY_DOWN/KEY_UP para ações (Backspace/Back/Escape)
+        // Previne vazamento de KEY_UP residual após transições de fragmento, e impede que o
+        // KEY_UP reenvie o evento que o KEY_DOWN já enviou (um Back segurado além do debounce
+        // da EventQueue voltaria dois níveis, fechando o menu a partir de um submenu).
         private val actionKeyDownTimestamps = mutableMapOf<Int, Long>()
+
+        /** Teclas de ação cujo KEY_UP apenas confirma o KEY_DOWN já processado. */
+        private val KEY_UP_TRACKED_ACTION_KEYS =
+                setOf(KeyEvent.KEYCODE_DEL, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE)
         private const val KEY_UP_TIMEOUT_MS = 500L // Timeout para considerar KEY_UP órfão
     }
 
@@ -367,9 +373,6 @@ class KeyboardInputAdapter(
                         )
                     }
                     KeyEvent.KEYCODE_DEL -> {
-                        // FIX ERRO 1: Registrar timestamp do KEY_DOWN para validar KEY_UP futuro
-                        actionKeyDownTimestamps[keyCode] = System.currentTimeMillis()
-
                         Log.d(TAG, "[KEY_DOWN] Backspace pressed - navigating back")
                         NavigationEvent.NavigateBack(
                                 keyCode = keyCode,
@@ -389,6 +392,11 @@ class KeyboardInputAdapter(
                         return false
                     }
                 }
+
+        // FIX ERRO 1: Registrar timestamp do KEY_DOWN para validar o KEY_UP futuro
+        if (keyCode in KEY_UP_TRACKED_ACTION_KEYS) {
+            actionKeyDownTimestamps[keyCode] = System.currentTimeMillis()
+        }
 
         // Enviar evento para o NavigationController
         navigationController.handleNavigationEvent(actionEvent)
@@ -484,7 +492,8 @@ class KeyboardInputAdapter(
     }
 
     /**
-     * Handles a non-directional KEY_UP: matches it against a recent KEY_DOWN (Backspace) or falls
+     * Handles a non-directional KEY_UP: matches it against a recent KEY_DOWN (Backspace, Back or
+     * Escape) or falls
      * back to the legacy no-KEY_DOWN-registered mapping. Extracted from [onKeyUp].
      *
      * V4.7 FALLBACK para teclas de ação quando KEY_DOWN não foi recebido: alguns teclados/sistemas
@@ -497,11 +506,11 @@ class KeyboardInputAdapter(
         val keyDownTime = actionKeyDownTimestamps.remove(keyCode)
         if (keyDownTime != null) {
             if ((currentTimeForActions - keyDownTime) <= KEY_UP_TIMEOUT_MS) {
-                Log.d(TAG, "[KEY_UP] Backspace released (matched KEY_DOWN) - processing")
+                Log.d(TAG, "[KEY_UP] keyCode=$keyCode released (matched KEY_DOWN) - already handled")
             } else {
                 Log.w(
                         TAG,
-                        "🚨 ORPHAN KEY_UP detected for Backspace - timeout exceeded " +
+                        "🚨 ORPHAN KEY_UP detected for keyCode=$keyCode - timeout exceeded " +
                                 "(${currentTimeForActions - keyDownTime}ms)"
                 )
             }

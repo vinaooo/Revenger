@@ -445,56 +445,58 @@ class KeyboardInputAdapter_test {
         assertEquals(KeyEvent.KEYCODE_DEL, event.keyCode)
     }
 
-    // --- Candidatos a bug: BACK e ESCAPE emitem o evento duas vezes (KEY_DOWN e KEY_UP) ---
+    // --- onKeyUp: Back e Escape só confirmam o KEY_DOWN ---
     //
-    // Ao contrário do Backspace (KEYCODE_DEL), cujo KEY_DOWN grava um timestamp em
-    // `actionKeyDownTimestamps` para que o KEY_UP correspondente seja reconhecido como "já
-    // processado" e não dispare de novo, KEYCODE_BACK e KEYCODE_ESCAPE NÃO gravam esse
-    // timestamp no KEY_DOWN (ver KeyboardInputAdapter.kt linha ~331 e ~311). O comentário da
-    // FIX ERRO 1 (linha ~55) documenta a intenção como cobrindo "Back/Backspace", mas a
-    // implementação só cobre Backspace. Resultado: para um único toque físico de Back/Escape,
-    // o onKeyUp cai no branch de "fallback legado" (nenhum KEY_DOWN registrado) e reenvia o
-    // MESMO tipo de NavigationEvent que o onKeyDown já havia enviado — o adaptador emite o
-    // evento DUAS vezes por toque.
-    //
-    // Se isso vira uma navegação dupla visível depende de EventQueue (ver EventQueue.kt): ela
-    // aplica `debounceWindowMs` (200ms, ver NavigationController.DEBOUNCE_WINDOW_MS) a
-    // NavigateBack/CloseAllMenus, então um toque físico com DOWN→UP mais rápido que 200ms tem
-    // o segundo evento descartado por debounce; um toque mantido por mais de 200ms deixa
-    // passar os dois e causa uma navegação/fechamento duplo real. `KeyboardInputAdapter` é
-    // chamado a partir de `GameActivityViewModel.processKeyEvent` (routing real de
-    // ACTION_DOWN/ACTION_UP), então o caminho é alcançável em produção. Estes testes cobrem
-    // apenas a emissão no nível do adaptador (2 chamadas), não o comportamento pós-debounce;
-    // veja o relatório da Task 12 para detalhes e para a ressalva sobre alcance real do bug.
+    // Regressão: Back e Escape não registravam o KEY_DOWN, então o KEY_UP caía no fallback legado
+    // e reenviava o mesmo evento. Um Back segurado além do debounce da EventQueue (200ms) voltava
+    // dois níveis: de um submenu ao principal e, em seguida, fechava o menu.
 
     @Test
-    fun `tecla Back gera NavigateBack duplicado no down e no up (bug candidato)`() {
+    fun `Back segurado alem do debounce gera um unico NavigateBack`() {
         adapter.onKeyDown(
             KeyEvent.KEYCODE_BACK,
             keyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK, eventTime = 100)
         )
-        adapter.onKeyUp(
-            KeyEvent.KEYCODE_BACK,
-            keyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK, eventTime = 110)
-        )
+        val consumed =
+            adapter.onKeyUp(
+                KeyEvent.KEYCODE_BACK,
+                keyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK, eventTime = 400, downTime = 100)
+            )
 
-        val events = capturedEvents(times = 2)
-        assertTrue(events.all { it is NavigationEvent.NavigateBack })
+        assertTrue(consumed)
+        assertTrue(capturedEvents(times = 1).single() is NavigationEvent.NavigateBack)
     }
 
     @Test
-    fun `tecla Escape gera CloseAllMenus duplicado no down e no up (bug candidato)`() {
+    fun `Escape gera um unico CloseAllMenus por toque`() {
         adapter.onKeyDown(
             KeyEvent.KEYCODE_ESCAPE,
             keyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ESCAPE, eventTime = 100)
         )
+        val consumed =
+            adapter.onKeyUp(
+                KeyEvent.KEYCODE_ESCAPE,
+                keyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ESCAPE, eventTime = 110)
+            )
+
+        assertTrue(consumed)
+        assertTrue(capturedEvents(times = 1).single() is NavigationEvent.CloseAllMenus)
+    }
+
+    @Test
+    fun `KEY_UP de Back e Escape sem KEY_DOWN registrado ainda usa o fallback legado`() {
+        adapter.onKeyUp(
+            KeyEvent.KEYCODE_BACK,
+            keyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK, eventTime = 100)
+        )
         adapter.onKeyUp(
             KeyEvent.KEYCODE_ESCAPE,
-            keyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ESCAPE, eventTime = 110)
+            keyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ESCAPE, eventTime = 200)
         )
 
         val events = capturedEvents(times = 2)
-        assertTrue(events.all { it is NavigationEvent.CloseAllMenus })
+        assertTrue(events[0] is NavigationEvent.NavigateBack)
+        assertTrue(events[1] is NavigationEvent.CloseAllMenus)
     }
 
     // --- onKeyUp: teclas de navegação e teclas não mapeadas ---
