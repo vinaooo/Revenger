@@ -70,7 +70,7 @@ Missed branches in `ExitFragment`, `ProgressFragment`, `AboutFragment`, `RetroMe
 ### [x] 6. `test/controllers-and-utils`: the rest (#179)
 `PipController`, `GamePadLayoutAdjuster`, `ScreenshotGeometry`, `ScreenshotCaptureUtil`, `ShaderController`, `RotationController`, `LogSaver`, `PipConfigRepository`, `SplashActivity`, `NavigationEventProcessor`, `KeyboardInputAdapter`, `FloatingMenuButtonController`, `GlowAnimationController`, `MenuAnimationController`, `SaveLoadOrchestrator`, `MenuCloseHandler`, `SubmenuFragmentDismisser`.
 
-### [ ] 7. `chore/raise-kover-floor-5`
+### [x] 7. `chore/raise-kover-floor-5` (#180)
 Run `./gradlew coverageAll -PskipAssetStaging`, raise `kover { verify { rule } }` in `app/build.gradle` to the new values rounded down, update `CLAUDE.md`, fill in the Result section.
 
 **Done when** items 1–7 are merged, `check` passes with the raised floor, and every file still below 80% is in "Won't do" with its reason.
