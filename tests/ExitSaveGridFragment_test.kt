@@ -393,6 +393,27 @@ class ExitSaveGridFragment_test {
         verify(exactly = 0) { manager.saveToSlot(any(), any()) }
     }
 
+    @Test
+    fun `sem dialogo as setas movem a selecao do grid`() {
+        mockedSaveStateManager()
+        mockedViewModel()
+        val start = fragment.getCurrentSelectedIndex()
+
+        assertTrue(fragment.onNavigateRight())
+        val right = fragment.getCurrentSelectedIndex()
+        assertTrue(fragment.onNavigateLeft())
+        assertEquals(start, fragment.getCurrentSelectedIndex())
+
+        fragment.onNavigateDown()
+        val down = fragment.getCurrentSelectedIndex()
+        fragment.onNavigateUp()
+
+        assertNotEquals(start, right)
+        assertNotEquals(start, down)
+        assertEquals(start, fragment.getCurrentSelectedIndex())
+        assertFalse(dialogVisible())
+    }
+
     // ========== Overwrite dialog (occupied slot) ==========
 
     @Test

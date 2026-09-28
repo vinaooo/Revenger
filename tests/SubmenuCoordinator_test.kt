@@ -178,6 +178,17 @@ class SubmenuCoordinator_test {
     }
 
     @Test
+    fun `openSubmenu com um estado que nao e submenu do menu principal nao navega nem abre fragment`() {
+        val coordinator = newCoordinator()
+
+        coordinator.openSubmenu(MenuState.SAVE_SLOTS_MENU)
+
+        assertEquals(MenuState.MAIN_MENU, menuManager.getCurrentState())
+        assertEquals(0, activity.supportFragmentManager.backStackEntryCount)
+        verify(inverse = true) { viewModel.registerProgressFragment(any()) }
+    }
+
+    @Test
     fun `openSubmenu le o indice atual do menu principal exatamente uma vez, para salva-lo antes de trocar de submenu`() {
         var getIndexCalls = 0
         val coordinator =
@@ -354,6 +365,22 @@ class SubmenuCoordinator_test {
 
         verify(inverse = true) { viewManager.showMainMenuTexts() }
         assertEquals(MenuState.PROGRESS_MENU, menuManager.getCurrentState())
+    }
+
+    @Test
+    fun `back stack esvaziada sem submenu aberto nao restaura o menu principal`() {
+        val coordinator = newCoordinator()
+        coordinator.setupBackStackListener()
+        menuManager.navigateToState(MenuState.PROGRESS_MENU)
+        seedOpenSubmenuOnBackStack()
+
+        activity.supportFragmentManager.popBackStack()
+        activity.supportFragmentManager.executePendingTransactions()
+        idle()
+
+        verify(inverse = true) { viewManager.showMainMenuTexts() }
+        assertEquals(MenuState.PROGRESS_MENU, menuManager.getCurrentState())
+        assertEquals(emptyList<Boolean>(), showMainMenuCalls)
     }
 
     @Test

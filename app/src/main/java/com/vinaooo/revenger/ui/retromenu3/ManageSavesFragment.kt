@@ -30,11 +30,10 @@ class ManageSavesFragment : SaveStateGridFragment() {
     private var pendingOperation: Operation? = null
     private var isSelectingTargetSlot = false
 
+    /** The two-step operations that pick a target slot after the source. */
     enum class Operation {
-        RENAME,
         COPY,
-        MOVE,
-        DELETE
+        MOVE
     }
 
     override fun onDestroyView() {
@@ -219,7 +218,6 @@ class ManageSavesFragment : SaveStateGridFragment() {
                 when (operation) {
                     Operation.COPY -> getString(R.string.select_slot_to_copy)
                     Operation.MOVE -> getString(R.string.select_slot_to_move)
-                    else -> ""
                 }
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
     }

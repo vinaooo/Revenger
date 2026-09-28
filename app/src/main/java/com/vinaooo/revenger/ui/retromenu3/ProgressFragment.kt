@@ -320,12 +320,6 @@ class ProgressFragment : MenuFragmentBase() {
                         requireContext(),
                         R.color.rm_normal_color
                 )
-        val disabledColor =
-                androidx.core.content.ContextCompat.getColor(
-                        requireContext(),
-                        R.color.rm_disabled_color
-                )
-
         // Update each menu item based on selection state
         applySelectionVisuals(
                 items = menuItems,
@@ -334,18 +328,12 @@ class ProgressFragment : MenuFragmentBase() {
                 onUnselected = { it.setState(RetroCardView.State.NORMAL) }
         )
 
-        // Control text colors based on which item is selected. Load State keeps its
-        // disabled-color special case when unselected and disabled.
+        // Control text colors based on which item is selected
         applySelectionVisuals(
                 items = listOf(loadStateTitle, saveStateTitle, manageSavesTitle, backTitle),
                 selectedIndex = currentIndex,
                 onSelected = { it.setTextColor(selectedColor) },
-                onUnselected = { title ->
-                    val color =
-                            if (title === loadStateTitle && !loadState.isEnabled) disabledColor
-                            else normalColor
-                    title.setTextColor(color)
-                }
+                onUnselected = { it.setTextColor(normalColor) }
         )
 
         // Control selection arrows: selected arrow shows with zero margin (attached to

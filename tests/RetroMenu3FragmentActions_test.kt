@@ -207,6 +207,18 @@ class RetroMenu3FragmentActions_test {
     }
 
     @Test
+    fun `onViewStateRestored nao reabre o submenu se o fragment saiu antes do atraso`() {
+        fragment.onViewStateRestored(Bundle().apply { putString("SUBMENU_STATE", "SETTINGS_MENU") })
+        fragmentManager.beginTransaction().remove(fragment).commitNow()
+
+        host.advance(SETTLE_MS)
+        fragmentManager.executePendingTransactions()
+
+        assertNull(fragmentManager.findFragmentByTag("SettingsMenuFragment"))
+        verify(exactly = 0) { menuManager.navigateToState(MenuState.SETTINGS_MENU) }
+    }
+
+    @Test
     fun `onViewStateRestored com o menu principal salvo nao abre submenu`() {
         fragment.onViewStateRestored(Bundle().apply { putString("SUBMENU_STATE", "MAIN_MENU") })
         fragment.onViewStateRestored(Bundle())
@@ -292,6 +304,16 @@ class RetroMenu3FragmentActions_test {
                 fragment.requireView().findViewById<View>(R.id.menu_continue),
                 host.activity.currentFocus ?: fragment.requireView().findFocus()
         )
+    }
+
+    @Test
+    fun `onResume com o menu escondido nao registra o fragment de novo`() {
+        fragmentManager.beginTransaction().hide(fragment).commitNow()
+
+        host.controller.pause().resume()
+        host.idle()
+
+        verify(exactly = 0) { host.viewModel.updateRetroMenu3FragmentReference(any()) }
     }
 
     @Test
