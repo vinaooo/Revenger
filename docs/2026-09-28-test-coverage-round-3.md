@@ -70,17 +70,28 @@ Missed branches in `ExitFragment`, `ProgressFragment`, `AboutFragment`, `RetroMe
 ### [x] 6. `test/controllers-and-utils`: the rest (#179)
 `PipController`, `GamePadLayoutAdjuster`, `ScreenshotGeometry`, `ScreenshotCaptureUtil`, `ShaderController`, `RotationController`, `LogSaver`, `PipConfigRepository`, `SplashActivity`, `NavigationEventProcessor`, `KeyboardInputAdapter`, `FloatingMenuButtonController`, `GlowAnimationController`, `MenuAnimationController`, `SaveLoadOrchestrator`, `MenuCloseHandler`, `SubmenuFragmentDismisser`.
 
-### [ ] 7. `chore/raise-kover-floor-5`
+### [x] 7. `chore/raise-kover-floor-5` (#180)
 Run `./gradlew coverageAll -PskipAssetStaging`, raise `kover { verify { rule } }` in `app/build.gradle` to the new values rounded down, update `CLAUDE.md`, fill in the Result section.
 
 **Done when** items 1–7 are merged, `check` passes with the raised floor, and every file still below 80% is in "Won't do" with its reason.
 
 ## Won't do
 
-- **`CRTBootView` and `RetroEditText` drawing.** Canvas drawing, covered visually by the Roborazzi screenshots.
-- **Bytecode-only branches** (null-safety and `when` checks no input can reach).
+- **`CRTBootView` (69% lines) and `RetroEditText` (69% lines) drawing.** Canvas drawing, covered visually by the Roborazzi screenshots. They are the only files still below 80% of lines.
+- **Bytecode-only branches** (null-safety and `when` checks no input can reach). Several files still sit below 80% of branches for this reason alone. Their lines are at 88–100%, and what is left is `?.`/`?:` fallbacks, values interpolated into log strings, and defensive catches. Examples: `PipController`, `MenuCloseHandler`, `NavigationController`, `SubmenuCoordinator`, `AboutFragment`, `ExitFragment`, `PipParamsFactory`.
 - **Instrumented coverage.** It stays reporting-only and needs a device; ask before any on-device run.
 
 ## Result
 
-_Filled in by item 7._
+`./gradlew coverageAll -PskipAssetStaging` on `chore/raise-kover-floor-5` (after #179):
+
+| Code | Baseline lines | Lines | Baseline branches | Branches |
+|---|---|---|---|---|
+| Kotlin (app, unit tests) | 93.3% (8024/8597) | 98.0% (8216/8386) | 80.3% (2349/2927) | 86.1% (2427/2819) |
+| Python (icons/scripts) | 98.1% (742/756) | 98.1% (742/756) | 93.1% (216/232) | 93.1% (216/232) |
+| Shell (*.sh) | 100.0% (11/11) | 100.0% (11/11) | – | – |
+| **All code** | **93.7% (8777/9364)** | **98.0% (8969/9153)** | 81.2% (2565/3159) | 86.6% (2643/3051) |
+
+The Kover floor goes from 93 / 80 to **97 / 86** (lines / branches, rounded down).
+
+The Kotlin line total fell by 211, because dead code was deleted rather than tested (#172, #177, the simplifications in #178/#179, and `FeatureFlags` here). #176 fixed one real bug found along the way: a menu dismiss requested while another was animating lost its callback.

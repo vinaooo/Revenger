@@ -12,6 +12,7 @@ import org.junit.Test
  *   became RetroMenu3. The in-game shaders live in `controllers.ShaderController`.
  * - `utils.AnimationOptimizer`: its last caller was `MenuViewManager`'s unused enter/exit
  *   animations, removed with it (the menu animates through `MenuAnimationController`).
+ * - `FeatureFlags`: an empty object left over after its flags were removed.
  *
  * If one of these is needed again, wire it into the app and test it, then delete its entry here.
  */
@@ -25,6 +26,7 @@ class RemovedDeadCode_test {
                     "com.vinaooo.revenger.ui.effects.NoEffect",
                     "com.vinaooo.revenger.ui.effects.ScanlineEffect",
                     "com.vinaooo.revenger.utils.AnimationOptimizer",
+                    "com.vinaooo.revenger.FeatureFlags",
             )
 
     /**

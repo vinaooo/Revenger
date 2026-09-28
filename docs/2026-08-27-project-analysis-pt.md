@@ -111,7 +111,7 @@ Refatorado seguindo SOLID/SRP: o `RetroMenu3Fragment` atua como **coordenador**,
 
 ### Sistema de navegação multi-input
 
-Todos os inputs — gamepad virtual, gamepad físico, touch, teclado — são traduzidos para `NavigationEvent` unificados e processados pelo `NavigationController`. Arquitetura resultado do refactor documentado em [`docs/MULTI_INPUT_NAVIGATION_REFACTOR_PLAN.md`](MULTI_INPUT_NAVIGATION_REFACTOR_PLAN.md) (concluído; feature flags já removidas, `FeatureFlags.kt` é hoje um objeto vazio). Debounce: 30ms para navegação, 200ms para ações; grace period de 200ms após fechar menu.
+Todos os inputs — gamepad virtual, gamepad físico, touch, teclado — são traduzidos para `NavigationEvent` unificados e processados pelo `NavigationController`. Arquitetura resultado do refactor documentado em [`docs/MULTI_INPUT_NAVIGATION_REFACTOR_PLAN.md`](MULTI_INPUT_NAVIGATION_REFACTOR_PLAN.md) (concluído; as feature flags e o `FeatureFlags.kt` que sobrou vazio já foram removidos). Debounce: 30ms para navegação, 200ms para ações; grace period de 200ms após fechar menu.
 
 ### Novidades recentes (PRs #20–#25)
 
