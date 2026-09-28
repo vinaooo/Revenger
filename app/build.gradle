@@ -417,12 +417,12 @@ kover {
                     bound {
                         coverageUnits = kotlinx.kover.gradle.plugin.dsl.CoverageUnit.LINE
                         aggregationForGroup = kotlinx.kover.gradle.plugin.dsl.AggregationType.COVERED_PERCENTAGE
-                        minValue = 87
+                        minValue = 93
                     }
                     bound {
                         coverageUnits = kotlinx.kover.gradle.plugin.dsl.CoverageUnit.BRANCH
                         aggregationForGroup = kotlinx.kover.gradle.plugin.dsl.AggregationType.COVERED_PERCENTAGE
-                        minValue = 68
+                        minValue = 80
                     }
                 }
             }
