@@ -93,10 +93,9 @@ class GamePadLayoutAdjuster {
      * Apply portrait offset via bottomMargin based on XML configuration. 100% = base at bottom
      * edge, lower % = higher position
      */
-    // RevengerApplication.appConfig is a lateinit var: reading it before Application.onCreate()
-    // completes throws UninitializedPropertyAccessException. `container.layoutParams as
-    // FrameLayout.LayoutParams` throws ClassCastException if the container was ever attached to
-    // a different parent type.
+    // `container.layoutParams as FrameLayout.LayoutParams` throws ClassCastException if the
+    // container was ever attached to a different parent type. (appConfig is always initialized
+    // here: the game screen only exists after Application.onCreate.)
     private fun applyPortraitOffset(container: LinearLayout) {
         try {
             val offsetPercent = RevengerApplication.appConfig.gamePadConfigModel.gp_offset_portrait
@@ -132,8 +131,6 @@ class GamePadLayoutAdjuster {
                             "containerHeight=$containerHeight, maxMovement=$maxMovement, " +
                             "bottomMargin=$bottomMargin px"
             )
-        } catch (e: UninitializedPropertyAccessException) {
-            Log.e(TAG, "Error applying portrait offset", e)
         } catch (e: ClassCastException) {
             Log.e(TAG, "Error applying portrait offset", e)
         }
@@ -178,8 +175,6 @@ class GamePadLayoutAdjuster {
                             "containerHeight=$containerHeight, maxMovement=$maxMovement, " +
                             "topMargin=$topMargin px"
             )
-        } catch (e: UninitializedPropertyAccessException) {
-            Log.e(TAG, "Error applying landscape offset", e)
         } catch (e: ClassCastException) {
             Log.e(TAG, "Error applying landscape offset", e)
         }

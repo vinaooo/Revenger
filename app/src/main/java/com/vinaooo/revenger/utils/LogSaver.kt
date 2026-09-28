@@ -107,17 +107,13 @@ object LogSaver {
     private fun getAppInfo(context: Context): String {
         val builder = StringBuilder()
 
-        try {
-            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            val versionCode = packageInfo.longVersionCode
-            builder.append("App Version: ${packageInfo.versionName ?: "unknown"} ($versionCode)\n")
-            builder.append("Package Name: ${context.packageName}\n")
-            val isDebugBuild = BuildTypeDetector.isDebuggable(context)
-            builder.append("Build Type: ${if (isDebugBuild) "Debug" else "Release"}\n")
-        } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
-            android.util.Log.w(TAG, "Could not read package info", e)
-            builder.append("App Version: Unable to retrieve\n")
-        }
+        // The app's own package is always installed, so this lookup can't miss.
+        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        val versionCode = packageInfo.longVersionCode
+        builder.append("App Version: ${packageInfo.versionName ?: "unknown"} ($versionCode)\n")
+        builder.append("Package Name: ${context.packageName}\n")
+        val isDebugBuild = BuildTypeDetector.isDebuggable(context)
+        builder.append("Build Type: ${if (isDebugBuild) "Debug" else "Release"}\n")
 
         return builder.toString()
     }

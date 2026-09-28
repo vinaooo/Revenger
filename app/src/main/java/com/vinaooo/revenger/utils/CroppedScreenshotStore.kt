@@ -1,9 +1,7 @@
 package com.vinaooo.revenger.utils
 
 import android.graphics.Bitmap
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.swordfish.libretrodroid.GLRetroView
 
 /**
@@ -21,7 +19,6 @@ interface CroppedScreenshotCache {
      * @param glRetroView The GLRetroView to capture from
      * @param onCaptured Optional callback when capture completes
      */
-    @RequiresApi(Build.VERSION_CODES.O)
     fun captureAndCacheScreenshot(glRetroView: GLRetroView, onCaptured: ((Boolean) -> Unit)? = null)
 
     /** Get the cached cropped screenshot for saving. Returns null if no screenshot was cached. */
@@ -80,7 +77,6 @@ class CroppedScreenshotStore(
      */
     @Volatile private var cachedFullScreenshot: Bitmap? = null
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun captureAndCacheScreenshot(glRetroView: GLRetroView, onCaptured: ((Boolean) -> Unit)?) {
         // Capture cropped screenshot for slot thumbnails
         captureGameScreen(glRetroView) { bitmap ->

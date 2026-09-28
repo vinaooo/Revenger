@@ -1,7 +1,6 @@
 package com.vinaooo.revenger.viewmodels.menu
 
 import android.graphics.Bitmap
-import android.os.Build
 import com.vinaooo.revenger.retroview.RetroView
 import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
 
@@ -45,13 +44,9 @@ class ScreenshotPreviewController(
         }
 
         retroView()?.view?.let { glRetroView ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                ScreenshotCaptureUtil.captureAndCacheScreenshot(glRetroView, onCaptured)
-                // Menu-open is a clean pause point with a valid surface -- refresh the PiP still too.
-                ScreenshotCaptureUtil.capturePipFrame(glRetroView, force = true)
-            } else {
-                onCaptured?.invoke(false)
-            }
+            ScreenshotCaptureUtil.captureAndCacheScreenshot(glRetroView, onCaptured)
+            // Menu-open is a clean pause point with a valid surface -- refresh the PiP still too.
+            ScreenshotCaptureUtil.capturePipFrame(glRetroView, force = true)
         }
                 ?: onCaptured?.invoke(false)
     }

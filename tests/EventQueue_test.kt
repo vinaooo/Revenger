@@ -1,6 +1,8 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -73,5 +75,41 @@ class EventQueue_test {
                         " under the 200ms window",
                 accepted
         )
+    }
+
+    @Test
+    fun `NavigateBack tambem usa a janela maior`() {
+        val queue = EventQueue(debounceWindowMs = 200)
+        queue.enqueue(activate(1000))
+        queue.dequeue()
+
+        val back = { t: Long -> NavigationEvent.NavigateBack(timestamp = t, inputSource = InputSource.PHYSICAL_GAMEPAD) }
+
+        assertFalse(queue.enqueue(back(1100)))
+        assertTrue(queue.enqueue(back(1200)))
+    }
+
+    @Test
+    fun `dequeue devolve os eventos em ordem e null com a fila vazia`() {
+        val queue = EventQueue()
+        val first = navigate(1000)
+        val second = activate(2000)
+        queue.enqueue(first)
+        queue.enqueue(second)
+
+        assertSame(first, queue.dequeue())
+        assertSame(second, queue.dequeue())
+        assertNull(queue.dequeue())
+    }
+
+    @Test
+    fun `clear descarta os eventos pendentes`() {
+        val queue = EventQueue()
+        queue.enqueue(navigate(1000))
+        queue.enqueue(activate(2000))
+
+        queue.clear()
+
+        assertNull(queue.dequeue())
     }
 }

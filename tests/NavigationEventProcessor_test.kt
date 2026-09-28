@@ -306,7 +306,7 @@ class NavigationEventProcessor_test {
         processor.processEvent(NavigationEvent.ActivateSelected(keyCode = 96, inputSource = InputSource.PHYSICAL_GAMEPAD))
 
         assertEquals(listOf<Int?>(96), menuClosedCalls)
-        assertTrue(eventQueue.isEmpty())
+        assertNull(eventQueue.dequeue())
     }
 
     @Test
@@ -509,7 +509,7 @@ class NavigationEventProcessor_test {
 
         verify { fragmentAdapter.hideMenu() }
         assertNull(stateManager.currentFragment)
-        assertTrue(eventQueue.isEmpty())
+        assertNull(eventQueue.dequeue())
         assertEquals(listOf<Int?>(4), menuClosedCalls)
     }
 

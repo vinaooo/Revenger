@@ -60,12 +60,7 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
      */
     @Synchronized
     fun dequeue(): NavigationEvent? {
-        val event =
-                if (queue.isNotEmpty()) {
-                    queue.removeFirst()
-                } else {
-                    null
-                }
+        val event = queue.removeFirstOrNull()
 
         if (event != null) {
             lastProcessedTimestamp = event.timestamp
@@ -78,19 +73,6 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
 
         return event
     }
-
-    /**
-     * Verifica o próximo evento sem removê-lo da fila.
-     *
-     * @return Próximo evento, ou null se a fila estiver vazia
-     */
-    @Synchronized fun peek(): NavigationEvent? = queue.firstOrNull()
-
-    /** Verifica se a fila está vazia. */
-    @Synchronized fun isEmpty(): Boolean = queue.isEmpty()
-
-    /** Retorna o tamanho atual da fila. */
-    @Synchronized fun size(): Int = queue.size
 
     /**
      * Limpa todos os eventos da fila.
@@ -128,16 +110,9 @@ class EventQueue(private val debounceWindowMs: Long = 200) {
         val timeSinceLastEvent = event.timestamp - lastProcessedTimestamp
 
         // Debounce adaptativo baseado no tipo de evento
+        // Navigate is ultra-responsive (~33 FPS frame time); every other event uses the longer window.
         val effectiveDebounceWindow =
-                when (event) {
-                    is NavigationEvent.Navigate ->
-                            NAVIGATE_DEBOUNCE_WINDOW_MS // Ultra-responsivo (~33 FPS frame time)
-                    is NavigationEvent.ActivateSelected, is NavigationEvent.SelectItem ->
-                            debounceWindowMs // Ativação com debounce maior
-                    is NavigationEvent.NavigateBack,
-                    is NavigationEvent.OpenMenu,
-                    is NavigationEvent.CloseAllMenus -> debounceWindowMs
-                }
+                if (event is NavigationEvent.Navigate) NAVIGATE_DEBOUNCE_WINDOW_MS else debounceWindowMs
 
         // Se passou tempo suficiente, não faz debounce
         if (timeSinceLastEvent >= effectiveDebounceWindow) {

@@ -3,14 +3,12 @@ package com.vinaooo.revenger.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
 import android.view.View
-import androidx.annotation.RequiresApi
 import com.swordfish.libretrodroid.GLRetroView
 
 // An object's own body members aren't visible from within its own supertype constructor
@@ -88,7 +86,6 @@ object ScreenshotCaptureUtil :
      * @param glRetroView The GLRetroView instance to capture
      * @param callback Called with the captured Bitmap or null on failure
      */
-    @RequiresApi(Build.VERSION_CODES.O)
     fun captureGameScreen(glRetroView: GLRetroView, callback: (Bitmap?) -> Unit) {
         try {
             val width = glRetroView.width
@@ -222,7 +219,6 @@ object ScreenshotCaptureUtil :
      * @param glRetroView The GLRetroView instance to capture
      * @param callback Called with the captured Bitmap or null on failure
      */
-    @RequiresApi(Build.VERSION_CODES.O)
     fun captureFullScreen(glRetroView: GLRetroView, callback: (Bitmap?) -> Unit) {
         try {
             val width = glRetroView.width

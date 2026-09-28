@@ -37,9 +37,6 @@ class ProfilingSessionController(
 
         // Bytes -> kilobytes -> megabytes conversion factor
         private const val BYTES_PER_KILOBYTE = 1024
-
-        // Checkpoint cadence: every Nth monitoring interval, reserved for future periodic work
-        private const val CHECKPOINT_INTERVAL_MULTIPLIER = 5
     }
 
     private var isProfilingActive = false
@@ -68,8 +65,6 @@ class ProfilingSessionController(
         if (!isProfilingActive) return
         isProfilingActive = false
         handler.removeCallbacksAndMessages(null)
-
-        logPerformanceSummary()
     }
 
     /** Android 16+: Advanced performance profiling */
@@ -139,14 +134,5 @@ class ProfilingSessionController(
         }
 
         performanceData["timestamp"] = timestamp
-
-        if (timestamp % (MONITORING_INTERVAL_MS * CHECKPOINT_INTERVAL_MULTIPLIER) == 0L) {
-            // Checkpoint maintained for future monitoring integrations without logs
-        }
-    }
-
-    /** Log performance summary */
-    private fun logPerformanceSummary() {
-        // Kept for future compatibility - previously logged performance summary
     }
 }

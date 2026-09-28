@@ -1,8 +1,13 @@
 package com.vinaooo.revenger.utils
 
 import android.content.Context
+import android.content.ContextWrapper
+import android.content.res.Resources
 import android.graphics.Typeface
 import androidx.test.core.app.ApplicationProvider
+import com.vinaooo.revenger.R
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertSame
 import org.junit.Test
@@ -81,5 +86,17 @@ class TypefaceProvider_test {
         val typeface = provider.getSelectedTypeface(context)
 
         assertNotNull(typeface)
+    }
+
+    @Test
+    fun `uma fonte configurada sem arquivo cai na fonte arcade`() {
+        val resources = mockk<Resources>(relaxed = true)
+        every { resources.getString(R.string.rm_font) } returns "nao_existe_esta_fonte"
+        val configured =
+                object : ContextWrapper(context) {
+                    override fun getResources(): Resources = resources
+                }
+
+        assertSame(provider.getArcadeTypeface(context), provider.getSelectedTypeface(configured))
     }
 }

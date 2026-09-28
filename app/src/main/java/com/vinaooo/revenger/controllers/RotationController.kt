@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
-import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import androidx.fragment.app.FragmentActivity
@@ -58,16 +57,7 @@ class RotationController(
                 val intentFilter = IntentFilter()
                 intentFilter.addAction(Intent.ACTION_CONFIGURATION_CHANGED)
 
-                // Register receiver with appropriate permission
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        activity.registerReceiver(
-                                rotationSettingsReceiver,
-                                intentFilter,
-                                Context.RECEIVER_EXPORTED
-                        )
-                } else {
-                        activity.registerReceiver(rotationSettingsReceiver, intentFilter)
-                }
+                activity.registerReceiver(rotationSettingsReceiver, intentFilter, Context.RECEIVER_EXPORTED)
 
                 Log.d(TAG, "[ROTATION_LISTENER] BroadcastReceiver registered to monitor changes")
         }

@@ -190,6 +190,62 @@ class MenuLayoutConfig_test {
         assertEquals(expected, actual)
     }
 
+    @Test
+    @Config(qualifiers = "land")
+    fun `em landscape as proporcoes vem dos valores de landscape`() {
+        val anyView = View(context)
+        assertEquals(
+                android.content.res.Configuration.ORIENTATION_LANDSCAPE,
+                anyView.resources.configuration.orientation
+        )
+
+        assertEquals(
+                MenuLayoutConfig.parseLayoutProportions(
+                        context.getString(R.string.rm_landscape_horizontal_proportions)
+                ),
+                MenuLayoutConfig.getConfiguredProportions(anyView)
+        )
+        assertEquals(
+                MenuLayoutConfig.parseVerticalProportions(
+                        context.getString(R.string.rm_landscape_vertical_proportions)
+                ),
+                MenuLayoutConfig.getConfiguredVerticalProportions(anyView)
+        )
+    }
+
+    @Test
+    fun `applyLayoutProportions pula filhos cujo layoutParams nao e de LinearLayout`() {
+        val foreign = View(context).apply { layoutParams = ViewGroup.LayoutParams(1, 1) }
+        val parent =
+                LinearLayout(context).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    addView(spacerChild())
+                    addView(foreign)
+                    addView(spacerChild())
+                }
+        // addView converts foreign params; put the plain ones back to simulate a mismatched child.
+        foreign.layoutParams = ViewGroup.LayoutParams(1, 1)
+
+        MenuLayoutConfig.applyLayoutProportions(parent, MenuLayoutConfig.parseLayoutProportions("108010")!!)
+
+        assertEquals(0.10f, (parent.getChildAt(0).layoutParams as LinearLayout.LayoutParams).weight, 0.0001f)
+        assertFalse(foreign.layoutParams is LinearLayout.LayoutParams)
+        assertEquals(0.10f, (parent.getChildAt(2).layoutParams as LinearLayout.LayoutParams).weight, 0.0001f)
+    }
+
+    @Test
+    fun `applyVerticalProportions sem parent LinearLayout nao faz nada`() {
+        val orphan = LinearLayout(context)
+        val inFrame = LinearLayout(context).also { FrameLayout(context).addView(it) }
+        val proportions = MenuLayoutConfig.parseVerticalProportions("108010")!!
+
+        MenuLayoutConfig.applyVerticalProportions(orphan, proportions)
+        MenuLayoutConfig.applyVerticalProportions(inFrame, proportions)
+
+        assertNull(orphan.parent)
+        assertTrue(inFrame.parent is FrameLayout)
+    }
+
     // ========== applyProportionsToMenuLayout (finds the horizontal 3-column layout) ==========
 
     @Test
