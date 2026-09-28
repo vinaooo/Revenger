@@ -12,16 +12,11 @@ import com.vinaooo.revenger.repositories.PreferencesRepository
 import com.vinaooo.revenger.repositories.SharedPreferencesRepository
 import com.vinaooo.revenger.viewmodels.speed.SpeedStatePersistence
 
-/**
- * ViewModel specialized in game speed management. Responsible for fast-forward control
- * and emulation speed.
- */
+/** ViewModel for the fast-forward state: keeps it, persists it and applies it to the controller. */
 class SpeedViewModel(application: Application) : AndroidViewModel(application) {
 
     sealed class SpeedEvent {
         object Idle : SpeedEvent()
-        data class ToggleFastForward(val retroView: Any?) : SpeedEvent()
-        data class SetGameSpeed(val speed: Int) : SpeedEvent()
         data class ApplySpeedToController(val controller: SpeedController) : SpeedEvent()
     }
 
@@ -54,22 +49,6 @@ class SpeedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // ========== SPEED CONTROL METHODS ==========
-
-    fun toggleFastForward(retroView: Any? = null): Boolean {
-        _eventFlow.value = SpeedEvent.ToggleFastForward(retroView)
-        isFastForwardEnabled = !isFastForwardEnabled
-        return isFastForwardEnabled
-    }
-
-    fun setGameSpeed(speed: Int) {
-        // Validar range (normalmente 1-2)
-        val validSpeed = speed.coerceIn(1, 2)
-
-        _eventFlow.value = SpeedEvent.SetGameSpeed(validSpeed)
-        statePersistence.saveSpeedState(validSpeed) {
-            android.util.Log.e("SpeedViewModel", "Error saving speed state", it)
-        }
-    }
 
     private fun saveFastForwardState() {
         statePersistence.saveFastForwardState(isFastForwardEnabled) {

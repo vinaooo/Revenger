@@ -22,9 +22,6 @@ class SharedPreferencesRepository(
     private val _audioEnabled = MutableStateFlow(false)
     override val audioEnabled: StateFlow<Boolean> = _audioEnabled.asStateFlow()
 
-    private val _gameSpeed = MutableStateFlow(1)
-    override val gameSpeed: StateFlow<Int> = _gameSpeed.asStateFlow()
-
     private val _shaderName = MutableStateFlow(ShaderType.SHARP.configName)
     override val shaderName: StateFlow<String> = _shaderName.asStateFlow()
 
@@ -40,7 +37,6 @@ class SharedPreferencesRepository(
         coroutineScope.launch {
             _audioEnabled.value =
                     sharedPreferences.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true)
-            _gameSpeed.value = sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1)
             _shaderName.value =
                     sharedPreferences.getString(
                             PreferencesConstants.PREF_SHADER_NAME,
@@ -63,11 +59,6 @@ class SharedPreferencesRepository(
         _audioEnabled.value = enabled
     }
 
-    override suspend fun setGameSpeed(speed: Int) {
-        sharedPreferences.edit().putInt(PreferencesConstants.PREF_FRAME_SPEED, speed).apply()
-        _gameSpeed.value = speed
-    }
-
     override suspend fun setShaderName(name: String) {
         sharedPreferences.edit().putString(PreferencesConstants.PREF_SHADER_NAME, name).apply()
         _shaderName.value = name
@@ -83,10 +74,6 @@ class SharedPreferencesRepository(
 
     override fun getAudioEnabledSync(): Boolean {
         return sharedPreferences.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true)
-    }
-
-    override fun getGameSpeedSync(): Int {
-        return sharedPreferences.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1)
     }
 
     override fun getShaderNameSync(): String {

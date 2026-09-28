@@ -5,8 +5,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /**
- * Loads and saves `SpeedViewModel`'s game-speed / fast-forward preferences. Split out purely to
- * keep `SpeedViewModel` under the project's function-count threshold; all three methods were
+ * Loads and saves `SpeedViewModel`'s fast-forward preference. Split out purely to
+ * keep `SpeedViewModel` under the project's function-count threshold; both methods were
  * private there and are only ever called from within `SpeedViewModel` itself, so they stay a
  * plain injected instance (no interface delegation) here.
  */
@@ -29,16 +29,6 @@ class SpeedStatePersistence(
     // SharedPreferences.Editor.putX()/apply() don't declare or realistically throw on the
     // standard Android implementation; kept broad via the escape hatch as a defensive net for
     // this fire-and-forget write, since there's no narrower reachable type to name.
-    fun saveSpeedState(speed: Int, onFailure: (Exception) -> Unit) {
-        scope.launch {
-            try {
-                preferencesRepository.setGameSpeed(speed)
-            } catch (expectedPreferencesWriteFailure: Exception) {
-                onFailure(expectedPreferencesWriteFailure)
-            }
-        }
-    }
-
     fun saveFastForwardState(enabled: Boolean, onFailure: (Exception) -> Unit) {
         scope.launch {
             try {

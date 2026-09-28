@@ -56,27 +56,6 @@ class SpeedStatePersistence_test {
     }
 
     @Test
-    fun `saveSpeedState grava no repositorio sem acionar onFailure`() {
-        coEvery { repository.setGameSpeed(any()) } returns Unit
-        var failed = false
-
-        persistence.saveSpeedState(2) { failed = true }
-
-        assertFalse(failed)
-        coEvery { repository.setGameSpeed(2) }
-    }
-
-    @Test
-    fun `saveSpeedState com falha na escrita aciona onFailure`() {
-        coEvery { repository.setGameSpeed(any()) } throws RuntimeException("falha ao escrever")
-        var failed = false
-
-        persistence.saveSpeedState(2) { failed = true }
-
-        assertTrue(failed)
-    }
-
-    @Test
     fun `saveFastForwardState grava no repositorio sem acionar onFailure`() {
         coEvery { repository.setFastForwardEnabled(any()) } returns Unit
         var failed = false

@@ -41,12 +41,10 @@ class SharedPreferencesRepository_test {
         val repository = newRepository()
 
         assertTrue(repository.getAudioEnabledSync())
-        assertEquals(1, repository.getGameSpeedSync())
         assertEquals(ShaderType.SHARP.configName, repository.getShaderNameSync())
         assertFalse(repository.getFastForwardEnabledSync())
 
         assertTrue(repository.audioEnabled.value)
-        assertEquals(1, repository.gameSpeed.value)
         assertEquals(ShaderType.SHARP.configName, repository.shaderName.value)
         assertFalse(repository.fastForwardEnabled.value)
     }
@@ -55,7 +53,6 @@ class SharedPreferencesRepository_test {
     fun `carrega valores ja existentes nas preferencias`() {
         prefs.edit()
             .putBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, false)
-            .putInt(PreferencesConstants.PREF_FRAME_SPEED, 4)
             .putString(PreferencesConstants.PREF_SHADER_NAME, ShaderType.CRT.configName)
             .putBoolean(PreferencesConstants.PREF_FAST_FORWARD_ENABLED, true)
             .commit()
@@ -63,7 +60,6 @@ class SharedPreferencesRepository_test {
         val repository = newRepository()
 
         assertFalse(repository.audioEnabled.value)
-        assertEquals(4, repository.gameSpeed.value)
         assertEquals(ShaderType.CRT.configName, repository.shaderName.value)
         assertTrue(repository.fastForwardEnabled.value)
     }
@@ -78,16 +74,6 @@ class SharedPreferencesRepository_test {
 
         assertFalse(repository.audioEnabled.value)
         assertFalse(prefs.getBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true))
-    }
-
-    @Test
-    fun `setGameSpeed persiste e atualiza o StateFlow`() = runTest(dispatcher) {
-        val repository = newRepository()
-
-        repository.setGameSpeed(4)
-
-        assertEquals(4, repository.gameSpeed.value)
-        assertEquals(4, prefs.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1))
     }
 
     @Test
@@ -119,8 +105,8 @@ class SharedPreferencesRepository_test {
     fun `getters sincronos refletem alteracoes feitas fora do repositorio`() {
         val repository = newRepository()
 
-        prefs.edit().putInt(PreferencesConstants.PREF_FRAME_SPEED, 8).commit()
+        prefs.edit().putString(PreferencesConstants.PREF_SHADER_NAME, ShaderType.LCD.configName).commit()
 
-        assertEquals(8, repository.getGameSpeedSync())
+        assertEquals(ShaderType.LCD.configName, repository.getShaderNameSync())
     }
 }
