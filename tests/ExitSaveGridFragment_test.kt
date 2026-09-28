@@ -433,7 +433,20 @@ class ExitSaveGridFragment_test {
     }
 
     @Test
-    fun `confirmar sobrescrita pelo gamepad salva no slot`() {
+    fun `sobrescrever um slot sem nome usa o nome padrao do slot`() {
+        val manager = mockedSaveStateManager()
+        mockedViewModel()
+        fragment.onSlotConfirmed(occupiedSlot(7).copy(name = " "))
+
+        fragment.onConfirm()
+
+        val payload = slot<SaveSlotPayload>()
+        verify(exactly = 1) { manager.saveToSlot(7, capture(payload)) }
+        assertEquals("Slot 7", payload.captured.name)
+    }
+
+    @Test
+    fun `confirmar sobrescrita pelo gamepad salva no slot mantendo o nome`() {
         val manager = mockedSaveStateManager()
         mockedViewModel()
         fragment.onSlotConfirmed(occupiedSlot(7))
@@ -442,7 +455,7 @@ class ExitSaveGridFragment_test {
 
         val payload = slot<SaveSlotPayload>()
         verify(exactly = 1) { manager.saveToSlot(7, capture(payload)) }
-        assertEquals("Slot 7", payload.captured.name)
+        assertEquals("Save 7", payload.captured.name)
         verify(exactly = 1) { manager.getAllSlots() } // grid refreshed
         assertTrue(exitEnabled())
     }

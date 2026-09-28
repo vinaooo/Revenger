@@ -313,7 +313,20 @@ class SaveSlotsFragment_test {
     }
 
     @Test
-    fun `confirmar sobrescrita salva no slot e notifica o listener`() {
+    fun `sobrescrever um slot sem nome usa o nome padrao do slot`() {
+        val manager = mockedSaveStateManager()
+        installRetroView()
+        fragment.onSlotConfirmed(occupiedSlot(7).copy(name = " "))
+
+        fragment.onConfirm()
+
+        val payload = slot<SaveSlotPayload>()
+        verify(exactly = 1) { manager.saveToSlot(7, capture(payload)) }
+        assertEquals("Slot 7", payload.captured.name)
+    }
+
+    @Test
+    fun `confirmar sobrescrita salva no slot mantendo o nome e notifica o listener`() {
         val manager = mockedSaveStateManager()
         installRetroView()
         fragment.onSlotConfirmed(occupiedSlot(7))
@@ -322,7 +335,7 @@ class SaveSlotsFragment_test {
 
         val payload = slot<SaveSlotPayload>()
         verify(exactly = 1) { manager.saveToSlot(7, capture(payload)) }
-        assertEquals("Slot 7", payload.captured.name)
+        assertEquals("Save 7", payload.captured.name)
         verify(exactly = 1) { listener.onSaveCompleted(7) }
         verify(exactly = 1) { manager.getAllSlots() } // grid refreshed
         assertEquals(7, SessionSlotTracker.getInstance().getLastUsedSlot())
