@@ -417,4 +417,23 @@ class SaveStateManager_test {
                 readerFailure.get()
         )
     }
+
+    // Mutation testing: deleting the target before the copy, and the slotNumber update, went
+    // unnoticed by every test.
+    @Test
+    fun `copySlot sobre um slot ocupado nao deixa arquivos do save antigo`() {
+        val screenshot = Bitmap.createBitmap(16, 16, Bitmap.Config.ARGB_8888)
+        manager.saveToSlot(2, SaveSlotPayload("old".toByteArray(), screenshot, name = "Old"))
+        manager.saveToSlot(1, SaveSlotPayload("new".toByteArray(), null, name = "New"))
+        assertNotNull(manager.getSlot(2).screenshotFile)
+
+        assertTrue(manager.copySlot(1, 2))
+
+        val dest = manager.getSlot(2)
+        assertEquals("New", dest.name)
+        assertNull(dest.screenshotFile)
+        assertArrayEquals("new".toByteArray(), File(savesDir, "slot_2/state.bin").readBytes())
+        val metadata = org.json.JSONObject(File(savesDir, "slot_2/metadata.json").readText())
+        assertEquals(2, metadata.getInt("slotNumber"))
+    }
 }

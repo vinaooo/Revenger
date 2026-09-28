@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.ui.retromenu3.navigation
 
+import com.vinaooo.revenger.ui.retromenu3.MenuFragmentBase
 import android.os.Bundle
 import com.vinaooo.revenger.ui.retromenu3.MenuFragment
 import io.mockk.every
@@ -126,8 +127,7 @@ class NavigationStateManager_test {
     fun `isMenuActive e falso quando o fragment registrado nao e um androidx Fragment real`() {
         // MenuFragment é uma interface; um mock que a implementa mas não estende
         // androidx.fragment.app.Fragment falha no cast interno de isMenuActive() e o menu conta
-        // como inativo. O caso "true" (fragment realmente adicionado) é coberto indiretamente
-        // pelos testes de integração com RetroMenu3Fragment em MenuIntegration_test.kt.
+        // como inativo.
         val fragment = mockk<MenuFragment>(relaxed = true)
         every { fragment.getCurrentSelectedIndex() } returns 0
         stateManager.registerFragment(fragment, itemCount = 1)
@@ -179,5 +179,19 @@ class NavigationStateManager_test {
         stateManager.restoreState(bundle)
 
         assertEquals(MenuType.SETTINGS, stateManager.currentMenu)
+    }
+
+    // Mutation testing: no test saw isMenuActive() return true, so a check that always said
+    // "inactive" passed the whole suite.
+    @Test
+    fun `isMenuActive e verdadeiro so enquanto o fragment registrado esta adicionado`() {
+        val fragment = mockk<MenuFragmentBase>(relaxed = true)
+        every { fragment.isAdded } returns true
+        stateManager.registerFragment(fragment, itemCount = 1)
+
+        assertTrue(stateManager.isMenuActive())
+
+        every { fragment.isAdded } returns false
+        assertFalse(stateManager.isMenuActive())
     }
 }

@@ -132,6 +132,8 @@ class NavigationEventProcessor_test {
         // Simula um submenu aberto diretamente como raiz (ex: grade de save do fluxo de PiP),
         // sem nenhum estado empilhado para restaurar.
         stateManager.updateCurrentMenu(MenuType.EXIT_SAVE_SLOTS)
+        stateManager.registerFragment(fakeFragment(), itemCount = 9)
+        stateManager.updateSelectedIndex(4)
         every { fragmentAdapter.navigateBack() } returns false
         every { fragmentAdapter.getBackStackCount() } returns 0
 
@@ -140,6 +142,11 @@ class NavigationEventProcessor_test {
         assertTrue(handled)
         assertEquals(listOf(null), menuClosedCalls)
         assertEquals(MenuType.MAIN, stateManager.currentMenu)
+        // Mutation testing: hiding the menu, dropping the fragment and resetting the selection
+        // on this path went unnoticed by every test.
+        assertEquals(0, stateManager.selectedItemIndex)
+        assertNull(stateManager.currentFragment)
+        verify { fragmentAdapter.hideMenu() }
     }
 
     @Test
