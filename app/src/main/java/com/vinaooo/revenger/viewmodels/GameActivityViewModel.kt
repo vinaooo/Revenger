@@ -31,13 +31,11 @@ import com.vinaooo.revenger.viewmodels.menu.GamePadInputController
 import com.vinaooo.revenger.viewmodels.menu.GamePadInputFacade
 import com.vinaooo.revenger.viewmodels.menu.KeyMotionInputFacade
 import com.vinaooo.revenger.viewmodels.menu.KeyMotionInputRouter
-import com.vinaooo.revenger.viewmodels.menu.MenuActionDispatcher
 import com.vinaooo.revenger.viewmodels.menu.MenuCloseHandler
 import com.vinaooo.revenger.viewmodels.menu.MenuNavigationCallbackWiring
 import com.vinaooo.revenger.viewmodels.menu.MenuNavigationCallbackWiringFacade
 import com.vinaooo.revenger.viewmodels.menu.MenuOpenHandler
 import com.vinaooo.revenger.viewmodels.menu.MenuStateChangeHandler
-import com.vinaooo.revenger.viewmodels.menu.MenuToggleActions
 import com.vinaooo.revenger.viewmodels.menu.NavigationControllerInitializer
 import com.vinaooo.revenger.viewmodels.menu.PlaybackSettingsController
 import com.vinaooo.revenger.viewmodels.menu.PlaybackSettingsFacade
@@ -302,21 +300,6 @@ class GameActivityViewModel(application: Application) :
                                 activity
                         )
                     }
-            )
-    private val menuToggleActions =
-            MenuToggleActions(
-                    retroView = { retroView },
-                    audioViewModel = audioViewModel,
-                    speedController = { speedController },
-                    shaderViewModel = shaderViewModel
-            )
-    private val menuActionDispatcher =
-            MenuActionDispatcher(
-                    saveLoad = this,
-                    submenuDismissal = this,
-                    dismissRetroMenu3 = { dismissRetroMenu3() },
-                    menuManager = { menuManager },
-                    menuToggleActions = menuToggleActions
             )
     private val menuStateChangeHandler =
             MenuStateChangeHandler(
@@ -698,33 +681,8 @@ class GameActivityViewModel(application: Application) :
 
     override fun onMenuEvent(event: com.vinaooo.revenger.ui.retromenu3.MenuEvent) {
         when (event) {
-            is com.vinaooo.revenger.ui.retromenu3.MenuEvent.Action ->
-                    menuActionDispatcher.handleAction(event.action)
             is com.vinaooo.revenger.ui.retromenu3.MenuEvent.StateChanged ->
                     menuStateChangeHandler.handleStateChanged(event)
-            com.vinaooo.revenger.ui.retromenu3.MenuEvent.MenuClosed -> {
-                // Handle complete menu closure - delegate to NavigationController
-                navigationController?.handleNavigationEvent(
-                        com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent.CloseAllMenus(
-                                inputSource =
-                                        com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
-                                                .PHYSICAL_GAMEPAD
-                        )
-                )
-            }
-            // Navigation events are handled by the fragments themselves, not by the ViewModel
-            com.vinaooo.revenger.ui.retromenu3.MenuEvent.NavigateUp -> {
-                menuManager.navigateUp()
-            }
-            com.vinaooo.revenger.ui.retromenu3.MenuEvent.NavigateDown -> {
-                menuManager.navigateDown()
-            }
-            com.vinaooo.revenger.ui.retromenu3.MenuEvent.Confirm -> {
-                menuManager.confirm()
-            }
-            com.vinaooo.revenger.ui.retromenu3.MenuEvent.Back -> {
-                menuManager.back()
-            }
         }
     }
 

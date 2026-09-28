@@ -3,7 +3,6 @@ package com.vinaooo.revenger.viewmodels
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.vinaooo.revenger.ui.retromenu3.MenuState
-import com.vinaooo.revenger.ui.retromenu3.MenuSystemState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -34,16 +33,7 @@ class MenuViewModel_test {
     }
 
     @Test
-    fun `showRetroMenu3 marca o menu como aberto`() {
-        viewModel.showRetroMenu3()
-
-        assertTrue(viewModel.isRetroMenu3Open)
-    }
-
-    @Test
     fun `dismissRetroMenu3 fecha o menu`() {
-        viewModel.showRetroMenu3()
-
         viewModel.dismissRetroMenu3()
 
         assertFalse(viewModel.isRetroMenu3Open)

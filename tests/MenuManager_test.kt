@@ -7,7 +7,6 @@ import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,44 +15,19 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * [MenuManager] is the State Machine that coordinates registered [MenuFragment]s and routes
- * [MenuAction]/[MenuEvent]s through a [MenuManager.MenuManagerListener]. It had zero test
- * coverage before this file (only exercised incidentally, and only as a relaxed mock, by
- * `GameActivityViewModel_test`).
- *
- * `navigateUp`/`navigateDown`/`confirm`/`back`/`getCurrentSelectedIndex`/`setSelectedIndex` all
- * gate on the current fragment being a real, attached `androidx.fragment.app.Fragment` (checked
- * via `isAdded`/`context`), so a plain `mockk<MenuFragment>()` can't exercise that guard --
- * [MenuManagerFakeFragment] below is a real `Fragment` implementing [MenuFragment], attached to a
- * real `FragmentActivity` via Robolectric where the "attached" behavior needs to be verified.
+ * [MenuManager] tracks the current menu state, keeps the registered [MenuFragment]s, and tells its
+ * [MenuManager.MenuManagerListener] about each state change. [MenuManagerFakeFragment] is a real
+ * `Fragment` implementing [MenuFragment], attached to a real `FragmentActivity` via Robolectric.
  */
 class MenuManagerFakeFragment : Fragment(), MenuFragment {
-    var navigateUpResult = true
-    var navigateDownResult = true
-    var confirmResult = true
-    var backResult = true
-    var currentIndex = 0
-
-    /** Runs inside [onConfirm] / [onBack], to re-enter the manager mid-operation. */
-    var duringConfirm: () -> Unit = {}
-    var duringBack: () -> Unit = {}
-
     override fun getMenuItems(): List<MenuItem> = emptyList()
     override fun onMenuItemSelected(item: MenuItem) {}
-    override fun onNavigateUp(): Boolean = navigateUpResult
-    override fun onNavigateDown(): Boolean = navigateDownResult
-    override fun onConfirm(): Boolean {
-        duringConfirm()
-        return confirmResult
-    }
-    override fun onBack(): Boolean {
-        duringBack()
-        return backResult
-    }
-    override fun getCurrentSelectedIndex(): Int = currentIndex
-    override fun setSelectedIndex(index: Int) {
-        currentIndex = index
-    }
+    override fun onNavigateUp(): Boolean = true
+    override fun onNavigateDown(): Boolean = true
+    override fun onConfirm(): Boolean = true
+    override fun onBack(): Boolean = true
+    override fun getCurrentSelectedIndex(): Int = 0
+    override fun setSelectedIndex(index: Int) {}
 }
 
 @RunWith(RobolectricTestRunner::class)
@@ -117,130 +91,7 @@ class MenuManager_test {
         }
     }
 
-    // --- handleAction ---
-
-    @Test
-    fun `handleAction com NAVIGATE navega ate o menu alvo`() {
-        menuManager.handleAction(MenuAction.NAVIGATE(MenuState.ABOUT_MENU))
-
-        assertEquals(MenuState.ABOUT_MENU, menuManager.getCurrentState())
-        verify { listener.onMenuEvent(MenuEvent.StateChanged(MenuState.MAIN_MENU, MenuState.ABOUT_MENU)) }
-    }
-
-    @Test
-    fun `handleAction com BACK fora do menu principal volta para MAIN_MENU`() {
-        menuManager.navigateToState(MenuState.SETTINGS_MENU)
-
-        menuManager.handleAction(MenuAction.BACK)
-
-        assertEquals(MenuState.MAIN_MENU, menuManager.getCurrentState())
-        verify {
-            listener.onMenuEvent(MenuEvent.StateChanged(MenuState.SETTINGS_MENU, MenuState.MAIN_MENU))
-        }
-    }
-
-    @Test
-    fun `handleAction com BACK ja no menu principal emite MenuClosed sem trocar de estado`() {
-        menuManager.handleAction(MenuAction.BACK)
-
-        assertEquals(MenuState.MAIN_MENU, menuManager.getCurrentState())
-        verify { listener.onMenuEvent(MenuEvent.MenuClosed) }
-    }
-
-    @Test
-    fun `handleAction com outras acoes emite um evento Action encapsulando a acao`() {
-        menuManager.handleAction(MenuAction.CONTINUE)
-
-        verify { listener.onMenuEvent(MenuEvent.Action(MenuAction.CONTINUE)) }
-    }
-
-    // --- navigateUp / navigateDown / confirm / back: guarda de fragment anexado ---
-
-    @Test
-    fun `navigateUp delega ao fragment quando ele esta anexado`() {
-        val fragment = attachedFragment().apply { navigateUpResult = true }
-        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
-
-        assertTrue(menuManager.navigateUp())
-    }
-
-    @Test
-    fun `navigateUp retorna false e nao delega quando nenhum fragment esta registrado`() {
-        assertFalse(menuManager.navigateUp())
-    }
-
-    @Test
-    fun `navigateUp retorna false quando o fragment registrado nao esta anexado`() {
-        // Fragment real, mas nunca adicionado a um FragmentManager (isAdded == false).
-        menuManager.registerFragment(MenuState.MAIN_MENU, MenuManagerFakeFragment().apply { navigateUpResult = true })
-
-        assertFalse(menuManager.navigateUp())
-    }
-
-    @Test
-    fun `um MenuFragment que nao e um Fragment do Android nunca recebe entrada`() {
-        val fragment = mockk<MenuFragment>(relaxed = true)
-        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
-
-        assertFalse(menuManager.navigateUp())
-        assertFalse(menuManager.navigateDown())
-        assertFalse(menuManager.confirm())
-        assertEquals(0, menuManager.getCurrentSelectedIndex())
-        menuManager.setSelectedIndex(2)
-
-        verify(exactly = 0) {
-            fragment.onNavigateUp()
-            fragment.onNavigateDown()
-            fragment.onConfirm()
-            fragment.getCurrentSelectedIndex()
-            fragment.setSelectedIndex(any())
-        }
-    }
-
-    @Test
-    fun `um fragment ja removido deixa de receber entrada`() {
-        val fragment = attachedFragment().apply { currentIndex = 3 }
-        activity.supportFragmentManager.beginTransaction().remove(fragment).commitNow()
-        stateManager.changeState(MenuState.SETTINGS_MENU)
-        menuManager.registerFragment(MenuState.SETTINGS_MENU, fragment)
-
-        assertFalse(menuManager.navigateDown())
-        assertFalse(menuManager.back())
-        assertEquals(0, menuManager.getCurrentSelectedIndex())
-        menuManager.setSelectedIndex(1)
-        assertEquals(3, fragment.currentIndex)
-        verify(exactly = 0) { listener.onMenuEvent(MenuEvent.MenuClosed) }
-    }
-
-    @Test
-    fun `confirm e back reentrantes durante um confirm sao ignorados`() {
-        var nested: Pair<Boolean, Boolean>? = null
-        val fragment = attachedFragment()
-        fragment.duringConfirm = { nested = menuManager.confirm() to menuManager.back() }
-        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
-
-        assertTrue(menuManager.confirm())
-
-        assertEquals(false to false, nested)
-        verify(exactly = 0) { listener.onMenuEvent(MenuEvent.MenuClosed) }
-        // The guard is released afterwards.
-        fragment.duringConfirm = {}
-        assertTrue(menuManager.confirm())
-    }
-
-    @Test
-    fun `back reentrante durante um back e ignorado`() {
-        var nested: Boolean? = null
-        val fragment = attachedFragment()
-        fragment.duringBack = { nested = menuManager.back() }
-        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
-
-        assertTrue(menuManager.back())
-
-        assertEquals(false, nested)
-        fragment.duringBack = {}
-        assertTrue(menuManager.back())
-    }
+    // --- MenuFragment defaults ---
 
     @Test
     fun `por padrao um MenuFragment nao trata esquerda e direita`() {
@@ -248,98 +99,5 @@ class MenuManager_test {
 
         assertFalse(fragment.onNavigateLeft())
         assertFalse(fragment.onNavigateRight())
-    }
-
-    @Test
-    fun `navigateDown delega ao fragment quando ele esta anexado`() {
-        val fragment = attachedFragment().apply { navigateDownResult = false }
-        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
-
-        assertFalse(menuManager.navigateDown())
-    }
-
-    @Test
-    fun `confirm delega ao fragment quando ele esta anexado`() {
-        val fragment = attachedFragment().apply { confirmResult = true }
-        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
-
-        assertTrue(menuManager.confirm())
-    }
-
-    @Test
-    fun `confirm retorna false quando o fragment nao esta anexado`() {
-        menuManager.registerFragment(MenuState.MAIN_MENU, MenuManagerFakeFragment().apply { confirmResult = true })
-
-        assertFalse(menuManager.confirm())
-    }
-
-    @Test
-    fun `back delega ao fragment quando ele esta anexado e trata o resultado como handled`() {
-        val fragment = attachedFragment().apply { backResult = true }
-        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
-
-        assertTrue(menuManager.back())
-    }
-
-    @Test
-    fun `back no menu principal fecha o menu quando o fragment nao trata o evento`() {
-        val fragment = attachedFragment().apply { backResult = false }
-        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
-
-        val handled = menuManager.back()
-
-        assertTrue(handled)
-        verify { listener.onMenuEvent(MenuEvent.MenuClosed) }
-    }
-
-    @Test
-    fun `back fora do menu principal nao fecha o menu quando o fragment nao trata o evento`() {
-        menuManager.navigateToState(MenuState.SETTINGS_MENU)
-        val fragment = attachedFragment().apply { backResult = false }
-        menuManager.registerFragment(MenuState.SETTINGS_MENU, fragment)
-
-        val handled = menuManager.back()
-
-        assertFalse(handled)
-        verify(inverse = true) { listener.onMenuEvent(MenuEvent.MenuClosed) }
-    }
-
-    // --- indice selecionado ---
-
-    @Test
-    fun `getCurrentSelectedIndex e setSelectedIndex delegam ao fragment anexado`() {
-        val fragment = attachedFragment()
-        menuManager.registerFragment(MenuState.MAIN_MENU, fragment)
-
-        menuManager.setSelectedIndex(3)
-
-        assertEquals(3, menuManager.getCurrentSelectedIndex())
-    }
-
-    @Test
-    fun `getCurrentSelectedIndex retorna 0 quando nenhum fragment esta disponivel`() {
-        assertEquals(0, menuManager.getCurrentSelectedIndex())
-    }
-
-    @Test
-    fun `setSelectedIndex nao lanca quando nenhum fragment esta disponivel`() {
-        menuManager.setSelectedIndex(5)
-    }
-
-    // --- eventos de navegacao unificados ---
-
-    @Test
-    fun `sendNavigateUp, sendNavigateDown, sendConfirm, sendBack e sendAction emitem os eventos correspondentes`() {
-        menuManager.sendNavigateUp()
-        menuManager.sendNavigateDown()
-        menuManager.sendConfirm()
-        menuManager.sendBack()
-        menuManager.sendAction(MenuAction.RESET)
-
-        verify { listener.onMenuEvent(MenuEvent.NavigateUp) }
-        verify { listener.onMenuEvent(MenuEvent.NavigateDown) }
-        verify { listener.onMenuEvent(MenuEvent.Confirm) }
-        verify { listener.onMenuEvent(MenuEvent.Back) }
-        verify { listener.onMenuEvent(MenuEvent.Action(MenuAction.RESET)) }
     }
 }

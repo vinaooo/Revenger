@@ -43,10 +43,6 @@ class MenuViewModel(application: Application) :
 
     // ========== MENU CONTROL METHODS ==========
 
-    fun showRetroMenu3() {
-        menuStateManager.setRetroMenu3Open(true)
-    }
-
     fun dismissRetroMenu3() {
         menuStateManager.setRetroMenu3Open(false)
     }
