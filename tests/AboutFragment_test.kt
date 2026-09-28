@@ -5,9 +5,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.R
-import com.vinaooo.revenger.ui.retromenu3.callbacks.AboutListener
 import io.mockk.mockk
-import io.mockk.verify
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -25,7 +23,6 @@ class AboutFragment_test {
 
     private lateinit var activity: FragmentActivity
     private lateinit var fragment: AboutFragment
-    private lateinit var listener: AboutListener
 
     @Before
     fun setup() {
@@ -36,8 +33,6 @@ class AboutFragment_test {
         activity.setContentView(container)
 
         fragment = AboutFragment.newInstance()
-        listener = mockk<AboutListener>(relaxed = true)
-        fragment.setAboutListener(listener)
         activity.supportFragmentManager
                 .beginTransaction()
                 .add(container.id, fragment, "about")
@@ -71,13 +66,6 @@ class AboutFragment_test {
     @Test
     fun `menu items tem titulos nao vazios`() {
         fragment.getMenuItems().forEach { item -> assertFalse(item.title.isEmpty()) }
-    }
-
-    @Test
-    fun `selecionar item back aciona o listener`() {
-        val backItem = fragment.getMenuItems().first { it.id == "back" }
-        fragment.onMenuItemSelected(backItem)
-        verify { listener.onAboutBackToMainMenu() }
     }
 
     /** Mirrors AboutFragment's private capitalization logic, as an independent oracle. */

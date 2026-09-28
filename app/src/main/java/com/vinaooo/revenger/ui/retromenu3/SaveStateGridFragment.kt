@@ -366,10 +366,6 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         return listOf(MenuItem("grid", "Save State Grid", action = MenuAction.CONTINUE))
     }
 
-    override fun onMenuItemSelected(item: MenuItem) {
-        // Handled by performConfirm
-    }
-
     override fun getCurrentSelectedIndex(): Int = gridSelectionState.currentIndex
 
     override fun setSelectedIndex(index: Int) {

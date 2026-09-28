@@ -417,18 +417,6 @@ class ProgressFragment : MenuFragmentBase() {
         )
     }
 
-    override fun onMenuItemSelected(item: MenuItem) {
-        when (item.action) {
-            MenuAction.LOAD_STATE -> loadState.performClick()
-            MenuAction.SAVE_STATE -> saveState.performClick()
-            MenuAction.MANAGE_SAVES -> manageSaves.performClick()
-            MenuAction.BACK -> backProgress.performClick()
-            else -> {
-                /* Ignore other actions */
-            }
-        }
-    }
-
     override fun onResume() {
         super.onResume()
 

@@ -271,9 +271,6 @@ interface MenuFragment {
     /** Returns the list of menu items for this fragment */
     fun getMenuItems(): List<MenuItem>
 
-    /** Called when a menu item is selected (clicked or confirmed via gamepad) */
-    fun onMenuItemSelected(item: MenuItem)
-
     /**
      * Navigate up in the menu (gamepad DPAD up)
      * @return true if navigation was handled, false otherwise

@@ -78,17 +78,6 @@ class SettingsMenuFragment_test {
     }
 
     @Test
-    fun `selecionar item back nao lanca excecao`() {
-        val backItem = fragment.getMenuItems().first { it.id == "back" }
-        try {
-            fragment.onMenuItemSelected(backItem)
-            assertTrue(true)
-        } catch (e: Exception) {
-            fail("onMenuItemSelected(back) should not throw exception: ${e.message}")
-        }
-    }
-
-    @Test
     fun `performConfirm no indice 3 delega para navigateBack, sem tocar audio, shader ou velocidade`() {
         // Pins BACK_TO_MAIN_MENU_INDEX = 3: performConfirm() on the "back" item must call
         // navigationController.navigateBack() -- and, unlike the audio/shader/speed toggle

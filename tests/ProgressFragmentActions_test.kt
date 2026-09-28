@@ -103,15 +103,6 @@ class ProgressFragmentActions_test {
     }
 
     @Test
-    fun `onMenuItemSelected roteia cada acao pelo clique do item`() {
-        val items = fragment.getMenuItems()
-
-        fragment.onMenuItemSelected(items[3]) // BACK -> click on the back card
-
-        verify { host.navigationController.selectItem(3) }
-    }
-
-    @Test
     fun `dismissMenuPublic remove o fragment e o destroy limpa o log de teclas do combo`() {
         fragment.dismissMenuPublic()
         host.idle()

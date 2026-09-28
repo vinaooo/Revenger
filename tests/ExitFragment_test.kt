@@ -70,17 +70,6 @@ class ExitFragment_test {
         fragment.getMenuItems().forEach { item -> assertFalse(item.title.isEmpty()) }
     }
 
-    @Test
-    fun `selecionar item back nao lanca excecao`() {
-        val backItem = fragment.getMenuItems().first { it.id == "back" }
-        try {
-            fragment.onMenuItemSelected(backItem)
-            assertTrue(true)
-        } catch (e: Exception) {
-            fail("onMenuItemSelected(back) should not throw exception: ${e.message}")
-        }
-    }
-
     // Regression: Save and Exit used `tracker.getLastUsedSlot()!!`. Without a slot recorded in
     // this session it must take the "no slot context" branch (navigate to the save grid) instead
     // of the auto-save branch, and must not throw.

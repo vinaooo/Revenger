@@ -417,18 +417,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
         )
     }
 
-    override fun onMenuItemSelected(item: MenuItem) {
-        // Use new MenuAction system, but fallback to old click listeners for compatibility
-        when (item.action) {
-            MenuAction.TOGGLE_AUDIO -> soundSettings.performClick()
-            MenuAction.TOGGLE_SPEED -> gameSpeedSettings.performClick()
-            MenuAction.BACK -> backSettings.performClick()
-            else -> {
-                /* Ignore other actions */
-            }
-        }
-    }
-
     override fun onResume() {
         super.onResume()
 

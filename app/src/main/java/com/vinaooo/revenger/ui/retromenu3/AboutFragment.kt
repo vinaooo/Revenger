@@ -357,17 +357,6 @@ class AboutFragment : MenuFragmentBase() {
         )
     }
 
-    override fun onMenuItemSelected(item: MenuItem) {
-        when (item.action) {
-            MenuAction.BACK -> {
-                aboutListener?.onAboutBackToMainMenu()
-            }
-            else -> {
-                // Handle other actions if needed
-            }
-        }
-    }
-
     override fun onResume() {
         super.onResume()
 

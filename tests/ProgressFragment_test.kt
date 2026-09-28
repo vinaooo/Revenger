@@ -73,17 +73,6 @@ class ProgressFragment_test {
         fragment.getMenuItems().forEach { item -> assertFalse(item.title.isEmpty()) }
     }
 
-    @Test
-    fun `selecionar item back nao lanca excecao`() {
-        val backItem = fragment.getMenuItems().first { it.id == "back" }
-        try {
-            fragment.onMenuItemSelected(backItem)
-            assertTrue(true)
-        } catch (e: Exception) {
-            fail("onMenuItemSelected(back) should not throw exception: ${e.message}")
-        }
-    }
-
     // Regression test for the narrowed IllegalStateException catch in
     // ProgressFragment.onDestroy(): after the fragment is removed from the FragmentManager,
     // requireActivity() throws IllegalStateException, which the catch must swallow and log
