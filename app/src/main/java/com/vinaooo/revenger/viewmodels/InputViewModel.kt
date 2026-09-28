@@ -43,9 +43,6 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
             gamePadContainerViewRef = value?.let(::WeakReference)
         }
 
-    // ControllerInput callbacks
-    private var selectStartComboCallback: (() -> Unit)? = null
-
     init {
         setupControllerInputCallbacks()
     }
@@ -55,17 +52,12 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
             _eventFlow.value = InputEvent.HandleSelectStartCombo
             true
         }
-        controllerInput.selectStartComboCallback = { selectStartComboCallback?.invoke() }
     }
 
     // ========== CONFIGURATION METHODS ==========
 
     fun setGamePadContainer(container: android.widget.LinearLayout) {
         gamePadContainerView = container
-    }
-
-    fun setSelectStartComboCallback(callback: () -> Unit) {
-        selectStartComboCallback = callback
     }
 
     // ========== GAMEPAD METHODS ==========

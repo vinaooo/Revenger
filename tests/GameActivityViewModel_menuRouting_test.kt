@@ -14,7 +14,6 @@ import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
 import com.vinaooo.revenger.viewmodels.menu.PlaybackStateController
 import com.vinaooo.revenger.viewmodels.menu.ScreenshotPreviewController
-import com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentDismisser
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -143,27 +142,7 @@ class GameActivityViewModel_menuRouting_test {
         controllerInput.startButtonCallback()
     }
 
-    // --- back to main menu / load preview ---
-
-    @Test
-    fun `voltar das configuracoes fecha o submenu de configuracoes`() {
-        val dismisser = replacePrivateField<SubmenuFragmentDismisser>("submenuFragmentDismisser")
-
-        viewModel.onBackToMainMenu()
-
-        verify(exactly = 1) { dismisser.dismissSettingsMenu() }
-        verify(exactly = 0) { dismisser.dismissAboutMenu() }
-    }
-
-    @Test
-    fun `voltar do Sobre fecha o submenu Sobre`() {
-        val dismisser = replacePrivateField<SubmenuFragmentDismisser>("submenuFragmentDismisser")
-
-        viewModel.onAboutBackToMainMenu()
-
-        verify(exactly = 1) { dismisser.dismissAboutMenu() }
-        verify(exactly = 0) { dismisser.dismissSettingsMenu() }
-    }
+    // --- load preview ---
 
     @Test
     fun `showLoadPreview mostra a imagem no overlay de preview`() {

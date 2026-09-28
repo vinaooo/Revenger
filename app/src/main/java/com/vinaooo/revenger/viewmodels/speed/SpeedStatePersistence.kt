@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Loads and saves `SpeedViewModel`'s game-speed / fast-forward preferences. Split out purely to
- * keep `SpeedViewModel` under the project's function-count threshold; all four methods were
+ * keep `SpeedViewModel` under the project's function-count threshold; all three methods were
  * private there and are only ever called from within `SpeedViewModel` itself, so they stay a
  * plain injected instance (no interface delegation) here.
  */
@@ -16,16 +16,6 @@ class SpeedStatePersistence(
 ) {
     // SharedPreferences.getInt()/getBoolean() throw ClassCastException if a value stored under
     // that key isn't the requested type (e.g. a stale value from a preferences-format change).
-    fun loadSpeedState(onLoaded: (Int) -> Unit, onFailure: (ClassCastException) -> Unit) {
-        scope.launch {
-            try {
-                onLoaded(preferencesRepository.getGameSpeedSync())
-            } catch (e: ClassCastException) {
-                onFailure(e)
-            }
-        }
-    }
-
     fun loadFastForwardState(onLoaded: (Boolean) -> Unit, onFailure: (ClassCastException) -> Unit) {
         scope.launch {
             try {

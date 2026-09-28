@@ -33,26 +33,6 @@ class SpeedStatePersistence_test {
     }
 
     @Test
-    fun `loadSpeedState entrega o valor lido do repositorio`() {
-        every { repository.getGameSpeedSync() } returns 2
-        var loaded: Int? = null
-
-        persistence.loadSpeedState(onLoaded = { loaded = it }, onFailure = { fail("nao deveria falhar") })
-
-        assertEquals(2, loaded)
-    }
-
-    @Test
-    fun `loadSpeedState com ClassCastException aciona onFailure em vez de propagar`() {
-        every { repository.getGameSpeedSync() } throws ClassCastException("tipo errado")
-        var failed = false
-
-        persistence.loadSpeedState(onLoaded = { fail("nao deveria carregar") }, onFailure = { failed = true })
-
-        assertTrue(failed)
-    }
-
-    @Test
     fun `loadFastForwardState entrega o valor lido do repositorio`() {
         every { repository.getFastForwardEnabledSync() } returns true
         var loaded: Boolean? = null

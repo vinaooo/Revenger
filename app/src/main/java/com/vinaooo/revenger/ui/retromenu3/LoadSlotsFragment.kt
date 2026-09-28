@@ -5,7 +5,6 @@ import android.util.Log
 import android.widget.Toast
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
-import com.vinaooo.revenger.ui.retromenu3.callbacks.LoadSlotsListener
 import com.vinaooo.revenger.utils.FontUtils
 
 /**
@@ -18,12 +17,6 @@ import com.vinaooo.revenger.utils.FontUtils
  * - Shows full-screen preview overlay behind menu when slot is selected
  */
 class LoadSlotsFragment : SaveStateGridFragment() {
-
-    private var listener: LoadSlotsListener? = null
-
-    fun setListener(listener: LoadSlotsListener) {
-        this.listener = listener
-    }
 
     override fun getTitleResId(): Int = R.string.menu_load_state
 
@@ -123,7 +116,6 @@ class LoadSlotsFragment : SaveStateGridFragment() {
                                 Toast.LENGTH_SHORT
                         )
                         .show()
-                listener?.onLoadCompleted(slotNumber)
             } else {
                 Log.e(TAG, "Failed to unserialize state from slot $slotNumber")
                 Toast.makeText(

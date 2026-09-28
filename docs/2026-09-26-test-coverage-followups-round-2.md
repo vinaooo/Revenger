@@ -147,7 +147,16 @@ Fix: rename and copy read a damaged file the way the menu shows it ("Slot N") an
 ## Open decisions (not scheduled)
 
 - **The temp state is written but never read.** Decided 2026-09-27: stop writing it. `a183a39` (2025-10-03) had removed the startup restore on purpose, so the game starts fresh and only a manual Load State restores a snapshot. Done in its own PR (`fix/stop-writing-temp-state`): the SRAM flush and speed/audio settings stay, the snapshot, its reader, the skip flag and the unused `GameStateViewModel` are gone, and `Storage` deletes the leftover file.
-- **Unused public contracts.** Some `AppConfig`, callback-interface and ViewModel methods have no caller. They were kept in #150 because of the contract rule in `CLAUDE.md`.
+- **Unused public contracts.** Some `AppConfig`, callback-interface and ViewModel methods have no caller. They were kept in #150 because of the contract rule in `CLAUDE.md`. Decided 2026-09-27: delete them, as a deliberate exception to that rule. Done in its own PR (`chore/remove-unused-public-methods`):
+  - `AppConfig.getId`, `isDefaultMode` and `getResolvedProfile`, and `getTargetAbi` on both the identity interface and its implementation.
+  - The `getAudioController`, `getShaderController`, `getGameSpeed` and `getSpeedController` getters, and `InputViewModel.setSelectStartComboCallback` along with the field only it wrote. `SpeedViewModel`'s stored speed goes too, because only `getGameSpeed` read it; that includes its load at construction and `SpeedStatePersistence.loadSpeedState`.
+  - Ten callback interfaces: `RetroMenu3Listener` and its three parents, `ExitListener`, `ProgressListener`, `SettingsMenuListener`, and the Save/Load/Manage slot listeners.
+  - The `onBackToMainMenu` and `onAboutBackToMainMenu` overrides that nothing called. The Save/Load/Manage slot listeners were never wired in the app: `setListener` was only ever called from tests. `AboutListener` stays, and `RetroMenu3Fragment` still implements it.
+  - Follow-ups, dead already before this PR and not part of it:
+    - `SpeedViewModel.setGameSpeed` and `toggleFastForward`, which nothing in the app calls.
+    - The ViewModels' `eventFlow`s, which nothing collects.
+    - The repository's game-speed read and write, which only `SpeedViewModel` uses.
+    - `hasSaveState` and `getShaderState` (item 5).
 
 ## Won't do
 

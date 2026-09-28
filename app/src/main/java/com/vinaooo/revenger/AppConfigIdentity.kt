@@ -12,9 +12,6 @@ interface AppConfigIdentity {
     /** ROM filename as configured in `config.json`. */
     fun getRomName(): String
 
-    /** Target ABI(s) as configured in `config.json`. */
-    fun getTargetAbi(): String
-
     /** Platform id as configured in `config.json`. */
     fun getPlatformId(): String
 }
@@ -23,8 +20,6 @@ class AppConfigIdentityImpl(private val sources: ConfigSources) : AppConfigIdent
     override fun getName(): String = sources.baseConfig.name.takeIf { it.isNotEmpty() } ?: "Revenger"
 
     override fun getRomName(): String = sources.baseConfig.rom
-
-    override fun getTargetAbi(): String = sources.baseConfig.target_abi
 
     override fun getPlatformId(): String = sources.baseConfig.platform
 }

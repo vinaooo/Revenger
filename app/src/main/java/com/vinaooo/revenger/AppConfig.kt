@@ -1,8 +1,6 @@
 package com.vinaooo.revenger
 
 import android.content.Context
-import com.vinaooo.revenger.models.DefaultSettingsProfile
-import com.vinaooo.revenger.utils.ConfigIdGenerator
 
 // Field names mirror config.json's keys verbatim (Gson matches by field name, no
 // @SerializedName), so they must stay snake_case rather than follow Kotlin naming style.
@@ -90,10 +88,6 @@ class AppConfig(
     val gamePadConfigModel: GamePadAssetsConfig
         get() = sources.gamePadConfigModel
 
-    // ========== Identity/core composite (needs both name and core) ==========
-
-    fun getId(): String = ConfigIdGenerator.generate(getName(), getCore())
-
     // ========== Core and variables (default profile overrides) ==========
 
     fun getCore(): String = sources.profile?.core ?: sources.manualConfig.core
@@ -101,6 +95,4 @@ class AppConfig(
 
     // ========== Utility methods ==========
 
-    fun isDefaultMode(): Boolean = sources.baseConfig.default_settings
-    fun getResolvedProfile(): DefaultSettingsProfile? = sources.profile
 }

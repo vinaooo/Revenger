@@ -13,7 +13,6 @@ import com.vinaooo.revenger.managers.SessionSlotTracker
 import com.vinaooo.revenger.models.SaveSlotData
 import com.vinaooo.revenger.models.SaveSlotPayload
 import com.vinaooo.revenger.retroview.RetroView
-import com.vinaooo.revenger.ui.retromenu3.callbacks.SaveSlotsListener
 import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 import io.mockk.every
@@ -49,7 +48,6 @@ class SaveSlotsFragment_test {
     private lateinit var activity: FragmentActivity
     private lateinit var fragment: SaveSlotsFragment
     private lateinit var savesDir: File
-    private lateinit var listener: SaveSlotsListener
 
     private val stateBytes = byteArrayOf(1, 2, 3)
 
@@ -67,9 +65,7 @@ class SaveSlotsFragment_test {
         val container = FrameLayout(activity).apply { id = View.generateViewId() }
         activity.setContentView(container)
 
-        listener = mockk(relaxed = true)
         fragment = SaveSlotsFragment.newInstance()
-        fragment.setListener(listener)
         activity.supportFragmentManager
                 .beginTransaction()
                 .add(container.id, fragment, "save_slots")
@@ -326,7 +322,7 @@ class SaveSlotsFragment_test {
     }
 
     @Test
-    fun `confirmar sobrescrita salva no slot mantendo o nome e notifica o listener`() {
+    fun `confirmar sobrescrita salva no slot mantendo o nome`() {
         val manager = mockedSaveStateManager()
         installRetroView()
         fragment.onSlotConfirmed(occupiedSlot(7))
@@ -336,7 +332,6 @@ class SaveSlotsFragment_test {
         val payload = slot<SaveSlotPayload>()
         verify(exactly = 1) { manager.saveToSlot(7, capture(payload)) }
         assertEquals("Save 7", payload.captured.name)
-        verify(exactly = 1) { listener.onSaveCompleted(7) }
         verify(exactly = 1) { manager.getAllSlots() } // grid refreshed
         assertEquals(7, SessionSlotTracker.getInstance().getLastUsedSlot())
         assertEquals(expectedToast(R.string.save_success, 7), ShadowToast.getTextOfLatestToast())
@@ -355,7 +350,7 @@ class SaveSlotsFragment_test {
         assertFalse(dialogVisible())
         assertNull(rootView().findViewById(R.id.dialog_confirm_button))
         verify(exactly = 0) { manager.saveToSlot(any(), any()) }
-        verify(exactly = 0) { listener.onSaveCompleted(any()) }
+        assertNull(SessionSlotTracker.getInstance().getLastUsedSlot())
     }
 
     @Test
@@ -380,12 +375,12 @@ class SaveSlotsFragment_test {
         confirmButton().performClick()
 
         verify(exactly = 0) { manager.saveToSlot(any(), any()) }
-        verify(exactly = 0) { listener.onSaveCompleted(any()) }
+        assertNull(SessionSlotTracker.getInstance().getLastUsedSlot())
         assertEquals(expectedToast(R.string.save_error), ShadowToast.getTextOfLatestToast())
     }
 
     @Test
-    fun `falha do SaveStateManager mostra erro e nao notifica o listener`() {
+    fun `falha do SaveStateManager mostra erro e nao registra o slot`() {
         val manager = mockedSaveStateManager(saveResult = false)
         installRetroView()
         fragment.onSlotConfirmed(occupiedSlot(8))
@@ -393,7 +388,6 @@ class SaveSlotsFragment_test {
         confirmButton().performClick()
 
         verify(exactly = 1) { manager.saveToSlot(8, any()) }
-        verify(exactly = 0) { listener.onSaveCompleted(any()) }
         assertNull(SessionSlotTracker.getInstance().getLastUsedSlot())
         assertEquals(expectedToast(R.string.save_error), ShadowToast.getTextOfLatestToast())
     }
@@ -407,7 +401,7 @@ class SaveSlotsFragment_test {
         confirmButton().performClick()
 
         verify(exactly = 0) { manager.saveToSlot(any(), any()) }
-        verify(exactly = 0) { listener.onSaveCompleted(any()) }
+        assertNull(SessionSlotTracker.getInstance().getLastUsedSlot())
         assertEquals(expectedToast(R.string.save_error), ShadowToast.getTextOfLatestToast())
     }
 

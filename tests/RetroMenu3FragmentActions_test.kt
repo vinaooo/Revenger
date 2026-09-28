@@ -136,20 +136,18 @@ class RetroMenu3FragmentActions_test {
     }
 
     @Test
-    fun `onBackToMainMenu e onAboutBackToMainMenu fecham o submenu aberto`() {
-        for (close in listOf(fragment::onBackToMainMenu, fragment::onAboutBackToMainMenu)) {
-            fragment.onMenuItemSelected(
-                    MenuItem("exit", "exit", action = MenuAction.NAVIGATE(MenuState.EXIT_MENU))
-            )
-            fragmentManager.executePendingTransactions()
-            assertEquals(1, fragmentManager.backStackEntryCount)
+    fun `onAboutBackToMainMenu fecha o submenu aberto`() {
+        fragment.onMenuItemSelected(
+                MenuItem("exit", "exit", action = MenuAction.NAVIGATE(MenuState.EXIT_MENU))
+        )
+        fragmentManager.executePendingTransactions()
+        assertEquals(1, fragmentManager.backStackEntryCount)
 
-            close()
-            fragmentManager.executePendingTransactions()
-            host.idle()
+        fragment.onAboutBackToMainMenu()
+        fragmentManager.executePendingTransactions()
+        host.idle()
 
-            assertEquals(0, fragmentManager.backStackEntryCount)
-        }
+        assertEquals(0, fragmentManager.backStackEntryCount)
     }
 
     @Test

@@ -6,7 +6,6 @@ import android.widget.TextView
 import android.widget.Toast
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.models.SaveSlotData
-import com.vinaooo.revenger.ui.retromenu3.callbacks.ManageSavesListener
 import com.vinaooo.revenger.utils.FontUtils
 
 /**
@@ -23,8 +22,6 @@ import com.vinaooo.revenger.utils.FontUtils
  */
 class ManageSavesFragment : SaveStateGridFragment() {
 
-    private var listener: ManageSavesListener? = null
-
     /** The operations, rename and delete dialogs shown over the grid. */
     internal val dialogs = SlotDialogController { view as? ViewGroup }
 
@@ -38,10 +35,6 @@ class ManageSavesFragment : SaveStateGridFragment() {
         COPY,
         MOVE,
         DELETE
-    }
-
-    fun setListener(listener: ManageSavesListener) {
-        this.listener = listener
     }
 
     override fun onDestroyView() {
