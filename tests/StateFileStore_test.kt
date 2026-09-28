@@ -8,7 +8,9 @@ import com.vinaooo.revenger.retroview.RetroView
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -86,5 +88,28 @@ class StateFileStore_test {
         store.saveSRAM(retroView)
 
         org.junit.Assert.assertArrayEquals(bytes, storage.sram.readBytes())
+    }
+
+    @Test
+    fun `saveState com falha ao gravar o arquivo nao lanca`() {
+        every { glRetroView.serializeState() } returns byteArrayOf(1)
+        storage.state.mkdirs() // a directory in place of the file: opening it for writing fails
+
+        try {
+            store.saveState(retroView)
+
+            assertTrue(storage.state.isDirectory)
+        } finally {
+            storage.state.delete()
+        }
+    }
+
+    @Test
+    fun `saveState com falha do core ao serializar nao lanca nem cria o arquivo`() {
+        every { glRetroView.serializeState() } throws NullPointerException("native result was null")
+
+        store.saveState(retroView)
+
+        assertFalse(storage.state.exists())
     }
 }
