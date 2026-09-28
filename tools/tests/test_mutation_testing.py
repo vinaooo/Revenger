@@ -265,12 +265,19 @@ def test_classify(code, output, expected):
 
 
 def test_gradle_command_filters_by_class_or_runs_everything():
-    base = ["./gradlew", "testDebugUnitTest", "-PskipAssetStaging", "-q", "--offline",
-            "--init-script", "t.gradle"]
+    base = ["./gradlew",
+            "-Dorg.gradle.jvmargs=-Xmx3g -XX:+UseG1GC -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8",
+            "testDebugUnitTest", "-PskipAssetStaging", "-q", "--offline", "--init-script", "t.gradle"]
 
-    assert mt.gradle_command([], "t.gradle") == base
-    assert mt.gradle_command(["A_test", "BTest"], "t.gradle") == base + ["--tests", "*.A_test",
-                                                                         "--tests", "*.BTest"]
+    assert mt.gradle_command([], "t.gradle", "3g") == base
+    assert mt.gradle_command(["A_test", "BTest"], "t.gradle", "3g") == base + ["--tests", "*.A_test",
+                                                                               "--tests", "*.BTest"]
+
+
+def test_gradle_command_caps_the_daemon_heap():
+    (jvm_args,) = [a for a in mt.gradle_command([], "t.gradle", "2g") if a.startswith("-Dorg.gradle.jvmargs=")]
+
+    assert jvm_args.startswith("-Dorg.gradle.jvmargs=-Xmx2g ")
 
 
 def test_init_script_sets_the_test_task_timeout():
@@ -291,15 +298,17 @@ def _fake_gradlew(directory, body):
 def test_run_gradle_classifies_the_process_result(tmp_path):
     _fake_gradlew(str(tmp_path), 'echo "$@" > args.txt\necho "e: broken" >&2\nexit 1')
 
-    assert mt.run_gradle(str(tmp_path), ["A_test"], "t.gradle", 30) == mt.COMPILE_ERROR
-    assert (tmp_path / "args.txt").read_text().split()[-2:] == ["--tests", "*.A_test"]
+    assert mt.run_gradle(str(tmp_path), ["A_test"], "t.gradle", 30, "3g") == mt.COMPILE_ERROR
+    args = (tmp_path / "args.txt").read_text().split()
+    assert args[-2:] == ["--tests", "*.A_test"]
+    assert "-Dorg.gradle.jvmargs=-Xmx3g" in args
 
 
 @pytest.mark.skipif(shutil.which("sh") is None, reason="sh not installed")
 def test_run_gradle_reports_a_hung_run_as_timeout(tmp_path):
     _fake_gradlew(str(tmp_path), "exec sleep 5")
 
-    assert mt.run_gradle(str(tmp_path), [], "t.gradle", 0.2) == mt.TIMEOUT
+    assert mt.run_gradle(str(tmp_path), [], "t.gradle", 0.2, "3g") == mt.TIMEOUT
 
 
 # --- scheduling -------------------------------------------------------------------------------
@@ -568,7 +577,8 @@ def test_parse_args_needs_exactly_one_mode(argv):
 def test_parse_args_defaults():
     args = mt.parse_args(["--changed"])
 
-    assert (args.base, args.jobs, args.full_jobs, args.timeout) == ("origin/develop", 4, 3, 600)
+    assert (args.base, args.jobs, args.full_jobs, args.timeout) == ("origin/develop", 3, 3, 600)
+    assert args.gradle_heap == "3g"
     assert args.report_dir == "build/reports/mutation"
 
 
@@ -612,18 +622,19 @@ def test_main_refuses_uncommitted_sources(repo, tmp_path, monkeypatch, capsys):
 def test_main_runs_records_resumes_and_starts_fresh(repo, tmp_path, monkeypatch, capsys):
     calls = []
 
-    def runner(tree, classes, init_script, timeout):
-        calls.append((os.path.basename(tree), classes, timeout))
+    def runner(tree, classes, init_script, timeout, heap):
+        calls.append((os.path.basename(tree), classes, timeout, heap))
         assert open(init_script).read() == mt.INIT_SCRIPT.format(seconds=90)
         return mt.SURVIVED if classes else mt.KILLED
 
     target = os.path.join(repo, MAIN + "Alpha.kt")
-    assert _cli(repo, tmp_path, monkeypatch, target, "--timeout", "120", runner=runner) == 0
+    assert _cli(repo, tmp_path, monkeypatch, target, "--timeout", "120", "--gradle-heap", "2g",
+                runner=runner) == 0
 
     report = os.path.join(repo, "build/reports/mutation")
     (record,) = [json.loads(line) for line in open(os.path.join(report, "mutants.jsonl"))]
     assert (record["status"], record["stage"]) == (mt.KILLED, "full")
-    assert calls == [("w1", ["Alpha_test"], 120), ("w1", [], 120)]
+    assert calls == [("w1", ["Alpha_test"], 120, "2g"), ("w1", [], 120, "2g")]
     assert "Killed: 1. Survived: 0." in open(os.path.join(report, "summary.md")).read()
     assert not os.path.exists(str(tmp_path / "work" / "w1"))
 
