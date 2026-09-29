@@ -128,7 +128,7 @@ First look: the forced frame capture on entering PiP (`PipController.kt:136, 156
 
 `MenuConfiguration.kt` has no killed mutant at all; check first whether it is used. #182 already reviewed some `NavigationEventProcessor` and `EventQueue` survivors (`eventQueue.clear()` in the close paths is equivalent).
 
-### [ ] 4a. Save menus — 57 survivors
+### [x] 4a. Save menus — 57 survivors (#193: 7 left, all equivalent)
 
 | File | S | K |
 |---|---:|---:|
