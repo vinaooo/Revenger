@@ -141,8 +141,8 @@ class ProgressFragment : MenuFragmentBase() {
         selectionArrowManageSaves = view.findViewById(R.id.selection_arrow_manage_saves)
         selectionArrowBack = view.findViewById(R.id.selection_arrow_back)
 
-        // Set first item as selected
-        updateSelectionVisualInternal()
+        // The first item is drawn as selected by onResume(), which always follows and restores
+        // savedSelectionIndex (0 on first open) through setSelectedIndex().
 
         // Apply arcade font to all text views
         ViewUtils.applySelectedFontToViews(

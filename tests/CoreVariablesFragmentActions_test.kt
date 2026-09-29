@@ -15,6 +15,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -146,6 +147,28 @@ class CoreVariablesFragmentActions_test {
         fragment.onNavigateUp()
         assertEquals(2, fragment.getCurrentSelectedIndex())
         assertEquals(View.VISIBLE, backButton().findViewById<TextView>(R.id.selection_arrow_back).visibility)
+    }
+
+    @Test
+    fun `selecionar um item fora da tela rola a lista ate ele`() {
+        val many = mockk<AppConfig>(relaxed = true)
+        every { many.getVariables() } returns (1..40).joinToString(",") { "opt_$it=$it" }
+        appConfigField.set(null, many)
+        host.destroy()
+        host = MenuFragmentHost(CoreVariablesFragment())
+        val root = fragment.requireView()
+        root.measure(
+                View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(320, View.MeasureSpec.EXACTLY)
+        )
+        root.layout(0, 0, 480, 320)
+        val scroll = root.findViewById<android.widget.ScrollView>(R.id.core_variables_scroll)
+        assertEquals(0, scroll.scrollY)
+
+        fragment.onNavigateUp() // wraps to the back item, at the bottom of the list
+        host.advance(1_000)
+
+        assertTrue(scroll.scrollY > 0)
     }
 
     @Test
