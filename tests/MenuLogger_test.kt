@@ -19,7 +19,6 @@ class MenuLogger_test {
     fun setUp() {
         mockkStatic(Log::class)
         every { Log.i(any(), any<String>()) } returns 0
-        every { Log.w(any(), any<String>(), any()) } returns 0
         every { Log.d(any(), any<String>()) } returns 0
         MenuLogger.setDebugEnabled(true)
     }
