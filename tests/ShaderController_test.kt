@@ -166,6 +166,7 @@ class ShaderController_test {
 
         controller.setShader("shader_invalido")
 
-        verify { retroView.dynamicShader = "disabled" }
+        // Once from connect(), once from the fallback.
+        verify(exactly = 2) { retroView.dynamicShader = "disabled" }
     }
 }
