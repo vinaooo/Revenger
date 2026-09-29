@@ -8,6 +8,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -164,5 +165,60 @@ class NavigationController_test {
         withProcessor.closeMenuExternal(closingButton = 7)
 
         verify { processor.closeMenuExternal(7) }
+    }
+
+    private fun controllerWith(state: NavigationStateManager) =
+            NavigationController(activity, stateManager = state)
+
+    @Test
+    fun `syncState limpa uma pilha com entradas por padrao`() {
+        val state = NavigationStateManager().apply { pushCurrentState() }
+
+        controllerWith(state).syncState(MenuType.PROGRESS, selectedIndex = 1)
+
+        assertEquals(0, state.getStackSize())
+    }
+
+    @Test
+    fun `syncState com clearStack false mantem a pilha`() {
+        val state = NavigationStateManager().apply { pushCurrentState() }
+
+        controllerWith(state).syncState(MenuType.PROGRESS, selectedIndex = 1, clearStack = false)
+
+        assertEquals(1, state.getStackSize())
+        assertEquals(MenuType.PROGRESS, state.currentMenu)
+    }
+
+    @Test
+    fun `selectItem seleciona o item pedido`() {
+        val state = NavigationStateManager()
+        val navigation = controllerWith(state)
+        navigation.registerFragment(fakeFragment(), itemCount = 5)
+
+        navigation.selectItem(3)
+
+        assertEquals(3, state.selectedItemIndex)
+    }
+
+    @Test
+    fun `registrar um fragment mostra nele a selecao atual`() {
+        val state = NavigationStateManager().apply { updateSelectedIndex(2) }
+        val fragment = fakeFragment()
+
+        controllerWith(state).registerFragment(fragment, itemCount = 5)
+
+        verify { fragment.setSelectedIndex(2) }
+    }
+
+    @Test
+    fun `unregisterFragment solta o fragment registrado`() {
+        val state = NavigationStateManager()
+        val navigation = controllerWith(state)
+        navigation.registerFragment(fakeFragment(), itemCount = 5)
+
+        navigation.unregisterFragment()
+
+        assertNull(state.currentFragment)
+        assertEquals(0, state.currentMenuItemCount)
     }
 }

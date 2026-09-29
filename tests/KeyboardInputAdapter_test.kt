@@ -283,10 +283,12 @@ class KeyboardInputAdapter_test {
 
     @Test
     fun `Enter ativa o item selecionado`() {
-        adapter.onKeyDown(
+        val consumed = adapter.onKeyDown(
             KeyEvent.KEYCODE_ENTER,
             keyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER, eventTime = 100)
         )
+
+        assertTrue(consumed)
 
         val event = capturedEvents().single() as NavigationEvent.ActivateSelected
         assertEquals(KeyEvent.KEYCODE_ENTER, event.keyCode)
@@ -372,10 +374,12 @@ class KeyboardInputAdapter_test {
     fun `F12 abre o menu quando ele esta fechado`() {
         menuOpen = false
 
-        adapter.onKeyDown(
+        val consumed = adapter.onKeyDown(
             KeyEvent.KEYCODE_F12,
             keyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_F12, eventTime = 100)
         )
+
+        assertTrue(consumed)
 
         val event = capturedEvents().single() as NavigationEvent.OpenMenu
         assertEquals(InputSource.KEYBOARD, event.inputSource)

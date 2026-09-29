@@ -60,16 +60,13 @@ class SubmenuCoordinator(
     // Flag to prevent multiple restoration operations
     private var isRestoringSelection: Boolean = false
 
-    // NEW: Flag to indicate if a submenu is open (to control restoration)
-    private var hasSubmenuOpen: Boolean = false
+    // Back stack count, to detect changes
+    private var previousBackStackCount: Int = fragment.parentFragmentManager.backStackEntryCount
 
-    // NEW: Track back stack count to detect changes
-    private var previousBackStackCount: Int = 0
+    // Whether a submenu is open (controls restoration). If the back stack has entries, one is.
+    private var hasSubmenuOpen: Boolean = previousBackStackCount > 0
 
     init {
-        // Initialize the back stack count. If backstack has entries, a submenu is open.
-        previousBackStackCount = fragment.parentFragmentManager.backStackEntryCount
-        hasSubmenuOpen = previousBackStackCount > 0
         Log.d(TAG, "[INIT] backStackCount=$previousBackStackCount hasSubmenuOpen=$hasSubmenuOpen")
     }
 

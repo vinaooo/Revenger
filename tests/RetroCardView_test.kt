@@ -121,6 +121,17 @@ class RetroCardView_test {
     }
 
     @Test
+    fun `desligar o fundo com o card pressionado deixa o fundo transparente`() {
+        val view = RetroCardView(context)
+        view.setState(RetroCardView.State.PRESSED)
+        assertEquals(RetroCardView.COLOR_PRESSED, backgroundColorOf(view))
+
+        view.setUseBackgroundColor(false)
+
+        assertEquals(Color.TRANSPARENT, backgroundColorOf(view))
+    }
+
+    @Test
     fun `setPressed(true) move para o estado PRESSED e setPressed(false) volta para NORMAL`() {
         // Documents current coupling between the View framework's pressed-state callback and
         // RetroCardView's own State machine: a normal touch down+up sequence always resets a

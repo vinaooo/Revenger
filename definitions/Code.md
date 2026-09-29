@@ -33,7 +33,6 @@ The RetroMenu3 system does **NOT** use and should **NOT** use Material Design, M
 
 ## Key Techniques
 - **Animations**: `ViewPropertyAnimator` + object pools for performance
-- **Configuration**: `MenuConfigurationBuilder` for dynamic menus
 - **Logging**: Use conditional logging through project `MenuLogger` / `Log.d` in debug; no `print`/`println`
 
 ## Architecture

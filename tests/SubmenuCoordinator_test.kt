@@ -411,4 +411,88 @@ class SubmenuCoordinator_test {
 
         verify { viewManager.showMainMenuTexts() }
     }
+
+    private fun push(tag: String) {
+        activity.supportFragmentManager.beginTransaction().add(Fragment(), tag).addToBackStack(tag).commit()
+        activity.supportFragmentManager.executePendingTransactions()
+    }
+
+    private fun pop() {
+        activity.supportFragmentManager.popBackStack()
+        activity.supportFragmentManager.executePendingTransactions()
+    }
+
+    // openSubmenu(MAIN_MENU) opens nothing but still marks a submenu as open, which lets these
+    // tests drive the back stack with dummy entries instead of the real submenu fragments.
+    private fun SubmenuCoordinator.markSubmenuOpen() = openSubmenu(MenuState.MAIN_MENU)
+
+    @Test
+    fun `abrir um submenu (a pilha cresce) nao restaura o menu principal`() {
+        val coordinator = newCoordinator()
+        coordinator.setupBackStackListener()
+        coordinator.markSubmenuOpen()
+
+        push("submenu")
+
+        verify(inverse = true) { viewManager.showMainMenuTexts() }
+    }
+
+    @Test
+    fun `depois de restaurar, a pilha esvaziando de novo nao restaura outra vez`() {
+        push("first")
+        push("second")
+        val coordinator = newCoordinator()
+        coordinator.setupBackStackListener()
+
+        pop()
+        pop()
+
+        verify(exactly = 1) { viewManager.showMainMenuTexts() }
+    }
+
+    @Test
+    fun `um segundo submenu fechado depois do primeiro tambem restaura`() {
+        push("first")
+        val coordinator = newCoordinator()
+        coordinator.setupBackStackListener()
+        pop()
+
+        coordinator.markSubmenuOpen()
+        push("second")
+        pop()
+
+        verify(exactly = 2) { viewManager.showMainMenuTexts() }
+    }
+
+    @Test
+    fun `com o host fora da tela (substituido na pilha) o listener nao restaura`() {
+        val coordinator = newCoordinator()
+        coordinator.setupBackStackListener()
+        coordinator.markSubmenuOpen()
+        // Replaced with addToBackStack: the host is no longer added but keeps its activity.
+        val containerId = checkNotNull(hostFragment.view?.parent as? View).id
+        activity.supportFragmentManager
+                .beginTransaction()
+                .replace(containerId, Fragment())
+                .addToBackStack("cover")
+                .commit()
+        activity.supportFragmentManager.executePendingTransactions()
+        push("extra")
+
+        pop()
+
+        verify(inverse = true) { viewManager.showMainMenuTexts() }
+    }
+
+    @Test
+    fun `abrir um submenu esconde o menu principal depois que ele aparece`() {
+        val root = checkNotNull(hostFragment.view?.parent as? android.view.ViewGroup)
+        root.addView(FrameLayout(activity).apply { id = com.vinaooo.revenger.R.id.menu_container })
+        val coordinator = newCoordinator()
+
+        coordinator.openSubmenu(MenuState.EXIT_MENU)
+        idle()
+
+        verify(exactly = 1) { viewManager.hideMainMenuCompletely() }
+    }
 }

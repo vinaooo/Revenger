@@ -1,15 +1,23 @@
 package com.vinaooo.revenger.ui.retromenu3
 
+import android.graphics.Canvas
+import android.graphics.Typeface
 import android.view.LayoutInflater
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.vinaooo.revenger.R
+import io.mockk.mockk
+import io.mockk.verify
+import io.mockk.verifyOrder
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 /**
@@ -67,5 +75,109 @@ class RetroEditText_test {
 
         editText.setTextContent("ok")
         assertEquals("ok", editText.getTextContent())
+    }
+
+    private fun draw(editText: RetroEditText): Canvas {
+        val canvas = mockk<Canvas>(relaxed = true)
+        val onDraw = RetroEditText::class.java.getDeclaredMethod("onDraw", Canvas::class.java)
+        onDraw.isAccessible = true
+        onDraw.invoke(editText, canvas)
+        return canvas
+    }
+
+    @Test
+    fun `usa a cor de texto do menu`() {
+        val context = fragment.requireContext()
+
+        val editText = RetroEditText(context)
+
+        assertEquals(ContextCompat.getColor(context, R.color.rm_text_color), editText.currentTextColor)
+    }
+
+    @Test
+    fun `hint, cor do hint e fonte pedem um redesenho`() {
+        val editText = RetroEditText(fragment.requireContext())
+        val shadow = shadowOf(editText)
+
+        shadow.clearWasInvalidated()
+        editText.setHintText("name")
+        assertTrue(shadow.wasInvalidated())
+
+        shadow.clearWasInvalidated()
+        editText.setRetroHintColor(0)
+        assertTrue(shadow.wasInvalidated())
+
+        shadow.clearWasInvalidated()
+        editText.applyTypeface(Typeface.MONOSPACE)
+        assertTrue(shadow.wasInvalidated())
+    }
+
+    @Test
+    fun `vazio com hint desenha o hint e o cursor`() {
+        val editText = RetroEditText(fragment.requireContext())
+        editText.setHintText("name")
+
+        val canvas = draw(editText)
+
+        verifyOrder {
+            canvas.drawText("name", any(), any(), any())
+            canvas.drawText("_", any(), any(), any())
+        }
+        verify(exactly = 2) { canvas.drawText(any<String>(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `com texto nao desenha o hint`() {
+        val editText = RetroEditText(fragment.requireContext())
+        editText.setHintText("name")
+        editText.setTextContent("ab")
+
+        val canvas = draw(editText)
+
+        verify(exactly = 0) { canvas.drawText("name", any(), any(), any()) }
+    }
+
+    @Test
+    fun `cursor no meio desenha o texto antes, o cursor depois dele e o resto`() {
+        val editText = RetroEditText(fragment.requireContext())
+        editText.setTextContent("abc")
+        editText.moveCursorLeft()
+        val start = editText.paddingStart.toFloat()
+        val cursorX = start + editText.paint.measureText("ab")
+        val afterX = cursorX + editText.paint.measureText("_")
+
+        val canvas = draw(editText)
+
+        verify(exactly = 1) { canvas.drawText("ab", start, any(), any()) }
+        verify(exactly = 1) { canvas.drawText("_", cursorX, any(), any()) }
+        verify(exactly = 1) { canvas.drawText("c", afterX, any(), any()) }
+        verify(exactly = 3) { canvas.drawText(any<String>(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `cursor no inicio desenha o cursor e depois o texto todo`() {
+        val editText = RetroEditText(fragment.requireContext())
+        editText.setTextContent("abc")
+        editText.moveCursorToStart()
+        val start = editText.paddingStart.toFloat()
+
+        val canvas = draw(editText)
+
+        verify(exactly = 1) { canvas.drawText("_", start, any(), any()) }
+        verify(exactly = 1) { canvas.drawText("abc", start + editText.paint.measureText("_"), any(), any()) }
+        verify(exactly = 2) { canvas.drawText(any<String>(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `cursor no fim desenha o texto e o cursor depois dele`() {
+        val editText = RetroEditText(fragment.requireContext())
+        editText.setTextContent("abc")
+        val start = editText.paddingStart.toFloat()
+
+        val canvas = draw(editText)
+
+        verify(exactly = 1) { canvas.drawText("abc", start, any(), any()) }
+        verify(exactly = 1) { canvas.drawText("_", start + editText.paint.measureText("abc"), any(), any()) }
+        verify(exactly = 2) { canvas.drawText(any<String>(), any(), any(), any()) }
     }
 }

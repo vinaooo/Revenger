@@ -101,7 +101,6 @@ private object MenuViewSetupBuilder {
     fun build(view: View, fragment: Fragment): Result {
         val cards = findCards(view)
         val titlesAndArrows = findTitlesAndArrows(view)
-        resetArrowMargins(titlesAndArrows.arrows)
         applyFontsAndCapitalization(fragment, titlesAndArrows.titles, titlesAndArrows.arrows)
 
         return Result(
@@ -174,16 +173,6 @@ private object MenuViewSetupBuilder {
                     selectionArrowAbout = view.findViewById(R.id.selection_arrow_about),
                     selectionArrowExit = view.findViewById(R.id.selection_arrow_exit)
             )
-
-    /** Forces zero marginStart/marginEnd on all selection [arrows] to prevent spacing issues. */
-    private fun resetArrowMargins(arrows: List<TextView>) {
-        arrows.forEach { arrow ->
-            (arrow.layoutParams as? LinearLayout.LayoutParams)?.apply {
-                marginStart = 0
-                marginEnd = 0
-            }
-        }
-    }
 
     /** Builds the ordered [MenuItemView] list pairing each title, arrow, and card. */
     private fun buildMenuItemViews(cards: Cards, titlesAndArrows: TitlesAndArrows): List<MenuItemView> =

@@ -86,15 +86,6 @@ class MenuIntegration_test {
     }
 
     @Test
-    fun `menu configuration is valid`() {
-        val config = MenuConfigurationBuilder.createMainMenu().build()
-        
-        assertTrue(config.isValid())
-        assertEquals("main_menu", config.menuId)
-        assertEquals(6, config.items.size)
-    }
-
-    @Test
     fun `fragment inherits from MenuFragmentBase`() {
         assertTrue(fragment is MenuFragmentBase)
     }

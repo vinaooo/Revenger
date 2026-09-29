@@ -164,4 +164,59 @@ class KeyboardNavigationController_test {
         detached.reset()
         detached.activateGamepadSelection()
     }
+
+    private fun selected(keyId: Int) = keyboardView.findViewById<TextView>(keyId).isSelected
+
+    @Test
+    fun `reset num controlador novo ja destaca a primeira tecla`() {
+        controller.reset()
+
+        assertTrue(selected(1))
+    }
+
+    @Test
+    fun `navegar no limite depois do toque volta o destaque sem mover`() {
+        controller.enterTouchMode()
+        assertFalse(controller.navigateLeft())
+        assertTrue(selected(1))
+
+        controller.enterTouchMode()
+        assertFalse(controller.navigateUp())
+        assertTrue(selected(1))
+
+        controller.navigateDown()
+        controller.navigateDown()
+        controller.enterTouchMode()
+        assertFalse(controller.navigateDown())
+        assertTrue(selected(6))
+    }
+
+    @Test
+    fun `cada movimento move o destaque e tira da tecla anterior`() {
+        controller.navigateDown()
+        assertTrue(selected(4))
+        assertFalse(selected(1))
+
+        controller.navigateRight()
+        controller.navigateUp()
+        assertTrue(selected(2))
+        assertFalse(selected(5))
+
+        assertTrue(controller.navigateLeft())
+        assertTrue(selected(1))
+        assertFalse(selected(2))
+    }
+
+    @Test
+    fun `subir de uma linha mais longa trava a coluna no ultimo indice da linha de cima`() {
+        controller.navigateDown()
+        controller.navigateDown()
+        repeat(3) { controller.navigateRight() }
+        assertEquals(3, controller.currentCol)
+
+        controller.navigateUp()
+
+        assertEquals(1, controller.currentCol)
+        assertTrue(selected(5))
+    }
 }

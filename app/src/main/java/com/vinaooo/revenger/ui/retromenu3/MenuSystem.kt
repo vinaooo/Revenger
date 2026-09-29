@@ -256,10 +256,6 @@ private constructor(
 data class MenuItem(
         val id: String,
         val title: String,
-        val subtitle: String? = null,
-        val iconResId: Int? = null,
-        val isEnabled: Boolean = true,
-        val isSelected: Boolean = false,
         val action: MenuAction = MenuAction.NONE
 )
 

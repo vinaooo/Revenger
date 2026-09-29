@@ -164,4 +164,18 @@ class RetroKeyboard_test {
 
         assertTrue(keyboardView.findViewById<android.view.View>(R.id.key_2).isSelected)
     }
+
+    @Test
+    fun `tocar em apagar, OK ou cancelar tambem esconde o destaque`() {
+        val first = keyboardView.findViewById<android.view.View>(R.id.key_1)
+
+        for (id in listOf(R.id.key_backspace, R.id.key_ok, R.id.key_cancel)) {
+            keyboard.navigateLeft() // back to gamepad mode: the first key is highlighted again
+            assertTrue(first.isSelected)
+
+            tap(id)
+
+            assertFalse(first.isSelected)
+        }
+    }
 }
