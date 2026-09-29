@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -26,6 +27,8 @@ import io.mockk.unmockkObject
 import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -53,7 +56,9 @@ class PipController_test {
         var enterPipError: RuntimeException? = null
         var updatePipParamsError: RuntimeException? = null
         var updatePipParamsCalls = 0
+        var lastUpdatePipParams: PictureInPictureParams? = null
         var registeredReceiver: BroadcastReceiver? = null
+        var registeredFilter: IntentFilter? = null
         var unregisteredReceiver: BroadcastReceiver? = null
         var bringTaskToFrontCalls = 0
         var finishPipTaskCalls = 0
@@ -70,11 +75,13 @@ class PipController_test {
 
         override fun updatePipParams(params: PictureInPictureParams) {
             updatePipParamsCalls++
+            lastUpdatePipParams = params
             updatePipParamsError?.let { throw it }
         }
 
         override fun registerPipReceiver(receiver: BroadcastReceiver, filter: IntentFilter) {
             registeredReceiver = receiver
+            registeredFilter = filter
         }
 
         override fun unregisterPipReceiver(receiver: BroadcastReceiver) {
@@ -379,9 +386,12 @@ class PipController_test {
         val frame = Bitmap.createBitmap(4, 3, Bitmap.Config.ARGB_8888)
         every { ScreenshotCaptureUtil.getPipFrame() } returns frame
 
+        views.pipOverlay.visibility = View.GONE
+
         controller.onPictureInPictureModeChanged(true)
 
         assertEquals(View.VISIBLE, views.pipOverlay.visibility)
+        assertSame(frame, (views.pipOverlay.drawable as BitmapDrawable).bitmap)
     }
 
     @Test
@@ -556,5 +566,88 @@ class PipController_test {
         controller.dispose()
 
         assertEquals(View.GONE, views.pipOverlay.visibility)
+    }
+
+    // --- mutation triage: item 2 ---
+
+    @Test
+    fun `entrar em PiP avisa o observer e registra as duas acoes do PiP`() {
+        val observer = mockk<GameLifecycleObserver>(relaxed = true)
+        host.gameLifecycleObserver = observer
+
+        controller.onPictureInPictureModeChanged(true)
+
+        verify(exactly = 1) { observer.onEnteredPictureInPicture() }
+        val filter = requireNotNull(host.registeredFilter)
+        assertEquals(
+                listOf(PipController.ACTION_PIP_QUICK_SAVE, PipController.ACTION_PIP_SAVE),
+                (0 until filter.countActions()).map(filter::getAction)
+        )
+    }
+
+    @Test
+    fun `sair do PiP avisa o observer, limpa o overlay e reaplica a visibilidade do gamepad`() {
+        val observer = mockk<GameLifecycleObserver>(relaxed = true)
+        host.gameLifecycleObserver = observer
+        every { ScreenshotCaptureUtil.getPipFrame() } returns Bitmap.createBitmap(4, 3, Bitmap.Config.ARGB_8888)
+        controller.onPictureInPictureModeChanged(true)
+
+        controller.onPictureInPictureModeChanged(false)
+
+        verify(exactly = 1) { observer.onExitedPictureInPicture() }
+        assertEquals(View.GONE, views.pipOverlay.visibility)
+        assertNull(views.pipOverlay.drawable)
+        verify(exactly = 1) {
+            viewModel.updateGamePadVisibility(host.activity, views.leftContainer, views.rightContainer, any())
+        }
+    }
+
+    @Test
+    fun `sair do PiP sem ter entrado nao reexibe um gamepad escondido nem abre o menu de save`() {
+        val (containers, _) = installActivityViews(containersVisibility = View.INVISIBLE)
+        val navigationController = mockk<com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController>(relaxed = true)
+        every { viewModel.navigationController } returns navigationController
+
+        controller.onPictureInPictureModeChanged(false)
+
+        assertEquals(View.INVISIBLE, containers.visibility)
+        verify(exactly = 0) { navigationController.handleNavigationEvent(any()) }
+    }
+
+    @Test
+    fun `onUserLeaveHint forca as duas capturas e mostra o frame no overlay antes de entrar`() {
+        val frame = Bitmap.createBitmap(4, 3, Bitmap.Config.ARGB_8888)
+        every { ScreenshotCaptureUtil.getPipFrame() } returns frame
+        views.pipOverlay.visibility = View.GONE
+
+        controller.onUserLeaveHint()
+
+        verify(exactly = 2) { ScreenshotCaptureUtil.capturePipFrame(glRetroView, force = true) }
+        assertEquals(View.VISIBLE, views.pipOverlay.visibility)
+        assertSame(frame, (views.pipOverlay.drawable as BitmapDrawable).bitmap)
+    }
+
+    @Test
+    fun `maybeCapturePipFrame sem argumento respeita o throttle`() {
+        controller.maybeCapturePipFrame()
+
+        verify(exactly = 1) { ScreenshotCaptureUtil.capturePipFrame(glRetroView, force = false) }
+    }
+
+    @Test
+    fun `resume mantem os parametros do PiP atualizados`() {
+        controller.onActivityResumed()
+
+        assertEquals(1, host.updatePipParamsCalls)
+    }
+
+    @Test
+    @Config(sdk = [31])
+    fun `no Android S+ os parametros armam o auto-enter quando o PiP esta habilitado`() {
+        controller.updatePictureInPictureParams()
+
+        val params = requireNotNull(host.lastUpdatePipParams)
+        val isAutoEnterEnabled = PictureInPictureParams::class.java.getMethod("isAutoEnterEnabled")
+        assertEquals(true, isAutoEnterEnabled.invoke(params))
     }
 }

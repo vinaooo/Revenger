@@ -93,7 +93,7 @@ First look: `RevengerApplication.onCreate` initialization isn't checked by any t
 
 `SaveStateManager` and `SlotMetadataStore` survivors were partly reviewed in #182 (the `mkdirs()`/`overwrite` ones are equivalent); don't redo those.
 
-### [ ] 2. PiP and rotation controllers — 34 survivors
+### [x] 2. PiP and rotation controllers — 34 survivors (#191: 4 left, all equivalent)
 
 | File | S | K |
 |---|---:|---:|

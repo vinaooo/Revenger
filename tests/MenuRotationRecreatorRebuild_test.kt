@@ -112,12 +112,30 @@ class MenuRotationRecreatorRebuild_test {
         assertFocused(R.id.menu_continue)
     }
 
+    @Test
+    fun `sem backstack mas com estado de submenu desatualizado o menu principal ainda e registrado`() {
+        // After a BACK the menu manager can still report the submenu. The rebuilt main menu then
+        // doesn't register itself on resume, so the recreator's own registration is the only one.
+        every { menuManager.getCurrentState() } returns MenuState.SETTINGS_MENU
+        val before = showBeforeRotation(asSubmenu = false)
+
+        recreator.scheduleMenuRecreationAfterRotation(before, hasBackStack = false, currentState = MenuState.SETTINGS_MENU)
+        advance(SETTLE_MS)
+
+        val main = containerFragment()
+        assertTrue(main is RetroMenu3Fragment)
+        verify(exactly = 1) { viewModel.updateRetroMenu3FragmentReference(main as RetroMenu3Fragment) }
+    }
+
     /**
      * Runs the whole submenu branch and checks what every submenu shares: the base main menu was
      * committed and handed to the ViewModel, then the menu manager moved to [state], before the
      * submenu went on top with one backstack entry tagged with its class name.
      */
     private fun rebuildSubmenu(state: MenuState): Fragment? {
+        // As on a device: the menu manager still reports the submenu when the base main menu
+        // resumes, so that fragment doesn't register itself and the recreator has to.
+        every { menuManager.getCurrentState() } returns state
         val before = showBeforeRotation(asSubmenu = true)
 
         recreator.scheduleMenuRecreationAfterRotation(before, hasBackStack = true, currentState = state)
@@ -126,6 +144,7 @@ class MenuRotationRecreatorRebuild_test {
         val submenu = containerFragment()
         assertEquals(1, fragmentManager.backStackEntryCount)
         assertEquals(submenu?.javaClass?.simpleName, submenu?.tag)
+        verify(exactly = 1) { viewModel.updateRetroMenu3FragmentReference(any()) }
         verifyOrder {
             viewModel.updateRetroMenu3FragmentReference(any())
             menuManager.navigateToState(state)

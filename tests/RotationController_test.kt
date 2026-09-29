@@ -15,6 +15,7 @@ import com.vinaooo.revenger.ui.retromenu3.MenuManager
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verify
 import java.time.Duration
 import org.junit.Assert.assertEquals
@@ -229,5 +230,32 @@ class RotationController_test {
         shadowOf(activity.mainLooper).idleFor(Duration.ofMillis(250))
 
         assertEquals(0, fragmentManager.backStackEntryCount)
+    }
+
+    @Test
+    fun `config auto com falha ao ler o auto-rotate trata como desligado e nao reaplica`() {
+        every { appConfig.getOrientation() } returns "auto"
+        val failingActivity = spyk(activity)
+        every { failingActivity.contentResolver } throws SecurityException("denied")
+
+        RotationController(failingActivity, viewModel, appConfig).reapplyOrientationIfNeeded(Configuration())
+
+        verify(exactly = 0) { viewModel.setConfigOrientation(any()) }
+    }
+
+    @Test
+    fun `maybeRecreateMenuAfterRotation com fragment que nao e de menu nao mexe no backstack`() {
+        val fragmentManager = activity.supportFragmentManager
+        fragmentManager
+                .beginTransaction()
+                .add(R.id.menu_container, Fragment(), "not-a-menu")
+                .addToBackStack("not-a-menu")
+                .commit()
+        fragmentManager.executePendingTransactions()
+
+        controller.maybeRecreateMenuAfterRotation()
+        shadowOf(activity.mainLooper).idleFor(Duration.ofMillis(250))
+
+        assertEquals(1, fragmentManager.backStackEntryCount)
     }
 }

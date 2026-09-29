@@ -173,4 +173,41 @@ class SpeedController_test {
 
         assertEquals(8, custom.getFastForwardSpeed())
     }
+
+    // --- mutation triage: item 2 ---
+
+    @Test
+    fun `setSpeed aplica e persiste a velocidade`() {
+        controller.setSpeed(retroView, 3)
+
+        verify { retroView.frameSpeed = 3 }
+        assertEquals(3, prefs.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1))
+    }
+
+    @Test
+    fun `enableFastForward aplica e persiste a velocidade de fast forward configurada`() {
+        controller.enableFastForward(retroView)
+
+        verify { retroView.frameSpeed = 4 }
+        assertEquals(4, prefs.getInt(PreferencesConstants.PREF_FRAME_SPEED, 1))
+    }
+
+    @Test
+    fun `restoreSpeedFromPreferences aplica a velocidade salva`() {
+        prefs.edit().putInt(PreferencesConstants.PREF_FRAME_SPEED, 3).commit()
+
+        controller.restoreSpeedFromPreferences(retroView)
+
+        verify { retroView.frameSpeed = 3 }
+    }
+
+    @Test
+    fun `restoreSpeedFromPreferences troca uma velocidade salva 0 por 1, nunca pausa`() {
+        prefs.edit().putInt(PreferencesConstants.PREF_FRAME_SPEED, 0).commit()
+
+        controller.restoreSpeedFromPreferences(retroView)
+
+        verify { retroView.frameSpeed = 1 }
+        verify(exactly = 0) { retroView.frameSpeed = 0 }
+    }
 }
