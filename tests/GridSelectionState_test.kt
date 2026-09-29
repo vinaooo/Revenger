@@ -90,6 +90,9 @@ class GridSelectionState_test {
         assertEquals(2, state.col)
         assertFalse(state.navigateRight()) // bounded at last column, reports no change
         assertEquals(2, state.col)
+
+        assertTrue(state.navigateLeft())
+        assertEquals(1, state.col)
     }
 
     @Test

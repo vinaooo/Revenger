@@ -220,7 +220,6 @@ class ProgressFragment : MenuFragmentBase() {
                 TAG,
                 "[NAV] Progress menu: UP navigation - now at index ${getCurrentSelectedIndex()}"
         )
-        updateSelectionVisualInternal()
     }
 
     /** Navigate down in the menu */
@@ -230,7 +229,6 @@ class ProgressFragment : MenuFragmentBase() {
                 TAG,
                 "[NAV] Progress menu: DOWN navigation - now at index ${getCurrentSelectedIndex()}"
         )
-        updateSelectionVisualInternal()
     }
 
     /** Confirm current selection - Navigate to grid submenus */
@@ -420,7 +418,6 @@ class ProgressFragment : MenuFragmentBase() {
             // Restore selection to saved index (from before navigating to submenu)
             setSelectedIndex(savedSelectionIndex)
             viewModel.navigationController?.selectItem(savedSelectionIndex)
-            updateSelectionVisualInternal()
             android.util.Log.d(
                     "ProgressFragment",
                     "[RESUME] ✅ Re-registered with NavigationController, restored selection " +

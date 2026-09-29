@@ -14,6 +14,7 @@ import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -117,6 +118,34 @@ class CoreVariablesFragmentActions_test {
         backButton().performClick()
         assertEquals(2, fragment.getCurrentSelectedIndex())
         verify(exactly = 1) { host.navigationController.navigateBack() }
+    }
+
+    @Test
+    fun `as linhas das variaveis usam a fonte configurada`() {
+        val typeface = FontUtils.getSelectedTypeface(fragment.requireContext())
+
+        rows().dropLast(1).forEach { row ->
+            assertSame(typeface, row.findViewById<TextView>(R.id.item_title).typeface)
+            assertSame(typeface, row.findViewById<TextView>(R.id.selection_arrow).typeface)
+        }
+    }
+
+    // The fragment instance survives a detach/attach (a submenu opened over it and closed
+    // again), so the view lists must be rebuilt from scratch rather than appended to.
+    @Test
+    fun `recriar a view nao acumula as linhas antigas`() {
+        val fragmentManager = host.activity.supportFragmentManager
+        fragmentManager.beginTransaction().detach(fragment).commitNow()
+        fragmentManager.beginTransaction().attach(fragment).commitNow()
+
+        verify(exactly = 2) { host.navigationController.registerFragment(fragment, 3) }
+        assertEquals(View.VISIBLE, arrowVisibility(rows()[0]))
+        val selectedColor = ContextCompat.getColor(fragment.requireContext(), R.color.rm_selected_color)
+        assertEquals(selectedColor, rows()[0].findViewById<TextView>(R.id.item_title).currentTextColor)
+
+        fragment.onNavigateUp()
+        assertEquals(2, fragment.getCurrentSelectedIndex())
+        assertEquals(View.VISIBLE, backButton().findViewById<TextView>(R.id.selection_arrow_back).visibility)
     }
 
     @Test

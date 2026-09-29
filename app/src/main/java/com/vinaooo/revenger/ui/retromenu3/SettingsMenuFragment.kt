@@ -235,7 +235,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
         navigateUpCircular(getMenuItems().size)
         val afterIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[NAV] Settings menu: UP navigation - $beforeIndex -> $afterIndex")
-        updateSelectionVisualInternal()
     }
 
     /** Navigate down in the menu */
@@ -247,7 +246,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
                 TAG,
                 "[NAV] Settings menu: DOWN navigation - $beforeIndex -> $afterIndex"
         )
-        updateSelectionVisualInternal()
     }
 
     /** Confirm current selection - execute actions DIRECTLY (do not use performClick) */
@@ -369,9 +367,6 @@ class SettingsMenuFragment : MenuFragmentBase() {
 
         // Ensure alpha is at 1.0 (fully visible)
         settingsMenuContainer.alpha = 1.0f
-
-        // Ensure visual selection is updated when menu becomes visible again
-        updateSelectionVisualInternal()
 
         // Force complete redraw
         settingsMenuContainer.invalidate()

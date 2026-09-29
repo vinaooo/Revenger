@@ -400,7 +400,6 @@ class RetroMenu3Fragment :
                         TAG,
                         "[NAV] RetroMenu3: UP navigation - $beforeIndex -> $afterIndex"
                 )
-                updateSelectionVisualInternal()
         }
 
         override fun performNavigateDown() {
@@ -411,7 +410,6 @@ class RetroMenu3Fragment :
                         TAG,
                         "[NAV] RetroMenu3: DOWN navigation - $beforeIndex -> $afterIndex"
                 )
-                updateSelectionVisualInternal()
         }
 
         override fun performConfirm() {
@@ -468,16 +466,6 @@ class RetroMenu3Fragment :
                 // Reset to first option when showing main menu, unless preserving selection
                 if (!preserveSelection) {
                         setSelectedIndex(0)
-                }
-
-                // Update menu state (including audio) when returning from submenu
-                // Main menu no longer has dynamic options - everything was moved to submenus
-
-                // Ensure visual selection is updated when menu becomes visible again
-                // Only update if we're not preserving selection (which means selection was already
-                // set)
-                if (!preserveSelection) {
-                        getAnimationController().updateSelectionVisual(getCurrentSelectedIndex())
                 }
 
                 // Layout will be updated automatically when properties change

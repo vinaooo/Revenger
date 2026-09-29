@@ -341,6 +341,35 @@ class RetroMenu3FragmentActions_test {
     }
 
     @Test
+    fun `dismiss que falha ao animar libera o menu e descarta o callback`() {
+        val field = RetroMenu3Fragment::class.java.getDeclaredField("animationController").apply { isAccessible = true }
+        val realController = field.get(fragment)
+        val failing = mockk<MenuAnimationController>(relaxed = true)
+        every { failing.dismissMenu(any()) } throws IllegalStateException("animation failure")
+        field.set(fragment, failing)
+        var first = 0
+        var second = 0
+
+        assertThrows(IllegalStateException::class.java) { fragment.dismissMenuPublic { first++ } }
+        assertFalse(fragment.isDismissingMenu())
+
+        field.set(fragment, realController)
+        fragment.dismissMenuPublic { second++ }
+        host.advance(SETTLE_MS)
+
+        assertEquals(0, first)
+        assertEquals(1, second)
+    }
+
+    @Test
+    fun `destruir o fragment avisa o ViewModel e limpa o registro de teclas dos combos`() {
+        host.destroy()
+
+        verify { host.viewModel.onRetroMenu3FragmentDestroyed() }
+        verify { host.viewModel.clearControllerKeyLog() }
+    }
+
+    @Test
     fun `falha no onViewCreated e propagada`() {
         assertThrows(IllegalStateException::class.java) {
             MenuFragmentHost(RetroMenu3Fragment.newInstance(), R.id.menu_container) {

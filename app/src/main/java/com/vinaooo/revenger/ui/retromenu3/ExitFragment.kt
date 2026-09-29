@@ -212,7 +212,6 @@ class ExitFragment : MenuFragmentBase() {
         navigateUpCircular(menuItems.size)
         val afterIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[NAV] Exit menu: UP navigation - $beforeIndex -> $afterIndex")
-        updateSelectionVisualInternal()
     }
 
     /** Navigate down in the menu */
@@ -221,7 +220,6 @@ class ExitFragment : MenuFragmentBase() {
         navigateDownCircular(menuItems.size)
         val afterIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[NAV] Exit menu: DOWN navigation - $beforeIndex -> $afterIndex")
-        updateSelectionVisualInternal()
     }
 
     /** Confirm current selection - execute actions DIRECTLY (do not use performClick) */

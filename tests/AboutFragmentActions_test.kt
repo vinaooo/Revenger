@@ -1,7 +1,10 @@
 package com.vinaooo.revenger.ui.retromenu3
 
 import android.view.View
+import android.widget.TextView
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.RevengerApplication
+import com.vinaooo.revenger.utils.FontUtils
 import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
 import io.mockk.verify
 import org.junit.Assert.assertEquals
@@ -42,6 +45,21 @@ class AboutFragmentActions_test {
     @Test
     fun `registra o fragment no NavigationController com 2 itens`() {
         verify { host.navigationController.registerFragment(fragment, 2) }
+    }
+
+    @Test
+    fun `mostra o projeto, a ROM e o core configurados com a capitalizacao configurada`() {
+        val context = fragment.requireContext()
+        val appConfig = RevengerApplication.appConfig
+        fun capitalized(text: String) =
+                TextView(context).apply { this.text = text }.also { FontUtils.applyTextCapitalization(context, it) }.text.toString()
+        fun shown(id: Int) = fragment.requireView().findViewById<TextView>(id).text.toString()
+
+        assertEquals(capitalized("${context.getString(R.string.about_project_name)} Revenger"), shown(R.id.project_name_info))
+        assertEquals(capitalized("${context.getString(R.string.about_rom_name)} ${appConfig.getRomName()}"), shown(R.id.rom_name_info))
+        assertEquals(capitalized("${context.getString(R.string.about_core_name)} ${appConfig.getCore()}"), shown(R.id.core_name_info))
+        assertEquals(FontUtils.getCapitalizedString(context, R.string.core_variables_menu_title), shown(R.id.core_variables_title))
+        assertEquals(FontUtils.getCapitalizedString(context, R.string.about_back), shown(R.id.back_title))
     }
 
     @Test
