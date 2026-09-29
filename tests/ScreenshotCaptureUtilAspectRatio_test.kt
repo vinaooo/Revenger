@@ -2,7 +2,11 @@ package com.vinaooo.revenger.utils
 
 import androidx.test.core.app.ApplicationProvider
 import com.vinaooo.revenger.RevengerApplication
+import com.vinaooo.revenger.models.PipConfigProfile
 import com.vinaooo.revenger.repositories.PipConfigRepository
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -66,6 +70,21 @@ class ScreenshotCaptureUtilAspectRatio_test {
             assertEquals(4f / 3f, resolveGameAspectRatio(), 0.0001f)
         } finally {
             appConfigField.set(null, original)
+        }
+    }
+
+    @Test
+    fun `setContext passa a usar a proporcao do perfil PiP mesmo quando ela nao e 4 por 3`() {
+        // A 16:9 profile, so the result can't be mistaken for the 4:3 default.
+        mockkObject(PipConfigRepository)
+        try {
+            every { PipConfigRepository.getProfile(any()) } returns PipConfigProfile("test-platform", 16, 9)
+
+            ScreenshotCaptureUtil.setContext(ApplicationProvider.getApplicationContext())
+
+            assertEquals(16f / 9f, resolveGameAspectRatio(), 0.0001f)
+        } finally {
+            unmockkObject(PipConfigRepository)
         }
     }
 }

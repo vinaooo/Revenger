@@ -3,10 +3,15 @@ package com.vinaooo.revenger
 import android.content.Context
 import android.content.res.AssetManager
 import android.util.Log
+import com.vinaooo.revenger.repositories.DefaultSettingsRepository
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.mockkStatic
+import io.mockk.slot
+import io.mockk.unmockkObject
 import io.mockk.unmockkStatic
+import io.mockk.verify
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
 import java.io.InputStream
@@ -21,9 +26,8 @@ import org.junit.Test
  * [ConfigSources] owns the raw config loading/fallback and default-settings profile resolution
  * that [AppConfig] and its domain delegates (`AppConfigDisplay`, `AppConfigMenuMode`, etc.) all
  * read from -- these tests exercise it directly rather than only through the [AppConfig] facade.
- * As with [AppConfig_test], only the `default_settings=false` path is exercised: resolving an
- * actual profile goes through the [com.vinaooo.revenger.repositories.DefaultSettingsRepository]
- * singleton, whose cross-test state isn't safely resettable without touching production code.
+ * The `default_settings=true` tests replace [DefaultSettingsRepository] with `mockkObject`, so
+ * only the lookup's arguments are checked, never the singleton's loaded profiles.
  */
 class ConfigSources_test {
 
@@ -120,5 +124,38 @@ class ConfigSources_test {
 
         assertNull(sources.profile)
         assertNull(sources.profile)
+    }
+
+    /** Resolves [ConfigSources.profile] for a `default_settings=true` config, returning the extension it looked up. */
+    private fun extensionLookedUpFor(rom: String): String {
+        assetContents["config/config.json"] =
+            """{"default_settings": true, "platform": "platform_a", "rom": "$rom"}"""
+        val extension = slot<String>()
+        mockkObject(DefaultSettingsRepository)
+        try {
+            every { DefaultSettingsRepository.findProfile(any(), capture(extension)) } returns null
+
+            assertNull(ConfigSources(context).profile)
+
+            verify(exactly = 1) { DefaultSettingsRepository.findProfile("platform_a", any()) }
+        } finally {
+            unmockkObject(DefaultSettingsRepository)
+        }
+        return extension.captured
+    }
+
+    @Test
+    fun `profile consulta o repositorio com a extensao da ROM, com ponto e minuscula`() {
+        assertEquals(".xyz", extensionLookedUpFor("the_game.v1.XYZ"))
+    }
+
+    @Test
+    fun `ROM sem extensao consulta o repositorio com extensao vazia`() {
+        assertEquals("", extensionLookedUpFor("romfile"))
+    }
+
+    @Test
+    fun `ROM cujo unico ponto e o primeiro caractere usa o nome inteiro como extensao`() {
+        assertEquals(".xyz", extensionLookedUpFor(".XYZ"))
     }
 }

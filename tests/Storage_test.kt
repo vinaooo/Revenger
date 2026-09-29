@@ -2,6 +2,8 @@ package com.vinaooo.revenger.repositories
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -89,5 +91,38 @@ class Storage_test {
         val storage = Storage(context)
 
         assertTrue(storage.sram.parentFile!!.exists())
+    }
+
+    @Test
+    fun `migra o sram legado do diretorio externo para o diretorio interno`() {
+        val legacyDir = context.getExternalFilesDir(null)!!
+        File(legacyDir, "sram").writeText("legacy-sram")
+
+        val storage = Storage(context)
+
+        assertEquals("legacy-sram", storage.sram.readText())
+        assertFalse(File(legacyDir, "sram").exists())
+    }
+
+    @Test
+    fun `cria os diretorios de ROM, SRAM e estados que ainda nao existem`() {
+        val root = File(context.cacheDir, "storage-dirs-test").apply { deleteRecursively() }
+        val filesDir = File(root, "files")
+        val cacheDir = File(root, "cache")
+        val missingDirsContext = mockk<Context> {
+            every { this@mockk.filesDir } returns filesDir
+            every { getExternalFilesDir(null) } returns null
+            every { externalCacheDir } returns null
+            every { this@mockk.cacheDir } returns cacheDir
+        }
+
+        try {
+            Storage(missingDirsContext)
+
+            assertTrue(filesDir.isDirectory)
+            assertTrue(cacheDir.isDirectory)
+        } finally {
+            root.deleteRecursively()
+        }
     }
 }
