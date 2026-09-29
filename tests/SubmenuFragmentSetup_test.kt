@@ -20,7 +20,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -72,9 +71,6 @@ class SubmenuFragmentSetup_test(private val name: String, private val create: ()
 
     @Test
     fun `aplica as proporcoes verticais do menu`() {
-        // Core Variables' container isn't among the ids MenuLayoutFinder.findMenuContentContainer
-        // looks for, so it isn't wrapped yet; its fix comes with its own test.
-        assumeTrue(name != "CoreVariables")
         val vertical = checkNotNull(MenuLayoutConfig.getConfiguredVerticalProportions(root))
         val main = checkNotNull(MenuLayoutFinder.findMainHorizontalLayout(root))
         val wrapper = main.getChildAt(1) as LinearLayout
