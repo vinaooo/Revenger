@@ -334,7 +334,7 @@ class RetroMenu3FragmentActions_test {
         fragmentManager.executePendingTransactions()
 
         fragmentManager.beginTransaction().remove(fragment).commitNow()
-        host.idle()
+        host.advance(SETTLE_MS)
 
         assertFalse(fragment.isAdded)
         assertNull(fragment.view)
