@@ -137,7 +137,7 @@ First look: the forced frame capture on entering PiP (`PipController.kt:136, 156
 | `ui/retromenu3/ExitSaveGridFragment.kt` | 7 | 21 |
 | `ui/retromenu3/SaveSlotsFragment.kt` | 4 | 9 |
 
-### [ ] 4b. Other menu fragments — 97 survivors
+### [x] 4b. Other menu fragments — 97 survivors (#194: 31 left, 30 equivalent + the Core Variables proportions bug)
 
 | File | S | K |
 |---|---:|---:|
