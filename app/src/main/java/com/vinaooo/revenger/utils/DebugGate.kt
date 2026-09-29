@@ -1,10 +1,11 @@
 package com.vinaooo.revenger.utils
 
 import android.util.Log
+import com.vinaooo.revenger.BuildConfig
 
 /**
- * Conditional debug logging gated by [setDebugEnabled], defaulting from `BuildConfig.DEBUG` when
- * reachable via reflection. Split out of [MenuLogger] alongside [LevelLogger] for the same
+ * Conditional debug logging gated by [setDebugEnabled], on by default only in debug builds
+ * (`BuildConfig.DEBUG`). Split out of [MenuLogger] alongside [LevelLogger] for the same
  * function-count reason; exposed back on it via Kotlin interface delegation (`by`) for API
  * compatibility -- [MenuLogger]'s tagged convenience methods (`lifecycle`/`action`/`state`/etc.)
  * all funnel through [d].
@@ -20,21 +21,17 @@ interface DebugLogging {
     fun d(message: String, throwable: Throwable)
 }
 
-class DebugGate(private val tag: String) : DebugLogging {
+/**
+ * @param tag the log tag
+ * @param defaultEnabled whether [d] logs before any [setDebugEnabled] call; `BuildConfig.DEBUG`
+ *   unless a test passes its own
+ */
+class DebugGate(
+        private val tag: String,
+        defaultEnabled: Boolean = BuildConfig.DEBUG
+) : DebugLogging {
 
-    // Flag to control logs - uses BuildConfig.DEBUG when available
-    private var isDebugEnabled: Boolean =
-            try {
-                // Try to access BuildConfig.DEBUG if available
-                Class.forName("com.vinaooo.revenger.BuildConfig").getField("DEBUG").getBoolean(null)
-                // Class.forName/getField/getBoolean's checked failures (ClassNotFoundException,
-                // NoSuchFieldException, IllegalAccessException) all share this common ancestor,
-                // which isn't on detekt's generic-exception list.
-            } catch (e: ReflectiveOperationException) {
-                Log.w(tag, "BuildConfig.DEBUG not accessible via reflection, defaulting to true", e)
-                // Fallback to true if BuildConfig is not available
-                true
-            }
+    private var isDebugEnabled: Boolean = defaultEnabled
 
     override fun setDebugEnabled(enabled: Boolean) {
         isDebugEnabled = enabled

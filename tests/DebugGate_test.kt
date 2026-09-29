@@ -1,6 +1,7 @@
 package com.vinaooo.revenger.utils
 
 import android.util.Log
+import com.vinaooo.revenger.BuildConfig
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -12,7 +13,7 @@ import org.junit.Test
 /**
  * [DebugGate] was split out of [MenuLogger] purely to keep that object under the project's
  * function-count threshold, taking over the debug-flag-gated conditional logging ([d]) and its
- * BuildConfig.DEBUG-via-reflection default.
+ * `BuildConfig.DEBUG` default.
  */
 class DebugGate_test {
 
@@ -32,11 +33,38 @@ class DebugGate_test {
     }
 
     @Test
-    fun `construcao nao lanca e resolve um valor inicial para isDebugEnabled`() {
-        // Just exercises the BuildConfig.DEBUG-via-reflection init path without asserting which
-        // way it resolves (debug unit tests run against the debug BuildConfig, whose DEBUG value
-        // isn't this class's concern).
+    fun `por padrao o debug segue o BuildConfig DEBUG da variante`() {
+        // Regression: the default used to come from a reflective BuildConfig lookup. BuildConfig
+        // wasn't generated, so it always fell back to true and debug logs ran in release builds.
+        DebugGate("TestTag").d("hello")
+
+        verify(exactly = if (BuildConfig.DEBUG) 1 else 0) { Log.d("TestTag", "hello") }
+    }
+
+    @Test
+    fun `construcao nao registra aviso de BuildConfig inacessivel`() {
         DebugGate("TestTag")
+
+        verify(exactly = 0) { Log.w(any(), any<String>(), any()) }
+    }
+
+    @Test
+    fun `com o padrao desligado d nao registra ate ser habilitado`() {
+        val gate = DebugGate("TestTag", defaultEnabled = false)
+
+        gate.d("hello")
+        verify(exactly = 0) { Log.d("TestTag", "hello") }
+
+        gate.setDebugEnabled(true)
+        gate.d("hello")
+        verify(exactly = 1) { Log.d("TestTag", "hello") }
+    }
+
+    @Test
+    fun `com o padrao ligado d registra sem chamar setDebugEnabled`() {
+        DebugGate("TestTag", defaultEnabled = true).d("hello")
+
+        verify(exactly = 1) { Log.d("TestTag", "hello") }
     }
 
     @Test

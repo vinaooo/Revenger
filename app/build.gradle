@@ -224,6 +224,8 @@ android {
 
     buildFeatures {
         viewBinding = true
+        // DebugGate reads BuildConfig.DEBUG so debug-only logs stay off in release builds.
+        buildConfig = true
     }
 
     compileOptions {
