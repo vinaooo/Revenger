@@ -69,6 +69,12 @@ class SaveStateGridFragmentTestHost : SaveStateGridFragment() {
     }
     fun triggerRefresh() = refreshGrid()
 
+    val selectionChanges = mutableListOf<Int>()
+
+    override fun onSelectionChanged(slotIndex: Int) {
+        selectionChanges += slotIndex
+    }
+
     companion object {
         fun newInstance() = SaveStateGridFragmentTestHost()
     }
@@ -473,6 +479,219 @@ class SaveStateGridFragment_test {
             assertShowsDrawableResource(screenshot, R.drawable.ic_no_screenshot)
         } finally {
             unmockkStatic(BitmapFactory::class)
+        }
+    }
+
+    // ========== VIEW SETUP AND SELECTION VISUALS ==========
+
+    private fun slotPart(index: Int, id: Int): View = fragment.slotViewAt(index).findViewById(id)
+
+    private fun borderVisible(index: Int) = slotPart(index, R.id.slot_selection_border).visibility == View.VISIBLE
+
+    private val backButton: android.widget.Button
+        get() = fragment.requireView().findViewById(R.id.grid_back_button)
+
+    private fun color(id: Int) = activity.resources.getColor(id, null)
+
+    private fun backgroundRes(view: View) = org.robolectric.Shadows.shadowOf(view.background!!).createdFromResId
+
+    private fun glowAnimator(): android.animation.ValueAnimator? {
+        val controller =
+                SaveStateGridFragment::class.java.getDeclaredField("glowAnimationController")
+                        .apply { isAccessible = true }
+                        .get(fragment)
+        return GlowAnimationController::class.java.getDeclaredField("activeGlowAnimator")
+                .apply { isAccessible = true }
+                .get(controller) as android.animation.ValueAnimator?
+    }
+
+    @Test
+    fun `ao abrir o primeiro slot ja aparece selecionado`() {
+        assertTrue(borderVisible(0))
+        assertFalse(borderVisible(1))
+        assertEquals(color(R.color.rm_text_color), backButton.currentTextColor)
+        assertEquals(R.drawable.back_button_background, backgroundRes(backButton))
+    }
+
+    @Test
+    fun `titulo e voltar usam o texto, a fonte e a capitalizacao do menu`() {
+        val title = fragment.requireView().findViewById<android.widget.TextView>(R.id.grid_title)
+        val typeface = com.vinaooo.revenger.utils.FontUtils.getSelectedTypeface(activity)
+
+        assertEquals(
+                com.vinaooo.revenger.utils.FontUtils.getCapitalizedString(activity, R.string.menu_save_state),
+                title.text.toString()
+        )
+        assertSame(typeface, title.typeface)
+        assertSame(typeface, backButton.typeface)
+        assertEquals(
+                com.vinaooo.revenger.utils.FontUtils.getCapitalizedString(activity, R.string.settings_back),
+                backButton.text.toString()
+        )
+    }
+
+    @Test
+    fun `a tela do grid nao tem elevacao`() {
+        fun assertFlat(view: View) {
+            assertEquals(0f, view.z)
+            if (view is android.view.ViewGroup) for (i in 0 until view.childCount) assertFlat(view.getChildAt(i))
+        }
+        assertFlat(backButton)
+        assertFlat(fragment.requireView().findViewById(R.id.grid_title))
+    }
+
+    @Test
+    fun `a tela do grid aplica as proporcoes verticais do menu`() {
+        val view = fragment.requireView()
+        val vertical = checkNotNull(com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig.getConfiguredVerticalProportions(view))
+        val main = checkNotNull(com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutFinder.findMainHorizontalLayout(view))
+        val wrapper = main.getChildAt(1) as android.widget.LinearLayout
+
+        assertEquals(android.widget.LinearLayout.VERTICAL, wrapper.orientation)
+        assertEquals(vertical.topWeight, (wrapper.getChildAt(0).layoutParams as android.widget.LinearLayout.LayoutParams).weight)
+    }
+
+    @Test
+    fun `slot vazio mostra o icone e o fundo de vazio, recortados pelo contorno`() {
+        val content = slotPart(0, R.id.slot_content)
+
+        assertShowsDrawableResource(slotPart(0, R.id.slot_screenshot) as ImageView, R.drawable.ic_empty_slot)
+        assertEquals(R.drawable.slot_background_empty, backgroundRes(content))
+        assertTrue(content.clipToOutline)
+    }
+
+    @Test
+    fun `slot ocupado usa o fundo de ocupado`() {
+        injectSaveStateManager(mockedSaveStateManagerWithSlot(occupiedSlot(1, screenshotFile = null)))
+
+        fragment.triggerRefresh()
+
+        assertEquals(R.drawable.slot_background_occupied, backgroundRes(slotPart(0, R.id.slot_content)))
+    }
+
+    @Test
+    fun `o nome do slot usa a fonte e a capitalizacao do menu`() {
+        val name = slotPart(0, R.id.slot_name) as android.widget.TextView
+
+        assertSame(com.vinaooo.revenger.utils.FontUtils.getSelectedTypeface(activity), name.typeface)
+        assertEquals(
+                com.vinaooo.revenger.utils.FontUtils.getCapitalizedString(activity, R.string.slot_empty),
+                name.text.toString()
+        )
+    }
+
+    @Test
+    fun `navegar move a borda de selecao na hora`() {
+        fragment.onNavigateRight()
+        assertTrue(borderVisible(1))
+        assertFalse(borderVisible(0))
+
+        fragment.onNavigateDown()
+        assertTrue(borderVisible(4))
+
+        fragment.onNavigateLeft()
+        assertTrue(borderVisible(3))
+
+        fragment.onNavigateUp()
+        assertTrue(borderVisible(0))
+        assertFalse(borderVisible(3))
+    }
+
+    @Test
+    fun `tocar num slot ou no voltar mostra a selecao antes de confirmar`() {
+        fragment.slotViewAt(5).performClick()
+        assertTrue(borderVisible(5))
+
+        backButton.performClick()
+        assertFalse(borderVisible(5))
+        assertEquals(color(R.color.rm_selected_color), backButton.currentTextColor)
+        assertEquals(R.drawable.back_button_background_selected, backgroundRes(backButton))
+    }
+
+    @Test
+    fun `sair do voltar devolve o visual normal dele`() {
+        fragment.setSelectedIndex(SaveStateGridFragment.GRID_ROWS * SaveStateGridFragment.GRID_COLS)
+
+        fragment.onNavigateUp()
+
+        assertEquals(color(R.color.rm_text_color), backButton.currentTextColor)
+        assertEquals(R.drawable.back_button_background, backgroundRes(backButton))
+    }
+
+    @Test
+    fun `cada mudanca de selecao avisa a subclasse, com -1 para o voltar`() {
+        fragment.selectionChanges.clear()
+
+        fragment.setSelectedIndex(4)
+        fragment.setSelectedIndex(SaveStateGridFragment.GRID_ROWS * SaveStateGridFragment.GRID_COLS)
+
+        assertEquals(listOf(4, -1), fragment.selectionChanges)
+    }
+
+    @Test
+    fun `refreshGrid substitui os slots das linhas e mostra a selecao nos novos`() {
+        fragment.setSelectedIndex(3)
+
+        fragment.triggerRefresh()
+
+        for (rowId in listOf(R.id.grid_row_1, R.id.grid_row_2, R.id.grid_row_3)) {
+            assertEquals(3, fragment.requireView().findViewById<android.view.ViewGroup>(rowId).childCount)
+        }
+        assertTrue(borderVisible(3))
+    }
+
+    // ========== LIFECYCLE ==========
+
+    private fun detachAndAttach() {
+        activity.supportFragmentManager.beginTransaction().detach(fragment).commitNow()
+        activity.supportFragmentManager.beginTransaction().attach(fragment).commitNow()
+    }
+
+    @Test
+    fun `recriar a view volta a selecao para o primeiro slot`() {
+        fragment.setSelectedIndex(5)
+
+        detachAndAttach()
+
+        assertEquals(0, fragment.getCurrentSelectedIndex())
+        assertTrue(borderVisible(0))
+    }
+
+    @Test
+    fun `destruir a view para o brilho e solta os slots`() {
+        SessionSlotTracker.getInstance().recordSave(5)
+        fragment.setSelectedIndex(0)
+        val animator = checkNotNull(glowAnimator())
+
+        activity.supportFragmentManager.beginTransaction().detach(fragment).commitNow()
+
+        assertFalse(animator.isStarted)
+        assertEquals(0, fragment.slotViewCount)
+    }
+
+    @Test
+    fun `pausar para o brilho`() {
+        SessionSlotTracker.getInstance().recordSave(5)
+        fragment.setSelectedIndex(0)
+        val animator = checkNotNull(glowAnimator())
+
+        fragment.onPause()
+
+        assertFalse(animator.isStarted)
+    }
+
+    @Test
+    fun `ao abrir registra o grid no NavigationController e seleciona o primeiro item`() {
+        val navigation = mockk<com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController>(relaxed = true)
+        androidx.lifecycle.ViewModelProvider(activity)[com.vinaooo.revenger.viewmodels.GameActivityViewModel::class.java]
+                .navigationController = navigation
+        val second = SaveStateGridFragmentTestHost.newInstance()
+
+        activity.supportFragmentManager.beginTransaction().replace(fragment.id, second).commitNow()
+
+        io.mockk.verifyOrder {
+            navigation.registerFragment(second, SaveStateGridFragment.GRID_ROWS * SaveStateGridFragment.GRID_COLS + 1)
+            navigation.selectItem(0)
         }
     }
 }
