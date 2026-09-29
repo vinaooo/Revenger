@@ -74,7 +74,7 @@ Paths are under `app/src/main/java/com/vinaooo/revenger/`. Columns: survived / k
 
 First look: `RevengerApplication.onCreate` initialization isn't checked by any test. `ConfigSources.kt:92` (`lastDot >= 0`) has no test for a name whose only dot is at index 0. The 7 `AppConfig` survivors are the default `false` of `fake_button_*` fields; check whether the defaults can ever be seen.
 
-### [ ] 1b. Input, gamepad, managers, performance — 49 survivors
+### [x] 1b. Input, gamepad, managers, performance — 49 survivors (#190: 18 left, all equivalent)
 
 | File | S | K |
 |---|---:|---:|

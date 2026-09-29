@@ -131,6 +131,40 @@ class KeyEventRouter_test {
         verify(exactly = 1) { glRetroView.sendKeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_X, 0) }
     }
 
+    @Test
+    fun `START fecha o menu e nunca chega ao jogo, mesmo sem o bloqueio geral`() {
+        input.shouldHandleStartButton = { true }
+        input.startButtonCallback = { fired += "start" }
+
+        assertEquals(true, press(KeyEvent.KEYCODE_BUTTON_START))
+        assertEquals(true, press(KeyEvent.KEYCODE_BUTTON_START, KeyEvent.ACTION_UP))
+
+        assertEquals(listOf("start"), fired)
+        nothingSentToCore()
+    }
+
+    @Test
+    fun `B segurado alem do debounce nao volta de novo`() {
+        // The hold is tracked in the key log, not only by the 150 ms debounce.
+        press(KeyEvent.KEYCODE_BUTTON_B)
+        Thread.sleep(MENU_DEBOUNCE_MS)
+
+        press(KeyEvent.KEYCODE_BUTTON_B)
+
+        assertEquals(listOf("back"), fired)
+        assertTrue(input.comboTracker.keyLog.contains(KeyEvent.KEYCODE_BUTTON_B))
+    }
+
+    @Test
+    fun `com SELECT+START segurados o START nao chega ao jogo`() {
+        menuOpen = false
+
+        press(KeyEvent.KEYCODE_BUTTON_SELECT)
+        assertEquals(true, press(KeyEvent.KEYCODE_BUTTON_START))
+
+        verify(exactly = 0) { glRetroView.sendKeyEvent(any(), KeyEvent.KEYCODE_BUTTON_START, any()) }
+    }
+
     private companion object {
         // An action that is neither DOWN nor UP (the value of the deprecated ACTION_MULTIPLE).
         const val OTHER_ACTION = 2
