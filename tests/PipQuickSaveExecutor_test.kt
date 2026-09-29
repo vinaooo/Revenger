@@ -226,7 +226,8 @@ class PipQuickSaveExecutor_test {
 
     @Test
     fun `um save bem sucedido registra o slot como o ultimo usado`() {
-        tracker.recordSave(6)
+        // A load, so only the executor's own recordSave can turn it into a SAVE.
+        tracker.recordLoad(6)
 
         executor().execute()
 

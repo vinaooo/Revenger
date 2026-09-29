@@ -156,4 +156,16 @@ class ShaderController_test {
                 controller.availableShaders.toList()
         )
     }
+
+    @Test
+    fun `setShader invalido aplica o shader default no retroView conectado`() {
+        val controller = newController()
+        val retroView = mockk<RetroView>(relaxed = true)
+        controller.connect(retroView)
+        controller.setShader("crt")
+
+        controller.setShader("shader_invalido")
+
+        verify { retroView.dynamicShader = "disabled" }
+    }
 }
