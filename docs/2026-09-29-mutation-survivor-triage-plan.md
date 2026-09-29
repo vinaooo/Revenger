@@ -53,7 +53,7 @@ The 60 swaps and comparison flips are the most likely to hide real logic gaps; l
 
 Paths are under `app/src/main/java/com/vinaooo/revenger/`. Columns: survived / killed.
 
-### [ ] 1a. Utils, repositories, app config — 70 survivors
+### [x] 1a. Utils, repositories, app config — 70 survivors (#188: 14 left, 13 equivalent + the DebugGate bug)
 
 | File | S | K |
 |---|---:|---:|

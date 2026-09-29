@@ -147,4 +147,49 @@ class ScreenshotGeometry_test {
 
         assertEquals(Rect(200, 0, 600, 300), rect)
     }
+
+    /** A [width]x[height] white bitmap with black bands of the given thickness on each side. */
+    private fun framed(width: Int, height: Int, left: Int = 0, top: Int = 0, right: Int = 0, bottom: Int = 0): Bitmap {
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                val isBorder = x < left || x >= width - right || y < top || y >= height - bottom
+                bitmap.setPixel(x, y, if (isBorder) Color.BLACK else Color.WHITE)
+            }
+        }
+        return bitmap
+    }
+
+    @Test
+    fun `borda de 1px a direita e embaixo e desprezivel e nao corta`() {
+        // Insets below MIN_SIGNIFICANT_BORDER_PX (2) on every side: nothing to crop.
+        val bitmap = framed(200, 200, right = 1, bottom = 1)
+
+        val result = ScreenshotGeometry.autoCropBlackBorders(bitmap)
+
+        assertEquals(200, result.width)
+        assertEquals(200, result.height)
+    }
+
+    @Test
+    fun `lado direito sem conteudo na janela de busca fica inteiro enquanto a esquerda e cortada`() {
+        // The right band (30px) is wider than the 5% scan window (10px), so that side keeps its
+        // full-width default while the thin left border is still cropped.
+        val bitmap = framed(200, 200, left = 3, right = 30)
+
+        val result = ScreenshotGeometry.autoCropBlackBorders(bitmap)
+
+        assertEquals(197, result.width)
+        assertEquals(200, result.height)
+    }
+
+    @Test
+    fun `lado de baixo sem conteudo na janela de busca fica inteiro enquanto o topo e cortado`() {
+        val bitmap = framed(200, 200, top = 3, bottom = 30)
+
+        val result = ScreenshotGeometry.autoCropBlackBorders(bitmap)
+
+        assertEquals(200, result.width)
+        assertEquals(197, result.height)
+    }
 }

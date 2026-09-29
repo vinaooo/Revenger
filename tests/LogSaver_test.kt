@@ -7,8 +7,10 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
 import android.hardware.input.InputManager
+import android.os.Build
 import android.os.Environment
 import android.view.InputDevice
+import android.view.WindowManager
 import androidx.test.core.app.ApplicationProvider
 import com.vinaooo.revenger.RevengerApplication
 import io.mockk.every
@@ -118,6 +120,45 @@ class LogSaver_test {
                 )) {
             assertTrue(expected, text.contains(expected))
         }
+    }
+
+    @Test
+    fun `writeLog inclui cada linha de aparelho, app e configuracao com o valor lido`() {
+        val context = contextWithRom(present = true)
+        val serial =
+                try {
+                    Build.getSerial()
+                } catch (ignored: SecurityException) {
+                    "Unavailable (Permission Required)"
+                }
+        val bounds = context.getSystemService(WindowManager::class.java).currentWindowMetrics.bounds
+        val metrics = context.resources.displayMetrics
+        val appConfig = RevengerApplication.appConfig
+
+        val text = File(requireNotNull(LogSaver.writeLog(context, tempDir.root, at) { "" })).readText()
+
+        for (expected in
+                listOf(
+                        "Android Version: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})\n",
+                        "Device Model: ${Build.MODEL}\n",
+                        "Device Brand: ${Build.BRAND}\n",
+                        "Device Manufacturer: ${Build.MANUFACTURER}\n",
+                        "Product Name: ${Build.PRODUCT}\n",
+                        "Hardware: ${Build.HARDWARE}\n",
+                        "Serial: $serial\n",
+                        "Board: ${Build.BOARD}\n",
+                        "Bootloader: ${Build.BOOTLOADER}\n",
+                        "Supported ABIs: ${Build.SUPPORTED_ABIS.joinToString(", ")}\n",
+                        "Screen Size: ${bounds.width()}x${bounds.height()} pixels\n",
+                        "Screen Density: ${metrics.density} (${metrics.densityDpi} dpi)\n",
+                        "Package Name: ${context.packageName}\n",
+                        "Game Name: ${appConfig.getName()}\n",
+                        "LibRetro Core: ${appConfig.getCore()}\n",
+                        "ROM File: ${appConfig.getRomName()}\n",
+                )) {
+            assertTrue(expected, text.contains(expected))
+        }
+        assertTrue(text, Regex("App Version: .+ \\(\\d+\\)\n").containsMatchIn(text))
     }
 
     @Test

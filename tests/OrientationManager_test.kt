@@ -84,4 +84,14 @@ class OrientationManager_test {
 
         verify(exactly = 1) { activity.applyOverrideConfiguration(any()) }
     }
+
+    @Test
+    fun `auto com falha ao ler o auto-rotate trata como desligado`() {
+        val activity = mockk<Activity>(relaxed = true)
+        every { activity.contentResolver } throws SecurityException("denied")
+
+        OrientationManager.applyConfigOrientation(activity, "auto")
+
+        verify { activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED }
+    }
 }

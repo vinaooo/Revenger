@@ -6,6 +6,7 @@ import com.vinaooo.revenger.utils.PreferencesConstants
 import com.vinaooo.revenger.utils.ShaderType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -108,5 +109,24 @@ class SharedPreferencesRepository_test {
         prefs.edit().putString(PreferencesConstants.PREF_SHADER_NAME, ShaderType.LCD.configName).commit()
 
         assertEquals(ShaderType.LCD.configName, repository.getShaderNameSync())
+    }
+
+    @Test
+    fun `antes da carga inicial rodar os flows expoem audio e avanco rapido desligados`() {
+        // The load runs on the given scope; until it does, the flows hold their initial values.
+        val pending = StandardTestDispatcher()
+        prefs.edit().putBoolean(PreferencesConstants.PREF_AUDIO_ENABLED, true).commit()
+        prefs.edit().putBoolean(PreferencesConstants.PREF_FAST_FORWARD_ENABLED, true).commit()
+
+        val repository = SharedPreferencesRepository(prefs, CoroutineScope(pending))
+
+        assertFalse(repository.audioEnabled.value)
+        assertEquals(ShaderType.SHARP.configName, repository.shaderName.value)
+        assertFalse(repository.fastForwardEnabled.value)
+
+        pending.scheduler.advanceUntilIdle()
+
+        assertTrue(repository.audioEnabled.value)
+        assertTrue(repository.fastForwardEnabled.value)
     }
 }

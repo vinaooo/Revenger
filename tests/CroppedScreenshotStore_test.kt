@@ -104,4 +104,84 @@ class CroppedScreenshotStore_test {
         assertNull(store.getCachedFullScreenshot())
         assertFalse(store.hasCachedScreenshot())
     }
+
+    private fun bitmap(size: Int = 4): Bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+
+    @Test
+    fun `sem configure as capturas padrao entregam null, limpam o cache e avisam falha`() {
+        // No-arg constructor: the placeholder collaborators ScreenshotCaptureUtil replaces via
+        // configure(). They must still answer, or a capture before configure() would hang its
+        // caller and keep stale bitmaps cached.
+        val store = CroppedScreenshotStore()
+        val oldCropped = bitmap()
+        val oldFull = bitmap(8)
+        store.setManualScreenshots(oldCropped, oldFull)
+        var captured: Boolean? = null
+
+        store.captureAndCacheScreenshot(mockk(relaxed = true)) { captured = it }
+
+        assertNull(store.getCachedScreenshot())
+        assertNull(store.getCachedFullScreenshot())
+        assertEquals(false, captured)
+    }
+
+    @Test
+    fun `configure troca as capturas padrao pelas informadas`() {
+        val store = CroppedScreenshotStore()
+        val cropped = bitmap()
+        val full = bitmap(8)
+        store.configure(
+            captureGameScreen = { _, callback -> callback(cropped) },
+            captureFullScreen = { _, callback -> callback(full) }
+        )
+
+        store.captureAndCacheScreenshot(mockk(relaxed = true), null)
+
+        assertSame(cropped, store.getCachedScreenshot())
+        assertSame(full, store.getCachedFullScreenshot())
+    }
+
+    @Test
+    fun `captureAndCacheScreenshot recicla os bitmaps que substitui`() {
+        val store = newStore(
+            captureGameScreen = { _, callback -> callback(bitmap()) },
+            captureFullScreen = { _, callback -> callback(bitmap(8)) }
+        )
+        val oldCropped = bitmap()
+        val oldFull = bitmap(8)
+        store.setManualScreenshots(oldCropped, oldFull)
+
+        store.captureAndCacheScreenshot(mockk(relaxed = true), null)
+
+        assertTrue(oldCropped.isRecycled)
+        assertTrue(oldFull.isRecycled)
+        assertFalse(requireNotNull(store.getCachedScreenshot()).isRecycled)
+        assertFalse(requireNotNull(store.getCachedFullScreenshot()).isRecycled)
+    }
+
+    @Test
+    fun `setManualScreenshots recicla os bitmaps que substitui`() {
+        val store = newStore()
+        val oldCropped = bitmap()
+        val oldFull = bitmap(8)
+        store.setManualScreenshots(oldCropped, oldFull)
+
+        store.setManualScreenshots(bitmap(), bitmap(8))
+
+        assertTrue(oldCropped.isRecycled)
+        assertTrue(oldFull.isRecycled)
+    }
+
+    @Test
+    fun `clearCachedScreenshot recicla os bitmaps limpos`() {
+        val store = newStore()
+        val cropped = bitmap()
+        val full = bitmap(8)
+        store.setManualScreenshots(cropped, full)
+
+        store.clearCachedScreenshot()
+
+        assertTrue(cropped.isRecycled)
+        assertTrue(full.isRecycled)
+    }
 }

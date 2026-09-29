@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import com.swordfish.libretrodroid.GLRetroView
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -191,5 +192,27 @@ class PipFrameStore_test {
         store.capturePipFrame(mockk(relaxed = true), force = false)
 
         assertEquals(2, captureCount)
+    }
+
+    @Test
+    fun `promoteCachedFullToPipFrame guarda uma copia imutavel`() {
+        // The PiP overlay only reads the frame; an immutable copy can't be drawn into by mistake.
+        val source = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)
+        val store = newStore(getCachedFullScreenshot = { source })
+
+        store.promoteCachedFullToPipFrame()
+
+        assertFalse(requireNotNull(store.getPipFrame()).isMutable)
+    }
+
+    @Test
+    fun `clearPipFrame recicla o frame limpo`() {
+        val store = newStore()
+        val frame = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)
+        store.updatePipFrame(frame)
+
+        store.clearPipFrame()
+
+        assertTrue(frame.isRecycled)
     }
 }

@@ -242,6 +242,27 @@ class AppConfig_test {
     }
 
     @Test
+    fun `botoes fake ficam desligados quando o config_manual nao os define`() {
+        putBaseConfig()
+        assetContents["config/config_manual.json"] = """{"core": "test_core"}"""
+
+        val config = AppConfig(context)
+
+        val fakeButtons =
+            listOf(
+                config.getFakeButton0(),
+                config.getFakeButton1(),
+                config.getFakeButton5(),
+                config.getFakeButton6(),
+                config.getFakeButton7(),
+                config.getFakeButton9(),
+                config.getFakeButton10(),
+                config.getFakeButton11(),
+            )
+        assertEquals(List(8) { false }, fakeButtons)
+    }
+
+    @Test
     fun `configuracoes de config_manual usam os defaults do data class quando o arquivo nao existe`() {
         putBaseConfig()
         // config_manual.json não configurado: ManualConfig() com valores padrão é usado.

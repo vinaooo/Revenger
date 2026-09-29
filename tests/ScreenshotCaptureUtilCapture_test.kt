@@ -4,9 +4,15 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Rect
 import android.view.PixelCopy
+import android.view.SurfaceView
 import com.swordfish.libretrodroid.GLRetroView
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
+import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -170,6 +176,7 @@ class ScreenshotCaptureUtilCapture_test {
 
         ScreenshotCaptureUtil.captureFullScreen(retroView(), callback)
 
+        assertEquals(1, callbacks)
         assertNull(delivered)
         assertTrue(requireNotNull(copiedInto).isRecycled)
     }
@@ -239,6 +246,88 @@ class ScreenshotCaptureUtilCapture_test {
             assertEquals(true, captured)
         } finally {
             ScreenshotCaptureUtil.clearCachedScreenshot()
+        }
+    }
+
+    // --- bitmap alocado e descartado quando a superficie e invalida ---
+
+    /** Runs [block] recording every bitmap `Bitmap.createBitmap(w, h, config)` allocates. */
+    private fun recordingAllocations(block: () -> Unit): List<Bitmap> {
+        val allocated = mutableListOf<Bitmap>()
+        mockkStatic(Bitmap::class)
+        try {
+            every { Bitmap.createBitmap(any<Int>(), any<Int>(), any<Bitmap.Config>()) } answers {
+                (callOriginal() as Bitmap).also { allocated += it }
+            }
+            block()
+        } finally {
+            unmockkStatic(Bitmap::class)
+        }
+        return allocated
+    }
+
+    @Test
+    fun `captura do jogo com superficie invalida recicla o bitmap que alocou`() {
+        val allocated = recordingAllocations {
+            ScreenshotCaptureUtil.captureGameScreen(retroView(surfaceValid = false), callback)
+        }
+
+        assertEquals(1, allocated.size)
+        assertTrue(allocated.single().isRecycled)
+    }
+
+    @Test
+    fun `captura da tela inteira com superficie invalida recicla o bitmap que alocou`() {
+        val allocated = recordingAllocations {
+            ScreenshotCaptureUtil.captureFullScreen(retroView(surfaceValid = false), callback)
+        }
+
+        assertEquals(1, allocated.size)
+        assertTrue(allocated.single().isRecycled)
+    }
+
+    // --- SystemPixelCopier ---
+
+    @Test
+    fun `SystemPixelCopier com retangulo copia so aquele retangulo`() {
+        val source = mockk<SurfaceView>()
+        val dest = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)
+        val rect = Rect(1, 2, 3, 4)
+        mockkStatic(PixelCopy::class)
+        try {
+            every {
+                PixelCopy.request(any<SurfaceView>(), any<Rect>(), any(), any(), any())
+            } just Runs
+            every { PixelCopy.request(any<SurfaceView>(), any<Bitmap>(), any(), any()) } just Runs
+
+            SystemPixelCopier.copy(source, rect, dest) {}
+
+            verify(exactly = 1) { PixelCopy.request(source, rect, dest, any(), any()) }
+            verify(exactly = 0) { PixelCopy.request(any<SurfaceView>(), any<Bitmap>(), any(), any()) }
+        } finally {
+            unmockkStatic(PixelCopy::class)
+        }
+    }
+
+    @Test
+    fun `SystemPixelCopier sem retangulo copia a superficie inteira`() {
+        val source = mockk<SurfaceView>()
+        val dest = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)
+        mockkStatic(PixelCopy::class)
+        try {
+            every {
+                PixelCopy.request(any<SurfaceView>(), any<Rect>(), any(), any(), any())
+            } just Runs
+            every { PixelCopy.request(any<SurfaceView>(), any<Bitmap>(), any(), any()) } just Runs
+
+            SystemPixelCopier.copy(source, null, dest) {}
+
+            verify(exactly = 1) { PixelCopy.request(source, dest, any(), any()) }
+            verify(exactly = 0) {
+                PixelCopy.request(any<SurfaceView>(), any<Rect>(), any(), any(), any())
+            }
+        } finally {
+            unmockkStatic(PixelCopy::class)
         }
     }
 }
