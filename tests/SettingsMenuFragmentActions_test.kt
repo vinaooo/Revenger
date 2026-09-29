@@ -91,6 +91,11 @@ class SettingsMenuFragmentActions_test {
     }
 
     @Test
+    fun `registra o fragment no NavigationController com 4 itens`() {
+        verify { host.navigationController.registerFragment(fragment, 4) }
+    }
+
+    @Test
     fun `Back volta pelo NavigationController`() {
         confirm(3)
 

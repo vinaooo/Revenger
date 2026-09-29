@@ -120,6 +120,8 @@ class MenuLifecycleManager_test {
         val menuViewsFixture = MenuViewInitializerImpl(fragment).initializeViews(view)
         every { viewInitializer.initializeViews(view) } returns menuViewsFixture
 
+        fragment.setSelectedIndex(2)
+
         manager.onViewCreated(view, null)
 
         verifyOrder {

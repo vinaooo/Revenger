@@ -113,6 +113,7 @@ class ExitFragmentActions_test {
         assertFalse(slot.isEmpty)
         assertEquals("Slot 4", slot.name)
         assertEquals(4, SessionSlotTracker.getInstance().getLastUsedSlot())
+        assertEquals(SessionSlotTracker.OperationType.SAVE, SessionSlotTracker.getInstance().getLastOperationType())
         verify { host.viewModel.dismissRetroMenu3(any()) }
     }
 

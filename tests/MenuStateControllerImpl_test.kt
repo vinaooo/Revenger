@@ -194,6 +194,16 @@ class MenuStateControllerImpl_test {
     }
 
     @Test
+    fun `selectItemAt move a seta para o item escolhido`() {
+        controller.initializeState(menuViews)
+
+        controller.selectItemAt(MenuStateControllerImpl.MENU_ITEM_ABOUT)
+
+        verify { menuViews.selectionArrowAbout.visibility = View.VISIBLE }
+        verify { animationController.updateSelectionVisual(MenuStateControllerImpl.MENU_ITEM_ABOUT) }
+    }
+
+    @Test
     fun `updateSelectionVisuals nao lanca e nao delega quando menuViews ainda nao foi inicializado`() {
         controller.updateSelectionVisuals()
 

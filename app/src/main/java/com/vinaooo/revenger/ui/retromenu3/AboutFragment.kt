@@ -267,7 +267,6 @@ class AboutFragment : MenuFragmentBase() {
         navigateUpCircular(getMenuItems().size)
         val afterIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[NAV] About menu: UP navigation - $beforeIndex -> $afterIndex")
-        updateSelectionVisualInternal()
     }
 
     /** Navigate down in the menu */
@@ -276,7 +275,6 @@ class AboutFragment : MenuFragmentBase() {
         navigateDownCircular(getMenuItems().size)
         val afterIndex = getCurrentSelectedIndex()
         android.util.Log.d(TAG, "[NAV] About menu: DOWN navigation - $beforeIndex -> $afterIndex")
-        updateSelectionVisualInternal()
     }
 
     /** Confirm selection - Execute actions DIRECTLY (do not use performClick) */
