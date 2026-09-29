@@ -17,7 +17,6 @@ import com.vinaooo.revenger.utils.ViewUtils
 internal object SlotDialogViews {
 
     private const val FADE_IN_DURATION_MS = 150L
-    private const val HINT_COLOR = 0x88888888.toInt()
 
     /** Inflates [layoutRes] for [container] without attaching it. */
     fun inflate(container: ViewGroup, layoutRes: Int): View =
@@ -54,7 +53,6 @@ internal object SlotDialogViews {
         dialog.findViewById<TextView>(R.id.dialog_title).text =
                 FontUtils.getCapitalizedString(context, titleRes)
         editText.setHintText(FontUtils.getCapitalizedString(context, R.string.save_name_hint))
-        editText.setRetroHintColor(HINT_COLOR)
         editText.applyTypeface(FontUtils.getSelectedTypeface(context))
         styleTexts(textViewsIn(dialog).filterNot { it is RetroEditText })
         return editText

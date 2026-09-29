@@ -272,6 +272,11 @@ class SlotDialogController_test {
         val main = checkNotNull(MenuLayoutFinder.findMainHorizontalLayout(dialog))
         val weights = (0 until 3).map { (main.getChildAt(it).layoutParams as LinearLayout.LayoutParams).weight }
         assertEquals(listOf(expected.leftWeight, expected.centerWeight, expected.rightWeight), weights)
+        // The vertical proportions wrap the content in a vertical layout, top space first.
+        val vertical = checkNotNull(MenuLayoutConfig.getConfiguredVerticalProportions(dialog))
+        val wrapper = main.getChildAt(1) as LinearLayout
+        assertEquals(LinearLayout.VERTICAL, wrapper.orientation)
+        assertEquals(vertical.topWeight, (wrapper.getChildAt(0).layoutParams as LinearLayout.LayoutParams).weight)
     }
 
     @Test
@@ -281,7 +286,6 @@ class SlotDialogController_test {
         val editText = container.findViewById<RetroEditText>(R.id.rename_edit_text)
         val typeface = FontUtils.getSelectedTypeface(activity)
         assertEquals(FontUtils.getCapitalizedString(activity, R.string.save_name_hint), editText.privateField<String>("hintText"))
-        assertEquals(0x88888888.toInt(), editText.privateField<Int>("hintTextColor"))
         assertSame(typeface, editText.typeface)
         assertSame(typeface, container.findViewById<TextView>(R.id.dialog_title).typeface)
     }
