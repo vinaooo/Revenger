@@ -118,10 +118,6 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         Log.d(TAG, "[NAVIGATION] ${javaClass.simpleName} onDestroyView")
         // Stop and clean up glow animations
         glowAnimationController.stop()
-        slotViews.forEach { slotView ->
-            val glowView = slotView.findViewById<View?>(R.id.slot_glow_indicator)
-            glowView?.animation?.cancel()
-        }
         slotViews.clear()
         super.onDestroyView()
     }

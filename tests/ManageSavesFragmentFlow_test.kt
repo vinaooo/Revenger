@@ -17,6 +17,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -274,5 +275,78 @@ class ManageSavesFragmentFlow_test {
         host.activity.supportFragmentManager.beginTransaction().remove(fragment).commitNow()
 
         assertFalse(fragment.isAdded)
+    }
+
+    private fun title(): String = (find(R.id.grid_title) as android.widget.TextView).text.toString()
+
+    /** Opens Copy for [number] (operations dialog, second button). */
+    private fun startCopy(number: Int) {
+        openOperationsAndGoTo(number, button = 1)
+        fragment.onConfirm()
+    }
+
+    @Test
+    fun `escolher o destino troca o titulo e cancelar pelo back o devolve`() {
+        startCopy(1)
+        assertEquals(fragment.getString(R.string.select_target_copy), title())
+
+        fragment.onBack()
+
+        assertEquals(fragment.getString(R.string.manage_saves_title), title())
+    }
+
+    @Test
+    fun `cancelar a escolha do destino pelo onBackConfirmed devolve o titulo`() {
+        startCopy(1)
+
+        fragment.onBackConfirmed()
+
+        assertEquals(fragment.getString(R.string.manage_saves_title), title())
+    }
+
+    @Test
+    fun `depois de copiar o titulo volta e o proximo slot nao e mais um destino`() {
+        startCopy(1)
+        fragment.onSlotConfirmed(slot(3))
+        assertEquals(fragment.getString(R.string.manage_saves_title), title())
+
+        fragment.onSlotConfirmed(slot(4))
+
+        assertTrue(slot(4).isEmpty)
+        assertEquals(toast(R.string.slot_is_empty), ShadowToast.getTextOfLatestToast())
+    }
+
+    @Test
+    fun `os botoes de operacao usam a fonte do menu e nao tem fundo colorido`() {
+        fragment.onSlotConfirmed(slot(1))
+
+        assertSame(FontUtils.getSelectedTypeface(context), (find(R.id.rename_text) as android.widget.TextView).typeface)
+        for (id in listOf(R.id.operation_rename, R.id.operation_copy, R.id.operation_move, R.id.operation_delete, R.id.operation_cancel)) {
+            assertFalse((find(id) as RetroCardView).getUseBackgroundColor())
+        }
+    }
+
+    @Test
+    fun `no Rename as setas andam no teclado na direcao certa e nao no grid`() {
+        fragment.setSelectedIndex(1)
+        openOperationsAndGoTo(1, button = 0)
+        fragment.onConfirm()
+
+        fragment.onNavigateRight()
+        assertTrue(find(R.id.key_2)!!.isSelected)
+
+        fragment.onNavigateLeft()
+        assertTrue(find(R.id.key_1)!!.isSelected)
+        assertFalse(find(R.id.key_2)!!.isSelected)
+        assertEquals(1, fragment.getCurrentSelectedIndex())
+    }
+
+    @Test
+    fun `remover o fragment fecha o dialogo aberto`() {
+        fragment.onSlotConfirmed(slot(1))
+
+        host.activity.supportFragmentManager.beginTransaction().remove(fragment).commitNow()
+
+        assertFalse(fragment.dialogs.isVisible)
     }
 }

@@ -566,4 +566,22 @@ class ExitSaveGridFragment_test {
         assertNull(fragment.dialogs.keyboard)
         assertFalse(fragment.isAdded)
     }
+
+    @Test
+    fun `com o teclado as setas andam no teclado na direcao certa e nao no grid`() {
+        mockedSaveStateManager()
+        mockedViewModel()
+        fragment.setSelectedIndex(1)
+        fragment.onSlotConfirmed(SaveSlotData.empty(1))
+        val key1 = rootView().findViewById<View>(R.id.key_1)
+        val key2 = rootView().findViewById<View>(R.id.key_2)
+
+        fragment.onNavigateRight()
+        assertTrue(key2.isSelected)
+
+        fragment.onNavigateLeft()
+        assertTrue(key1.isSelected)
+        assertFalse(key2.isSelected)
+        assertEquals(1, fragment.getCurrentSelectedIndex())
+    }
 }
