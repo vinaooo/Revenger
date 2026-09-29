@@ -20,9 +20,6 @@ class ControllerInput {
                         )
         }
 
-        /** Keys that have already triggered an action and should remain blocked until they receive ACTION_UP */
-        private val blockedUntilKeyUp = mutableSetOf<Int>()
-
         /**
          * Bundles all of this class's external callbacks/predicates (see
          * [ControllerInputCallbacks]). Each field below is exposed as a delegate
@@ -103,11 +100,6 @@ class ControllerInput {
                 get() = callbacks.shouldBlockAllGamepadInput
                 set(value) { callbacks = callbacks.copy(shouldBlockAllGamepadInput = value) }
 
-        /** Function to check if RetroMenu3 is currently open */
-        var isRetroMenu3Open: () -> Boolean
-                get() = callbacks.isRetroMenu3Open
-                set(value) { callbacks = callbacks.copy(isRetroMenu3Open = value) }
-
         /** Callbacks for RetroMenu3 navigation */
         var menuNavigateUpCallback: () -> Unit
                 get() = callbacks.menuNavigateUpCallback
@@ -138,15 +130,13 @@ class ControllerInput {
                 comboTracker.keyLog.clear()
                 comboTracker.resetComboAlreadyTriggered()
 
-                blockedUntilKeyUp.clear()
-
-                android.util.Log.d("ControllerInput", "[CLEAR_STATE] clearPendingInputs() applied: debounces+keyLog+combo+tracking reset")
+                android.util.Log.d("ControllerInput", "[CLEAR_STATE] clearPendingInputs() applied: debounces+keyLog+combo reset")
         }
 
         /**
          * Version that preserves currently held keys (e.g., B held when returning from
-         * submenu). Resets only debounces and combo/grace flags, keeping keyLog +
-         * blockedUntilKeyUp so the corresponding ACTION_UP is consumed in the next fragment
+         * submenu). Resets only debounces and combo/grace flags, keeping keyLog so
+         * the corresponding ACTION_UP is consumed in the next fragment
          * without reprocessing DOWN.
          */
         fun clearPendingInputsPreserveHeld() {

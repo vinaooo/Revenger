@@ -77,7 +77,6 @@ class MenuNavigationCallbackWiring(
                             isAnyMenuActive() && !isDismissingAllMenus()
                         },
                         shouldBlockAllGamepadInput = { isAnyMenuActive() },
-                        isRetroMenu3Open = { isAnyMenuActive() },
                         isMenuOperationSafe = {
                             !isDismissingAllMenus() &&
                                     retroMenu3Fragment()?.isDismissingMenu() != true

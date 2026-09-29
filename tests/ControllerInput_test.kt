@@ -234,6 +234,7 @@ class ControllerInput_test {
         controllerInput.clearPendingInputs()
 
         assertFalse(controllerInput.comboTracker.getComboAlreadyTriggered())
+        assertTrue(controllerInput.comboTracker.keyLog.isEmpty())
     }
 
     @Test
@@ -285,7 +286,7 @@ class ControllerInput_test {
     }
 
     @Test
-    fun `assigning a ControllerInputCallbacks bundle updates all 16 delegate properties without cross-contamination`() {
+    fun `assigning a ControllerInputCallbacks bundle updates all 15 delegate properties without cross-contamination`() {
         val controllerInput = newControllerInput()
 
         val selectStartComboCallbackFake: () -> Unit = {}
@@ -295,7 +296,6 @@ class ControllerInput_test {
         val shouldHandleGamepadMenuButtonFake: () -> Boolean = { true }
         val gamepadMenuButtonCallbackFake: () -> Unit = {}
         val shouldBlockAllGamepadInputFake: () -> Boolean = { true }
-        val isRetroMenu3OpenFake: () -> Boolean = { true }
         val menuNavigateUpCallbackFake: () -> Unit = {}
         val menuNavigateDownCallbackFake: () -> Unit = {}
         val menuNavigateLeftCallbackFake: () -> Unit = {}
@@ -314,7 +314,6 @@ class ControllerInput_test {
                         shouldHandleGamepadMenuButton = shouldHandleGamepadMenuButtonFake,
                         gamepadMenuButtonCallback = gamepadMenuButtonCallbackFake,
                         shouldBlockAllGamepadInput = shouldBlockAllGamepadInputFake,
-                        isRetroMenu3Open = isRetroMenu3OpenFake,
                         menuNavigateUpCallback = menuNavigateUpCallbackFake,
                         menuNavigateDownCallback = menuNavigateDownCallbackFake,
                         menuNavigateLeftCallback = menuNavigateLeftCallbackFake,
@@ -338,7 +337,6 @@ class ControllerInput_test {
         )
         assertSame(gamepadMenuButtonCallbackFake, controllerInput.gamepadMenuButtonCallback)
         assertSame(shouldBlockAllGamepadInputFake, controllerInput.shouldBlockAllGamepadInput)
-        assertSame(isRetroMenu3OpenFake, controllerInput.isRetroMenu3Open)
         assertSame(menuNavigateUpCallbackFake, controllerInput.menuNavigateUpCallback)
         assertSame(menuNavigateDownCallbackFake, controllerInput.menuNavigateDownCallback)
         assertSame(menuNavigateLeftCallbackFake, controllerInput.menuNavigateLeftCallback)
@@ -350,7 +348,7 @@ class ControllerInput_test {
     }
 
     @Test
-    fun `assigning each of the 16 delegate properties individually updates the callbacks bundle without cross-contamination`() {
+    fun `assigning each of the 15 delegate properties individually updates the callbacks bundle without cross-contamination`() {
         val controllerInput = newControllerInput()
 
         val selectStartComboCallbackFake: () -> Unit = {}
@@ -360,7 +358,6 @@ class ControllerInput_test {
         val shouldHandleGamepadMenuButtonFake: () -> Boolean = { true }
         val gamepadMenuButtonCallbackFake: () -> Unit = {}
         val shouldBlockAllGamepadInputFake: () -> Boolean = { true }
-        val isRetroMenu3OpenFake: () -> Boolean = { true }
         val menuNavigateUpCallbackFake: () -> Unit = {}
         val menuNavigateDownCallbackFake: () -> Unit = {}
         val menuNavigateLeftCallbackFake: () -> Unit = {}
@@ -373,7 +370,7 @@ class ControllerInput_test {
         // Assign every property individually (as GameActivityViewModel.setupMenuCallback()
         // and InputViewModel do), rather than replacing the whole bundle at once. Each
         // setter is a hand-written `callbacks = callbacks.copy(field = value)` -- this
-        // proves every one of the 16 names its own field (no copy-paste mismatch) and
+        // proves every one of the 15 names its own field (no copy-paste mismatch) and
         // that earlier assignments survive later ones (each copy() only touches its own
         // field, it doesn't reconstruct the bundle from defaults).
         controllerInput.selectStartComboCallback = selectStartComboCallbackFake
@@ -383,7 +380,6 @@ class ControllerInput_test {
         controllerInput.shouldHandleGamepadMenuButton = shouldHandleGamepadMenuButtonFake
         controllerInput.gamepadMenuButtonCallback = gamepadMenuButtonCallbackFake
         controllerInput.shouldBlockAllGamepadInput = shouldBlockAllGamepadInputFake
-        controllerInput.isRetroMenu3Open = isRetroMenu3OpenFake
         controllerInput.menuNavigateUpCallback = menuNavigateUpCallbackFake
         controllerInput.menuNavigateDownCallback = menuNavigateDownCallbackFake
         controllerInput.menuNavigateLeftCallback = menuNavigateLeftCallbackFake
@@ -402,7 +398,6 @@ class ControllerInput_test {
         assertSame(shouldHandleGamepadMenuButtonFake, callbacks.shouldHandleGamepadMenuButton)
         assertSame(gamepadMenuButtonCallbackFake, callbacks.gamepadMenuButtonCallback)
         assertSame(shouldBlockAllGamepadInputFake, callbacks.shouldBlockAllGamepadInput)
-        assertSame(isRetroMenu3OpenFake, callbacks.isRetroMenu3Open)
         assertSame(menuNavigateUpCallbackFake, callbacks.menuNavigateUpCallback)
         assertSame(menuNavigateDownCallbackFake, callbacks.menuNavigateDownCallback)
         assertSame(menuNavigateLeftCallbackFake, callbacks.menuNavigateLeftCallback)

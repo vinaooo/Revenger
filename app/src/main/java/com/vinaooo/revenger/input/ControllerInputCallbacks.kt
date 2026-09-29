@@ -5,7 +5,7 @@ package com.vinaooo.revenger.input
  * that other classes assign to react to menu-combo detection, START handling, and
  * RetroMenu3 navigation -- into a single value object.
  *
- * Extracted as part of the God-class split-up so `ControllerInput`'s 16 previously
+ * Extracted as part of the God-class split-up so `ControllerInput`'s previously
  * independent `var` callback fields are represented as one cohesive, copyable state
  * object instead of scattered mutable properties. `ControllerInput` exposes each field
  * as a delegate property reading/writing through a `callbacks` instance of this class,
@@ -26,8 +26,6 @@ data class ControllerInputCallbacks(
         val gamepadMenuButtonCallback: () -> Unit = {},
         /** Function to check if all gamepad input should be blocked */
         val shouldBlockAllGamepadInput: () -> Boolean = { false },
-        /** Function to check if RetroMenu3 is currently open */
-        val isRetroMenu3Open: () -> Boolean = { false },
         /** Callback for RetroMenu3 "navigate up" */
         val menuNavigateUpCallback: () -> Unit = {},
         /** Callback for RetroMenu3 "navigate down" */

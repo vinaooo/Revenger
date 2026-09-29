@@ -264,13 +264,13 @@ class GameActivityViewModel_test {
 
     /**
      * Test 3 (regression guard for the bundle-copy consolidation): after `setupMenuCallback` runs
-     * once, all 16 `ControllerInputCallbacks` fields (the 4 set in `init {}` plus the 12 set
+     * once, all 15 `ControllerInputCallbacks` fields (the 4 set in `init {}` plus the 11 set
      * by `setupMenuCallback`) must be non-default. Comparing by identity, not behavior,
      * because function references from distinct lambda literals are never `===`/`==` to each
      * other -- so this reliably catches "a callback got dropped during the copy() consolidation".
      */
     @Test
-    fun `setupMenuCallback substitui todos os 16 callbacks reais`() {
+    fun `setupMenuCallback substitui todos os 15 callbacks reais`() {
         val activity = mockk<FragmentActivity>(relaxed = true)
         viewModel.setupMenuCallback(activity)
 
@@ -278,7 +278,7 @@ class GameActivityViewModel_test {
         val callbacks = controllerInput.callbacks
         val defaults = ControllerInputCallbacks()
 
-        // Set in init {} (untouched by this task, but part of the 16 "real" fields).
+        // Set in init {} (untouched by this task, but part of the 15 "real" fields).
         assertNotSame(defaults.selectStartComboCallback, callbacks.selectStartComboCallback)
         assertNotSame(defaults.startButtonCallback, callbacks.startButtonCallback)
         assertNotSame(
@@ -290,7 +290,7 @@ class GameActivityViewModel_test {
                 callbacks.shouldHandleGamepadMenuButton
         )
 
-        // Set by setupMenuCallback() (the 12 under test).
+        // Set by setupMenuCallback() (the 11 under test).
         assertNotSame(defaults.gamepadMenuButtonCallback, callbacks.gamepadMenuButtonCallback)
         assertNotSame(defaults.menuNavigateUpCallback, callbacks.menuNavigateUpCallback)
         assertNotSame(defaults.menuNavigateDownCallback, callbacks.menuNavigateDownCallback)
@@ -301,7 +301,6 @@ class GameActivityViewModel_test {
         assertNotSame(defaults.shouldInterceptDpadForMenu, callbacks.shouldInterceptDpadForMenu)
         assertNotSame(defaults.shouldHandleStartButton, callbacks.shouldHandleStartButton)
         assertNotSame(defaults.shouldBlockAllGamepadInput, callbacks.shouldBlockAllGamepadInput)
-        assertNotSame(defaults.isRetroMenu3Open, callbacks.isRetroMenu3Open)
         assertNotSame(defaults.isMenuOperationSafe, callbacks.isMenuOperationSafe)
     }
 
