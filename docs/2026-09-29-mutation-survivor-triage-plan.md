@@ -106,7 +106,7 @@ First look: `RevengerApplication.onCreate` initialization isn't checked by any t
 
 First look: the forced frame capture on entering PiP (`PipController.kt:136, 156`), the overlay snapshot (`:157`) and the params refresh (`:118`) can all be removed unnoticed, and so can the menu reference update and first-item focus after rotation (`MenuRotationRecreator.kt:207, 225, 254`). `AudioController.kt:45` (`commit = true`) is likely equivalent under Robolectric.
 
-### [ ] 3. Menu infrastructure — 88 survivors
+### [x] 3. Menu infrastructure — 88 survivors (#192: 14 left, all equivalent)
 
 | File | S | K |
 |---|---:|---:|

@@ -139,6 +139,42 @@ class GlowAnimationController_test {
         assertTrue(invoked)
     }
 
+    @Test
+    fun `passar o brilho para outra view cancela a animacao da anterior`() {
+        val controller = GlowAnimationController()
+        controller.apply(View(context), isLastUsed = true, isSelected = false)
+        val previous = activeAnimator(controller)
+
+        controller.apply(View(context), isLastUsed = true, isSelected = false)
+
+        assertFalse(previous?.isStarted == true)
+        assertTrue(activeAnimator(controller)?.isStarted == true)
+    }
+
+    @Test
+    fun `esconder a view que brilha cancela a animacao`() {
+        val controller = GlowAnimationController()
+        val glowView = View(context)
+        controller.apply(glowView, isLastUsed = true, isSelected = false)
+        val animator = activeAnimator(controller)
+
+        controller.apply(glowView, isLastUsed = true, isSelected = true)
+
+        assertFalse(animator?.isStarted == true)
+        assertNull(activeAnimator(controller))
+    }
+
+    @Test
+    fun `esconder outra view nao para a animacao da que brilha`() {
+        val controller = GlowAnimationController()
+        controller.apply(View(context), isLastUsed = true, isSelected = false)
+        val animator = activeAnimator(controller)
+
+        controller.apply(View(context), isLastUsed = false, isSelected = false)
+
+        assertTrue(animator?.isStarted == true)
+    }
+
     private fun activeAnimator(controller: GlowAnimationController): ValueAnimator? =
             GlowAnimationController::class.java.getDeclaredField("activeGlowAnimator").apply { isAccessible = true }
                     .get(controller) as ValueAnimator?

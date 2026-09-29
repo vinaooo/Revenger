@@ -55,8 +55,6 @@ class GlowAnimationController {
         }
 
         private fun startAnimation(glowView: View) {
-                activeGlowAnimator?.cancel()
-
                 activeGlowAnimator =
                         ObjectAnimator.ofFloat(
                                         glowView,

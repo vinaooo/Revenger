@@ -79,6 +79,9 @@ class RetroTextCursor_test {
         assertTrue(cursor.moveCursorRight())
         assertEquals(2, cursor.position)
         assertFalse(cursor.moveCursorRight())
+
+        assertTrue(cursor.moveCursorLeft())
+        assertEquals(1, cursor.position)
     }
 
     @Test

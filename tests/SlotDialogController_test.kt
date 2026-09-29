@@ -5,19 +5,26 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
+import android.widget.LinearLayout
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig
+import com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutFinder
 import com.vinaooo.revenger.utils.FontUtils
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import android.os.Looper
+import java.time.Duration
 
 /**
  * [SlotDialogController], the dialog layer of the save-slot grids: one dialog at a time, the
@@ -226,6 +233,94 @@ class SlotDialogController_test {
         assertEquals(listOf("confirmed 'Slot 3', visible=false", "cancelled, visible=false"), events)
         assertNull(dialogs.keyboard)
         assertTrue((container as ViewGroup).childCount == 0)
+    }
+
+    private fun keyboardKey(id: Int): View = container.findViewById(id)
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> RetroEditText.privateField(name: String): T =
+            RetroEditText::class.java.getDeclaredField(name).apply { isAccessible = true }.get(this) as T
+
+    @Test
+    fun `o dialogo de nome liga o teclado as teclas da tela`() {
+        showKeyboard()
+
+        assertTrue(keyboardKey(R.id.key_1).isSelected)
+        keyboardKey(R.id.key_q).performClick()
+
+        assertEquals("Slot 3Q", typedText())
+    }
+
+    @Test
+    fun `no teclado cima e baixo andam na direcao certa`() {
+        showKeyboard()
+        val keyboard = checkNotNull(dialogs.keyboard)
+
+        dialogs.navigateVertical(1)
+        assertEquals(1, keyboard.getCurrentRow())
+
+        dialogs.navigateVertical(-1)
+        assertEquals(0, keyboard.getCurrentRow())
+    }
+
+    @Test
+    fun `o dialogo de nome aplica as proporcoes do menu`() {
+        showKeyboard()
+
+        val dialog = container.getChildAt(0)
+        val expected = checkNotNull(MenuLayoutConfig.getConfiguredProportions(dialog))
+        val main = checkNotNull(MenuLayoutFinder.findMainHorizontalLayout(dialog))
+        val weights = (0 until 3).map { (main.getChildAt(it).layoutParams as LinearLayout.LayoutParams).weight }
+        assertEquals(listOf(expected.leftWeight, expected.centerWeight, expected.rightWeight), weights)
+        // The vertical proportions wrap the content in a vertical layout, top space first.
+        val vertical = checkNotNull(MenuLayoutConfig.getConfiguredVerticalProportions(dialog))
+        val wrapper = main.getChildAt(1) as LinearLayout
+        assertEquals(LinearLayout.VERTICAL, wrapper.orientation)
+        assertEquals(vertical.topWeight, (wrapper.getChildAt(0).layoutParams as LinearLayout.LayoutParams).weight)
+    }
+
+    @Test
+    fun `o campo de nome tem o hint, a cor do hint e a fonte do menu`() {
+        showKeyboard()
+
+        val editText = container.findViewById<RetroEditText>(R.id.rename_edit_text)
+        val typeface = FontUtils.getSelectedTypeface(activity)
+        assertEquals(FontUtils.getCapitalizedString(activity, R.string.save_name_hint), editText.privateField<String>("hintText"))
+        assertSame(typeface, editText.typeface)
+        assertSame(typeface, container.findViewById<TextView>(R.id.dialog_title).typeface)
+    }
+
+    @Test
+    fun `os botoes do dialogo de confirmacao nao usam fundo colorido`() {
+        showConfirm()
+
+        assertFalse(button(R.id.dialog_confirm_button).getUseBackgroundColor())
+        assertFalse(button(R.id.dialog_cancel_button).getUseBackgroundColor())
+    }
+
+    @Test
+    fun `o dialogo aparece com fade in`() {
+        showConfirm()
+        val dialog = container.getChildAt(0)
+
+        assertEquals(0f, dialog.alpha)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(FADE_IN_MS))
+
+        assertEquals(1f, dialog.alpha)
+    }
+
+    @Test
+    fun `um dialogo sem botoes nao prende a navegacao nem o confirmar`() {
+        dialogs.showDialog(R.layout.retro_confirm_dlg) { emptyList() }
+
+        assertTrue(dialogs.isVisible)
+        assertFalse(dialogs.navigateVertical(1))
+        assertFalse(dialogs.confirm())
+    }
+
+    private companion object {
+        // One frame past SlotDialogViews' 150 ms fade.
+        const val FADE_IN_MS = 200L
     }
 
     // RetroKeyboard keeps its callbacks private; tests reach them the way the fragment tests do.

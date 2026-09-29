@@ -550,4 +550,26 @@ class NavigationEventProcessor_test {
 
         assertEquals(listOf<Int?>(null), menuClosedCalls)
     }
+
+    @Test
+    fun `navigateBack no principal com pilha vazia devolve true ao fechar`() {
+        assertTrue(processor.navigateBack())
+
+        assertEquals(listOf<Int?>(null), menuClosedCalls)
+    }
+
+    @Test
+    fun `voltar para um submenu com a pilha vazia guarda o botao de acao`() {
+        stateManager.updateCurrentMenu(MenuType.PROGRESS)
+        stateManager.pushCurrentState() // PROGRESS
+        stateManager.updateCurrentMenu(MenuType.SAVE_SLOTS)
+        processor.processEvent(NavigationEvent.ActivateSelected(keyCode = 96, inputSource = InputSource.PHYSICAL_GAMEPAD))
+        every { fragmentAdapter.navigateBack() } returns true
+
+        processor.navigateBack() // SAVE_SLOTS -> PROGRESS, stack now empty but not at MAIN
+        assertEquals(MenuType.PROGRESS, stateManager.currentMenu)
+
+        processor.navigateBack() // PROGRESS was the root: closes, still with the button
+        assertEquals(listOf<Int?>(96), menuClosedCalls)
+    }
 }

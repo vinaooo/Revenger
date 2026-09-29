@@ -142,6 +142,22 @@ class MenuLayoutConfig_test {
     }
 
     @Test
+    fun `applyLayoutProportions pede um novo layout para os pesos valerem`() {
+        val parent =
+                LinearLayout(context).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    repeat(3) { addView(spacerChild()) }
+                }
+        parent.measure(0, 0)
+        parent.layout(0, 0, 100, 10)
+        assertFalse(parent.isLayoutRequested)
+
+        MenuLayoutConfig.applyLayoutProportions(parent, MenuLayoutConfig.parseLayoutProportions("108010")!!)
+
+        assertTrue(parent.isLayoutRequested)
+    }
+
+    @Test
     fun `applyLayoutProportions com menos de 3 filhos nao altera nada e nao lanca excecao`() {
         val parent =
                 LinearLayout(context).apply {

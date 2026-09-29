@@ -47,9 +47,6 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         MenuLogger.lifecycle("RetroCardView init START")
         isClickable = true
 
-        // Transparent background to avoid interfering with child content
-        setBackgroundColor(Color.TRANSPARENT)
-
         // Orientation will be defined by XML (horizontal for menu items)
         // Do not set default orientation to avoid XML conflicts
 
