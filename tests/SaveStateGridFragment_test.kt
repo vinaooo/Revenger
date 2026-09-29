@@ -534,7 +534,7 @@ class SaveStateGridFragment_test {
     fun `a tela do grid nao tem elevacao`() {
         fun assertFlat(view: View) {
             assertEquals(0f, view.z)
-            if (view is android.view.ViewGroup) (0 until view.childCount).forEach { assertFlat(view.getChildAt(it)) }
+            if (view is android.view.ViewGroup) for (i in 0 until view.childCount) assertFlat(view.getChildAt(i))
         }
         assertFlat(backButton)
         assertFlat(fragment.requireView().findViewById(R.id.grid_title))

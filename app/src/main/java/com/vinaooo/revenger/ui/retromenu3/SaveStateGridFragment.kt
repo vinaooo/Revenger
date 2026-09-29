@@ -201,7 +201,7 @@ abstract class SaveStateGridFragment : MenuFragmentBase() {
         if (slot.isEmpty) {
             screenshot.setImageResource(R.drawable.ic_empty_slot)
             name.text = getString(R.string.slot_empty)
-            slotContent.setBackgroundResource(R.drawable.slot_background_empty)
+            // slot_background_empty is already the layout's background.
         } else {
             SlotScreenshotLoader.load(screenshot, slot.screenshotFile)
             name.text = slot.getDisplayName()

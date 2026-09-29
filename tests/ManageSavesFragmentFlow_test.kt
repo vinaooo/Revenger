@@ -287,6 +287,7 @@ class ManageSavesFragmentFlow_test {
 
     @Test
     fun `escolher o destino troca o titulo e cancelar pelo back o devolve`() {
+        assertEquals(toast(R.string.manage_saves_title), title())
         startCopy(1)
         assertEquals(fragment.getString(R.string.select_target_copy), title())
 
