@@ -153,4 +153,17 @@ class ProfilingSessionController_test {
 
         verify(exactly = 3) { hardwareMetrics.getCpuUsage() }
     }
+
+    @Test
+    fun `parar e reiniciar logo em seguida nao deixa o ciclo antigo coletando junto`() {
+        controller.startProfiling(context)
+        runFor(500)
+        controller.stopProfiling()
+        controller.startProfiling(context)
+
+        runFor(2_800)
+
+        // t=0 (first session), then t=500, 1500, 2500 (second session) -- no leftover t=1000/2000/3000.
+        verify(exactly = 4) { hardwareMetrics.getCpuUsage() }
+    }
 }

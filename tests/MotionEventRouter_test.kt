@@ -136,6 +136,18 @@ class MotionEventRouter_test {
         sentToCore(times = 1)
     }
 
+    @Test
+    fun `o controle numero N manda para a porta N-1 do core`() {
+        input.shouldInterceptDpadForMenu = { false }
+        val event = mockk<MotionEvent>(relaxed = true)
+        every { event.device.controllerNumber } returns 2
+
+        input.processMotionEvent(event, retroView)
+
+        verify { glRetroView.sendMotionEvent(GLRetroView.MOTION_SOURCE_DPAD, any(), any(), 1) }
+        verify(exactly = 0) { glRetroView.sendMotionEvent(any(), any(), any(), neq(1)) }
+    }
+
     private companion object {
         const val DPAD_THRESHOLD = 0.1f
         const val STICK_THRESHOLD = 0.7f

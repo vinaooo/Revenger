@@ -2,6 +2,8 @@ package com.vinaooo.revenger.performance
 
 import android.app.Activity
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
 import android.widget.FrameLayout
@@ -187,5 +189,32 @@ class DebugOverlayController_test {
         // Regression: the gate read a `performance_overlay` bool resource that doesn't exist (the
         // config is JSON now), so the overlay never showed whatever the config said.
         assertEquals(RevengerApplication.appConfig.getPerformanceOverlay(), isPerformanceOverlayConfigured())
+    }
+
+    @Test
+    fun `o overlay e texto amarelo numa caixa escura com borda amarela, abaixo do topo`() {
+        realController(enabled = true).showDebugOverlay(activity)
+        idle()
+
+        val view = overlays().single()
+        assertEquals(Color.YELLOW, view.currentTextColor)
+        val params = view.layoutParams as FrameLayout.LayoutParams
+        assertEquals(listOf(32, 150, 32, 32), listOf(params.leftMargin, params.topMargin, params.rightMargin, params.bottomMargin))
+        val border = shadowOf(view.background as GradientDrawable)
+        assertEquals(Color.parseColor("#CC000000"), border.lastSetColor)
+        assertEquals(2, border.strokeWidth)
+        assertEquals(Color.YELLOW, border.strokeColor)
+    }
+
+    @Test
+    fun `sem AppConfig inicializado o overlay fica desligado`() {
+        val field = RevengerApplication::class.java.getDeclaredField("appConfig").apply { isAccessible = true }
+        val original = field.get(null)
+        field.set(null, null)
+        try {
+            assertFalse(isPerformanceOverlayConfigured())
+        } finally {
+            field.set(null, original)
+        }
     }
 }

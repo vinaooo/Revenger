@@ -46,14 +46,16 @@ class GamePad_test {
     private fun mockActivity(
         gamepadHasTouchScreen: Boolean = true,
         isPresentationDisplay: Boolean = false,
+        displayId: Int = if (isPresentationDisplay) 1 else Display.DEFAULT_DISPLAY,
+        displayFlags: Int = if (isPresentationDisplay) Display.FLAG_PRESENTATION else 0,
     ): Activity {
         val packageManager = mockk<PackageManager>()
         every { packageManager.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN) } returns
             gamepadHasTouchScreen
 
         val display = mockk<Display>()
-        every { display.displayId } returns if (isPresentationDisplay) 1 else Display.DEFAULT_DISPLAY
-        every { display.flags } returns if (isPresentationDisplay) Display.FLAG_PRESENTATION else 0
+        every { display.displayId } returns displayId
+        every { display.flags } returns displayFlags
 
         val displayManager = mockk<DisplayManager>()
         every { displayManager.getDisplay(any()) } returns display
@@ -92,6 +94,17 @@ class GamePad_test {
         val activity = mockActivity(isPresentationDisplay = true)
 
         assertFalse(GamePad.shouldShowGamePads(activity, appConfig))
+    }
+
+    @Test
+    fun `um display secundario que nao e de apresentacao continua mostrando o gamepad`() {
+        val appConfig = mockk<AppConfig>()
+        every { appConfig.getGamepad() } returns true
+        val activity = mockActivity(displayId = 1, displayFlags = 0)
+        mockkStatic(InputDevice::class)
+        every { InputDevice.getDeviceIds() } returns intArrayOf()
+
+        assertTrue(GamePad.shouldShowGamePads(activity, appConfig))
     }
 
     @Test
@@ -242,6 +255,13 @@ class GamePad_test {
         gamePad(intercept = null).eventHandler(Event.Direction(UNKNOWN_SOURCE, 1f, 0f, 0), retroView)
 
         verify(exactly = 0) { retroView.sendMotionEvent(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `sem callback a direcao vai para o core`() {
+        gamePad(intercept = null).eventHandler(Event.Direction(GLRetroView.MOTION_SOURCE_DPAD, 1f, 0f, 0), retroView)
+
+        verify(exactly = 1) { retroView.sendMotionEvent(GLRetroView.MOTION_SOURCE_DPAD, 1f, 0f) }
     }
 
     private companion object {

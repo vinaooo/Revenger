@@ -382,6 +382,60 @@ class GamePadLayoutAdjuster_test {
         assertEquals(200, (container.layoutParams as FrameLayout.LayoutParams).topMargin)
     }
 
+    @Test
+    fun `adjustPositionForOrientation em portrait iguala as alturas e aplica o offset depois do layout`() {
+        RuntimeEnvironment.setQualifiers("+port")
+        seedAppConfig(portraitOffset = 25)
+        val activity = Robolectric.buildActivity(Activity::class.java).setup().visible().get()
+        val parent = FrameLayout(activity)
+        val container = LinearLayout(activity).apply { layoutParams = FrameLayout.LayoutParams(1080, 200) }
+        val left = FrameLayout(activity).apply {
+            id = R.id.left_container
+            layoutParams = LinearLayout.LayoutParams(0, 150, 0.25f)
+        }
+        val right = FrameLayout(activity).apply {
+            id = R.id.right_container
+            layoutParams = LinearLayout.LayoutParams(0, 100, 0.25f)
+        }
+        container.addView(left)
+        container.addView(View(activity).apply { layoutParams = LinearLayout.LayoutParams(0, 0, 0.5f) })
+        container.addView(right)
+        parent.addView(container)
+        activity.setContentView(parent, ViewGroup.LayoutParams(1080, 1000))
+        shadowOf(Looper.getMainLooper()).idle()
+
+        adjuster.adjustPositionForOrientation(container)
+        shadowOf(Looper.getMainLooper()).idle()
+
+        assertEquals(150, right.minimumHeight)
+        // (1000 - 200) * (100 - 25) / 100
+        assertEquals(600, (container.layoutParams as FrameLayout.LayoutParams).bottomMargin)
+    }
+
+    @Test
+    fun `adjustPositionForOrientation em landscape volta aos pesos de landscape depois de portrait`() {
+        RuntimeEnvironment.setQualifiers("+land")
+        val (_, container) = buildHierarchy(parentHeight = 0, containerHeight = 0)
+        callAdjustGamePadSizes(container, 0.40f, 0.2f)
+
+        adjuster.adjustPositionForOrientation(container)
+
+        assertEquals(0.25f, (leftContainerOf(container).layoutParams as LinearLayout.LayoutParams).weight)
+        assertEquals(0.25f, (rightContainerOf(container).layoutParams as LinearLayout.LayoutParams).weight)
+        assertEquals(0.5f, (container.getChildAt(1).layoutParams as LinearLayout.LayoutParams).weight)
+        shadowOf(Looper.getMainLooper()).idle()
+    }
+
+    @Test
+    fun `equalizeGamePadHeights sem um dos lados nao faz nada e nao lanca`() {
+        val (_, container) = buildHierarchy(parentHeight = 1000, containerHeight = 400, leftHeight = 40)
+        container.removeView(rightContainerOf(container))
+
+        callEqualizeGamePadHeights(container)
+
+        assertEquals(0, leftContainerOf(container).minimumHeight)
+    }
+
     // --- applyPortraitOffset / applyLandscapeOffset: narrowed ClassCastException catch ---
 
     /**

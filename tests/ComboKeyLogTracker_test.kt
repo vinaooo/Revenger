@@ -108,6 +108,9 @@ class ComboKeyLogTracker_test {
         tracker.keyLog.add(KeyEvent.KEYCODE_BUTTON_A)
         tracker.keyLog.add(KeyEvent.KEYCODE_BUTTON_B)
         tracker.keyLog.add(KeyEvent.KEYCODE_DPAD_UP)
+        tracker.keyLog.add(KeyEvent.KEYCODE_DPAD_DOWN)
+        tracker.keyLog.add(KeyEvent.KEYCODE_DPAD_LEFT)
+        tracker.keyLog.add(KeyEvent.KEYCODE_DPAD_RIGHT)
 
         tracker.clearMenuActionButtons()
 
@@ -166,5 +169,36 @@ class ComboKeyLogTracker_test {
                 "latch resets once both combo keys are released",
                 tracker.getComboAlreadyTriggered()
         )
+    }
+
+    private fun trackerHoldingCombo(onCombo: () -> Unit): ComboKeyLogTracker {
+        callbacks = ControllerInputCallbacks(selectStartComboCallback = onCombo)
+        return newTracker().apply {
+            keyLog.add(KeyEvent.KEYCODE_BUTTON_START)
+            keyLog.add(KeyEvent.KEYCODE_BUTTON_SELECT)
+        }
+    }
+
+    @Test
+    fun `checkMenuKeyCombo does not fire right after the menu closed, even with the cooldown long over`() {
+        var fired = false
+        val tracker = trackerHoldingCombo { fired = true }
+        tracker.updateMenuCloseDebounceTime()
+
+        tracker.checkMenuKeyCombo()
+
+        assertFalse(fired)
+    }
+
+    @Test
+    fun `checkMenuKeyCombo does not fire again within the cooldown, even with the latch reset`() {
+        var callCount = 0
+        val tracker = trackerHoldingCombo { callCount++ }
+        tracker.checkMenuKeyCombo()
+        tracker.resetComboAlreadyTriggered()
+
+        tracker.checkMenuKeyCombo()
+
+        assertEquals(1, callCount)
     }
 }

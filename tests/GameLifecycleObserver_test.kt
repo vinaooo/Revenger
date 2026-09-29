@@ -91,6 +91,36 @@ class GameLifecycleObserverTest {
     }
 
     @Test
+    fun `entrar no PiP conclui a transicao pendente e a proxima pausa fora do PiP pausa`() {
+        observer.prepareForPipTransition()
+        observer.onEnteredPictureInPicture()
+
+        observer.onPause(activity)
+
+        verify { retroView.pause() }
+    }
+
+    @Test
+    fun `onResume conclui a transicao pendente e a proxima pausa fora do PiP pausa`() {
+        observer.prepareForPipTransition()
+        observer.onResume(activity)
+
+        observer.onPause(activity)
+
+        verify { retroView.pause() }
+    }
+
+    @Test
+    fun `depois de sair do PiP o proximo onResume retoma a emulacao normalmente`() {
+        observer.onEnteredPictureInPicture()
+        observer.onExitedPictureInPicture()
+
+        observer.onResume(activity)
+
+        verify(exactly = 1) { retroView.resume() }
+    }
+
+    @Test
     fun `onEnteredPictureInPicture congela o frame do core`() {
         observer.onEnteredPictureInPicture()
 

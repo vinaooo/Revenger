@@ -102,6 +102,42 @@ class GamePadButtonRouter_test {
         assertFalse(press(KeyEvent.KEYCODE_BUTTON_X))
     }
 
+    @Test
+    fun `A com o menu aberto confirma e nunca chega ao jogo, mesmo sem o bloqueio geral`() {
+        input.menuConfirmCallback = { fired += "confirm" }
+
+        assertTrue(press(KeyEvent.KEYCODE_BUTTON_A))
+        assertTrue(press(KeyEvent.KEYCODE_BUTTON_A, KeyEvent.ACTION_UP))
+
+        assertEquals(listOf("confirm"), fired)
+    }
+
+    @Test
+    fun `START sozinho com o menu fechado vai para o jogo`() {
+        menuOpen = false
+
+        assertFalse(press(KeyEvent.KEYCODE_BUTTON_START))
+    }
+
+    @Test
+    fun `com SELECT+START segurados os dois ficam fora do jogo mas outro botao chega`() {
+        menuOpen = false
+
+        press(KeyEvent.KEYCODE_BUTTON_SELECT)
+        assertTrue(press(KeyEvent.KEYCODE_BUTTON_START))
+
+        assertFalse(press(KeyEvent.KEYCODE_BUTTON_X))
+    }
+
+    @Test
+    fun `sem configuracao o botao de menu do controle nao abre o menu`() {
+        menuOpen = false
+
+        assertFalse(press(GAMEPAD_MENU_BUTTON))
+
+        assertTrue(fired.isEmpty())
+    }
+
     private companion object {
         // An action that is neither DOWN nor UP (the value of the deprecated ACTION_MULTIPLE).
         const val OTHER_ACTION = 2

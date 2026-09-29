@@ -1,5 +1,6 @@
 package com.vinaooo.revenger.performance
 
+import android.app.ActivityManager
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import java.util.concurrent.ConcurrentHashMap
@@ -10,6 +11,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 /**
@@ -75,5 +77,21 @@ class HardwareMetricsCollector_test {
         collector.startBasicSystemMonitoring()
 
         assertTrue(performanceData.isEmpty())
+    }
+
+    @Test
+    fun `getMemoryInfo le a memoria disponivel e total do ActivityManager`() {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        shadowOf(activityManager).setMemoryInfo(
+                ActivityManager.MemoryInfo().apply {
+                    availMem = 123_456L
+                    totalMem = 789_012L
+                }
+        )
+
+        val memoryInfo = collector.getMemoryInfo(context)
+
+        assertEquals(123_456L, memoryInfo.available)
+        assertEquals(789_012L, memoryInfo.total)
     }
 }
