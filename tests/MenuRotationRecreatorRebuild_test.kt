@@ -7,19 +7,25 @@ import androidx.fragment.app.Fragment
 import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.RevengerApplication
+import com.vinaooo.revenger.managers.SaveStateManager
+import com.vinaooo.revenger.managers.SessionSlotTracker
 import com.vinaooo.revenger.ui.retromenu3.AboutFragment
 import com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitFragment
+import com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment
+import com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment
 import com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment
 import com.vinaooo.revenger.ui.retromenu3.MenuManager
 import com.vinaooo.revenger.ui.retromenu3.MenuState
 import com.vinaooo.revenger.ui.retromenu3.ProgressFragment
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
+import com.vinaooo.revenger.ui.retromenu3.SaveSlotsFragment
 import com.vinaooo.revenger.ui.retromenu3.ScreenshotHostActivity
 import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
 import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
+import com.vinaooo.revenger.views.menu.RotationMenuStateResolver
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -60,6 +66,8 @@ class MenuRotationRecreatorRebuild_test {
 
     @Before
     fun setUp() {
+        SaveStateManager.clearInstance()
+        SessionSlotTracker.clearInstance()
         every { viewModel.isAnyMenuActive() } returns true
         every { viewModel.navigationController } returns navigationController
         every { viewModel.getMenuManager() } returns menuManager
@@ -80,6 +88,8 @@ class MenuRotationRecreatorRebuild_test {
     @After
     fun tearDown() {
         controller.pause().stop().destroy()
+        SaveStateManager.clearInstance()
+        SessionSlotTracker.clearInstance()
     }
 
     private val fragmentManager get() = activity.supportFragmentManager
@@ -202,17 +212,90 @@ class MenuRotationRecreatorRebuild_test {
         assertFocused(R.id.exit_menu_option_a)
     }
 
-    @Test
-    fun `submenu sem registro de rotacao ainda e reconstruido e sincronizado`() {
-        val submenu = rebuildSubmenu(MenuState.MANAGE_SAVES_MENU)
+    /**
+     * Rotates with [grid] open on top of [parentState]'s submenu, as a device has it: the grid
+     * opened through the navigation controller, so the menu manager still reports the parent and
+     * two submenus are on the backstack. The grid must come back on top of a new parent, with the
+     * menu manager left on the parent, navigation synced to the grid and the grid focused.
+     */
+    private fun rebuildNestedGrid(grid: Fragment, gridState: MenuState, parentState: MenuState): Fragment? {
+        every { menuManager.getCurrentState() } returns parentState
+        showBeforeRotation(asSubmenu = true)
+        showBeforeRotation(asSubmenu = true)
 
-        assertTrue(submenu is ManageSavesFragment)
-        verify { navigationController.syncState(MenuType.MANAGE_SAVES, 0, false) }
-        verify(exactly = 0) { viewModel.registerSettingsMenuFragmentForRotation(any()) }
-        verify(exactly = 0) { viewModel.registerProgressFragmentForRotation(any()) }
-        verify(exactly = 0) { viewModel.registerAboutFragmentForRotation(any()) }
-        verify(exactly = 0) { viewModel.registerExitFragmentForRotation(any()) }
+        recreator.scheduleMenuRecreationAfterRotation(grid, hasBackStack = true, currentState = parentState)
+        advance(SETTLE_MS)
+
+        val rebuilt = containerFragment()
+        assertEquals(grid.javaClass, rebuilt?.javaClass)
+        assertEquals(2, fragmentManager.backStackEntryCount)
+        verifyOrder {
+            viewModel.updateRetroMenu3FragmentReference(any())
+            menuManager.navigateToState(parentState)
+            navigationController.syncState(RotationMenuStateResolver.resolveNavigationMenuType(gridState), 0, false)
+        }
+        verify(exactly = 0) { menuManager.navigateToState(gridState) }
+        assertTrue(rebuilt?.requireView()?.isFocused == true)
+
+        // Back pops to the parent the rebuild put underneath, the one registered with the ViewModel.
+        fragmentManager.popBackStackImmediate()
+        return containerFragment()
+    }
+
+    @Test
+    fun `grade de salvar e reconstruida sobre Progress, e voltar leva a Progress`() {
+        val progress = rebuildNestedGrid(SaveSlotsFragment(), MenuState.SAVE_SLOTS_MENU, MenuState.PROGRESS_MENU)
+
+        assertTrue(progress is ProgressFragment)
+        verify { viewModel.registerProgressFragmentForRotation(progress as ProgressFragment) }
+    }
+
+    @Test
+    fun `grade de carregar e reconstruida sobre Progress, e voltar leva a Progress`() {
+        val progress = rebuildNestedGrid(LoadSlotsFragment(), MenuState.LOAD_SLOTS_MENU, MenuState.PROGRESS_MENU)
+
+        assertTrue(progress is ProgressFragment)
+        verify { viewModel.registerProgressFragmentForRotation(progress as ProgressFragment) }
+    }
+
+    @Test
+    fun `grade de gerenciar e reconstruida sobre Progress, e voltar leva a Progress`() {
+        val progress = rebuildNestedGrid(ManageSavesFragment(), MenuState.MANAGE_SAVES_MENU, MenuState.PROGRESS_MENU)
+
+        assertTrue(progress is ProgressFragment)
+        verify { viewModel.registerProgressFragmentForRotation(progress as ProgressFragment) }
+    }
+
+    @Test
+    fun `grade de salvar ao sair e reconstruida sobre Exit, e voltar leva a Exit`() {
+        val exit = rebuildNestedGrid(ExitSaveGridFragment(), MenuState.EXIT_SAVE_SLOTS_MENU, MenuState.EXIT_MENU)
+
+        assertTrue(exit is ExitFragment)
+        verify { viewModel.registerExitFragmentForRotation(exit as ExitFragment) }
+    }
+
+    @Test
+    fun `grade de salvar ao sair aberta sozinha e reconstruida sem Exit por baixo`() {
+        // The PiP "Save and Exit" path opens the grid on its own: one backstack entry, and Back
+        // from it closes the menu. The rebuild must not put an Exit menu underneath.
+        every { menuManager.getCurrentState() } returns MenuState.MAIN_MENU
+        showBeforeRotation(asSubmenu = true)
+
+        recreator.scheduleMenuRecreationAfterRotation(
+                ExitSaveGridFragment(),
+                hasBackStack = true,
+                currentState = MenuState.MAIN_MENU
+        )
+        advance(SETTLE_MS)
+
+        val grid = containerFragment()
+        assertTrue(grid is ExitSaveGridFragment)
         assertEquals(1, fragmentManager.backStackEntryCount)
+        verify { menuManager.navigateToState(MenuState.EXIT_SAVE_SLOTS_MENU) }
+        verify { navigationController.syncState(MenuType.EXIT_SAVE_SLOTS, 0, false) }
+        verify(exactly = 0) { viewModel.registerExitFragmentForRotation(any()) }
+        verify(exactly = 0) { viewModel.registerProgressFragmentForRotation(any()) }
+        assertTrue(grid?.requireView()?.isFocused == true)
     }
 
     @Test

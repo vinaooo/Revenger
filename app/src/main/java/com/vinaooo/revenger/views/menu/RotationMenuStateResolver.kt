@@ -84,9 +84,27 @@ object RotationMenuStateResolver {
 
     /**
      * The submenu a nested submenu opens from, which the rotation rebuild must put back underneath
-     * it so Back returns there. Only [MenuState.CORE_VARIABLES_MENU] is nested (it opens from
-     * About); every other state returns null.
+     * it so Back returns there. Core Variables opens from About, the Save, Load and Manage grids
+     * from Progress, and the exit save grid from Exit, all through the NavigationController, so
+     * the menu manager stays on that parent while they are open. Every other state returns null.
+     *
+     * @param backStackCount backstack entries before the rotation. The parent is only returned
+     *   when there were at least two, i.e. the parent really was underneath. The PiP "Save and
+     *   Exit" path opens the exit save grid on its own (one entry), and Back from there closes the
+     *   menu, so it must not get an Exit menu underneath.
      */
-    fun resolveParentState(state: MenuState): MenuState? =
-            if (state == MenuState.CORE_VARIABLES_MENU) MenuState.ABOUT_MENU else null
+    fun resolveParentState(state: MenuState, backStackCount: Int): MenuState? {
+        if (backStackCount < NESTED_BACK_STACK_COUNT) return null
+        return when (state) {
+            MenuState.CORE_VARIABLES_MENU -> MenuState.ABOUT_MENU
+            MenuState.SAVE_SLOTS_MENU,
+            MenuState.LOAD_SLOTS_MENU,
+            MenuState.MANAGE_SAVES_MENU -> MenuState.PROGRESS_MENU
+            MenuState.EXIT_SAVE_SLOTS_MENU -> MenuState.EXIT_MENU
+            else -> null
+        }
+    }
+
+    /** A nested submenu and the parent under it: two backstack entries. */
+    private const val NESTED_BACK_STACK_COUNT = 2
 }

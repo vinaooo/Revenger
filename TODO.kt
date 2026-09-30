@@ -31,9 +31,6 @@
 //        por rotação -- reapplyOrientation() re-seta requestedOrientation, causando um
 //        segundo onConfigurationChanged. As duas cadeias (~1100ms cada) só convergem certo
 //        por sorte de timing hoje.
-// FIXME: GameActivity.kt (createFragmentForRotationState/registerSubmenuAndSyncNavigationAfterRotation)
-//        só re-registra Settings/Progress/About/Exit no ViewModel e restaura foco após rotação;
-//        SaveSlots/LoadSlots/ManageSaves/ExitSaveGrid ficam sem registro e sem foco restaurado.
 
 // [ ]: Fazer
 // [x]: Feito
