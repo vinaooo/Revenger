@@ -122,6 +122,11 @@ class MenuRotationRecreator(
                 // Criar instância do Fragment correto baseado no estado efetivo
                 val newFragment = RotationFragmentFactory.create(effectiveState)
 
+                // A nested submenu (Core Variables, a save grid) gets its parent rebuilt under it,
+                // decided from the backstack before the teardown below empties it.
+                val parentState =
+                        RotationMenuStateResolver.resolveParentState(effectiveState, currentBackStackCount)
+
                 // NOTE: NavigationController syncState will be called AFTER all fragments
                 // to be created and registered (in postDelayed after registrar submenu).
                 // Isso evita que registerFragment() sobrescreva o estado.
@@ -133,7 +138,7 @@ class MenuRotationRecreator(
                 // Aguardar limpeza completa
                 Handler(Looper.getMainLooper())
                         .postDelayed(
-                                { rebuildMenuHierarchyAfterRotation(effectiveState, newFragment, isMainMenu) },
+                                { rebuildMenuHierarchyAfterRotation(effectiveState, parentState, newFragment, isMainMenu) },
                                 TEARDOWN_SETTLE_DELAY_MS
                         )
 
@@ -169,6 +174,7 @@ class MenuRotationRecreator(
          */
         private fun rebuildMenuHierarchyAfterRotation(
                 effectiveState: MenuState,
+                parentState: MenuState?,
                 newFragment: MenuFragmentBase,
                 isMainMenu: Boolean
         ) {
@@ -177,7 +183,7 @@ class MenuRotationRecreator(
                 if (isMainMenu) {
                         rebuildMainMenuAfterRotation()
                 } else {
-                        rebuildSubmenuStackAfterRotation(effectiveState, newFragment)
+                        rebuildSubmenuStackAfterRotation(effectiveState, parentState, newFragment)
                 }
         }
 
@@ -237,6 +243,7 @@ class MenuRotationRecreator(
          */
         private fun rebuildSubmenuStackAfterRotation(
                 effectiveState: MenuState,
+                parentState: MenuState?,
                 newFragment: MenuFragmentBase
         ) {
                 val fragmentManager = activity.supportFragmentManager
@@ -258,15 +265,14 @@ class MenuRotationRecreator(
                 // This ensures getCurrentFragment() returns the correct Fragment. A nested
                 // submenu is opened by the NavigationController without a menu-manager state of
                 // its own, so the manager goes back to its parent's state, as before the rotation.
-                val menuManagerState =
-                        RotationMenuStateResolver.resolveParentState(effectiveState) ?: effectiveState
+                val menuManagerState = parentState ?: effectiveState
                 viewModel.getMenuManager().navigateToState(menuManagerState)
                 Log.d(TAG, "[ORIENTATION] 🎯 MenuStateManager updated to state: $menuManagerState")
 
                 // 2. Aguardar e adicionar submenu no topo (COM backstack)
                 Handler(Looper.getMainLooper())
                         .postDelayed(
-                                { addSubmenuOnTopAfterRotation(effectiveState, newFragment) },
+                                { addSubmenuOnTopAfterRotation(effectiveState, parentState, newFragment) },
                                 SUBMENU_BASE_SETTLE_DELAY_MS
                         ) // Delay para garantir que RetroMenu3 foi completamente adicionado
         }
@@ -280,10 +286,13 @@ class MenuRotationRecreator(
          * +100ms and focus restore at +600ms, both measured from here. Nesting the focus restore
          * inside the registration callback would push it out to +700ms.
          */
-        private fun addSubmenuOnTopAfterRotation(effectiveState: MenuState, newFragment: MenuFragmentBase) {
+        private fun addSubmenuOnTopAfterRotation(
+                effectiveState: MenuState,
+                parentState: MenuState?,
+                newFragment: MenuFragmentBase
+        ) {
                 val fragmentManager = activity.supportFragmentManager
 
-                val parentState = RotationMenuStateResolver.resolveParentState(effectiveState)
                 val parentFragment = parentState?.let { RotationFragmentFactory.create(it) }
                 parentFragment?.let { parent ->
                         val parentTag = parent::class.java.simpleName
@@ -332,8 +341,9 @@ class MenuRotationRecreator(
          * [registeredState] and [registeredFragment] are the submenu the ViewModel tracks: the
          * rebuilt submenu itself, or for a nested submenu its parent (the nested one registers
          * itself with the NavigationController when its view is created). Only Settings,
-         * Progress, About and Exit have a registration call; the save submenus fall through to a
-         * warning. That gap is pre-existing and deliberately left alone here.
+         * Progress, About and Exit have a registration call. A nested save grid registers its
+         * Progress or Exit parent; a save grid opened on its own (the PiP "Save and Exit" grid)
+         * has no ViewModel registration, not even before the rotation.
          */
         private fun registerSubmenuAndSyncNavigationAfterRotation(
                 effectiveState: MenuState,
@@ -360,7 +370,7 @@ class MenuRotationRecreator(
                                 Log.d(TAG, "[ORIENTATION] 📋 ExitFragment registered (rotation)")
                         }
                         else -> {
-                                Log.w(TAG, "[ORIENTATION] ⚠️ Unknown state, submenu not registered")
+                                Log.d(TAG, "[ORIENTATION] 📋 $registeredState has no ViewModel registration")
                         }
                 }
 
@@ -380,27 +390,31 @@ class MenuRotationRecreator(
          * Terminal step of the submenu branch: restore focus to the submenu's first focusable
          * view.
          *
-         * Settings, Progress, About, Core Variables and Exit map to a view id; the save submenus
-         * get `null` and no focus is restored. That gap is pre-existing and deliberately left
-         * alone here.
+         * Settings, Progress, About, Core Variables and Exit focus their first item. The save
+         * grids focus their root view instead: their selection is drawn at slot 0, which has no
+         * view id, and focusing the grid's Back button would put focus away from the selection.
          */
         private fun restoreSubmenuFocusAfterRotation(effectiveState: MenuState) {
-                val firstFocusableId =
+                val firstItem: View? =
                         when (effectiveState) {
-                                MenuState.SETTINGS_MENU -> R.id.settings_sound
-                                MenuState.PROGRESS_MENU -> R.id.progress_load_state
-                                MenuState.ABOUT_MENU -> R.id.about_back
-                                MenuState.CORE_VARIABLES_MENU -> R.id.variable_back
-                                MenuState.EXIT_MENU -> R.id.exit_menu_option_a
-                                else -> null
+                                MenuState.SETTINGS_MENU -> activity.findViewById(R.id.settings_sound)
+                                MenuState.PROGRESS_MENU -> activity.findViewById(R.id.progress_load_state)
+                                MenuState.ABOUT_MENU -> activity.findViewById(R.id.about_back)
+                                MenuState.CORE_VARIABLES_MENU -> activity.findViewById(R.id.variable_back)
+                                MenuState.EXIT_MENU -> activity.findViewById(R.id.exit_menu_option_a)
+                                MenuState.SAVE_SLOTS_MENU,
+                                MenuState.LOAD_SLOTS_MENU,
+                                MenuState.MANAGE_SAVES_MENU,
+                                MenuState.EXIT_SAVE_SLOTS_MENU ->
+                                        activity.supportFragmentManager
+                                                .findFragmentById(R.id.menu_container)
+                                                ?.view
+                                MenuState.MAIN_MENU -> null
                         }
 
-                if (firstFocusableId != null) {
-                        val firstItem = activity.findViewById<View>(firstFocusableId)
-                        if (firstItem != null && firstItem.isFocusable) {
-                                firstItem.requestFocus()
-                                Log.d(TAG, "[ORIENTATION] 🎮 Foco restaurado no submenu")
-                        }
+                if (firstItem != null && firstItem.isFocusable) {
+                        firstItem.requestFocus()
+                        Log.d(TAG, "[ORIENTATION] 🎮 Foco restaurado no submenu")
                 }
         }
 }

@@ -20,7 +20,7 @@ The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope
 | 2 | 24: menus clear pending input on an orphan `ControllerInput` | Input / ViewModels | Yes | 4th |
 | 3 | 30: each rotation rebuilds the menu twice | Rotation | Yes (intermittent) | 3rd |
 | 4 | ~~34~~ (removed): rotating with Core Variables open falls back to the main menu | Rotation | Yes | 1st, done in #201 |
-| 5 | 34: save submenus aren't re-registered or refocused after a rotation | Rotation | Yes | 2nd |
+| 5 | ~~34~~ (removed): save submenus aren't re-registered or refocused after a rotation | Rotation | Yes | 2nd, done in #202 |
 
 ## Items, in the order to do them
 
@@ -32,7 +32,9 @@ The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope
 - **Still true:** `RotationMenuStateResolver.kt:69` documents that `MenuState.CORE_VARIABLES_MENU` has no registration path and falls back to `MenuType.MAIN`.
 - **Why first:** small and self-contained, and needs no device.
 
-### [ ] 5. Save submenus aren't re-registered or refocused after a rotation
+### [x] 5. Save submenus aren't re-registered or refocused after a rotation (#202)
+
+- **What it really did:** the save grids are never registered with the ViewModel, not even without a rotation, so no registration was missing. They are nested submenus like Core Variables: Save, Load and Manage open from Progress, and the exit save grid from Exit, through the NavigationController, so the menu manager stays on the parent and two submenus are on the backstack. The rotation rebuilt only main menu → grid, and moved the menu manager to the grid's state, so the next Back showed the main menu while navigation still thought Progress (or Exit) was open. #202 rebuilds main menu → parent → grid, keeps the menu manager on the parent, registers that parent, and focuses the grid. The PiP "Save and Exit" grid, which opens on its own with one backstack entry, is still rebuilt without an Exit menu under it.
 
 - **FIXME:** after a rotation only Settings, Progress, About and Exit are registered with the ViewModel again and get focus back. SaveSlots, LoadSlots, ManageSaves and ExitSaveGrid get neither.
 - **Location is out of date in `TODO.kt`:** the FIXME points to `GameActivity.kt` (`createFragmentForRotationState` / `registerSubmenuAndSyncNavigationAfterRotation`). That code has since moved:

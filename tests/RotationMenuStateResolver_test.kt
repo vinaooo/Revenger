@@ -292,15 +292,36 @@ class RotationMenuStateResolver_test {
     // resolveParentState: only a nested submenu has a parent to rebuild underneath it.
     // ---------------------------------------------------------------------------------------
 
+    private val parents =
+            mapOf(
+                    MenuState.CORE_VARIABLES_MENU to MenuState.ABOUT_MENU,
+                    MenuState.SAVE_SLOTS_MENU to MenuState.PROGRESS_MENU,
+                    MenuState.LOAD_SLOTS_MENU to MenuState.PROGRESS_MENU,
+                    MenuState.MANAGE_SAVES_MENU to MenuState.PROGRESS_MENU,
+                    MenuState.EXIT_SAVE_SLOTS_MENU to MenuState.EXIT_MENU
+            )
+
     @Test
-    fun `resolveParentState poe About sob Core Variables`() {
-        assertEquals(MenuState.ABOUT_MENU, RotationMenuStateResolver.resolveParentState(MenuState.CORE_VARIABLES_MENU))
+    fun `resolveParentState poe o menu de origem sob cada submenu aninhado`() {
+        parents.forEach { (state, parent) ->
+            assertEquals("estado $state", parent, RotationMenuStateResolver.resolveParentState(state, 2))
+            assertEquals("estado $state", parent, RotationMenuStateResolver.resolveParentState(state, 3))
+        }
+    }
+
+    @Test
+    fun `resolveParentState nao tem pai com menos de duas entradas no backstack`() {
+        // The PiP "Save and Exit" grid opens on its own, with one entry and no Exit under it.
+        parents.keys.forEach { state ->
+            assertEquals("estado $state", null, RotationMenuStateResolver.resolveParentState(state, 1))
+            assertEquals("estado $state", null, RotationMenuStateResolver.resolveParentState(state, 0))
+        }
     }
 
     @Test
     fun `resolveParentState nao tem pai para os outros estados`() {
-        MenuState.values().filter { it != MenuState.CORE_VARIABLES_MENU }.forEach {
-            assertEquals("estado $it", null, RotationMenuStateResolver.resolveParentState(it))
+        MenuState.values().filter { it !in parents }.forEach {
+            assertEquals("estado $it", null, RotationMenuStateResolver.resolveParentState(it, 2))
         }
     }
 }

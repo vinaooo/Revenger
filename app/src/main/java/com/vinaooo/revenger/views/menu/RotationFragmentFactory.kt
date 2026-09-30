@@ -19,9 +19,6 @@ import com.vinaooo.revenger.ui.retromenu3.SettingsMenuFragment
  * [MenuState]. Extracted verbatim out of `GameActivity.createFragmentForRotationState`, alongside
  * [RotationMenuStateResolver], to keep `controllers/MenuRotationRecreator` under detekt's
  * `TooManyFunctions` threshold.
- *
- * Note this enumerates a different set of states than the registration and focus-restore steps in
- * `MenuRotationRecreator`; those gaps are pre-existing and deliberately unchanged.
  */
 object RotationFragmentFactory {
         private const val TAG = "RotationFragmentFactory"
