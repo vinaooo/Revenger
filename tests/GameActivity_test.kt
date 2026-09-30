@@ -184,8 +184,9 @@ class GameActivity_test {
         val right = activity.findViewById<FrameLayout>(R.id.right_container)
         verify { gamePads.setupGamePads(activity, left, right) }
         assertNotNull(getField(viewModel, "retroMenu3Fragment"))
-        assertSame(activity.findViewById<View>(R.id.menu_container), (getField(viewModel, "menuContainerViewRef") as java.lang.ref.WeakReference<*>).get())
-        assertSame(activity.findViewById<View>(R.id.containers), (getField(viewModel, "gamePadContainerViewRef") as java.lang.ref.WeakReference<*>).get())
+        fun heldByViewModel(name: String) = (getField(viewModel, name) as java.lang.ref.WeakReference<*>).get()
+        assertSame(activity.findViewById<View>(R.id.menu_container), heldByViewModel("menuContainerViewRef"))
+        assertSame(activity.findViewById<View>(R.id.containers), heldByViewModel("gamePadContainerViewRef"))
         assertNotNull(viewModel.navigationController?.onMenuClosedCallback)
     }
 
