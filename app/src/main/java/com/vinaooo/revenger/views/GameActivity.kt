@@ -288,7 +288,7 @@ class GameActivity : FragmentActivity(), FloatingButtonVisibilityHost, PipHost {
                         pipController.updatePictureInPictureParams()
                 }
 
-                rotationController.maybeRecreateMenuAfterRotation()
+                rotationController.maybeRecreateMenuAfterRotation(newConfig.orientation)
         }
 
         /** Starts the performance profiler and shows its debug overlay once the layout is ready. */

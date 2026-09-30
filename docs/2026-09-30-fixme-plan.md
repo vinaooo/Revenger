@@ -18,7 +18,7 @@ The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope
 |---|---|---|---|---|
 | 1 | 19: Back/Escape can fire twice on a long press | Keyboard input | Only on a hold past 200 ms | 5th |
 | 2 | 24: menus clear pending input on an orphan `ControllerInput` | Input / ViewModels | Yes | 4th |
-| 3 | 30: each rotation rebuilds the menu twice | Rotation | Yes (intermittent) | 3rd |
+| 3 | ~~30~~ (removed): each rotation rebuilds the menu twice | Rotation | Yes (intermittent) | 3rd, done in #203 |
 | 4 | ~~34~~ (removed): rotating with Core Variables open falls back to the main menu | Rotation | Yes | 1st, done in #201 |
 | 5 | ~~34~~ (removed): save submenus aren't re-registered or refocused after a rotation | Rotation | Yes | 2nd, done in #202 |
 
@@ -43,7 +43,10 @@ The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope
   - `views/menu/RotationFragmentFactory.kt` already builds `SaveSlotsFragment`, `ManageSavesFragment` and the others. Only the registration and focus steps are missing.
 - **Why second:** it's in the same code as item 4, and the fix should also correct the location in the FIXME text.
 
-### [ ] 3. Each rotation rebuilds the menu twice
+### [x] 3. Each rotation rebuilds the menu twice (#203)
+
+- **What #203 changed:** `RotationController` now remembers the orientation the menu was laid out for, and rebuilds the menu only when `onConfigurationChanged` brings a different one. Every other callback still re-registers the menu callbacks but starts no rebuild chain. That covers a second callback for the same rotation, and the uiMode, screen size and screen layout changes the activity also handles itself. `layout-land` is the only configuration qualifier the menus use.
+- **Cause not confirmed on a device:** setting `requestedOrientation` to the value it already has doesn't normally cause a configuration change, so the FIXME's explanation may be wrong. The guard works whatever sends the extra callback. Counting the `CHECKING FOR MENU AFTER ROTATION` log lines during one rotation would settle it.
 
 - **FIXME:** `GameActivity.onConfigurationChanged` runs the whole menu-rebuild chain twice per rotation. `reapplyOrientation()` sets `requestedOrientation` again, which causes a second `onConfigurationChanged`. The two chains (about 1,100 ms each) end up in the right state only by lucky timing.
 - **Risk:** the highest of the five. It probably causes intermittent glitches after a rotation, and a fix touches the rotation flow that items 4 and 5 depend on.

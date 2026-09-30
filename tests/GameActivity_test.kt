@@ -365,7 +365,7 @@ class GameActivity_test {
 
         verify { rotation.reapplyOrientationIfNeeded(newConfig) }
         verify { pip.updatePictureInPictureParams() }
-        verify { rotation.maybeRecreateMenuAfterRotation() }
+        verify { rotation.maybeRecreateMenuAfterRotation(Configuration.ORIENTATION_LANDSCAPE) }
     }
 
     @Test
