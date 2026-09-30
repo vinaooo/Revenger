@@ -95,7 +95,7 @@ Launch flow: `views/SplashActivity` (CRT boot animation, `ui/splash/CRTBootView`
 
 ### RetroMenu3 — the in‑game menu (`ui/retromenu3/`)
 
-Command Pattern + State Machine. Navigable by touch D‑pad, physical gamepad, and keyboard simultaneously.
+Command Pattern + State Machine. Navigable by touch D‑pad, physical gamepad, and keyboard simultaneously. Keyboard support is experimental: it has only been checked by unit tests, never on a device, and its pending device checks are listed in `TODO.kt`.
 
 - `RetroMenu3Fragment` (UI) ↔ `MenuViewModel` (`StateFlow` is the canonical UI state carrier)
 - `MenuSystem` orchestrates; `MenuActionHandler` (actions), `SubmenuCoordinator` (submenus), `MenuViewManager` (view updates)
