@@ -4,8 +4,11 @@ import android.os.Looper
 import android.view.View
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
+import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.R
+import com.vinaooo.revenger.RevengerApplication
 import com.vinaooo.revenger.ui.retromenu3.AboutFragment
+import com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitFragment
 import com.vinaooo.revenger.ui.retromenu3.ManageSavesFragment
 import com.vinaooo.revenger.ui.retromenu3.MenuManager
@@ -210,6 +213,46 @@ class MenuRotationRecreatorRebuild_test {
         verify(exactly = 0) { viewModel.registerAboutFragmentForRotation(any()) }
         verify(exactly = 0) { viewModel.registerExitFragmentForRotation(any()) }
         assertEquals(1, fragmentManager.backStackEntryCount)
+    }
+
+    @Test
+    fun `Core Variables e reconstruido sobre About, e voltar leva a About`() {
+        // As on a device: Core Variables opens from About through the navigation controller, so
+        // the menu manager still reports About and two submenus are on the backstack.
+        val appConfigField =
+                RevengerApplication::class.java.getDeclaredField("appConfig").apply { isAccessible = true }
+        val originalAppConfig = appConfigField.get(null)
+        appConfigField.set(null, mockk<AppConfig>(relaxed = true) { every { getVariables() } returns "opt_a=1" })
+        try {
+            every { menuManager.getCurrentState() } returns MenuState.ABOUT_MENU
+            showBeforeRotation(asSubmenu = true)
+            showBeforeRotation(asSubmenu = true)
+
+            recreator.scheduleMenuRecreationAfterRotation(
+                    CoreVariablesFragment(),
+                    hasBackStack = true,
+                    currentState = MenuState.ABOUT_MENU
+            )
+            advance(SETTLE_MS)
+
+            assertTrue(containerFragment() is CoreVariablesFragment)
+            assertEquals(2, fragmentManager.backStackEntryCount)
+            verifyOrder {
+                viewModel.updateRetroMenu3FragmentReference(any())
+                menuManager.navigateToState(MenuState.ABOUT_MENU)
+                navigationController.syncState(MenuType.CORE_VARIABLES, 0, false)
+            }
+            verify(exactly = 0) { menuManager.navigateToState(MenuState.CORE_VARIABLES_MENU) }
+            assertFocused(R.id.variable_back)
+
+            // Back pops to the About that was registered, the one the rebuild put underneath.
+            fragmentManager.popBackStackImmediate()
+            val about = containerFragment()
+            assertTrue(about is AboutFragment)
+            verify { viewModel.registerAboutFragmentForRotation(about as AboutFragment) }
+        } finally {
+            appConfigField.set(null, originalAppConfig)
+        }
     }
 
     private companion object {

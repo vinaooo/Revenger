@@ -19,13 +19,14 @@ The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope
 | 1 | 19: Back/Escape can fire twice on a long press | Keyboard input | Only on a hold past 200 ms | 5th |
 | 2 | 24: menus clear pending input on an orphan `ControllerInput` | Input / ViewModels | Yes | 4th |
 | 3 | 30: each rotation rebuilds the menu twice | Rotation | Yes (intermittent) | 3rd |
-| 4 | 34: rotating with Core Variables open falls back to the main menu | Rotation | Yes | 1st |
-| 5 | 37: save submenus aren't re-registered or refocused after a rotation | Rotation | Yes | 2nd |
+| 4 | ~~34~~ (removed): rotating with Core Variables open falls back to the main menu | Rotation | Yes | 1st, done in #201 |
+| 5 | 34: save submenus aren't re-registered or refocused after a rotation | Rotation | Yes | 2nd |
 
 ## Items, in the order to do them
 
-### [ ] 4. Rotating with Core Variables open falls back to the main menu
+### [x] 4. Rotating with Core Variables open falls back to the main menu (#201)
 
+- **What it really did:** the menu manager still reports About while Core Variables is open (Core Variables opens through the NavigationController, not the menu manager), so rotating rebuilt About, not the main menu. The navigation stack kept its extra About level, so the next Back showed the main menu while navigation still thought About was open. #201 rebuilds main menu → About → Core Variables, keeps the menu manager on About, registers that About, and restores focus to Core Variables' Back item.
 - **FIXME:** `views/menu/RotationMenuStateResolver` has no mapping for `CoreVariablesFragment`. Rotating with that submenu open lands on the main menu instead of rebuilding it.
 - **How users hit it:** About → Core Variables (`AboutFragment` navigates to `MenuType.CORE_VARIABLES`), then rotate the device.
 - **Still true:** `RotationMenuStateResolver.kt:69` documents that `MenuState.CORE_VARIABLES_MENU` has no registration path and falls back to `MenuType.MAIN`.

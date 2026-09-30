@@ -1,6 +1,7 @@
 package com.vinaooo.revenger.views.menu
 
 import com.vinaooo.revenger.ui.retromenu3.AboutFragment
+import com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment
 import com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment
@@ -75,9 +76,7 @@ class RotationFragmentFactory_test {
     }
 
     @Test
-    fun `estado sem branch dedicado cai no fallback RetroMenu3Fragment`() {
-        // CORE_VARIABLES_MENU has no dedicated branch in the source switch; same fallback as
-        // before the extraction.
-        assertTrue(RotationFragmentFactory.create(MenuState.CORE_VARIABLES_MENU) is RetroMenu3Fragment)
+    fun `CORE_VARIABLES_MENU cria CoreVariablesFragment`() {
+        assertTrue(RotationFragmentFactory.create(MenuState.CORE_VARIABLES_MENU) is CoreVariablesFragment)
     }
 }

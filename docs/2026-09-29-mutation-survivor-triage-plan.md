@@ -193,4 +193,4 @@ python3 tools/mutation/mutation_testing.py --all --report-dir ~/revenger-mutatio
 
 There are fewer mutants because the items deleted dead code. None of the 110 survivors is new: each one also survived its item's run and is listed as equivalent in that item's PR (#188–#197). None of the mutants the baseline killed survives now.
 
-The run took about 13 hours. `--full-jobs 3` ran out of the 24 GB of RAM (swap kept growing), so it was resumed with `--jobs 3 --full-jobs 1` and later `--jobs 2 --full-jobs 1`. A survivor needs a full-suite run, about 8 minutes each, so with one full run at a time the survivors take most of the time.
+The run took about 13 hours. `--full-jobs 3` ran out of the machine's RAM (swap kept growing), so it was resumed with `--jobs 3 --full-jobs 1` and later `--jobs 2 --full-jobs 1`. A survivor needs a full-suite run, about 8 minutes each, so with one full run at a time the survivors take most of the time.
