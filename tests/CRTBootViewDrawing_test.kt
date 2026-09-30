@@ -83,7 +83,7 @@ class CRTBootViewDrawing_test {
         }
         assertTrue(line.brightness(28, CENTER_Y) > 0)
         assertTrue(line.brightness(172, CENTER_Y) > 0)
-        for ((x, y) in listOf(10 to CENTER_Y, 190 to CENTER_Y, 15 to 40, 185 to 40, 15 to 80, 185 to 80)) {
+        for ((x, y) in listOf(10 to CENTER_Y, 190 to CENTER_Y, 15 to 40, 185 to 40, 15 to 80, 185 to 80, 17 to 30)) {
             assertEquals("($x, $y)", 0, line.brightness(x, y))
         }
 
