@@ -31,9 +31,6 @@
 //        por rotação -- reapplyOrientation() re-seta requestedOrientation, causando um
 //        segundo onConfigurationChanged. As duas cadeias (~1100ms cada) só convergem certo
 //        por sorte de timing hoje.
-// FIXME: views/menu/RotationMenuStateResolver não mapeia CoreVariablesFragment -- rotacionar
-//        com esse submenu aberto cai pro menu principal em vez de recriá-lo. Alcançável pelo
-//        usuário: AboutFragment.kt navega para MenuType.CORE_VARIABLES.
 // FIXME: GameActivity.kt (createFragmentForRotationState/registerSubmenuAndSyncNavigationAfterRotation)
 //        só re-registra Settings/Progress/About/Exit no ViewModel e restaura foco após rotação;
 //        SaveSlots/LoadSlots/ManageSaves/ExitSaveGrid ficam sem registro e sem foco restaurado.

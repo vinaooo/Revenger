@@ -2,6 +2,7 @@ package com.vinaooo.revenger.views.menu
 
 import androidx.fragment.app.Fragment
 import com.vinaooo.revenger.ui.retromenu3.AboutFragment
+import com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment
 import com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment
@@ -62,6 +63,20 @@ class RotationMenuStateResolver_test {
                         AboutFragment(),
                         hasBackStack = true,
                         currentState = MenuState.MAIN_MENU
+                )
+        )
+    }
+
+    @Test
+    fun `core variables fragment com backstack resolve para CORE_VARIABLES_MENU`() {
+        // The menu manager still reports About while Core Variables is on screen, so the visible
+        // fragment has to win over currentState here.
+        assertEquals(
+                MenuState.CORE_VARIABLES_MENU,
+                RotationMenuStateResolver.resolve(
+                        CoreVariablesFragment(),
+                        hasBackStack = true,
+                        currentState = MenuState.ABOUT_MENU
                 )
         )
     }
@@ -211,6 +226,7 @@ class RotationMenuStateResolver_test {
                         SettingsMenuFragment(),
                         ProgressFragment(),
                         AboutFragment(),
+                        CoreVariablesFragment(),
                         ExitFragment(),
                         SaveSlotsFragment(),
                         LoadSlotsFragment(),
@@ -244,17 +260,18 @@ class RotationMenuStateResolver_test {
     }
 
     // ---------------------------------------------------------------------------------------
-    // resolveNavigationMenuType: maps each MenuState with a registration path to its MenuType.
+    // resolveNavigationMenuType: maps each MenuState to its MenuType.
     // ---------------------------------------------------------------------------------------
 
     @Test
-    fun `resolveNavigationMenuType mapeia cada estado com registro dedicado para seu MenuType`() {
+    fun `resolveNavigationMenuType mapeia cada estado para seu MenuType`() {
         val expected =
                 mapOf(
                         MenuState.MAIN_MENU to MenuType.MAIN,
                         MenuState.SETTINGS_MENU to MenuType.SETTINGS,
                         MenuState.PROGRESS_MENU to MenuType.PROGRESS,
                         MenuState.ABOUT_MENU to MenuType.ABOUT,
+                        MenuState.CORE_VARIABLES_MENU to MenuType.CORE_VARIABLES,
                         MenuState.EXIT_MENU to MenuType.EXIT,
                         MenuState.SAVE_SLOTS_MENU to MenuType.SAVE_SLOTS,
                         MenuState.LOAD_SLOTS_MENU to MenuType.LOAD_SLOTS,
@@ -271,13 +288,19 @@ class RotationMenuStateResolver_test {
         }
     }
 
+    // ---------------------------------------------------------------------------------------
+    // resolveParentState: only a nested submenu has a parent to rebuild underneath it.
+    // ---------------------------------------------------------------------------------------
+
     @Test
-    fun `resolveNavigationMenuType cai para MAIN quando o estado nao tem registro dedicado`() {
-        // CORE_VARIABLES_MENU has no registration branch in the source switch; same fallback
-        // as before the extraction.
-        assertEquals(
-                MenuType.MAIN,
-                RotationMenuStateResolver.resolveNavigationMenuType(MenuState.CORE_VARIABLES_MENU)
-        )
+    fun `resolveParentState poe About sob Core Variables`() {
+        assertEquals(MenuState.ABOUT_MENU, RotationMenuStateResolver.resolveParentState(MenuState.CORE_VARIABLES_MENU))
+    }
+
+    @Test
+    fun `resolveParentState nao tem pai para os outros estados`() {
+        MenuState.values().filter { it != MenuState.CORE_VARIABLES_MENU }.forEach {
+            assertEquals("estado $it", null, RotationMenuStateResolver.resolveParentState(it))
+        }
     }
 }

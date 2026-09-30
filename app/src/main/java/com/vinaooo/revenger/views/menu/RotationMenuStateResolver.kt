@@ -2,6 +2,7 @@ package com.vinaooo.revenger.views.menu
 
 import androidx.fragment.app.Fragment
 import com.vinaooo.revenger.ui.retromenu3.AboutFragment
+import com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment
 import com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment
@@ -24,7 +25,7 @@ import com.vinaooo.revenger.ui.retromenu3.navigation.MenuType
  *    the main menu, so [MenuState.MAIN_MENU] is returned regardless of which fragment happens to
  *    be visible and regardless of [currentState]. The visible fragment can be momentarily stale
  *    right after a BACK operation, which is exactly why the backstack is trusted first.
- * 2. **Otherwise the visible fragment decides**, when it is one of the eight known submenu types.
+ * 2. **Otherwise the visible fragment decides**, when it is one of the nine known submenu types.
  * 3. **Otherwise fall back to [currentState]** — the menu manager's own idea of where it is.
  */
 object RotationMenuStateResolver {
@@ -51,6 +52,7 @@ object RotationMenuStateResolver {
                     is SettingsMenuFragment -> MenuState.SETTINGS_MENU
                     is ProgressFragment -> MenuState.PROGRESS_MENU
                     is AboutFragment -> MenuState.ABOUT_MENU
+                    is CoreVariablesFragment -> MenuState.CORE_VARIABLES_MENU
                     is ExitFragment -> MenuState.EXIT_MENU
                     is SaveSlotsFragment -> MenuState.SAVE_SLOTS_MENU
                     is LoadSlotsFragment -> MenuState.LOAD_SLOTS_MENU
@@ -64,10 +66,7 @@ object RotationMenuStateResolver {
 
     /**
      * Maps a rotation-recreation [MenuState] to the [MenuType] the NavigationController's state
-     * should be synced to afterwards. Pure mirror of the mapping that used to live inline in
-     * `GameActivity.registerSubmenuAndSyncNavigationAfterRotation`: a state with no dedicated
-     * registration path (only [MenuState.CORE_VARIABLES_MENU] today) falls back to [MenuType.MAIN],
-     * same as before.
+     * should be synced to afterwards.
      */
     fun resolveNavigationMenuType(state: MenuState): MenuType =
             when (state) {
@@ -75,11 +74,19 @@ object RotationMenuStateResolver {
                 MenuState.SETTINGS_MENU -> MenuType.SETTINGS
                 MenuState.PROGRESS_MENU -> MenuType.PROGRESS
                 MenuState.ABOUT_MENU -> MenuType.ABOUT
+                MenuState.CORE_VARIABLES_MENU -> MenuType.CORE_VARIABLES
                 MenuState.EXIT_MENU -> MenuType.EXIT
                 MenuState.SAVE_SLOTS_MENU -> MenuType.SAVE_SLOTS
                 MenuState.LOAD_SLOTS_MENU -> MenuType.LOAD_SLOTS
                 MenuState.MANAGE_SAVES_MENU -> MenuType.MANAGE_SAVES
                 MenuState.EXIT_SAVE_SLOTS_MENU -> MenuType.EXIT_SAVE_SLOTS
-                else -> MenuType.MAIN
             }
+
+    /**
+     * The submenu a nested submenu opens from, which the rotation rebuild must put back underneath
+     * it so Back returns there. Only [MenuState.CORE_VARIABLES_MENU] is nested (it opens from
+     * About); every other state returns null.
+     */
+    fun resolveParentState(state: MenuState): MenuState? =
+            if (state == MenuState.CORE_VARIABLES_MENU) MenuState.ABOUT_MENU else null
 }

@@ -2,6 +2,7 @@ package com.vinaooo.revenger.views.menu
 
 import android.util.Log
 import com.vinaooo.revenger.ui.retromenu3.AboutFragment
+import com.vinaooo.revenger.ui.retromenu3.CoreVariablesFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitFragment
 import com.vinaooo.revenger.ui.retromenu3.ExitSaveGridFragment
 import com.vinaooo.revenger.ui.retromenu3.LoadSlotsFragment
@@ -43,6 +44,10 @@ object RotationFragmentFactory {
                                 Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: ABOUT")
                                 AboutFragment()
                         }
+                        MenuState.CORE_VARIABLES_MENU -> {
+                                Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: CORE_VARIABLES")
+                                CoreVariablesFragment()
+                        }
                         MenuState.EXIT_MENU -> {
                                 Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: EXIT")
                                 ExitFragment.newInstance()
@@ -63,6 +68,5 @@ object RotationFragmentFactory {
                                 Log.d(TAG, "[ORIENTATION] 📋 Submenu ativo: EXIT_SAVE_SLOTS")
                                 ExitSaveGridFragment.newInstance()
                         }
-                        else -> RetroMenu3Fragment()
                 }
 }

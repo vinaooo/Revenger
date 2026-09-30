@@ -255,9 +255,13 @@ class MenuRotationRecreator(
                 Log.d(TAG, "[ORIENTATION] 📋 Base RetroMenu3Fragment created and registered")
 
                 // CRITICAL: Update MenuStateManager to the submenu state
-                // This ensures getCurrentFragment() returns the correct Fragment
-                viewModel.getMenuManager().navigateToState(effectiveState)
-                Log.d(TAG, "[ORIENTATION] 🎯 MenuStateManager updated to state: $effectiveState")
+                // This ensures getCurrentFragment() returns the correct Fragment. A nested
+                // submenu is opened by the NavigationController without a menu-manager state of
+                // its own, so the manager goes back to its parent's state, as before the rotation.
+                val menuManagerState =
+                        RotationMenuStateResolver.resolveParentState(effectiveState) ?: effectiveState
+                viewModel.getMenuManager().navigateToState(menuManagerState)
+                Log.d(TAG, "[ORIENTATION] 🎯 MenuStateManager updated to state: $menuManagerState")
 
                 // 2. Aguardar e adicionar submenu no topo (COM backstack)
                 Handler(Looper.getMainLooper())
@@ -268,7 +272,9 @@ class MenuRotationRecreator(
         }
 
         /**
-         * Step 3 of the submenu branch: put the submenu back on top, with a backstack entry.
+         * Step 3 of the submenu branch: put the submenu back on top, with a backstack entry. A
+         * nested submenu gets its parent submenu underneath it first, with its own backstack
+         * entry, so Back returns to the parent as it did before the rotation.
          *
          * Schedules the two terminal steps as SIBLINGS, not nested: registration/sync runs at
          * +100ms and focus restore at +600ms, both measured from here. Nesting the focus restore
@@ -276,6 +282,18 @@ class MenuRotationRecreator(
          */
         private fun addSubmenuOnTopAfterRotation(effectiveState: MenuState, newFragment: MenuFragmentBase) {
                 val fragmentManager = activity.supportFragmentManager
+
+                val parentState = RotationMenuStateResolver.resolveParentState(effectiveState)
+                val parentFragment = parentState?.let { RotationFragmentFactory.create(it) }
+                parentFragment?.let { parent ->
+                        val parentTag = parent::class.java.simpleName
+                        Log.d(TAG, "[ORIENTATION] ➕ Adding parent submenu: $parentTag")
+                        fragmentManager
+                                .beginTransaction()
+                                .replace(R.id.menu_container, parent, parentTag)
+                                .addToBackStack(parentTag)
+                                .commit()
+                }
 
                 val submenuTag = newFragment::class.java.simpleName
                 Log.d(TAG, "[ORIENTATION] ➕ Adding submenu on top: $submenuTag")
@@ -289,7 +307,13 @@ class MenuRotationRecreator(
                 // CRITICAL: Register submenu in ViewModel (listener already configured)
                 Handler(Looper.getMainLooper())
                         .postDelayed(
-                                { registerSubmenuAndSyncNavigationAfterRotation(effectiveState, newFragment) },
+                                {
+                                        registerSubmenuAndSyncNavigationAfterRotation(
+                                                effectiveState,
+                                                parentState ?: effectiveState,
+                                                parentFragment ?: newFragment
+                                        )
+                                },
                                 SUBMENU_REGISTER_DELAY_MS
                         ) // Aguardar Fragment ser adicionado antes de registrar
 
@@ -303,32 +327,36 @@ class MenuRotationRecreator(
 
         /**
          * Step 4 of the submenu branch: register the rebuilt submenu with the ViewModel and
-         * synchronize the NavigationController.
+         * synchronize the NavigationController to [effectiveState].
          *
-         * Only four of the eight submenu states have a registration call; the other four fall
-         * through to a warning. That gap is pre-existing and deliberately left alone here.
+         * [registeredState] and [registeredFragment] are the submenu the ViewModel tracks: the
+         * rebuilt submenu itself, or for a nested submenu its parent (the nested one registers
+         * itself with the NavigationController when its view is created). Only Settings,
+         * Progress, About and Exit have a registration call; the save submenus fall through to a
+         * warning. That gap is pre-existing and deliberately left alone here.
          */
         private fun registerSubmenuAndSyncNavigationAfterRotation(
                 effectiveState: MenuState,
-                newFragment: MenuFragmentBase
+                registeredState: MenuState,
+                registeredFragment: MenuFragmentBase
         ) {
-                when (effectiveState) {
+                when (registeredState) {
                         MenuState.SETTINGS_MENU -> {
-                                val settingsFragment = newFragment as SettingsMenuFragment
+                                val settingsFragment = registeredFragment as SettingsMenuFragment
                                 // Use lightweight registration for rotation (doesn't activate state)
                                 viewModel.registerSettingsMenuFragmentForRotation(settingsFragment)
                                 Log.d(TAG, "[ORIENTATION] 📋 SettingsMenuFragment registered (rotation)")
                         }
                         MenuState.PROGRESS_MENU -> {
-                                viewModel.registerProgressFragmentForRotation(newFragment as ProgressFragment)
+                                viewModel.registerProgressFragmentForRotation(registeredFragment as ProgressFragment)
                                 Log.d(TAG, "[ORIENTATION] 📋 ProgressFragment registered (rotation)")
                         }
                         MenuState.ABOUT_MENU -> {
-                                viewModel.registerAboutFragmentForRotation(newFragment as AboutFragment)
+                                viewModel.registerAboutFragmentForRotation(registeredFragment as AboutFragment)
                                 Log.d(TAG, "[ORIENTATION] 📋 AboutFragment registered (rotation)")
                         }
                         MenuState.EXIT_MENU -> {
-                                viewModel.registerExitFragmentForRotation(newFragment as ExitFragment)
+                                viewModel.registerExitFragmentForRotation(registeredFragment as ExitFragment)
                                 Log.d(TAG, "[ORIENTATION] 📋 ExitFragment registered (rotation)")
                         }
                         else -> {
@@ -352,8 +380,9 @@ class MenuRotationRecreator(
          * Terminal step of the submenu branch: restore focus to the submenu's first focusable
          * view.
          *
-         * Only four of the eight submenu states map to a view id; the other four get `null` and
-         * no focus is restored. That gap is pre-existing and deliberately left alone here.
+         * Settings, Progress, About, Core Variables and Exit map to a view id; the save submenus
+         * get `null` and no focus is restored. That gap is pre-existing and deliberately left
+         * alone here.
          */
         private fun restoreSubmenuFocusAfterRotation(effectiveState: MenuState) {
                 val firstFocusableId =
@@ -361,6 +390,7 @@ class MenuRotationRecreator(
                                 MenuState.SETTINGS_MENU -> R.id.settings_sound
                                 MenuState.PROGRESS_MENU -> R.id.progress_load_state
                                 MenuState.ABOUT_MENU -> R.id.about_back
+                                MenuState.CORE_VARIABLES_MENU -> R.id.variable_back
                                 MenuState.EXIT_MENU -> R.id.exit_menu_option_a
                                 else -> null
                         }
