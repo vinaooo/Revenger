@@ -33,6 +33,16 @@ class RotationController(
         private var rotationSettingsReceiver: BroadcastReceiver? = null
 
         /**
+         * The orientation the menu was last laid out for. `layout-land` is the only
+         * configuration qualifier the menus use, so only a change of this value needs the menu
+         * rebuilt. The activity handles uiMode, screen size and screen layout changes itself too,
+         * and a single rotation can reach `onConfigurationChanged` more than once; each of those
+         * used to start the whole rebuild chain again, and two overlapping chains only ended in
+         * the right menu by timing.
+         */
+        private var menuOrientation = activity.resources.configuration.orientation
+
+        /**
          * Registers a listener to monitor changes in the system auto-rotate setting. When the
          * user toggles auto-rotate in system settings, the app's orientation is automatically
          * reapplied. Call once from `GameActivity.onCreate()`.
@@ -143,15 +153,26 @@ class RotationController(
         }
 
         /**
-         * Call from `GameActivity.onConfigurationChanged()`. Re-registers menu callbacks (lost on
-         * rotation) and, if a menu fragment is visible, schedules
-         * [MenuRotationRecreator.scheduleMenuRecreationAfterRotation] to rebuild it.
+         * Call from `GameActivity.onConfigurationChanged()` with the new configuration's
+         * orientation. Re-registers menu callbacks (lost on rotation) and, if the orientation
+         * changed and a menu fragment is visible, schedules
+         * [MenuRotationRecreator.scheduleMenuRecreationAfterRotation] to rebuild it. A
+         * configuration change that keeps the orientation rebuilds nothing.
          */
-        fun maybeRecreateMenuAfterRotation() {
+        fun maybeRecreateMenuAfterRotation(newOrientation: Int) {
                 // CRITICAL FIX: Re-register menu callbacks after rotation to prevent back button
                 // issues
                 viewModel.setupMenuCallback(activity)
                 Log.d(TAG, "[ROTATION_FIX] Menu callbacks re-registered after rotation")
+
+                // Recorded even when no menu is open, so a later rotation compares against the
+                // orientation the screen really has.
+                val orientationChanged = newOrientation != menuOrientation
+                menuOrientation = newOrientation
+                if (!orientationChanged) {
+                        Log.d(TAG, "[ORIENTATION] ⏭️ Orientation unchanged ($newOrientation), menu not rebuilt")
+                        return
+                }
 
                 // --- SOLUTION: Recreate fragments after orientation change ---
                 Log.d(TAG, "[ORIENTATION] ====== CHECKING FOR MENU AFTER ROTATION ======")

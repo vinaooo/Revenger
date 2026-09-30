@@ -83,6 +83,29 @@ class RotationController_test {
         controller = RotationController(activity, viewModel, appConfig)
     }
 
+    /** The orientation the activity started in, which the controller records as the menu's. */
+    private val initial get() = activity.resources.configuration.orientation
+
+    /** The other orientation: a real rotation. */
+    private val rotated
+        get() =
+                if (initial == Configuration.ORIENTATION_LANDSCAPE) Configuration.ORIENTATION_PORTRAIT
+                else Configuration.ORIENTATION_LANDSCAPE
+
+    /** Puts a menu fragment in the container as a submenu, with one backstack entry. */
+    private fun showSubmenu() {
+        val fragmentManager = activity.supportFragmentManager
+        fragmentManager
+                .beginTransaction()
+                .add(R.id.menu_container, DummyMenuFragment(), "dummy")
+                .addToBackStack("dummy")
+                .commit()
+        fragmentManager.executePendingTransactions()
+    }
+
+    /** Past step 1 of the recreation chain, which pops the backstack. */
+    private fun idlePastSettle() = shadowOf(activity.mainLooper).idleFor(Duration.ofMillis(250))
+
     // ---------------------------------------------------------------------------------------
     // register() / dispose(): BroadcastReceiver lifecycle
     // ---------------------------------------------------------------------------------------
@@ -184,7 +207,7 @@ class RotationController_test {
 
     @Test
     fun `maybeRecreateMenuAfterRotation sempre re-registra os callbacks do menu`() {
-        controller.maybeRecreateMenuAfterRotation()
+        controller.maybeRecreateMenuAfterRotation(rotated)
 
         verify { viewModel.setupMenuCallback(activity) }
     }
@@ -193,7 +216,7 @@ class RotationController_test {
     fun `maybeRecreateMenuAfterRotation sem fragment de menu visivel nao lanca excecao`() {
         // menu_container is empty -- the abort branch (findFragmentById returns null) must be a
         // clean no-op, not a crash.
-        controller.maybeRecreateMenuAfterRotation()
+        controller.maybeRecreateMenuAfterRotation(rotated)
 
         verify { viewModel.setupMenuCallback(activity) }
     }
@@ -205,7 +228,7 @@ class RotationController_test {
                 .add(R.id.menu_container, Fragment(), "not-a-menu")
                 .commitNow()
 
-        controller.maybeRecreateMenuAfterRotation()
+        controller.maybeRecreateMenuAfterRotation(rotated)
 
         verify { viewModel.setupMenuCallback(activity) }
     }
@@ -221,7 +244,7 @@ class RotationController_test {
                 .commit()
         fragmentManager.executePendingTransactions()
 
-        controller.maybeRecreateMenuAfterRotation()
+        controller.maybeRecreateMenuAfterRotation(rotated)
 
         // Step 0/1 of MenuRotationRecreator's chain fire after SYSTEM_SETTLE_DELAY_MS (250ms) and
         // pop the backstack -- confirms RotationController really handed off to it, without
@@ -253,9 +276,59 @@ class RotationController_test {
                 .commit()
         fragmentManager.executePendingTransactions()
 
-        controller.maybeRecreateMenuAfterRotation()
+        controller.maybeRecreateMenuAfterRotation(rotated)
         shadowOf(activity.mainLooper).idleFor(Duration.ofMillis(250))
 
         assertEquals(1, fragmentManager.backStackEntryCount)
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // maybeRecreateMenuAfterRotation(): only a change of orientation rebuilds the menu
+    // ---------------------------------------------------------------------------------------
+
+    @Test
+    fun `configuracao que mantem a orientacao nao recria o menu`() {
+        // A second callback for the same rotation, or a uiMode/screen size change, carries the
+        // orientation the menu already has. It used to start a second rebuild chain.
+        showSubmenu()
+
+        controller.maybeRecreateMenuAfterRotation(initial)
+        idlePastSettle()
+
+        assertEquals(1, activity.supportFragmentManager.backStackEntryCount)
+        verify { viewModel.setupMenuCallback(activity) }
+    }
+
+    @Test
+    fun `segunda chamada da mesma rotacao nao recria o menu de novo`() {
+        // The first call's chain stops at its "menu dismissed" check, so the backstack it
+        // leaves shows only whether the second call started a chain of its own.
+        showSubmenu()
+        every { viewModel.isAnyMenuActive() } returns false
+        controller.maybeRecreateMenuAfterRotation(rotated)
+        idlePastSettle()
+        assertEquals(1, activity.supportFragmentManager.backStackEntryCount)
+
+        every { viewModel.isAnyMenuActive() } returns true
+        controller.maybeRecreateMenuAfterRotation(rotated)
+        idlePastSettle()
+
+        assertEquals(1, activity.supportFragmentManager.backStackEntryCount)
+    }
+
+    @Test
+    fun `rotacao sem menu aberto ainda atualiza a orientacao do menu`() {
+        // Rotated with no menu open, then the menu opened in the new orientation: rotating back
+        // is a real rotation and must rebuild it; repeating the first one is not.
+        controller.maybeRecreateMenuAfterRotation(rotated)
+        showSubmenu()
+
+        controller.maybeRecreateMenuAfterRotation(rotated)
+        idlePastSettle()
+        assertEquals(1, activity.supportFragmentManager.backStackEntryCount)
+
+        controller.maybeRecreateMenuAfterRotation(initial)
+        idlePastSettle()
+        assertEquals(0, activity.supportFragmentManager.backStackEntryCount)
     }
 }

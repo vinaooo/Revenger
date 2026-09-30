@@ -27,10 +27,6 @@
 //        inputViewModel.getControllerInput().clearPendingInputsPreserveHeld() na instância
 //        errada, deixando a "FIX ERROR 1 - Phase 4.2" (evitar B/Backspace vazando entre
 //        transições de submenu) inerte.
-// FIXME: GameActivity.onConfigurationChanged dispara a cadeia toda de recriação de menu 2x
-//        por rotação -- reapplyOrientation() re-seta requestedOrientation, causando um
-//        segundo onConfigurationChanged. As duas cadeias (~1100ms cada) só convergem certo
-//        por sorte de timing hoje.
 
 // [ ]: Fazer
 // [x]: Feito
