@@ -1,0 +1,63 @@
+# Open FIXMEs in `TODO.kt` — 2026-09-30
+
+`TODO.kt` lists five FIXMEs. Each one was checked against `develop` (fafe737) on 2026-09-30, and all five are still real bugs. The FIXME text in `TODO.kt` is in Portuguese; the summaries below are in English.
+
+The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope here.
+
+## How to work through them
+
+- One branch and one PR per item, branched from the latest `develop` and opened against `develop`. Wait for each merge before starting the next.
+- Each fix needs a regression test that fails without the fix.
+- Delete the item's FIXME from `TODO.kt` in the same PR, and mark the item `[x]` here with the PR number.
+- Run `./gradlew check -PskipAssetStaging`, and `python3 tools/mutation/mutation_testing.py --changed` before opening the PR.
+- Ask before any on-device check.
+
+## Status
+
+| # | FIXME (`TODO.kt` line) | Area | Reachable by users | Order |
+|---|---|---|---|---|
+| 1 | 19: Back/Escape can fire twice on a long press | Keyboard input | Only on a hold past 200 ms | 5th |
+| 2 | 24: menus clear pending input on an orphan `ControllerInput` | Input / ViewModels | Yes | 4th |
+| 3 | 30: each rotation rebuilds the menu twice | Rotation | Yes (intermittent) | 3rd |
+| 4 | 34: rotating with Core Variables open falls back to the main menu | Rotation | Yes | 1st |
+| 5 | 37: save submenus aren't re-registered or refocused after a rotation | Rotation | Yes | 2nd |
+
+## Items, in the order to do them
+
+### [ ] 4. Rotating with Core Variables open falls back to the main menu
+
+- **FIXME:** `views/menu/RotationMenuStateResolver` has no mapping for `CoreVariablesFragment`. Rotating with that submenu open lands on the main menu instead of rebuilding it.
+- **How users hit it:** About → Core Variables (`AboutFragment` navigates to `MenuType.CORE_VARIABLES`), then rotate the device.
+- **Still true:** `RotationMenuStateResolver.kt:69` documents that `MenuState.CORE_VARIABLES_MENU` has no registration path and falls back to `MenuType.MAIN`.
+- **Why first:** small and self-contained, and needs no device.
+
+### [ ] 5. Save submenus aren't re-registered or refocused after a rotation
+
+- **FIXME:** after a rotation only Settings, Progress, About and Exit are registered with the ViewModel again and get focus back. SaveSlots, LoadSlots, ManageSaves and ExitSaveGrid get neither.
+- **Location is out of date in `TODO.kt`:** the FIXME points to `GameActivity.kt` (`createFragmentForRotationState` / `registerSubmenuAndSyncNavigationAfterRotation`). That code has since moved:
+  - `controllers/MenuRotationRecreator.kt`, `registerSubmenuAndSyncNavigationAfterRotation`: its `when` handles only `SETTINGS_MENU`, `PROGRESS_MENU`, `ABOUT_MENU` and `EXIT_MENU`. Every other state hits the `else` branch, which logs "Unknown state, submenu not registered".
+  - `controllers/MenuRotationRecreator.kt`, `restoreSubmenuFocusAfterRotation`: the same four states map to a view id, and the rest get `null`, so focus isn't restored.
+  - `views/menu/RotationFragmentFactory.kt` already builds `SaveSlotsFragment`, `ManageSavesFragment` and the others. Only the registration and focus steps are missing.
+- **Why second:** it's in the same code as item 4, and the fix should also correct the location in the FIXME text.
+
+### [ ] 3. Each rotation rebuilds the menu twice
+
+- **FIXME:** `GameActivity.onConfigurationChanged` runs the whole menu-rebuild chain twice per rotation. `reapplyOrientation()` sets `requestedOrientation` again, which causes a second `onConfigurationChanged`. The two chains (about 1,100 ms each) end up in the right state only by lucky timing.
+- **Risk:** the highest of the five. It probably causes intermittent glitches after a rotation, and a fix touches the rotation flow that items 4 and 5 depend on.
+- **Why third:** do it after 4 and 5, so those fixes and their tests are in place to catch regressions.
+
+### [ ] 2. Menus clear pending input on an orphan `ControllerInput`
+
+- **FIXME:** `GameActivityViewModel` builds an `InputViewModel` that has its own `ControllerInput`, so `InputViewModel.getControllerInput()` is never the instance that handles real input. `MenuFragmentBase.onPause()` calls `inputViewModel.getControllerInput().clearPendingInputsPreserveHeld()` on the wrong instance. That leaves the fix meant to stop B/Backspace leaking between submenu transitions doing nothing.
+- **How users hit it:** a stray "back" after moving between submenus.
+- **Note:** `tests/SubmenuFragmentSetup_test.kt` (`pausar limpa as entradas pendentes do controle`) checks the clear against the `InputViewModel`'s instance. A fix that switches to the real instance must update that test.
+
+### [ ] 1. Back/Escape can fire twice on a long press
+
+- **FIXME:** in `ui/retromenu3/navigation/KeyboardInputAdapter.kt`, only `KEYCODE_DEL` records `actionKeyDownTimestamps` on `KEY_DOWN`. `KEYCODE_BACK` and `KEYCODE_ESCAPE` therefore fall through to the `KEY_UP` fallback and fire `NavigateBack` / `CloseAllMenus` a second time.
+- **Mitigation today:** the 200 ms debounce (`MENU_CLOSE_DEBOUNCE_MS` in `input/ControllerInput.kt`) hides it for normal taps. Only a key held longer than that fires twice.
+- **Why last:** the lowest impact of the five.
+
+## Related
+
+- `docs/2026-09-27-keyup-input-side-effects.md` is a separate open question: whether key-up should run the fade, frame-timing and PiP-capture side jobs. It needs a device check before any change.
