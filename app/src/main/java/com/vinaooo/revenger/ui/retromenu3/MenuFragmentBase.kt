@@ -3,8 +3,6 @@ package com.vinaooo.revenger.ui.retromenu3
 import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import com.vinaooo.revenger.viewmodels.InputViewModel
 
 /**
  * Abstract base class for all menu fragments in the RetroMenu3 system. Eliminates duplicate code
@@ -54,40 +52,6 @@ abstract class MenuFragmentBase : Fragment(), MenuFragment {
 
     /** Abstract method to update selection visual */
     protected abstract fun updateSelectionVisualInternal()
-
-    // ========== LIFECYCLE HOOKS ==========
-
-    /**
-     * FIX ERROR 1: Clears input state when pausing fragment to avoid event leakage.
-     *
-     * Problem: Holding B/BackSpace in a submenu, the KEY_DOWN event closes the submenu via
-     * popBackStack(), but the corresponding KEY_UP was processed in the main menu, causing
-     * unintended closure.
-     *
-     * Solution: Clear all debounce timestamps, keyLog, and flags when pausing a fragment,
-     * ensuring the next fragment starts with a clean state.
-     */
-    override fun onPause() {
-        super.onPause()
-        try {
-            // Acessar InputViewModel e limpar estado de input de forma segura
-            val inputViewModel = ViewModelProvider(requireActivity())[InputViewModel::class.java]
-            inputViewModel.getControllerInput().clearPendingInputsPreserveHeld()
-
-            Log.d(
-                    "MenuFragmentBase",
-                    "[LIFECYCLE] onPause() - clearPendingInputsPreserveHeld() for ${javaClass.simpleName}"
-            )
-        } catch (e: IllegalStateException) {
-            // requireActivity() throws IllegalStateException if the fragment is no longer
-            // attached, which can race with onPause() during teardown.
-            Log.e(
-                    "MenuFragmentBase",
-                    "[LIFECYCLE] Failed to clear pending inputs in onPause()",
-                    e
-            )
-        }
-    }
 
     // ========== MenuFragment INTERFACE IMPLEMENTATION ==========
 

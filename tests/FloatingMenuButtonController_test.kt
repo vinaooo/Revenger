@@ -37,8 +37,8 @@ import org.robolectric.annotation.Config
  *
  * `RevengerApplication.appConfig` is a `lateinit var` on a companion object, only populated by
  * `RevengerApplication.onCreate()` (which never runs for the default Robolectric test
- * Application) -- seeded via reflection the same way `GamePadLayoutAdjuster_test`/
- * `InputViewModel_test` do, since [FloatingMenuButtonController.setup] reads it directly.
+ * Application) -- seeded via reflection the same way `GamePadLayoutAdjuster_test`
+ * does, since [FloatingMenuButtonController.setup] reads it directly.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])

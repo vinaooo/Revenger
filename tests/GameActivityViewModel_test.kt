@@ -61,8 +61,7 @@ import org.robolectric.annotation.Config
  * `RevengerApplication.appConfig` is a `lateinit var` (companion object, private setter) that is
  * only populated by `RevengerApplication.onCreate()`, which never runs against Robolectric's
  * default test Application. `GameActivityViewModel` reads it directly in its constructor, so it
- * has to be seeded via reflection before each test and cleared afterwards, exactly like
- * `InputViewModel_test.kt` does.
+ * has to be seeded via reflection before each test and cleared afterwards.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])

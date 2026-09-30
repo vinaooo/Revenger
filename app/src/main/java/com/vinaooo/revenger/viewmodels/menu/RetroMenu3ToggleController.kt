@@ -1,43 +1,30 @@
 package com.vinaooo.revenger.viewmodels.menu
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.ui.retromenu3.MenuStateManager
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
 import com.vinaooo.revenger.ui.retromenu3.navigation.InputSource
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
-import com.vinaooo.revenger.viewmodels.InputViewModel
 
 /** Open/close the RetroMenu3 overlay and report whether any menu is currently active. */
 interface RetroMenu3ToggleFacade {
     fun toggleMainMenu()
     fun dismissRetroMenu3(onAnimationEnd: (() -> Unit)? = null)
-    fun clearControllerInputState()
     fun isAnyMenuActive(): Boolean
 }
 
 /**
- * Implementation of [RetroMenu3ToggleFacade]. [navigationController], [retroMenu3Fragment] and
- * [controllerInput] are read via lambdas rather than captured, since all three are mutated on the
- * owning ViewModel after construction.
+ * Implementation of [RetroMenu3ToggleFacade]. [navigationController] and [retroMenu3Fragment] are
+ * read via lambdas rather than captured, since both are mutated on the owning ViewModel after
+ * construction.
  */
 class RetroMenu3ToggleController(
         private val navigationController: () -> NavigationController?,
         private val retroMenu3Fragment: () -> RetroMenu3Fragment?,
         private val menuStateManager: MenuStateManager,
-        private val inputViewModel: InputViewModel,
-        private val controllerInput: () -> ControllerInput,
         private val isRetroMenu3Open: () -> Boolean
 ) : RetroMenu3ToggleFacade {
-
-    companion object {
-        // Delay before clearing controller input state, to let the pending fragment
-        // destruction complete first.
-        private const val CONTROLLER_STATE_CLEAR_FRAGMENT_DESTROY_SETTLE_DELAY_MS = 200L
-    }
 
     override fun toggleMainMenu() {
         if (isAnyMenuActive()) {
@@ -83,47 +70,6 @@ class RetroMenu3ToggleController(
         }
 
         Log.d("GameActivityViewModel", "[DISMISS_MAIN] dismissRetroMenu3: Completed")
-    }
-
-    override fun clearControllerInputState() {
-        Log.d("GameActivityViewModel", "[CLEAR_STATE] clearControllerInputState: STARTING")
-        Log.d(
-                "GameActivityViewModel",
-                "[CLEAR_STATE] clearControllerInputState: comboAlreadyTriggered before: " +
-                        "${controllerInput().comboTracker.getComboAlreadyTriggered()}"
-        )
-        Log.d(
-                "GameActivityViewModel",
-                "[CLEAR_STATE] clearControllerInputState: isRetroMenu3Open: ${isRetroMenu3Open()}"
-        )
-
-        // Add small delay to ensure fragment is fully destroyed before clearing combo state
-        Handler(Looper.getMainLooper())
-                .postDelayed(
-                        {
-                            Log.d(
-                                    "GameActivityViewModel",
-                                    "[CLEAR_STATE] clearControllerInputState: DELAYED - clearing now"
-                            )
-                            Log.d(
-                                    "GameActivityViewModel",
-                                    "[CLEAR_STATE] clearControllerInputState: " +
-                                            "isRetroMenu3Open after delay: ${isRetroMenu3Open()}"
-                            )
-                            inputViewModel.clearControllerInputState()
-                            Log.d(
-                                    "GameActivityViewModel",
-                                    "[CLEAR_STATE] clearControllerInputState: " +
-                                            "comboAlreadyTriggered after: " +
-                                            "${controllerInput().comboTracker.getComboAlreadyTriggered()}"
-                            )
-                            Log.d(
-                                    "GameActivityViewModel",
-                                    "[CLEAR_STATE] clearControllerInputState: COMPLETED"
-                            )
-                        },
-                        CONTROLLER_STATE_CLEAR_FRAGMENT_DESTROY_SETTLE_DELAY_MS
-                ) // Delay to ensure fragment destruction is complete
     }
 
     override fun isAnyMenuActive(): Boolean {

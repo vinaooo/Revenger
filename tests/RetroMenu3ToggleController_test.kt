@@ -1,12 +1,10 @@
 package com.vinaooo.revenger.viewmodels.menu
 
 import android.os.Looper
-import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.ui.retromenu3.MenuStateManager
 import com.vinaooo.revenger.ui.retromenu3.RetroMenu3Fragment
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationController
 import com.vinaooo.revenger.ui.retromenu3.navigation.NavigationEvent
-import com.vinaooo.revenger.viewmodels.InputViewModel
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -21,9 +19,9 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 /**
- * [RetroMenu3ToggleController]'s [MenuStateManager] and [ControllerInput] dependencies are real
- * (untouched) instances, matching how `GameActivityViewModel` wires them; [NavigationController],
- * [RetroMenu3Fragment] and [InputViewModel] are mocked since this class only calls into them.
+ * [RetroMenu3ToggleController]'s [MenuStateManager] dependency is a real (untouched) instance,
+ * matching how `GameActivityViewModel` wires it; [NavigationController] and [RetroMenu3Fragment]
+ * are mocked since this class only calls into them.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -32,8 +30,6 @@ class RetroMenu3ToggleController_test {
     private var currentNavigationController: NavigationController? = null
     private var currentFragment: RetroMenu3Fragment? = null
     private lateinit var menuStateManager: MenuStateManager
-    private lateinit var inputViewModel: InputViewModel
-    private lateinit var controllerInput: ControllerInput
     private var retroMenu3OpenResult = false
     private lateinit var controller: RetroMenu3ToggleController
 
@@ -42,16 +38,12 @@ class RetroMenu3ToggleController_test {
         currentNavigationController = null
         currentFragment = null
         menuStateManager = MenuStateManager()
-        inputViewModel = mockk(relaxed = true)
-        controllerInput = ControllerInput()
         retroMenu3OpenResult = false
         controller =
                 RetroMenu3ToggleController(
                         navigationController = { currentNavigationController },
                         retroMenu3Fragment = { currentFragment },
                         menuStateManager = menuStateManager,
-                        inputViewModel = inputViewModel,
-                        controllerInput = { controllerInput },
                         isRetroMenu3Open = { retroMenu3OpenResult }
                 )
     }
@@ -131,21 +123,6 @@ class RetroMenu3ToggleController_test {
         controller.dismissRetroMenu3()
 
         assertEquals(java.time.Duration.ZERO, shadowOf(Looper.getMainLooper()).nextScheduledTaskTime)
-    }
-
-    // ---------------------------------------------------------------------------------------
-    // clearControllerInputState
-    // ---------------------------------------------------------------------------------------
-
-    @Test
-    fun `clearControllerInputState delega ao InputViewModel somente apos o delay`() {
-        controller.clearControllerInputState()
-
-        verify(exactly = 0) { inputViewModel.clearControllerInputState() }
-
-        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(250))
-
-        verify(exactly = 1) { inputViewModel.clearControllerInputState() }
     }
 
     // ---------------------------------------------------------------------------------------

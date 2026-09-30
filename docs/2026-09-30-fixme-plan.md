@@ -17,7 +17,7 @@ The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope
 | # | FIXME (`TODO.kt` line) | Area | Reachable by users | Order |
 |---|---|---|---|---|
 | 1 | 19: Back/Escape can fire twice on a long press | Keyboard input | Only on a hold past 200 ms | 5th |
-| 2 | 24: menus clear pending input on an orphan `ControllerInput` | Input / ViewModels | Yes | 4th |
+| 2 | ~~24~~ (removed): menus clear pending input on an orphan `ControllerInput` | Input / ViewModels | Yes | 4th, done in #204 |
 | 3 | ~~30~~ (removed): each rotation rebuilds the menu twice | Rotation | Yes (intermittent) | 3rd, done in #203 |
 | 4 | ~~34~~ (removed): rotating with Core Variables open falls back to the main menu | Rotation | Yes | 1st, done in #201 |
 | 5 | ~~34~~ (removed): save submenus aren't re-registered or refocused after a rotation | Rotation | Yes | 2nd, done in #202 |
@@ -52,7 +52,9 @@ The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope
 - **Risk:** the highest of the five. It probably causes intermittent glitches after a rotation, and a fix touches the rotation flow that items 4 and 5 depend on.
 - **Why third:** do it after 4 and 5, so those fixes and their tests are in place to catch regressions.
 
-### [ ] 2. Menus clear pending input on an orphan `ControllerInput`
+### [x] 2. Menus clear pending input on an orphan `ControllerInput` (#204)
+
+- **What #204 did:** removed the dead clear instead of pointing it at the real `ControllerInput`. On the real instance, `clearPendingInputsPreserveHeld()` also resets `MenuCallbackDebouncer`'s post-close grace period. That period stops the button that closed the menu from reaching the game when it is released, and a closing menu pauses right after the period starts. So re-pointing the clear would probably have added a leak to fix one nobody had seen. `RetroMenu3ToggleController.clearControllerInputState()` cleared the same orphan and had no callers, so it went too, along with `InputViewModel`, which had no other users. `tests/MenuFragmentPause_test.kt` pins that pausing a menu keeps the real grace period. Nothing changes on a device. Whether B/Backspace really leaks between submenus would need a device check.
 
 - **FIXME:** `GameActivityViewModel` builds an `InputViewModel` that has its own `ControllerInput`, so `InputViewModel.getControllerInput()` is never the instance that handles real input. `MenuFragmentBase.onPause()` calls `inputViewModel.getControllerInput().clearPendingInputsPreserveHeld()` on the wrong instance. That leaves the fix meant to stop B/Backspace leaking between submenu transitions doing nothing.
 - **How users hit it:** a stray "back" after moving between submenus.
