@@ -210,6 +210,7 @@ object MenuLayoutFinder {
                         R.id.progress_container,
                         R.id.about_container,
                         R.id.exit_menu_container,
+                        R.id.variables_container, // CoreVariablesFragment
                         R.id.grid_container, // SaveStateGridFragment (Load/Save/Manage)
                         R.id.dialog_container // Dialogs (Rename, Confirm, etc.)
                 )

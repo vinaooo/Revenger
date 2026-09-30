@@ -471,4 +471,22 @@ class MenuLayoutConfig_test {
         assertEquals(1, parentRow.childCount)
         assertSame(menuContainer, parentRow.getChildAt(0))
     }
+
+    // ========== findMenuContentContainer ==========
+
+    @Test
+    fun `findMenuContentContainer encontra o container de cada layout de submenu`() {
+        val layouts =
+                mapOf(
+                        R.layout.about to R.id.about_container,
+                        R.layout.core_variables to R.id.variables_container,
+                        R.layout.exit_menu to R.id.exit_menu_container,
+                )
+        val inflater = android.view.LayoutInflater.from(context)
+        layouts.forEach { (layout, containerId) ->
+            val view = inflater.inflate(layout, FrameLayout(context), false)
+
+            assertSame(view.findViewById<View>(containerId), MenuLayoutFinder.findMenuContentContainer(view))
+        }
+    }
 }
