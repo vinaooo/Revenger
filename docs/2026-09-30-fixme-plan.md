@@ -68,6 +68,14 @@ The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope
 - **Mitigation today:** the 200 ms debounce (`MENU_CLOSE_DEBOUNCE_MS` in `input/ControllerInput.kt`) hides it for normal taps. Only a key held longer than that fires twice.
 - **Why last:** the lowest impact of the five.
 
+## Device checks still open
+
+None of the fixes above has been tried on a device. Only a physical controller is available for now. Keyboard support is experimental, and its checks are listed in `TODO.kt`.
+
+- **#3, rotation:** with a submenu open, rotate once and count the `Configuration changed - orientation=` lines in `adb logcat -s RotationController MenuRotationRecreator`. With one line, the FIXME's cause was wrong. With two, the second should log `Orientation unchanged`. Either way the guard stays. Then check that the same submenu is showing and that Back returns to the right menu (this also covers #201 and #202).
+- **#2, controller B:** in Progress → Save grid, tap B, then hold it for about 1 s. Both should land on Progress, and the menu shouldn't close. Close the whole menu with B while holding it briefly: the game shouldn't react to the release (the post-close grace period). If B leaks, the fix is a narrower clear on the real `ControllerInput` that keeps the grace period.
+- **Key-up and the button fade** (`docs/2026-09-27-keyup-input-side-effects.md`): hold a controller face button for more than 10 s and check whether `KEY_DOWN` repeats arrive and whether the floating menu button comes back to full opacity while the button is still held.
+
 ## Related
 
 - `docs/2026-09-27-keyup-input-side-effects.md` is a separate open question: whether key-up should run the fade, frame-timing and PiP-capture side jobs. It needs a device check before any change.
