@@ -168,7 +168,7 @@ Big item; split it in two PRs if the triage shows many real gaps. A UI change th
 
 `InputViewModel.kt:30` (`setupControllerInputCallbacks()`) was already seen surviving in the calibration run.
 
-### [ ] 5b. Splash — 40 survivors
+### [x] 5b. Splash — 40 survivors (#197: 8 left, all equivalent)
 
 | File | S | K |
 |---|---:|---:|
