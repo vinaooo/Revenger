@@ -1,6 +1,12 @@
 package com.vinaooo.revenger.views
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Looper
+import com.vinaooo.revenger.utils.OrientationManager
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import io.mockk.verify
 import com.vinaooo.revenger.R
 import java.time.Duration
 import com.vinaooo.revenger.ui.splash.CRTBootView
@@ -69,6 +75,51 @@ class SplashActivity_test {
         activity.onConfigurationChanged(activity.resources.configuration)
 
         assertFalse(activity.isFinishing)
+    }
+
+    private fun animationStarted(): Boolean =
+            CRTBootView::class.java.getDeclaredField("isAnimationStarted").apply { isAccessible = true }
+                    .getBoolean(crtView)
+
+    @Test
+    fun `the boot animation starts when the native splash leaves`() {
+        controller.visible()
+        assertFalse(animationStarted())
+
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(200))
+        activity.window.decorView.viewTreeObserver.dispatchOnPreDraw()
+        shadowOf(Looper.getMainLooper()).idle()
+
+        assertTrue(animationStarted())
+    }
+
+    @Test
+    fun `the window background is black`() {
+        assertEquals(Color.BLACK, (activity.window.decorView.background as ColorDrawable).color)
+    }
+
+    @Test
+    fun `the configured orientation is applied on create and after each configuration change`() {
+        mockkObject(OrientationManager)
+        try {
+            val other = Robolectric.buildActivity(SplashActivity::class.java).setup().get()
+            verify(exactly = 1) { OrientationManager.applyConfigOrientation(other, any()) }
+
+            other.onConfigurationChanged(other.resources.configuration)
+
+            verify(exactly = 2) { OrientationManager.applyConfigOrientation(other, any()) }
+        } finally {
+            unmockkObject(OrientationManager)
+        }
+    }
+
+    @Test
+    fun `destroying before the native splash is released cancels the pending release`() {
+        controller.pause().stop().destroy()
+
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(200))
+
+        assertFalse(isReady())
     }
 
     private fun isReady(): Boolean =

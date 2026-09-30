@@ -97,8 +97,7 @@ class SplashActivity : AppCompatActivity() {
 
     /** Configure fullscreen and immersive mode */
     private fun setupFullscreen() {
-        // Ensure black background on window
-        window.decorView.setBackgroundColor(android.graphics.Color.BLACK)
+        // Ensure black background on window (this also sets the decor view's background)
         window.setBackgroundDrawableResource(android.R.color.black)
 
         // Hide system bars using modern API (API 30+)
