@@ -66,13 +66,26 @@ class CRTBootViewDrawing_test {
         view.startAnimation()
 
         val dot = drawAt(0.1f)
-        assertTrue(dot.brightness(CENTER_X, CENTER_Y) > LIT)
+        assertEquals(FULL, dot.brightness(CENTER_X, CENTER_Y)) // solid core
+        assertTrue(dot.brightness(CENTER_X + 8, CENTER_Y) in 1 until FULL) // glow around it
         assertEquals(0, dot.brightness(LINE_X, CENTER_Y))
 
         val line = drawAt(0.45f)
         assertTrue(line.brightness(LINE_X, CENTER_Y) > LIT)
         assertTrue(line.brightness(LINE_X, CENTER_Y + 15) < DARK)
         assertEquals(0, line.brightness(CENTER_X, UPPER_Y))
+        assertTrue(line.brightness(CENTER_X, CENTER_Y - 20) > 0) // the dot's glow stays on
+        // The line's glow reaches above and below both halves, and its needle tips go past the
+        // ends; nothing is drawn beyond them.
+        for (x in listOf(50, 150)) {
+            assertTrue(line.brightness(x, CENTER_Y - 8) > 0)
+            assertTrue(line.brightness(x, CENTER_Y + 8) > 0)
+        }
+        assertTrue(line.brightness(28, CENTER_Y) > 0)
+        assertTrue(line.brightness(172, CENTER_Y) > 0)
+        for ((x, y) in listOf(10 to CENTER_Y, 190 to CENTER_Y, 15 to 40, 185 to 40, 15 to 80, 185 to 80)) {
+            assertEquals("($x, $y)", 0, line.brightness(x, y))
+        }
 
         val expansion = drawAt(0.75f)
         assertTrue(expansion.brightness(CENTER_X, UPPER_Y) > 0)
@@ -88,8 +101,8 @@ class CRTBootViewDrawing_test {
         view.startReverseAnimation()
         val shutdownStart = drawAt(0.1f)
 
-        assertTrue(bootEnd.brightness(CENTER_X, CENTER_Y) < DARK)
-        assertTrue(shutdownStart.brightness(CENTER_X, CENTER_Y) > LIT)
+        assertTrue(bootEnd.brightness(CENTER_X, UPPER_Y) < DARK)
+        assertTrue(shutdownStart.brightness(CENTER_X, UPPER_Y) > LIT) // the whole screen, not a dot
     }
 
     @Test
@@ -111,5 +124,6 @@ class CRTBootViewDrawing_test {
         const val UPPER_Y = 30
         const val LIT = 0x80
         const val DARK = 0x40
+        const val FULL = 0xFF
     }
 }
