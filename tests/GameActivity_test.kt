@@ -7,6 +7,15 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
 import android.os.Bundle
+import android.media.AudioManager
+import com.vinaooo.revenger.controllers.FloatingMenuButtonController
+import com.vinaooo.revenger.gamepad.GamePadLayoutAdjuster
+import com.vinaooo.revenger.performance.AdvancedPerformanceProfiler
+import com.vinaooo.revenger.utils.OrientationManager
+import com.vinaooo.revenger.utils.RetroViewUtils
+import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
+import com.vinaooo.revenger.utils.SystemBarsAppearance
+import com.vinaooo.revenger.viewmodels.menu.GamePadInputController
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Rational
@@ -96,6 +105,9 @@ class GameActivity_test {
 
     private fun idle() = shadowOf(Looper.getMainLooper()).idle()
 
+    private fun getField(owner: Any, name: String): Any? =
+            owner.javaClass.getDeclaredField(name).apply { isAccessible = true }.get(owner)
+
     private fun setField(owner: Any, name: String, value: Any?) {
         owner.javaClass.getDeclaredField(name).apply { isAccessible = true }.set(owner, value)
     }
@@ -144,6 +156,95 @@ class GameActivity_test {
     @Test
     fun `sem RetroView nao ha observador de ciclo de vida`() {
         assertNull(activity.gameLifecycleObserverOrNull())
+    }
+
+    @Test
+    fun `onCreate pede o foco de audio, aplica a orientacao e liga captura e profiler`() {
+        mockkObject(OrientationManager, ScreenshotCaptureUtil, AdvancedPerformanceProfiler)
+
+        controller.create().start().resume().visible()
+        idle()
+
+        val audioManager = activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        assertNotNull(shadowOf(audioManager).lastAudioFocusRequest)
+        verify { OrientationManager.applyConfigOrientation(activity, any()) }
+        verify { ScreenshotCaptureUtil.setContext(activity) }
+        verify { AdvancedPerformanceProfiler.startProfiling(activity) }
+        verify { AdvancedPerformanceProfiler.showDebugOverlay(activity) }
+    }
+
+    @Test
+    fun `onCreate entrega gamepads, containers e o menu ao ViewModel`() {
+        val gamePads = mockk<GamePadInputController>(relaxed = true)
+        setField(viewModel, "gamePadInputController", gamePads)
+
+        controller.create()
+
+        val left = activity.findViewById<FrameLayout>(R.id.left_container)
+        val right = activity.findViewById<FrameLayout>(R.id.right_container)
+        verify { gamePads.setupGamePads(activity, left, right) }
+        assertNotNull(getField(viewModel, "retroMenu3Fragment"))
+        assertSame(activity.findViewById<View>(R.id.menu_container), (getField(viewModel, "menuContainerViewRef") as java.lang.ref.WeakReference<*>).get())
+        assertSame(activity.findViewById<View>(R.id.containers), (getField(viewModel, "gamePadContainerViewRef") as java.lang.ref.WeakReference<*>).get())
+        assertNotNull(viewModel.navigationController?.onMenuClosedCallback)
+    }
+
+    @Test
+    fun `onCreate registra o listener de rotacao automatica`() {
+        controller.create()
+
+        val rotation = getField(activity, "rotationController") as RotationController
+        val receiver = getField(rotation, "rotationSettingsReceiver")
+        assertTrue(shadowOf(activity.application).registeredReceivers.any { it.broadcastReceiver === receiver })
+    }
+
+    @Test
+    fun `onCreate e cada mudanca de configuracao posicionam o gamepad e o tema das barras`() {
+        val adjuster = mockk<GamePadLayoutAdjuster>(relaxed = true)
+        val fab = mockk<FloatingMenuButtonController>(relaxed = true)
+        setField(activity, "gamePadLayoutAdjuster", adjuster)
+        setField(activity, "floatingMenuButtonController\$delegate", lazyOf(fab))
+        mockkObject(SystemBarsAppearance)
+
+        createWithMockPip()
+        val gamePads = activity.findViewById<android.widget.LinearLayout>(R.id.containers)
+        verify(exactly = 1) { adjuster.adjustPositionForOrientation(gamePads) }
+        verify(exactly = 1) { fab.setup() }
+
+        setField(activity, "rotationController", mockk<RotationController>(relaxed = true))
+        val newConfig = Configuration(activity.resources.configuration)
+        newConfig.uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
+        activity.onConfigurationChanged(newConfig)
+
+        verify(exactly = 2) { adjuster.adjustPositionForOrientation(gamePads) }
+        verify { SystemBarsAppearance.apply(any(), newConfig.uiMode) }
+    }
+
+    @Test
+    fun `pausar a activity pausa o emulador e guarda o estado depois do primeiro frame`() {
+        createWithMockPip()
+        controller.start().resume()
+        val retroViewUtils = mockk<RetroViewUtils>(relaxed = true)
+        setField(viewModel, "retroViewUtils", retroViewUtils)
+        frameRendered.value = true
+
+        controller.pause()
+
+        verify { retroView.pause() }
+        verify(exactly = 1) { retroViewUtils.preserveEmulatorState(retroView) }
+    }
+
+    @Test
+    fun `a primeira entrada depois de retomar ja mede o tempo de frame`() {
+        mockkObject(AdvancedPerformanceProfiler)
+        createWithMockPip()
+        controller.start().resume()
+
+        mockKeyMotionRouter().also { every { it.processKeyEvent(any(), any()) } returns true }
+
+        activity.onKeyDown(KeyEvent.KEYCODE_BUTTON_A, keyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_A))
+
+        verify(exactly = 1) { AdvancedPerformanceProfiler.recordFrameTime(any()) }
     }
 
     @Test

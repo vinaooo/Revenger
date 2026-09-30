@@ -68,6 +68,17 @@ class AudioViewModel_test {
         verify(exactly = 0) { controller.setAudioEnabled(any(), any()) }
     }
 
+    @Test
+    fun `o audio desligado fica salvo para o proximo ViewModel`() {
+        viewModel.setAudioEnabled(null, false)
+
+        assertFalse(AudioViewModel(ApplicationProvider.getApplicationContext<Application>()).getAudioState())
+
+        viewModel.setAudioEnabled(null, true)
+
+        assertTrue(AudioViewModel(ApplicationProvider.getApplicationContext<Application>()).getAudioState())
+    }
+
     // Regression test for the narrowed ClassCastException catch in loadAudioState(): a value of
     // the wrong type under "audio_enabled" (e.g. left over from a preferences-format change) must
     // fall back to true instead of crashing construction.

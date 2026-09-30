@@ -14,6 +14,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -77,6 +78,8 @@ class MenuCloseHandler_test {
 
         assertEquals(1, hideLoadPreviewCalled)
         assertEquals(1, clearCachedScreenshotCalled)
+        // The freshest frame becomes the PiP still before the menu caches are dropped.
+        verify(exactly = 1) { ScreenshotCaptureUtil.promoteCachedFullToPipFrame() }
     }
 
     @Test

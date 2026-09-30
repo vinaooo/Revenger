@@ -26,14 +26,6 @@ class InputViewModel(application: Application) : AndroidViewModel(application) {
             gamePadContainerViewRef = value?.let(::WeakReference)
         }
 
-    init {
-        setupControllerInputCallbacks()
-    }
-
-    private fun setupControllerInputCallbacks() {
-        controllerInput.shouldHandleSelectStartCombo = { true }
-    }
-
     // ========== CONFIGURATION METHODS ==========
 
     fun setGamePadContainer(container: android.widget.LinearLayout) {

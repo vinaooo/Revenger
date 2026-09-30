@@ -223,6 +223,16 @@ class GameActivityViewModel_test {
      * out of `ControllerInput` itself.
      */
     @Test
+    fun `clearControllerKeyLog esvazia o registro de teclas do combo`() {
+        val keyLog = getPrivateField<ControllerInput>(viewModel, "controllerInput").comboTracker.keyLog
+        keyLog.add(KeyEvent.KEYCODE_BUTTON_START)
+
+        viewModel.clearControllerKeyLog()
+
+        assertTrue(keyLog.isEmpty())
+    }
+
+    @Test
     fun `fechar o menu limpa o estado do combo em ordem e bloqueia so o botao que fechou`() {
         val realControllerInput = getPrivateField<ControllerInput>(viewModel, "controllerInput")
         val spyComboTracker = spyk(realControllerInput.comboTracker)
