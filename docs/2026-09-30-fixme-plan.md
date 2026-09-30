@@ -1,6 +1,6 @@
 # Open FIXMEs in `TODO.kt` — 2026-09-30
 
-`TODO.kt` lists five FIXMEs. Each one was checked against `develop` (fafe737) on 2026-09-30, and all five are still real bugs. The FIXME text in `TODO.kt` is in Portuguese; the summaries below are in English.
+`TODO.kt` lists five FIXMEs. Each one was checked against `develop` (fafe737) on 2026-09-30. Four were still real bugs. #1 had already been fixed by #181 on 2026-09-28, and only its FIXME was left behind. The FIXME text in `TODO.kt` is in Portuguese; the summaries below are in English.
 
 The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope here.
 
@@ -16,7 +16,7 @@ The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope
 
 | # | FIXME (`TODO.kt` line) | Area | Reachable by users | Order |
 |---|---|---|---|---|
-| 1 | 19: Back/Escape can fire twice on a long press | Keyboard input | Only on a hold past 200 ms | 5th |
+| 1 | ~~19~~ (removed): Back/Escape can fire twice on a long press | Keyboard input | Only on a hold past 200 ms | 5th, already fixed by #181; FIXME removed in #205 |
 | 2 | ~~24~~ (removed): menus clear pending input on an orphan `ControllerInput` | Input / ViewModels | Yes | 4th, done in #204 |
 | 3 | ~~30~~ (removed): each rotation rebuilds the menu twice | Rotation | Yes (intermittent) | 3rd, done in #203 |
 | 4 | ~~34~~ (removed): rotating with Core Variables open falls back to the main menu | Rotation | Yes | 1st, done in #201 |
@@ -60,7 +60,9 @@ The remaining `TODO` entries in `TODO.kt` are feature ideas and are out of scope
 - **How users hit it:** a stray "back" after moving between submenus.
 - **Note:** `tests/SubmenuFragmentSetup_test.kt` (`pausar limpa as entradas pendentes do controle`) checks the clear against the `InputViewModel`'s instance. A fix that switches to the real instance must update that test.
 
-### [ ] 1. Back/Escape can fire twice on a long press
+### [x] 1. Back/Escape can fire twice on a long press (#181, FIXME removed in #205)
+
+- **Already fixed before this plan:** #181 (2026-09-28) added `KEYCODE_BACK` and `KEYCODE_ESCAPE` to `KEY_UP_TRACKED_ACTION_KEYS`, so their `KEY_DOWN` is recorded like Backspace's and the `KEY_UP` only confirms it. Its regression tests are in `tests/KeyboardInputAdapter_test.kt` (`Back segurado alem do debounce gera um unico NavigateBack`, `Escape gera um unico CloseAllMenus por toque`, and the no-`KEY_DOWN` fallback test). #181 didn't delete the FIXME, and this plan's check missed the fix. #205 removes the FIXME only; there's no code change.
 
 - **FIXME:** in `ui/retromenu3/navigation/KeyboardInputAdapter.kt`, only `KEYCODE_DEL` records `actionKeyDownTimestamps` on `KEY_DOWN`. `KEYCODE_BACK` and `KEYCODE_ESCAPE` therefore fall through to the `KEY_UP` fallback and fire `NavigateBack` / `CloseAllMenus` a second time.
 - **Mitigation today:** the 200 ms debounce (`MENU_CLOSE_DEBOUNCE_MS` in `input/ControllerInput.kt`) hides it for normal taps. Only a key held longer than that fires twice.
