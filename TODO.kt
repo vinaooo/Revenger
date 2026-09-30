@@ -16,11 +16,6 @@
 //       por NavigationController.
 
 // TODO: Melhorar navegação via teclado
-// FIXME: KEYCODE_BACK/KEYCODE_ESCAPE podem disparar NavigateBack/CloseAllMenus 2x por
-//        toque físico (ui/retromenu3/navigation/KeyboardInputAdapter.kt) -- só KEYCODE_DEL
-//        registra actionKeyDownTimestamps no KEY_DOWN, então BACK/ESCAPE caem no fallback
-//        de KEY_UP e disparam de novo. Mitigado pelo debounce de 200ms
-//        (MENU_CLOSE_DEBOUNCE_MS em input/ControllerInput.kt), só afeta toque mantido além disso.
 
 // [ ]: Fazer
 // [x]: Feito
