@@ -45,6 +45,19 @@ class ShaderViewModel_test {
     }
 
     @Test
+    fun `o shader escolhido fica salvo para o proximo ViewModel`() {
+        val controller = mockk<ShaderController>(relaxed = true)
+        every { controller.cycleShader() } returns "crt"
+        viewModel.setShaderController(controller)
+
+        viewModel.toggleShader()
+        assertEquals("crt", ShaderViewModel(ApplicationProvider.getApplicationContext<Application>()).getShaderState())
+
+        viewModel.setShader("lcd")
+        assertEquals("lcd", ShaderViewModel(ApplicationProvider.getApplicationContext<Application>()).getShaderState())
+    }
+
+    @Test
     fun `toggleShader delega ao controller, atualiza o estado e persiste`() {
         val controller = mockk<ShaderController>(relaxed = true)
         every { controller.getCurrentShader() } returns "disabled"

@@ -109,6 +109,16 @@ class GameActivityViewModel_retroViewLifecycle_test {
     }
 
     @Test
+    fun `a view do emulador segue o ciclo de vida da activity`() {
+        val controller = Robolectric.buildActivity(ComponentActivity::class.java).setup()
+
+        viewModel.setupRetroView(controller.get(), container)
+        controller.pause().stop().destroy()
+
+        verify(exactly = 1) { glRetroView.onDestroy() }
+    }
+
+    @Test
     fun `setupRetroView cria os controllers de audio, velocidade e shader`() {
         viewModel.setupRetroView(activity, container)
 
@@ -226,6 +236,8 @@ class GameActivityViewModel_retroViewLifecycle_test {
         setPrivateField("gamePadInputController", gamePads)
         viewModel.setupRetroView(activity, container)
         val disposable = getPrivateField<CompositeDisposable>("compositeDisposable")
+        val submenus = getPrivateField<com.vinaooo.revenger.viewmodels.menu.SubmenuFragmentState>("submenuFragmentState")
+        submenus.aboutFragment = mockk(relaxed = true)
 
         val onCleared = GameActivityViewModel::class.java.getDeclaredMethod("onCleared")
         onCleared.isAccessible = true
@@ -241,6 +253,7 @@ class GameActivityViewModel_retroViewLifecycle_test {
         assertNull(getPrivateField("shaderController"))
         assertNull(getPrivateField("sharedPreferences"))
         assertEquals(null, getPrivateField<Any?>("retroMenu3Fragment"))
+        assertNull(submenus.aboutFragment)
     }
 
     @Test

@@ -49,6 +49,15 @@ class SaveLoadCentralizedController_test {
     }
 
     @Test
+    fun `saveStateCentralized sem keepPaused retoma o jogo depois de salvar`() {
+        val facade: SaveLoadCentralizedFacade = controller
+
+        facade.saveStateCentralized()
+
+        verify(exactly = 1) { saveLoadOrchestrator.saveState(any(), any(), false, null) }
+    }
+
+    @Test
     fun `saveStateCentralized repassa retroView, retroViewUtils, keepPaused e onComplete`() {
         currentRetroView = mockk(relaxed = true)
         currentRetroViewUtils = mockk(relaxed = true)

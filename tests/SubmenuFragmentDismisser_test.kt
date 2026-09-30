@@ -2,6 +2,8 @@ package com.vinaooo.revenger.viewmodels.menu
 
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
+import com.vinaooo.revenger.ui.retromenu3.AboutFragment
+import com.vinaooo.revenger.ui.retromenu3.ExitFragment
 import com.vinaooo.revenger.ui.retromenu3.MenuManager
 import com.vinaooo.revenger.ui.retromenu3.MenuState
 import com.vinaooo.revenger.ui.retromenu3.MenuStateManager
@@ -85,6 +87,34 @@ class SubmenuFragmentDismisser_test {
         assertFalse(menuStateManager.isMenuActive(MenuSystemState.MenuType.SETTINGS_MENU))
         assertSame(progressFragment, state.progressFragment)
         assertTrue(menuStateManager.isMenuActive(MenuSystemState.MenuType.PROGRESS_MENU))
+    }
+
+    @Test
+    fun `fechar Progress, Exit ou About limpa o campo, desativa o menu e volta ao menu principal`() {
+        val progress = mockk<ProgressFragment>(relaxed = true) { every { isAdded } returns true }
+        val exit = mockk<ExitFragment>(relaxed = true) { every { isAdded } returns true }
+        val about = mockk<AboutFragment>(relaxed = true) { every { isAdded } returns true }
+        state.progressFragment = progress
+        state.exitFragment = exit
+        state.aboutFragment = about
+        menuStateManager.activateMenu(MenuSystemState.MenuType.PROGRESS_MENU)
+        menuStateManager.activateMenu(MenuSystemState.MenuType.EXIT_MENU)
+        menuStateManager.activateMenu(MenuSystemState.MenuType.ABOUT_MENU)
+
+        dismisser.dismissProgress()
+        assertNull(state.progressFragment)
+        assertFalse(menuStateManager.isMenuActive(MenuSystemState.MenuType.PROGRESS_MENU))
+        verify(exactly = 1) { menuManagerMock.navigateToState(MenuState.MAIN_MENU) }
+
+        dismisser.dismissExit()
+        assertNull(state.exitFragment)
+        assertFalse(menuStateManager.isMenuActive(MenuSystemState.MenuType.EXIT_MENU))
+        verify(exactly = 2) { menuManagerMock.navigateToState(MenuState.MAIN_MENU) }
+
+        dismisser.dismissAboutMenu()
+        assertNull(state.aboutFragment)
+        assertFalse(menuStateManager.isMenuActive(MenuSystemState.MenuType.ABOUT_MENU))
+        verify(exactly = 3) { menuManagerMock.navigateToState(MenuState.MAIN_MENU) }
     }
 
     /**

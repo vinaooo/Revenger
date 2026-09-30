@@ -46,6 +46,15 @@ class SpeedViewModel_test {
     }
 
     @Test
+    fun `o fast forward fica salvo para o proximo ViewModel`() {
+        viewModel.enableFastForward()
+        assertTrue(SpeedViewModel(ApplicationProvider.getApplicationContext<Application>()).getFastForwardState())
+
+        viewModel.disableFastForward()
+        assertFalse(SpeedViewModel(ApplicationProvider.getApplicationContext<Application>()).getFastForwardState())
+    }
+
+    @Test
     fun `enableFastForward com GLRetroView aplica no controller`() {
         val retroView = mockk<GLRetroView>(relaxed = true)
         val controller = mockk<SpeedController>(relaxed = true)
