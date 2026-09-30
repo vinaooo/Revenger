@@ -6,14 +6,11 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import com.vinaooo.revenger.AppConfig
 import com.vinaooo.revenger.R
 import com.vinaooo.revenger.RevengerApplication
-import com.vinaooo.revenger.input.ControllerInput
 import com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutConfig
 import com.vinaooo.revenger.ui.retromenu3.config.MenuLayoutFinder
-import com.vinaooo.revenger.viewmodels.InputViewModel
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.After
@@ -29,8 +26,7 @@ import org.robolectric.annotation.Config
 /**
  * What every text submenu (About, Core Variables, Progress, Settings, Exit) sets up when its view
  * is created, checked once per fragment: the configured vertical proportions, every view flat
- * under the gamepad, cards without a selected background color, the first item selected, and
- * pending controller input cleared when the submenu pauses.
+ * under the gamepad, cards without a selected background color, and the first item selected.
  */
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @Config(sdk = [33])
@@ -104,20 +100,6 @@ class SubmenuFragmentSetup_test(private val name: String, private val create: ()
         assertEquals(View.VISIBLE, arrows.first().visibility)
         assertEquals(selectedColor, arrows.first().currentTextColor)
         arrows.drop(1).forEach { assertEquals(View.GONE, it.visibility) }
-    }
-
-    @Test
-    fun `pausar limpa as entradas pendentes do controle`() {
-        val inputViewModel = ViewModelProvider(host.activity)[InputViewModel::class.java]
-        val controllerInput =
-                InputViewModel::class.java.getDeclaredField("controllerInput").apply { isAccessible = true }
-                        .get(inputViewModel) as ControllerInput
-        val tracker = controllerInput.comboTracker
-        tracker.javaClass.getDeclaredField("comboAlreadyTriggered").apply { isAccessible = true }.set(tracker, true)
-
-        host.destroy()
-
-        assertFalse(tracker.getComboAlreadyTriggered())
     }
 
     companion object {

@@ -25,7 +25,7 @@ import org.robolectric.annotation.GraphicsMode
 /**
  * Hosts the menu fragments with a stubbed [GameActivityViewModel]. The fragments look it up
  * through `ViewModelProvider(requireActivity())`, so the stub is handed out by this Activity's
- * default factory; every other ViewModel (InputViewModel) is created as usual.
+ * default factory; any other ViewModel is created as usual.
  */
 class ScreenshotHostActivity : FragmentActivity() {
     lateinit var gameViewModel: GameActivityViewModel

@@ -6,7 +6,6 @@ import com.vinaooo.revenger.managers.SaveStateManager
 import com.vinaooo.revenger.performance.DebugOverlayController
 import com.vinaooo.revenger.utils.ScreenshotCaptureUtil
 import com.vinaooo.revenger.viewmodels.GameActivityViewModel
-import com.vinaooo.revenger.viewmodels.InputViewModel
 import java.lang.ref.WeakReference
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -17,8 +16,7 @@ import org.junit.Test
  * strong [Context] or [View] reference in its own fields:
  * - [SaveStateManager]: the Context is only a constructor parameter;
  * - [ScreenshotCaptureUtil]: keeps a "configured" flag instead of the Context;
- * - [DebugOverlayController], [GameActivityViewModel], [InputViewModel]: views are held through
- *   a [WeakReference].
+ * - [DebugOverlayController], [GameActivityViewModel]: views are held through a [WeakReference].
  *
  * This checks the declared fields of each class (not superclasses such as AndroidViewModel,
  * whose Application reference is fine).
@@ -30,8 +28,7 @@ class StaticFieldLeakGuard_test {
                     SaveStateManager::class.java,
                     ScreenshotCaptureUtil::class.java,
                     DebugOverlayController::class.java,
-                    GameActivityViewModel::class.java,
-                    InputViewModel::class.java
+                    GameActivityViewModel::class.java
             )
 
     private fun leakingFields(type: Class<*>): List<String> =
@@ -55,8 +52,7 @@ class StaticFieldLeakGuard_test {
                 listOf(
                         DebugOverlayController::class.java to "debugOverlayViewRef",
                         GameActivityViewModel::class.java to "menuContainerViewRef",
-                        GameActivityViewModel::class.java to "gamePadContainerViewRef",
-                        InputViewModel::class.java to "gamePadContainerViewRef"
+                        GameActivityViewModel::class.java to "gamePadContainerViewRef"
                 )
         expected.forEach { (type, fieldName) ->
             val field = type.getDeclaredField(fieldName)

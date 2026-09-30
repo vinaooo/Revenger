@@ -368,7 +368,7 @@ class ControllerInput_test {
         val isMenuOperationSafeFake: () -> Boolean = { false }
 
         // Assign every property individually (as GameActivityViewModel.setupMenuCallback()
-        // and InputViewModel do), rather than replacing the whole bundle at once. Each
+        // does), rather than replacing the whole bundle at once. Each
         // setter is a hand-written `callbacks = callbacks.copy(field = value)` -- this
         // proves every one of the 15 names its own field (no copy-paste mismatch) and
         // that earlier assignments survive later ones (each copy() only touches its own

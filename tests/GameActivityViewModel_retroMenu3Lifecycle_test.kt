@@ -1,7 +1,6 @@
 package com.vinaooo.revenger.viewmodels
 
 import android.app.Application
-import android.os.Looper
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.test.core.app.ApplicationProvider
@@ -28,7 +27,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 /**
@@ -273,23 +271,5 @@ class GameActivityViewModel_retroMenu3Lifecycle_test {
         verify(exactly = 1) { navController.closeMenuExternal() }
         assertFalse(menuStateManager.isRetroMenu3Open())
         assertTrue(animationEndCalled)
-    }
-
-    // ---------------------------------------------------------------------------------------
-    // clearControllerInputState
-    // ---------------------------------------------------------------------------------------
-
-    @Test
-    fun `clearControllerInputState limpa o key log do InputViewModel apos o delay`() {
-        val inputViewModel = getPrivateField<InputViewModel>(viewModel, "inputViewModel")
-        val keyLog = inputViewModel.getControllerInput().comboTracker.keyLog
-        keyLog.add(android.view.KeyEvent.KEYCODE_BUTTON_START)
-
-        viewModel.clearControllerInputState()
-        assertTrue(keyLog.isNotEmpty())
-
-        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(250))
-
-        assertTrue(keyLog.isEmpty())
     }
 }

@@ -21,12 +21,6 @@
 //        registra actionKeyDownTimestamps no KEY_DOWN, então BACK/ESCAPE caem no fallback
 //        de KEY_UP e disparam de novo. Mitigado pelo debounce de 200ms
 //        (MENU_CLOSE_DEBOUNCE_MS em input/ControllerInput.kt), só afeta toque mantido além disso.
-// FIXME: GameActivityViewModel compõe um InputViewModel com seu próprio ControllerInput
-//        órfão -- InputViewModel.getControllerInput() nunca é a instância que processa
-//        input real. MenuFragmentBase.kt#onPause() chama
-//        inputViewModel.getControllerInput().clearPendingInputsPreserveHeld() na instância
-//        errada, deixando a "FIX ERROR 1 - Phase 4.2" (evitar B/Backspace vazando entre
-//        transições de submenu) inerte.
 
 // [ ]: Fazer
 // [x]: Feito

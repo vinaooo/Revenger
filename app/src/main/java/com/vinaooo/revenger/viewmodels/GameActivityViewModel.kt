@@ -85,9 +85,6 @@ class GameActivityViewModel(application: Application) :
     /** Menu management ViewModel */
     private val menuViewModel: MenuViewModel = MenuViewModel(application)
 
-    /** Input management ViewModel */
-    private val inputViewModel: InputViewModel = InputViewModel(application)
-
     /** Audio management ViewModel */
     private val audioViewModel: AudioViewModel = AudioViewModel(application)
 
@@ -255,8 +252,6 @@ class GameActivityViewModel(application: Application) :
                     navigationController = { navigationController },
                     retroMenu3Fragment = { retroMenu3Fragment },
                     menuStateManager = menuStateManager,
-                    inputViewModel = inputViewModel,
-                    controllerInput = { controllerInput },
                     isRetroMenu3Open = { isRetroMenu3Open() }
             )
     private val menuOpenHandler =
@@ -410,12 +405,6 @@ class GameActivityViewModel(application: Application) :
     /** Dismiss the RetroMenu3 */
     override fun dismissRetroMenu3(onAnimationEnd: (() -> Unit)?) =
             retroMenu3ToggleController.dismissRetroMenu3(onAnimationEnd)
-
-    /**
-     * Clears only controller states without closing the fragment. Used when the fragment closes on
-     * its own (e.g.: Continue button)
-     */
-    override fun clearControllerInputState() = retroMenu3ToggleController.clearControllerInputState()
 
     /** Check if the RetroMenu3 is currently open */
     override fun isRetroMenu3Open(): Boolean = retroMenu3FragmentLifecycle.isRetroMenu3Open()
