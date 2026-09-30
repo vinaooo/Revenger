@@ -183,3 +183,14 @@ Rerun the baseline on the latest `develop`, with a fresh report dir so this one 
 ```bash
 python3 tools/mutation/mutation_testing.py --all --report-dir ~/revenger-mutation-report-after
 ```
+
+### Result (2026-09-30, `develop` 3a13fe7)
+
+| Run | Mutants | Killed | Survived | Compile errors | Score |
+|---|---:|---:|---:|---:|---:|
+| Baseline (2026-09-28) | 2029 | 1417 | 492 | 120 | 74.2% |
+| After items 1a–5b | 1991 | 1762 | 110 | 119 | **94.1%** |
+
+There are fewer mutants because the items deleted dead code. None of the 110 survivors is new: each one also survived its item's run and is listed as equivalent in that item's PR (#188–#197). None of the mutants the baseline killed survives now.
+
+The run took about 13 hours. `--full-jobs 3` ran out of the 24 GB of RAM (swap kept growing), so it was resumed with `--jobs 3 --full-jobs 1` and later `--jobs 2 --full-jobs 1`. A survivor needs a full-suite run, about 8 minutes each, so with one full run at a time the survivors take most of the time.
