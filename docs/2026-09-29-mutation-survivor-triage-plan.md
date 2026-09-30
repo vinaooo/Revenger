@@ -153,7 +153,7 @@ First look: the forced frame capture on entering PiP (`PipController.kt:136, 156
 
 Big item; split it in two PRs if the triage shows many real gaps. A UI change that alters pixels must also update the Roborazzi goldens (`recordRoborazziDebug`).
 
-### [ ] 5a. Game screen and view models — 57 survivors
+### [x] 5a. Game screen and view models — 57 survivors (#196: 16 left, all equivalent)
 
 | File | S | K |
 |---|---:|---:|
